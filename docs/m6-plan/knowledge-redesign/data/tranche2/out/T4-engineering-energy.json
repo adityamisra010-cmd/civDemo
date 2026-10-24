@@ -1,0 +1,3705 @@
+{
+ "group": "T4-engineering-energy",
+ "audit": [
+  {
+   "id": "fire_making",
+   "name": "Controlled-fire pyrotechnology",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "energy",
+   "cost": 1050.0,
+   "prereq": null,
+   "dependents": [
+    "birch_tar",
+    "copper_native",
+    "dugout",
+    "heat_treatment_stone",
+    "lamp",
+    "lime_plaster",
+    "token_counting"
+   ],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "root (no prerequisites)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "foodState.adaptationAbsorbableShortfall +0.03"
+   ],
+   "effectRationale": "Managed hearths and earth ovens make tough roots, seeds and bone grease edible: a wider fallback diet lets a band absorb lean seasons.",
+   "costConcern": "1,050 is double the other A1 roots (knapping 520) but justified: seven dependents across energy, materials, transport and communication.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Root of the pyrotechnology family with seven dependents; no prerequisite is needed (fire itself is baseline, D-047 ruling 2). Effect is food security from earth-oven processing, kept distinct from the lamp's underground-light role.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "lamp",
+   "name": "Oil lamp",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "energy",
+   "cost": 180.0,
+   "prereq": "fire_making",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "fire_making",
+     "verdict": "keep",
+     "why": "A fat lamp is a controlled, sustained small flame; it presupposes deliberate fire management."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.02"
+   ],
+   "effectRationale": "Portable light makes underground work possible: ochre and flint mining (Lion Cave ~40 kya; chalk-cut lamps in Neolithic flint mines) depend on it.",
+   "costConcern": "180 is the cheapest node in the lane; appropriate for a one-step extension of fire.",
+   "action": "add-dependency",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep its own prerequisite. It is a leaf today, but underground mining needs light: propose that mining_shaft (T2, A3) gains lamp as a prerequisite (chalk-cut lamps at Grimes Graves, Spiennes-type flint shafts). Routed to the integrator, not applied from this record.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "charcoal",
+   "name": "Charcoal making",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "energy",
+   "cost": 1050.0,
+   "prereq": "birch_tar AND ground_stone_early",
+   "dependents": [
+    "iron_bloomery"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "birch_tar",
+     "verdict": "keep",
+     "why": "Tar making is pyrolysis of wood in a sealed, oxygen-starved pit: the same principle as a covered charcoal pile."
+    },
+    {
+     "atom": "ground_stone_early",
+     "verdict": "keep",
+     "why": "Felling and splitting the cordwood for a clamp needs ground-edge axes."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: materials",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "catchment.hinterlandRadiusKm +0.02"
+   ],
+   "effectRationale": "Charcoal carries about twice the heat of firewood per load, so a settlement can draw its fuel from further out: pre-industrial cities ringed themselves with charcoal-burning zones beyond the firewood belt.",
+   "costConcern": "1,050 for an A2 node is in line with the A2 cohort.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are sound. Its only dependent is iron_bloomery; T2 has already proposed copper_smelting += charcoal, which closes the obvious missing edge (smelting needs a reducing fuel).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "bellows",
+   "name": "Bellows",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "energy",
+   "cost": 2960.0,
+   "prereq": "hide_working AND kiln_updraft",
+   "dependents": [
+    "blast_furnace_water",
+    "cast_iron"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "hide_working",
+     "verdict": "keep",
+     "why": "Pot and bag bellows are leather diaphragms or bags; hide working supplies the material."
+    },
+    {
+     "atom": "kiln_updraft",
+     "verdict": "keep",
+     "why": "Controlled draught through a fired chamber is the furnace concept the bellows intensifies."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "hide_working A1 (3 Ages earlier: long-standing enabler, kept); kiln_updraft A2 (2 Ages earlier: long-standing enabler, kept)",
+   "crossTree": "none (technology atoms only); cross-lane: industry, materials",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.03"
+   ],
+   "effectRationale": "A forced-draught forge lets the village smith re-draw, re-temper and mend edges; tools in use wear out more slowly.",
+   "costConcern": "2,960 sits at the A4 level; at A3 it would be on the high side of the A3 cohort, which the per-(tree, Age) scale absorbs.",
+   "action": "move-age",
+   "newPrereq": null,
+   "newAge": "A3",
+   "rationale": "Its own emerged date (~1,500 BCE, Rekhmire tomb) lies inside the A3 window (~3,500-1,200 BCE), so the A4 label contradicts the dating. Moving it fills the empty A3 energy cohort. Prerequisites (A1, A2) and dependents (cast_iron A5, blast_furnace_water A6) stay order-safe.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "water_mill",
+   "name": "Water mill",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "energy",
+   "cost": 11830.0,
+   "prereq": "rotary_quern",
+   "dependents": [
+    "crank_connecting_rod",
+    "cylinder_boring",
+    "power_loom",
+    "trip_hammer",
+    "water_frame",
+    "water_turbine",
+    "windmill_post",
+    "windmill_vertical"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "rotary_quern",
+     "verdict": "keep",
+     "why": "The mill drives a rotary millstone pair; the quern gives the stone geometry and the rynd/spindle."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: agriculture",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "farming.outputPerFarmerPerYear +0.06",
+    "live: building.paper_mill",
+    "live: building.water_mill"
+   ],
+   "effectRationale": "Hand-grinding grain consumed hours of household labour daily; a mill releases that labour to the fields. Landmark node (first non-muscle prime mover), hence a larger delta.",
+   "costConcern": "11,830 is very high for A5 (trip_hammer 1,760); justified as the gateway of eight dependents, but the integrator's A5 scale should check it does not dominate the A5 cohort.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite kept. gearing (~150 BCE) is not added: the earliest mills (Perachora ~300 BCE horizontal mill) need no right-angle gearing and the node predates gearing. Live unlocks retained.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "The Wheel"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Machinery"
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": [
+    "building.paper_mill",
+    "building.water_mill"
+   ]
+  },
+  {
+   "id": "trip_hammer",
+   "name": "Water-powered trip hammer",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "energy",
+   "cost": 1760.0,
+   "prereq": "water_mill",
+   "dependents": [
+    "fulling_mill"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "water_mill",
+     "verdict": "keep",
+     "why": "A cam on a water-wheel shaft lifting a hammer: needs the water-power wheel."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.03"
+   ],
+   "effectRationale": "Water-driven stamps crush ore at the mine and hull grain, multiplying what each extractor delivers.",
+   "costConcern": "1,760 is low against water_mill (11,830); acceptable for an extension node.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct; China first (Han ~40 BCE). Effect differs from water_mill (extraction vs farm labour).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "windmill_vertical",
+   "name": "Vertical-axis windmill",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "energy",
+   "cost": 2090.0,
+   "prereq": "water_mill",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "water_mill",
+     "verdict": "keep",
+     "why": "The panemone drives the same millstone arrangement as the horizontal water mill."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.02",
+    "live: building.windmill"
+   ],
+   "effectRationale": "Sistan windmills ground grain and lifted water for gardens (al-Mas'udi, al-Istakhri): wind-lifted irrigation raises yields in arid land.",
+   "costConcern": "2,090 reasonable for A6.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct. Deliberate leaf: the Persian type is a regional branch independent of the European post mill. Live unlock shared with windmill_post, so a distinct operand effect distinguishes the two.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "building.windmill"
+   ]
+  },
+  {
+   "id": "windmill_post",
+   "name": "Post mill",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "energy",
+   "cost": 4970.0,
+   "prereq": "water_mill AND sail_square",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "water_mill",
+     "verdict": "keep",
+     "why": "Millstone, spindle and miller's craft come from the water mill."
+    },
+    {
+     "atom": "sail_square",
+     "verdict": "keep",
+     "why": "Sail cloth and rigging on the sweeps; the mill's sails are a land use of sailmaking."
+    },
+    {
+     "atom": "gearing",
+     "verdict": "keep",
+     "why": "PROPOSED ADDITION: a horizontal-axis rotor must turn a vertical stone spindle through a right-angle gear (brake wheel and wallower); gear trains (~150 BCE) are the real enabling knowledge."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "sail_square A3 (3 Ages earlier: long-standing enabler, kept)",
+   "crossTree": "none (technology atoms only); cross-lane: transport",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "farming.outputPerFarmerPerYear +0.03",
+    "live: building.windmill"
+   ],
+   "effectRationale": "Milling without a river head spreads mechanical grinding to flat, riverless farmland, releasing household labour where water mills cannot be built.",
+   "costConcern": "4,970 is over twice windmill_vertical; acceptable given its three prerequisites.",
+   "action": "add-prereq",
+   "newPrereq": "water_mill AND sail_square AND gearing",
+   "newAge": null,
+   "rationale": "Add gearing: the post mill is defined by its right-angle drive, and water_mill does not imply gearing in this graph (its anchor is the gearless horizontal mill). gearing is A5 (~150 BCE), well before 1,180 CE.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.windmill"
+   ]
+  },
+  {
+   "id": "steam_atmospheric",
+   "name": "Atmospheric steam engine",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "energy",
+   "cost": 23650.0,
+   "prereq": "barometer_vacuum AND cast_iron",
+   "dependents": [
+    "steam_separate_condenser"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "barometer_vacuum",
+     "verdict": "keep",
+     "why": "Newcomen's engine works by atmospheric pressure against a condensed-steam vacuum (Torricelli, Guericke, Papin)."
+    },
+    {
+     "atom": "cast_iron",
+     "verdict": "keep",
+     "why": "Large cylinders and pipework; Coalbrookdale cast Newcomen cylinders from 1718."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cast_iron A5 (2 Ages earlier: long-standing enabler, kept)",
+   "crossTree": "none (technology atoms only); cross-lane: materials, science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.06"
+   ],
+   "effectRationale": "Mine drainage: engines kept coal and tin mines working below the water table, a step change in extraction. Larger delta as the first heat engine.",
+   "costConcern": "23,650 is the most expensive A7 energy node; fine as the sole A7 energy node and a landmark.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound and minimal. Its date (1712) fits A7. coal_fuel (new) is not made a prerequisite: the invention needed vacuum physics and casting, not coal.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steam Power"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "steam_separate_condenser",
+   "name": "Separate condenser",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "cost": 5910.0,
+   "prereq": "steam_atmospheric AND barometer_vacuum",
+   "dependents": [
+    "steam_rotary",
+    "thermodynamics"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "steam_atmospheric",
+     "verdict": "keep",
+     "why": "Watt improved a Newcomen model engine; the condenser is a modification of that engine."
+    },
+    {
+     "atom": "barometer_vacuum",
+     "verdict": "keep",
+     "why": "Redundant through steam_atmospheric, but harmless; it documents the vacuum principle the condenser exploits."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.04"
+   ],
+   "effectRationale": "Quartered fuel use made pumping engines economic at metal mines away from coalfields (Cornish tin and copper).",
+   "costConcern": "5,910 is cheap against its parent (23,650) and steam_rotary (133,810): a 22x jump between consecutive steam nodes is a pacing outlier the A8 scale should smooth.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites kept (one is redundant but explanatory). Effect continues the mining role at a smaller delta than the first engine.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steam Power"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "steam_rotary",
+   "name": "Rotary steam engine",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "cost": 133810.0,
+   "prereq": "steam_separate_condenser AND cylinder_boring AND crank_connecting_rod",
+   "dependents": [
+    "dynamo",
+    "gas_engine",
+    "power_loom",
+    "puddling",
+    "refrigeration",
+    "sanitary_engineering",
+    "steam_high_pressure",
+    "steamboat"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "steam_separate_condenser",
+     "verdict": "keep",
+     "why": "Rotary Watt engines were condensing engines."
+    },
+    {
+     "atom": "cylinder_boring",
+     "verdict": "keep",
+     "why": "Wilkinson's 1774 boring mill made Watt's cylinders tight enough to work."
+    },
+    {
+     "atom": "crank_connecting_rod",
+     "verdict": "keep",
+     "why": "Converting reciprocation to rotation (crank, or sun-and-planet gear to evade the crank patent)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "crank_connecting_rod A6 (2 Ages earlier: long-standing enabler, kept)",
+   "crossTree": "none (technology atoms only); cross-lane: industry",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.08"
+   ],
+   "effectRationale": "Factory power anywhere: mills leave the rivers and a much larger share of the population can work as non-farm specialists. Landmark node.",
+   "costConcern": "133,810 is the largest A8 energy cost; it is the gateway to eight dependents, so a high cost is defensible, but see the condenser note.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "All three atoms are historically necessary. It is the Age VIII milestone fact (ages.json a8_steam).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steam Power"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine"
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.08
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "steam_high_pressure",
+   "name": "High-pressure steam",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "cost": 5910.0,
+   "prereq": "steam_rotary AND puddling",
+   "dependents": [
+    "heavy_water_reactor",
+    "light_water_reactor",
+    "locomotive",
+    "steam_turbine"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "steam_rotary",
+     "verdict": "keep",
+     "why": "Trevithick's engines were double-acting rotary engines run at higher pressure."
+    },
+    {
+     "atom": "puddling",
+     "verdict": "keep",
+     "why": "Wrought-iron boiler plate strong enough for high pressure."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: materials",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "farming.outputPerFarmerPerYear +0.03"
+   ],
+   "effectRationale": "Compact high-pressure engines became portable engines: steam threshing and farm power (1840s-50s) raised output per farm worker. Transport uses belong to locomotive and steamboat.",
+   "costConcern": "5,910 is light for its significance; acceptable as an extension.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound. Effect chosen so it does not double-count the transport nodes it gates.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steam Power"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine"
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "dynamo",
+   "name": "Dynamo",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "cost": 16730.0,
+   "prereq": "electromagnetism AND steam_rotary",
+   "dependents": [
+    "electric_light",
+    "electricity_generation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electromagnetism",
+     "verdict": "keep",
+     "why": "Faraday's induction is the principle of the generator."
+    },
+    {
+     "atom": "steam_rotary",
+     "verdict": "keep",
+     "why": "A generator needs a rotary prime mover."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.02"
+   ],
+   "effectRationale": "Current on demand for laboratories: electrochemistry, electroplating and physics experiments no longer depend on batteries.",
+   "costConcern": "16,730 reasonable.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites correct and minimal. Effect is modest; the dynamo's large consequences arrive through electricity_generation.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "electric_light",
+   "name": "Incandescent lamp",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "cost": 8360.0,
+   "prereq": "dynamo AND barometer_vacuum",
+   "dependents": [
+    "electricity_generation",
+    "vacuum_tube"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "dynamo",
+     "verdict": "keep",
+     "why": "Lamps need a generated supply."
+    },
+    {
+     "atom": "barometer_vacuum",
+     "verdict": "keep",
+     "why": "The incandescent bulb depends on a high vacuum (Sprengel pump, 1865), descended from the air pump."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "housing.tauYears +0.03"
+   ],
+   "effectRationale": "Enclosed electric light replaces candles, oil and gas flames indoors; fewer house fires, so dwellings last longer.",
+   "costConcern": "8,360 reasonable.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound. Effect differs from every other A8 energy node.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "electricity_generation",
+   "name": "Central power station and grid",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "cost": 47310.0,
+   "prereq": "dynamo AND electric_light AND electromagnetism",
+   "dependents": [
+    "ac_transmission",
+    "aluminium",
+    "desalination",
+    "electric_motor",
+    "gas_turbine_power",
+    "nuclear_power"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "dynamo",
+     "verdict": "keep",
+     "why": "Generators at the station."
+    },
+    {
+     "atom": "electric_light",
+     "verdict": "keep",
+     "why": "Lighting was the demand that justified Pearl Street and Holborn Viaduct (1882)."
+    },
+    {
+     "atom": "electromagnetism",
+     "verdict": "keep",
+     "why": "Redundant through dynamo; harmless."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "live: building.power_station",
+    "live: infra.power_grid"
+   ],
+   "effectRationale": "Genuine live unlocks (power station, grid); no operand effect is added so the electricity capacity system carries the effect.",
+   "costConcern": "47,310 fine for the Age IX milestone node.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites kept. Relies on its live unlocks, which is permitted for a genuine entity unlock.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Electricity"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.power_station",
+    "infra.power_grid"
+   ]
+  },
+  {
+   "id": "electric_motor",
+   "name": "Electric motor",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "cost": 23650.0,
+   "prereq": "electricity_generation",
+   "dependents": [
+    "electric_traction",
+    "electric_vehicle",
+    "skyscraper",
+    "submarine"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electricity_generation",
+     "verdict": "keep",
+     "why": "Motors are useful once supply is distributed."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "housing.personsPerDwelling +0.03"
+   ],
+   "effectRationale": "Electric lifts (Siemens 1880, Otis electric 1889) and pumps make tall apartment blocks liveable: more people per dwelling footprint.",
+   "costConcern": "23,650 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct (electromagnetism implied). Effect distinct within A8 energy.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "effects": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "internal_combustion",
+   "name": "High-speed petrol engine",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "cost": 47310.0,
+   "prereq": "gas_engine AND petroleum_refining",
+   "dependents": [
+    "aircraft",
+    "automobile_mass",
+    "mechanised_agriculture",
+    "rocket",
+    "submarine",
+    "tank"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "gas_engine",
+     "verdict": "keep",
+     "why": "Daimler and Maybach worked at Deutz on the Otto engine; the petrol engine is its fast, light derivative."
+    },
+    {
+     "atom": "petroleum_refining",
+     "verdict": "keep",
+     "why": "Petrol (gasoline) is a refinery fraction."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "roads.baselineKmPerDay +0.04"
+   ],
+   "effectRationale": "The node includes the first motor vehicles (Benz 1886): powered road travel is faster than horse travel.",
+   "costConcern": "47,310 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound. automobile_mass (transport) extends the road effect at scale.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Combustion"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Combustion"
+   },
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "jet_engine",
+   "name": "Turbojet",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 11830.0,
+   "prereq": "aircraft_metal AND steam_turbine",
+   "dependents": [
+    "gas_turbine_power",
+    "jet_airliner"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "aircraft_metal",
+     "verdict": "keep",
+     "why": "Jet engines fly in metal monoplanes."
+    },
+    {
+     "atom": "steam_turbine",
+     "verdict": "keep",
+     "why": "Axial and centrifugal turbine aerodynamics came from steam turbines (Parsons; Brown Boveri)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: transport",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "migration.dampingDecayCostUnits +0.03"
+   ],
+   "effectRationale": "Jet aviation shrinks long-distance travel time: migrants can move further for the same cost.",
+   "costConcern": "11,830 low for A9; acceptable.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound. superalloy (~1940) is not added because it post-dates the node's 1939 date.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Advanced Flight"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Aerodynamics"
+   },
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "steam_turbine",
+   "name": "Steam turbine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 66900.0,
+   "prereq": "steam_high_pressure AND open_hearth AND thermodynamics",
+   "dependents": [
+    "jet_engine",
+    "nuclear_power"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "steam_high_pressure",
+     "verdict": "keep",
+     "why": "Turbines run on high-pressure steam."
+    },
+    {
+     "atom": "open_hearth",
+     "verdict": "keep",
+     "why": "Steel discs and blades for high rotational speed."
+    },
+    {
+     "atom": "thermodynamics",
+     "verdict": "keep",
+     "why": "Rankine-cycle design of turbines."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: materials, science",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.03"
+   ],
+   "effectRationale": "Turbine steamers (Turbinia 1897, Mauretania 1907) cut ocean passage times so price differences between ports close faster; unit.aircraft_carrier is not a live unlock.",
+   "costConcern": "66,900 heavy for A8; the integrator's A8 scale absorbs it.",
+   "action": "move-age",
+   "newPrereq": null,
+   "newAge": "A8",
+   "rationale": "Dated 1884 (Parsons), well inside A8 (1750-1914); all prerequisites are A8 and its impact (turbo-alternators, turbine liners, Dreadnought) is pre-1914. Dependents jet_engine and nuclear_power stay A9, so the move is order-safe.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "diesel",
+   "name": "Diesel engine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 47310.0,
+   "prereq": "gas_engine AND open_hearth AND thermodynamics",
+   "dependents": [
+    "container_shipping"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "gas_engine",
+     "verdict": "keep",
+     "why": "Internal-combustion piston engine lineage."
+    },
+    {
+     "atom": "open_hearth",
+     "verdict": "keep",
+     "why": "Steel strong enough for compression-ignition pressures."
+    },
+    {
+     "atom": "thermodynamics",
+     "verdict": "keep",
+     "why": "Diesel set out to realise a Carnot-efficient cycle."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: materials, science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.04"
+   ],
+   "effectRationale": "Diesel ships (Selandia 1912), lorries and locomotives haul bulk cargo at much lower fuel cost.",
+   "costConcern": "47,310 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound. Dated 1897 (A8 window) but kept A9: its economic effect (motor ships, lorries, diesel rail) comes after 1912; flagged in findings as an A8/A9 boundary case.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Combustion"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Combustion"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "computer",
+   "name": "Stored-program computer",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 267620.0,
+   "prereq": "programmable_computer AND radar",
+   "dependents": [
+    "crewed_spaceflight",
+    "data_protection",
+    "genome_sequencing",
+    "guided_munitions",
+    "icbm",
+    "internet",
+    "medical_imaging",
+    "microprocessor",
+    "numerical_control",
+    "programming_languages",
+    "satellite",
+    "space_probe",
+    "stealth",
+    "weather_prediction"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "programmable_computer",
+     "verdict": "keep",
+     "why": "The stored-program machine succeeded plugboard machines (ENIAC to EDVAC report)."
+    },
+    {
+     "atom": "radar",
+     "verdict": "keep",
+     "why": "Stored-program memory came from radar: Williams-Kilburn CRT store (Manchester) and mercury delay lines (EDSAC)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: military",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.05",
+    "governance.taxExtractionResponseMax +0.02"
+   ],
+   "effectRationale": "Administrative computing: LEO payroll (1951), UNIVAC for the US Census (1951), later tax processing; administrative reach extends further.",
+   "costConcern": "267,620 is the A9 maximum; acceptable for the gateway of fourteen dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites correct; the radar edge is historically exact (memory technology). Age IX milestone fact.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Computers"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Computation"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.05
+    },
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "transistor",
+   "name": "Transistor",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 133810.0,
+   "prereq": "vacuum_tube AND semiconductor_physics",
+   "dependents": [
+    "integrated_circuit",
+    "satellite",
+    "solar_pv"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "vacuum_tube",
+     "verdict": "keep",
+     "why": "Amplifier and switching circuitry of tube electronics; Bell Labs set out to replace the tube."
+    },
+    {
+     "atom": "semiconductor_physics",
+     "verdict": "keep",
+     "why": "Band theory and doping are the physical basis."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.civicsPointsCoefficient +0.02"
+   ],
+   "effectRationale": "Cheap battery transistor radios (from 1954) carried news, music and political speech into villages: more civic and cultural engagement per person.",
+   "costConcern": "133,810 high; check against the A9 scale.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Computers"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "integrated_circuit",
+   "name": "Integrated circuit",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 267620.0,
+   "prereq": "transistor AND photography",
+   "dependents": [
+    "internet",
+    "lunar_flight",
+    "microprocessor"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "transistor",
+     "verdict": "keep",
+     "why": "ICs are many transistors on one die."
+    },
+    {
+     "atom": "photography",
+     "verdict": "keep",
+     "why": "Photolithography patterns the die."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "live: building.semiconductor_fab"
+   ],
+   "effectRationale": "Genuine live unlock (semiconductor fab); no operand effect added.",
+   "costConcern": "267,620 at the A9 maximum; heavy for a node with one live unlock.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites correct (photolithography edge is exact).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Computers"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.semiconductor_fab"
+   ]
+  },
+  {
+   "id": "microprocessor",
+   "name": "Microprocessor",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 133810.0,
+   "prereq": "integrated_circuit AND computer",
+   "dependents": [
+    "cmos_vlsi",
+    "combat_drone",
+    "gps",
+    "mobile_phone"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "integrated_circuit",
+     "verdict": "keep",
+     "why": "A CPU on one IC."
+    },
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Stored-program architecture."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "price.stockReleaseRatePerYear +0.03"
+   ],
+   "effectRationale": "Microprocessor point-of-sale terminals and barcode scanning (UPC, 1974) give live stock control: goods move from store to shelf faster.",
+   "costConcern": "133,810 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Computers"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "nuclear_power",
+   "name": "Nuclear power-plant engineering",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 66900.0,
+   "prereq": "(graphite_reactor OR heavy_water_reactor OR light_water_reactor OR fast_breeder_reactor) AND steam_turbine AND electricity_generation",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "graphite_reactor",
+     "verdict": "keep",
+     "why": "One of four reactor families (Obninsk, Calder Hall)."
+    },
+    {
+     "atom": "heavy_water_reactor",
+     "verdict": "keep",
+     "why": "CANDU route."
+    },
+    {
+     "atom": "light_water_reactor",
+     "verdict": "keep",
+     "why": "Shippingport and most later plants."
+    },
+    {
+     "atom": "fast_breeder_reactor",
+     "verdict": "keep",
+     "why": "BN-350/BN-600 route."
+    },
+    {
+     "atom": "steam_turbine",
+     "verdict": "keep",
+     "why": "Reactor heat drives turbines."
+    },
+    {
+     "atom": "electricity_generation",
+     "verdict": "keep",
+     "why": "Output goes to the grid."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "live: building.nuclear_power_station"
+   ],
+   "effectRationale": "Genuine live unlock (nuclear power station).",
+   "costConcern": "66,900 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "The OR over reactor families is the right shape (any one family suffices). Deliberate leaf: the station is the terminal capability.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.nuclear_power_station"
+   ]
+  },
+  {
+   "id": "hydroelectric",
+   "name": "Hydroelectric dam",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 23650.0,
+   "prereq": "ac_transmission AND reinforced_concrete AND water_turbine",
+   "dependents": [
+    "grid_storage"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "ac_transmission",
+     "verdict": "keep",
+     "why": "Niagara power reached Buffalo by AC lines."
+    },
+    {
+     "atom": "reinforced_concrete",
+     "verdict": "keep",
+     "why": "Large dams."
+    },
+    {
+     "atom": "water_turbine",
+     "verdict": "keep",
+     "why": "Francis and Pelton turbines drive the generators."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: construction",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "harvestVariance.sigmaLogYield +0.03",
+    "live: building.hydroelectric_dam"
+   ],
+   "effectRationale": "Multi-purpose dams (Hoover 1936, Aswan) store floods and release water through dry years: steadier irrigated harvests.",
+   "costConcern": "23,650 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound. Dated 1895 (A8 window) but kept A9: the large multi-purpose dams that carry its effect are 1930s onwards; noted as a boundary case.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.hydroelectric_dam"
+   ]
+  },
+  {
+   "id": "solar_pv",
+   "name": "Photovoltaic cell",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 94620.0,
+   "prereq": "semiconductor_physics AND transistor",
+   "dependents": [
+    "communications_satellite",
+    "frontier_energy",
+    "space_solar"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "semiconductor_physics",
+     "verdict": "keep",
+     "why": "p-n junction physics."
+    },
+    {
+     "atom": "transistor",
+     "verdict": "keep",
+     "why": "The 1954 silicon cell came out of Bell Labs' transistor doping work."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: engineering, science",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "live: building.solar_farm"
+   ],
+   "effectRationale": "Genuine live unlock (solar farm).",
+   "costConcern": "94,620 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites exact.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.solar_farm"
+   ]
+  },
+  {
+   "id": "lithium_battery",
+   "name": "Lithium-ion battery",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 94620.0,
+   "prereq": "chemistry_quantitative AND quantum_mechanics",
+   "dependents": [
+    "electric_vehicle",
+    "grid_storage",
+    "smartphone"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Electrochemistry and intercalation chemistry (Whittingham, Goodenough)."
+    },
+    {
+     "atom": "quantum_mechanics",
+     "verdict": "keep",
+     "why": "Solid-state chemistry of the cathode materials."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.formationSightNodes +0.04"
+   ],
+   "effectRationale": "Light rechargeable power for field radios, night-vision, sensors and small drones extends what a formation can see.",
+   "costConcern": "94,620 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites adequate.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cmos_vlsi",
+   "name": "Very-large-scale integration",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 66910.0,
+   "prereq": "microprocessor",
+   "dependents": [
+    "cellular_digital",
+    "frontier_computation",
+    "gpu_parallel",
+    "nanotechnology",
+    "personal_computer",
+    "quantum_computing"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "microprocessor",
+     "verdict": "keep",
+     "why": "VLSI scales up the microprocessor."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.03"
+   ],
+   "effectRationale": "Cheap abundant computation underpins the electronics and software industries: a larger specialist workforce becomes possible.",
+   "costConcern": "66,910 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Computers"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "gas_turbine_power",
+   "name": "Combined-cycle gas turbine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 66900.0,
+   "prereq": "jet_engine AND electricity_generation AND superalloy",
+   "dependents": [
+    "carbon_capture",
+    "frontier_energy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "jet_engine",
+     "verdict": "keep",
+     "why": "Industrial gas turbines are aero-derivative."
+    },
+    {
+     "atom": "electricity_generation",
+     "verdict": "keep",
+     "why": "Grid generation."
+    },
+    {
+     "atom": "superalloy",
+     "verdict": "keep",
+     "why": "Hot-section blades."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: materials",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02"
+   ],
+   "effectRationale": "Gas-fired combined cycle displaced coal plant; far less particulate and sulphur pollution means fewer deaths from dirty air.",
+   "costConcern": "66,900 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "wind_turbine_modern",
+   "name": "Modern wind turbine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 47310.0,
+   "prereq": "composites AND ac_transmission",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "composites",
+     "verdict": "keep",
+     "why": "Glass-fibre and carbon blades."
+    },
+    {
+     "atom": "ac_transmission",
+     "verdict": "keep",
+     "why": "Grid connection."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: materials",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "live: building.wind_farm"
+   ],
+   "effectRationale": "Genuine live unlock (wind farm).",
+   "costConcern": "47,310 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound; deliberate leaf (terminal generation capability).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.wind_farm"
+   ]
+  },
+  {
+   "id": "grid_storage",
+   "name": "Grid-scale energy storage",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 33450.0,
+   "prereq": "ac_transmission AND (lithium_battery OR hydroelectric)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "ac_transmission",
+     "verdict": "keep",
+     "why": "Storage is a grid service."
+    },
+    {
+     "atom": "lithium_battery",
+     "verdict": "keep",
+     "why": "Battery route."
+    },
+    {
+     "atom": "hydroelectric",
+     "verdict": "keep",
+     "why": "Pumped-storage route (Switzerland and Italy, 1890s-1900s)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "consumption.grainSpoilagePerYear +0.02"
+   ],
+   "effectRationale": "Buffered supply keeps refrigerated stores and cold chains running through outages: less food spoils in store.",
+   "costConcern": "33,450 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "The OR correctly admits both historical routes. Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "smart_grid",
+   "name": "Smart grid",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 11830.0,
+   "prereq": "internet AND ac_transmission",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "internet",
+     "verdict": "keep",
+     "why": "Networked metering and control."
+    },
+    {
+     "atom": "ac_transmission",
+     "verdict": "keep",
+     "why": "The grid being managed."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: communication",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.02"
+   ],
+   "effectRationale": "Real-time pricing and demand response let supply and demand meet across regions within minutes: price gaps close faster.",
+   "costConcern": "11,830 light; acceptable.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound. Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "programming_languages",
+   "name": "High-level programming languages",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 11830.0,
+   "prereq": "computer",
+   "dependents": [
+    "machine_learning",
+    "operating_system",
+    "public_key_crypto",
+    "relational_database"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Compilers run on stored-program computers."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.03"
+   ],
+   "effectRationale": "FORTRAN (formula translation, 1957) let scientists program their own calculations: universities do research more cheaply.",
+   "costConcern": "11,830 light given four dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "operating_system",
+   "name": "Operating system",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 8360.0,
+   "prereq": "programming_languages",
+   "dependents": [
+    "personal_computer"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "programming_languages",
+     "verdict": "keep",
+     "why": "Systems software is written in higher-level languages (Multics PL/I, Unix C)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maturityTauYears +0.03"
+   ],
+   "effectRationale": "Time-sharing (CTSS, Dartmouth DTSS 1964) put a whole campus on one machine: new universities reach full capability sooner.",
+   "costConcern": "8,360 light.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "relational_database",
+   "name": "Relational database",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 11830.0,
+   "prereq": "programming_languages",
+   "dependents": [
+    "cloud_computing"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "programming_languages",
+     "verdict": "keep",
+     "why": "Query languages and DBMS software."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.04"
+   ],
+   "effectRationale": "Transaction systems at national scale: tax records, withholding and VAT matching let a state collect what it assesses.",
+   "costConcern": "11,830 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "personal_computer",
+   "name": "Personal computer",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 23650.0,
+   "prereq": "cmos_vlsi AND operating_system",
+   "dependents": [
+    "smartphone"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cmos_vlsi",
+     "verdict": "keep",
+     "why": "Cheap chips."
+    },
+    {
+     "atom": "operating_system",
+     "verdict": "keep",
+     "why": "CP/M, DOS."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.04"
+   ],
+   "effectRationale": "Office and computer skills became the ladder into clerical and technical classes: faster social promotion.",
+   "costConcern": "23,650 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Computers"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "public_key_crypto",
+   "name": "Public-key cryptography",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 16730.0,
+   "prereq": "programming_languages",
+   "dependents": [
+    "cyber_warfare"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "programming_languages",
+     "verdict": "keep",
+     "why": "Practical RSA/Diffie-Hellman implementations."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.03"
+   ],
+   "effectRationale": "Secure payment and contracts over open networks (SSL, 1995) let buyers and sellers anywhere trade: prices converge faster.",
+   "costConcern": "16,730 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite adequate (number theory is assumed).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "gpu_parallel",
+   "name": "Parallel processors",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 8360.0,
+   "prereq": "cmos_vlsi",
+   "dependents": [
+    "deep_learning"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cmos_vlsi",
+     "verdict": "keep",
+     "why": "Massively parallel chips."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.02"
+   ],
+   "effectRationale": "General-purpose GPU computing (CUDA 2007) accelerates simulation in physics, chemistry, genomics and climate: more research per researcher.",
+   "costConcern": "8,360 light.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "machine_learning",
+   "name": "Machine learning",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 47310.0,
+   "prereq": "programming_languages AND probability_statistics",
+   "dependents": [
+    "deep_learning"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "programming_languages",
+     "verdict": "keep",
+     "why": "Software implementation."
+    },
+    {
+     "atom": "probability_statistics",
+     "verdict": "keep",
+     "why": "Statistical learning theory."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "probability_statistics A7 (2 Ages earlier: long-standing enabler, kept)",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02"
+   ],
+   "effectRationale": "Computer-aided diagnosis: neural-network mammography screening (ImageChecker, FDA 1998) lets university medicine catch disease earlier.",
+   "costConcern": "47,310 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "deep_learning",
+   "name": "Deep learning",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 11830.0,
+   "prereq": "machine_learning AND gpu_parallel",
+   "dependents": [
+    "large_language_models"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "machine_learning",
+     "verdict": "keep",
+     "why": "Backpropagation networks scaled up."
+    },
+    {
+     "atom": "gpu_parallel",
+     "verdict": "keep",
+     "why": "GPU training (AlexNet 2012)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "migration.baseRatePerYear +0.02"
+   ],
+   "effectRationale": "Neural machine translation and speech recognition lower the language barrier for people who move.",
+   "costConcern": "11,830 light.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites exact.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "large_language_models",
+   "name": "Large language models",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 47310.0,
+   "prereq": "deep_learning AND internet",
+   "dependents": [
+    "general_ai"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "deep_learning",
+     "verdict": "keep",
+     "why": "Transformers are deep networks."
+    },
+    {
+     "atom": "internet",
+     "verdict": "keep",
+     "why": "Training corpora come from the web."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: communication",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.02",
+    "mobility.promoteRatePerYear +0.02"
+   ],
+   "effectRationale": "Knowledge assistance for researchers and for learners: tutoring and coding help speed both research and the acquisition of specialist skills.",
+   "costConcern": "47,310 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    },
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cloud_computing",
+   "name": "Cloud computing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 16730.0,
+   "prereq": "internet AND relational_database",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "internet",
+     "verdict": "keep",
+     "why": "Remote access."
+    },
+    {
+     "atom": "relational_database",
+     "verdict": "keep",
+     "why": "Hosted storage and transaction services."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: communication",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "live: building.data_centre"
+   ],
+   "effectRationale": "Genuine live unlock (data centre).",
+   "costConcern": "16,730 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound. Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.data_centre"
+   ]
+  },
+  {
+   "id": "smartphone",
+   "name": "Smartphone",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 23650.0,
+   "prereq": "cellular_digital AND personal_computer AND lithium_battery",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "cellular_digital",
+     "verdict": "keep",
+     "why": "Mobile network."
+    },
+    {
+     "atom": "personal_computer",
+     "verdict": "keep",
+     "why": "General-purpose computing."
+    },
+    {
+     "atom": "lithium_battery",
+     "verdict": "keep",
+     "why": "Power."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: communication, energy",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.03",
+    "migration.dampingDecayCostUnits +0.02"
+   ],
+   "effectRationale": "Mobile price information collapses price dispersion (Kerala fish markets, Jensen 2007), and maps and messaging let migrants travel further.",
+   "costConcern": "23,650 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound. Deliberate leaf.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Telecommunications"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    },
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cyber_warfare",
+   "name": "Cyber operations",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 16730.0,
+   "prereq": "internet AND public_key_crypto",
+   "dependents": [
+    "frontier_cyber"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "internet",
+     "verdict": "keep",
+     "why": "The attack surface."
+    },
+    {
+     "atom": "public_key_crypto",
+     "verdict": "keep",
+     "why": "Attacking and defending encrypted, authenticated systems."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: communication",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.formationSightNodes +0.03"
+   ],
+   "effectRationale": "Network intrusion is intelligence collection: reading an adversary's systems reveals the dispositions of its formations.",
+   "costConcern": "16,730 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "quantum_computing",
+   "name": "Quantum computing (early)",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 33450.0,
+   "prereq": "quantum_mechanics AND cmos_vlsi AND superconductivity_applied",
+   "dependents": [
+    "fault_tolerant_quantum"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "quantum_mechanics",
+     "verdict": "keep",
+     "why": "Physics basis."
+    },
+    {
+     "atom": "cmos_vlsi",
+     "verdict": "keep",
+     "why": "Control electronics."
+    },
+    {
+     "atom": "superconductivity_applied",
+     "verdict": "keep",
+     "why": "Superconducting qubits."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.02",
+    "research.researchPointsCoefficient +0.01"
+   ],
+   "effectRationale": "Noisy quantum processors serve mainly as research instruments for quantum simulation: a small research gain.",
+   "costConcern": "33,450 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    },
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "weather_prediction",
+   "name": "Numerical weather prediction",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 11830.0,
+   "prereq": "computer AND radio",
+   "dependents": [
+    "climate_accords"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "ENIAC ran the first numerical forecast (1950)."
+    },
+    {
+     "atom": "radio",
+     "verdict": "keep",
+     "why": "Radiosondes and telegraphed observations feed the model."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: communication",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "harvestVariance.sigmaLogYield +0.04"
+   ],
+   "effectRationale": "Farmers time sowing, spraying and harvest by forecast and get warning of frosts and storms: harvests vary less.",
+   "costConcern": "11,830 light.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites exact.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "fusion_power",
+   "name": "Fusion power",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 94620.0,
+   "prereq": "nuclear_fusion_research",
+   "dependents": [
+    "fusion_propulsion"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "nuclear_fusion_research",
+     "verdict": "keep",
+     "why": "Commercial fusion follows the research programme."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "live: building.fusion_plant"
+   ],
+   "effectRationale": "Genuine live unlock (fusion plant).",
+   "costConcern": "94,620 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct (superconducting magnets presumably inside nuclear_fusion_research).",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Nuclear Fusion"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.fusion_plant"
+   ]
+  },
+  {
+   "id": "fault_tolerant_quantum",
+   "name": "Fault-tolerant quantum computing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 133810.0,
+   "prereq": "quantum_computing",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "quantum_computing",
+     "verdict": "keep",
+     "why": "Error correction scales the early machines."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.03"
+   ],
+   "effectRationale": "The flagship application is simulating catalysts such as nitrogenase (FeMoco) for cheaper nitrogen fertiliser: higher yields per km2.",
+   "costConcern": "133,810 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct. Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "general_ai",
+   "name": "General machine intelligence",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 133810.0,
+   "prereq": "large_language_models",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "large_language_models",
+     "verdict": "keep",
+     "why": "The current route to broad machine capability."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.04",
+    "governance.authorityDecayCostUnits +0.03"
+   ],
+   "effectRationale": "Automation of cognitive work: far more specialist output per person and administration that reaches everywhere.",
+   "costConcern": "133,810 fine for a speculative landmark.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct. Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.04
+    },
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "space_solar",
+   "name": "Space-based solar power",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 66910.0,
+   "prereq": "solar_pv AND reusable_launch",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "solar_pv",
+     "verdict": "keep",
+     "why": "Collectors."
+    },
+    {
+     "atom": "reusable_launch",
+     "verdict": "keep",
+     "why": "Launch cost."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: transport",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Firm power without fuel imports removes fuel-price shocks, a recurrent trigger of unrest (fuel riots, 1970s oil shocks). project.probe_acceleration is not a live unlock.",
+   "costConcern": "66,910 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound. Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "frontier_energy",
+   "name": "Energy conversion",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 23650.0,
+   "prereq": "solar_pv OR gas_turbine_power",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "solar_pv",
+     "verdict": "keep",
+     "why": "Either modern generation route opens the repeatable."
+    },
+    {
+     "atom": "gas_turbine_power",
+     "verdict": "keep",
+     "why": "Either modern generation route opens the repeatable."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.02"
+   ],
+   "effectRationale": "REPEATABLE: each level should advance farming.yieldPerArableKm2PerYear (suggested gapFraction 0.06): cheaper energy cuts the cost of nitrogen fertiliser (Haber-Bosch) and irrigation pumping, the main energy-to-food channel.",
+   "costConcern": "23,650 base; costGrowth suggested 1.20.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "OR is right (either modern route). Becomes a repeatable level node; one operand only.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "repeatableProposal": {
+    "operands": [
+     "farming.yieldPerArableKm2PerYear"
+    ]
+   }
+  },
+  {
+   "id": "frontier_computation",
+   "name": "Computation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 11830.0,
+   "prereq": "cmos_vlsi",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "cmos_vlsi",
+     "verdict": "keep",
+     "why": "Abundant computation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.02"
+   ],
+   "effectRationale": "REPEATABLE: each level should advance governance.authorityDecayCostUnits (suggested gapFraction 0.06), matching its text (administration and automation efficiency); the operand's cap 3.0 leaves room.",
+   "costConcern": "11,830 base; costGrowth suggested 1.20.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Becomes a repeatable level node.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "repeatableProposal": {
+    "operands": [
+     "governance.authorityDecayCostUnits"
+    ]
+   }
+  },
+  {
+   "id": "frontier_cyber",
+   "name": "Cyber research",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 8360.0,
+   "prereq": "cyber_warfare",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "cyber_warfare",
+     "verdict": "keep",
+     "why": "Opens after cyber operations."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.formationSightNodes +0.02",
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "REPEATABLE: each level should advance fog.formationSightNodes (offence: intelligence, gapFraction 0.05) and society.unrestOutputDrag (defence: hardened infrastructure keeps output flowing through disruption, gapFraction 0.05). The text calls it relative; no relative operand exists, so absolute operands stand in.",
+   "costConcern": "8,360 base; costGrowth suggested 1.25.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Becomes a repeatable level node.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.02
+    },
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "repeatableProposal": {
+    "operands": [
+     "fog.formationSightNodes",
+     "society.unrestOutputDrag"
+    ]
+   }
+  },
+  {
+   "id": "ac_transmission",
+   "name": "AC power transmission",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "cost": 23650.0,
+   "prereq": "electricity_generation",
+   "dependents": [
+    "grid_storage",
+    "hydroelectric",
+    "smart_grid",
+    "wind_turbine_modern"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electricity_generation",
+     "verdict": "keep",
+     "why": "Transmission carries station output (induction knowledge implied)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.03"
+   ],
+   "effectRationale": "'Coal by wire': power generated at the mine mouth or the falls reaches cities by line instead of coal by rail and barge, reducing bulk haulage.",
+   "costConcern": "23,650 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "gas_engine",
+   "name": "Stationary gas engine",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "cost": 56260.0,
+   "prereq": "steam_rotary AND chemistry_quantitative AND milling_machine",
+   "dependents": [
+    "diesel",
+    "internal_combustion"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "steam_rotary",
+     "verdict": "keep",
+     "why": "Engine design lineage (Lenoir adapted a double-acting steam engine layout)."
+    },
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "replace",
+     "why": "PROPOSED: replace with town_gas (new). Lenoir and Otto engines ran on piped coal gas; town_gas carries the gas chemistry (it requires chemistry_quantitative itself), so the edge becomes specific."
+    },
+    {
+     "atom": "milling_machine",
+     "verdict": "keep",
+     "why": "Precision machined cylinders and valve gear."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: industry, science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.02"
+   ],
+   "effectRationale": "Boiler-less engines small and cheap enough for a master craftsman's workshop let small trades mechanise: more artisans rise to skilled-master status.",
+   "costConcern": "56,260 high against internal_combustion (47,310), its own successor; flag for the A8 scale.",
+   "action": "replace-prereq",
+   "newPrereq": "steam_rotary AND town_gas AND milling_machine",
+   "newAge": null,
+   "rationale": "The engine's fuel was town gas; without a gas-supply node the bridge is missing. The replacement keeps chemistry_quantitative transitively.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Combustion"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Combustion"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "water_turbine",
+   "name": "Water turbine",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "cost": 14060.0,
+   "prereq": "water_mill AND mechanics_newtonian",
+   "dependents": [
+    "hydroelectric"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "water_mill",
+     "verdict": "keep",
+     "why": "Hydraulic power tradition."
+    },
+    {
+     "atom": "mechanics_newtonian",
+     "verdict": "keep",
+     "why": "Euler's turbine equation; Fourneyron's design is engineered from theory."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "water_mill A5 (3 Ages earlier: long-standing enabler, kept)",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "housing.buildTimberPerDwelling +0.02"
+   ],
+   "effectRationale": "Turbine-driven sawmills (Lowell-era New England) cut boards with thin kerfs instead of hewing: less timber per dwelling (balloon frame era).",
+   "costConcern": "14,060 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.buildTimberPerDwelling",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "fast_breeder_reactor",
+   "name": "Fast breeder reactors",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 94620.0,
+   "prereq": "reprocessing",
+   "dependents": [
+    "nuclear_power"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "reprocessing",
+     "verdict": "keep",
+     "why": "A breeder fuel cycle needs plutonium separated from spent fuel (nuclear_fission implied)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "A closed fuel cycle makes generation independent of uranium and oil imports: embargoes and strikes cost less output.",
+   "costConcern": "94,620 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite correct.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "geological_disposal",
+   "name": "Geological waste disposal",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 94620.0,
+   "prereq": "stratigraphy AND radiation_protection AND nuclear_fission",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "stratigraphy",
+     "verdict": "keep",
+     "why": "Choosing stable formations."
+    },
+    {
+     "atom": "radiation_protection",
+     "verdict": "keep",
+     "why": "Dose limits and waste classes."
+    },
+    {
+     "atom": "nuclear_fission",
+     "verdict": "keep",
+     "why": "The waste source."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: medicine, science",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.01",
+    "society.grievanceRelief +0.01"
+   ],
+   "effectRationale": "Isolating long-lived waste from groundwater avoids chronic exposure (small mortality gain), and a credible repository defuses the local siting disputes that waste storage provokes (small grievance relief).",
+   "costConcern": "94,620 high for a leaf with a minimal effect; candidate for a lower magnitude.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites exact. Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    },
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "graphite_reactor",
+   "name": "Graphite-moderated reactors",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 133810.0,
+   "prereq": "nuclear_fission AND aluminium",
+   "dependents": [
+    "nuclear_power"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "nuclear_fission",
+     "verdict": "keep",
+     "why": "Chain reaction."
+    },
+    {
+     "atom": "aluminium",
+     "verdict": "keep",
+     "why": "Aluminium-canned fuel slugs at X-10 and Hanford."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: materials, science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.02"
+   ],
+   "effectRationale": "Production piles supplied radioisotope tracers to laboratories (Oak Ridge isotope distribution from 1946): cheaper research in biology and chemistry.",
+   "costConcern": "133,810 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "heavy_water_reactor",
+   "name": "Heavy-water reactors",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 94620.0,
+   "prereq": "nuclear_fission AND steam_high_pressure",
+   "dependents": [
+    "nuclear_power"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "nuclear_fission",
+     "verdict": "keep",
+     "why": "Chain reaction."
+    },
+    {
+     "atom": "steam_high_pressure",
+     "verdict": "keep",
+     "why": "Pressurised coolant circuits of power variants."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02"
+   ],
+   "effectRationale": "NRX at Chalk River made the cobalt-60 for the first teletherapy units (1951): university hospitals treat cancer more effectively.",
+   "costConcern": "94,620 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "light_water_reactor",
+   "name": "Light-water reactors",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 189240.0,
+   "prereq": "nuclear_fission AND uranium_enrichment AND steam_high_pressure",
+   "dependents": [
+    "nuclear_power",
+    "nuclear_submarine"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "nuclear_fission",
+     "verdict": "keep",
+     "why": "Chain reaction."
+    },
+    {
+     "atom": "uranium_enrichment",
+     "verdict": "keep",
+     "why": "Light water needs enriched fuel."
+    },
+    {
+     "atom": "steam_high_pressure",
+     "verdict": "keep",
+     "why": "Pressurised and boiling-water circuits."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.03"
+   ],
+   "effectRationale": "The standard civil reactor made large blocks of cheap baseload power available to industry: a larger specialist workforce is sustainable.",
+   "costConcern": "189,240 very high relative to the other reactor families; flag.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites exact.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "programmable_computer",
+   "name": "Programmable digital computer",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "cost": 267620.0,
+   "prereq": "(vacuum_tube OR automatic_switching) AND calculus",
+   "dependents": [
+    "computer"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "vacuum_tube",
+     "verdict": "keep",
+     "why": "Colossus and ENIAC route."
+    },
+    {
+     "atom": "automatic_switching",
+     "verdict": "keep",
+     "why": "Zuse's relay route."
+    },
+    {
+     "atom": "calculus",
+     "verdict": "keep",
+     "why": "The numerical analysis the machines were built for (ballistic tables)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "calculus A7 (2 Ages earlier: long-standing enabler, kept)",
+   "crossTree": "none (technology atoms only); cross-lane: communication, science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.formationSightNodes +0.02",
+    "institutions.universities.maxResearchCostReduction +0.02"
+   ],
+   "effectRationale": "Colossus broke Lorenz traffic and revealed German dispositions before D-Day; ENIAC and Z3 automated scientific calculation.",
+   "costConcern": "267,620 at the A9 maximum; heavy.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "The OR is right (independent valve and relay routes).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Computers"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Computation"
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.02
+    },
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "reprocessing",
+   "name": "Spent-fuel reprocessing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 133810.0,
+   "prereq": "nuclear_fission AND radiation_protection",
+   "dependents": [
+    "fast_breeder_reactor",
+    "fission_weapon"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "nuclear_fission",
+     "verdict": "keep",
+     "why": "Irradiated fuel."
+    },
+    {
+     "atom": "radiation_protection",
+     "verdict": "keep",
+     "why": "Remote handling and shielding of hot cells."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: medicine, science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.02"
+   ],
+   "effectRationale": "PUREX solvent extraction became general hydrometallurgy (copper SX-EW from 1968, rare-earth separation): more metal from each tonne of ore.",
+   "costConcern": "133,810 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "uranium_enrichment",
+   "name": "Uranium enrichment",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "cost": 189240.0,
+   "prereq": "nuclear_physics AND uranium_milling",
+   "dependents": [
+    "fission_weapon",
+    "light_water_reactor"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "nuclear_physics",
+     "verdict": "keep",
+     "why": "Isotope physics."
+    },
+    {
+     "atom": "uranium_milling",
+     "verdict": "keep",
+     "why": "Uranium feed."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "all prerequisites from the same or the previous Age",
+   "crossTree": "none (technology atoms only); cross-lane: materials, science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.02"
+   ],
+   "effectRationale": "The enrichment complexes (Oak Ridge, Sverdlovsk-44) trained tens of thousands of technicians, a lasting pipeline into skilled classes.",
+   "costConcern": "189,240 very high; flag.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "lifting_crane",
+   "name": "Lifting crane",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "engineering",
+   "emerged": "~515 BCE Greece (lewis and tong holes in temple blocks; pulley cranes); ~1st c. BCE Rome (treadwheel crane, polyspastos)",
+   "prereq": "cordage AND wheel_solid AND ashlar_masonry",
+   "prereqRationale": "cordage: hoisting ropes. wheel_solid: the axle-and-drum winch (windlass) is the crane's drive. ashlar_masonry: dressed blocks with lewis holes are what cranes were built to lift. All dated millennia before the node.",
+   "desc": "A timber jib with pulleys and a winch lifts heavy blocks and beams: small gangs raise walls and roofs that once needed ramps and crowds.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.5,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "effects": [
+    {
+     "operand": "housing.buildLaborAdultYearsPerDwelling",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Cranes replace earthen ramps and large hauling crews: buildings take less labour.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "mechanics_archimedean (A5) is the theory of the lever and compound pulley; the crane is the practical builder's machine, about 250 years earlier.",
+   "rationale": "cordage: hoisting ropes. wheel_solid: the axle-and-drum winch (windlass) is the crane's drive. ashlar_masonry: dressed blocks with lewis holes are what cranes were built to lift. All dated millennia before the node."
+  },
+  {
+   "id": "coal_fuel",
+   "name": "Coal as fuel",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "energy",
+   "emerged": "~1,000 CE Northern Song China (coal for iron smelting and heating at Kaifeng); ~1,250 CE London sea-coal from Newcastle",
+   "prereq": "mining_shaft AND bellows",
+   "prereqRationale": "mining_shaft: coal is won from pits and bell-pit shafts. bellows: coal burns well only under forced draught in forges and furnaces. Both dated far earlier.",
+   "desc": "Mining and burning mineral coal for heating, lime-burning, forging and smelting, where firewood has grown scarce.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 1.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.03
+    },
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Shipped coal frees a city from its firewood belt (London and Newcastle sea-coal), and a coal miner wins far more heat per year than a woodcutter.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Industrialization"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "coke (A7) is coal carbonised for blast furnaces; this node is the earlier use of raw coal as a fuel. charcoal (A2) is a wood fuel.",
+   "rationale": "mining_shaft: coal is won from pits and bell-pit shafts. bellows: coal burns well only under forced draught in forges and furnaces. Both dated far earlier."
+  },
+  {
+   "id": "mine_pumping_engines",
+   "name": "Mine pumping engines",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "engineering",
+   "emerged": "~1,556 CE Agricola, De re metallica (water-wheel and horse-gin rag-and-chain and rod pumps, Central European mines)",
+   "prereq": "water_mill AND crank_connecting_rod AND mining_shaft",
+   "prereqRationale": "water_mill: the water wheel drives the pumps. crank_connecting_rod: turns rotation into the reciprocating stroke of rod pumps. mining_shaft: the shafts being drained. All dated earlier.",
+   "desc": "Water wheels and horse gins drive chains of pumps and lifting rods that keep deep mine shafts dry.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 2.0,
+    "material": 1.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Drained shafts reach ore below the water table: each extractor works richer, deeper ground.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "steam_atmospheric (A7, 1712) drains mines with a heat engine; this node is the water- and animal-powered pumping it replaced.",
+   "rationale": "water_mill: the water wheel drives the pumps. crank_connecting_rod: turns rotation into the reciprocating stroke of rod pumps. mining_shaft: the shafts being drained. All dated earlier."
+  },
+  {
+   "id": "town_gas",
+   "name": "Coal-gas lighting",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "emerged": "1792 CE Murdoch lights his house at Redruth with coal gas; 1812 CE Gas Light and Coke Company, London",
+   "prereq": "coke AND chemistry_quantitative",
+   "prereqRationale": "coke: gas is made by carbonising coal in closed retorts, the coke-making process. chemistry_quantitative (1789): gas purification and the chemistry of combustible gases. Both dated before 1792.",
+   "desc": "Coal is baked in retorts and the gas piped under the streets to burners: lit streets, mills, homes, and later fuel for gas engines.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 1.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Gas-lit streets, reading rooms, mechanics' institutes and theatres moved civic and cultural life into the evening.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "electric_light (A8, 1879) is electric incandescence; this is the earlier piped coal-gas supply, also the fuel of gas_engine.",
+   "rationale": "coke: gas is made by carbonising coal in closed retorts, the coke-making process. chemistry_quantitative (1789): gas purification and the chemistry of combustible gases. Both dated before 1792."
+  }
+ ],
+ "newLanes": [],
+ "findings": [
+  "Dependency and Age changes proposed: 4 applied through newPrereq/newAge (windmill_post += gearing; gas_engine chemistry_quantitative -> town_gas; bellows A4 -> A3 by its own ~1,500 BCE date; steam_turbine A9 -> A8 by its 1884 date). Two cross-group edges are routed to the integrator, not applied here: mining_shaft (T2) += lamp (underground light), coke (T2) += coal_fuel (coke presupposes coal use).",
+  "Engineering lane was A9-only (24 computing nodes) and energy had empty A3 and single-node A4/A7 cohorts. Fill: bellows moves into A3; new lifting_crane (A4) and mine_pumping_engines (A7) give engineering a pre-modern mechanical strand; coal_fuel (A6) and town_gas (A8) close the fuel chain (charcoal -> coal -> coke -> town gas -> gas engine).",
+  "A8/A9 boundary is inconsistent for 1880-1900 nodes: electricity_generation (1882), ac_transmission, electric_motor, internal_combustion are A8 while steam_turbine (1884), hydroelectric (1895), diesel (1897) are A9. Only steam_turbine is moved (its effect is pre-1914); hydroelectric and diesel are kept A9 because their effect comes after 1914.",
+  "Pacing outliers for the per-(tree, Age) scale: steam_separate_condenser 5,910 sits between 23,650 and 133,810; water_mill 11,830 is 7x trip_hammer at A5; gas_engine 56,260 exceeds its successor internal_combustion; light_water_reactor and uranium_enrichment 189,240 and computer/integrated_circuit/programmable_computer 267,620 are the A9 maxima; geological_disposal 94,620 is heavy for a leaf.",
+  "Live unlocks carry 11 nodes (water_mill, both windmills, electricity_generation, nuclear_power, hydroelectric, solar_pv, wind_turbine_modern, fusion_power, integrated_circuit, cloud_computing); 7 rely on the unlock alone. steam_turbine (unit.aircraft_carrier) and space_solar (project.probe_acceleration) have non-live unlocks and get operand effects.",
+  "Cap watch: research.researchPointsCoefficient from this group is 0.05 (gpu_parallel, large_language_models, quantum_computing) against a 0.3 cap shared with science and T2 (0.15); institutions.universities.maxResearchCostReduction reaches 0.11 of its 0.5 cap from this group alone. production.outputPerExtractorPerYear reaches 0.22 (cap 3.0); mobility.targetShareCap 0.18 (cap 1.0).",
+  "frontier_* repeatables: frontier_energy -> farming.yieldPerArableKm2PerYear (energy to fertiliser and pumping), frontier_computation -> governance.authorityDecayCostUnits, frontier_cyber -> fog.formationSightNodes + society.unrestOutputDrag. frontier_cyber is described as RELATIVE; the registry has no relative operand, so the engine track should decide whether absolute operands are acceptable.",
+  "The nuclear sub-family (graphite, heavy-water, light-water, breeder, reprocessing, enrichment, disposal) is knowledge-only by design; each now has a distinct, small spill-over effect (isotopes, Co-60 therapy, solvent extraction, fuel independence) rather than a duplicated power effect, since nuclear_power carries the station unlock."
+ ]
+}

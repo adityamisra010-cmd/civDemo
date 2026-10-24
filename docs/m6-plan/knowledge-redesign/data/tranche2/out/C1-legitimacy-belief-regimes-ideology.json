@@ -1,0 +1,5023 @@
+{
+ "group": "C1-legitimacy-belief-regimes-ideology",
+ "audit": [
+  {
+   "id": "hereditary_rank",
+   "name": "Hereditary rank",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "legitimacy-succession",
+   "cost": 740.0,
+   "prereq": "cereal_cultivation OR sheep_goat",
+   "dependents": [
+    "chiefdom",
+    "dynastic_marriage",
+    "elite_council",
+    "legal_estates",
+    "sacral_kingship",
+    "succession_law"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Stored grain is heritable wealth: inherited rank appears where surplus can be held and passed on."
+    },
+    {
+     "atom": "sheep_goat",
+     "verdict": "keep",
+     "why": "Herds are the other heritable stock; pastoral societies rank lineages by herd wealth, so the OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cereal_cultivation A2, sheep_goat A2; largest gap 0 Age(s)",
+   "crossTree": "technology atoms: cereal_cultivation, sheep_goat (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "Lineage heads who hold rank by birth can claim a customary share of harvest and herd as tribute, so a polity extracts more from its output.",
+   "costConcern": "740 is 1.00x the A2 civics median (740); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound root of the legitimacy lane with six dependents; the OR of the two surplus economies is historically right.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Seonggol (Silla unique civic: bone-rank system)"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "organized_priesthood",
+   "name": "Organized priesthood",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "legitimacy-succession",
+   "cost": 1050.0,
+   "prereq": "calendar_lunar AND (cereal_cultivation OR sheep_goat)",
+   "dependents": [
+    "public_games",
+    "religious_toleration",
+    "sacral_kingship",
+    "scriptural_canon",
+    "state_religion",
+    "temple_economy",
+    "theocracy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "calendar_lunar",
+     "verdict": "keep",
+     "why": "Priests are first the keepers of the ritual calendar; Eridu and Uruk temples timed festivals and sowing by it."
+    },
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "A full-time priesthood is fed from temple offerings of grain."
+    },
+    {
+     "atom": "sheep_goat",
+     "verdict": "keep",
+     "why": "Or from offerings of animals; the OR mirrors hereditary_rank."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "calendar_lunar A2, cereal_cultivation A2, sheep_goat A2; largest gap 0 Age(s)",
+   "crossTree": "technology atoms: calendar_lunar, cereal_cultivation, sheep_goat (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "foodState.adaptationAbsorbableShortfall +0.02"
+   ],
+   "effectRationale": "Offerings collected at the shrine are held under ritual protection and handed back in lean seasons, so households absorb small shortfalls.",
+   "costConcern": "1050 is 1.42x the A2 civics median (740); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Hub node (seven dependents across belief, regimes and arts). Prerequisites are sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Astrology (technology: Holy Site district)"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Mysticism (Priesthood tradition, Altar)"
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "chiefdom",
+   "name": "Chiefdom",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "regime-forms",
+   "cost": 1050.0,
+   "prereq": "hereditary_rank",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "hereditary_rank",
+     "verdict": "keep",
+     "why": "A paramount chief is a hereditary office over ranked lineages."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "hereditary_rank A2; largest gap 0 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.04"
+   ],
+   "effectRationale": "A paramount chief's authority runs through subordinate village chiefs, so control reaches several villages instead of one.",
+   "costConcern": "1050 is 1.42x the A2 civics median (740); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf by rule). Single prerequisite is the defining one.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Code Of Laws (unlocks the Chiefdom government)"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Chiefdom"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "tribal_confederacy",
+   "name": "Tribal confederacy",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "regime-forms",
+   "cost": 1050.0,
+   "prereq": "oath_alliance",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "oath_alliance",
+     "verdict": "keep",
+     "why": "A confederacy is a standing sworn league; oaths among autonomous groups are its precondition."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "oath_alliance A2; largest gap 0 Age(s). Dates are A5/A6 but the placement is by capability; flagged, not changed.",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.02"
+   ],
+   "effectRationale": "Peace sworn among member tribes lets goods move between their territories, closing price gaps faster.",
+   "costConcern": "1050 is 1.42x the A2 civics median (740); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). The emerged dates (Xiongnu 209 BCE, Haudenosaunee ~1450 CE) are later than A2, but the capability (a sworn league of tribes) needs only oath_alliance and is plausible for Neolithic tribes; the Age is a capability placement, so it is kept. The emerged text should state that the A2 placement is a capability inference.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Seven Tribes (Bulgaria unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "sacral_kingship",
+   "name": "Sacred kingship",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "legitimacy-succession",
+   "cost": 1760.0,
+   "prereq": "hereditary_rank AND organized_priesthood",
+   "dependents": [
+    "court_patronage",
+    "debt_remission",
+    "divine_right",
+    "feudal_monarchy",
+    "mandate_doctrine",
+    "territorial_kingship",
+    "theocracy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "hereditary_rank",
+     "verdict": "keep",
+     "why": "Sacred kingship is hereditary rank raised to a divine office."
+    },
+    {
+     "atom": "organized_priesthood",
+     "verdict": "keep",
+     "why": "Temple ritual upholds the king; Egyptian and Sumerian kingship rested on priestly rites."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "hereditary_rank A2, organized_priesthood A2; largest gap 1 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.04"
+   ],
+   "effectRationale": "Dues to a god-sanctioned king are a religious duty; Egyptian and Sumerian kings levied harvest shares through temple and palace, so more output is extracted.",
+   "costConcern": "1760 is 1.19x the A3 civics median (1480); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Seven dependents; both conjuncts are required by the definition.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Light of Amun-Ra (Egypt unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "succession_law",
+   "name": "Rules of succession",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "legitimacy-succession",
+   "cost": 1240.0,
+   "prereq": "hereditary_rank AND law_code",
+   "dependents": [
+    "constitutional_monarchy",
+    "elective_succession",
+    "feudal_monarchy",
+    "territorial_kingship"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "hereditary_rank",
+     "verdict": "keep",
+     "why": "A succession rule regulates inherited office."
+    },
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "The Proclamation of Telipinu is a written law of succession."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "hereditary_rank A2, law_code A3; largest gap 1 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.04"
+   ],
+   "effectRationale": "A fixed rule naming the heir prevents the succession wars that followed royal deaths (the Hittite Old Kingdom before Telipinu), so disorder costs less output.",
+   "costConcern": "1240 is 0.84x the A3 civics median (1480); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Four dependents; sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "city_state_oligarchy",
+   "name": "Oligarchic city-state",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "regime-forms",
+   "cost": 2090.0,
+   "prereq": "elite_council AND law_code",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "elite_council",
+     "verdict": "keep",
+     "why": "Oligarchy is rule by the council of leading families."
+    },
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Oligarchic poleis and communes are bounded by written law."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "elite_council A3, law_code A3; largest gap 0 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.03"
+   ],
+   "effectRationale": "Merchant-led city councils (Old Assyrian Assur, Italian communes) run the city for trade: courts and tolls favour traffic, so price gaps close faster.",
+   "costConcern": "2090 is 1.41x the A3 civics median (1480); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Emerged cites ~700 BCE, later than A3; Old Assyrian Assur (~1,900 BCE, city assembly and elders ruling a merchant city) supports the A3 placement and should be added to the emerged text. The chronology test is unaffected because elite_council is itself dated ~700 BCE.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Political Philosophy (unlocks the Oligarchy government)"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Oligarchy (government)"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "territorial_kingship",
+   "name": "Territorial kingship",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "regime-forms",
+   "cost": 2490.0,
+   "prereq": "(sacral_kingship OR succession_law) AND appointed_officials",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "sacral_kingship",
+     "verdict": "keep",
+     "why": "Egypt's territorial monarchy was sacral."
+    },
+    {
+     "atom": "succession_law",
+     "verdict": "keep",
+     "why": "Or a legal succession rule (Shang, Hittite). The OR admits both routes."
+    },
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Ruling many settlements needs appointed officials."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "sacral_kingship A3, succession_law A3, appointed_officials A3; largest gap 0 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.05"
+   ],
+   "effectRationale": "Royal officials posted to many settlements carry the king's authority across a realm; the largest A3 reach effect, as the first territorial state.",
+   "costConcern": "2490 is 1.68x the A3 civics median (1480); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). The OR-AND is correct.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Divine Right (unlocks the Monarchy government)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Despotism (government)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "theocracy",
+   "name": "Theocratic rule",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "regime-forms",
+   "cost": 2960.0,
+   "prereq": "organized_priesthood AND (law_code OR sacral_kingship)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "organized_priesthood",
+     "verdict": "keep",
+     "why": "Religious office must exist to hold government."
+    },
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Rule under religious law needs written law..."
+    },
+    {
+     "atom": "sacral_kingship",
+     "verdict": "keep",
+     "why": "...or a sacral monarchy whose priests take over (Thebes under the high priests of Amun)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "organized_priesthood A2, law_code A3, sacral_kingship A3; largest gap 2 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "Tithes and temple dues collected by the religious hierarchy itself raise the share of output the government extracts.",
+   "costConcern": "2960 is 1.19x the A4 civics median (2490); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Prerequisites sound.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Reformed Church (unlocks the Theocracy government)"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Theocracy (government)"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "assembly_democracy",
+   "name": "Assembly democracy",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "regime-forms",
+   "cost": 4180.0,
+   "prereq": "citizen_assembly AND law_code",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "citizen_assembly",
+     "verdict": "keep",
+     "why": "The assembly is the sovereign body."
+    },
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Cleisthenes' order is statutory."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "citizen_assembly A4, law_code A3; largest gap 2 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.03"
+   ],
+   "effectRationale": "Citizens air grievances and vote on them in the assembly, so grievance builds more slowly.",
+   "costConcern": "4180 is 1.19x the A5 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Athenian democracy used the lot, not elections, so elected_magistracies is rightly absent.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Suffrage (unlocks the Democracy government)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Ekklesia (Greece unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "bureaucratic_empire",
+   "name": "Bureaucratic empire",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "regime-forms",
+   "cost": 4970.0,
+   "prereq": "provincial_administration AND standing_army",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "provincial_administration",
+     "verdict": "keep",
+     "why": "Provinces under salaried governors define the form."
+    },
+    {
+     "atom": "standing_army",
+     "verdict": "keep",
+     "why": "A permanent army holds the provinces."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "provincial_administration A4, standing_army A4; largest gap 1 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.06"
+   ],
+   "effectRationale": "Salaried officials, provinces and roads keep the centre's orders effective far from the capital: a landmark reach effect (Achaemenid, Qin, Rome).",
+   "costConcern": "4970 is 1.41x the A5 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Civil Service"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Bureaucracy"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "classical_republic",
+   "name": "Mixed-constitution republic",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "regime-forms",
+   "cost": 4180.0,
+   "prereq": "elected_magistracies AND elite_council",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "elected_magistracies",
+     "verdict": "keep",
+     "why": "Elected annual magistrates (and through them the citizen assembly) are the popular element."
+    },
+    {
+     "atom": "elite_council",
+     "verdict": "keep",
+     "why": "The senate is the aristocratic element of the mixed constitution."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "elected_magistracies A4, elite_council A3; largest gap 2 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.03"
+   ],
+   "effectRationale": "Offices open by election let new men rise (the Roman cursus honorum), so promotion between classes is faster.",
+   "costConcern": "4180 is 1.19x the A5 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). citizen_assembly is implied through elected_magistracies.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Political Philosophy (unlocks the Classical Republic government)"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Classical Republic (government)"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "feudal_monarchy",
+   "name": "Feudal monarchy",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "regime-forms",
+   "cost": 7030.0,
+   "prereq": "service_tenure AND (succession_law OR sacral_kingship)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "service_tenure",
+     "verdict": "keep",
+     "why": "Fiefs held for service are the defining institution."
+    },
+    {
+     "atom": "succession_law",
+     "verdict": "keep",
+     "why": "Monarchic succession by rule..."
+    },
+    {
+     "atom": "sacral_kingship",
+     "verdict": "keep",
+     "why": "...or by anointed sacral kingship (Carolingian and Capetian anointing)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "service_tenure A3, succession_law A3, sacral_kingship A3; largest gap 3 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.04"
+   ],
+   "effectRationale": "Vassals govern their fiefs for the crown, so royal authority reaches distant land without salaried officials.",
+   "costConcern": "7030 is 2.00x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Feudalism"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Feudal Monarchy (government)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "merchant_republic",
+   "name": "Mercantile republic",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "regime-forms",
+   "cost": 5910.0,
+   "prereq": "commercial_law AND (elected_magistracies OR municipal_charter)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "commercial_law",
+     "verdict": "keep",
+     "why": "Merchant courts and law are the republic's base."
+    },
+    {
+     "atom": "elected_magistracies",
+     "verdict": "keep",
+     "why": "Venice's doge and councils were elected..."
+    },
+    {
+     "atom": "municipal_charter",
+     "verdict": "keep",
+     "why": "...the Hanse cities governed by charter. OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "commercial_law A6, elected_magistracies A4, municipal_charter A5; largest gap 2 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.04"
+   ],
+   "effectRationale": "State-run convoys, fondachi and consulates (Venetian mude) lower the cost of moving bulk goods.",
+   "costConcern": "5910 is 1.68x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Sound.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Exploration (unlocks the Merchant Republic government)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Plutocracy (government)"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "military_rule",
+   "name": "Military rule",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "regime-forms",
+   "cost": 5910.0,
+   "prereq": "standing_army OR service_tenure",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "standing_army",
+     "verdict": "keep",
+     "why": "Mamluk rule rested on a standing slave army..."
+    },
+    {
+     "atom": "service_tenure",
+     "verdict": "keep",
+     "why": "...the Kamakura shogunate on vassals holding land for service. OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "standing_army A4, service_tenure A3; largest gap 3 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.03"
+   ],
+   "effectRationale": "Martial order suppresses disorder quickly, so unrest disrupts less output (at no grievance relief).",
+   "costConcern": "5910 is 1.68x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Authoritarianism (government)"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "absolute_monarchy",
+   "name": "Absolute monarchy",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "regime-forms",
+   "cost": 7030.0,
+   "prereq": "standing_army AND (provincial_administration OR civil_service_examinations)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "standing_army",
+     "verdict": "keep",
+     "why": "Absolutism rested on a standing army independent of the estates."
+    },
+    {
+     "atom": "provincial_administration",
+     "verdict": "keep",
+     "why": "Intendants and governors..."
+    },
+    {
+     "atom": "civil_service_examinations",
+     "verdict": "keep",
+     "why": "...or an examination bureaucracy (Qing). OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "standing_army A4, provincial_administration A4, civil_service_examinations A6; largest gap 3 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.05"
+   ],
+   "effectRationale": "Taxes levied without the estates' consent (the taille, the poll tax of Peter I) let the crown extract more of the output: a landmark fiscal effect.",
+   "costConcern": "7030 is 1.41x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). divine_right is the theory behind European absolutism, but adding it would exclude non-European absolutisms and Bodin-style sovereignty theory; kept as is.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Divine Right (unlocks the Monarchy government)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Samoderzhaviye (Russia unique civic: autocracy)"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "constitutional_monarchy",
+   "name": "Constitutional monarchy",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "regime-forms",
+   "cost": 7030.0,
+   "prereq": "succession_law AND (written_constitution OR (bill_of_rights AND representative_assembly))",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "succession_law",
+     "verdict": "keep",
+     "why": "The monarchy remains hereditary by rule."
+    },
+    {
+     "atom": "written_constitution",
+     "verdict": "keep",
+     "why": "Bound by a constitution..."
+    },
+    {
+     "atom": "bill_of_rights",
+     "verdict": "keep",
+     "why": "...or, as in England 1689, by a bill of rights..."
+    },
+    {
+     "atom": "representative_assembly",
+     "verdict": "keep",
+     "why": "...together with a parliament."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "succession_law A3, written_constitution A7, bill_of_rights A7, representative_assembly A6; largest gap 4 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.02",
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Parliament's control of the purse makes taxes credible and accepted after 1689 (higher extraction), and petitions to it relieve grievance. Two smaller effects distinguish it from absolute_monarchy's single fiscal effect.",
+   "costConcern": "7030 is 1.41x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). The nested OR captures the unwritten English route; sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Constitutional Monarchy (government)"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.02
+    },
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "federal_republic",
+   "name": "Federation",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "regime-forms",
+   "cost": 7030.0,
+   "prereq": "written_constitution AND (municipal_charter OR provincial_administration)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "written_constitution",
+     "verdict": "keep",
+     "why": "A federal compact must be written."
+    },
+    {
+     "atom": "municipal_charter",
+     "verdict": "keep",
+     "why": "Member units are self-governing towns or cantons..."
+    },
+    {
+     "atom": "provincial_administration",
+     "verdict": "keep",
+     "why": "...or provinces/states. OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "written_constitution A7, municipal_charter A5, provincial_administration A4; largest gap 3 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.04"
+   ],
+   "effectRationale": "Member states govern their own territory under the union, so the polity's effective reach extends further.",
+   "costConcern": "7030 is 1.41x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Elective Republic (government)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "presidential_republic",
+   "name": "Presidential republic",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "regime-forms",
+   "cost": 7030.0,
+   "prereq": "separation_of_powers AND elected_magistracies",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "separation_of_powers",
+     "verdict": "keep",
+     "why": "A separately elected executive is the separation of powers in practice."
+    },
+    {
+     "atom": "elected_magistracies",
+     "verdict": "keep",
+     "why": "The presidency is an elected magistracy."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "separation_of_powers A7, elected_magistracies A4; largest gap 3 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.03"
+   ],
+   "effectRationale": "A fixed-term executive cannot be toppled by shifting majorities, so political crises disrupt output less.",
+   "costConcern": "7030 is 1.41x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Suffrage (unlocks the Democracy government)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Elective Republic (government)"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "parliamentary_government",
+   "name": "Parliamentary government",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "regime-forms",
+   "cost": 11830.0,
+   "prereq": "ministerial_responsibility",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "ministerial_responsibility",
+     "verdict": "keep",
+     "why": "Cabinet government is ministerial responsibility made routine; it already requires representative_assembly."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "ministerial_responsibility A8; largest gap 0 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.04"
+   ],
+   "effectRationale": "Budgets voted by the elected house and spent by ministers it controls were accepted and paid (nineteenth-century Britain), raising extraction.",
+   "costConcern": "11830 is 1.19x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Single prerequisite is the defining one.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Suffrage (unlocks the Democracy government)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Elective Republic (government)"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "marxist_leninist_state",
+   "name": "Marxist–Leninist state",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "regime-forms",
+   "cost": 33450.0,
+   "prereq": "mass_political_party AND central_planning",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "mass_political_party",
+     "verdict": "keep",
+     "why": "The party-state is a mass party in power."
+    },
+    {
+     "atom": "central_planning",
+     "verdict": "keep",
+     "why": "The planned economy defines it."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "mass_political_party A8, central_planning A9; largest gap 1 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.04"
+   ],
+   "effectRationale": "Five-Year Plans gave coal, ore and timber extraction first claim on labour and investment, so extractors produce more.",
+   "costConcern": "33450 is 1.19x the A9 civics median (28130); within range.",
+   "action": "add-prereq",
+   "newPrereq": "mass_political_party AND central_planning AND socialism",
+   "newAge": null,
+   "rationale": "Missing bridge: socialism (A8 ideology) has no dependents, and central_planning requires only official_statistics and telegraph, so today a polity can found a Marxist-Leninist state without the socialist ideology it embodies. Adding socialism (dated 1825-1848, before 1922) closes the ideology-to-regime link, as fascism does for fascist_state. Note for the integrator: socialism is a D13 civic, so this edge lands only when D13 is imported.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Class Struggle (unlocks the Communism government)"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Communism"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "one_party_state",
+   "name": "One-party state",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "regime-forms",
+   "cost": 28130.0,
+   "prereq": "mass_political_party AND (written_constitution OR standing_army)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "mass_political_party",
+     "verdict": "keep",
+     "why": "The single party is a mass party."
+    },
+    {
+     "atom": "written_constitution",
+     "verdict": "keep",
+     "why": "Constitutionally entrenched (USSR 1924)..."
+    },
+    {
+     "atom": "standing_army",
+     "verdict": "keep",
+     "why": "...or held by force (Kemalist Turkey). OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "mass_political_party A8, written_constitution A7, standing_army A4; largest gap 5 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.04"
+   ],
+   "effectRationale": "Party cells in every district and workplace carry central orders down, extending administrative reach.",
+   "costConcern": "28130 is 1.00x the A9 civics median (28130); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Totalitarianism"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Authoritarianism (government)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "shamanic_ritual",
+   "name": "Ritual specialists",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "belief-religion",
+   "cost": 260.0,
+   "prereq": "ochre_processing",
+   "dependents": [
+    "ancestor_veneration"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "ochre_processing",
+     "verdict": "keep",
+     "why": "Ochre is the oldest ritual pigment (Blombos, Qafzeh burials)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "ochre_processing A1; largest gap 0 Age(s)",
+   "crossTree": "technology atoms: ochre_processing (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02"
+   ],
+   "effectRationale": "Ritual specialists were also the band's healers, holding knowledge of medicinal plants (ethnographic shamans), so baseline mortality falls slightly.",
+   "costConcern": "260 is 1.00x the A1 civics median (260); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "A1 belief root. Sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mysticism"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mysticism"
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "ancestor_veneration",
+   "name": "Ancestor veneration",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "belief-religion",
+   "cost": 620.0,
+   "prereq": "shamanic_ritual AND (cereal_cultivation OR sheep_goat)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "shamanic_ritual",
+     "verdict": "keep",
+     "why": "Rites for the dead extend the ritual repertoire."
+    },
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Settled farming households keep their dead in the house..."
+    },
+    {
+     "atom": "sheep_goat",
+     "verdict": "keep",
+     "why": "...or herding lineages; OR mirrors hereditary_rank."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "shamanic_ritual A1, cereal_cultivation A2, sheep_goat A2; largest gap 1 Age(s)",
+   "crossTree": "technology atoms: cereal_cultivation, sheep_goat (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "housing.tauYears +0.02"
+   ],
+   "effectRationale": "Houses that hold the ancestors are rebuilt and maintained on the same spot for generations (Çatalhöyük house sequences), so dwellings last longer.",
+   "costConcern": "620 is 0.84x the A2 civics median (740); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; this tranche gives it two dependents (first_settler_rights, segmentary_lineage), so no prerequisite change is needed.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mysticism"
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "temple_economy",
+   "name": "Temple households",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "belief-religion",
+   "cost": 2090.0,
+   "prereq": "organized_priesthood AND token_counting",
+   "dependents": [
+    "court_patronage"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "organized_priesthood",
+     "verdict": "keep",
+     "why": "Priests manage the estates."
+    },
+    {
+     "atom": "token_counting",
+     "verdict": "keep",
+     "why": "Uruk temple accounts grew out of token counting."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "organized_priesthood A2, token_counting A2; largest gap 1 Age(s)",
+   "crossTree": "technology atoms: token_counting (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "consumption.granaryYearsOfDemand +0.04"
+   ],
+   "effectRationale": "Temple storehouses kept grain under audited accounts for redistribution, so granaries hold more years of demand.",
+   "costConcern": "2090 is 1.41x the A3 civics median (1480); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound; now also feeds temple_almsgiving.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mysticism"
+   },
+   "effects": [
+    {
+     "operand": "consumption.granaryYearsOfDemand",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mandate_doctrine",
+   "name": "Conditional mandate",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "legitimacy-succession",
+   "cost": 2090.0,
+   "prereq": "sacral_kingship AND law_code",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "sacral_kingship",
+     "verdict": "keep",
+     "why": "The Mandate reworks sacral kingship into a conditional grant."
+    },
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Virtue and tyranny are judged against written norms."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "sacral_kingship A3, law_code A3; largest gap 1 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "granaries.famineReductionMax +0.03"
+   ],
+   "effectRationale": "A ruler whose mandate depends on the people's welfare is bound to relieve famine; Chinese state granaries were justified this way, so granaries relieve famine more.",
+   "costConcern": "2090 is 0.84x the A4 civics median (2490); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; it now feeds state_orthodoxy (Han Confucian orthodoxy).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Ren / Yi / Li (Han unique civics)"
+   },
+   "effects": [
+    {
+     "operand": "granaries.famineReductionMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "scriptural_canon",
+   "name": "Scriptural canon",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "belief-religion",
+   "cost": 2490.0,
+   "prereq": "organized_priesthood AND (abjad OR alphabet_vowels OR brahmi OR chinese_script)",
+   "dependents": [
+    "missionary_religion",
+    "monasticism",
+    "religious_reform",
+    "systematic_theology"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "organized_priesthood",
+     "verdict": "keep",
+     "why": "A trained clergy fixes and studies the canon."
+    },
+    {
+     "atom": "abjad",
+     "verdict": "keep",
+     "why": "Torah redaction; the script OR is right..."
+    },
+    {
+     "atom": "alphabet_vowels",
+     "verdict": "keep",
+     "why": "...Greek-script canons..."
+    },
+    {
+     "atom": "brahmi",
+     "verdict": "keep",
+     "why": "...Indic canons (the Rigveda itself was oral, so its ~1,200 BCE date is a compilation date, not a written one)..."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "...Chinese classics."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "organized_priesthood A2, abjad A4, alphabet_vowels A4, brahmi A4, chinese_script A3; largest gap 2 Age(s)",
+   "crossTree": "technology atoms: abjad, alphabet_vowels, brahmi, chinese_script (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.civicsPointsCoefficient +0.02"
+   ],
+   "effectRationale": "A body of texts studied by a trained clergy creates the first institution of textual scholarship, so civic learning accumulates faster.",
+   "costConcern": "2490 is 1.00x the A4 civics median (2490); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Four dependents. The oral Rigveda in emerged sits awkwardly with the script prerequisite; the capability (a fixed text studied by clergy) is right, so the edge is kept and the emerged note should say the Vedic canon was fixed orally.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Theology"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Piety"
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "missionary_religion",
+   "name": "Missionary religion",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "belief-religion",
+   "cost": 3520.0,
+   "prereq": "scriptural_canon AND royal_envoys",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "scriptural_canon",
+     "verdict": "keep",
+     "why": "Missions carry a fixed teaching."
+    },
+    {
+     "atom": "royal_envoys",
+     "verdict": "keep",
+     "why": "Ashoka sent missions as embassies; Paul travelled the diplomatic road network."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "scriptural_canon A4, royal_envoys A3; largest gap 2 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.exploreMaxRadiusNodes +0.03"
+   ],
+   "effectRationale": "Missionaries and pilgrims returned with accounts of far lands (Faxian, Xuanzang), so exploration reaches further.",
+   "costConcern": "3520 is 1.00x the A5 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; now feeds missionary_societies (A8).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Theology"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Theology (Evangelism tradition)"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "monasticism",
+   "name": "Monastic orders",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "belief-religion",
+   "cost": 2960.0,
+   "prereq": "scriptural_canon",
+   "dependents": [
+    "military_orders"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "scriptural_canon",
+     "verdict": "keep",
+     "why": "Monastic rules organize study of the canon."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "scriptural_canon A4; largest gap 1 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.02"
+   ],
+   "effectRationale": "Monastic estates with a disciplined labour force and a long horizon drained, manured and improved land, so land yields more.",
+   "costConcern": "2960 is 0.84x the A5 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound; now also feeds mendicant_orders.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Theology"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Reformation (Religious Orders tradition)"
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "state_religion",
+   "name": "State religion",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "belief-religion",
+   "cost": 4180.0,
+   "prereq": "organized_priesthood AND appointed_officials",
+   "dependents": [
+    "canon_law",
+    "divine_right",
+    "legal_estates"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "organized_priesthood",
+     "verdict": "keep",
+     "why": "There must be a clergy to establish."
+    },
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Establishment is enforced by officials."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "organized_priesthood A2, appointed_officials A3; largest gap 3 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.03"
+   ],
+   "effectRationale": "An established clergy preaching obedience in every parish damps the output cost of unrest.",
+   "costConcern": "4180 is 1.19x the A5 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Hub (feeds canon_law, divine_right, legal_estates and five new nodes). Sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Theology"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Piety"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "steppe_empire",
+   "name": "Steppe empire",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "regime-forms",
+   "cost": 7030.0,
+   "prereq": "oath_alliance AND war_band AND cavalry",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "oath_alliance",
+     "verdict": "keep",
+     "why": "Clans are sworn to the khan."
+    },
+    {
+     "atom": "war_band",
+     "verdict": "keep",
+     "why": "The retinue becomes the decimal army."
+    },
+    {
+     "atom": "cavalry",
+     "verdict": "keep",
+     "why": "Mounted archery is the military base."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "oath_alliance A2, war_band A1, cavalry A4; largest gap 4 Age(s)",
+   "crossTree": "technology atoms: cavalry (cross-tree; kept on merit)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerHerderPerYear +0.03"
+   ],
+   "effectRationale": "The khan allots pastures and seasonal routes among clans and keeps the peace among them, so herds graze better land and yield more.",
+   "costConcern": "7030 is 2.00x the A5 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Sound three-way AND.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Ulus (Mongolia unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "canon_law",
+   "name": "Canon law",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "belief-religion",
+   "cost": 3520.0,
+   "prereq": "state_religion AND legal_code_roman",
+   "dependents": [
+    "religious_reform"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "state_religion",
+     "verdict": "keep",
+     "why": "Church courts need an established church."
+    },
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "Gratian systematized canon law on Roman-law method."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "state_religion A5, legal_code_roman A4; largest gap 2 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maturityTauYears +0.03"
+   ],
+   "effectRationale": "Canon law was a founding faculty of Bologna and Paris; a teachable law corpus makes universities mature faster.",
+   "costConcern": "3520 is 1.00x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "After the religious_reform change it would be a leaf; it now feeds mendicant_orders, whose rule was approved under canon law.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Theology"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "elective_succession",
+   "name": "Elective succession",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "legitimacy-succession",
+   "cost": 3520.0,
+   "prereq": "succession_law AND elite_council",
+   "dependents": [
+    "elective_monarchy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "succession_law",
+     "verdict": "keep",
+     "why": "Election is a succession rule."
+    },
+    {
+     "atom": "elite_council",
+     "verdict": "keep",
+     "why": "The electoral college is a council of magnates."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "succession_law A3, elite_council A3; largest gap 3 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Electors bargain capitulations from each candidate, writing the magnates' grievances into the ruler's oath.",
+   "costConcern": "3520 is 1.00x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "systematic_theology",
+   "name": "Systematic theology",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "belief-religion",
+   "cost": 2960.0,
+   "prereq": "scriptural_canon AND philosophical_schools",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "scriptural_canon",
+     "verdict": "keep",
+     "why": "Theology reasons about the canon."
+    },
+    {
+     "atom": "philosophical_schools",
+     "verdict": "keep",
+     "why": "With philosophical method."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "scriptural_canon A4, philosophical_schools A5; largest gap 2 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.03"
+   ],
+   "effectRationale": "Scholastic disputation and the theology faculty were the core of the medieval university's method, so universities cut research cost more.",
+   "costConcern": "2960 is 0.84x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; now feeds liberation_theology (A9).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Theology"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Theology"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "elective_monarchy",
+   "name": "Elective monarchy",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "regime-forms",
+   "cost": 5910.0,
+   "prereq": "elective_succession AND service_tenure",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "elective_succession",
+     "verdict": "keep",
+     "why": "The defining rule: an electoral college chooses the king."
+    },
+    {
+     "atom": "service_tenure",
+     "verdict": "keep",
+     "why": "The electors are magnates holding land and office for service."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "elective_succession A6, service_tenure A3; largest gap 3 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.02"
+   ],
+   "effectRationale": "Charters extracted at each election entrench a large privileged estate (the Polish szlachta was ~8% of the population), so a larger upper class is sustainable.",
+   "costConcern": "5910 is 1.68x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "divine_right",
+   "name": "Divine right of kings",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "legitimacy-succession",
+   "cost": 3520.0,
+   "prereq": "sacral_kingship AND state_religion",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "sacral_kingship",
+     "verdict": "keep",
+     "why": "Divine right is a theory of sacral kingship."
+    },
+    {
+     "atom": "state_religion",
+     "verdict": "keep",
+     "why": "Resistance as sin presumes an established church."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "sacral_kingship A3, state_religion A5; largest gap 4 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "Preaching that resistance is sin damps disorder slightly.",
+   "costConcern": "3520 is 0.71x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: the doctrine is superseded rather than built on (social_contract answers it).",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Divine Right"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Sovereignty (Divine Right tradition)"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "religious_reform",
+   "name": "Religious reform movements",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "belief-religion",
+   "cost": 5910.0,
+   "prereq": "printing_press AND (canon_law OR scriptural_canon)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "Printed vernacular scripture and pamphlets carried the Reformation."
+    },
+    {
+     "atom": "canon_law",
+     "verdict": "replace",
+     "why": "As an OR alternative it lets reform be reached without any scriptural canon (canon_law requires state_religion and legal_code_roman, not scripture). Reform movements appeal to scripture against the clergy; the established clergy is already required through scriptural_canon's organized_priesthood."
+    },
+    {
+     "atom": "scriptural_canon",
+     "verdict": "keep",
+     "why": "Sola scriptura: the appeal to the text is the movement's core."
+    }
+   ],
+   "andOr": "change(printing_press AND scriptural_canon)",
+   "ageGap": "printing_press A7, canon_law A6, scriptural_canon A4; largest gap 3 Age(s)",
+   "crossTree": "technology atoms: printing_press (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.03"
+   ],
+   "effectRationale": "Reading scripture for oneself drove lay literacy (Protestant schooling), so people rise between classes faster.",
+   "costConcern": "5910 is 1.19x the A7 civics median (4970); within range.",
+   "action": "change-andor",
+   "newPrereq": "printing_press AND scriptural_canon",
+   "newAge": null,
+   "rationale": "The OR admitted a scripture-less route through canon_law alone, which contradicts the node's own capability (lay readers challenging clergy from the text). The new expression is the required core; no Age or tree crossing is involved.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Reformed Church"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Reformation"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "social_contract",
+   "name": "Social contract",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "ideology",
+   "cost": 5910.0,
+   "prereq": "political_philosophy AND printing_press",
+   "dependents": [
+    "classical_liberalism",
+    "popular_sovereignty"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "political_philosophy",
+     "verdict": "keep",
+     "why": "Contract theory continues classical political philosophy."
+    },
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "Leviathan and the Two Treatises circulated in print."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "political_philosophy A5, printing_press A7; largest gap 2 Age(s)",
+   "crossTree": "technology atoms: printing_press (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Rule argued to rest on consent invites petitions and redress, so grievance builds more slowly.",
+   "costConcern": "5910 is 1.19x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "The Enlightenment"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Political Theory"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "classical_liberalism",
+   "name": "Liberalism",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "cost": 11830.0,
+   "prereq": "social_contract AND commercial_law",
+   "dependents": [
+    "free_trade"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "social_contract",
+     "verdict": "keep",
+     "why": "Rights theory comes from contract theory."
+    },
+    {
+     "atom": "commercial_law",
+     "verdict": "keep",
+     "why": "Free-market argument presumes enforceable commercial law."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "social_contract A7, commercial_law A6; largest gap 2 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.04"
+   ],
+   "effectRationale": "Removing internal tolls, monopolies and price controls lets arbitrage close price gaps faster.",
+   "costConcern": "11830 is 1.19x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Capitalism"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Liberalism"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "conservatism",
+   "name": "Conservatism",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "cost": 5910.0,
+   "prereq": "popular_sovereignty",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "popular_sovereignty",
+     "verdict": "keep",
+     "why": "Conservatism is a reaction to the claim of popular sovereignty."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "popular_sovereignty A8; largest gap 0 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.02"
+   ],
+   "effectRationale": "Conservative government kept unpaid local notables (justices of the peace, Landräte) in administration, extending reach cheaply.",
+   "costConcern": "5910 is 0.59x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: an ideology of defence, not a foundation others build on.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "nationalism",
+   "name": "Nationalism",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "cost": 11830.0,
+   "prereq": "popular_sovereignty AND printing_press",
+   "dependents": [
+    "decolonization",
+    "fascism"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "popular_sovereignty",
+     "verdict": "keep",
+     "why": "The nation as sovereign."
+    },
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "Redundant in closure (social_contract already requires it) but marks the print-language argument; harmless."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "popular_sovereignty A8, printing_press A7; largest gap 1 Age(s)",
+   "crossTree": "technology atoms: printing_press (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "Citizens who identify with the nation accept national taxes and war loans more readily, raising extraction.",
+   "costConcern": "11830 is 1.19x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound; feeds decolonization, fascism and four new nodes.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Nationalism"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Nationalism"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "popular_sovereignty",
+   "name": "Popular sovereignty",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "cost": 14060.0,
+   "prereq": "social_contract AND representative_assembly",
+   "dependents": [
+    "conservatism",
+    "nationalism",
+    "revolutionary_republic"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "social_contract",
+     "verdict": "keep",
+     "why": "Popular sovereignty applies contract theory."
+    },
+    {
+     "atom": "representative_assembly",
+     "verdict": "keep",
+     "why": "Exercised through representatives."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "social_contract A7, representative_assembly A6; largest gap 2 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.03"
+   ],
+   "effectRationale": "A people that holds sovereignty can remove grievances through its representatives.",
+   "costConcern": "14060 is 1.41x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound hub.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Suffrage"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Democracy"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "secular_state",
+   "name": "Secular state",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "belief-religion",
+   "cost": 14060.0,
+   "prereq": "religious_toleration AND written_constitution",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "religious_toleration",
+     "verdict": "keep",
+     "why": "Equality of faiths extends toleration."
+    },
+    {
+     "atom": "written_constitution",
+     "verdict": "keep",
+     "why": "The First Amendment and 1905 law are constitutional or statutory."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "religious_toleration A5, written_constitution A7; largest gap 3 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.03"
+   ],
+   "effectRationale": "Offices and universities open regardless of confession (repeal of the Test Acts), so people rise faster.",
+   "costConcern": "14060 is 1.41x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; now feeds multiculturalism and modernizing_nationalism.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "socialism",
+   "name": "Socialism",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "cost": 11830.0,
+   "prereq": "labour_unions AND printing_press",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "labour_unions",
+     "verdict": "keep",
+     "why": "Workers' movements are the base."
+    },
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "Owenite tracts and the Manifesto spread the movement in print; not implied by labour_unions, so it is a real conjunct."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "labour_unions A8, printing_press A7; largest gap 1 Age(s)",
+   "crossTree": "technology atoms: printing_press (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "foodState.adaptationAbsorbableShortfall +0.03"
+   ],
+   "effectRationale": "Workers' mutual-aid funds and cooperative stores tide households over lost wages and dear bread.",
+   "costConcern": "11830 is 1.19x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; now required by marxist_leninist_state (proposed) and feeds social_democracy, vanguard_party and liberation_theology.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Class Struggle"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Socialism"
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "revolutionary_republic",
+   "name": "Revolutionary republic",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "regime-forms",
+   "cost": 23650.0,
+   "prereq": "popular_sovereignty AND written_constitution AND citizen_militia",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "popular_sovereignty",
+     "verdict": "keep",
+     "why": "Founded in the name of the people."
+    },
+    {
+     "atom": "written_constitution",
+     "verdict": "keep",
+     "why": "Constitutions of 1791/1793."
+    },
+    {
+     "atom": "citizen_militia",
+     "verdict": "keep",
+     "why": "The citizen army."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "popular_sovereignty A8, written_constitution A7, citizen_militia A4; largest gap 4 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.04"
+   ],
+   "effectRationale": "Careers open to talent: privilege abolished, officers and officials promoted from the ranks.",
+   "costConcern": "23650 is 2.38x the A8 civics median (9950); outside 0.5-2x — check against §5 pacing scale.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Revolutionary Republic (government)"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "fascism",
+   "name": "Fascism",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "cost": 23650.0,
+   "prereq": "nationalism AND mass_political_party",
+   "dependents": [
+    "fascist_state"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "nationalism",
+     "verdict": "keep",
+     "why": "Ultranationalism."
+    },
+    {
+     "atom": "mass_political_party",
+     "verdict": "keep",
+     "why": "A mass movement party."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "nationalism A8, mass_political_party A8; largest gap 1 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.02"
+   ],
+   "effectRationale": "Corporatist bodies bind employers and workers to deliver output to the state, raising extraction.",
+   "costConcern": "23650 is 0.84x the A9 civics median (28130); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Totalitarianism"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Fascism"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "fascist_state",
+   "name": "Fascist state",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "regime-forms",
+   "cost": 47310.0,
+   "prereq": "fascism AND state_propaganda AND mass_political_party",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "fascism",
+     "verdict": "keep",
+     "why": "The movement in power."
+    },
+    {
+     "atom": "state_propaganda",
+     "verdict": "keep",
+     "why": "Mobilization through propaganda."
+    },
+    {
+     "atom": "mass_political_party",
+     "verdict": "keep",
+     "why": "Redundant in closure (fascism requires it) but harmless."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "fascism A9, state_propaganda A9, mass_political_party A8; largest gap 1 Age(s)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "pathBuild.laborPerAdultPerYear +0.03"
+   ],
+   "effectRationale": "Compulsory labour service (Reichsarbeitsdienst, bonifica works) puts more labour into road and path building.",
+   "costConcern": "47310 is 1.68x the A9 civics median (28130); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Government form (leaf). Sound.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Totalitarianism (unlocks the Fascism government)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Fascism"
+   },
+   "effects": [
+    {
+     "operand": "pathBuild.laborPerAdultPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "mortuary_rites",
+   "name": "Burial of the dead",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "belief-religion",
+   "emerged": "~100 kya Qafzeh and Skhul burials with ochre; ~34 kya Sungir grave goods",
+   "prereq": "ochre_processing",
+   "prereqRationale": "ochre_processing: the oldest burials (Qafzeh) are ochre-stained; ochre is dated ~100 kya, as early as the burials.",
+   "rationale": "ochre_processing: the oldest burials (Qafzeh) are ochre-stained; ochre is dated ~100 kya, as early as the burials.",
+   "desc": "The band buries its dead with ochre and ornaments and mourns them together, binding the living to one another and to the places where their kin lie.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 1.75,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Shared mourning rites absorb the strain a death puts on a small band, so grievance builds more slowly.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "shamanic_ritual is a specialist's role; burial is a community-wide rite needing no specialist. ancestor_veneration (A2) is the later settled cult of named ancestors."
+  },
+  {
+   "id": "sacred_sites",
+   "name": "Sacred gathering places",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "belief-religion",
+   "emerged": "~17 kya Lascaux; ~15 kya Altamira (reading painted caves as band-aggregation sites is an archaeological inference)",
+   "prereq": "shamanic_ritual",
+   "prereqRationale": "shamanic_ritual: the rites performed at the shared place are led by ritual specialists (dated from ~35 kya).",
+   "rationale": "shamanic_ritual: the rites performed at the shared place are led by ritual specialists (dated from ~35 kya).",
+   "desc": "Bands that live apart meet at painted caves and shrines in certain seasons to hold rites, exchange news and find spouses.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 1.75,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Seasonal aggregation keeps distant bands in contact and marrying between groups, so people move further between them.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Astrology (technology: Holy Site district)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mysticism (Altar)"
+   },
+   "distinctFrom": "shamanic_ritual is who leads the rite; this is where scattered bands gather for it."
+  },
+  {
+   "id": "prestige_leadership",
+   "name": "Prestige leadership",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "legitimacy-succession",
+   "emerged": "~10 kya and earlier: ethnographic headmen whose influence rests on generosity and skill (inferred for late foragers)",
+   "prereq": "gift_exchange AND kin_council",
+   "prereqRationale": "gift_exchange: a headman's standing comes from giving. kin_council: he leads by persuading the council of household heads. Both are A1.",
+   "rationale": "gift_exchange: a headman's standing comes from giving. kin_council: he leads by persuading the council of household heads. Both are A1.",
+   "desc": "Some men and women lead by skill and generosity rather than birth: others follow them on the hunt, in moves and in disputes, but can leave them at will.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.25,
+   "effects": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A respected leader can draw a larger following when a group splits to found a new camp, so founding parties are larger.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Chiefdom (Charismatic Leader tradition)"
+   },
+   "distinctFrom": "kin_council is collective deliberation; this is personal, achieved authority within it. hereditary_rank (A2) is authority by birth."
+  },
+  {
+   "id": "megalithic_monuments",
+   "name": "Monumental shrines",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "belief-religion",
+   "emerged": "~9,500 BCE Göbekli Tepe enclosures; ~3,000 BCE Stonehenge",
+   "prereq": "communal_feasts AND shamanic_ritual",
+   "prereqRationale": "communal_feasts: Göbekli Tepe's builders were fed at great feasts (~9,500 BCE, same date). shamanic_ritual: the enclosures are ritual spaces.",
+   "rationale": "communal_feasts: Göbekli Tepe's builders were fed at great feasts (~9,500 BCE, same date). shamanic_ritual: the enclosures are ritual spaces.",
+   "desc": "Communities raise stone enclosures and tombs too large for any household, feeding the work parties with feasts and gathering at them for rites.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.5,
+   "effects": [
+    {
+     "operand": "pathBuild.laborPerAdultPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Organizing many households into fed work parties is the first mass labour mobilization; the same practice serves later communal works such as tracks and causeways.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Astrology (technology: unlocks Stonehenge)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "communal_feasts is the feast; this is the monument the feast pays for. corvee_labour (A3) is labour owed to a state, not volunteered to a shrine."
+  },
+  {
+   "id": "regalia",
+   "name": "Insignia of rank",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "legitimacy-succession",
+   "emerged": "~4,500 BCE Varna gold sceptre and ornaments; ~3,500 BCE Nahal Mishmar copper maceheads",
+   "prereq": "hereditary_rank AND (copper_native OR gold_silver_native)",
+   "prereqRationale": "hereditary_rank: insignia mark inherited office (Varna, ~4,500 BCE, same date). copper_native OR gold_silver_native: the earliest regalia are of native copper and gold.",
+   "rationale": "hereditary_rank: insignia mark inherited office (Varna, ~4,500 BCE, same date). copper_native OR gold_silver_native: the earliest regalia are of native copper and gold.",
+   "desc": "Sceptres, maces and gold ornaments mark who holds rank, so authority is recognized by people who have never met its holder.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A recognizable emblem lets a leader's word carry to villages beyond personal acquaintance, so authority reaches further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "hereditary_rank is the rule of inheritance; regalia are its visible signs, which carry authority beyond face-to-face contact."
+  },
+  {
+   "id": "first_settler_rights",
+   "name": "First-comer precedence",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "legitimacy-succession",
+   "emerged": "~7,000 BCE Çatalhöyük house continuity over many generations (inferred); ethnographic earth-priest lineages of West Africa",
+   "prereq": "ancestor_veneration",
+   "prereqRationale": "ancestor_veneration: precedence is claimed through the ancestors who first cleared the land (dated ~9,000 BCE).",
+   "rationale": "ancestor_veneration: precedence is claimed through the ancestors who first cleared the land (dated ~9,000 BCE).",
+   "desc": "The lineage descended from the first settlers keeps the shrine of the land and allots fields to later arrivals, who farm by its leave.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 2.5,
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A recognized founding lineage can allot outlying land to newcomers, so a settlement draws on a wider hinterland.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "ancestor_veneration honours the dead; this turns descent from the first settlers into a claim over land and newcomers."
+  },
+  {
+   "id": "segmentary_lineage",
+   "name": "Segmentary lineage society",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "regime-forms",
+   "emerged": "~6,000 BCE Neolithic lineage villages (inferred); ethnographic Nuer and Tiv",
+   "prereq": "ancestor_veneration AND kin_council",
+   "prereqRationale": "ancestor_veneration: lineages are defined by a common ancestor. kin_council: each segment is run by its elders. Both precede the node.",
+   "rationale": "ancestor_veneration: lineages are defined by a common ancestor. kin_council: each segment is run by its elders. Both precede the node.",
+   "desc": "Lineages unite against outsiders and split when they grow, with no permanent chief; elders of each segment settle disputes.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.5,
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Segments bud off and move away as they grow, so people move more freely.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "chiefdom has a permanent paramount; tribal_confederacy is a sworn league. This form has neither: unity by descent, fission by growth."
+  },
+  {
+   "id": "big_man_polity",
+   "name": "Big-man polity",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "regime-forms",
+   "emerged": "~6,500 BCE early Neolithic villages (inferred from feasting debris); ethnographic Melanesian big-men",
+   "prereq": "prestige_leadership AND communal_feasts",
+   "prereqRationale": "prestige_leadership: the big-man is the achieved leader. communal_feasts: he wins followers by competitive feasting. Both are earlier.",
+   "rationale": "prestige_leadership: the big-man is the achieved leader. communal_feasts: he wins followers by competitive feasting. Both are earlier.",
+   "desc": "Leaders compete for followers by sponsoring feasts and exchanges; their authority lasts only as long as their generosity and is not inherited.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.5,
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Households work harder to produce surplus for their leader's feasts (Sahlins), so each farmer produces more.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Chiefdom (Charismatic Leader tradition)"
+   },
+   "distinctFrom": "chiefdom is hereditary office; the big-man's position is achieved and lapses with him."
+  },
+  {
+   "id": "coronation_rites",
+   "name": "Enthronement rites",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "legitimacy-succession",
+   "emerged": "~3,000 BCE Egyptian accession rites (union of the Two Lands); ~1,000 BCE Babylonian re-investiture at the Akitu festival",
+   "prereq": "sacral_kingship",
+   "prereqRationale": "sacral_kingship: enthronement is the rite that makes a man the god-sanctioned king (dated ~3,100 BCE).",
+   "rationale": "sacral_kingship: enthronement is the rite that makes a man the god-sanctioned king (dated ~3,100 BCE).",
+   "desc": "A new ruler is installed by public rite: anointing, crowning and the oath of the great men, so everyone knows who rules from the day of accession.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 3.5,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Governors and vassals swear at the enthronement, so the new ruler's authority is recognized in the provinces at once.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "succession_law says who the heir is; this rite makes the accession public and binding."
+  },
+  {
+   "id": "pantheon_hierarchy",
+   "name": "State pantheon",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "belief-religion",
+   "emerged": "~2,600 BCE Fara god lists; ~2,100 BCE Nippur as the seat of Enlil, who confers kingship",
+   "prereq": "organized_priesthood AND (cuneiform OR hieroglyphic)",
+   "prereqRationale": "organized_priesthood: priests order the gods. cuneiform OR hieroglyphic: the god lists are written. All are earlier than ~2,600 BCE.",
+   "rationale": "organized_priesthood: priests order the gods. cuneiform OR hieroglyphic: the god lists are written. All are earlier than ~2,600 BCE.",
+   "desc": "The city gods are arranged in one ranked family under a high god, whose shrine confers kingship over all the cities.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.5,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Conquered cities keep their gods inside the victor's pantheon and accept rule confirmed at the high god's shrine, so authority extends further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mysticism (unlocks pantheons)"
+   },
+   "distinctFrom": "organized_priesthood serves one city's god; this joins many cities' gods into one hierarchy that legitimizes rule over all of them."
+  },
+  {
+   "id": "temple_almsgiving",
+   "name": "Temple relief",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "belief-religion",
+   "emerged": "~2,400 BCE Lagash reforms protecting widows and orphans; ~2,100 BCE Ur III temple ration lists for dependants",
+   "prereq": "temple_economy",
+   "prereqRationale": "temple_economy: the temple's stores and ration system feed the dependants (dated ~3,200 BCE).",
+   "rationale": "temple_economy: the temple's stores and ration system feed the dependants (dated ~3,200 BCE).",
+   "desc": "Temples put widows, orphans and the destitute on their ration lists in return for light work, so the weakest are fed from temple stores.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 3.5,
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Orphans and children of the destitute on temple rations are protected when harvests fail.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "temple_economy is the estate management; this is the temple's relief role. debt_remission is a royal edict cancelling debts."
+  },
+  {
+   "id": "overkingship",
+   "name": "Overkingship",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "regime-forms",
+   "emerged": "~2,400 BCE Ebla's sworn overlordship of Abarsal; ~1,350 BCE Hittite vassal treaties",
+   "prereq": "sacral_kingship AND sworn_treaties",
+   "prereqRationale": "sacral_kingship: the overlord is a sanctioned king. sworn_treaties: vassal kings are bound by treaty oaths (Ebla-Abarsal, ~2,400 BCE, same date).",
+   "rationale": "sacral_kingship: the overlord is a sanctioned king. sworn_treaties: vassal kings are bound by treaty oaths (Ebla-Abarsal, ~2,400 BCE, same date).",
+   "desc": "A great king rules other kings, who keep their thrones in return for oaths, tribute and troops.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.5,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Vassal tribute adds to what the overlord extracts without his own officials.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Authority (Vassalage tradition)"
+   },
+   "distinctFrom": "territorial_kingship rules directly through officials; overkingship rules indirectly through sworn sub-kings."
+  },
+  {
+   "id": "succession_oaths",
+   "name": "Succession oaths",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "legitimacy-succession",
+   "emerged": "672 BCE Esarhaddon's succession treaties binding vassals and officials to Ashurbanipal",
+   "prereq": "succession_law AND sworn_treaties",
+   "prereqRationale": "succession_law: the heir is named by rule. sworn_treaties: officials and vassals swear treaty oaths to uphold him. Both are A3 and earlier.",
+   "rationale": "succession_law: the heir is named by rule. sworn_treaties: officials and vassals swear treaty oaths to uphold him. Both are A3 and earlier.",
+   "desc": "Officials and vassal kings swear in the old ruler's lifetime to support his chosen heir, under curses if they break the oath.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.5,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Governors sworn personally to the heir keep distant provinces loyal through the change of reign.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "succession_law names the heir; these oaths bind the realm's officials to him before the accession."
+  },
+  {
+   "id": "ethical_religion",
+   "name": "Ethical religion",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "belief-religion",
+   "emerged": "~750 BCE Amos and the Hebrew prophets; ~600 BCE Zoroastrian teaching (dates debated)",
+   "prereq": "organized_priesthood AND law_code",
+   "prereqRationale": "organized_priesthood: the cult the prophets reform. law_code: divine justice is framed as law. Both are earlier.",
+   "rationale": "organized_priesthood: the cult the prophets reform. law_code: divine justice is framed as law. Both are earlier.",
+   "desc": "Prophets teach that the gods demand justice for the poor rather than sacrifice alone, and judge kings and the rich by that standard.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Religious duties of charity and fair dealing, and prophetic rebuke of the powerful, ease the grievances of the poor.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "organized_priesthood is the cult; this is the moral content that holds rulers and rich to account. scriptural_canon fixes texts."
+  },
+  {
+   "id": "pilgrimage",
+   "name": "Pilgrimage and sacred truce",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "belief-religion",
+   "emerged": "~776 BCE Olympic sacred truce (ekecheiria); ~700 BCE pilgrims to the oracle at Delphi",
+   "prereq": "organized_priesthood AND track_road",
+   "prereqRationale": "organized_priesthood: sanctuaries are run by priests. track_road: pilgrims travel built routes. Both are much earlier.",
+   "rationale": "organized_priesthood: sanctuaries are run by priests. track_road: pilgrims travel built routes. Both are much earlier.",
+   "desc": "Sanctuaries draw pilgrims from many states; a sacred truce protects travellers on the roads to the festival.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.5,
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Safe passage under the truce and sanctuary hostels on the sacred ways let travellers cover more ground each day.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_games is the contest; pilgrimage is the protected journey and the sanctuary network."
+  },
+  {
+   "id": "tyranny",
+   "name": "Tyranny",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "regime-forms",
+   "emerged": "~657 BCE Cypselus at Corinth; ~546 BCE Peisistratus at Athens",
+   "prereq": "elite_council AND (citizen_militia OR standing_army)",
+   "prereqRationale": "elite_council: tyrants rose from aristocratic faction struggles (~700 BCE). citizen_militia OR standing_army: hoplite backing or a bodyguard/mercenary force.",
+   "rationale": "elite_council: tyrants rose from aristocratic faction struggles (~700 BCE). citizen_militia OR standing_army: hoplite backing or a bodyguard/mercenary force.",
+   "desc": "A strongman seizes a city outside the traditional order, backed by the people or hired troops, and rules through patronage and public works.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "effects": [
+    {
+     "operand": "pathBuild.laborPerAdultPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Tyrants employed the poor on public works (the Eupalinos tunnel, Peisistratid fountain-houses and roads), so more labour goes into building.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Political Philosophy (unlocks the Autocracy government)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Despotism (government)"
+   },
+   "distinctFrom": "military_rule is government by the armed forces as a body; tyranny is one man's rule over a city, outside law but often popular."
+  },
+  {
+   "id": "imperial_cult",
+   "name": "Ruler cult",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "legitimacy-succession",
+   "emerged": "~300 BCE Hellenistic ruler cults; 29 BCE first provincial temples to Augustus",
+   "prereq": "sacral_kingship AND provincial_administration",
+   "prereqRationale": "sacral_kingship: the ruler is divine or god-sanctioned. provincial_administration: the cult is organized province by province.",
+   "rationale": "sacral_kingship: the ruler is divine or god-sanctioned. provincial_administration: the cult is organized province by province.",
+   "desc": "Provinces raise temples and priests to the living or deified ruler; local notables compete to hold the priesthood, binding them to the empire.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.5,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Provincial elites who serve as the ruler's priests tie distant provinces to the centre, so authority reaches further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "sacral_kingship is the king's sanction by the gods; the ruler cult makes him an object of provincial worship run by local elites."
+  },
+  {
+   "id": "adoptive_succession",
+   "name": "Adoptive succession",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "legitimacy-succession",
+   "emerged": "96–180 CE Nerva–Antonine adoptive emperors",
+   "prereq": "succession_law AND family_law",
+   "prereqRationale": "succession_law: succession by rule. family_law: adoption is a legal act of family law. Both are A3.",
+   "rationale": "succession_law: succession by rule. family_law: adoption is a legal act of family law. Both are A3.",
+   "desc": "The ruler adopts the ablest candidate as his son and heir, giving merit the form of dynastic succession.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "An heir chosen and designated in advance avoids contested accessions (the five good emperors), so unrest costs less output.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "succession_law fixes the heir by birth order; adoption chooses him by ability while keeping dynastic form."
+  },
+  {
+   "id": "congregational_worship",
+   "name": "Congregations",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "belief-religion",
+   "emerged": "~250 BCE synagogue inscriptions in Egypt; ~50 CE Christian assemblies; Buddhist lay observance days",
+   "prereq": "scriptural_canon AND communal_feasts",
+   "prereqRationale": "scriptural_canon: the congregation gathers to hear the text read. communal_feasts: the common meal of the assembly. Both are earlier.",
+   "rationale": "scriptural_canon: the congregation gathers to hear the text read. communal_feasts: the common meal of the assembly. Both are earlier.",
+   "desc": "Lay believers meet weekly to hear scripture, share a meal and support their poor, sick and widows from a common fund.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.5,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Congregational alms and shared meals keep members alive through dearth.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Society (Uposatha tradition)"
+   },
+   "distinctFrom": "organized_priesthood and temple_almsgiving are run by priests; congregations are lay communities supporting their own members."
+  },
+  {
+   "id": "state_orthodoxy",
+   "name": "State orthodoxy",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "ideology",
+   "emerged": "136 BCE Han erudites of the Five Classics; 124 BCE Imperial Academy",
+   "prereq": "mandate_doctrine AND philosophical_schools",
+   "prereqRationale": "mandate_doctrine: the Zhou doctrine is the core of Confucian legitimacy. philosophical_schools: one school is chosen as orthodox. Both are earlier.",
+   "rationale": "mandate_doctrine: the Zhou doctrine is the core of Confucian legitimacy. philosophical_schools: one school is chosen as orthodox. Both are earlier.",
+   "desc": "One school of thought is made the state's official doctrine: its classics are taught at a state academy and mastery of them leads to office.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.5,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Mastery of the official classics opens a route to office for men outside the old nobility.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Ren / Yi / Li (Han unique civics)"
+   },
+   "distinctFrom": "state_religion establishes a faith and clergy; state orthodoxy establishes a doctrine and a curriculum for officials."
+  },
+  {
+   "id": "religious_endowments",
+   "name": "Pious endowments",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "belief-religion",
+   "emerged": "~700 CE early waqf foundations; ~980 CE Adudi hospital in Baghdad",
+   "prereq": "state_religion AND legal_code_roman",
+   "prereqRationale": "state_religion: endowments are protected by the religious establishment. legal_code_roman: a perpetual trust needs a systematic law of property.",
+   "rationale": "state_religion: endowments are protected by the religious establishment. legal_code_roman: a perpetual trust needs a systematic law of property.",
+   "desc": "Land and shops are endowed in perpetuity to fund hospitals, fountains, schools and kitchens, managed by trustees under religious law.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.75,
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Hospitals, public fountains and soup kitchens funded in perpetuity lower baseline mortality.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "temple_almsgiving is relief from temple stores; endowments are perpetual legal trusts with their own income."
+  },
+  {
+   "id": "investiture_settlement",
+   "name": "Church-state concordat",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "belief-religion",
+   "emerged": "1107 CE Concordat of London; 1122 CE Concordat of Worms",
+   "prereq": "state_religion AND service_tenure",
+   "prereqRationale": "state_religion: an established church. service_tenure: bishops hold lands as fiefs, which is what made investiture contested. Both are earlier.",
+   "rationale": "state_religion: an established church. service_tenure: bishops hold lands as fiefs, which is what made investiture contested. Both are earlier.",
+   "desc": "Church and crown divide authority over bishops: the church confers spiritual office, the ruler the lands, ending wars over who appoints them.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.75,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Settled jurisdiction ends the civil wars of the investiture conflict, so unrest costs less output.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "state_religion makes the church official; the concordat sets the boundary between church and crown."
+  },
+  {
+   "id": "mendicant_orders",
+   "name": "Mendicant friars",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "belief-religion",
+   "emerged": "1209 CE Franciscan rule; 1216 CE Dominican order",
+   "prereq": "monasticism AND canon_law",
+   "prereqRationale": "monasticism: friars live under a rule. canon_law: the papacy approved and regulated their orders (Gratian ~1,140 CE precedes 1209).",
+   "rationale": "monasticism: friars live under a rule. canon_law: the papacy approved and regulated their orders (Gratian ~1,140 CE precedes 1209).",
+   "desc": "Friars without property preach and beg in the towns, nursing the sick and serving the urban poor.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.75,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Preaching and care among the urban poor ease grievance in growing towns.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Reformation (Religious Orders tradition)"
+   },
+   "distinctFrom": "monasticism withdraws from the world to estates; friars live among townspeople without estates."
+  },
+  {
+   "id": "holy_war_doctrine",
+   "name": "Holy war",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "belief-religion",
+   "emerged": "~750 CE jihad doctrine in early Islamic law; 1095 CE First Crusade preached",
+   "prereq": "state_religion AND standing_army",
+   "prereqRationale": "state_religion: the faith sanctioning the war is established. standing_army: there are permanent forces to send. Both are earlier.",
+   "rationale": "state_religion: the faith sanctioning the war is established. standing_army: there are permanent forces to send. Both are earlier.",
+   "desc": "War against unbelievers is declared a religious duty with spiritual rewards, and conquered frontier land is settled by the faithful.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.75,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Frontier land granted to settlers under holy war (Reconquista repopulation, crusader states) draws migrants over long distances.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "military_orders are the fighting monks; this is the doctrine that sanctions the war and the settlement behind it."
+  },
+  {
+   "id": "primogeniture",
+   "name": "Primogeniture",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "legitimacy-succession",
+   "emerged": "~1,000 CE Capetian succession of eldest sons; ~1,100 CE indivisible fiefs in Normandy and England",
+   "prereq": "succession_law AND service_tenure",
+   "prereqRationale": "succession_law: the rule of inheritance. service_tenure: fiefs held for service must not be divided. Both are earlier.",
+   "rationale": "succession_law: the rule of inheritance. service_tenure: fiefs held for service must not be divided. Both are earlier.",
+   "desc": "The eldest son inherits the realm or fief undivided; younger sons go to the church, the army or abroad.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.75,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Realms are no longer partitioned among sons (Carolingian partitions against Capetian continuity), so authority holds over the whole territory.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "succession_law names an heir; primogeniture also keeps the inheritance undivided."
+  },
+  {
+   "id": "caliphate",
+   "name": "Caliphate",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "regime-forms",
+   "emerged": "632 CE Rashidun caliphate; 750 CE Abbasid caliphate",
+   "prereq": "scriptural_canon AND state_religion AND provincial_administration",
+   "prereqRationale": "scriptural_canon: the caliph rules a community defined by scripture. state_religion: the faith is established. provincial_administration: the caliphate governed by provinces and a fiscal register.",
+   "rationale": "scriptural_canon: the caliph rules a community defined by scripture. state_religion: the faith is established. provincial_administration: the caliphate governed by provinces and a fiscal register.",
+   "desc": "The successor of the Prophet leads the community of believers in war, law and taxation, through governors and a register of revenues.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.75,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "magnitude": 6.5,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "The land tax, poll tax on non-Muslims and the diwan register raised extraction across the provinces.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Reformed Church (unlocks the Theocracy government)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Theocracy (government)"
+   },
+   "distinctFrom": "theocracy is rule by priests under religious law; the caliph is a lay successor-ruler, not a priest."
+  },
+  {
+   "id": "confessionalization",
+   "name": "Confessional state",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "belief-religion",
+   "emerged": "1555 CE Peace of Augsburg; 1563 CE Tridentine parish registers",
+   "prereq": "religious_reform AND state_religion",
+   "prereqRationale": "religious_reform: there are rival confessions to choose between (1517). state_religion: the ruler's church is established.",
+   "rationale": "religious_reform: there are rival confessions to choose between (1517). state_religion: the ruler's church is established.",
+   "desc": "Each ruler fixes his territory's confession; the church keeps parish registers of births, marriages and deaths and disciplines the parish.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.25,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Parish registers and church discipline give the state eyes in every parish, extending administrative reach.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Reformed Church"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Reformation"
+   },
+   "distinctFrom": "state_religion establishes a faith; confessionalization builds parish registration and discipline in each territory's confession."
+  },
+  {
+   "id": "revivalism",
+   "name": "Revival movements",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "belief-religion",
+   "emerged": "~1,690 CE German Pietism and the Halle foundations; ~1,735 CE Great Awakening",
+   "prereq": "religious_reform",
+   "prereqRationale": "religious_reform: revival builds on lay reading of scripture (1517).",
+   "rationale": "religious_reform: revival builds on lay reading of scripture (1517).",
+   "desc": "Lay devotional circles call for personal conversion and good works, founding orphanages, charity schools and Bible societies.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 5.75,
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Orphanages and charity schools (Halle) protect poor children in dearth.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "religious_reform founds new churches; revivalism renews piety inside them and builds charitable foundations."
+  },
+  {
+   "id": "reason_of_state",
+   "name": "Reason of state",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "ideology",
+   "emerged": "1589 CE Botero, Della ragion di stato; ~1,630 CE Richelieu's policy",
+   "prereq": "statecraft_doctrine AND printing_press",
+   "prereqRationale": "statecraft_doctrine: the ancient doctrine of state interest. printing_press: the doctrine spread in print. Both are earlier.",
+   "rationale": "statecraft_doctrine: the ancient doctrine of state interest. printing_press: the doctrine spread in print. Both are earlier.",
+   "desc": "The interest of the state is placed above religious and dynastic claims: rulers build revenue, armies and alliances for the state's sake.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.25,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "The fiscal-military state organizes revenue for its own sake, so it extracts more.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "statecraft_doctrine is advice to rulers; reason of state elevates the state's interest above faith and dynasty."
+  },
+  {
+   "id": "plebiscite",
+   "name": "Plebiscitary legitimacy",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "legitimacy-succession",
+   "emerged": "1799–1804 CE Napoleonic plebiscites; 1851–1852 CE plebiscites of Louis-Napoleon",
+   "prereq": "popular_sovereignty AND census",
+   "prereqRationale": "popular_sovereignty: the people is the source of authority (1776). census: a register of voters is needed.",
+   "rationale": "popular_sovereignty: the people is the source of authority (1776). census: a register of voters is needed.",
+   "desc": "A ruler seeks the people's direct approval in a yes-or-no vote on his rule or constitution, bypassing representatives.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.75,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A ruler with a popular mandate faces less open resistance, so unrest costs less output.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "referendum lets citizens decide a law; a plebiscite asks them to endorse a ruler or regime."
+  },
+  {
+   "id": "civic_religion",
+   "name": "Civic ritual",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "legitimacy-succession",
+   "emerged": "1790 CE Fête de la Fédération; 1795 CE La Marseillaise adopted; 1880 CE Bastille Day",
+   "prereq": "popular_sovereignty AND public_games",
+   "prereqRationale": "popular_sovereignty: the nation honoured is the sovereign people. public_games: civic festivals continue public festival practice. Both are earlier.",
+   "rationale": "popular_sovereignty: the nation honoured is the sovereign people. public_games: civic festivals continue public festival practice. Both are earlier.",
+   "desc": "Flags, anthems, national holidays and monuments give the sovereign nation its own rites, celebrated in every town.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.25,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "National symbols and festivals reach every commune, so the state's authority is recognized further from the capital.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "nationalism is the doctrine; civic ritual is its calendar of festivals and symbols."
+  },
+  {
+   "id": "social_christianity",
+   "name": "Social Christianity",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "belief-religion",
+   "emerged": "1848 CE Christian socialists in London; ~1,880 CE Social Gospel; 1891 CE Rerum Novarum",
+   "prereq": "labour_unions AND state_religion",
+   "prereqRationale": "labour_unions: churches respond to the labour question (1824). state_religion: the established churches take up the cause.",
+   "rationale": "labour_unions: churches respond to the labour question (1824). state_religion: the established churches take up the cause.",
+   "desc": "Churches take up the labour question, backing fair wages, workers' associations, settlement houses and relief for the industrial poor.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.25,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Church-backed relief and arbitration ease industrial grievance.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "socialism demands collective ownership; social Christianity seeks reform within property and church."
+  },
+  {
+   "id": "missionary_societies",
+   "name": "Missionary societies",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "belief-religion",
+   "emerged": "1792 CE Baptist Missionary Society; 1795 CE London Missionary Society",
+   "prereq": "missionary_religion AND printing_press",
+   "prereqRationale": "missionary_religion: the duty to convert. printing_press: subscription societies print and distribute scripture and reports.",
+   "rationale": "missionary_religion: the duty to convert. printing_press: subscription societies print and distribute scripture and reports.",
+   "desc": "Voluntary societies fund missionaries abroad, who found schools and clinics and send home reports and maps of the interior.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.25,
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Missionary travellers (Livingstone) mapped interiors unknown to outsiders, so each exploration reaches further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "missionary_religion is the duty to convert; these are the organized, subscription-funded overseas societies."
+  },
+  {
+   "id": "bonapartist_regime",
+   "name": "Plebiscitary empire",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "regime-forms",
+   "emerged": "1804 CE First French Empire by plebiscite; 1852 CE Second Empire",
+   "prereq": "plebiscite AND universal_conscription",
+   "prereqRationale": "plebiscite: the regime is legitimized by popular vote (1799). universal_conscription: it rests on a mass army (1793).",
+   "rationale": "plebiscite: the regime is legitimized by popular vote (1799). universal_conscription: it rests on a mass army (1793).",
+   "desc": "An emperor rules with authoritarian powers confirmed by plebiscites, through prefects, a mass army and public works.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Prefects appointed from the capital govern every department, extending administrative reach.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Revolutionary Authoritarianism (government)"
+   },
+   "distinctFrom": "absolute_monarchy rests on dynastic right; this form rests on plebiscites and the mass army."
+  },
+  {
+   "id": "feminism",
+   "name": "Feminism",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "emerged": "1792 CE A Vindication of the Rights of Woman; 1848 CE Seneca Falls Declaration",
+   "prereq": "social_contract",
+   "prereqRationale": "social_contract: equal natural rights are claimed for women (Wollstonecraft answered Rousseau).",
+   "rationale": "social_contract: equal natural rights are claimed for women (Wollstonecraft answered Rousseau).",
+   "desc": "A movement claims for women the rights of citizens: education, property, the professions and the vote.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 6.75,
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Opening education and professions to women enlarges the pool for specialist classes.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Suffrage"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Democracy (Suffrage tradition)"
+   },
+   "distinctFrom": "womens_suffrage is the vote; feminism is the wider movement for education, property and work."
+  },
+  {
+   "id": "social_democracy",
+   "name": "Social democracy",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "emerged": "1875 CE Gotha programme; 1891 CE Erfurt programme; 1899 CE Bernstein's revisionism",
+   "prereq": "socialism AND mass_political_party AND mass_suffrage",
+   "prereqRationale": "socialism: the goal. mass_political_party: the party organization. mass_suffrage: the electoral route. All are earlier than 1875.",
+   "rationale": "socialism: the goal. mass_political_party: the party organization. mass_suffrage: the electoral route. All are earlier than 1875.",
+   "desc": "Socialist parties seek reform through elections and parliament: social insurance, labour law and public services instead of revolution.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "magnitude": 7.75,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Strikes and protest are channelled into parliamentary bargaining, so unrest costs less output.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Class Struggle"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Socialism"
+   },
+   "distinctFrom": "socialism is the movement's goal; social democracy is its parliamentary, reformist strategy."
+  },
+  {
+   "id": "imperialism_doctrine",
+   "name": "New imperialism",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "emerged": "~1,870 CE civilizing-mission doctrine; 1884–1885 CE Berlin Conference",
+   "prereq": "nationalism AND colonial_administration",
+   "prereqRationale": "nationalism: empire as national prestige. colonial_administration: the apparatus to rule colonies. Both are earlier.",
+   "rationale": "nationalism: empire as national prestige. colonial_administration: the apparatus to rule colonies. Both are earlier.",
+   "desc": "Overseas empire is argued to be a national necessity and a civilizing mission; colonies are claimed and settled by agreement among powers.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.25,
+   "effects": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "State-sponsored emigration and settlement schemes send larger founding parties.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Colonialism"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Imperialism"
+   },
+   "distinctFrom": "colonial_administration governs colonies; this is the doctrine that drives their acquisition."
+  },
+  {
+   "id": "progressivism",
+   "name": "Progressivism",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "emerged": "~1,890 CE US Progressive movement; 1906 CE Pure Food and Drug Act",
+   "prereq": "classical_liberalism AND mass_press",
+   "prereqRationale": "classical_liberalism: progressives reformed liberal capitalism. mass_press: muckraking journalism drove reform. Both are earlier.",
+   "rationale": "classical_liberalism: progressives reformed liberal capitalism. mass_press: muckraking journalism drove reform. Both are earlier.",
+   "desc": "Reformers use investigative journalism, experts and regulation to clean up cities, food, factories and politics.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.25,
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Pure-food laws, sanitary reform and municipal clean-up lower baseline mortality.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Progressivism"
+   },
+   "distinctFrom": "classical_liberalism limits government; progressivism uses it to regulate."
+  },
+  {
+   "id": "semi_presidential_republic",
+   "name": "Semi-presidential republic",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "regime-forms",
+   "emerged": "1919 CE Weimar constitution; 1958 CE French Fifth Republic",
+   "prereq": "ministerial_responsibility AND separation_of_powers AND mass_suffrage",
+   "prereqRationale": "ministerial_responsibility: the cabinet answers to parliament. separation_of_powers: a separately elected president. mass_suffrage: both are popularly elected.",
+   "rationale": "ministerial_responsibility: the cabinet answers to parliament. separation_of_powers: a separately elected president. mass_suffrage: both are popularly elected.",
+   "desc": "A directly elected president shares executive power with a prime minister responsible to parliament.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 3.0,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "magnitude": 9.0,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A president able to dissolve parliament and appoint governments ends chronic cabinet crises (the Fourth Republic), so disorder costs less output.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Suffrage (unlocks the Democracy government)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Elective Republic (government)"
+   },
+   "distinctFrom": "presidential_republic has no prime minister responsible to parliament; parliamentary_government has no elected president with real powers."
+  },
+  {
+   "id": "dominant_party_system",
+   "name": "Dominant-party system",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "regime-forms",
+   "emerged": "1929 CE Mexico's National Revolutionary Party; 1955 CE Japan's Liberal Democratic Party",
+   "prereq": "mass_political_party AND mass_suffrage",
+   "prereqRationale": "mass_political_party: the dominant party. mass_suffrage: elections are held and won. Both are 19th century.",
+   "rationale": "mass_political_party: the dominant party. mass_suffrage: elections are held and won. Both are 19th century.",
+   "desc": "One party wins every election for decades while opposition parties remain legal; politics happens among its factions.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 3.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.5,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Factions inside the governing party bargain over demands, absorbing grievance.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "one_party_state bans other parties; here opposition is legal but never wins."
+  },
+  {
+   "id": "personalist_dictatorship",
+   "name": "Personalist dictatorship",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "regime-forms",
+   "emerged": "1930 CE Trujillo in the Dominican Republic; 1965 CE Mobutu in Zaire",
+   "prereq": "personality_cult AND standing_army",
+   "prereqRationale": "personality_cult: the ruler's cult (1929). standing_army: the force that keeps him in power.",
+   "rationale": "personality_cult: the ruler's cult (1929). standing_army: the force that keeps him in power.",
+   "desc": "One man rules through family, cronies and a loyal guard, above any party or army institution.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 3.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.5,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "The ruler's network extracts revenue from monopolies and concessions directly, raising extraction.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Authoritarianism (government)"
+   },
+   "distinctFrom": "military_rule is rule by the army as a body; one_party_state by a party; here power is personal."
+  },
+  {
+   "id": "clerical_republic",
+   "name": "Clerical republic",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "regime-forms",
+   "emerged": "1979 CE Islamic Republic of Iran",
+   "prereq": "religious_political_movements AND written_constitution AND mass_suffrage",
+   "prereqRationale": "religious_political_movements: the movement that takes power (1928). written_constitution and mass_suffrage: an elected parliament and president under a constitution.",
+   "rationale": "religious_political_movements: the movement that takes power (1928). written_constitution and mass_suffrage: an elected parliament and president under a constitution.",
+   "desc": "Elected institutions govern under the guardianship of senior clerics, who can veto laws and candidates.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 3.0,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "magnitude": 9.0,
+   "effects": [
+    {
+     "operand": "pathBuild.buildCostMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Revolutionary construction foundations built rural roads cheaply with volunteer labour (Construction Jihad, 1979), so paths cost less to build.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Reformed Church (unlocks the Theocracy government)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Theocracy (government)"
+   },
+   "distinctFrom": "theocracy is government by religious office; here elected republican institutions sit under clerical guardianship."
+  },
+  {
+   "id": "supranational_union",
+   "name": "Supranational union",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "regime-forms",
+   "emerged": "1951 CE European Coal and Steel Community; 1993 CE European Union",
+   "prereq": "customs_union AND international_organizations",
+   "prereqRationale": "customs_union: the common market's base (1834). international_organizations: permanent treaty bodies (1865).",
+   "rationale": "customs_union: the common market's base (1834). international_organizations: permanent treaty bodies (1865).",
+   "desc": "Member states pool sovereignty in common institutions with their own law, court and market, and allow free movement of goods and people.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 3.25,
+    "breadth": 1.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 9.25,
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    },
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A single market closes price gaps and free movement lets people relocate across member states.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Globalization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Globalism"
+   },
+   "distinctFrom": "federal_republic is one sovereign state; a supranational union pools only part of its members' sovereignty."
+  },
+  {
+   "id": "personality_cult",
+   "name": "Cult of personality",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "legitimacy-succession",
+   "emerged": "1929 CE Stalin's fiftieth-birthday campaign; 1966 CE Mao's Little Red Book campaigns",
+   "prereq": "state_propaganda AND mass_political_party",
+   "prereqRationale": "state_propaganda: the cult is built by propaganda (1917). mass_political_party: the party venerates its leader.",
+   "rationale": "state_propaganda: the cult is built by propaganda (1917). mass_political_party: the party venerates its leader.",
+   "desc": "The leader is glorified as infallible in portraits, songs and slogans; loyalty to him becomes the test of loyalty to the state.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "The leader's image and directives reach every village and workplace, extending administrative reach.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Radicalism (Propaganda tradition)"
+   },
+   "distinctFrom": "state_propaganda is a ministry and method; the cult concentrates legitimacy in one person."
+  },
+  {
+   "id": "constitutional_court",
+   "name": "Constitutional court",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "legitimacy-succession",
+   "emerged": "1920 CE Austrian Constitutional Court (Kelsen); 1951 CE German Federal Constitutional Court",
+   "prereq": "judicial_review AND written_constitution",
+   "prereqRationale": "judicial_review: courts may void laws (1803). written_constitution: the court guards a written text.",
+   "rationale": "judicial_review: courts may void laws (1803). written_constitution: the court guards a written text.",
+   "desc": "A special court rules on whether laws and official acts are constitutional and settles disputes between branches and levels of government.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    },
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Disputes over power are settled in court instead of the street, and federal law applies uniformly across regions.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "judicial_review is any court's power to void laws; this is a dedicated court that arbitrates the constitution itself."
+  },
+  {
+   "id": "transitional_justice",
+   "name": "Transitional justice",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "legitimacy-succession",
+   "emerged": "1983 CE Argentine truth commission (CONADEP); 1995 CE South African Truth and Reconciliation Commission",
+   "prereq": "human_rights AND international_tribunals",
+   "prereqRationale": "human_rights: the standard abuses are judged by (1948). international_tribunals: the precedent of trying a fallen regime (1945).",
+   "rationale": "human_rights: the standard abuses are judged by (1948). international_tribunals: the precedent of trying a fallen regime (1945).",
+   "desc": "After a dictatorship or civil war, truth commissions, trials and reparations establish what happened and give the new order legitimacy.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Acknowledgment and reparations for past abuses ease the grievances of victims.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "international_tribunals try individuals; transitional justice is the domestic process that legitimizes a new regime."
+  },
+  {
+   "id": "power_sharing",
+   "name": "Power-sharing",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "legitimacy-succession",
+   "emerged": "1943 CE Lebanese National Pact; 1998 CE Good Friday Agreement",
+   "prereq": "mass_suffrage AND religious_toleration",
+   "prereqRationale": "mass_suffrage: each community is represented by vote. religious_toleration: communities of different faiths accept one another. Both are earlier.",
+   "rationale": "mass_suffrage: each community is represented by vote. religious_toleration: communities of different faiths accept one another. Both are earlier.",
+   "desc": "Offices, seats and vetoes are divided among a country's communities by agreement, so no group can rule the others alone.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    },
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Each community holds a guaranteed share and veto, which eases grievance and reduces violent disorder.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "federal_republic divides power by territory; power-sharing divides it among communities."
+  },
+  {
+   "id": "term_limits",
+   "name": "Term limits",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "legitimacy-succession",
+   "emerged": "1917 CE Mexican no-reelection clause; 1951 CE US Twenty-second Amendment",
+   "prereq": "separation_of_powers AND mass_suffrage",
+   "prereqRationale": "separation_of_powers: an elected executive to limit. mass_suffrage: the electorate whose choices term limits renew.",
+   "rationale": "separation_of_powers: an elected executive to limit. mass_suffrage: the electorate whose choices term limits renew.",
+   "desc": "The head of government may serve only a fixed number of terms, forcing regular turnover at the top.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Forced turnover opens top offices to new people.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "presidential_republic fixes terms; term limits cap how many a person may hold."
+  },
+  {
+   "id": "electoral_commission",
+   "name": "Independent electoral administration",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "legitimacy-succession",
+   "emerged": "1920 CE Canada's Chief Electoral Officer; 1950 CE Election Commission of India",
+   "prereq": "secret_ballot AND merit_civil_service",
+   "prereqRationale": "secret_ballot: the vote to protect (1856). merit_civil_service: non-partisan officials to run it (1854).",
+   "rationale": "secret_ballot: the vote to protect (1856). merit_civil_service: non-partisan officials to run it (1854).",
+   "desc": "Elections are run by an independent body of officials, not by the government in power, so results are trusted by losers.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Citizens who regard the government as fairly chosen comply with taxes more readily.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "secret_ballot protects the voter; this protects the count and the electoral roll."
+  },
+  {
+   "id": "ceremonial_monarchy",
+   "name": "Ceremonial monarchy",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "legitimacy-succession",
+   "emerged": "1947 CE Japanese constitution's symbolic emperor; 1974 CE Swedish Instrument of Government",
+   "prereq": "succession_law AND ministerial_responsibility AND mass_suffrage",
+   "prereqRationale": "succession_law: the throne remains hereditary. ministerial_responsibility and mass_suffrage: elected ministers hold all real power.",
+   "rationale": "succession_law: the throne remains hereditary. ministerial_responsibility and mass_suffrage: elected ministers hold all real power.",
+   "desc": "The hereditary monarch keeps only ceremonial duties as a non-partisan symbol of the state, above party politics.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A non-partisan head of state can arbitrate constitutional crises (Spain 1981), so disorder costs less output.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Constitutional Monarchy (government)"
+   },
+   "distinctFrom": "constitutional_monarchy still gives the monarch political powers; here the role is purely symbolic."
+  },
+  {
+   "id": "ecumenism",
+   "name": "Ecumenical movement",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "belief-religion",
+   "emerged": "1910 CE Edinburgh Missionary Conference; 1948 CE World Council of Churches; 1965 CE Nostra aetate",
+   "prereq": "religious_toleration AND international_organizations",
+   "prereqRationale": "religious_toleration: churches accept one another. international_organizations: the World Council of Churches is a permanent international body.",
+   "rationale": "religious_toleration: churches accept one another. international_organizations: the World Council of Churches is a permanent international body.",
+   "desc": "Churches and faiths cooperate through councils and dialogue instead of competing for converts and condemning one another.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Cooperation among confessions reduces sectarian conflict.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "religious_toleration is state policy; ecumenism is cooperation among the faiths themselves."
+  },
+  {
+   "id": "liberation_theology",
+   "name": "Liberation theology",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "belief-religion",
+   "emerged": "1968 CE Medellín bishops' conference; 1971 CE Gutiérrez, A Theology of Liberation",
+   "prereq": "systematic_theology AND socialism",
+   "prereqRationale": "systematic_theology: a theological method. socialism: its social analysis. Both are earlier.",
+   "rationale": "systematic_theology: a theological method. socialism: its social analysis. Both are earlier.",
+   "desc": "Clergy and lay base communities read scripture as a call to free the poor, organizing cooperatives, soup kitchens and land claims.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Base communities run communal kitchens and mutual aid, so households absorb food shortfalls.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "social_christianity is reform from above; liberation theology organizes the poor themselves."
+  },
+  {
+   "id": "religious_political_movements",
+   "name": "Religious mass movements",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "belief-religion",
+   "emerged": "1925 CE Rashtriya Swayamsevak Sangh; 1928 CE Muslim Brotherhood; ~1,945 CE Christian Democratic parties",
+   "prereq": "mass_political_party AND scriptural_canon",
+   "prereqRationale": "mass_political_party: the mass-membership organization. scriptural_canon: the religious programme. Both are earlier.",
+   "rationale": "mass_political_party: the mass-membership organization. scriptural_canon: the religious programme. Both are earlier.",
+   "desc": "Mass movements seek to order state and society by religious values, combining preaching, welfare networks and electoral politics.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Their welfare networks feed members and neighbours in hard times.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "state_religion is establishment by a ruler; these are mass movements from below."
+  },
+  {
+   "id": "faith_based_relief",
+   "name": "Religious relief agencies",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "belief-religion",
+   "emerged": "1942 CE Oxfam (Quaker-founded); 1943 CE Catholic Relief Services",
+   "prereq": "social_christianity AND international_organizations",
+   "prereqRationale": "social_christianity: relief as religious duty. international_organizations: the agencies work across borders. Both are earlier.",
+   "rationale": "social_christianity: relief as religious duty. international_organizations: the agencies work across borders. Both are earlier.",
+   "desc": "Religious agencies run famine relief, child feeding and refugee aid across borders.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Child-feeding programmes protect children in famine.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "temple_almsgiving is local; these are international agencies with supply chains."
+  },
+  {
+   "id": "vanguard_party",
+   "name": "Vanguard party",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "emerged": "1902 CE What Is to Be Done? (doctrine); 1917 CE Bolshevik seizure of power",
+   "prereq": "socialism AND mass_political_party",
+   "prereqRationale": "socialism: the goal. mass_political_party: the party form, remade as a disciplined vanguard. Both are earlier.",
+   "rationale": "socialism: the goal. mass_political_party: the party form, remade as a disciplined vanguard. Both are earlier.",
+   "desc": "A disciplined party of professional revolutionaries claims to lead the working class, seize power and run the state in its name.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Party cadres promote workers and peasants into management and office.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Class Struggle"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Communism"
+   },
+   "distinctFrom": "socialism is the movement; the vanguard party is its Leninist organization for taking power."
+  },
+  {
+   "id": "civil_disobedience",
+   "name": "Nonviolent resistance",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "emerged": "1919 CE satyagraha against the Rowlatt Acts; 1930 CE Salt March; 1955 CE Montgomery bus boycott",
+   "prereq": "mass_press AND mass_political_party",
+   "prereqRationale": "mass_press: public opinion is the lever. mass_political_party: mass organization. Both are earlier.",
+   "rationale": "mass_press: public opinion is the lever. mass_political_party: mass organization. Both are earlier.",
+   "desc": "Movements break unjust laws openly and without violence, using boycotts, strikes and marches to win public opinion.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Protest that refuses violence costs far less output than riot or insurrection.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "civil_rights_law is the legal result; nonviolent resistance is the method that won it."
+  },
+  {
+   "id": "neoliberalism",
+   "name": "Neoliberalism",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "emerged": "1947 CE Mont Pèlerin Society; 1979–1980 CE deregulation in Britain and the United States",
+   "prereq": "classical_liberalism AND central_banking",
+   "prereqRationale": "classical_liberalism: free-market tradition. central_banking: monetarist policy works through the central bank. Both are earlier.",
+   "rationale": "classical_liberalism: free-market tradition. central_banking: monetarist policy works through the central bank. Both are earlier.",
+   "desc": "Markets are promoted over state management: privatization, deregulation, independent central banks and open capital flows.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Deregulation of freight (trucking, rail and shipping, 1980) cut haulage costs.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Capitalism"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Capitalism (Laissez-Faire tradition)"
+   },
+   "distinctFrom": "classical_liberalism argued against mercantilism; neoliberalism against the post-war mixed economy."
+  },
+  {
+   "id": "developmentalism",
+   "name": "Developmental state",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "emerged": "1949 CE Japan's MITI; ~1,950 CE ECLA import-substitution doctrine; 1961 CE South Korean Economic Planning Board",
+   "prereq": "central_planning AND nationalism",
+   "prereqRationale": "central_planning: plans and targets. nationalism: development as national goal. Both are earlier.",
+   "rationale": "central_planning: plans and targets. nationalism: development as national goal. Both are earlier.",
+   "desc": "The state guides private industry with credit, targets and protection to catch up with industrial nations.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "State-led industrialization and technical schooling enlarge the skilled and specialist classes.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "central_planning replaces markets; the developmental state steers private firms within them."
+  },
+  {
+   "id": "multiculturalism",
+   "name": "Multiculturalism",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "emerged": "1971 CE Canadian multiculturalism policy; 1975 CE Swedish immigrant policy",
+   "prereq": "secular_state AND human_rights",
+   "prereqRationale": "secular_state: equality of faiths. human_rights: equal dignity of all residents. Both are earlier.",
+   "rationale": "secular_state: equality of faiths. human_rights: equal dignity of all residents. Both are earlier.",
+   "desc": "The state recognizes and supports the cultures of immigrant and minority communities as part of the nation.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Recognition and settlement support make immigration easier, so people move more freely.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "secular_state treats faiths equally; multiculturalism supports distinct communities' cultures."
+  },
+  {
+   "id": "environmentalism",
+   "name": "Environmentalism",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "emerged": "1962 CE Silent Spring; 1970 CE first Earth Day; 1980 CE West German Greens",
+   "prereq": "nature_conservation AND mass_press",
+   "prereqRationale": "nature_conservation: protection of nature (1872). mass_press: public campaigns drove the movement. Both are earlier.",
+   "rationale": "nature_conservation: protection of nature (1872). mass_press: public campaigns drove the movement. Both are earlier.",
+   "desc": "A mass movement demands protection of air, water, land and climate, and green parties enter parliaments.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Campaigns against pollution and toxic chemicals lower baseline mortality.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Conservation"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "environmental_regulation is the law; environmentalism is the movement that demands it."
+  },
+  {
+   "id": "populism_modern",
+   "name": "Mass populism",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "emerged": "1930 CE Vargas in Brazil; 1946 CE Perón in Argentina",
+   "prereq": "mass_suffrage AND labour_unions AND nationalism",
+   "prereqRationale": "mass_suffrage: populists win elections. labour_unions: they incorporate the unions. nationalism: they speak for the nation. All are earlier.",
+   "rationale": "mass_suffrage: populists win elections. labour_unions: they incorporate the unions. nationalism: they speak for the nation. All are earlier.",
+   "desc": "A leader claims to speak for the common people against the elite, winning elections and bringing unions under the state.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "magnitude": 8.75,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Wage gains and recognition for organized workers ease grievance.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nationalism (Demagogy tradition)"
+   },
+   "distinctFrom": "fascism abolishes elections; populism wins them and keeps them."
+  },
+  {
+   "id": "modernizing_nationalism",
+   "name": "Modernizing nationalism",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "emerged": "1923–1938 CE Atatürk's reforms; 1928 CE Turkish alphabet reform",
+   "prereq": "nationalism AND secular_state AND compulsory_education",
+   "prereqRationale": "nationalism: the national programme. secular_state: separation of religion and state. compulsory_education: mass schooling. All are earlier.",
+   "rationale": "nationalism: the national programme. secular_state: separation of religion and state. compulsory_education: mass schooling. All are earlier.",
+   "desc": "A nationalist state modernizes by decree: secular law, script reform, Western dress and mass schooling.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "magnitude": 8.75,
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Script reform and literacy campaigns spread learning, so more people contribute to civic knowledge.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Bunmei Kaika (Meiji Japan unique civic)"
+   },
+   "distinctFrom": "nationalism defines the nation; this programme remakes its society from above."
+  },
+  {
+   "id": "social_liberalism",
+   "name": "Social liberalism",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "emerged": "1933–1935 CE New Deal; 1942 CE Beveridge Report",
+   "prereq": "classical_liberalism AND income_tax",
+   "prereqRationale": "classical_liberalism: the liberal tradition. income_tax: funds social insurance. Both are earlier.",
+   "rationale": "classical_liberalism: the liberal tradition. income_tax: funds social insurance. Both are earlier.",
+   "desc": "Liberals accept that the state must insure citizens against unemployment, sickness and old age to keep a free society.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Unemployment and old-age insurance let households ride out lost income.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Liberalism (Welfare State tradition)"
+   },
+   "distinctFrom": "classical_liberalism limits the state; social liberalism adds social insurance."
+  },
+  {
+   "id": "liberal_internationalism",
+   "name": "Liberal internationalism",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "emerged": "1918 CE Fourteen Points; 1945 CE United Nations Charter",
+   "prereq": "classical_liberalism AND international_organizations",
+   "prereqRationale": "classical_liberalism: free trade and rights. international_organizations: permanent international bodies. Both are earlier.",
+   "rationale": "classical_liberalism: free trade and rights. international_organizations: permanent international bodies. Both are earlier.",
+   "desc": "Peace is to be kept by open trade, self-determination and international institutions.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Lower tariffs and open sea lanes close price gaps between countries.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Globalization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Globalism"
+   },
+   "distinctFrom": "collective_security is the alliance mechanism; liberal internationalism is the doctrine behind it."
+  },
+  {
+   "id": "pan_movements",
+   "name": "Pan-national movements",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "emerged": "1945 CE Fifth Pan-African Congress; 1945 CE Arab League; 1963 CE Organisation of African Unity",
+   "prereq": "nationalism AND international_organizations",
+   "prereqRationale": "nationalism: the shared identity. international_organizations: regional bodies. Both are earlier.",
+   "rationale": "nationalism: the shared identity. international_organizations: regional bodies. Both are earlier.",
+   "desc": "Movements unite peoples across many states by shared language, history or continent, and found regional organizations.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.25,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Regional free-movement agreements let people travel further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "nationalism builds one nation-state; pan-national movements unite many."
+  }
+ ],
+ "newLanes": [],
+ "findings": [
+  "Dependency changes proposed: 2. (1) marxist_leninist_state adds socialism: the A8 ideology was a leaf and the communist party-state could be founded without it, unlike fascist_state, which requires fascism; socialism (1825-1848) predates 1922. The edge lands only when D13 is imported, since socialism is a D13 civic and marxist_leninist_state is runtime. (2) religious_reform: printing_press AND (canon_law OR scriptural_canon) becomes printing_press AND scriptural_canon. The canon_law branch allowed reform without any scripture; canon_law keeps a dependent through the new mendicant_orders.",
+  "Leaves resolved by new nodes rather than new edges: ancestor_veneration feeds first_settler_rights and segmentary_lineage; mandate_doctrine feeds state_orthodoxy; systematic_theology feeds liberation_theology; missionary_religion feeds missionary_societies; secular_state feeds multiculturalism and modernizing_nationalism; socialism feeds social_democracy, vanguard_party and liberation_theology. The remaining leaves are deliberate: all regime forms (by rule), divine_right and conservatism (doctrines that are answered, not built on).",
+  "Regime-form rule: no new node requires a regime form. personalist_dictatorship needs personality_cult (an L node), clerical_republic needs religious_political_movements (a B node), and bonapartist_regime needs plebiscite (an L node), so the 'leaf' rule holds while each new form still has a distinct legitimacy source. Eleven new forms, each historically distinct from the existing 22: big_man_polity, segmentary_lineage (A2), overkingship (A3), tyranny (A4), caliphate (A6), bonapartist_regime (A8), semi_presidential_republic, dominant_party_system, personalist_dictatorship, clerical_republic, supranational_union (A9).",
+  "Operand pressure (group totals, before C2-C5): society.unrestOutputDrag 0.42 of cap 0.6 and society.grievanceRelief 0.31 of cap 0.6, while the technology groups already sum to 0.07 and 0.40 respectively. Combined with the other civics groups both operands will exceed their caps; the integrator should rescale them per tree (as T6 asked for research points) or raise the caps. This group routed most legitimacy and regime effects to governance.authorityDecayCostUnits (cap 3.0) and governance.taxExtractionResponseMax (cap 1.5) to limit the overflow. research.civicsPointsCoefficient is used only twice (0.04) because other groups already sum to 0.27 against 0.3.",
+  "Civ VII analogue correction: the D13 record gives conservatism the Civ VII analogue 'Absolutism', but in Civ VII Absolutism is the third node of the Fascism ideology branch (Military-Industrial Complex, Strategic Railways, Scorched Earth), not Burkean conservatism; the audit marks conservatism none-by-design. Civ VII's 'Divine Right' is a tradition in the Sovereignty civic (direct analogue for divine_right).",
+  "Emerged-text issues (no edge change): tribal_confederacy (A2) cites only 209 BCE and ~1450 CE; city_state_oligarchy (A3) cites ~700 BCE but Old Assyrian Assur (~1,900 BCE) supports A3; scriptural_canon's script prerequisite conflicts with the oral Rigveda in its emerged text. The integrator should amend these texts so the Age placements read as capability-based.",
+  "Redundant atoms kept (no closure change): printing_press in nationalism (social_contract already requires it) and mass_political_party in fascist_state (fascism requires it). They are harmless and document the print and party arguments.",
+  "Pacing: the A9 civics share grows the most (27 new legitimacy/belief/regime/ideology nodes), consistent with Civ VI/VII's dense modern-era political content (Civ VII Modern Age has three 3-node ideology branches plus Political Theory, Nationalism, Globalism, Hegemony). Per contract §5, A9 node costs should be scaled down per Age, not stacked; the factors here use the Age priors so the integrator's per-(tree, Age) scale applies directly."
+ ]
+}

@@ -1,0 +1,4696 @@
+{
+ "group": "T6-science",
+ "audit": [
+  {
+   "id": "tally_notation",
+   "name": "Tally marks",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "science",
+   "cost": 370.0,
+   "prereq": "bone_tools",
+   "dependents": [
+    "calendar_lunar",
+    "chinese_script",
+    "token_counting"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "bone_tools",
+     "verdict": "keep",
+     "why": "The marks are incised into bone with stone and bone tools; Lebombo and Ishango are notched bones."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "bone_tools A1 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "foodState.adaptationAbsorbableShortfall +0.02"
+   ],
+   "effectRationale": "Counting days and stored portions beyond memory lets a band ration ahead of a lean moon: shortfalls are absorbed instead of becoming hunger.",
+   "costConcern": "370 is 1.2x the A1 technology median (315); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound root of the numeracy chain (three dependents across science and communication). Kept; small food-security effect, distinct from the calendar's sowing effect.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "calendar_lunar",
+   "name": "Lunar calendar",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "science",
+   "cost": 620.0,
+   "prereq": "tally_notation",
+   "dependents": [
+    "astronomy_records",
+    "calendar_civil",
+    "latitude_sailing",
+    "mesoamerican_script",
+    "organized_priesthood"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "tally_notation",
+     "verdict": "keep",
+     "why": "A month count is a tally of lunations; the Lebombo and Ishango notches are read as lunar counts."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "tally_notation A1 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "harvestVariance.sigmaLogYield +0.03"
+   ],
+   "effectRationale": "Sowing and harvest timed by counted months avoid plantings lost to early frost or late rain: steadier harvests.",
+   "costConcern": "620 is 1.0x the A2 technology median (620); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct single bridge from tally to the calendars and astronomy; five dependents. Kept.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Astrology"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "numeral_sexagesimal",
+   "name": "Sexagesimal place-value",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "cost": 1760.0,
+   "prereq": "cuneiform",
+   "dependents": [
+    "arithmetic_babylonian",
+    "trigonometry"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cuneiform",
+     "verdict": "keep",
+     "why": "Place-value numerals are a written notation; they arise inside Ur III cuneiform accounting."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cuneiform A3 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.03"
+   ],
+   "effectRationale": "Ur III scribes computed rations, labour-days and quotas for whole provinces in place-value tables: written calculation lets the centre administer further away.",
+   "costConcern": "1,760 is 1.0x the A3 technology median (1,760); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite exact (Mesopotamian invention). Kept; administrative-reach effect distinct from its sibling's tax-assessment effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "arithmetic_babylonian",
+   "name": "Babylonian arithmetic",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "cost": 880.0,
+   "prereq": "numeral_sexagesimal",
+   "dependents": [
+    "abacus",
+    "astronomy_records"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "numeral_sexagesimal",
+     "verdict": "keep",
+     "why": "Reciprocal tables and quadratic algorithms run on base-60 place value."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "numeral_sexagesimal A3 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "Field-area and expected-yield computations (the node's 'tax assessment') let levies track what land actually produces.",
+   "costConcern": "880 is 0.5x the A3 technology median (1,760); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Feeds abacus and astronomy_records. Tax-assessment role distinct from numeral_sexagesimal's administrative reach.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "surveying",
+   "name": "Land surveying",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "cost": 2490.0,
+   "prereq": "cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script",
+   "dependents": [
+    "aqueduct_channel",
+    "aqueduct_tunnel",
+    "arch",
+    "canal_navigation",
+    "geometry_practical",
+    "land_registry",
+    "qanat",
+    "railway",
+    "road_paved",
+    "stone_fortification",
+    "stratigraphy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cuneiform",
+     "verdict": "keep",
+     "why": "A land register and area-based tax need written records; any of the four scripts serves (regional paths)."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "A land register and area-based tax need written records; any of the four scripts serves (regional paths)."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "A land register and area-based tax need written records; any of the four scripts serves (regional paths). Dated after surveying (~1,250 BCE) but an OR alternative, not must-held."
+    },
+    {
+     "atom": "mesoamerican_script",
+     "verdict": "keep",
+     "why": "A land register and area-based tax need written records; any of the four scripts serves (regional paths). Dated after surveying but an OR alternative, not must-held."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cuneiform A3 (same Age); hieroglyphic A3 (same Age); chinese_script A3 (same Age); mesoamerican_script A3 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "pathBuild.buildCostMultiplier +0.04"
+   ],
+   "effectRationale": "Measured alignments and levels (rope-stretchers, the 3-4-5 triangle) cut wasted earthwork; surveying is the gate to paved roads, aqueducts, canals and railways.",
+   "costConcern": "2,490 is 1.4x the A3 technology median (1,760); justified by eleven dependents across infrastructure, transport and science.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "OR over scripts is right (rope-stretching is older than writing, but the register and assessment are not). Kept; effect is construction layout, the role its eleven dependents rely on.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "pathBuild.buildCostMultiplier",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "standard_weights",
+   "name": "Standardised weights",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "cost": 1760.0,
+   "prereq": "token_counting AND (proto_writing OR hieroglyphic OR chinese_script)",
+   "dependents": [
+    "hacksilver"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "token_counting",
+     "verdict": "keep",
+     "why": "Standard units descend from token accounting of measured quantities."
+    },
+    {
+     "atom": "proto_writing",
+     "verdict": "keep",
+     "why": "State-issued standards are recorded and enforced in writing; any early script path suffices. Uruk proto-writing covers Mesopotamia, so a separate cuneiform atom is unnecessary."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "State-issued standards are recorded and enforced in writing; any early script path suffices."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "State-issued standards are recorded and enforced in writing; any early script path suffices. Later than the Indus/Mesopotamian date but an OR alternative."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "token_counting A2 (gap 1); proto_writing A3 (same Age); hieroglyphic A3 (same Age); chinese_script A3 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.04"
+   ],
+   "effectRationale": "Trusted weights make exchange between markets quick and undisputed, so trade closes price gaps faster.",
+   "costConcern": "1,760 is 1.0x the A3 technology median (1,760); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "AND/OR correct (counting tradition AND some written authority). Kept; market-integration effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Currency"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Currency"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "calendar_civil",
+   "name": "Civil solar calendar",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "cost": 1760.0,
+   "prereq": "calendar_lunar AND (cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script)",
+   "dependents": [
+    "water_clock"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "calendar_lunar",
+     "verdict": "keep",
+     "why": "Month counting precedes the fixed administrative year."
+    },
+    {
+     "atom": "cuneiform",
+     "verdict": "keep",
+     "why": "An administrative year exists to date documents; any script."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "Egypt's 365-day civil year is the type case."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "OR alternative (regional path)."
+    },
+    {
+     "atom": "mesoamerican_script",
+     "verdict": "keep",
+     "why": "OR alternative (the Maya haab' is a 365-day civil year)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "calendar_lunar A2 (gap 1); cuneiform A3 (same Age); hieroglyphic A3 (same Age); chinese_script A3 (same Age); mesoamerican_script A3 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.02"
+   ],
+   "effectRationale": "A fixed year anchored to the Sothic rising lets sowing be scheduled to the flood: more grain per field.",
+   "costConcern": "1,760 is 1.0x the A3 technology median (1,760); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Effect is yield per area (scheduling), distinct from calendar_lunar's variance effect and from the water clock.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "water_clock",
+   "name": "Water clock",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "cost": 1480.0,
+   "prereq": "pottery_open_fired AND calendar_civil",
+   "dependents": [
+    "escapement_verge"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "pottery_open_fired",
+     "verdict": "keep",
+     "why": "The clepsydra is a pierced ceramic (later stone) vessel."
+    },
+    {
+     "atom": "calendar_civil",
+     "verdict": "keep",
+     "why": "Hours subdivide an administered day; the Karnak clock belongs to temple timekeeping."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "pottery_open_fired A2 (gap 1); calendar_civil A3 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "An impartial timer settles turns: water shares for irrigation (the Persian fenjan sinking bowl for qanat turns) and timed speeches in court.",
+   "costConcern": "1,480 is 0.8x the A3 technology median (1,760); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; feeds escapement_verge. Dispute-settling role chosen because it is the clepsydra's documented civil use.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "astronomy_records",
+   "name": "Systematic astronomical records",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "science",
+   "cost": 1760.0,
+   "prereq": "arithmetic_babylonian OR ((hieroglyphic OR chinese_script OR mesoamerican_script) AND calendar_lunar)",
+   "dependents": [
+    "calendar_lunisolar",
+    "latitude_sailing",
+    "monsoon_sailing"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "arithmetic_babylonian",
+     "verdict": "keep",
+     "why": "The Diaries' predictive side (Saros) needs computation."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "Alternative path: a written observational tradition kept against a lunar count."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Alternative path: Chinese court astronomy records eclipses and comets."
+    },
+    {
+     "atom": "mesoamerican_script",
+     "verdict": "keep",
+     "why": "Alternative path: Maya eclipse and Venus tables."
+    },
+    {
+     "atom": "calendar_lunar",
+     "verdict": "keep",
+     "why": "Observations are logged against counted months."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "arithmetic_babylonian A3 (gap 1); hieroglyphic A3 (gap 1); chinese_script A3 (gap 1); mesoamerican_script A3 (gap 1); calendar_lunar A2 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "research.civicsPointsCoefficient +0.02"
+   ],
+   "effectRationale": "Court sky-watchers kept omen archives (Enuma Anu Enlil) that served kingship and ritual: more cultural and civic output per person.",
+   "costConcern": "1,760 is 0.7x the A4 technology median (2,490); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "OR structure correct. Kept. effectsNow deferred: inst.natural_philosophy is not a live system yet.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Astrology"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "calendar_lunisolar",
+   "name": "Intercalated calendar",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "science",
+   "cost": 1240.0,
+   "prereq": "astronomy_records",
+   "dependents": [
+    "astronomy_geometric"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "astronomy_records",
+     "verdict": "keep",
+     "why": "The 19-year Metonic rule was derived from long observation series."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "astronomy_records A4 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "harvestVariance.sigmaLogYield +0.02"
+   ],
+   "effectRationale": "Leap months inserted by rule keep named months in step with the seasons, so sowing dates no longer drift.",
+   "costConcern": "1,240 is 0.5x the A4 technology median (2,490); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Same operand as calendar_lunar, but a different Age and a smaller delta (the residual drift it removes).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "geometry_practical",
+   "name": "Practical geometry",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "cost": 1760.0,
+   "prereq": "surveying AND (cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script)",
+   "dependents": [
+    "algebra",
+    "geometry_axiomatic"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "surveying",
+     "verdict": "keep",
+     "why": "Area and volume rules grew out of field measurement."
+    },
+    {
+     "atom": "cuneiform",
+     "verdict": "remove",
+     "why": "Duplicate: surveying already requires exactly this OR-set (cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script)."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "remove",
+     "why": "Duplicate of surveying's script clause."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "remove",
+     "why": "Duplicate of surveying's script clause."
+    },
+    {
+     "atom": "mesoamerican_script",
+     "verdict": "remove",
+     "why": "Duplicate of surveying's script clause."
+    }
+   ],
+   "andOr": "change(\"surveying\")",
+   "ageGap": "surveying A3 (same Age); cuneiform A3 (same Age); hieroglyphic A3 (same Age); chinese_script A3 (same Age); mesoamerican_script A3 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "consumption.granaryYearsOfDemand +0.03"
+   ],
+   "effectRationale": "Rhind papyrus problems 41-43 compute the volume of cylindrical granaries: stores sized and filled by calculation hold more.",
+   "costConcern": "1,760 is 1.0x the A3 technology median (1,760); within range.",
+   "action": "remove-prereq",
+   "newPrereq": "surveying",
+   "newAge": null,
+   "rationale": "The script clause is identical to the one surveying already carries, so removing it changes no closure and no route; it only removes noise. Effect: storage geometry.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "effects": [
+    {
+     "operand": "consumption.granaryYearsOfDemand",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "geometry_axiomatic",
+   "name": "Axiomatic geometry",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "cost": 7030.0,
+   "prereq": "geometry_practical",
+   "dependents": [
+    "astronomy_geometric",
+    "calculus",
+    "mechanics_archimedean",
+    "optics_ibn_haytham",
+    "trace_italienne"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "geometry_practical",
+     "verdict": "keep",
+     "why": "Euclid systematises Egyptian and Babylonian rules into proofs."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "geometry_practical A3 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "institutions.universities.maturityTauYears +0.04",
+    "unlock building.university"
+   ],
+   "effectRationale": "Proof from stated axioms makes knowledge transmissible from the text alone (the Elements was taught for 2,000 years): universities mature faster.",
+   "costConcern": "7,030 is 2.0x the A5 technology median; acceptable for a hub with five dependents and the university gate.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Live: one of the two OR paths to building.university (with medicine_hippocratic). A Greek-alphabet atom was considered and rejected: the capability is the proof method, not the script.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "building.university"
+   ]
+  },
+  {
+   "id": "mechanics_archimedean",
+   "name": "Statics and simple machines",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "cost": 4970.0,
+   "prereq": "geometry_axiomatic",
+   "dependents": [
+    "barometer_vacuum",
+    "gearing",
+    "printing_press",
+    "water_screw"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "geometry_axiomatic",
+     "verdict": "keep",
+     "why": "The law of the lever and centre-of-gravity results are Euclidean demonstrations."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "geometry_axiomatic A5 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "housing.buildLaborAdultYearsPerDwelling +0.03"
+   ],
+   "effectRationale": "Calculated levers and compound pulleys move building loads with fewer hands.",
+   "costConcern": "4,970 is 1.4x the A5 technology median (3,520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; four dependents (barometer, gearing, press, water screw).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Engineering"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Engineering"
+   },
+   "effects": [
+    {
+     "operand": "housing.buildLaborAdultYearsPerDwelling",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "astronomy_geometric",
+   "name": "Geometric astronomy",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "cost": 3520.0,
+   "prereq": "geometry_axiomatic AND calendar_lunisolar",
+   "dependents": [
+    "astrolabe",
+    "cartography",
+    "heliocentrism",
+    "trigonometry"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "geometry_axiomatic",
+     "verdict": "keep",
+     "why": "Epicycle and eccentric models are geometric constructions."
+    },
+    {
+     "atom": "calendar_lunisolar",
+     "verdict": "keep",
+     "why": "Hipparchus built on Babylonian eclipse records kept against the intercalated calendar."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "geometry_axiomatic A5 (same Age); calendar_lunisolar A4 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.03",
+    "unlock building.observatory"
+   ],
+   "effectRationale": "Shared predictive tables (the Almagest) give every later scholar a common computed reference: research in universities costs less.",
+   "costConcern": "3,520 is 1.0x the A5 technology median (3,520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Live: an OR path to building.observatory.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Astronomy"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Astronomy"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.observatory"
+   ]
+  },
+  {
+   "id": "abacus",
+   "name": "Abacus",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "cost": 880.0,
+   "prereq": "arithmetic_babylonian OR chinese_script",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "arithmetic_babylonian",
+     "verdict": "keep",
+     "why": "Counting boards encode place value (the Salamis board)."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "replace",
+     "why": "The suanpan descends from rod calculation on counting boards, not from the script; counting_rods (A5, ~400 BCE) is the real Chinese antecedent."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "arithmetic_babylonian A3 (gap 2); chinese_script A3 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.03"
+   ],
+   "effectRationale": "Merchants reckon prices and exchanges fast without literacy, so markets settle quicker.",
+   "costConcern": "880 is 0.2x the A5 technology median (3,520); within range.",
+   "action": "replace-prereq",
+   "newPrereq": "arithmetic_babylonian OR counting_rods",
+   "newAge": null,
+   "rationale": "Replace chinese_script with counting_rods: the Chinese route then passes through the rod arithmetic the abacus actually mechanised. A deliberate leaf: an end-user computing aid.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "alchemy",
+   "name": "Alchemy",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "cost": 7030.0,
+   "prereq": "copper_smelting AND (chinese_script OR alphabet_vowels)",
+   "dependents": [
+    "distillation",
+    "gunpowder"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "copper_smelting",
+     "verdict": "keep",
+     "why": "Furnace work and the transmutation of metals are alchemy's starting practice."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Theory transmitted in texts (Ge Hong)."
+    },
+    {
+     "atom": "alphabet_vowels",
+     "verdict": "keep",
+     "why": "Theory transmitted in Greek texts (Zosimos)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "copper_smelting A2 (gap 3); chinese_script A3 (gap 2); alphabet_vowels A4 (gap 1). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.02"
+   ],
+   "effectRationale": "Recipes for parting and refining metals (Leiden and Stockholm papyri) recover more metal from what miners dig.",
+   "costConcern": "7,030 is 2.0x the A5 median for a node whose main value is downstream (distillation, gunpowder); watch in calibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "distillation",
+   "name": "Distillation",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "cost": 3520.0,
+   "prereq": "alchemy AND (glass_blowing OR sheet_metal)",
+   "dependents": [
+    "chemistry_quantitative",
+    "desalination",
+    "greek_fire",
+    "mineralogy",
+    "sulphuric_acid"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "alchemy",
+     "verdict": "keep",
+     "why": "The alembic is an alchemical apparatus (Maria, Zosimos)."
+    },
+    {
+     "atom": "glass_blowing",
+     "verdict": "keep",
+     "why": "Glass still."
+    },
+    {
+     "atom": "sheet_metal",
+     "verdict": "keep",
+     "why": "Metal still (OR)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "alchemy A5 (same Age); glass_blowing A5 (same Age); sheet_metal A3 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02"
+   ],
+   "effectRationale": "Distilled waters and, later, alcohol give physicians antiseptic washes and concentrated remedies.",
+   "costConcern": "3,520 is 1.0x the A5 technology median (3,520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; five dependents.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "astrolabe",
+   "name": "Astrolabe",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "cost": 2960.0,
+   "prereq": "astronomy_geometric",
+   "dependents": [
+    "celestial_navigation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "astronomy_geometric",
+     "verdict": "keep",
+     "why": "Stereographic projection of the celestial sphere (Hipparchus, Ptolemy)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "astronomy_geometric A5 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "fog.exploreMaxRadiusNodes +0.07",
+    "unlock building.observatory"
+   ],
+   "effectRationale": "Latitude from a star's altitude lets an expedition fix and retrace its position: the explore cap rises one lattice step (15 to 16).",
+   "costConcern": "2,960 is 0.7x the A6 technology median (4,180); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Live: an OR path to building.observatory.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Celestial Navigation"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Astronomy"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.07
+    }
+   ],
+   "liveUnlocks": [
+    "building.observatory"
+   ]
+  },
+  {
+   "id": "gunpowder",
+   "name": "Gunpowder",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "cost": 4180.0,
+   "prereq": "alchemy",
+   "dependents": [
+    "saltpetre_refining"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "alchemy",
+     "verdict": "keep",
+     "why": "Found by Daoist alchemists seeking elixirs."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "alchemy A5 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.02"
+   ],
+   "effectRationale": "Fire lances, bombs and incendiaries let small garrisons hold distant walls (Song frontier). Military use waits for M7/M8 units.",
+   "costConcern": "4,180 is 1.0x the A6 technology median (4,180); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Gunpowder"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Gunpowder"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "saltpetre_refining",
+   "name": "Saltpetre refining",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "cost": 4180.0,
+   "prereq": "gunpowder",
+   "dependents": [
+    "cannon_early",
+    "corned_powder",
+    "sulphuric_acid"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "gunpowder",
+     "verdict": "keep",
+     "why": "Large-scale refining was driven by demand for high-nitrate powder."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "gunpowder A6 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "foodState.adaptationAbsorbableShortfall +0.02"
+   ],
+   "effectRationale": "Refined nitre cures meat and fish that keep through lean seasons.",
+   "costConcern": "4,180 is 1.0x the A6 technology median (4,180); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; three dependents (cannon, corned powder, sulphuric acid).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Gunpowder"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "hindu_arabic",
+   "name": "Hindu-Arabic numerals",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "cost": 5910.0,
+   "prereq": "brahmi",
+   "dependents": [
+    "algebra",
+    "double_entry",
+    "official_statistics",
+    "trigonometry"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "brahmi",
+     "verdict": "keep",
+     "why": "Brahmi numerals are the ancestors of the nine digits."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "brahmi A4 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.03"
+   ],
+   "effectRationale": "Decimal place value with zero makes all written calculation cheap: landmark, more research per person.",
+   "costConcern": "5,910 is 1.4x the A6 median; justified by four dependents in two trees.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "algebra",
+   "name": "Algebra",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "cost": 8360.0,
+   "prereq": "(hindu_arabic OR counting_rods) AND geometry_practical",
+   "dependents": [
+    "calculus",
+    "mechanics_newtonian",
+    "probability_statistics"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "hindu_arabic",
+     "verdict": "keep",
+     "why": "Equations need a positional notation (Brahmagupta, al-Khwarizmi)."
+    },
+    {
+     "atom": "counting_rods",
+     "verdict": "keep",
+     "why": "Chinese tian yuan algebra works on the counting board (OR)."
+    },
+    {
+     "atom": "geometry_practical",
+     "verdict": "keep",
+     "why": "Completing the square is proved geometrically."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "hindu_arabic A6 (same Age); counting_rods A5 (gap 1); geometry_practical A3 (gap 3). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02",
+    "unlock building.university"
+   ],
+   "effectRationale": "Half of al-Khwarizmi's book solves inheritance division: shares computed by rule rather than fought over.",
+   "costConcern": "8,360 is 2.0x the A6 median; justified by the university gate and three hub dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Live: the other OR path to building.university.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Education"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Education"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "building.university"
+   ]
+  },
+  {
+   "id": "trigonometry",
+   "name": "Trigonometry",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "cost": 4180.0,
+   "prereq": "astronomy_geometric AND (hindu_arabic OR numeral_sexagesimal)",
+   "dependents": [
+    "celestial_navigation",
+    "heliocentrism",
+    "mercator"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "astronomy_geometric",
+     "verdict": "keep",
+     "why": "Chord tables were built for Ptolemaic astronomy."
+    },
+    {
+     "atom": "hindu_arabic",
+     "verdict": "keep",
+     "why": "Sine tables in decimal (Aryabhata)."
+    },
+    {
+     "atom": "numeral_sexagesimal",
+     "verdict": "keep",
+     "why": "Or in sexagesimal (Ptolemy)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "astronomy_geometric A5 (gap 1); hindu_arabic A6 (same Age); numeral_sexagesimal A3 (gap 3). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "catchment.hinterlandRadiusKm +0.02"
+   ],
+   "effectRationale": "Heights and distances computed from a baseline (al-Biruni) let land beyond pacing range be measured and organised: a slightly wider hinterland.",
+   "costConcern": "4,180 is 1.0x the A6 technology median (4,180); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "optics_ibn_haytham",
+   "name": "Experimental optics",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "cost": 2960.0,
+   "prereq": "geometry_axiomatic AND glass_blowing",
+   "dependents": [
+    "spectacles"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "geometry_axiomatic",
+     "verdict": "keep",
+     "why": "Ray optics is geometrical."
+    },
+    {
+     "atom": "glass_blowing",
+     "verdict": "keep",
+     "why": "Glass spheres, lenses and vessels for experiments."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "geometry_axiomatic A5 (gap 1); glass_blowing A5 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.03"
+   ],
+   "effectRationale": "An experimental method stated as a procedure lets claims be checked by test instead of authority: research costs less.",
+   "costConcern": "2,960 is 0.7x the A6 technology median (4,180); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. effectsNow deferred: inst.scientific_society is not live yet.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "double_entry",
+   "name": "Double-entry bookkeeping",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "cost": 4180.0,
+   "prereq": "hindu_arabic AND paper AND bill_of_exchange",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "hindu_arabic",
+     "verdict": "keep",
+     "why": "Ledger columns need positional numerals."
+    },
+    {
+     "atom": "paper",
+     "verdict": "keep",
+     "why": "Cheap ledgers."
+    },
+    {
+     "atom": "bill_of_exchange",
+     "verdict": "keep",
+     "why": "The merchant-banking networks that kept these accounts."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "hindu_arabic A6 (same Age); paper A5 (gap 1); bill_of_exchange A6 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "price.stockReleaseRatePerYear +0.03"
+   ],
+   "effectRationale": "Audited inventories and capital accounts let merchant houses turn stock over to market faster.",
+   "costConcern": "4,180 is 1.0x the A6 technology median (4,180); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites exact. It is a leaf, but its capability ('banking next') points to central_banking and joint_stock (civics, other group). Routed as a finding, not applied here.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Banking"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "corned_powder",
+   "name": "Corned gunpowder",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "cost": 2090.0,
+   "prereq": "saltpetre_refining",
+   "dependents": [
+    "matchlock"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "saltpetre_refining",
+     "verdict": "keep",
+     "why": "Consistent granules need refined nitre."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "saltpetre_refining A6 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.04"
+   ],
+   "effectRationale": "Reliable granulated powder makes blasting in mines possible (Banska Stiavnica, 1627).",
+   "costConcern": "2,090 is 0.3x the A7 technology median (7,030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Gunpowder"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Gunpowder"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "heliocentrism",
+   "name": "Heliocentric model",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "cost": 8360.0,
+   "prereq": "astronomy_geometric AND trigonometry",
+   "dependents": [
+    "mechanics_newtonian"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "astronomy_geometric",
+     "verdict": "keep",
+     "why": "Copernicus reworked Ptolemy's models."
+    },
+    {
+     "atom": "trigonometry",
+     "verdict": "keep",
+     "why": "Spherical trigonometry for computation (Regiomontanus)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "astronomy_geometric A5 (gap 2); trigonometry A6 (gap 1). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.civicsPointsCoefficient +0.02"
+   ],
+   "effectRationale": "The Copernican debate reorders natural philosophy and print culture: more civic and cultural output per person.",
+   "costConcern": "8,360 is 1.2x the A7 median; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Astronomy"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Education"
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "telescope",
+   "name": "Telescope",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "cost": 9950.0,
+   "prereq": "spectacles",
+   "dependents": [
+    "optical_telegraph",
+    "space_telescope",
+    "spectroscopy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "spectacles",
+     "verdict": "keep",
+     "why": "Lens grinding for spectacles produced the first telescopes."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "spectacles A6 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "fog.exploreMaxRadiusNodes +0.07",
+    "unlock building.observatory"
+   ],
+   "effectRationale": "Spyglasses spot coasts, passes and smoke from far off: the explore cap rises one more step.",
+   "costConcern": "9,950 is 1.4x the A7 technology median (7,030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Live: an OR path to building.observatory. Naval reconnaissance waits for M7/M8.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Astronomy"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Astronomy"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.07
+    }
+   ],
+   "liveUnlocks": [
+    "building.observatory"
+   ]
+  },
+  {
+   "id": "microscope",
+   "name": "Microscope",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "cost": 9950.0,
+   "prereq": "spectacles",
+   "dependents": [
+    "cell_theory",
+    "germ_theory",
+    "metallography"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "spectacles",
+     "verdict": "keep",
+     "why": "Same lens craft."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "spectacles A6 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.03"
+   ],
+   "effectRationale": "Microscopic anatomy in medical faculties (Malpighi's capillaries, 1661) improves university medicine.",
+   "costConcern": "9,950 is 1.4x the A7 technology median (7,030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mechanics_newtonian",
+   "name": "Classical mechanics",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "cost": 16730.0,
+   "prereq": "heliocentrism AND algebra AND calculus",
+   "dependents": [
+    "glider",
+    "relativity",
+    "rocket",
+    "water_turbine"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "heliocentrism",
+     "verdict": "keep",
+     "why": "Kepler's laws are what Newton derived."
+    },
+    {
+     "atom": "algebra",
+     "verdict": "keep",
+     "why": "Implied by calculus; a harmless redundancy kept for readability."
+    },
+    {
+     "atom": "calculus",
+     "verdict": "keep",
+     "why": "Fluxions are the Principia's method, even where it is presented geometrically."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "heliocentrism A7 (same Age); algebra A6 (gap 1); calculus A7 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.04"
+   ],
+   "effectRationale": "Prediction from equations replaces trial and error: engineering research is cheaper wherever universities teach it.",
+   "costConcern": "16,730 is 2.4x the A7 median; a landmark with four dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Scientific Theory"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "calculus",
+   "name": "Calculus",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "cost": 23650.0,
+   "prereq": "algebra AND geometry_axiomatic",
+   "dependents": [
+    "electromagnetism",
+    "mechanics_newtonian",
+    "programmable_computer",
+    "thermodynamics"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "algebra",
+     "verdict": "keep",
+     "why": "Symbolic manipulation."
+    },
+    {
+     "atom": "geometry_axiomatic",
+     "verdict": "keep",
+     "why": "Tangents and areas (Archimedes' method of exhaustion)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "algebra A6 (gap 1); geometry_axiomatic A5 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.03"
+   ],
+   "effectRationale": "Rates and accumulation become computable: the general tool of physics and engineering (landmark).",
+   "costConcern": "23,650 is 3.4x the A7 median and the most expensive A7 science node; justified by four hub dependents, but check in pacing calibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. effectsNow deferred: inst.statistics_vital is not live.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "barometer_vacuum",
+   "name": "Barometer and air pump",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "cost": 16730.0,
+   "prereq": "glass_blowing AND mechanics_archimedean",
+   "dependents": [
+    "balloon",
+    "chemistry_quantitative",
+    "electric_light",
+    "steam_atmospheric",
+    "steam_separate_condenser",
+    "xray"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "glass_blowing",
+     "verdict": "keep",
+     "why": "Torricelli's tube and Boyle's receiver are glass."
+    },
+    {
+     "atom": "mechanics_archimedean",
+     "verdict": "keep",
+     "why": "Hydrostatics: the mercury column balances the weight of the air."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "glass_blowing A5 (gap 2); mechanics_archimedean A5 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "harvestVariance.sigmaLogYield +0.02"
+   ],
+   "effectRationale": "The weather-glass warns of rain and storms at hay and harvest time.",
+   "costConcern": "16,730 is 2.4x the A7 median; six dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "chemistry_quantitative",
+   "name": "Quantitative chemistry",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 56260.0,
+   "prereq": "distillation AND barometer_vacuum",
+   "dependents": [
+    "agricultural_chemistry",
+    "anaesthesia",
+    "antiviral_drugs",
+    "breech_loading_rifle",
+    "carbon_capture",
+    "catalytic_converter",
+    "endocrinology",
+    "gas_engine",
+    "haber_bosch",
+    "lithium_battery",
+    "metallography",
+    "oral_rehydration",
+    "organic_chemistry",
+    "periodic_system",
+    "petroleum_refining",
+    "photography",
+    "plastics",
+    "portland_cement",
+    "refrigeration",
+    "soda_leblanc",
+    "spectroscopy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "distillation",
+     "verdict": "keep",
+     "why": "Separation methods."
+    },
+    {
+     "atom": "barometer_vacuum",
+     "verdict": "keep",
+     "why": "Pneumatic chemistry: gases weighed in sealed and evacuated vessels (Boyle, Lavoisier)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "distillation A5 (gap 3); barometer_vacuum A7 (gap 1). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.03",
+    "unlock building.research_laboratory"
+   ],
+   "effectRationale": "Conservation of mass makes chemistry predictive (landmark): more research per person.",
+   "costConcern": "56,260 is 3.4x the A8 median; the hub of 21 dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Live: unlocks building.research_laboratory.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Chemistry"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Electricity"
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.research_laboratory"
+   ]
+  },
+  {
+   "id": "sulphuric_acid",
+   "name": "Industrial sulphuric acid",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 33450.0,
+   "prereq": "distillation AND saltpetre_refining",
+   "dependents": [
+    "bleach_chlorine",
+    "chemical_fertilizer",
+    "dynamite",
+    "soda_leblanc",
+    "uranium_milling"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "distillation",
+     "verdict": "keep",
+     "why": "Oil of vitriol was first a distillate."
+    },
+    {
+     "atom": "saltpetre_refining",
+     "verdict": "keep",
+     "why": "The lead chamber burns sulphur with saltpetre."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "distillation A5 (gap 3); saltpetre_refining A6 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "unlock building.chemical_works"
+   ],
+   "effectRationale": "Live unlock only. Its farm effect is carried by chemical_fertilizer (superphosphate) and not counted twice.",
+   "costConcern": "33,450 is 2.0x the A8 median; five dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Live: unlocks building.chemical_works.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.chemical_works"
+   ]
+  },
+  {
+   "id": "soda_leblanc",
+   "name": "Synthetic soda",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 11830.0,
+   "prereq": "sulphuric_acid AND chemistry_quantitative",
+   "dependents": [
+    "aluminium"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "sulphuric_acid",
+     "verdict": "keep",
+     "why": "Salt cake comes from salt and sulphuric acid."
+    },
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Process design from measured reactions."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "sulphuric_acid A8 (same Age); chemistry_quantitative A8 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02"
+   ],
+   "effectRationale": "Cheap soap at scale (alkali no longer from plant ash) improves household hygiene.",
+   "costConcern": "11,830 is 0.7x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "bleach_chlorine",
+   "name": "Chlorine bleaching",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 4180.0,
+   "prereq": "sulphuric_acid",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "sulphuric_acid",
+     "verdict": "keep",
+     "why": "Chlorine from salt, sulphuric acid and manganese dioxide."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "sulphuric_acid A8 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "price.stockReleaseRatePerYear +0.03"
+   ],
+   "effectRationale": "Cloth bleached in hours instead of months on the bleachfield reaches market sooner.",
+   "costConcern": "4,180 is 0.2x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; a deliberate finishing-trade leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "synthetic_dye",
+   "name": "Synthetic dye",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 33450.0,
+   "prereq": "organic_chemistry AND coke AND dyeing",
+   "dependents": [
+    "hormonal_contraception",
+    "plastics",
+    "sulfonamides"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "organic_chemistry",
+     "verdict": "keep",
+     "why": "Aniline chemistry."
+    },
+    {
+     "atom": "coke",
+     "verdict": "keep",
+     "why": "Coal tar is the by-product of coking and gasworks."
+    },
+    {
+     "atom": "dyeing",
+     "verdict": "keep",
+     "why": "The dye trade the product replaces."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "organic_chemistry A8 (same Age); coke A7 (gap 1); dyeing A2 (gap 6). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.02"
+   ],
+   "effectRationale": "The dye firms invent the corporate research laboratory and employ salaried chemists: a larger specialist class.",
+   "costConcern": "33,450 is 2.0x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "haber_bosch",
+   "name": "Synthetic ammonia",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 66910.0,
+   "prereq": "chemistry_quantitative AND open_hearth AND thermodynamics",
+   "dependents": [
+    "green_revolution"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Catalysis and analysis."
+    },
+    {
+     "atom": "open_hearth",
+     "verdict": "keep",
+     "why": "Steel vessels for 200-atmosphere synthesis."
+    },
+    {
+     "atom": "thermodynamics",
+     "verdict": "keep",
+     "why": "Haber's equilibrium calculations."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "chemistry_quantitative A8 (same Age); open_hearth A8 (same Age); thermodynamics A8 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.15"
+   ],
+   "effectRationale": "Landmark: nitrogen from air lifts the organic yield ceiling (the node cites about 2x); the largest single yield delta in the group.",
+   "costConcern": "66,910 is 4.0x the A8 median; justified as a landmark.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.15
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "dynamite",
+   "name": "Dynamite",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 23650.0,
+   "prereq": "sulphuric_acid AND organic_chemistry",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "sulphuric_acid",
+     "verdict": "keep",
+     "why": "Mixed nitrating acids."
+    },
+    {
+     "atom": "organic_chemistry",
+     "verdict": "keep",
+     "why": "Nitroglycerine is an organic nitrate."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "sulphuric_acid A8 (same Age); organic_chemistry A8 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "pathBuild.buildCostMultiplier +0.05",
+    "production.outputPerExtractorPerYear +0.03"
+   ],
+   "effectRationale": "Safe high explosive blasts cuttings and tunnels (cheaper paths) and hard-rock faces (more output per miner).",
+   "costConcern": "23,650 is 1.4x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; a deliberate leaf whose effects land directly in construction and mining.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "pathBuild.buildCostMultiplier",
+     "delta": 0.05
+    },
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "electromagnetism",
+   "name": "Electromagnetism",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 39780.0,
+   "prereq": "calculus",
+   "dependents": [
+    "dynamo",
+    "electricity_generation",
+    "electromagnetic_field_theory",
+    "geophysical_prospecting",
+    "radioactivity",
+    "telegraph",
+    "xray"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "calculus",
+     "verdict": "keep",
+     "why": "Ampere's and Faraday's laws, once formalised, are differential relations."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "calculus A7 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.03"
+   ],
+   "effectRationale": "Batteries, galvanometers and electrolysis become standard instruments in the teaching laboratory: experiments are cheaper to run.",
+   "costConcern": "39,780 is 2.4x the A8 median; seven dependents.",
+   "action": "add-prereq",
+   "newPrereq": "calculus AND electrostatics",
+   "newAge": null,
+   "rationale": "Add electrostatics (new A7 node): Volta's pile (1800) grew out of Galvani's experiments and Volta's electrophorus and electroscope. The science of charge comes before the current; calculus alone leaves electricity without an ancestor.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "petroleum_refining",
+   "name": "Petroleum refining",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 23650.0,
+   "prereq": "chemistry_quantitative",
+   "dependents": [
+    "automobile_mass",
+    "internal_combustion",
+    "motor_road",
+    "plastics"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Fractional distillation needs controlled chemistry."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "chemistry_quantitative A8 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "unlock building.refinery"
+   ],
+   "effectRationale": "Live unlock only; its transport effects come through internal_combustion and motor_road.",
+   "costConcern": "23,650 is 1.4x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Live: unlocks building.refinery.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.refinery"
+   ]
+  },
+  {
+   "id": "photography",
+   "name": "Photography",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 33450.0,
+   "prereq": "chemistry_quantitative AND glass_lead",
+   "dependents": [
+    "earth_observation",
+    "integrated_circuit",
+    "radioactivity",
+    "television",
+    "xray"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Silver-halide chemistry."
+    },
+    {
+     "atom": "glass_lead",
+     "verdict": "keep",
+     "why": "Optical-quality lens glass."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "chemistry_quantitative A8 (same Age); glass_lead A7 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.exploreMaxRadiusNodes +0.07"
+   ],
+   "effectRationale": "Photographic survey (Laussedat's photogrammetry, 1850s; balloon photography, 1858) records what an expedition saw precisely: the explore cap rises one step.",
+   "costConcern": "33,450 is 2.0x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; five dependents.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.07
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "evolution",
+   "name": "Theory of evolution",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 33450.0,
+   "prereq": "selective_breeding AND taxonomy AND stratigraphy",
+   "dependents": [
+    "antibiotic_resistance"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "selective_breeding",
+     "verdict": "keep",
+     "why": "Darwin's argument starts from breeders' variation."
+    },
+    {
+     "atom": "taxonomy",
+     "verdict": "keep",
+     "why": "Species classification."
+    },
+    {
+     "atom": "stratigraphy",
+     "verdict": "keep",
+     "why": "The fossil succession in ordered strata."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "selective_breeding A7 (gap 1); taxonomy A7 (gap 1); stratigraphy A8 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.civicsPointsCoefficient +0.02"
+   ],
+   "effectRationale": "Natural selection reshapes public thought (the 1860 Oxford debate): more civic and cultural output per person.",
+   "costConcern": "33,450 is 2.0x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "vacuum_tube",
+   "name": "Vacuum tube",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 94620.0,
+   "prereq": "electric_light AND radio",
+   "dependents": [
+    "atomic_clock",
+    "laser",
+    "programmable_computer",
+    "radar",
+    "radiation_detection",
+    "radio_broadcasting",
+    "transistor"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electric_light",
+     "verdict": "keep",
+     "why": "The Edison effect in incandescent bulbs is the diode's origin."
+    },
+    {
+     "atom": "radio",
+     "verdict": "keep",
+     "why": "The tube was built to detect and amplify radio signals."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "electric_light A8 (gap 1); radio A8 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.03"
+   ],
+   "effectRationale": "Amplified long-distance telephony and radio carry the centre's orders further.",
+   "costConcern": "94,620 is 2.0x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept in A9: the triode is 1906, but amplifying electronics spread after 1912-1915.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Radio"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Radio"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "quantum_mechanics",
+   "name": "Quantum mechanics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 133810.0,
+   "prereq": "electromagnetic_field_theory AND thermodynamics AND spectroscopy AND periodic_system AND radioactivity",
+   "dependents": [
+    "atomic_clock",
+    "dna_structure",
+    "laser",
+    "lithium_battery",
+    "nanotechnology",
+    "nuclear_physics",
+    "quantum_computing",
+    "semiconductor_physics",
+    "superconductivity_applied"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electromagnetic_field_theory",
+     "verdict": "keep",
+     "why": "Light as an electromagnetic wave."
+    },
+    {
+     "atom": "thermodynamics",
+     "verdict": "keep",
+     "why": "Black-body radiation (Planck)."
+    },
+    {
+     "atom": "spectroscopy",
+     "verdict": "keep",
+     "why": "Spectral lines explained (Bohr)."
+    },
+    {
+     "atom": "periodic_system",
+     "verdict": "keep",
+     "why": "Electron shells explain the table."
+    },
+    {
+     "atom": "radioactivity",
+     "verdict": "keep",
+     "why": "Alpha scattering reveals atomic structure."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "electromagnetic_field_theory A8 (gap 1); thermodynamics A8 (gap 1); spectroscopy A8 (gap 1); periodic_system A8 (gap 1); radioactivity A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.03"
+   ],
+   "effectRationale": "The theory behind electronics, chemistry and nuclear physics (landmark): more research per person.",
+   "costConcern": "133,810 is 2.8x the A9 median; the hub of nine dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. Five ANDs are right for a synthesis.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "nuclear_fission",
+   "name": "Controlled nuclear fission",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 267620.0,
+   "prereq": "nuclear_physics",
+   "dependents": [
+    "geological_disposal",
+    "graphite_reactor",
+    "heavy_water_reactor",
+    "light_water_reactor",
+    "reprocessing"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "nuclear_physics",
+     "verdict": "keep",
+     "why": "Fission was discovered and explained there."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "nuclear_physics A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.02",
+    "institutions.universities.maturityTauYears +0.02"
+   ],
+   "effectRationale": "The research pile founds the national-laboratory system (Argonne, Oak Ridge): shared neutron sources make research cheaper and new institutions mature faster.",
+   "costConcern": "267,620 is 5.7x the A9 median and the costliest node in the group, for a research pile whose power arrives through reactor nodes. Recommend the pacing calibration review it.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept (dependency). Cost is flagged for calibration, not changed here.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Nuclear Fission"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Nuclear Fission"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    },
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "genetics_mendel",
+   "name": "Genetics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 33450.0,
+   "prereq": "cell_theory AND probability_statistics",
+   "dependents": [
+    "dna_structure",
+    "scientific_plant_breeding"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cell_theory",
+     "verdict": "keep",
+     "why": "Chromosomes are seen in cells (Boveri, Sutton)."
+    },
+    {
+     "atom": "probability_statistics",
+     "verdict": "keep",
+     "why": "Mendel's ratios are statistical."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cell_theory A8 (gap 1); probability_statistics A7 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerHerderPerYear +0.03"
+   ],
+   "effectRationale": "Mendelian livestock breeding (progeny testing, artificial insemination from the 1930s) gives more yield per herder; plant breeding is the separate dependent scientific_plant_breeding.",
+   "costConcern": "33,450 is 0.7x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept in A9 (rediscovered 1900, chromosome theory 1915; applied after 1914).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "dna_structure",
+   "name": "DNA structure and molecular biology",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 133810.0,
+   "prereq": "genetics_mendel AND quantum_mechanics AND xray",
+   "dependents": [
+    "antiviral_drugs",
+    "dna_sequencing",
+    "genetic_engineering",
+    "monoclonal_antibodies"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "genetics_mendel",
+     "verdict": "keep",
+     "why": "The gene."
+    },
+    {
+     "atom": "quantum_mechanics",
+     "verdict": "keep",
+     "why": "Chemical bonding (Pauling)."
+    },
+    {
+     "atom": "xray",
+     "verdict": "keep",
+     "why": "X-ray diffraction (Photo 51)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "genetics_mendel A9 (same Age); quantum_mechanics A9 (same Age); xray A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02",
+    "mobility.targetShareCap +0.02"
+   ],
+   "effectRationale": "Molecular medicine in teaching hospitals, and a new biomedical research profession.",
+   "costConcern": "133,810 is 2.8x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    },
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "genetic_engineering",
+   "name": "Recombinant DNA",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 133810.0,
+   "prereq": "dna_structure AND antibiotic_broad",
+   "dependents": [
+    "crispr",
+    "mrna_vaccines"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "dna_structure",
+     "verdict": "keep",
+     "why": "The code."
+    },
+    {
+     "atom": "antibiotic_broad",
+     "verdict": "keep",
+     "why": "Antibiotic-resistance plasmids are the selection markers of recombinant cloning (pSC101 carried tetracycline resistance)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "dna_structure A9 (same Age); antibiotic_broad A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02",
+    "farming.outputPerFarmerPerYear +0.02"
+   ],
+   "effectRationale": "Recombinant insulin (1982) and vaccines lower mortality; herbicide-tolerant crops cut field labour.",
+   "costConcern": "133,810 is 2.8x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "plastics",
+   "name": "Synthetic polymers",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 94620.0,
+   "prereq": "petroleum_refining AND chemistry_quantitative AND synthetic_dye",
+   "dependents": [
+    "additive_manufacturing",
+    "composites",
+    "desalination",
+    "drip_irrigation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "petroleum_refining",
+     "verdict": "keep",
+     "why": "Feedstock for polyethylene and nylon (1930s)."
+    },
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Implied by both other atoms; harmless."
+    },
+    {
+     "atom": "synthetic_dye",
+     "verdict": "keep",
+     "why": "Bakelite (1907) is coal-tar phenol chemistry."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "petroleum_refining A8 (gap 1); chemistry_quantitative A8 (gap 1); synthetic_dye A8 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "consumption.grainSpoilagePerYear +0.04"
+   ],
+   "effectRationale": "Plastic film and sealed bags keep stored grain dry and free of pests.",
+   "costConcern": "94,620 is 2.0x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Plastics"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "atomic_clock",
+   "name": "Atomic clock",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 28130.0,
+   "prereq": "quantum_mechanics AND vacuum_tube",
+   "dependents": [
+    "gps"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "quantum_mechanics",
+     "verdict": "keep",
+     "why": "Caesium hyperfine transition."
+    },
+    {
+     "atom": "vacuum_tube",
+     "verdict": "keep",
+     "why": "Microwave electronics."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "quantum_mechanics A9 (same Age); vacuum_tube A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.02"
+   ],
+   "effectRationale": "Network timing synchronises distant exchanges and payment systems.",
+   "costConcern": "28,130 is 0.6x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "relativity",
+   "name": "Relativity",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 33450.0,
+   "prereq": "electromagnetic_field_theory AND mechanics_newtonian",
+   "dependents": [
+    "gps",
+    "nuclear_physics"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electromagnetic_field_theory",
+     "verdict": "keep",
+     "why": "Special relativity reconciles Maxwell's equations with motion."
+    },
+    {
+     "atom": "mechanics_newtonian",
+     "verdict": "keep",
+     "why": "It generalises Newton."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "electromagnetic_field_theory A8 (gap 1); mechanics_newtonian A7 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.civicsPointsCoefficient +0.02"
+   ],
+   "effectRationale": "A worldview shock (1919 eclipse headlines): more civic and cultural output per person.",
+   "costConcern": "33,450 is 0.7x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "laser",
+   "name": "Laser",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 189240.0,
+   "prereq": "quantum_mechanics AND vacuum_tube",
+   "dependents": [
+    "fibre_optics",
+    "guided_munitions",
+    "nuclear_fusion_research"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "quantum_mechanics",
+     "verdict": "keep",
+     "why": "Stimulated emission (Einstein, 1917)."
+    },
+    {
+     "atom": "vacuum_tube",
+     "verdict": "keep",
+     "why": "Pumping and microwave electronics (the maser)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "quantum_mechanics A9 (same Age); vacuum_tube A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.03"
+   ],
+   "effectRationale": "Laser-guided land levelling (from the 1970s) gives even irrigation and more grain per field.",
+   "costConcern": "189,240 is 4.0x the A9 median; three dependents. Watch in calibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. effectsNow deferred: project.probe_acceleration is not live.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Lasers"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "superconductivity_applied",
+   "name": "Applied superconductivity",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 66910.0,
+   "prereq": "quantum_mechanics AND refrigeration",
+   "dependents": [
+    "nuclear_fusion_research",
+    "quantum_computing"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "quantum_mechanics",
+     "verdict": "keep",
+     "why": "BCS theory makes magnet design possible."
+    },
+    {
+     "atom": "refrigeration",
+     "verdict": "keep",
+     "why": "Liquid-helium cryogenics."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "quantum_mechanics A9 (same Age); refrigeration A8 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.03"
+   ],
+   "effectRationale": "MRI in teaching hospitals.",
+   "costConcern": "66,910 is 1.4x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "nuclear_fusion_research",
+   "name": "Controlled fusion research",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 66910.0,
+   "prereq": "nuclear_physics AND (superconductivity_applied OR (thermonuclear AND laser))",
+   "dependents": [
+    "fusion_power"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "nuclear_physics",
+     "verdict": "keep",
+     "why": "Fusion reactions of light nuclei."
+    },
+    {
+     "atom": "superconductivity_applied",
+     "verdict": "keep",
+     "why": "Magnetic confinement. Early tokamaks used copper coils, but the OR still requires a confinement technology; low value to change."
+    },
+    {
+     "atom": "thermonuclear",
+     "verdict": "keep",
+     "why": "Inertial path (OR)."
+    },
+    {
+     "atom": "laser",
+     "verdict": "keep",
+     "why": "Laser drivers for inertial confinement (OR)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "nuclear_physics A9 (same Age); superconductivity_applied A9 (same Age); thermonuclear A9 (same Age); laser A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maturityTauYears +0.02"
+   ],
+   "effectRationale": "Large shared plasma facilities (JET, ITER) train researchers across many institutions.",
+   "costConcern": "66,910 is 1.4x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Fusion"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "space_probe",
+   "name": "Interplanetary probe",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 23650.0,
+   "prereq": "satellite AND computer",
+   "dependents": [
+    "asteroid_mining",
+    "frontier_propulsion",
+    "fusion_propulsion"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "satellite",
+     "verdict": "keep",
+     "why": "Launch and orbital craft."
+    },
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Onboard sequencing and trajectory computation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "satellite A9 (same Age); computer A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.02"
+   ],
+   "effectRationale": "Space-race science funding and scholarships (the US NDEA, 1958) speed promotion into specialist classes.",
+   "costConcern": "23,650 is 0.5x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Satellites"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "space_telescope",
+   "name": "Space telescope",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 11830.0,
+   "prereq": "satellite AND telescope",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "satellite",
+     "verdict": "keep",
+     "why": "A platform above the atmosphere."
+    },
+    {
+     "atom": "telescope",
+     "verdict": "keep",
+     "why": "The instrument."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "satellite A9 (same Age); telescope A7 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.civicsPointsCoefficient +0.02",
+    "institutions.universities.maxResearchCostReduction +0.01"
+   ],
+   "effectRationale": "Public imagery (Hubble) and open data archives used by every university.",
+   "costConcern": "11,830 is 0.3x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; a deliberate prestige-science leaf.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Satellites"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    },
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "pcr",
+   "name": "Polymerase chain reaction",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 47310.0,
+   "prereq": "dna_sequencing",
+   "dependents": [
+    "genome_sequencing"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "dna_sequencing",
+     "verdict": "keep",
+     "why": "Primer design needs known sequence."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "dna_sequencing A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "DNA forensics convicts and exonerates on evidence: fewer grievances from failed justice.",
+   "costConcern": "47,310 is 1.0x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "genome_sequencing",
+   "name": "Genome sequencing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 133810.0,
+   "prereq": "pcr AND computer",
+   "dependents": [
+    "crispr",
+    "frontier_medicine",
+    "mrna_vaccines"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "pcr",
+     "verdict": "keep",
+     "why": "Amplification."
+    },
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Sequence assembly is computation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "pcr A9 (same Age); computer A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerHerderPerYear +0.03",
+    "farming.yieldPerArableKm2PerYear +0.02"
+   ],
+   "effectRationale": "Genomic selection in dairy cattle (from 2009) and marker-assisted crop breeding.",
+   "costConcern": "133,810 is 2.8x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03
+    },
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "crispr",
+   "name": "Gene editing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 133810.0,
+   "prereq": "genome_sequencing AND genetic_engineering",
+   "dependents": [
+    "frontier_crops"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "genome_sequencing",
+     "verdict": "keep",
+     "why": "Targets need a sequence."
+    },
+    {
+     "atom": "genetic_engineering",
+     "verdict": "keep",
+     "why": "Delivery methods."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "genome_sequencing A9 (same Age); genetic_engineering A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.02",
+    "harvestVariance.sigmaLogYield +0.02"
+   ],
+   "effectRationale": "Edited disease- and drought-tolerant varieties.",
+   "costConcern": "133,810 is 2.8x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "catalytic_converter",
+   "name": "Catalytic converter",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 11830.0,
+   "prereq": "chemistry_quantitative AND automobile_mass",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Catalysis."
+    },
+    {
+     "atom": "automobile_mass",
+     "verdict": "keep",
+     "why": "The problem it solves."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "chemistry_quantitative A8 (gap 1); automobile_mass A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02"
+   ],
+   "effectRationale": "Cleaner urban air lowers baseline mortality.",
+   "costConcern": "11,830 is 0.3x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; a deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "carbon_capture",
+   "name": "Carbon capture",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 16730.0,
+   "prereq": "chemistry_quantitative AND gas_turbine_power",
+   "dependents": [
+    "frontier_climate"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Amine scrubbing."
+    },
+    {
+     "atom": "gas_turbine_power",
+     "verdict": "keep",
+     "why": "Power-plant flue gas is the target stream."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "chemistry_quantitative A8 (gap 1); gas_turbine_power A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.02"
+   ],
+   "effectRationale": "The first large CO2 capture (Terrell, Texas, 1972) fed enhanced oil recovery. No climate operand exists in the registry yet.",
+   "costConcern": "16,730 is 0.4x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "counting_rods",
+   "name": "Counting-rod arithmetic",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "cost": 3520.0,
+   "prereq": "chinese_script",
+   "dependents": [
+    "algebra",
+    "official_statistics"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Rod numerals mirror the written numerals (Tsinghua bamboo slips)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "chinese_script A3 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "The Nine Chapters' 'fair levies' (junshu) apportion grain tax and haulage by population and distance.",
+   "costConcern": "3,520 is 1.0x the A5 technology median (3,520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; feeds algebra and official_statistics. Effect differs in Age from arithmetic_babylonian's similar role.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mathematics"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mineralogy",
+   "name": "Systematic mineralogy",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "cost": 9950.0,
+   "prereq": "ore_prospecting AND distillation",
+   "dependents": [
+    "stratigraphy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "ore_prospecting",
+     "verdict": "keep",
+     "why": "Field knowledge of ores precedes their classification."
+    },
+    {
+     "atom": "distillation",
+     "verdict": "keep",
+     "why": "Wet chemical tests use distilled acids and solvents."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "ore_prospecting A3 (gap 4); distillation A5 (gap 2). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.02"
+   ],
+   "effectRationale": "Assaying ores and fluxes gives more consistent iron, so tools wear more slowly.",
+   "costConcern": "9,950 is 1.4x the A7 technology median (7,030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "probability_statistics",
+   "name": "Probability and statistics",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "cost": 8360.0,
+   "prereq": "algebra",
+   "dependents": [
+    "epidemiology",
+    "genetics_mendel",
+    "machine_learning"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "algebra",
+     "verdict": "keep",
+     "why": "Combinatorics and the law of large numbers are algebraic."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "algebra A6 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "Political arithmetic (Graunt, Petty) estimates population and taxable output, so levies match capacity.",
+   "costConcern": "8,360 is 1.2x the A7 technology median (7,030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; three dependents.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "taxonomy",
+   "name": "Biological classification",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "cost": 2960.0,
+   "prereq": "printing_press",
+   "dependents": [
+    "evolution",
+    "nature_conservation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "A universal naming system needs identical printed reference works."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "printing_press A7 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.02"
+   ],
+   "effectRationale": "Botanic gardens and Linnaean names let crop varieties be identified, exchanged and acclimatised.",
+   "costConcern": "2,960 is 0.4x the A7 technology median (7,030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cell_theory",
+   "name": "Cell theory",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 16730.0,
+   "prereq": "microscope",
+   "dependents": [
+    "genetics_mendel"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "microscope",
+     "verdict": "keep",
+     "why": "Cells are seen through it."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "microscope A7 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.04"
+   ],
+   "effectRationale": "Cellular pathology (Virchow) lets university medicine find disease where it starts.",
+   "costConcern": "16,730 is 1.0x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "electromagnetic_field_theory",
+   "name": "Electromagnetic field theory",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 23650.0,
+   "prereq": "electromagnetism",
+   "dependents": [
+    "quantum_mechanics",
+    "radar",
+    "radio",
+    "relativity"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electromagnetism",
+     "verdict": "keep",
+     "why": "Maxwell unified Faraday's field results."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "electromagnetism A8 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maturityTauYears +0.02",
+    "institutions.universities.maxResearchCostReduction +0.02"
+   ],
+   "effectRationale": "Maxwell's Treatise (1873) and the Cavendish Laboratory (1874) make mathematical physics a taught laboratory discipline.",
+   "costConcern": "23,650 is 1.4x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.02
+    },
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "organic_chemistry",
+   "name": "Organic chemistry",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 14060.0,
+   "prereq": "chemistry_quantitative",
+   "dependents": [
+    "dynamite",
+    "synthetic_dye"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Combustion analysis of carbon compounds."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "chemistry_quantitative A8 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.starvationChildMultiplier +0.02"
+   ],
+   "effectRationale": "Food analysis (adulteration detected in the 1850s) and Liebig's infant food (1865) protect children better in shortages.",
+   "costConcern": "14,060 is 0.8x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "periodic_system",
+   "name": "Periodic system of the elements",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 11830.0,
+   "prereq": "chemistry_quantitative",
+   "dependents": [
+    "quantum_mechanics"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Atomic weights and element lists."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "chemistry_quantitative A8 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maturityTauYears +0.03"
+   ],
+   "effectRationale": "Mendeleev devised it while writing a textbook (Principles of Chemistry): chemistry becomes teachable as one ordered system.",
+   "costConcern": "11,830 is 0.7x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "spectroscopy",
+   "name": "Spectroscopy",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 19890.0,
+   "prereq": "telescope AND chemistry_quantitative",
+   "dependents": [
+    "quantum_mechanics"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "telescope",
+     "verdict": "keep",
+     "why": "Fraunhofer saw his lines through a telescope-and-prism instrument."
+    },
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Spectral analysis identifies elements."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "telescope A7 (gap 1); chemistry_quantitative A8 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.02"
+   ],
+   "effectRationale": "Spectroscopic control of the Bessemer blow (Roscoe, 1863) gives consistent steel, so tools wear more slowly.",
+   "costConcern": "19,890 is 1.2x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "stratigraphy",
+   "name": "Stratigraphy and geological mapping",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 23650.0,
+   "prereq": "mineralogy AND surveying",
+   "dependents": [
+    "evolution",
+    "geological_disposal",
+    "geophysical_prospecting",
+    "radiometric_prospecting"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "mineralogy",
+     "verdict": "keep",
+     "why": "Rock identification."
+    },
+    {
+     "atom": "surveying",
+     "verdict": "keep",
+     "why": "The map base."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "mineralogy A7 (gap 1); surveying A3 (gap 5). Gaps of 2 or more are foundational atoms; none is a deadlock and none is changed for crossing Ages.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "catchment.hinterlandRadiusKm +0.03"
+   ],
+   "effectRationale": "Geological maps show which nearby formations hold coal, ore or water: a settlement draws on a wider hinterland.",
+   "costConcern": "23,650 is 1.4x the A8 technology median (16,730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept. The A3 atom surveying is a legitimate long-lived foundation, not a reason to change the edge.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "thermodynamics",
+   "name": "Thermodynamics",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "cost": 47310.0,
+   "prereq": "steam_separate_condenser AND calculus",
+   "dependents": [
+    "diesel",
+    "haber_bosch",
+    "quantum_mechanics",
+    "refrigeration",
+    "steam_turbine"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "steam_separate_condenser",
+     "verdict": "keep",
+     "why": "Carnot analysed the steam engine."
+    },
+    {
+     "atom": "calculus",
+     "verdict": "keep",
+     "why": "Mathematical form."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "steam_separate_condenser A8 (same Age); calculus A7 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.03"
+   ],
+   "effectRationale": "Efficiency limits guide compound and triple-expansion marine engines: cheaper bulk haulage.",
+   "costConcern": "47,310 is 2.8x the A8 median; five dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "dna_sequencing",
+   "name": "DNA sequencing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 94620.0,
+   "prereq": "dna_structure",
+   "dependents": [
+    "pcr"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "dna_structure",
+     "verdict": "keep",
+     "why": "The molecule to be read."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "dna_structure A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.02",
+    "institutions.universities.maxMortalityReduction +0.01"
+   ],
+   "effectRationale": "Sequence databases make biological research cheaper; genetic diagnosis in teaching hospitals.",
+   "costConcern": "94,620 is 2.0x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    },
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "geophysical_prospecting",
+   "name": "Geophysical prospecting",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 66900.0,
+   "prereq": "stratigraphy AND electromagnetism",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "stratigraphy",
+     "verdict": "keep",
+     "why": "Geological interpretation."
+    },
+    {
+     "atom": "electromagnetism",
+     "verdict": "keep",
+     "why": "Magnetic and electrical survey methods."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "stratigraphy A8 (gap 1); electromagnetism A8 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.04",
+    "catchment.hinterlandRadiusKm +0.02"
+   ],
+   "effectRationale": "Concealed ore and oil bodies are located before digging: less dead work per miner, and a wider exploitable hinterland.",
+   "costConcern": "66,900 is 1.4x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; a deliberate leaf (the assay order is the live prospecting mechanic).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    },
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "nuclear_physics",
+   "name": "Nuclear physics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 159130.0,
+   "prereq": "radiation_detection AND quantum_mechanics AND relativity",
+   "dependents": [
+    "nuclear_fission",
+    "nuclear_fusion_research",
+    "radioisotope_production",
+    "uranium_enrichment"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "radiation_detection",
+     "verdict": "keep",
+     "why": "Counters."
+    },
+    {
+     "atom": "quantum_mechanics",
+     "verdict": "keep",
+     "why": "Theory."
+    },
+    {
+     "atom": "relativity",
+     "verdict": "keep",
+     "why": "Mass-energy."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "radiation_detection A9 (same Age); quantum_mechanics A9 (same Age); relativity A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.03"
+   ],
+   "effectRationale": "Cyclotrons as university instruments (Lawrence's Radiation Laboratory) make nuclear research cheaper.",
+   "costConcern": "159,130 is 3.4x the A9 median; four dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "radiation_detection",
+   "name": "Radiation detection and counting",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 66900.0,
+   "prereq": "radioactivity AND vacuum_tube",
+   "dependents": [
+    "nuclear_physics",
+    "radiation_protection",
+    "radiometric_prospecting"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "radioactivity",
+     "verdict": "keep",
+     "why": "What is detected."
+    },
+    {
+     "atom": "vacuum_tube",
+     "verdict": "keep",
+     "why": "Amplified pulse counting."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "radioactivity A9 (same Age); vacuum_tube A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02",
+    "demographics.mortalityPerYear +0.01"
+   ],
+   "effectRationale": "Diagnostic counting in hospitals; film badges protect radiation workers.",
+   "costConcern": "66,900 is 1.4x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    },
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "radioactivity",
+   "name": "Radioactivity and radiochemistry",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 79560.0,
+   "prereq": "photography AND electromagnetism",
+   "dependents": [
+    "quantum_mechanics",
+    "radiation_detection",
+    "radiotherapy",
+    "uranium_milling"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "photography",
+     "verdict": "keep",
+     "why": "Becquerel found it on photographic plates."
+    },
+    {
+     "atom": "electromagnetism",
+     "verdict": "keep",
+     "why": "Electrometer measurement (the Curies)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "photography A8 (gap 1); electromagnetism A8 (gap 1). Proposed move A9 to A8.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02",
+    "institutions.universities.maxResearchCostReduction +0.01"
+   ],
+   "effectRationale": "Radium therapy in university hospitals (from ~1904), and radioactive tracers (Hevesy, 1913) for research.",
+   "costConcern": "79,560 is 1.7x the A9 technology median (47,310); within range.",
+   "action": "move-age",
+   "newPrereq": null,
+   "newAge": "A8",
+   "rationale": "Move A9 to A8 by its own dates (1896-1898, wholly before 1914). Both prerequisites are A8 and all four dependents are A9, so no edge breaks and nothing is blocked by the Age sweep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    },
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "radioisotope_production",
+   "name": "Radioisotope production",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 94620.0,
+   "prereq": "nuclear_physics AND radiation_protection",
+   "dependents": [
+    "nuclear_medicine"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "nuclear_physics",
+     "verdict": "keep",
+     "why": "Irradiation."
+    },
+    {
+     "atom": "radiation_protection",
+     "verdict": "keep",
+     "why": "Safe handling."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "nuclear_physics A9 (same Age); radiation_protection A9 (same Age)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerHerderPerYear +0.02",
+    "consumption.grainSpoilagePerYear +0.01"
+   ],
+   "effectRationale": "Co-60-sterilised flies eradicate screwworm (US, 1959-1966): more output per herder. Irradiation also disinfests stored grain.",
+   "costConcern": "94,620 is 2.0x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "radiometric_prospecting",
+   "name": "Radiometric prospecting",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 47310.0,
+   "prereq": "radiation_detection AND stratigraphy",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "radiation_detection",
+     "verdict": "keep",
+     "why": "Instruments."
+    },
+    {
+     "atom": "stratigraphy",
+     "verdict": "keep",
+     "why": "Host formations."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "radiation_detection A9 (same Age); stratigraphy A8 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "catchment.hinterlandRadiusKm +0.02"
+   ],
+   "effectRationale": "Car-borne and airborne surveys map resources across a wider hinterland.",
+   "costConcern": "47,310 is 1.0x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; a deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "semiconductor_physics",
+   "name": "Semiconductor physics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "cost": 79560.0,
+   "prereq": "quantum_mechanics AND radio",
+   "dependents": [
+    "solar_pv",
+    "transistor"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "quantum_mechanics",
+     "verdict": "keep",
+     "why": "Band theory."
+    },
+    {
+     "atom": "radio",
+     "verdict": "keep",
+     "why": "Crystal detectors were the first semiconductor devices."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "quantum_mechanics A9 (same Age); radio A8 (gap 1)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.02"
+   ],
+   "effectRationale": "Industrial solid-state research (Bell Labs) employs physicists and engineers: a larger specialist class.",
+   "costConcern": "79,560 is 1.7x the A9 technology median (47,310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "logarithms",
+   "name": "Logarithms",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "emerged": "1614 CE (Napier, Mirifici logarithmorum canonis descriptio); 1617-1624 CE (Briggs' base-10 tables); ~1,620 CE (Gunter's scale)",
+   "prereq": "hindu_arabic AND trigonometry",
+   "prereqRationale": "hindu_arabic: Briggs' tables are decimal. trigonometry: Napier built logarithms to shorten sine products in astronomy and navigation. Both are dated centuries before 1614.",
+   "desc": "Tables that turn multiplication into addition. Navigators, astronomers and surveyors compute in minutes what took hours, and Gunter's scale puts the method in a ship's master's hands.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Quick dead-reckoning and position computation at sea mean shorter, safer voyages: cheaper bulk haulage.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "calculus (A7) is the theory of rates; logarithms are a computational shortcut 60 years earlier, used by practitioners rather than theorists.",
+   "rationale": "hindu_arabic: Briggs' tables are decimal. trigonometry: Napier built logarithms to shorten sine products in astronomy and navigation. Both are dated centuries before 1614."
+  },
+  {
+   "id": "electrostatics",
+   "name": "Electrostatics and the lightning rod",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "emerged": "1745 CE (Leyden jar, von Kleist and Musschenbroek); 1752 CE (Franklin's lightning rod)",
+   "prereq": "barometer_vacuum",
+   "prereqRationale": "barometer_vacuum (1643 CE): Hauksbee's glass-globe friction machine came out of air-pump work, and the Leyden jar is glasswork from the same laboratories.",
+   "desc": "Friction machines, the Leyden jar and Franklin's experiments show that lightning is electricity. Grounded rods protect roofs, steeples and powder magazines.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.25,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Lightning rods stop strike fires: buildings last longer.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "electromagnetism (A8) is current electricity and induction; electrostatics is the earlier science of charge, and its only direct product is the lightning rod.",
+   "rationale": "barometer_vacuum (1643 CE): Hauksbee's glass-globe friction machine came out of air-pump work, and the Leyden jar is glasswork from the same laboratories."
+  },
+  {
+   "id": "synoptic_meteorology",
+   "name": "Synoptic meteorology",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "emerged": "1854-1861 CE (Le Verrier's telegraphed weather network after the Balaklava storm, 1854; FitzRoy's storm warnings, 1861)",
+   "prereq": "barometer_vacuum AND telegraph",
+   "prereqRationale": "barometer_vacuum: pressure readings are the observation. telegraph (1837 CE): simultaneous reports from many stations are what make a weather map possible. Both predate 1854.",
+   "desc": "Simultaneous barometer readings, telegraphed to one office, become a weather map. Storm warnings reach ports, and frost warnings reach growers.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.25,
+    "institutional": 2.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02
+    },
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Frost and storm warnings save crops at critical moments and keep ships in port through gales.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "weather_prediction (A9, engineering) is computer-based numerical forecasting from 1950; this is the earlier telegraph-and-map forecast, and it bridges barometer_vacuum to it.",
+   "rationale": "barometer_vacuum: pressure readings are the observation. telegraph (1837 CE): simultaneous reports from many stations are what make a weather map possible. Both predate 1854."
+  },
+  {
+   "id": "metric_system",
+   "name": "Metric system",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "emerged": "1795-1799 CE (France: metre and kilogram defined, platinum standards 1799); 1875 CE (Metre Convention)",
+   "prereq": "standard_weights AND trigonometry AND chemistry_quantitative",
+   "prereqRationale": "standard_weights: the older state measure it replaces. trigonometry: the metre came from the Delambre-Mechain meridian triangulation. chemistry_quantitative (1789 CE): the kilogram was defined by a mass of water, and Lavoisier sat on the commission. All are dated before 1795.",
+   "desc": "Decimal units defined by nature and kept by international standards. Goods, land and loads are measured the same way in every market.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.25,
+    "material": 0.25,
+    "institutional": 2.25,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Common decimal units remove conversion and disputes between markets, so trade closes price gaps faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "standard_weights (A3) are local state standards; the metric system is a decimal, nature-based, international system tied to geodesy and chemistry.",
+   "rationale": "standard_weights: the older state measure it replaces. trigonometry: the metre came from the Delambre-Mechain meridian triangulation. chemistry_quantitative (1789 CE): the kilogram was defined by a mass of water, and Lavoisier sat on the commission. All are dated before 1795."
+  }
+ ],
+ "newLanes": [],
+ "findings": [
+  "Dependency and Age changes proposed: 4. geometry_practical drops its script clause, which duplicates the one surveying already carries (no closure change). abacus replaces chinese_script with counting_rods (the suanpan descends from rod arithmetic). electromagnetism adds the new electrostatics node (Volta's pile came from the science of charge). radioactivity moves A9 to A8 by its own dates (1896-1898); its prerequisites are A8 and its dependents A9, so no edge or sweep is affected.",
+  "Gap fill: 4 new nodes. A7: logarithms and electrostatics (the lightning rod is the lane's only building-durability effect). A8: synoptic_meteorology (it bridges barometer_vacuum to the A9 weather_prediction) and metric_system (decimal, international measure; the A3 standard_weights had no modern successor).",
+  "Operand pressure: the science lane naturally wants research.researchPointsCoefficient, and the other groups already sum to 0.26 against a cap of 0.3. This group uses it on only four landmarks (hindu_arabic, calculus, chemistry_quantitative, quantum_mechanics; 0.12), so the combined sum (~0.38) still exceeds the cap. Other pure-science nodes are routed to the university operands (maxResearchCostReduction, maturityTauYears, maxMortalityReduction) or to research.civicsPointsCoefficient. The integrator should rescale RP deltas or raise the cap.",
+  "Many late science nodes are pure theory with no direct registry operand: quantum_mechanics, relativity, electromagnetic_field_theory, nuclear_fusion_research, space_probe and space_telescope. Their effects are institutional (university and specialist-class operands) and kept small (0.01-0.03). A registry row for research-cost or knowledge diffusion would fit them better than borrowing.",
+  "Cost outliers to check in the section-5 calibration: nuclear_fission (267,620, 5.7x the A9 median, a research pile whose power comes through reactor nodes), laser (4.0x), haber_bosch (4.0x, a landmark), calculus (3.4x the A7 median) and chemistry_quantitative (3.4x, a hub of 21 dependents).",
+  "A8/A9 boundary: radioactivity (1896) is the only science node moved. vacuum_tube (1906), genetics_mendel (1900/1915), relativity (1905/1915), plastics (1907) and radiation_detection (1908-1911) are kept in A9 because their practical effect comes after 1914.",
+  "Cross-group bridge (not applied): double_entry is a leaf whose stated next step is banking; central_banking and joint_stock (C3, economy-commerce) could take double_entry as a prerequisite or OR alternative. This is routed to the integrator.",
+  "Live unlocks in this group are building.university (geometry_axiomatic OR algebra, with medicine_hippocratic), building.observatory (astronomy_geometric OR astrolabe OR telescope), building.research_laboratory, building.chemical_works and building.refinery. inst.natural_philosophy, inst.scientific_society, inst.statistics_vital and project.probe_acceleration are not live, so those nodes are marked deferred and carry operand effects."
+ ]
+}

@@ -1,0 +1,4140 @@
+{
+ "group": "C4-diplomacy-military-exploration",
+ "audit": [
+  {
+   "id": "oath_alliance",
+   "name": "Oath alliances",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "diplomacy",
+   "cost": 440.0,
+   "prereq": "kin_council",
+   "dependents": [
+    "daughter_colonies",
+    "dynastic_marriage",
+    "steppe_empire",
+    "sworn_treaties",
+    "tribal_confederacy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "kin_council",
+     "verdict": "keep",
+     "why": "An alliance is sworn by the heads who already speak for each community; without a council there is no party able to bind the group."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "kin_council A1; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "migration.baseRatePerYear +0.03"
+   ],
+   "effectRationale": "Marriage and gift alliances move brides, kin and refugees between allied villages, so people relocate more readily.",
+   "costConcern": "440 is 0.59x the A2 civics median (740); outside 0.6-1.6x, reviewed: rubric magnitude kept, the per-(tree, Age) scale recalibrates pacing.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Runtime A2 diplomacy root; five dependents rely on it. Emerged text dates only the written attestation (~2,400 BCE); the practice is pre-literate.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Diplomatic Service"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "royal_envoys",
+   "name": "Envoys and diplomatic letters",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "diplomacy",
+   "cost": 620.0,
+   "prereq": "cuneiform OR hieroglyphic OR chinese_script",
+   "dependents": [
+    "missionary_religion",
+    "sworn_treaties",
+    "tributary_relations"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cuneiform",
+     "verdict": "keep",
+     "why": "Sealed letters carried by accredited envoys need a script; the OR over the three independent scripts is correct."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "Sealed letters carried by accredited envoys need a script; the OR over the three independent scripts is correct."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Sealed letters carried by accredited envoys need a script; the OR over the three independent scripts is correct."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "chinese_script A3, cuneiform A3, hieroglyphic A3; largest gap 0 Age(s)",
+   "crossTree": "technology atoms: chinese_script, cuneiform, hieroglyphic (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.exploreMaxRadiusNodes +0.03"
+   ],
+   "effectRationale": "Envoys travel to and report on distant courts and the lands between, widening the range an Explore order can be sent into.",
+   "costConcern": "620 is 0.42x the A3 civics median (1480); outside 0.6-1.6x, reviewed: rubric magnitude kept, the per-(tree, Age) scale recalibrates pacing.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Writing-gated diplomacy root; feeds sworn_treaties, tributary_relations and missionary_religion.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Diplomatic Service"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Diplomatic Service"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "service_tenure",
+   "name": "Land held for service",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "military-institutions",
+   "cost": 2090.0,
+   "prereq": "taxation AND law_code",
+   "dependents": [
+    "elective_monarchy",
+    "feudal_monarchy",
+    "forest_law",
+    "manorialism",
+    "military_orders",
+    "military_rule",
+    "representative_assembly"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "taxation",
+     "verdict": "keep",
+     "why": "Service land is an assessed obligation recorded alongside the levy; the ilku is a fiscal category."
+    },
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Hammurabi's laws (paras. 26-41) define who holds service land and what is forfeit; tenure needs written law."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "law_code A3, taxation A3; largest gap 0 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.04"
+   ],
+   "effectRationale": "Soldiers settled on granted land hold outlying districts for the crown without a paid garrison, so authority reaches further.",
+   "costConcern": "2090 is 1.41x the A3 civics median (1480); within 0.6-1.6x. A runtime anchor; not changed.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Runtime anchor with seven dependents (feudal and representative forms).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Feudalism"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Authority (Vassalage policy)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "sworn_treaties",
+   "name": "Sworn treaties",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "diplomacy",
+   "cost": 1240.0,
+   "prereq": "royal_envoys AND oath_alliance",
+   "dependents": [
+    "customs_union",
+    "indirect_rule",
+    "law_of_nations",
+    "resident_embassies",
+    "trade_treaties"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "royal_envoys",
+     "verdict": "keep",
+     "why": "Treaty texts were negotiated and exchanged by envoys (Ebla-Abarsal, Kadesh)."
+    },
+    {
+     "atom": "oath_alliance",
+     "verdict": "keep",
+     "why": "The written treaty formalises the older sworn alliance; the oath before the gods is kept."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "oath_alliance A2, royal_envoys A3; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "catchment.hinterlandRadiusKm +0.03"
+   ],
+   "effectRationale": "Sworn boundary treaties (Lagash-Umma over the Gu'edena fields) make border land safe to work, so settlements draw on a wider hinterland.",
+   "costConcern": "1240 is 0.84x the A3 civics median (1480); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Hub of the diplomacy lane: five dependents.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Diplomatic Service"
+   },
+   "civ7": {
+    "relation": "not-reviewed",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "standing_army",
+   "name": "Standing army",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "military-institutions",
+   "cost": 2090.0,
+   "prereq": "appointed_officials",
+   "dependents": [
+    "absolute_monarchy",
+    "bureaucratic_empire",
+    "general_staff",
+    "military_academies",
+    "military_rule",
+    "one_party_state",
+    "universal_conscription"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "A paid, supplied permanent force needs officials to muster, pay and ration it; the Akkadian and Assyrian armies were run by the royal administration."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.04",
+    "governance.authorityDecayCostUnits +0.03"
+   ],
+   "effectRationale": "A permanent force backs the collector and garrisons provinces, so levies are enforced and reach extends.",
+   "costConcern": "2090 is 0.84x the A4 civics median (2490); within 0.6-1.6x. A runtime anchor; not changed.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Landmark military node with seven dependents; inst.military_medicine depends on it but that institution is not live (M7/M8), so effects are deferred to operands.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Military Training"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Organized Military"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.04
+    },
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectsNowNote": "entities requiring it: inst.military_medicine (not a live kind until M7/M8)"
+  },
+  {
+   "id": "law_of_nations",
+   "name": "Law of nations",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "diplomacy",
+   "cost": 2960.0,
+   "prereq": "sworn_treaties AND legal_code_roman",
+   "dependents": [
+    "decolonization",
+    "international_organizations",
+    "laws_of_war",
+    "westphalian_sovereignty"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "sworn_treaties",
+     "verdict": "keep",
+     "why": "The law of nations systematises treaty practice."
+    },
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "Grotius built on Roman ius gentium and natural law; a jurist tradition is a must-hold."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "legal_code_roman A4, sworn_treaties A3; largest gap 4 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.03"
+   ],
+   "effectRationale": "Neutral rights and freedom of the seas (Mare Liberum, 1609) protect neutral shipping, cutting the risk cost of bulk haulage.",
+   "costConcern": "2960 is 0.60x the A7 civics median (4970); outside 0.6-1.6x, reviewed: rubric magnitude kept, the per-(tree, Age) scale recalibrates pacing.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Hub: four dependents across diplomacy and empire.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Diplomatic Service"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Sovereignty"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "resident_embassies",
+   "name": "Resident embassies",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "diplomacy",
+   "cost": 2960.0,
+   "prereq": "sworn_treaties AND appointed_officials",
+   "dependents": [
+    "westphalian_sovereignty"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "sworn_treaties",
+     "verdict": "keep",
+     "why": "Resident ambassadors manage standing treaty relations."
+    },
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "A salaried envoy kept abroad for years is an appointed office of state."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3, sworn_treaties A3; largest gap 4 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "Standing channels settle disputes before they turn into raids and war scares, so disorder costs less output.",
+   "costConcern": "2960 is 0.60x the A7 civics median (4970); outside 0.6-1.6x, reviewed: rubric magnitude kept, the per-(tree, Age) scale recalibrates pacing.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Gap A3 to A7 is bridged by the new safe_conduct and merchant_consuls (A6); no edge added because resident_embassies is runtime and the bridge is historical precedent, not a must-hold.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Diplomatic Service"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Globalism"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "general_staff",
+   "name": "General staff",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "military-institutions",
+   "cost": 8360.0,
+   "prereq": "standing_army AND cartography",
+   "dependents": [
+    "integrated_alliance_command",
+    "nuclear_deterrence"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "standing_army",
+     "verdict": "keep",
+     "why": "A staff plans for a permanent army."
+    },
+    {
+     "atom": "cartography",
+     "verdict": "keep",
+     "why": "Staff work is map work; the Prussian staff's topographical section is central. cartography (A5) is the generic map-making atom."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cartography A5, standing_army A4; largest gap 4 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "technology atoms: cartography (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.formationSightNodes +0.1"
+   ],
+   "effectRationale": "Staff reconnaissance and survey maps let formations see further than their own pickets.",
+   "costConcern": "8360 is 0.84x the A8 civics median (9950); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Runtime anchor; feeds integrated_alliance_command and nuclear_deterrence, and the new military_railways, military_intelligence, motorized_supply, defence_research_agencies and independent_air_arm.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Military Science (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Military Science (Modern technology)"
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.1
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "laws_of_war",
+   "name": "Laws of war conventions",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "diplomacy",
+   "cost": 2960.0,
+   "prereq": "law_of_nations",
+   "dependents": [
+    "collective_security",
+    "international_tribunals"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "law_of_nations",
+     "verdict": "keep",
+     "why": "Geneva and Hague conventions extend the law of nations; a single atom is right for an extension."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "law_of_nations A7; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02"
+   ],
+   "effectRationale": "Protection of the wounded, prisoners and civilians and the Red Cross medical service lower deaths among those caught in war.",
+   "costConcern": "2960 is 0.30x the A8 civics median (9950); outside 0.6-1.6x, reviewed: rubric magnitude kept, the per-(tree, Age) scale recalibrates pacing.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Extension of law_of_nations (novelty 0.5 in the rubric); feeds collective_security and international_tribunals.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "universal_conscription",
+   "name": "Universal conscription",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "military-institutions",
+   "cost": 11830.0,
+   "prereq": "standing_army AND census",
+   "dependents": [
+    "total_mobilization"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "standing_army",
+     "verdict": "keep",
+     "why": "Conscription fills a permanent army."
+    },
+    {
+     "atom": "census",
+     "verdict": "keep",
+     "why": "Registration of the age class needs a count of persons; the Jourdan Law worked from municipal registers."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "census A4, standing_army A4; largest gap 4 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.04"
+   ],
+   "effectRationale": "Service teaches peasant conscripts literacy, drill and trades and takes them to towns, speeding movement into specialist classes.",
+   "costConcern": "11830 is 1.19x the A8 civics median (9950); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Runtime anchor; feeds total_mobilization and the new army_reserves and veterans_benefits.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mobilization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Organized Military"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "war_band",
+   "name": "War bands",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "military-institutions",
+   "cost": 370.0,
+   "prereq": "kin_council AND (bow_simple OR atlatl)",
+   "dependents": [
+    "citizen_militia",
+    "steppe_empire"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "kin_council",
+     "verdict": "keep",
+     "why": "The raid leader is chosen by the kin heads."
+    },
+    {
+     "atom": "bow_simple",
+     "verdict": "keep",
+     "why": "Projectile weapons (Jebel Sahaba victims carry microlith points); OR with atlatl is right."
+    },
+    {
+     "atom": "atlatl",
+     "verdict": "keep",
+     "why": "Alternative projectile technology; OR with bow_simple."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "atlatl A1, bow_simple A1, kin_council A1; largest gap 0 Age(s)",
+   "crossTree": "technology atoms: atlatl, bow_simple (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.exploreStepNodes +0.04"
+   ],
+   "effectRationale": "An armed party can push through neighbours' land that an unarmed group would avoid, so each Explore step reaches further.",
+   "costConcern": "370 is 1.42x the A1 civics median (260); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "A1 root of the military lane; feeds citizen_militia, steppe_empire and the new village_defences and chiefly_retinue.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Military Tradition"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Discipline"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "dynastic_marriage",
+   "name": "Dynastic marriage",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "diplomacy",
+   "cost": 1480.0,
+   "prereq": "hereditary_rank AND oath_alliance",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "hereditary_rank",
+     "verdict": "keep",
+     "why": "There must be a royal house whose rank passes by descent."
+    },
+    {
+     "atom": "oath_alliance",
+     "verdict": "keep",
+     "why": "Marriage seals an alliance between houses as it did between communities."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "hereditary_rank A2, oath_alliance A2; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.03"
+   ],
+   "effectRationale": "Marriage ties between royal houses end border raiding between them, so less output is lost to disorder.",
+   "costConcern": "1480 is 1.00x the A3 civics median (1480); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: succession claims are handled in legitimacy-succession; nothing downstream must hold it.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Diplomatic Service (Heqin policy)"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "trade_treaties",
+   "name": "Trade treaties",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "diplomacy",
+   "cost": 1480.0,
+   "prereq": "sworn_treaties AND trade",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "sworn_treaties",
+     "verdict": "keep",
+     "why": "A trade treaty is a sworn treaty with commercial clauses."
+    },
+    {
+     "atom": "trade",
+     "verdict": "keep",
+     "why": "There must be a merchant network to protect (Assur-Kanesh)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "sworn_treaties A3, trade A3; largest gap 0 Age(s)",
+   "crossTree": "technology atoms: trade (cross-tree; kept on merit)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "price.stockReleaseRatePerYear +0.04"
+   ],
+   "effectRationale": "Guaranteed safety and fixed tolls let merchants bring stocks to foreign markets sooner.",
+   "costConcern": "1480 is 1.00x the A3 civics median (1480); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; now bridged by the new merchant_consuls (A6).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Foreign Trade"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Code of Laws (Improve Trade Relations action)"
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "citizen_militia",
+   "name": "Citizen militia",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "military-institutions",
+   "cost": 2960.0,
+   "prereq": "war_band AND (citizen_assembly OR elite_council)",
+   "dependents": [
+    "revolutionary_republic"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "war_band",
+     "verdict": "keep",
+     "why": "The militia is the armed body of the community."
+    },
+    {
+     "atom": "citizen_assembly",
+     "verdict": "keep",
+     "why": "Hoplite service and the assembly of arms-bearers go together; OR with elite_council is right."
+    },
+    {
+     "atom": "elite_council",
+     "verdict": "keep",
+     "why": "Oligarchic poleis also fielded citizen hoplites; OR branch."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "citizen_assembly A4, elite_council A3, war_band A1; largest gap 3 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "catchment.hinterlandRadiusKm +0.04"
+   ],
+   "effectRationale": "A citizen army defends the city's whole territory (chora), so outlying fields can be worked.",
+   "costConcern": "2960 is 1.19x the A4 civics median (2490); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Feeds revolutionary_republic; distinct from standing_army (unpaid, part-time citizens).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Military Training"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Citizenship"
+   },
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "daughter_colonies",
+   "name": "Daughter colonies",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "exploration-empire",
+   "cost": 2490.0,
+   "prereq": "sail_square AND oath_alliance",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "sail_square",
+     "verdict": "keep",
+     "why": "Overseas founding needs sailing ships."
+    },
+    {
+     "atom": "oath_alliance",
+     "verdict": "keep",
+     "why": "The colony is bound to its mother city by oath, cult and kinship."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "oath_alliance A2, sail_square A3; largest gap 2 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "technology atoms: sail_square (cross-tree; kept on merit)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "colonization.orderPartyFraction +0.05"
+   ],
+   "effectRationale": "The mother city organises and equips a large founding party under an oikist.",
+   "costConcern": "2490 is 1.00x the A4 civics median (2490); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: later colonization forms (veteran_colonies, settler_charters) rest on land administration, not on overseas apoikiai.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Early Empire"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Colonialism"
+   },
+   "effects": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "state_navy",
+   "name": "State navy",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "military-institutions",
+   "cost": 2960.0,
+   "prereq": "naval_ram AND taxation",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "naval_ram",
+     "verdict": "keep",
+     "why": "The purpose-built warship is the fleet's material basis."
+    },
+    {
+     "atom": "taxation",
+     "verdict": "keep",
+     "why": "A permanent fleet is paid from revenue (Athenian trierarchy and silver)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "naval_ram A4, taxation A3; largest gap 1 Age(s)",
+   "crossTree": "technology atoms: naval_ram (cross-tree; kept on merit)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.03"
+   ],
+   "effectRationale": "A permanent fleet suppresses piracy on the grain routes, lowering the cost of bulk haulage.",
+   "costConcern": "2960 is 1.19x the A4 civics median (2490); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; now bridged by the new coaling_stations (A8).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Naval Tradition"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Organized Military"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mercenary_contracts",
+   "name": "Mercenary contracts",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "military-institutions",
+   "cost": 2090.0,
+   "prereq": "coined_wage",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "coined_wage",
+     "verdict": "keep",
+     "why": "Hire for pay presupposes wages counted in coin (the Ten Thousand were paid in darics)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "coined_wage A4; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "migration.dampingDecayCostUnits +0.03"
+   ],
+   "effectRationale": "Soldiers of fortune travel very long distances for pay and often settle where discharged.",
+   "costConcern": "2090 is 0.59x the A5 civics median (3520); outside 0.6-1.6x, reviewed: rubric magnitude kept, the per-(tree, Age) scale recalibrates pacing.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; now feeds the new colonial_regiments.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Mercenaries"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Tactics (Drills policy)"
+   },
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "tributary_relations",
+   "name": "Tributary relations",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "diplomacy",
+   "cost": 4180.0,
+   "prereq": "royal_envoys AND appointed_officials",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "royal_envoys",
+     "verdict": "keep",
+     "why": "Tribute missions are embassies."
+    },
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "A central court office (Han Office of Dependent States) receives tribute and confers titles."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3, royal_envoys A3; largest gap 2 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.04"
+   ],
+   "effectRationale": "Titles and gifts bind peripheral rulers to the court, extending reach without garrisons.",
+   "costConcern": "4180 is 1.19x the A5 civics median (3520); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: the tribute order is an end-state of its branch; hegemonic leagues are dated earlier and cannot depend on it.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Diplomatic Service (Heqin policy)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "military_orders",
+   "name": "Military orders",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "military-institutions",
+   "cost": 3520.0,
+   "prereq": "monasticism AND service_tenure",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "monasticism",
+     "verdict": "keep",
+     "why": "Knights live under a monastic rule."
+    },
+    {
+     "atom": "service_tenure",
+     "verdict": "keep",
+     "why": "The orders held land and castles for military service."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "monasticism A5, service_tenure A3; largest gap 3 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "roads.maxRouteKm +0.05"
+   ],
+   "effectRationale": "The orders were founded to guard pilgrim roads; chains of castles and hospices make long routes viable.",
+   "costConcern": "3520 is 1.00x the A6 civics median (3520); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: a regional institution with no must-hold successor.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Reformation (Religious Orders policy)"
+   },
+   "effects": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "colonial_administration",
+   "name": "Colonial administration",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "exploration-empire",
+   "cost": 7030.0,
+   "prereq": "state_exploration AND provincial_administration",
+   "dependents": [
+    "indirect_rule",
+    "settler_land_grants"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "state_exploration",
+     "verdict": "keep",
+     "why": "There must be overseas claims to administer."
+    },
+    {
+     "atom": "provincial_administration",
+     "verdict": "keep",
+     "why": "Viceroyalties extend the provincial-governor model overseas."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "provincial_administration A4, state_exploration A7; largest gap 3 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.06"
+   ],
+   "effectRationale": "A home council, viceroys and colonial law let the state govern territories far beyond its old reach.",
+   "costConcern": "7030 is 1.41x the A7 civics median (4970); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Hub of the empire lane (indirect_rule, settler_land_grants and five new nodes).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Colonialism"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Colonialism"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "military_academies",
+   "name": "Military academies",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "military-institutions",
+   "cost": 4970.0,
+   "prereq": "standing_army AND printing_press",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "standing_army",
+     "verdict": "keep",
+     "why": "Schools train officers for the permanent army."
+    },
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "Gunnery and fortification were taught from printed mathematical manuals."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "printing_press A7, standing_army A4; largest gap 3 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "technology atoms: printing_press (cross-tree; kept on merit)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.03"
+   ],
+   "effectRationale": "Commissions earned by schooling rather than purchase or birth speed promotion into the officer class.",
+   "costConcern": "4970 is 1.00x the A7 civics median (4970); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: the general staff descends from staff practice, not from the academies; no must-hold successor.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Military Training"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Militarism (Materiel policy)"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "state_exploration",
+   "name": "State-sponsored exploration",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "exploration-empire",
+   "cost": 7030.0,
+   "prereq": "(caravel OR ocean_junk) AND appointed_officials",
+   "dependents": [
+    "colonial_administration"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "caravel",
+     "verdict": "keep",
+     "why": "Portuguese voyages; OR with ocean_junk is right (Zheng He)."
+    },
+    {
+     "atom": "ocean_junk",
+     "verdict": "keep",
+     "why": "Ming fleets; OR branch."
+    },
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "The crown appoints and funds the commander and claims the finds."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3, caravel A7, ocean_junk A6; largest gap 4 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "technology atoms: caravel, ocean_junk (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.exploreStepNodes +0.08",
+    "fog.exploreMaxRadiusNodes +0.06"
+   ],
+   "effectRationale": "Landmark: chartered state voyages push exploration much further per order and over a wider range.",
+   "costConcern": "7030 is 1.41x the A7 civics median (4970); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Landmark node; feeds colonial_administration, chartered_companies and geographical_societies.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Exploration"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Cartography (Exploration technology)"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.08
+    },
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "westphalian_sovereignty",
+   "name": "State sovereignty system",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "diplomacy",
+   "cost": 7030.0,
+   "prereq": "resident_embassies AND law_of_nations",
+   "dependents": [
+    "great_power_congress"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "resident_embassies",
+     "verdict": "keep",
+     "why": "Mutual recognition is practised through permanent embassies."
+    },
+    {
+     "atom": "law_of_nations",
+     "verdict": "keep",
+     "why": "Sovereign equality is a doctrine of the law of nations."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "law_of_nations A7, resident_embassies A7; largest gap 0 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.05"
+   ],
+   "effectRationale": "Recognised borders and exclusive authority at home remove rival jurisdictions, so the state's reach consolidates.",
+   "costConcern": "7030 is 1.41x the A7 civics median (4970); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Feeds great_power_congress.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Diplomatic Service"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Sovereignty"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "great_power_congress",
+   "name": "Concert of powers",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "diplomacy",
+   "cost": 7030.0,
+   "prereq": "westphalian_sovereignty",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "westphalian_sovereignty",
+     "verdict": "keep",
+     "why": "A concert presupposes recognised sovereign powers."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "westphalian_sovereignty A7; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.03"
+   ],
+   "effectRationale": "Congress diplomacy kept general war away for decades, so less output is lost to disorder.",
+   "costConcern": "7030 is 0.71x the A8 civics median (9950); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; now feeds the new river_commissions (the Rhine Commission was created at Vienna).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Hegemony"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "indirect_rule",
+   "name": "Indirect rule",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "exploration-empire",
+   "cost": 9950.0,
+   "prereq": "colonial_administration AND sworn_treaties",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "colonial_administration",
+     "verdict": "keep",
+     "why": "Indirect rule is a mode of colonial government."
+    },
+    {
+     "atom": "sworn_treaties",
+     "verdict": "keep",
+     "why": "Local rulers are bound by treaty (princely states' subsidiary alliances)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "colonial_administration A7, sworn_treaties A3; largest gap 5 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.04"
+   ],
+   "effectRationale": "Ruling through local princes and residents extends control at little administrative cost.",
+   "costConcern": "9950 is 1.00x the A8 civics median (9950); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: end-state of the colonial branch.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Imperialism (Indenture policy)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "international_organizations",
+   "name": "International organizations",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "diplomacy",
+   "cost": 14060.0,
+   "prereq": "law_of_nations AND telegraph",
+   "dependents": [
+    "climate_accords",
+    "collective_security",
+    "human_rights",
+    "international_tribunals",
+    "internet_governance",
+    "multilateral_trade_rules"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "law_of_nations",
+     "verdict": "keep",
+     "why": "Permanent bodies are created by treaty under the law of nations."
+    },
+    {
+     "atom": "telegraph",
+     "verdict": "keep",
+     "why": "The first such body (International Telegraph Union, 1865) existed to run the telegraph."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "law_of_nations A7, telegraph A8; largest gap 1 Age(s)",
+   "crossTree": "technology atoms: telegraph (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.03"
+   ],
+   "effectRationale": "Shared tariffs and rules for telegraph and post (ITU, UPU) cut the transaction cost of long-distance trade.",
+   "costConcern": "14060 is 1.41x the A8 civics median (9950); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Hub with six existing dependents and several new A9 ones.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Globalization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Globalism"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "settler_land_grants",
+   "name": "Settler land grants",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "exploration-empire",
+   "cost": 9950.0,
+   "prereq": "land_registry AND colonial_administration",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "land_registry",
+     "verdict": "keep",
+     "why": "Land must be surveyed and registered before it is granted."
+    },
+    {
+     "atom": "colonial_administration",
+     "verdict": "replace",
+     "why": "The emerged anchor (Homestead Act, 1862) was issued by a federal republic with no colonial council; Canada's Dominion Lands Act and Australian selection acts were colonial. Make it an OR with federal_republic."
+    }
+   ],
+   "andOr": "change(land_registry AND (colonial_administration OR federal_republic))",
+   "ageGap": "colonial_administration A7, land_registry A4; largest gap 4 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "colonization.orderPartyFraction +0.04",
+    "migration.baseRatePerYear +0.03"
+   ],
+   "effectRationale": "Free or cheap surveyed land draws settlers and lets founding parties be larger.",
+   "costConcern": "9950 is 1.00x the A8 civics median (9950); within 0.6-1.6x.",
+   "action": "change-andor",
+   "newPrereq": "land_registry AND (colonial_administration OR federal_republic)",
+   "newAge": null,
+   "rationale": "The current AND forbids the node's own anchor case (the US public domain). federal_republic (1787 CE) predates 1862, A7 is earlier than A8; chronology and sweep are safe.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.04
+    },
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "arms_control",
+   "name": "Arms control",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "cost": 19890.0,
+   "prereq": "collective_security AND fission_weapon",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "collective_security",
+     "verdict": "keep",
+     "why": "Treaty limits are negotiated in the collective-security system (NPT under UN auspices)."
+    },
+    {
+     "atom": "fission_weapon",
+     "verdict": "keep",
+     "why": "The emerged anchor (NPT, SALT) is nuclear. Earlier naval limitation (Washington, 1922) is noted but is not the node's capability."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "collective_security A9, fission_weapon A9; largest gap 0 Age(s)",
+   "crossTree": "technology atoms: fission_weapon (cross-tree; kept on merit)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.02"
+   ],
+   "effectRationale": "Detente opened East-West trade alongside SALT (the 1972 grain agreement), narrowing price gaps.",
+   "costConcern": "19890 is 0.71x the A9 civics median (28130); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf at the end of the diplomacy lane.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Cold War"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "collective_security",
+   "name": "Collective security",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "cost": 28130.0,
+   "prereq": "international_organizations AND laws_of_war",
+   "dependents": [
+    "arms_control",
+    "integrated_alliance_command"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "international_organizations",
+     "verdict": "keep",
+     "why": "League and UN are permanent organisations."
+    },
+    {
+     "atom": "laws_of_war",
+     "verdict": "keep",
+     "why": "Collective security builds on codified rules of war and aggression."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "international_organizations A8, laws_of_war A8; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.03"
+   ],
+   "effectRationale": "A collective guarantee against aggression lowers the risk of invasion and its disorder.",
+   "costConcern": "28130 is 1.00x the A9 civics median (28130); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Hub: arms_control, integrated_alliance_command and the new peacekeeping_operations.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Hegemony"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "decolonization",
+   "name": "Decolonization",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "exploration-empire",
+   "cost": 28130.0,
+   "prereq": "nationalism AND law_of_nations",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "nationalism",
+     "verdict": "keep",
+     "why": "Independence movements are national movements."
+    },
+    {
+     "atom": "law_of_nations",
+     "verdict": "keep",
+     "why": "Self-determination is asserted in international law (UN Resolution 1514)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "law_of_nations A7, nationalism A8; largest gap 2 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.04",
+    "migration.baseRatePerYear +0.02"
+   ],
+   "effectRationale": "Self-government removes a standing colonial grievance; independence and partition also set large migrations moving.",
+   "costConcern": "28130 is 1.00x the A9 civics median (28130); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; now feeds the new states_reorganisation and indigenous_land_rights.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.04
+    },
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "integrated_alliance_command",
+   "name": "Integrated alliance command",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "cost": 19890.0,
+   "prereq": "collective_security AND general_staff",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "collective_security",
+     "verdict": "keep",
+     "why": "NATO is collective defence rather than UN collective security, but it was founded under Article 51 of the UN Charter; kept."
+    },
+    {
+     "atom": "general_staff",
+     "verdict": "keep",
+     "why": "A joint command is an allied general staff (SHAPE)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "collective_security A9, general_staff A8; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "roads.baselineKmPerDay +0.03"
+   ],
+   "effectRationale": "Common infrastructure and standardised fuel and transport (NATO pipelines, STANAGs) speed movement across allied territory.",
+   "costConcern": "19890 is 0.71x the A9 civics median (28130); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf at the end of the military lane.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Rapid Deployment"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "nuclear_deterrence",
+   "name": "Nuclear deterrence doctrine",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "cost": 19890.0,
+   "prereq": "fission_weapon AND general_staff",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "fission_weapon",
+     "verdict": "keep",
+     "why": "Deterrence needs the weapon."
+    },
+    {
+     "atom": "general_staff",
+     "verdict": "keep",
+     "why": "Doctrine and targeting plans are staff products."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "fission_weapon A9, general_staff A8; largest gap 1 Age(s)",
+   "crossTree": "technology atoms: fission_weapon (cross-tree; kept on merit)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.02"
+   ],
+   "effectRationale": "Deterrent programmes drove state funding of physics, computing and rocketry.",
+   "costConcern": "19890 is 0.71x the A9 civics median (28130); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Program"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "total_mobilization",
+   "name": "Total mobilization",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "cost": 28130.0,
+   "prereq": "universal_conscription AND official_statistics",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "universal_conscription",
+     "verdict": "keep",
+     "why": "Manpower is mobilised through registration."
+    },
+    {
+     "atom": "official_statistics",
+     "verdict": "keep",
+     "why": "Allocating labour and materials needs statistics of production."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "official_statistics A7, universal_conscription A8; largest gap 2 Age(s); spans are on merit, not changed for crossing Ages.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.04",
+    "governance.taxExtractionResponseMax +0.04"
+   ],
+   "effectRationale": "War economies draw new workers into industry and raise extraction through war taxes and controls.",
+   "costConcern": "28130 is 1.00x the A9 civics median (28130); within 0.6-1.6x.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; now feeds wartime_rationing, civil_defence and strategic_stockpiles.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Mobilization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Militarism (Materiel policy)"
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.04
+    },
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "wayfinding_lore",
+   "name": "Wayfinding lore",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "exploration-empire",
+   "emerged": "~40 kya inferred from raw materials carried hundreds of km; ethnographic route songs (songlines)",
+   "prereq": "oral_tradition",
+   "prereqRationale": "oral_tradition: routes, landmarks and water sources are memorised and passed on in song and story.",
+   "rationale": "oral_tradition: routes, landmarks and water sources are memorised and passed on in song and story.",
+   "desc": "Bands memorise routes, landmarks, water holes and star rises in song and story, so a party can travel far beyond its home range and find its way back.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 1.75,
+   "cost": 310,
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Remembered routes let explorers range further from home and return.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "oral_tradition carries any story; this is the practical knowledge of routes used for travel."
+  },
+  {
+   "id": "guest_right",
+   "name": "Guest right",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "diplomacy",
+   "emerged": "~40 kya inferred from shell beads exchanged across band territories; universal in recorded foragers",
+   "prereq": "gift_exchange",
+   "prereqRationale": "gift_exchange: visits to exchange partners require that strangers who come in peace are fed and protected.",
+   "rationale": "gift_exchange: visits to exchange partners require that strangers who come in peace are fed and protected.",
+   "desc": "Strangers who come in peace are fed and protected for a time, so people can cross other bands' land to trade, marry or resettle without being treated as raiders.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 1.75,
+   "cost": 310,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Safe passage through others' land lets migrants travel further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "gift_exchange moves goods between partners; guest right protects the person travelling."
+  },
+  {
+   "id": "village_defences",
+   "name": "Village defences",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "military-institutions",
+   "emerged": "~8,000 BCE wall and tower at Jericho; ~5,000 BCE ditched and palisaded villages in central Europe",
+   "prereq": "war_band AND (stone_dry OR timber_frame)",
+   "prereqRationale": "war_band: the defenders are the community's armed men. stone_dry OR timber_frame: walls of stone or palisades of timber.",
+   "rationale": "war_band: the defenders are the community's armed men. stone_dry OR timber_frame: walls of stone or palisades of timber.",
+   "desc": "The village digs ditches, raises a wall or palisade and keeps a watch, so raiders cannot simply carry off the stored harvest.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "cost": 740,
+   "effects": [
+    {
+     "operand": "granaries.famineReductionMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Defended stores survive raids and are there to relieve hunger.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Masonry (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Masonry (Antiquity technology)"
+   },
+   "distinctFrom": "war_band raids others; defences protect the community's own stores."
+  },
+  {
+   "id": "chiefly_retinue",
+   "name": "Warrior retinues",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "military-institutions",
+   "emerged": "~4,500 BCE weapon-rich graves at Varna; ~2,800 BCE Corded Ware battle-axe burials",
+   "prereq": "hereditary_rank AND war_band",
+   "prereqRationale": "hereditary_rank: a ranked leader keeps the retinue. war_band: the retinue is a permanent war band.",
+   "rationale": "hereditary_rank: a ranked leader keeps the retinue. war_band: the retinue is a permanent war band.",
+   "desc": "A chief keeps armed followers who are fed from his hall and fight at his call, and who also collect what is owed to him.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "cost": 740,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Armed followers enforce tribute and dues.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Military Tradition"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Chiefdom (Charismatic Leader policy)"
+   },
+   "distinctFrom": "war_band forms for one raid; a retinue is kept all year by one leader."
+  },
+  {
+   "id": "village_budding",
+   "name": "Daughter villages",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "exploration-empire",
+   "emerged": "~7,000 BCE farming villages spread into Greece; ~5,500 BCE Linearbandkeramik spread across central Europe",
+   "prereq": "cereal_cultivation AND kin_council",
+   "prereqRationale": "cereal_cultivation: farmers carry seed to new land. kin_council: the household heads decide who goes.",
+   "rationale": "cereal_cultivation: farmers carry seed to new land. kin_council: the household heads decide who goes.",
+   "desc": "When a village grows too large, a group of households leaves with seed and stock to found a new village nearby.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "cost": 740,
+   "effects": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Organised fission sends larger founding parties.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "daughter_colonies (A4) are overseas cities; this is overland village fission among farmers."
+  },
+  {
+   "id": "island_voyaging",
+   "name": "Island colonization voyages",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "exploration-empire",
+   "emerged": "~8,500 BCE farmers reach Cyprus with goats, pigs and cattle; ~7,000 BCE Crete settled",
+   "prereq": "(raft OR dugout) AND sheep_goat",
+   "prereqRationale": "raft OR dugout: open-water craft. sheep_goat: settlers carry breeding stock to found herds on the island.",
+   "rationale": "raft OR dugout: open-water craft. sheep_goat: settlers carry breeding stock to found herds on the island.",
+   "desc": "Settlers sail to islands with seed, breeding stock and supplies to found new communities beyond sight of land.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "cost": 740,
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Planned sea crossings carry explorers further per expedition.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Sailing (technology)"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Sailing (Antiquity technology)"
+   },
+   "distinctFrom": "wayfinding_lore is route memory on land; this is planned settlement across open water."
+  },
+  {
+   "id": "exchange_partnerships",
+   "name": "Exchange partners",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "diplomacy",
+   "emerged": "~7,000 BCE Anatolian obsidian in the Levant; ~5,000 BCE Alpine jadeite axes and Spondylus shell across Europe",
+   "prereq": "gift_exchange AND communal_feasts",
+   "prereqRationale": "gift_exchange: the goods moved. communal_feasts: partnerships are renewed at feasts between communities.",
+   "rationale": "gift_exchange: the goods moved. communal_feasts: partnerships are renewed at feasts between communities.",
+   "desc": "Communities keep standing exchange partners in other villages and renew the tie at feasts, so axes, shell and stone pass from hand to hand across hundreds of km.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "cost": 740,
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Standing partnerships move goods toward the communities that lack them.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Foreign Trade"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Code of Laws (Improve Trade Relations action)"
+   },
+   "distinctFrom": "gift_exchange is one-off giving; partnerships are lasting ties between communities."
+  },
+  {
+   "id": "campaign_provisioning",
+   "name": "Campaign supply depots",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "military-institutions",
+   "emerged": "~1,457 BCE Thutmose III stocks Phoenician harbours before his campaigns; ~720 BCE Assyrian road-station stores",
+   "prereq": "appointed_officials AND (donkey OR cart)",
+   "prereqRationale": "appointed_officials: officials stock and issue rations. donkey OR cart: pack and draught transport move the stores.",
+   "rationale": "appointed_officials: officials stock and issue rations. donkey OR cart: pack and draught transport move the stores.",
+   "desc": "Officials stock grain, fodder and weapons at stations along the march so an army can campaign far from home.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.0,
+   "cost": 1480,
+   "effects": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Provisioned stations make longer routes usable.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Discipline"
+   },
+   "distinctFrom": "service_tenure raises soldiers; this feeds them on the march."
+  },
+  {
+   "id": "royal_expeditions",
+   "name": "Royal expeditions",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "exploration-empire",
+   "emerged": "~2,450 BCE Sahure's voyage to Punt; ~1,470 BCE Hatshepsut's Punt expedition",
+   "prereq": "appointed_officials AND (sail_square OR donkey)",
+   "prereqRationale": "appointed_officials: the crown appoints and supplies the leader. sail_square OR donkey: by sea or by caravan.",
+   "rationale": "appointed_officials: the crown appoints and supplies the leader. sail_square OR donkey: by sea or by caravan.",
+   "desc": "The crown sends organised expeditions to distant lands for incense, gold and stone, and records what they find.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.0,
+   "cost": 1480,
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "State-supplied expeditions reach lands beyond the usual range.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "royal_envoys go to known courts; expeditions go to lands not yet known."
+  },
+  {
+   "id": "frontier_fortresses",
+   "name": "Frontier fortresses",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "exploration-empire",
+   "emerged": "~1,860 BCE Middle Kingdom forts at the Second Cataract; ~1,800 BCE Semna despatches",
+   "prereq": "territorial_kingship AND appointed_officials",
+   "prereqRationale": "territorial_kingship: a kingdom with a frontier to hold. appointed_officials: commandants and scribes man the forts.",
+   "rationale": "territorial_kingship: a kingdom with a frontier to hold. appointed_officials: commandants and scribes man the forts.",
+   "desc": "A chain of forts with commandants and scribes holds a frontier, controls crossings and reports movements to the capital.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.0,
+   "cost": 1480,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Garrisoned forts project the kingdom's authority to its edge.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Defensive Tactics"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nine Garrisons (Ming unique civic)"
+   },
+   "distinctFrom": "service_tenure settles soldiers on land; fortresses are state garrisons at the border."
+  },
+  {
+   "id": "siege_engineers",
+   "name": "Siege and road engineers",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "military-institutions",
+   "emerged": "~865 BCE Assyrian sappers, ramps and river crossings in Ashurnasirpal II's reliefs",
+   "prereq": "standing_army AND siege_ram",
+   "prereqRationale": "standing_army: engineers are permanent specialists. siege_ram: the siege train they build and move.",
+   "rationale": "standing_army: engineers are permanent specialists. siege_ram: the siege train they build and move.",
+   "desc": "Specialist troops build ramps, bridges and tracks for the army, and their skills are turned to roads in peace.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.5,
+   "cost": 2090,
+   "effects": [
+    {
+     "operand": "pathBuild.laborPerAdultPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Trained engineers build more path per worker.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Military Engineering (technology)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "siege_ram is the machine; this is the corps that builds and moves armies."
+  },
+  {
+   "id": "state_resettlement",
+   "name": "State resettlement",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "exploration-empire",
+   "emerged": "~745 BCE Tiglath-Pileser III resettles conquered peoples; ~587 BCE Babylonian exile",
+   "prereq": "provincial_administration AND standing_army",
+   "prereqRationale": "provincial_administration: governors receive and settle the newcomers. standing_army: the army moves them.",
+   "rationale": "provincial_administration: governors receive and settle the newcomers. standing_army: the army moves them.",
+   "desc": "The state moves whole communities from conquered lands to new provinces to farm empty land and break old loyalties.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.5,
+   "cost": 2090,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "State-organised moves carry people over very long distances.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "daughter_colonies send volunteers out; resettlement moves whole communities by order."
+  },
+  {
+   "id": "veteran_colonies",
+   "name": "Veteran colonies",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "exploration-empire",
+   "emerged": "~300 BCE Ptolemaic cleruchs in the Fayum; ~100 BCE Roman colonies of discharged legionaries",
+   "prereq": "standing_army AND land_registry",
+   "prereqRationale": "standing_army: long-service soldiers to discharge. land_registry: surveyed plots to grant them.",
+   "rationale": "standing_army: long-service soldiers to discharge. land_registry: surveyed plots to grant them.",
+   "desc": "Discharged soldiers receive surveyed plots in new or conquered land, founding colonies loyal to the state.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "cost": 2960,
+   "effects": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.03
+    },
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Veteran settlers form large founding parties and bring marginal land into use.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "daughter_colonies are civic foundations; these are state grants to discharged soldiers."
+  },
+  {
+   "id": "military_roads",
+   "name": "Military roads",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "military-institutions",
+   "emerged": "312 BCE Via Appia built for the Samnite wars; 212 BCE Qin Straight Road",
+   "prereq": "standing_army AND road_paved",
+   "prereqRationale": "standing_army: the army builds and uses the road. road_paved: the paving technique.",
+   "rationale": "standing_army: the army builds and uses the road. road_paved: the paving technique.",
+   "desc": "The state builds straight, paved, all-weather roads to move armies fast; merchants and couriers use them too.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.5,
+   "cost": 4190,
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "All-weather trunk roads raise overland travel speed.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Qhapaq Ñan (Inca unique civic)"
+   },
+   "distinctFrom": "road_paved is the technique; this is the state road network and its upkeep."
+  },
+  {
+   "id": "hegemonic_leagues",
+   "name": "Hegemonic leagues",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "diplomacy",
+   "emerged": "~478 BCE Delian League; ~338 BCE League of Corinth",
+   "prereq": "sworn_treaties AND (citizen_assembly OR elite_council)",
+   "prereqRationale": "sworn_treaties: the league is sworn. citizen_assembly OR elite_council: member cities decide through their councils.",
+   "rationale": "sworn_treaties: the league is sworn. citizen_assembly OR elite_council: member cities decide through their councils.",
+   "desc": "Allied cities swear to a common league led by the strongest, paying into a shared treasury for a common fleet or army.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "cost": 2960,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "League contributions are collected from allies on a fixed assessment.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Symmachia (Greece unique civic)"
+   },
+   "distinctFrom": "oath_alliance binds equals; a league has a leader, a treasury and assessed dues."
+  },
+  {
+   "id": "art_of_war",
+   "name": "Military treatises",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "military-institutions",
+   "emerged": "~500 BCE Sunzi's Art of War; ~350 BCE Aeneas Tacticus",
+   "prereq": "standing_army AND philosophical_schools",
+   "prereqRationale": "standing_army: a profession to teach. philosophical_schools: systematic written argument.",
+   "rationale": "standing_army: a profession to teach. philosophical_schools: systematic written argument.",
+   "desc": "Commanders write down doctrine on scouting, spies, supply and terrain, and officers study it.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "cost": 2960,
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.08
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Doctrine on scouts and spies lets formations see further.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Military Training"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Tactics (Drills policy)"
+   },
+   "distinctFrom": "military_academies (A7) are schools; this is written doctrine itself."
+  },
+  {
+   "id": "ghulam_corps",
+   "name": "Slave-soldier corps",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "military-institutions",
+   "emerged": "~833 CE al-Mu'tasim's Turkic ghulam guard; ~1,380 CE Ottoman Janissaries",
+   "prereq": "standing_army AND coined_wage",
+   "prereqRationale": "standing_army: a permanent force. coined_wage: the soldiers draw cash pay and stipends.",
+   "rationale": "standing_army: a permanent force. coined_wage: the soldiers draw cash pay and stipends.",
+   "desc": "The ruler buys or levies boys from outside, trains them as soldiers, and promotes the able to command and governorships.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.25,
+   "cost": 3520,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Outsiders rise by service into command and office.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "military_rule is a regime; this is a recruitment and promotion system."
+  },
+  {
+   "id": "safe_conduct",
+   "name": "Safe-conduct",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "diplomacy",
+   "emerged": "~650 CE aman granted to foreign envoys and merchants; ~1,414 CE English Safe Conducts Act",
+   "prereq": "royal_envoys AND law_code",
+   "prereqRationale": "royal_envoys: envoys are the first holders of safe-conduct. law_code: the guarantee is enforceable law.",
+   "rationale": "royal_envoys: envoys are the first holders of safe-conduct. law_code: the guarantee is enforceable law.",
+   "desc": "A ruler's written guarantee protects named foreigners, their goods and their servants while they travel in his land.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.25,
+   "cost": 3520,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Guaranteed safety lets travellers and migrants go further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "guest_right is custom among bands; safe-conduct is a written state guarantee."
+  },
+  {
+   "id": "merchant_consuls",
+   "name": "Merchant consuls",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "diplomacy",
+   "emerged": "~1,100 CE Genoese and Venetian consuls in Levantine ports; ~1,268 CE Venetian bailo at Constantinople",
+   "prereq": "trade_treaties AND commercial_law",
+   "prereqRationale": "trade_treaties: the consul enforces treaty terms. commercial_law: he judges merchants' disputes.",
+   "rationale": "trade_treaties: the consul enforces treaty terms. commercial_law: he judges merchants' disputes.",
+   "desc": "Merchants abroad elect or receive a consul who judges their disputes, speaks for them to the ruler and keeps their warehouse.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.25,
+   "cost": 3520,
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Protected warehouses and quick justice cut the cost of foreign trade.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "trade_treaties are agreements; consuls are officers resident abroad who enforce them."
+  },
+  {
+   "id": "settler_charters",
+   "name": "Settlement charters",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "exploration-empire",
+   "emerged": "~974 CE carta puebla of Castrojeriz; ~1,150 CE locators settle villages east of the Elbe",
+   "prereq": "land_registry AND municipal_charter",
+   "prereqRationale": "land_registry: plots are measured. municipal_charter: settlers receive a written charter of rights.",
+   "rationale": "land_registry: plots are measured. municipal_charter: settlers receive a written charter of rights.",
+   "desc": "Lords grant written charters with free plots, low dues and self-government to attract settlers to frontier land.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.25,
+   "cost": 3520,
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.04
+    },
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Better terms draw migrants to new land and swell founding parties.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "municipal_charter governs a town; settlement charters recruit settlers to empty land."
+  },
+  {
+   "id": "marches",
+   "name": "Marcher lordships",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "exploration-empire",
+   "emerged": "~795 CE Carolingian Spanish March; ~1,070 CE Welsh Marches",
+   "prereq": "service_tenure AND provincial_administration",
+   "prereqRationale": "service_tenure: march lords hold land for war service. provincial_administration: the march is a frontier province.",
+   "rationale": "service_tenure: march lords hold land for war service. provincial_administration: the march is a frontier province.",
+   "desc": "Frontier districts are granted to lords with wide powers to raise troops, build castles and push the border outward.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.25,
+   "cost": 3520,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Empowered frontier lords hold distant border land.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Society (Marcher Lords policy)"
+   },
+   "distinctFrom": "frontier_fortresses are royal garrisons; marches delegate the frontier to lords."
+  },
+  {
+   "id": "army_magazines",
+   "name": "Army magazines",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "military-institutions",
+   "emerged": "~1,670 CE Louvois's magazine system; ~1,771 CE Prussian magazines opened for famine relief",
+   "prereq": "standing_army AND public_granaries",
+   "prereqRationale": "standing_army: the army the magazines feed. public_granaries: state grain storage practice.",
+   "rationale": "standing_army: the army the magazines feed. public_granaries: state grain storage practice.",
+   "desc": "The state keeps grain magazines for the army along the frontier and opens them to the public in famine years.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.75,
+   "cost": 4980,
+   "effects": [
+    {
+     "operand": "granaries.famineReductionMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Military grain reserves are released to relieve famine.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Militarism (Materiel policy)"
+   },
+   "distinctFrom": "public_granaries are civil stores; magazines are military stores also used in famine."
+  },
+  {
+   "id": "military_engineers",
+   "name": "Corps of engineers",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "military-institutions",
+   "emerged": "~1,690 CE Vauban's corps of engineers; ~1,716 CE French Corps des ponts et chaussées",
+   "prereq": "standing_army AND trace_italienne",
+   "prereqRationale": "standing_army: a permanent corps. trace_italienne: engineers are trained for bastion fortification.",
+   "rationale": "standing_army: a permanent corps. trace_italienne: engineers are trained for bastion fortification.",
+   "desc": "A permanent corps of trained engineers designs fortresses, bridges and roads and surveys the ground.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.75,
+   "cost": 4980,
+   "effects": [
+    {
+     "operand": "pathBuild.buildCostMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Surveyed, engineered routes cost less to build.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Military Engineering (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nationalism (Army Corps of Engineers policy)"
+   },
+   "distinctFrom": "siege_engineers are field troops; this is a trained professional corps."
+  },
+  {
+   "id": "chartered_companies",
+   "name": "Chartered companies",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "exploration-empire",
+   "emerged": "1600 CE English East India Company; 1602 CE Dutch East India Company",
+   "prereq": "joint_stock AND state_exploration",
+   "prereqRationale": "joint_stock: the company is a joint-stock body. state_exploration: the charter grants the routes found by state voyages.",
+   "rationale": "joint_stock: the company is a joint-stock body. state_exploration: the charter grants the routes found by state voyages.",
+   "desc": "The state charters a company with a trade monopoly and powers to fortify, make treaties and govern overseas.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "cost": 8370,
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Company sales bring overseas cargoes to home markets regularly.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Colonialism"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Chartered Companies (Great Britain unique civic)"
+   },
+   "distinctFrom": "joint_stock is the firm form; this is a firm granted sovereign powers overseas."
+  },
+  {
+   "id": "military_railways",
+   "name": "Military railways",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "military-institutions",
+   "emerged": "~1,859 CE French troops sent by rail to Italy; ~1,866 CE Prussian railway mobilization",
+   "prereq": "general_staff AND railway",
+   "prereqRationale": "general_staff: staff timetables plan the moves. railway: the network used.",
+   "rationale": "general_staff: staff timetables plan the moves. railway: the network used.",
+   "desc": "The staff plans railway timetables to move troops and supplies, and lines are built where the army needs them.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.75,
+   "cost": 9960,
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Planned rail movement speeds overland travel.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Absolutism (Strategic Railways policy)"
+   },
+   "distinctFrom": "railway is the technology; this is its planned military use."
+  },
+  {
+   "id": "army_reserves",
+   "name": "Trained reserves",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "military-institutions",
+   "emerged": "~1,813 CE Prussian Landwehr; ~1,867 CE Austro-Hungarian reserve system",
+   "prereq": "universal_conscription",
+   "prereqRationale": "universal_conscription: reserves are former conscripts after short active service.",
+   "rationale": "universal_conscription: reserves are former conscripts after short active service.",
+   "desc": "Conscripts serve a short term, then return home as trained reserves called up only in war.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 5.5,
+   "cost": 4190,
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Short service returns young men to the farms in their working prime.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "universal_conscription calls men up; reserves send them home trained."
+  },
+  {
+   "id": "colonial_regiments",
+   "name": "Colonial regiments",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "military-institutions",
+   "emerged": "~1,757 CE East India Company sepoy battalions; ~1,857 CE Tirailleurs sénégalais",
+   "prereq": "colonial_administration AND mercenary_contracts",
+   "prereqRationale": "colonial_administration: the colony raises the troops. mercenary_contracts: soldiers serve for pay under contract.",
+   "rationale": "colonial_administration: the colony raises the troops. mercenary_contracts: soldiers serve for pay under contract.",
+   "desc": "The colonial government raises regiments from local recruits under contract to garrison and police its territories.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.75,
+   "cost": 9960,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Locally raised garrisons hold distant territory.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "mercenary_contracts hire foreign soldiers; these are standing colonial units."
+  },
+  {
+   "id": "consular_service",
+   "name": "Consular service",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "diplomacy",
+   "emerged": "~1,825 CE British Consular Act; ~1,856 CE US consular reform",
+   "prereq": "merchant_consuls AND resident_embassies",
+   "prereqRationale": "merchant_consuls: the older office. resident_embassies: consuls join a state's foreign service.",
+   "rationale": "merchant_consuls: the older office. resident_embassies: consuls join a state's foreign service.",
+   "desc": "Salaried state consuls in foreign ports protect nationals and report on markets, prices and shipping.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.25,
+   "cost": 7040,
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Regular market reports let traders close price gaps faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "merchant_consuls serve one merchant community; this is a state service reporting on markets."
+  },
+  {
+   "id": "river_commissions",
+   "name": "River commissions",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "diplomacy",
+   "emerged": "~1,815 CE Central Commission for Navigation on the Rhine; ~1,856 CE European Danube Commission",
+   "prereq": "great_power_congress",
+   "prereqRationale": "great_power_congress: the Rhine commission was created at Vienna and the Danube one at Paris.",
+   "rationale": "great_power_congress: the Rhine commission was created at Vienna and the Danube one at Paris.",
+   "desc": "States along a river set common rules, tolls and channel works under a standing commission so ships move freely.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 6.25,
+   "cost": 7040,
+   "effects": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Free navigation and dredged channels cut river haulage costs.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "international_organizations are general bodies; this regulates one shared river."
+  },
+  {
+   "id": "coaling_stations",
+   "name": "Coaling stations",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "exploration-empire",
+   "emerged": "~1,839 CE Aden taken as a coaling port; ~1,898 CE Pacific coaling bases",
+   "prereq": "state_navy AND (steamboat OR screw_propeller) AND colonial_administration",
+   "prereqRationale": "state_navy: the fleet that needs coal. steamboat OR screw_propeller: steam ships. colonial_administration: the ports are held as colonies.",
+   "rationale": "state_navy: the fleet that needs coal. steamboat OR screw_propeller: steam ships. colonial_administration: the ports are held as colonies.",
+   "desc": "The navy holds a chain of ports stocked with coal so steam ships can cross oceans.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.75,
+   "cost": 9960,
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Refuelling ports let steam expeditions go further per voyage.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "state_navy is the fleet; this is its global base network."
+  },
+  {
+   "id": "geographical_societies",
+   "name": "Geographical societies",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "exploration-empire",
+   "emerged": "~1,821 CE Société de Géographie; ~1,830 CE Royal Geographical Society",
+   "prereq": "scientific_societies AND state_exploration",
+   "prereqRationale": "scientific_societies: learned-society form. state_exploration: voyages they fund and publish.",
+   "rationale": "scientific_societies: learned-society form. state_exploration: voyages they fund and publish.",
+   "desc": "Learned societies fund expeditions, publish maps and train explorers in survey.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.75,
+   "cost": 9960,
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Funded, surveyed expeditions reach further.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Natural History"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Natural History (Explorer unit)"
+   },
+   "distinctFrom": "state_exploration is crown voyages; this is private learned exploration."
+  },
+  {
+   "id": "assisted_emigration",
+   "name": "Assisted emigration",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "exploration-empire",
+   "emerged": "~1,831 CE assisted passages to New South Wales; ~1,840 CE Colonial Land and Emigration Commission",
+   "prereq": "colonial_administration AND land_registry",
+   "prereqRationale": "colonial_administration: the colony pays the passages. land_registry: land sales fund them.",
+   "rationale": "colonial_administration: the colony pays the passages. land_registry: land sales fund them.",
+   "desc": "Colonies pay the passage of chosen emigrants from land-sale revenue so labourers can reach distant colonies.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.75,
+   "cost": 9960,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Paid passages carry migrants across oceans.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Imperialism (Indenture policy)"
+   },
+   "distinctFrom": "settler_land_grants give land; this pays for the journey."
+  },
+  {
+   "id": "responsible_colonial_government",
+   "name": "Colonial self-government",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "exploration-empire",
+   "emerged": "~1,848 CE responsible government in Nova Scotia and Canada; ~1,867 CE Canadian Confederation",
+   "prereq": "colonial_administration AND ministerial_responsibility",
+   "prereqRationale": "colonial_administration: the colony. ministerial_responsibility: ministers answer to the colonial assembly.",
+   "rationale": "colonial_administration: the colony. ministerial_responsibility: ministers answer to the colonial assembly.",
+   "desc": "Settler colonies gain their own cabinet answerable to an elected assembly, while foreign affairs stay with the empire.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.75,
+   "cost": 9960,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Settlers govern their own affairs, removing a source of revolt.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "indirect_rule governs through princes; this hands self-government to settlers."
+  },
+  {
+   "id": "peacekeeping_operations",
+   "name": "Peacekeeping",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "emerged": "~1,948 CE UN truce observers in Palestine; ~1,956 CE UN Emergency Force",
+   "prereq": "collective_security",
+   "prereqRationale": "collective_security: the operations are mandated by the collective-security body.",
+   "rationale": "collective_security: the operations are mandated by the collective-security body.",
+   "desc": "International forces, accepted by both sides, watch ceasefire lines and protect aid convoys.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 7.25,
+   "cost": 14080,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Protected relief convoys reduce famine deaths in conflict zones.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "collective_security pledges action; peacekeeping is a neutral force in the field."
+  },
+  {
+   "id": "international_food_aid",
+   "name": "International food aid",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "emerged": "~1,954 CE US Food for Peace; ~1,961 CE World Food Programme",
+   "prereq": "international_organizations AND public_granaries",
+   "prereqRationale": "international_organizations: the programme body. public_granaries: the state food-reserve practice it extends.",
+   "rationale": "international_organizations: the programme body. public_granaries: the state food-reserve practice it extends.",
+   "desc": "Surplus food is shipped through international programmes to countries in famine.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "granaries.famineReductionMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Outside stocks relieve famine.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_granaries are national; this pools food across states."
+  },
+  {
+   "id": "law_of_the_sea",
+   "name": "Law of the sea",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "emerged": "~1,958 CE Geneva conventions on the sea; ~1,982 CE UN Convention on the Law of the Sea",
+   "prereq": "law_of_nations AND international_organizations",
+   "prereqRationale": "law_of_nations: the body of law codified. international_organizations: the conferences that agree it.",
+   "rationale": "law_of_nations: the body of law codified. international_organizations: the conferences that agree it.",
+   "desc": "Treaties fix territorial waters and economic zones, giving coastal states rights over fisheries and the seabed.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Secure rights to coastal fisheries and seabed raise extractive output.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "law_of_nations covers neutrality at sea; this assigns ocean resources."
+  },
+  {
+   "id": "air_navigation_agreements",
+   "name": "Civil aviation agreements",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "emerged": "~1,919 CE Paris Convention on air navigation; ~1,944 CE Chicago Convention",
+   "prereq": "international_organizations AND aircraft",
+   "prereqRationale": "international_organizations: the treaty body (ICAO). aircraft: what is regulated.",
+   "rationale": "international_organizations: the treaty body (ICAO). aircraft: what is regulated.",
+   "desc": "States agree rights to fly over and land in each other's territory and common air safety rules.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Scheduled international flights let migrants travel further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "international_organizations is general; this opens airspace."
+  },
+  {
+   "id": "development_lending",
+   "name": "Development lending",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "emerged": "~1,944 CE Bretton Woods conference; ~1,947 CE first World Bank loans",
+   "prereq": "international_organizations AND central_banking",
+   "prereqRationale": "international_organizations: the lending body. central_banking: the monetary institutions it works with.",
+   "rationale": "international_organizations: the lending body. central_banking: the monetary institutions it works with.",
+   "desc": "International banks lend to governments for roads, dams and power plants.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "pathBuild.buildCostMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Long-term loans make road building cheaper to finance.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "central_banking is national; this lends across borders for infrastructure."
+  },
+  {
+   "id": "visa_free_travel",
+   "name": "Passport-free travel areas",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "emerged": "~1,952 CE Nordic passport union; ~1,985 CE Schengen Agreement",
+   "prereq": "international_organizations AND customs_union",
+   "prereqRationale": "international_organizations: the agreement body. customs_union: removing border checks follows removing tariffs.",
+   "rationale": "international_organizations: the agreement body. customs_union: removing border checks follows removing tariffs.",
+   "desc": "Member states abolish passport checks at their common borders and let citizens live and work across them.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Open borders raise the rate of movement.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "customs_union frees goods; this frees people."
+  },
+  {
+   "id": "academic_exchange",
+   "name": "Academic exchange",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "emerged": "~1,946 CE Fulbright Program; ~1,987 CE Erasmus Programme",
+   "prereq": "research_university AND international_organizations",
+   "prereqRationale": "research_university: the institutions exchanging. international_organizations: the programmes.",
+   "rationale": "research_university: the institutions exchanging. international_organizations: the programmes.",
+   "desc": "Governments fund students and scholars to study and teach abroad.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Visiting faculty and returning graduates help universities mature faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "research_university is domestic; this links universities across states."
+  },
+  {
+   "id": "international_standards",
+   "name": "International standards bodies",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "emerged": "~1,906 CE International Electrotechnical Commission; ~1,947 CE ISO; ~1,968 CE ISO container standard",
+   "prereq": "international_organizations AND interchangeable_parts",
+   "prereqRationale": "international_organizations: the standards body. interchangeable_parts: the practice of standard dimensions.",
+   "rationale": "international_organizations: the standards body. interchangeable_parts: the practice of standard dimensions.",
+   "desc": "States and industries agree common standards for parts, measures and shipping containers.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Standard containers and parts cut handling costs.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "multilateral_trade_rules govern tariffs; standards govern the goods themselves."
+  },
+  {
+   "id": "transboundary_water_treaties",
+   "name": "Shared-river treaties",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "emerged": "~1,929 CE Nile Waters Agreement; ~1,960 CE Indus Waters Treaty",
+   "prereq": "river_commissions AND irrigation_canal",
+   "prereqRationale": "river_commissions: standing river diplomacy. irrigation_canal: the water being allocated.",
+   "rationale": "river_commissions: standing river diplomacy. irrigation_canal: the water being allocated.",
+   "desc": "States sharing a river divide its water by treaty so irrigation works on both sides have an assured supply.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Assured irrigation water raises yields.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "river_commissions regulate navigation; this allocates water."
+  },
+  {
+   "id": "weather_cooperation",
+   "name": "International weather service",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "emerged": "~1,950 CE World Meteorological Organization; ~1,963 CE World Weather Watch",
+   "prereq": "international_organizations AND weather_prediction",
+   "prereqRationale": "international_organizations: the WMO. weather_prediction: the forecasts shared.",
+   "rationale": "international_organizations: the WMO. weather_prediction: the forecasts shared.",
+   "desc": "States share weather observations in real time so every country can forecast storms, frost and drought.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Shared forecasts let farmers time sowing and harvest, steadying yields.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "weather_prediction is the science; this is the exchange of observations."
+  },
+  {
+   "id": "military_intelligence",
+   "name": "Intelligence agencies",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "emerged": "~1,909 CE British Secret Service Bureau; ~1,947 CE Central Intelligence Agency",
+   "prereq": "general_staff AND radio",
+   "prereqRationale": "general_staff: the intelligence branch of the staff. radio: signals interception.",
+   "rationale": "general_staff: the intelligence branch of the staff. radio: signals interception.",
+   "desc": "A permanent agency gathers and analyses intelligence from agents, signals and photographs.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.08
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Formations receive intelligence beyond their own sight.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "general_staff plans; this agency collects information."
+  },
+  {
+   "id": "satellite_reconnaissance",
+   "name": "Satellite reconnaissance",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "emerged": "~1,960 CE Corona photo-reconnaissance satellites",
+   "prereq": "satellite AND military_intelligence",
+   "prereqRationale": "satellite: the platform. military_intelligence: the agency that runs it.",
+   "rationale": "satellite: the platform. military_intelligence: the agency that runs it.",
+   "desc": "Satellites photograph any part of the earth and return the images.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.25,
+   "cost": 14080,
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Orbital imagery reveals land beyond the explorer's reach.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "military_intelligence uses agents and signals; this uses orbital imagery."
+  },
+  {
+   "id": "motorized_supply",
+   "name": "Motor transport corps",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "emerged": "~1,916 CE lorry convoys on the Voie Sacrée at Verdun; ~1,944 CE Red Ball Express",
+   "prereq": "general_staff AND automobile_mass",
+   "prereqRationale": "general_staff: plans the convoys. automobile_mass: mass-produced lorries.",
+   "rationale": "general_staff: plans the convoys. automobile_mass: mass-produced lorries.",
+   "desc": "Army lorry columns carry supplies far beyond the railhead.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Lorry columns sustain longer road routes.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "military_railways move by rail; this carries supplies by road from the railhead."
+  },
+  {
+   "id": "civil_defence",
+   "name": "Civil defence",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "emerged": "~1,935 CE British Air Raid Precautions; ~1,950 CE US Federal Civil Defense Administration",
+   "prereq": "total_mobilization AND aircraft",
+   "prereqRationale": "total_mobilization: the whole population is organised. aircraft: the air threat.",
+   "rationale": "total_mobilization: the whole population is organised. aircraft: the air threat.",
+   "desc": "Wardens, shelters and emergency food depots protect civilians in war and disaster.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "consumption.granaryYearsOfDemand",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Emergency food depots enlarge stores held against disaster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "total_mobilization directs production; civil defence protects civilians."
+  },
+  {
+   "id": "wartime_rationing",
+   "name": "Ration books",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "emerged": "~1,917 CE German and British food rationing; ~1,940 CE British ration books",
+   "prereq": "total_mobilization",
+   "prereqRationale": "total_mobilization: rationing is part of directing the war economy.",
+   "rationale": "total_mobilization: rationing is part of directing the war economy.",
+   "desc": "Scarce food is shared by fixed rations per person so households get through shortages.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 7.25,
+   "cost": 14080,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Fair shares let households absorb shortfalls.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "total_mobilization directs production; rationing divides consumption."
+  },
+  {
+   "id": "veterans_benefits",
+   "name": "Veterans' benefits",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "emerged": "~1,944 CE GI Bill; ~1,945 CE British Further Education and Training Scheme",
+   "prereq": "universal_conscription AND compulsory_education",
+   "prereqRationale": "universal_conscription: the veterans. compulsory_education: the school system that admits them.",
+   "rationale": "universal_conscription: the veterans. compulsory_education: the school system that admits them.",
+   "desc": "Former soldiers receive paid schooling, training and home loans.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Paid education moves veterans into skilled classes.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "universal_conscription calls up; this rewards and retrains after service."
+  },
+  {
+   "id": "counterinsurgency",
+   "name": "Counter-insurgency doctrine",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "emerged": "~1,950 CE Briggs Plan in Malaya; ~1,964 CE Galula's Counterinsurgency Warfare",
+   "prereq": "military_intelligence AND colonial_administration",
+   "prereqRationale": "military_intelligence: insurgency is fought with information. colonial_administration: the doctrine came from colonial emergencies.",
+   "rationale": "military_intelligence: insurgency is fought with information. colonial_administration: the doctrine came from colonial emergencies.",
+   "desc": "Armies and police protect the population, gather intelligence and address grievances to isolate insurgents.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Unrest disrupts less output where order is restored.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "civil_police keep ordinary order; this counters armed insurgency."
+  },
+  {
+   "id": "strategic_stockpiles",
+   "name": "Strategic stockpiles",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "emerged": "~1,939 CE US Strategic Materials Act; ~1,975 CE Strategic Petroleum Reserve",
+   "prereq": "total_mobilization",
+   "prereqRationale": "total_mobilization: stockpiles prepare for the next mobilisation.",
+   "rationale": "total_mobilization: stockpiles prepare for the next mobilisation.",
+   "desc": "The state stores fuel, metals and food and releases them to the market when supplies fail.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 7.25,
+   "cost": 14080,
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Reserves are released to markets faster in shortages.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "civil_defence stocks food locally; this holds national strategic reserves."
+  },
+  {
+   "id": "all_volunteer_force",
+   "name": "All-volunteer forces",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "emerged": "~1,960 CE end of British National Service call-ups; ~1,973 CE US all-volunteer force",
+   "prereq": "universal_conscription AND veterans_benefits",
+   "prereqRationale": "universal_conscription: what it replaces. veterans_benefits: pay and benefits attract volunteers.",
+   "rationale": "universal_conscription: what it replaces. veterans_benefits: pay and benefits attract volunteers.",
+   "desc": "The state ends conscription and recruits paid professionals.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Young adults are free to move for work and study.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "mercenary_contracts hire foreigners; this recruits citizens as paid volunteers."
+  },
+  {
+   "id": "defence_research_agencies",
+   "name": "Defence research agencies",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "emerged": "~1,940 CE US National Defense Research Committee; ~1,958 CE ARPA",
+   "prereq": "general_staff AND research_university",
+   "prereqRationale": "general_staff: sets requirements. research_university: the labs contracted.",
+   "rationale": "general_staff: sets requirements. research_university: the labs contracted.",
+   "desc": "Defence agencies fund research at universities and laboratories.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Defence contracts fund university laboratories.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "science_policy funds civil science; this funds military research."
+  },
+  {
+   "id": "independent_air_arm",
+   "name": "Independent air force",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "emerged": "~1,918 CE Royal Air Force",
+   "prereq": "general_staff AND aircraft",
+   "prereqRationale": "general_staff: the command structure. aircraft: the arm.",
+   "rationale": "general_staff: the command structure. aircraft: the arm.",
+   "desc": "Air power is organised as its own service, which flies reconnaissance and survey.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Air reconnaissance and survey extend each exploration step.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Flight (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Flight (Modern technology)"
+   },
+   "distinctFrom": "aircraft is the machine; this is the service."
+  },
+  {
+   "id": "polar_research_stations",
+   "name": "Polar research stations",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "exploration-empire",
+   "emerged": "~1,957 CE International Geophysical Year; ~1,959 CE Antarctic Treaty",
+   "prereq": "international_organizations AND geographical_societies",
+   "prereqRationale": "international_organizations: the treaty regime. geographical_societies: the exploration tradition.",
+   "rationale": "international_organizations: the treaty regime. geographical_societies: the exploration tradition.",
+   "desc": "States keep permanent scientific stations in the polar regions and share their findings.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Permanent stations extend knowledge to the remotest land.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "geographical_societies fund expeditions; this keeps permanent shared stations."
+  },
+  {
+   "id": "commonwealth_association",
+   "name": "Commonwealth association",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "exploration-empire",
+   "emerged": "~1,931 CE Statute of Westminster; ~1,949 CE London Declaration",
+   "prereq": "responsible_colonial_government AND international_organizations",
+   "prereqRationale": "responsible_colonial_government: self-governing dominions. international_organizations: a permanent association.",
+   "rationale": "responsible_colonial_government: self-governing dominions. international_organizations: a permanent association.",
+   "desc": "Former colonies and the old imperial power form a free association of equal states.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Shared citizenship rights let migrants move between members.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "decolonization ends empire; this keeps a voluntary association."
+  },
+  {
+   "id": "frontier_development_programmes",
+   "name": "Frontier development programmes",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "exploration-empire",
+   "emerged": "~1,938 CE Brazil's March to the West; ~1,954 CE Soviet Virgin Lands campaign",
+   "prereq": "settler_land_grants AND mechanised_agriculture",
+   "prereqRationale": "settler_land_grants: the land settlement policy. mechanised_agriculture: tractors break the new land.",
+   "rationale": "settler_land_grants: the land settlement policy. mechanised_agriculture: tractors break the new land.",
+   "desc": "The state plans and funds settlement of thinly peopled interior land, with new towns, roads and farms.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "State-funded settlement sends large founding parties.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "settler_land_grants offer land; this plans and funds the whole settlement."
+  },
+  {
+   "id": "overseas_departments",
+   "name": "Overseas departments",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "exploration-empire",
+   "emerged": "~1,946 CE departments of Guadeloupe, Martinique, Guiana and Réunion; ~1,959 CE Hawaii statehood",
+   "prereq": "colonial_administration AND mass_suffrage",
+   "prereqRationale": "colonial_administration: the former colony. mass_suffrage: residents vote as citizens.",
+   "rationale": "colonial_administration: the former colony. mass_suffrage: residents vote as citizens.",
+   "desc": "Former colonies become full parts of the state, with the same laws and representation.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Integrated territories are governed as home provinces.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "decolonization separates; this integrates."
+  },
+  {
+   "id": "states_reorganisation",
+   "name": "States reorganisation",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "exploration-empire",
+   "emerged": "~1,953 CE Andhra State; ~1,956 CE States Reorganisation Act",
+   "prereq": "decolonization AND federal_republic",
+   "prereqRationale": "decolonization: a newly independent state. federal_republic: units to redraw.",
+   "rationale": "decolonization: a newly independent state. federal_republic: units to redraw.",
+   "desc": "A new state redraws its internal provinces along language lines.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Provinces matching language groups reduce disorder.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "federal_republic sets the units; this redraws them."
+  },
+  {
+   "id": "indigenous_land_rights",
+   "name": "Indigenous land rights",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "exploration-empire",
+   "emerged": "~1,976 CE Aboriginal Land Rights Act; ~1,992 CE Mabo decision",
+   "prereq": "decolonization AND human_rights",
+   "prereqRationale": "decolonization: the doctrine of self-determination. human_rights: the rights claimed.",
+   "rationale": "decolonization: the doctrine of self-determination. human_rights: the rights claimed.",
+   "desc": "Law recognises indigenous peoples' title to their land and returns some of it.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19910,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Recognised title addresses an old grievance.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "decolonization frees colonies; this restores rights inside settler states."
+  }
+ ],
+ "newLanes": [],
+ "findings": [
+  "Dependency changes proposed: 1. settler_land_grants: land_registry AND colonial_administration becomes land_registry AND (colonial_administration OR federal_republic); the Homestead Act anchor was federal, not colonial. Every other edge in the group was assessed and kept.",
+  "Leaves bridged by new nodes rather than new edges: trade_treaties (merchant_consuls), state_navy (coaling_stations), mercenary_contracts (colonial_regiments), great_power_congress (river_commissions), settler_land_grants (frontier_development_programmes), decolonization (states_reorganisation, indigenous_land_rights), total_mobilization (wartime_rationing, civil_defence, strategic_stockpiles). Deliberate leaves: dynastic_marriage, daughter_colonies, tributary_relations, military_orders, military_academies, indirect_rule, arms_control, integrated_alliance_command, nuclear_deterrence.",
+  "Structural: before this tranche the exploration-empire lane had 6 nodes and no node below A4; new A1-A3 nodes (wayfinding_lore, village_budding, island_voyaging, royal_expeditions, frontier_fortresses) give it a root. The military lane had no logistics strand; campaign_provisioning, military_roads, army_magazines, military_railways and motorized_supply now form one.",
+  "No new lane declared: recruitment, command, logistics and doctrine sit in military-institutions; imperial administration and territorial integration sit in exploration-empire.",
+  "Operand saturation across all tranche-2 outputs (this group plus the others already written): society.unrestOutputDrag, society.grievanceRelief, trade.gapClosingFraction, trade.costPerBulkCostUnit, research.civicsPointsCoefficient and research.researchPointsCoefficient already exceed their caps in summed deltas. This group adds little to them and leans on under-used operands (governance.authorityDecayCostUnits, roads.*, migration.*, fog.*, colonization.orderPartyFraction, granaries.famineReductionMax, transport.riverCostFactor). Integration should rescale per operand.",
+  "fog.exploreMaxRadiusNodes summed across all groups (with this group's 0.26) is about 0.95 of its 1.0 cap; further content should not add to it. fog operands are integers (base step 3, radius 15, sight 1), so small deltas only take effect once accumulated.",
+  "Pacing: the existing A8-A9 diplomacy and empire nodes (international_organizations 14,060; collective_security and decolonization 28,130) sit far above their Age medians; with 27 new A9 civics the per-(tree, Age) scale must make A9 nodes cheaper, as section 5 requires.",
+  "Chronology note: oath_alliance is A2 but its only era-marked year is ~2,400 BCE (the written attestation), so no Neolithic node can must-hold it. Recommend adding an archaeological date to its emerged text if one is accepted.",
+  "integrated_alliance_command rests on collective_security, but NATO is collective defence (UN Charter Art. 51) rather than UN collective security; kept, but a future split into collective_defence may be warranted."
+ ]
+}

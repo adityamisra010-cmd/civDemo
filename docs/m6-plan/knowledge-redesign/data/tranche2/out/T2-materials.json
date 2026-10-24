@@ -1,0 +1,3467 @@
+{
+ "group": "T2-materials",
+ "audit": [
+  {
+   "id": "knapping_oldowan",
+   "name": "Oldowan flaking",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 520.0,
+   "prereq": null,
+   "dependents": [
+    "ground_stone_early"
+   ],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "root (no prerequisites)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "foodState.adaptationAbsorbableShortfall +0.04"
+   ],
+   "effectRationale": "Sharp flakes and hammerstones open carcasses and long bones: marrow and scavenged meat let a band ride out lean spells.",
+   "costConcern": "520 matches the other A1 roots.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Root of the knapping family; unchanged. Effect is food-security from butchery and marrow, not tool output.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "knapping_levallois",
+   "name": "Prepared-core (Levallois)",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 520.0,
+   "prereq": null,
+   "dependents": [
+    "heat_treatment_stone",
+    "hide_working",
+    "knapping_blade"
+   ],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "root (no prerequisites)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "migration.dampingDecayCostUnits +0.03"
+   ],
+   "effectRationale": "Prepared cores yield predetermined, portable blanks: groups carry a toolkit instead of tethering to a stone source, so movers range further.",
+   "costConcern": "none",
+   "action": "add-prereq",
+   "newPrereq": "knapping_oldowan",
+   "newAge": null,
+   "rationale": "Levallois is a prepared-core refinement of hard-hammer flaking; making knapping_oldowan its prerequisite gives the knapping family one root instead of two unrelated roots (both A1, Oldowan ~2.6 Mya precedes ~300 kya). Not a chronology edge: the prepared core is literally flaking applied with foresight.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "knapping_blade",
+   "name": "Blade production",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 260.0,
+   "prereq": "knapping_levallois",
+   "dependents": [
+    "bone_tools",
+    "microlith",
+    "trepanation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "knapping_levallois",
+     "verdict": "keep",
+     "why": "Blade cores are a further development of prepared-core reduction."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.03"
+   ],
+   "effectRationale": "Prismatic blade cores give several times more cutting edge per kilogram of flint: quarrying and working stone yields more usable product per worker.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "pressure_flaking",
+   "name": "Pressure flaking",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 260.0,
+   "prereq": null,
+   "dependents": [],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "root (no prerequisites)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.starvationMortalityMaxPerYear +0.02"
+   ],
+   "effectRationale": "Thin, symmetrical projectile points (Solutrean, Clovis) make big-game kills more reliable, so lean seasons kill fewer.",
+   "costConcern": "none",
+   "action": "add-prereq",
+   "newPrereq": "heat_treatment_stone",
+   "newAge": null,
+   "rationale": "Currently an isolated root and leaf. The Blombos evidence ties the two directly: silcrete was heat-treated precisely so it could be pressure-flaked (~75 kya, after heat treatment at ~164 kya). Pressure retouch of a fine blank presupposes improving the stone first. Remains a deliberate leaf (finishing technique).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "heat_treatment_stone",
+   "name": "Heat treatment of stone",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 260.0,
+   "prereq": "fire_making AND knapping_levallois",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "fire_making",
+     "verdict": "keep",
+     "why": "Controlled heating in a sand bed under a fire is the method."
+    },
+    {
+     "atom": "knapping_levallois",
+     "verdict": "keep",
+     "why": "The heated stone is then knapped by prepared-core methods; Levallois (~300 kya) precedes Pinnacle Point (~164 kya)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms. fire_making's emerged text dates itself by this very node (~164 kya); the edge is logical, the shared date is fire_making's labelling.",
+   "crossTree": "none (technology atoms only); cross-lane atoms from energy",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.02",
+    "production.toolYieldBonusMax +0.02"
+   ],
+   "effectRationale": "Heating poor silcrete or chert makes it flake cleanly: more of the quarried stone becomes usable, and the resulting edges are sharper.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Becomes a non-leaf if pressure_flaking takes it as prerequisite.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "microlith",
+   "name": "Microliths and composite tools",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 370.0,
+   "prereq": "hafting AND knapping_blade",
+   "dependents": [
+    "sickle"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "hafting",
+     "verdict": "keep",
+     "why": "Microliths are useless unless set in a haft."
+    },
+    {
+     "atom": "knapping_blade",
+     "verdict": "keep",
+     "why": "Microliths are snapped and backed blade segments."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.04"
+   ],
+   "effectRationale": "Replaceable geometric inserts: a worn or broken segment is swapped and the sickle or knife lives on, so equipped tools last longer.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "ground_stone_early",
+   "name": "Ground-edge axe",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 520.0,
+   "prereq": "knapping_oldowan",
+   "dependents": [
+    "charcoal",
+    "copper_native",
+    "digging_stick_hoe",
+    "dugout",
+    "sledge",
+    "stamp_seal",
+    "stone_dry",
+    "timber_frame",
+    "wheel_solid"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "knapping_oldowan",
+     "verdict": "keep",
+     "why": "Ground axes are first roughed out by flaking, then ground; flaking is the needed predecessor."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms. Dated ~44-35 kya (Australia, Japan) - earlier than grinding_stone's own ~30 kya date, so grinding_stone is correctly NOT a prerequisite.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "housing.buildLaborAdultYearsPerDwelling +0.03",
+    "liveUnlock activity.logging"
+   ],
+   "effectRationale": "A resharpenable ground-edge felling axe makes heavy timber work feasible: logging is unlocked and dwellings take less labour.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; live unlock activity.logging plus a housing labour effect from efficient woodworking.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.buildLaborAdultYearsPerDwelling",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "activity.logging"
+   ]
+  },
+  {
+   "id": "adhesive_natural",
+   "name": "Compound adhesives",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 260.0,
+   "prereq": null,
+   "dependents": [
+    "birch_tar",
+    "hafting",
+    "lacquer"
+   ],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "root (no prerequisites)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.02",
+    "production.toolYieldBonusMax +0.02"
+   ],
+   "effectRationale": "Load-bearing compound binders keep inserts and heads seated under impact: tools fail less and transmit more force.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Root; keep. fire_making is NOT added despite heat-processed bitumen: its node is dated ~164 kya, after this node's ~200 kya, which would break chronology.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "birch_tar",
+   "name": "Birch-bark tar",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 370.0,
+   "prereq": "fire_making AND adhesive_natural",
+   "dependents": [
+    "charcoal"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "adhesive_natural",
+     "verdict": "keep",
+     "why": "Birch tar is the manufactured successor of natural binders."
+    },
+    {
+     "atom": "fire_making",
+     "verdict": "keep",
+     "why": "Dry distillation needs controlled heating without oxygen."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms. Must-held fire_making is dated ~164 kya against this node's ~200 kya (Campitello): fire_making's emerged text is anchored on heat treatment, not on fire control (~400 kya+). Edge kept; date text to be fixed in the energy group.",
+   "crossTree": "none (technology atoms only); cross-lane atoms from energy",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "housing.tauYears +0.02"
+   ],
+   "effectRationale": "Tar is an adhesive and a wood and bark preservative and sealant: treated timber and bark structures last longer.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "hafting",
+   "name": "Composite hafting",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 520.0,
+   "prereq": "cordage AND adhesive_natural",
+   "dependents": [
+    "atlatl",
+    "digging_stick_hoe",
+    "microlith"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "adhesive_natural",
+     "verdict": "keep",
+     "why": "Compound adhesive is the other half of a load-bearing haft."
+    },
+    {
+     "atom": "cordage",
+     "verdict": "keep",
+     "why": "Sinew or fibre binding of the haft."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms. cordage's direct evidence (~50 kya) postdates secure hafting (~200 kya); cordage's emerged text records an evidential floor ('older inferred'). Edge kept.",
+   "crossTree": "none (technology atoms only); cross-lane atoms from industry",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "production.toolYieldBonusMax +0.04"
+   ],
+   "effectRationale": "A precision-fitted socket or tang turns a hand-held edge into a lever: hafted axes, adzes and hoes multiply the gain from every tool.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. unit.spearmen requires it but units are not live (M7), so the realized effect is the tool-yield operand.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "ochre_processing",
+   "name": "Pigment processing",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 260.0,
+   "prereq": "grinding_stone",
+   "dependents": [
+    "copper_smelting",
+    "dyeing",
+    "shamanic_ritual"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "grinding_stone",
+     "verdict": "keep",
+     "why": "Blombos ochre was processed on grindstones; the edge is the actual technique."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms. grinding_stone is dated by plant processing (~30 kya) while ochre grinding is ~100 kya; edge is logical, date text is grinding_stone's.",
+   "crossTree": "none (technology atoms only); cross-lane atoms from agriculture",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Ground ochre for body marking and shared symbolic display builds group identity, damping the build-up of grievance; also preserves hides.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "bone_tools",
+   "name": "Bone and antler tools",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "cost": 260.0,
+   "prereq": "knapping_blade",
+   "dependents": [
+    "chinese_script",
+    "tally_notation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "knapping_blade",
+     "verdict": "keep",
+     "why": "Groove-and-splinter bone working needs burins struck from blades."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms. Katanda harpoons (~90 kya) predate the widespread blade date; knapping_blade's text carries the earlier African ~70 kya figure, near enough.",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02"
+   ],
+   "effectRationale": "Eyed needles and awls make tailored, layered clothing; less exposure lowers baseline mortality (harpoons also add fish).",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "pottery_open_fired",
+   "name": "Open-fired pottery",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "cost": 2490.0,
+   "prereq": "basketry",
+   "dependents": [
+    "beekeeping",
+    "fermentation_fruit",
+    "fermentation_grain",
+    "kiln_updraft",
+    "milking",
+    "nixtamalization",
+    "potters_wheel_fast",
+    "salt_extraction",
+    "stamp_seal",
+    "sugar_refining",
+    "water_clock"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "basketry",
+     "verdict": "keep",
+     "why": "Coil building and container design come from basketry; many early pots carry basket impressions."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: basketry A1 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from industry",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "consumption.grainSpoilagePerYear +0.04",
+    "demographics.starvationChildMultiplier +0.03",
+    "liveUnlock recipe.pottery_firing"
+   ],
+   "effectRationale": "Sealed pots keep stores from damp and vermin; boiling makes gruels that wean and feed children through shortages.",
+   "costConcern": "2,490 is high for an A2 trunk node next to kiln 4,180 and potters_wheel 440; leave to the per-Age scale.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; live recipe plus storage and child-feeding effects. Fire is baseline (baseline.fire), so no fire_making edge is needed.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Pottery"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Pottery"
+   },
+   "effects": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.04
+    },
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "recipe.pottery_firing"
+   ]
+  },
+  {
+   "id": "kiln_updraft",
+   "name": "Updraft kiln",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "cost": 4180.0,
+   "prereq": "pottery_open_fired AND mudbrick",
+   "dependents": [
+    "bellows",
+    "copper_smelting",
+    "fired_brick",
+    "glass_glaze",
+    "iron_bloomery",
+    "movable_type_ceramic",
+    "portland_cement",
+    "wootz"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "mudbrick",
+     "verdict": "keep",
+     "why": "Kiln chambers are built of mudbrick and clay."
+    },
+    {
+     "atom": "pottery_open_fired",
+     "verdict": "keep",
+     "why": "The kiln is an enclosed version of pottery firing."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only); cross-lane atoms from construction",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "liveUnlock building.kiln"
+   ],
+   "effectRationale": "Live unlock building.kiln; the kiln's own building effects carry the gameplay, so no operand is added.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Pottery"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Guilds"
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.kiln"
+   ]
+  },
+  {
+   "id": "potters_wheel_fast",
+   "name": "Fast wheel (throwing)",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "cost": 440.0,
+   "prereq": "pottery_open_fired",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "pottery_open_fired",
+     "verdict": "keep",
+     "why": "Throwing presupposes ceramic know-how."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.03"
+   ],
+   "effectRationale": "Thrown pottery at scale is a full-time trade: the wheel supports a larger specialist artisan class.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf (a craft specialisation). Emerged ~3,500 BCE sits on the A2/A3 boundary; Age kept.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Pottery"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Pottery"
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "copper_native",
+   "name": "Native copper working",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "cost": 880.0,
+   "prereq": "ground_stone_early AND fire_making",
+   "dependents": [
+    "copper_smelting",
+    "gold_silver_native"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "fire_making",
+     "verdict": "keep",
+     "why": "Annealing between hammerings needs fire."
+    },
+    {
+     "atom": "ground_stone_early",
+     "verdict": "keep",
+     "why": "Native copper is worked with hammerstones and grinding, a ground-stone skill set."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: fire_making A1 (gap 1), ground_stone_early A1 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from energy",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolYieldBonusMax +0.02"
+   ],
+   "effectRationale": "Cold-hammered and annealed copper awls, pins and small blades: a first metal edge for equipped workers.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "copper_smelting",
+   "name": "Copper smelting",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "cost": 4180.0,
+   "prereq": "kiln_updraft AND (copper_native OR ochre_processing)",
+   "dependents": [
+    "alchemy",
+    "arsenical_bronze",
+    "ashlar_masonry",
+    "brass_calamine",
+    "casting_open",
+    "cupellation",
+    "mining_shaft",
+    "ore_prospecting",
+    "plank_boat"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "copper_native",
+     "verdict": "keep",
+     "why": "Knowing copper as a material; OR branch."
+    },
+    {
+     "atom": "kiln_updraft",
+     "verdict": "keep",
+     "why": "Furnace temperatures and atmosphere control come from kilns."
+    },
+    {
+     "atom": "ochre_processing",
+     "verdict": "keep",
+     "why": "Malachite and azurite were ground as pigment before they were smelted; the OR alternative is a real pathway."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: ochre_processing A1 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.03",
+    "liveUnlock building.smithy"
+   ],
+   "effectRationale": "Smelted metal can be resharpened and remelted instead of discarded: tools last longer; smithy unlocked.",
+   "costConcern": "none",
+   "action": "add-prereq",
+   "newPrereq": "kiln_updraft AND charcoal AND (copper_native OR ochre_processing)",
+   "newAge": null,
+   "rationale": "Reduction smelting needs charcoal: its carbon monoxide is the reductant and a wood fire cannot reach or hold reducing conditions. The node's own description says 'in a charcoal fire'. charcoal (A2, ~5,500 BCE) predates smelting (~5,000 BCE); charcoal already feeds iron_bloomery on the same grounds.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mining"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Bronze Working"
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.smithy"
+   ]
+  },
+  {
+   "id": "casting_open",
+   "name": "Open-mould casting",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "cost": 740.0,
+   "prereq": "copper_smelting",
+   "dependents": [
+    "cast_iron",
+    "casting_closed",
+    "lost_wax"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "copper_smelting",
+     "verdict": "keep",
+     "why": "Casting needs molten metal from smelting."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.03"
+   ],
+   "effectRationale": "Cast copper axe heads are reproducible: felling and quarrying crews are better equipped.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "gold_silver_native",
+   "name": "Native gold and silver",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "cost": 440.0,
+   "prereq": "copper_native",
+   "dependents": [
+    "cupellation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "copper_native",
+     "verdict": "keep",
+     "why": "Same cold-working and annealing techniques as native copper."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.03"
+   ],
+   "effectRationale": "Gold and silver as prestige goods and an early store of value: exchange is easier, so price gaps close faster.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Currency"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Currency"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "arsenical_bronze",
+   "name": "Arsenical bronze",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "cost": 1050.0,
+   "prereq": "copper_smelting",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "copper_smelting",
+     "verdict": "keep",
+     "why": "Smelted from arsenical ores in the same furnaces."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: copper_smelting A2 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolYieldBonusMax +0.04"
+   ],
+   "effectRationale": "Arsenic-bearing copper work-hardens: harder edges without tin trade.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: the no-tin alloy path. Emerged ~4,000 BCE predates the A3 window, as do several A3 materials nodes placed by maturity; Age not moved.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Bronze Working"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Bronze Working"
+   },
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "tin_bronze",
+   "name": "Tin bronze",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "cost": 7030.0,
+   "prereq": "ore_prospecting",
+   "dependents": [
+    "casting_closed",
+    "sheet_metal"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "ore_prospecting",
+     "verdict": "keep",
+     "why": "Tin ore (cassiterite) must be found before it can be alloyed; copper smelting comes through this atom."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.04",
+    "liveUnlock recipe.bronze_casting"
+   ],
+   "effectRationale": "A reproducible 10% tin alloy is harder and work-hardens: edges hold far longer than copper; bronze casting unlocked.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Bronze Working"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Bronze Working"
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "recipe.bronze_casting"
+   ]
+  },
+  {
+   "id": "casting_closed",
+   "name": "Two-piece and closed-mould casting",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "cost": 4180.0,
+   "prereq": "casting_open AND tin_bronze",
+   "dependents": [
+    "cannon_cast_bronze",
+    "cannon_early",
+    "crossbow",
+    "gearing",
+    "movable_type_metal",
+    "naval_ram",
+    "surgery_instruments",
+    "type_founding",
+    "wheel_spoked"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "casting_open",
+     "verdict": "keep",
+     "why": "Closed moulds extend open-mould casting."
+    },
+    {
+     "atom": "tin_bronze",
+     "verdict": "keep",
+     "why": "Bronze's fluidity fills thin bivalve moulds for socketed forms."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: casting_open A2 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "farming.outputPerFarmerPerYear +0.03"
+   ],
+   "effectRationale": "Bivalve moulds turn out socketed sickles and hoes that stay on their hafts: each farmer harvests and tills more.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Metal Casting"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "lost_wax",
+   "name": "Lost-wax casting",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "cost": 1480.0,
+   "prereq": "casting_open",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "casting_open",
+     "verdict": "keep",
+     "why": "Investment casting needs pouring skills."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: casting_open A2 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Cult statuary and votive objects in any shape sustain shared ritual and display.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf (art and ritual metalwork).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "sheet_metal",
+   "name": "Sheet metalwork",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "cost": 1480.0,
+   "prereq": "tin_bronze",
+   "dependents": [
+    "canning",
+    "distillation",
+    "plate_armour"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "tin_bronze",
+     "verdict": "keep",
+     "why": "Raising sheet relies on bronze's work-hardening and annealing behaviour."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "foodState.adaptationAbsorbableShortfall +0.02"
+   ],
+   "effectRationale": "Raised bronze cauldrons and buckets let households and feasts cook and redistribute stores in bulk; armour use waits for M7.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Its main capability (sheet armour) is military and not live; the realized effect is a modest food-handling one.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mining_shaft",
+   "name": "Shaft mining",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "cost": 2960.0,
+   "prereq": "stone_dry AND copper_smelting",
+   "dependents": [
+    "aqueduct_tunnel",
+    "qanat"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "copper_smelting",
+     "verdict": "keep",
+     "why": "The node models ore mining for metal; flint mines predate it but are not its capability."
+    },
+    {
+     "atom": "stone_dry",
+     "verdict": "keep",
+     "why": "Shoring, stone-lined galleries and spoil handling."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: copper_smelting A2 (gap 1), stone_dry A2 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from construction",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.05",
+    "liveUnlock activity.mining"
+   ],
+   "effectRationale": "Shafts and galleries follow ore to depth: sustained extraction per miner; the mining activity joins Extraction.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mining"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Masonry"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [
+    "activity.mining"
+   ]
+  },
+  {
+   "id": "fired_brick",
+   "name": "Fired brick",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "cost": 4180.0,
+   "prereq": "kiln_updraft AND mudbrick",
+   "dependents": [
+    "planned_cities",
+    "sanitary_engineering",
+    "vault_dome"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "kiln_updraft",
+     "verdict": "keep",
+     "why": "Firing at kiln temperature."
+    },
+    {
+     "atom": "mudbrick",
+     "verdict": "keep",
+     "why": "Moulded standard bricks."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: kiln_updraft A2 (gap 1), mudbrick A2 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from construction",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "housing.tauYears +0.04",
+    "liveUnlock infra.sewer",
+    "liveUnlock infra.urban_drainage"
+   ],
+   "effectRationale": "Kiln-fired, waterproof brick: drains and sewers unlocked, and buildings stand far longer.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Masonry"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Pottery"
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "infra.sewer",
+    "infra.urban_drainage"
+   ]
+  },
+  {
+   "id": "glass_glaze",
+   "name": "Glaze and faience",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "cost": 2960.0,
+   "prereq": "kiln_updraft AND salt_extraction",
+   "dependents": [
+    "glass_core"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "kiln_updraft",
+     "verdict": "keep",
+     "why": "Glaze vitrifies only at kiln temperatures."
+    },
+    {
+     "atom": "salt_extraction",
+     "verdict": "keep",
+     "why": "Alkali flux (natron, plant ash, salts) is the glass-forming ingredient."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: kiln_updraft A2 (gap 1), salt_extraction A2 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from food",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "consumption.grainSpoilagePerYear +0.02"
+   ],
+   "effectRationale": "A vitreous coat seals porous ceramic: glazed jars keep stored food and oil from seeping and spoiling.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "glass_core",
+   "name": "Core-formed glass",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "cost": 1480.0,
+   "prereq": "glass_glaze",
+   "dependents": [
+    "glass_blown_precursor"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "glass_glaze",
+     "verdict": "keep",
+     "why": "Glass proper follows faience and glaze."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.02"
+   ],
+   "effectRationale": "Core-formed vessels are palace-workshop products: glassmaking supports another specialist artisan class.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "iron_bloomery",
+   "name": "Bloomery iron",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "cost": 11830.0,
+   "prereq": "charcoal AND kiln_updraft",
+   "dependents": [
+    "blast_furnace_water",
+    "cannon_early",
+    "cast_iron",
+    "compass_magnetic",
+    "glass_blowing",
+    "heavy_plough",
+    "horseshoe",
+    "percussion_drilling",
+    "steel_carburized",
+    "stirrup",
+    "wire_drawing"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "charcoal",
+     "verdict": "keep",
+     "why": "Bloomery reduction runs on charcoal."
+    },
+    {
+     "atom": "kiln_updraft",
+     "verdict": "keep",
+     "why": "Shaft furnace temperature and atmosphere control."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: charcoal A2 (gap 2), kiln_updraft A2 (gap 2); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from energy",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "production.toolYieldBonusMax +0.06",
+    "liveUnlock building.smithy"
+   ],
+   "effectRationale": "Landmark: ore is everywhere, so iron hoes, ploughshares and axes reach ordinary farmers; equipped workers gain much more from tools.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. copper_smelting (the smelting principle) is not added: the A4 sweep already requires all of A2, so the edge would be redundant.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Iron Working"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Iron Working"
+   },
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": [
+    "building.smithy"
+   ]
+  },
+  {
+   "id": "steel_carburized",
+   "name": "Carburized steel",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "cost": 4970.0,
+   "prereq": "iron_bloomery",
+   "dependents": [
+    "bicycle",
+    "pattern_welding",
+    "quenching",
+    "wootz"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "iron_bloomery",
+     "verdict": "keep",
+     "why": "Carburizing works on wrought iron."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.04"
+   ],
+   "effectRationale": "Carbon-hardened edges outlast soft wrought iron: tools need replacing less often.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Steel"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Metallurgy"
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "quenching",
+   "name": "Quench hardening",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "cost": 2490.0,
+   "prereq": "steel_carburized",
+   "dependents": [
+    "tempering"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "steel_carburized",
+     "verdict": "keep",
+     "why": "Only carburized steel hardens on quenching."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.03"
+   ],
+   "effectRationale": "Martensite-hard picks, wedges and axe edges cut rock and timber faster.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "tempering",
+   "name": "Tempering",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "cost": 2490.0,
+   "prereq": "quenching",
+   "dependents": [
+    "plate_armour"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "quenching",
+     "verdict": "keep",
+     "why": "Tempering relieves quench brittleness."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.02",
+    "production.toolYieldBonusMax +0.02"
+   ],
+   "effectRationale": "Tough and hard: tempered tools neither chip nor bend, so they last and work better.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "wootz",
+   "name": "Wootz crucible steel",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "cost": 2490.0,
+   "prereq": "steel_carburized AND kiln_updraft",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "kiln_updraft",
+     "verdict": "keep",
+     "why": "Sealed refractory crucibles fired at high temperature."
+    },
+    {
+     "atom": "steel_carburized",
+     "verdict": "keep",
+     "why": "Carbon absorption principle."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: kiln_updraft A2 (gap 2); fine (not a reason to change). ~300 BCE sits in the A5 window although placed in A4; left (moving changes sweep cohorts and it has no dependents).",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.03"
+   ],
+   "effectRationale": "Compact, high-value crucible-steel ingots were a staple of long-distance trade (South India to Persia and Syria).",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "pattern_welding",
+   "name": "Pattern welding",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "cost": 2490.0,
+   "prereq": "steel_carburized",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "steel_carburized",
+     "verdict": "keep",
+     "why": "Laminates steel with iron."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.02",
+    "production.outputPerExtractorPerYear +0.02"
+   ],
+   "effectRationale": "Forge-welding a steel edge onto a soft iron body (piling, steeling) makes economical edged tools from small, uneven blooms.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf. Effect stated as the economic side of forge-welding (steeled tools), not the sword.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "glass_blown_precursor",
+   "name": "Cast and mosaic glass",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "cost": 2090.0,
+   "prereq": "glass_core",
+   "dependents": [
+    "glass_blowing"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "glass_core",
+     "verdict": "keep",
+     "why": "Successor technique of core-formed glass."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: glass_core A3 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.02"
+   ],
+   "effectRationale": "Cast and mosaic glass vessels are a luxury workshop industry employing specialist glassworkers.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "concrete_pozzolan",
+   "name": "Hydraulic concrete",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "materials",
+   "cost": 8360.0,
+   "prereq": "lime_plaster",
+   "dependents": [
+    "bridge_stone",
+    "portland_cement",
+    "vault_dome"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "lime_plaster",
+     "verdict": "keep",
+     "why": "Burnt lime is the binder."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: lime_plaster A2 (gap 3); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from construction",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "housing.tauYears +0.04",
+    "trade.costPerBulkCostUnit +0.03"
+   ],
+   "effectRationale": "Hydraulic concrete strengthens with age and sets underwater: durable buildings, and artificial harbour moles that cut shipping costs.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.04
+    },
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "glass_blowing",
+   "name": "Glassblowing",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "materials",
+   "cost": 8360.0,
+   "prereq": "glass_blown_precursor AND iron_bloomery",
+   "dependents": [
+    "barometer_vacuum",
+    "canning",
+    "distillation",
+    "glass_lead",
+    "optics_ibn_haytham",
+    "window_glass"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "glass_blown_precursor",
+     "verdict": "keep",
+     "why": "Hot-glass working tradition."
+    },
+    {
+     "atom": "iron_bloomery",
+     "verdict": "keep",
+     "why": "The blowpipe is an iron tube."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: glass_blown_precursor A4 (gap 1), iron_bloomery A4 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "price.stockReleaseRatePerYear +0.03"
+   ],
+   "effectRationale": "Cheap blown bottles and flasks became standard containers for oil, wine and medicine: stocks move to market faster.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "window_glass",
+   "name": "Window glass",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "materials",
+   "cost": 2960.0,
+   "prereq": "glass_blowing",
+   "dependents": [
+    "spectacles"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "glass_blowing",
+     "verdict": "keep",
+     "why": "Roman panes were cast in the blown-glass workshops; blowing made glass cheap enough to glaze windows."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02"
+   ],
+   "effectRationale": "Glazed windows let homes, baths and sickrooms keep heat while admitting light: less cold-season illness.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. The description says 'cast' panes; glass_blown_precursor (casting) would be the narrower atom, but cheapness came from the blowing industry, so the edge stands.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cast_iron",
+   "name": "Cast iron",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "materials",
+   "cost": 16730.0,
+   "prereq": "iron_bloomery AND bellows AND casting_open",
+   "dependents": [
+    "iron_mouldboard",
+    "seed_drill",
+    "steam_atmospheric"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "bellows",
+     "verdict": "keep",
+     "why": "Strong piston bellows raise the furnace above 1,150 C."
+    },
+    {
+     "atom": "casting_open",
+     "verdict": "keep",
+     "why": "Pouring into moulds."
+    },
+    {
+     "atom": "iron_bloomery",
+     "verdict": "keep",
+     "why": "Iron ore smelting."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: bellows A4 (gap 1), casting_open A2 (gap 3), iron_bloomery A4 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from energy",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "farming.outputPerFarmerPerYear +0.04",
+    "liveUnlock building.blast_furnace"
+   ],
+   "effectRationale": "Mass-cast ploughshares, hoes and cookware from state ironworks reach every farmer; blast furnace unlocked.",
+   "costConcern": "16,730 is the most expensive A5 node; justified as a landmark with a live building.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Metal Casting"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Metal Casting"
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "building.blast_furnace"
+   ]
+  },
+  {
+   "id": "lacquer",
+   "name": "Lacquerware",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "cost": 310.0,
+   "prereq": "adhesive_natural",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "adhesive_natural",
+     "verdict": "keep",
+     "why": "Lacquer is a cured tree-sap binder, the same material family."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: adhesive_natural A1 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "housing.tauYears +0.02"
+   ],
+   "effectRationale": "Layered sap coatings waterproof and protect wood: lacquered timber lasts longer.",
+   "costConcern": "310 is the cheapest A2 node; acceptable for a narrow regional craft.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate regional leaf (East Asian craft).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "spectacles",
+   "name": "Spectacles",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "materials",
+   "cost": 4970.0,
+   "prereq": "optics_ibn_haytham AND window_glass",
+   "dependents": [
+    "microscope",
+    "telescope"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "optics_ibn_haytham",
+     "verdict": "keep",
+     "why": "Theory of refraction and lenses."
+    },
+    {
+     "atom": "window_glass",
+     "verdict": "keep",
+     "why": "Clear glass for grinding lenses."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: window_glass A5 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.04"
+   ],
+   "effectRationale": "Reading glasses add decades to the working life of every literate scholar and craftsman.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "blast_furnace_water",
+   "name": "Water-powered blast furnace",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "materials",
+   "cost": 7030.0,
+   "prereq": "iron_bloomery AND crank_connecting_rod AND bellows",
+   "dependents": [
+    "cannon_cast_iron",
+    "coke"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "bellows",
+     "verdict": "keep",
+     "why": "The bellows themselves."
+    },
+    {
+     "atom": "crank_connecting_rod",
+     "verdict": "replace",
+     "why": "Lapphyttan (~1,150 CE) and medieval furnaces drove their bellows with cams on a waterwheel shaft; the crank became general only ~1,400 CE. trip_hammer is the tree's cam-driven water-power node."
+    },
+    {
+     "atom": "iron_bloomery",
+     "verdict": "keep",
+     "why": "Iron smelting."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: bellows A4 (gap 2), iron_bloomery A4 (gap 2); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from energy, industry",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "production.toolYieldBonusMax +0.03",
+    "liveUnlock building.blast_furnace"
+   ],
+   "effectRationale": "Water-driven bellows make cast iron in quantity in Europe: iron plentiful enough for fully ironed tools.",
+   "costConcern": "none",
+   "action": "replace-prereq",
+   "newPrereq": "iron_bloomery AND trip_hammer AND bellows",
+   "newAge": null,
+   "rationale": "Replace crank_connecting_rod with trip_hammer (A5, ~40 BCE; prereq water_mill): water power with cams is the mechanism the node is named for, and the crank (general ~1,400) postdates the node's earliest date (~1,150).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Metal Casting"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Metal Casting"
+   },
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.blast_furnace"
+   ]
+  },
+  {
+   "id": "wire_drawing",
+   "name": "Wire drawing",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "materials",
+   "cost": 8360.0,
+   "prereq": "iron_bloomery AND crank_connecting_rod",
+   "dependents": [
+    "cotton_gin_saw",
+    "telegraph"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "crank_connecting_rod",
+     "verdict": "keep",
+     "why": "Water-powered drawing (~1,350) used a crank to work the tongs."
+    },
+    {
+     "atom": "iron_bloomery",
+     "verdict": "keep",
+     "why": "Iron feedstock and dies."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: iron_bloomery A4 (gap 2); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from industry",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.02"
+   ],
+   "effectRationale": "Drawn wire supports dedicated pin, needle, card and mail trades: a larger urban artisan class.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "coke",
+   "name": "Coke smelting",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "materials",
+   "cost": 14070.0,
+   "prereq": "blast_furnace_water",
+   "dependents": [
+    "hot_blast",
+    "puddling",
+    "structural_iron",
+    "synthetic_dye"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "blast_furnace_water",
+     "verdict": "keep",
+     "why": "Coke replaces charcoal in an existing blast furnace."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: blast_furnace_water A6 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.04",
+    "production.outputPerExtractorPerYear +0.03"
+   ],
+   "effectRationale": "Iron freed from charcoal and forests: cheap cast iron replaces worn tools, and coal-fed furnaces raise output per worker.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Industrialization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine"
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.04
+    },
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "brass_calamine",
+   "name": "Brass by cementation",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "materials",
+   "cost": 3520.0,
+   "prereq": "copper_smelting",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "copper_smelting",
+     "verdict": "keep",
+     "why": "Cementation alloys copper with zinc vapour from calamine."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: copper_smelting A2 (gap 3); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.02",
+    "research.researchPointsCoefficient +0.02"
+   ],
+   "effectRationale": "Roman orichalcum token coinage eases small exchange; brass is later the instrument metal.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Becomes the zinc-metallurgy predecessor of the new galvanized_iron node.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    },
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "glass_lead",
+   "name": "Lead crystal",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "materials",
+   "cost": 7030.0,
+   "prereq": "glass_blowing",
+   "dependents": [
+    "fibre_optics",
+    "photography"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "glass_blowing",
+     "verdict": "keep",
+     "why": "Ravenscroft's glass was blown."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: glass_blowing A5 (gap 2); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.03"
+   ],
+   "effectRationale": "Clear, refractive lead glass for lenses and instrument optics.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "puddling",
+   "name": "Puddling and rolling",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "cost": 14070.0,
+   "prereq": "coke AND steam_rotary",
+   "dependents": [
+    "bessemer",
+    "iron_hull",
+    "railway",
+    "rifled_artillery",
+    "steam_high_pressure"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "coke",
+     "verdict": "keep",
+     "why": "Pig iron feedstock from coke furnaces."
+    },
+    {
+     "atom": "steam_rotary",
+     "verdict": "keep",
+     "why": "Puddled bar was rolled in steam-driven mills; 'at scale' is the node's capability."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: coke A7 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from energy",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.toolYieldBonusMax +0.04"
+   ],
+   "effectRationale": "Wrought iron fifteen times cheaper: iron machinery, implements and fittings everywhere.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Cort's first mills were water-powered, but the scale the node claims came with steam rolling (1790s).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Industrialization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Industrialization"
+   },
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "hot_blast",
+   "name": "Hot blast",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "cost": 9950.0,
+   "prereq": "coke",
+   "dependents": [
+    "open_hearth"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "coke",
+     "verdict": "keep",
+     "why": "Hot blast improves the coke furnace."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: coke A7 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.04"
+   ],
+   "effectRationale": "Preheated blast cuts fuel per ton by two-thirds and makes poor coals and blackband ores workable.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "bessemer",
+   "name": "Bessemer converter",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "cost": 47310.0,
+   "prereq": "puddling",
+   "dependents": [
+    "basic_process",
+    "open_hearth",
+    "reinforced_concrete",
+    "skyscraper"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "puddling",
+     "verdict": "keep",
+     "why": "Bulk iron industry and pig refining."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.05",
+    "liveUnlock building.steelworks"
+   ],
+   "effectRationale": "Landmark: steel in tons; steel rails and hulls cut bulk haulage costs; steelworks unlocked.",
+   "costConcern": "47,310 vs basic_process 11,830 and open_hearth 23,650; landmark, acceptable.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Steel"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Industrialization"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [
+    "building.steelworks"
+   ]
+  },
+  {
+   "id": "open_hearth",
+   "name": "Open-hearth steel",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "cost": 23650.0,
+   "prereq": "bessemer AND hot_blast",
+   "dependents": [
+    "diesel",
+    "haber_bosch",
+    "steam_turbine",
+    "superalloy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "bessemer",
+     "verdict": "keep",
+     "why": "Liquid-steel practice; Martin worked in the Bessemer context."
+    },
+    {
+     "atom": "hot_blast",
+     "verdict": "keep",
+     "why": "Regenerative preheating extends the hot-blast principle."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.04",
+    "liveUnlock building.steelworks"
+   ],
+   "effectRationale": "Controllable quality steel and scrap recycling: durable tools and machinery.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "building.steelworks"
+   ]
+  },
+  {
+   "id": "basic_process",
+   "name": "Basic (Gilchrist-Thomas) process",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "cost": 11830.0,
+   "prereq": "bessemer",
+   "dependents": [
+    "tank"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "bessemer",
+     "verdict": "keep",
+     "why": "Thomas-Gilchrist lining is a converter modification."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.03"
+   ],
+   "effectRationale": "The phosphate-rich slag (Thomas meal) was sold as fertilizer: land yields more.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steel"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "portland_cement",
+   "name": "Portland cement",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "cost": 33450.0,
+   "prereq": "concrete_pozzolan AND kiln_updraft AND chemistry_quantitative",
+   "dependents": [
+    "reinforced_concrete"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Vicat and Aspdin's controlled clay-lime proportions."
+    },
+    {
+     "atom": "concrete_pozzolan",
+     "verdict": "keep",
+     "why": "Hydraulic binder tradition."
+    },
+    {
+     "atom": "kiln_updraft",
+     "verdict": "keep",
+     "why": "Calcining in kilns (redundant through the sweep but harmless)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: concrete_pozzolan A5 (gap 3), kiln_updraft A2 (gap 6); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from science",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "housing.buildTimberPerDwelling +0.05",
+    "liveUnlock building.cement_works"
+   ],
+   "effectRationale": "Concrete anywhere replaces timber in building; cement works unlocked.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.buildTimberPerDwelling",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [
+    "building.cement_works"
+   ]
+  },
+  {
+   "id": "aluminium",
+   "name": "Aluminium by electrolysis",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "cost": 47310.0,
+   "prereq": "electricity_generation AND soda_leblanc",
+   "dependents": [
+    "aircraft_metal",
+    "graphite_reactor",
+    "rocket"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electricity_generation",
+     "verdict": "keep",
+     "why": "Hall-Heroult electrolysis needs cheap dynamo current."
+    },
+    {
+     "atom": "soda_leblanc",
+     "verdict": "keep",
+     "why": "Alkali chemistry (Bayer alumina)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: electricity_generation A8 (gap 1), soda_leblanc A8 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from energy, science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "roads.baselineKmPerDay +0.03"
+   ],
+   "effectRationale": "Light alloys for vehicles and aircraft: faster overland movement of people and goods.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Radio"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "superalloy",
+   "name": "Superalloys",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "cost": 66910.0,
+   "prereq": "open_hearth AND metallography",
+   "dependents": [
+    "gas_turbine_power",
+    "jet_airliner"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "metallography",
+     "verdict": "keep",
+     "why": "Alloy design rests on microstructure."
+    },
+    {
+     "atom": "open_hearth",
+     "verdict": "keep",
+     "why": "Alloy steelmaking base."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: metallography A8 (gap 1), open_hearth A8 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.03"
+   ],
+   "effectRationale": "Turbine blades that keep strength at red heat: efficient gas turbines and jet freight cut haulage cost.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "composites",
+   "name": "Composite materials",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "cost": 66910.0,
+   "prereq": "plastics",
+   "dependents": [
+    "reusable_launch",
+    "stealth",
+    "wind_turbine_modern"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "plastics",
+     "verdict": "keep",
+     "why": "Polymer matrix."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only); cross-lane atoms from science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "housing.upkeepTimberPerDwellingYear +0.04"
+   ],
+   "effectRationale": "Rot-proof fibre-reinforced panels and frames replace timber that needs renewing.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Composites"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.upkeepTimberPerDwellingYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "nanotechnology",
+   "name": "Nanoscale engineering",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "cost": 66910.0,
+   "prereq": "cmos_vlsi AND quantum_mechanics",
+   "dependents": [
+    "frontier_materials"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cmos_vlsi",
+     "verdict": "keep",
+     "why": "Lithography."
+    },
+    {
+     "atom": "quantum_mechanics",
+     "verdict": "keep",
+     "why": "Nanoscale physics."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only); cross-lane atoms from engineering, science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.03"
+   ],
+   "effectRationale": "Scanning-probe instruments and nanofabrication extend experimental science.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Nanotechnology"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "asteroid_mining",
+   "name": "Asteroid mining",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "cost": 39780.0,
+   "prereq": "reusable_launch AND space_probe",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "reusable_launch",
+     "verdict": "keep",
+     "why": "Cheap access to orbit."
+    },
+    {
+     "atom": "space_probe",
+     "verdict": "keep",
+     "why": "Rendezvous and survey."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only); cross-lane atoms from science, transport",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.08"
+   ],
+   "effectRationale": "Landmark: off-world metals and water add extraction beyond terrestrial deposits.",
+   "costConcern": "39,780 is cheaper than composites and nanotechnology (66,910) though more speculative; flag for the per-Age scale.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.08
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "frontier_materials",
+   "name": "Materials science",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "cost": 8360.0,
+   "prereq": "nanotechnology",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "nanotechnology",
+     "verdict": "keep",
+     "why": "Materials by design."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "same Age for all atoms",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "housing.buildTimberPerDwelling +0.03",
+    "pathBuild.buildCostMultiplier +0.03"
+   ],
+   "effectRationale": "Repeatable: each level lowers material inputs per unit of construction (dwellings and paths).",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as the materials repeatable; level effects as gapFraction on the same two operands (proposal: costGrowth 1.20, gapFraction 0.10 each).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "effects": [
+    {
+     "operand": "housing.buildTimberPerDwelling",
+     "delta": 0.03
+    },
+    {
+     "operand": "pathBuild.buildCostMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "repeatableProposal": {
+    "levels": true,
+    "costGrowth": 1.2,
+    "effects": [
+     {
+      "operand": "housing.buildTimberPerDwelling",
+      "gapFraction": 0.1
+     },
+     {
+      "operand": "pathBuild.buildCostMultiplier",
+      "gapFraction": 0.1
+     }
+    ]
+   }
+  },
+  {
+   "id": "cupellation",
+   "name": "Silver refining by cupellation",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "cost": 2090.0,
+   "prereq": "copper_smelting AND gold_silver_native",
+   "dependents": [
+    "hacksilver"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "copper_smelting",
+     "verdict": "keep",
+     "why": "Argentiferous lead must first be smelted to bullion."
+    },
+    {
+     "atom": "gold_silver_native",
+     "verdict": "keep",
+     "why": "Knowing silver as a valued material."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: copper_smelting A2 (gap 1), gold_silver_native A2 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.04"
+   ],
+   "effectRationale": "Refined, fire-assayed silver becomes a trusted medium of exchange and standard of value: trade closes price gaps faster.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "ore_prospecting",
+   "name": "Ore prospecting",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "cost": 1240.0,
+   "prereq": "copper_smelting",
+   "dependents": [
+    "mineralogy",
+    "tin_bronze"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "copper_smelting",
+     "verdict": "keep",
+     "why": "Trial smelting is how a find is judged."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: copper_smelting A2 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "liveUnlock order.assay"
+   ],
+   "effectRationale": "Live unlock: the Assay/Prospect order, which realizes the capability directly.",
+   "costConcern": "1,240 is cheap for the gate of tin_bronze (7,030); acceptable since it is a practice, not a process.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Bronze Working"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "order.assay"
+   ]
+  },
+  {
+   "id": "percussion_drilling",
+   "name": "Deep percussion drilling",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "materials",
+   "cost": 4970.0,
+   "prereq": "iron_bloomery AND well",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "iron_bloomery",
+     "verdict": "keep",
+     "why": "Heavy iron bits."
+    },
+    {
+     "atom": "well",
+     "verdict": "keep",
+     "why": "Lifting liquid from depth."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: iron_bloomery A4 (gap 2), well A2 (gap 4); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from infrastructure",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.04"
+   ],
+   "effectRationale": "Cased boreholes reach brine and gas no shaft can: more extracted per worker.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Missing bridge reported in findings: Drake's 1859 well was cable-tool percussion drilling, so petroleum_refining (science group) should take it as a prerequisite.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "metallography",
+   "name": "Metallography",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "cost": 14060.0,
+   "prereq": "microscope AND chemistry_quantitative",
+   "dependents": [
+    "superalloy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Composition analysis."
+    },
+    {
+     "atom": "microscope",
+     "verdict": "keep",
+     "why": "Reflected-light microscopy."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: microscope A7 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.03"
+   ],
+   "effectRationale": "Reading metal microstructure turns metallurgy into a laboratory science.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "uranium_milling",
+   "name": "Radioactive ore processing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "cost": 39780.0,
+   "prereq": "radioactivity AND sulphuric_acid",
+   "dependents": [
+    "uranium_enrichment"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "radioactivity",
+     "verdict": "keep",
+     "why": "Knowing what to recover."
+    },
+    {
+     "atom": "sulphuric_acid",
+     "verdict": "keep",
+     "why": "Acid leaching of ore."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "earlier-Age atoms: sulphuric_acid A8 (gap 1); fine (not a reason to change)",
+   "crossTree": "none (technology atoms only); cross-lane atoms from science",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.03"
+   ],
+   "effectRationale": "Radium recovered from uranium ores supplied the first radiotherapy: university medicine saves more lives.",
+   "costConcern": "none",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are the knowledge actually needed; keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "tinplate",
+   "name": "Tinplate",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "materials",
+   "emerged": "~1,350 CE Bohemia and the Upper Palatinate (hammered iron sheet dipped in tin; date approximate); 1720 CE Pontypool, Wales (rolled tinplate)",
+   "prereq": "iron_bloomery AND sheet_metal AND trip_hammer",
+   "prereqRationale": "iron_bloomery: the base metal is iron sheet. sheet_metal: hammering metal to thin sheet, and (through tin_bronze) knowledge of tin as a metal. trip_hammer: water-driven tilt hammers beat the iron to sheet in the Bohemian and Saxon works. All dated well before the node.",
+   "desc": "Thin iron sheet coated with molten tin so it will not rust: light, cheap, sealable boxes, canisters and kitchenware, and later the tin can.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 1.75,
+    "material": 1.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "sheet_metal is hammered bronze for vessels and armour; tinplate is rust-proofed iron sheet for sealed containers (the missing bridge to canning)."
+  },
+  {
+   "id": "crucible_cast_steel",
+   "name": "Crucible cast steel",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "materials",
+   "emerged": "~1,740 CE Sheffield (Huntsman melts blister steel in coke-fired clay crucibles)",
+   "prereq": "coke AND steel_carburized",
+   "prereqRationale": "coke: a coke-fired draught furnace is what reaches the ~1,600 C needed to melt steel (coke 1709 CE precedes). steel_carburized: the charge is cementation (blister) steel, the tree's carburized-steel node.",
+   "desc": "Blister steel melted in sealed clay crucibles and cast into ingots: uniform, slag-free tool steel for files, springs, razors and edge tools.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 1.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "wootz is small-batch South Indian crucible steel for blades without coke; this is coke-fired, homogeneous cast tool steel made in quantity for machine and edge tools."
+  },
+  {
+   "id": "galvanized_iron",
+   "name": "Galvanized corrugated iron",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "emerged": "1829 CE London (Palmer's corrugated iron sheet); 1837 CE Paris (Sorel's hot-dip galvanizing patent)",
+   "prereq": "puddling AND brass_calamine",
+   "prereqRationale": "puddling: cheap wrought iron rolled to sheet (1784 CE precedes). brass_calamine: the tree's only zinc-metallurgy node (zinc ore and zinc vapour); metallic zinc distillation (Champion 1738 CE) has no node, so this is the nearest correct atom.",
+   "desc": "Iron sheet dipped in molten zinc and rolled into corrugations: a light, stiff, rust-resistant roof and wall cladding shipped flat and nailed up anywhere.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "housing.upkeepTimberPerDwellingYear",
+     "delta": 0.04
+    },
+    {
+     "operand": "housing.buildTimberPerDwelling",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "portland_cement replaces timber in walls and foundations; galvanized iron replaces shingle and thatch roofing that must be renewed, chiefly cutting upkeep."
+  }
+ ],
+ "newLanes": [],
+ "findings": [
+  "Dependency changes proposed: 4 (knapping_levallois +knapping_oldowan; pressure_flaking +heat_treatment_stone; copper_smelting +charcoal; blast_furnace_water crank_connecting_rod -> trip_hammer). All others kept.",
+  "Every materials node now ends with a registry effect or a live unlock; 14 nodes have live unlocks (kiln_updraft and ore_prospecting rely on the unlock alone).",
+  "Tool operands carry most of the lane's early value: production.toolYieldBonusMax sums to 0.32 and toolWearPerEquippedFarmerPerYear to 0.29 across the lane (new nodes included), well under the caps (1.0 / 0.8); research.researchPointsCoefficient reaches 0.15 of its 0.3 cap from this lane alone (spectacles, glass_lead, metallography, nanotechnology, brass_calamine), so the integrator should watch the cross-lane total.",
+  "Date-text inversions on must-held edges come from other lanes' emerged strings, not from wrong edges: fire_making (~164 kya, anchored on heat treatment) under birch_tar (~200 kya); cordage (~50 kya direct floor) under hafting (~200 kya); grinding_stone (~30 kya plant milling) under ochre_processing (~100 kya). Fix the texts in the energy, industry and agriculture groups.",
+  "Several A3 and A4 materials nodes have emerged dates outside their Age window (arsenical_bronze, lost_wax, glass_glaze, mining_shaft ~4,000 BCE in A3; wootz and pattern_welding ~300 BCE in A4). They are placed by maturity, and moving them would change sweep cohorts, so no move is proposed.",
+  "Cross-group bridges to raise with other lanes: canning (food) should require the new tinplate; petroleum_refining (science) should require percussion_drilling; telescope or celestial_navigation could take brass_calamine (instrument brass).",
+  "Gap left open: metallic zinc distillation (Zawar ~1,200 CE; Champion 1738 CE) has no node; galvanized_iron uses brass_calamine as the nearest zinc atom.",
+  "The A7 materials lane had only 2 nodes (coke, glass_lead); crucible_cast_steel fills the steel step between coke (1709) and puddling (1784).",
+  "Pacing: asteroid_mining (39,780) costs less than composites and nanotechnology (66,910); pottery_open_fired (2,490) is high for A2 next to potters_wheel_fast (440). Leave these to the per-(tree, Age) scale.",
+  "Military capabilities in this lane (sheet armour, pattern-welded blades, unit.spearmen via hafting) are not live; their nodes carry modest economic effects until M7."
+ ]
+}

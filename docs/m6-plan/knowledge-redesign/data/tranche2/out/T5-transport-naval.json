@@ -1,0 +1,3442 @@
+{
+ "group": "T5-transport-naval",
+ "audit": [
+  {
+   "id": "raft",
+   "name": "Sea-crossing raft",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "transport",
+   "cost": 180.0,
+   "prereq": "cordage",
+   "dependents": [
+    "sail_square"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cordage",
+     "verdict": "keep",
+     "why": "Logs or reed bundles stay together only when lashed; cordage (~50 kya) is the one material precondition of a raft that survives open water."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A1 node; prerequisites from A1.",
+   "crossTree": "none (cross-lane: industry)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.05,
+     "why": "Craft that cross water beyond sight of land put islands and far shores inside the known range (Sahul, ~50 kya)."
+    }
+   ],
+   "costConcern": "180 is the cheapest node in the group; fine for an A1 capability with one prerequisite.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct causal prerequisite; the first open-water crossing is an exploration-range capability, not a cargo one.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Sailing"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Sailing"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "dugout",
+   "name": "Load-carrying dugout",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "transport",
+   "cost": 520.0,
+   "prereq": "fire_making AND ground_stone_early",
+   "dependents": [
+    "plank_boat",
+    "polynesian_canoe",
+    "sail_square"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "fire_making",
+     "verdict": "keep",
+     "why": "Dugouts were hollowed by alternate charring and scraping; controlled fire is the working method (Pesse)."
+    },
+    {
+     "atom": "ground_stone_early",
+     "verdict": "keep",
+     "why": "Ground-edge axes and adzes fell and shape the log; both are needed, so AND is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A1 node; prerequisites from A1.",
+   "crossTree": "none (cross-lane: energy, materials)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.05,
+     "why": "A load-carrying hull makes river haulage cheaper than carrying along the bank."
+    }
+   ],
+   "costConcern": "520 fine for A1.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Both atoms are genuine working requirements; river freight is the dugout's causal effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Sailing"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Sailing"
+   },
+   "effects": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "sledge",
+   "name": "Sledge",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "transport",
+   "cost": 520.0,
+   "prereq": "ground_stone_early",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "ground_stone_early",
+     "verdict": "keep",
+     "why": "Runners and crossbars are shaped with ground-stone axes and adzes (Heinola runner)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A1.",
+   "crossTree": "none (cross-lane: materials)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02,
+     "why": "Sledges drag felled logs, quarried stone and winter catches over snow and ice; extractors move more per worker."
+    }
+   ],
+   "costConcern": "520 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "A self-contained hauling capability; the wheel supersedes it for most loads, so a leaf is deliberate.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "wheel_solid",
+   "name": "Solid wheel and axle",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "transport",
+   "cost": 3520.0,
+   "prereq": "animal_traction AND ground_stone_early",
+   "dependents": [
+    "cart",
+    "cotton_gin_roller",
+    "heavy_plough",
+    "noria",
+    "rotary_quern",
+    "siege_ram",
+    "spinning_wheel",
+    "wheel_spoked"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "animal_traction",
+     "verdict": "keep",
+     "why": "The earliest wheeled vehicles (Bronocice, Uruk pictographs) are ox-drawn; the wheel has no use without a draught animal."
+    },
+    {
+     "atom": "ground_stone_early",
+     "verdict": "keep",
+     "why": "Plank wheels and axles were cut with stone woodworking tools (Ljubljana Marshes wheel)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A1, A2.",
+   "crossTree": "none (cross-lane: agriculture, materials)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03,
+     "why": "A wheeled vehicle carries several times a pack load per animal, so bulk haulage per unit costs less."
+    }
+   ],
+   "costConcern": "3,520 is A3-scale for an A2 node (A2 peers 310-880); it reflects an 8-dependent hub dated at the A2/A3 boundary. Flag for the per-(tree, Age) calibration; no change proposed.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are causal; the wheel is the transport hub of the Bronze Age tree.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "The Wheel"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Wheel"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cart",
+   "name": "Ox cart",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "transport",
+   "cost": 310.0,
+   "prereq": "wheel_solid",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "wheel_solid",
+     "verdict": "keep",
+     "why": "The ox cart is the wheel and axle under a load bed; the draught animal comes through wheel_solid."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A2.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.04,
+     "why": "Carts bring harvests and fuel in from fields farther out, so a settlement draws on a wider hinterland."
+    }
+   ],
+   "costConcern": "310 is cheaper than its own prerequisite by an order of magnitude; acceptable for a direct application of the wheel.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept as the vehicle node; its effect (hinterland reach) is distinct from the wheel's (bulk haulage cost).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "The Wheel"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Wheel"
+   },
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "track_road",
+   "name": "Trackway",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "transport",
+   "cost": 620.0,
+   "prereq": "timber_frame",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "timber_frame",
+     "verdict": "keep",
+     "why": "The Sweet Track is split planks pinned with pegs across a marsh: carpentry of the timber-frame tradition."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A2.",
+   "crossTree": "none (cross-lane: construction)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [],
+   "costConcern": "620 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Live unlock of the path tier (road_track) and, with stone_dry / horse_domestication, of built roads and courier relays. Proposed as a prerequisite of road_paved (see that record), which makes it a bridge rather than a leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "infra.road_track",
+    "infra.road_built",
+    "infra.courier_relay"
+   ]
+  },
+  {
+   "id": "sail_square",
+   "name": "Square sail",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "transport",
+   "cost": 3520.0,
+   "prereq": "(dugout OR raft) AND loom_warp_weighted",
+   "dependents": [
+    "daughter_colonies",
+    "lateen",
+    "monsoon_sailing",
+    "trade",
+    "windmill_post"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "dugout",
+     "verdict": "keep",
+     "why": "A hull to carry the mast; OR with raft is right because H3 seagoing craft were reed-bundle boats, not dugouts."
+    },
+    {
+     "atom": "raft",
+     "verdict": "keep",
+     "why": "Reed-bundle and raft hulls carried the earliest sails (As-Sabiyah); the OR keeps both lineages."
+    },
+    {
+     "atom": "loom_warp_weighted",
+     "verdict": "keep",
+     "why": "A sail is woven cloth of sail size; the loom is the material precondition, so AND with the hull group is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites from A1, A2. Earliest evidence (~5,500 BCE) sits in the A2 window; A3 placement follows the Nile depictions and the spread of sail; not moved (would enlarge the A2 sweep cohort for little gain).",
+   "crossTree": "none (cross-lane: industry)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.04,
+     "why": "On the Nile the north wind carries boats upstream under sail while the current brings them down: river haulage gets cheaper in both directions."
+    }
+   ],
+   "costConcern": "3,520 fine for the A3 sailing landmark.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Live unlock of coastal shipping plus the upstream-sailing effect on river haulage.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Sailing"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Sailing"
+   },
+   "effects": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "activity.coastal_shipping"
+   ]
+  },
+  {
+   "id": "plank_boat",
+   "name": "Plank-built boat",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "transport",
+   "cost": 2960.0,
+   "prereq": "dugout AND copper_smelting",
+   "dependents": [
+    "cog",
+    "mortise_hull",
+    "naval_ram",
+    "stern_rudder"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "dugout",
+     "verdict": "keep",
+     "why": "Plank boats grew from extended dugouts (strakes added to a dugout base)."
+    },
+    {
+     "atom": "copper_smelting",
+     "verdict": "keep",
+     "why": "Planks are split, adzed and fitted with copper tools (Khufu ship, Abydos boats)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites from A1, A2.",
+   "crossTree": "none (cross-lane: materials)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [],
+   "costConcern": "2,960 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Live unlock of the harbour (with stone_dry); no operand needed beyond it.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Shipbuilding"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Sailing"
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.harbour"
+   ]
+  },
+  {
+   "id": "wheel_spoked",
+   "name": "Spoked wheel",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "transport",
+   "cost": 2090.0,
+   "prereq": "wheel_solid AND casting_closed",
+   "dependents": [
+    "chariot"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "wheel_solid",
+     "verdict": "keep",
+     "why": "The spoked wheel refines the wheel and axle."
+    },
+    {
+     "atom": "casting_closed",
+     "verdict": "keep",
+     "why": "Proxy for the bronze chisels and gouges needed to cut mortised hubs and bent felloes; weak but no better tools atom exists."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites from A2, A3.",
+   "crossTree": "none (cross-lane: materials)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.04,
+     "why": "Light spoked wheels make vehicles faster over the same ground."
+    }
+   ],
+   "costConcern": "2,090 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Speed is the causal difference from the solid wheel.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "The Wheel"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Wheel"
+   },
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "road_paved",
+   "name": "Engineered paved road",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "transport",
+   "cost": 5910.0,
+   "prereq": "surveying",
+   "dependents": [
+    "macadam"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "surveying",
+     "verdict": "keep",
+     "why": "Engineered roads are laid out on surveyed alignments and grades (Via Appia)."
+    }
+   ],
+   "andOr": "change(surveying AND track_road)",
+   "ageGap": "A5 node; prerequisites from A3.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04,
+     "why": "All-weather roads were built to move officials, couriers and troops: administrative reach extends further from the capital."
+    }
+   ],
+   "costConcern": "5,910 fine.",
+   "action": "add-prereq",
+   "newPrereq": "surveying AND track_road",
+   "newAge": null,
+   "rationale": "Add track_road: the road-building craft (causeway, drainage, graded track) is the lineage of the engineered road, and the infrastructure ladder is road_track -> road_built -> road_paved. Without the edge a polity can build paved roads without ever knowing trackways; both atoms are A2/A3, so no sweep or chronology risk.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Military Engineering"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "infra.road_paved"
+   ]
+  },
+  {
+   "id": "collar_harness",
+   "name": "Breast-strap harness",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "transport",
+   "cost": 2490.0,
+   "prereq": "horse_domestication AND sewing",
+   "dependents": [
+    "horse_collar"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "horse_domestication",
+     "verdict": "keep",
+     "why": "The harness is for horse traction."
+    },
+    {
+     "atom": "sewing",
+     "verdict": "keep",
+     "why": "The breast strap is stitched leather; sewing is the material precondition."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A1, A3.",
+   "crossTree": "none (cross-lane: agriculture, industry)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02,
+     "why": "A breast strap lets a horse pull without choking, so each animal moves heavier loads."
+    }
+   ],
+   "costConcern": "2,490 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites causal; the effect is load per animal, hence bulk haulage cost.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cartography",
+   "name": "Mathematical cartography",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "naval",
+   "cost": 1760.0,
+   "prereq": "astronomy_geometric",
+   "dependents": [
+    "general_staff",
+    "mercator",
+    "portolan"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "astronomy_geometric",
+     "verdict": "keep",
+     "why": "Ptolemy's maps place places by latitude and longitude derived from geometric astronomy."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A5.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.04,
+     "why": "Coordinate maps let expeditions plan routes to places beyond the explored disc."
+    }
+   ],
+   "costConcern": "1,760 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; the effect is the range of planned exploration.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Cartography"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Cartography"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "latitude_sailing",
+   "name": "Latitude by celestial observation",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "naval",
+   "cost": 1240.0,
+   "prereq": "astronomy_records OR calendar_lunar",
+   "dependents": [
+    "polynesian_canoe"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "astronomy_records",
+     "verdict": "keep",
+     "why": "Star rising and zenith observations (Babylonian records, Polynesian star compass) give latitude."
+    },
+    {
+     "atom": "calendar_lunar",
+     "verdict": "keep",
+     "why": "Alternative oral sky-knowledge tradition; OR is right because Polynesian wayfinding did not depend on written records."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A4 node; prerequisites from A2, A4.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.04,
+     "why": "Holding a latitude out of sight of land lets each expedition push further."
+    }
+   ],
+   "costConcern": "1,240 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "OR between two independent star-knowledge traditions is correct; astronomy_records is dated after the node but is not must-held.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Celestial Navigation"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Navigation"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "monsoon_sailing",
+   "name": "Monsoon navigation",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "naval",
+   "cost": 1760.0,
+   "prereq": "sail_square AND astronomy_records",
+   "dependents": [
+    "ocean_junk"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "sail_square",
+     "verdict": "keep",
+     "why": "Running before the seasonal wind needs sail."
+    },
+    {
+     "atom": "astronomy_records",
+     "verdict": "keep",
+     "why": "The monsoon calendar (when to sail out and back) is kept by sky observation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A3, A4.",
+   "crossTree": "none (cross-lane: science, transport)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.05,
+     "why": "Regular annual crossings between India, Arabia and East Africa link distant markets so prices converge faster."
+    }
+   ],
+   "costConcern": "1,760 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; effect is market integration across the ocean basin.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "lateen",
+   "name": "Lateen sail",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "naval",
+   "cost": 1760.0,
+   "prereq": "sail_square",
+   "dependents": [
+    "caravel",
+    "carrack"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "sail_square",
+     "verdict": "keep",
+     "why": "The lateen is a rig variant; sailing practice comes first."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A3.",
+   "crossTree": "none (cross-lane: transport)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03,
+     "why": "Ships that can sail closer to the wind wait less in port for a fair wind, so cargoes reach market sooner."
+    }
+   ],
+   "costConcern": "1,760 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; effect differs from its A5 lane neighbours (exploration range, market integration).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mortise_hull",
+   "name": "Mortise-and-tenon hull",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "naval",
+   "cost": 1240.0,
+   "prereq": "plank_boat",
+   "dependents": [
+    "steamboat",
+    "stern_rudder"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "plank_boat",
+     "verdict": "keep",
+     "why": "Edge-joined mortise-and-tenon planking is a plank-boat construction method."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites from A3.",
+   "crossTree": "none (cross-lane: transport)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02,
+     "why": "Locked plank seams allow large cargo hulls (Uluburun carried ~10 t of copper), lowering cost per unit carried."
+    }
+   ],
+   "costConcern": "1,240 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; large seagoing cargo hulls.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Shipbuilding"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "horseshoe",
+   "name": "Nailed horseshoe",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "transport",
+   "cost": 3520.0,
+   "prereq": "iron_bloomery AND horse_domestication",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "iron_bloomery",
+     "verdict": "keep",
+     "why": "Nailed shoes are forged iron."
+    },
+    {
+     "atom": "horse_domestication",
+     "verdict": "keep",
+     "why": "Shoes are for horses."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A3, A4.",
+   "crossTree": "none (cross-lane: agriculture, materials)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.03,
+     "why": "Shod horses keep pace on hard and wet ground without going lame."
+    }
+   ],
+   "costConcern": "3,520 fine (ADR-045 re-score).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; a terminal practical improvement; sprung_coach (new) now builds on it.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "compass_magnetic",
+   "name": "Magnetic compass",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "cost": 4180.0,
+   "prereq": "iron_bloomery",
+   "dependents": [
+    "caravel",
+    "carrack",
+    "ocean_junk",
+    "portolan"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "iron_bloomery",
+     "verdict": "keep",
+     "why": "A magnetised iron needle needs iron; lodestone knowledge is implicit."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A4.",
+   "crossTree": "none (cross-lane: materials)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.08,
+     "why": "Holding a course under overcast skies lets each voyage of exploration reach further."
+    }
+   ],
+   "costConcern": "4,180 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; landmark-scale delta because exploreStepNodes is an integer of base 3 and moves only when Σ crosses 0.34.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.08
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "stern_rudder",
+   "name": "Stern-post rudder",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "cost": 2960.0,
+   "prereq": "mortise_hull OR plank_boat",
+   "dependents": [
+    "caravel",
+    "cog",
+    "watertight_bulkhead"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "mortise_hull",
+     "verdict": "keep",
+     "why": "Redundant: mortise_hull itself requires plank_boat, so the OR reduces to plank_boat. Harmless."
+    },
+    {
+     "atom": "plank_boat",
+     "verdict": "keep",
+     "why": "The stern-post rudder hangs on a plank hull; Han river boats had no mortise-and-tenon shell."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A3. Earliest evidence ~100 CE lies in the A5 window; A6 placement follows the European adoption (~1,180); kept.",
+   "crossTree": "none (cross-lane: transport)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.03,
+     "why": "The rudder appears first on Chinese river craft (~100 CE): larger boats can be steered on rivers, cheapening river haulage."
+    }
+   ],
+   "costConcern": "2,960 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "OR is redundant but not wrong; no change.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "watertight_bulkhead",
+   "name": "Watertight bulkheads",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "cost": 1480.0,
+   "prereq": "stern_rudder",
+   "dependents": [
+    "ocean_junk"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "stern_rudder",
+     "verdict": "keep",
+     "why": "Weak causally (bulkheads are a hull technique), but it carries the Chinese junk lineage and keeps ocean_junk requiring a rudder; replacing it would need a compensating edge."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A6.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03,
+     "why": "A holed compartment no longer sinks the ship: fewer cargoes are lost on the way, so stocks reach markets."
+    }
+   ],
+   "costConcern": "1,480 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept as is; the prerequisite is weak but chain-preserving.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "portolan",
+   "name": "Portolan chart",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "cost": 2960.0,
+   "prereq": "compass_magnetic AND cartography",
+   "dependents": [
+    "mercator"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "compass_magnetic",
+     "verdict": "keep",
+     "why": "Portolan rhumb lines are compass bearings."
+    },
+    {
+     "atom": "cartography",
+     "verdict": "keep",
+     "why": "Scaled charting."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A5, A6.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.03,
+     "why": "Accurate coastal charts extend how far exploration can be planned."
+    }
+   ],
+   "costConcern": "2,960 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; differs from compass (step) by acting on range.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Cartography"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Cartography"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cog",
+   "name": "Cog",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "cost": 2960.0,
+   "prereq": "stern_rudder AND plank_boat",
+   "dependents": [
+    "carrack"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "stern_rudder",
+     "verdict": "keep",
+     "why": "The cog is the first northern ship with a stern rudder."
+    },
+    {
+     "atom": "plank_boat",
+     "verdict": "keep",
+     "why": "Redundant through stern_rudder; harmless."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A3, A6.",
+   "crossTree": "none (cross-lane: transport)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03,
+     "why": "The flat-bottomed, high-sided cog carried Baltic grain, timber and herring in bulk at low cost."
+    }
+   ],
+   "costConcern": "2,960 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; bulk carrier of the Hanseatic trade.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "caravel",
+   "name": "Caravel",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "naval",
+   "cost": 16730.0,
+   "prereq": "lateen AND stern_rudder AND compass_magnetic",
+   "dependents": [
+    "state_exploration"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "lateen",
+     "verdict": "keep",
+     "why": "Lateen rig lets the caravel beat home against the trades."
+    },
+    {
+     "atom": "stern_rudder",
+     "verdict": "keep",
+     "why": "Required for a seagoing hull of this size."
+    },
+    {
+     "atom": "compass_magnetic",
+     "verdict": "keep",
+     "why": "Open-ocean navigation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 node; prerequisites from A5, A6.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.12,
+     "why": "Landmark exploration ship: each expedition reaches much further along unknown coasts."
+    }
+   ],
+   "costConcern": "16,730 is 2.8x the carrack (5,910) although the caravel is the smaller ship; it carries the a7_ocean milestone. Flag for calibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites; live ocean_shipping unlock plus landmark exploration step.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Cartography"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Shipbuilding"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.12
+    }
+   ],
+   "liveUnlocks": [
+    "activity.ocean_shipping"
+   ]
+  },
+  {
+   "id": "carrack",
+   "name": "Carrack and full-rigged ship",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "naval",
+   "cost": 5910.0,
+   "prereq": "cog AND lateen AND compass_magnetic",
+   "dependents": [
+    "new_world_crops",
+    "ship_of_line"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cog",
+     "verdict": "keep",
+     "why": "The carrack takes the cog's rig and rudder onto a frame-first hull."
+    },
+    {
+     "atom": "lateen",
+     "verdict": "keep",
+     "why": "Lateen mizzen."
+    },
+    {
+     "atom": "compass_magnetic",
+     "verdict": "keep",
+     "why": "Ocean navigation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 node; prerequisites from A5, A6.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.04,
+     "why": "Large frame-first hulls carry far more cargo per crew member."
+    }
+   ],
+   "costConcern": "5,910 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; live unlocks plus bulk capacity.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Square Rigging"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Shipbuilding"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "activity.ocean_shipping",
+    "building.dry_dock"
+   ]
+  },
+  {
+   "id": "polynesian_canoe",
+   "name": "Polynesian voyaging canoe",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "cost": 2960.0,
+   "prereq": "dugout AND latitude_sailing",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "dugout",
+     "verdict": "keep",
+     "why": "Voyaging hulls are dugout bases with sewn strakes."
+    },
+    {
+     "atom": "latitude_sailing",
+     "verdict": "keep",
+     "why": "Star-path wayfinding."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A1, A4. Lapita voyaging (~1,500 BCE) is older; A6 placement follows the East Polynesian settlement era (~1,000 CE); kept.",
+   "crossTree": "none (cross-lane: transport)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.04,
+     "why": "Double-hulled canoes carried whole founding parties with crops and animals to new islands."
+    }
+   ],
+   "costConcern": "2,960 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; the effect is founding-party size, unique in the lane.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Navigation"
+   },
+   "effects": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "activity.ocean_shipping"
+   ]
+  },
+  {
+   "id": "celestial_navigation",
+   "name": "Celestial navigation with instruments",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "naval",
+   "cost": 4180.0,
+   "prereq": "astrolabe AND trigonometry",
+   "dependents": [
+    "longitude_problem"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "astrolabe",
+     "verdict": "keep",
+     "why": "Mariner's astrolabe and quadrant measure altitude at sea."
+    },
+    {
+     "atom": "trigonometry",
+     "verdict": "keep",
+     "why": "Declination tables and reduction of sights."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 node; prerequisites from A6.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.05,
+     "why": "Fixing latitude at sea with instruments extends the range of open-ocean exploration."
+    }
+   ],
+   "costConcern": "4,180 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Celestial Navigation"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Astronomy"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "longitude_problem",
+   "name": "Longitude by chronometer",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "naval",
+   "cost": 7030.0,
+   "prereq": "celestial_navigation AND escapement_verge",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "celestial_navigation",
+     "verdict": "keep",
+     "why": "Longitude by chronometer completes the celestial fix."
+    },
+    {
+     "atom": "escapement_verge",
+     "verdict": "keep",
+     "why": "Harrison's H4 used a verge escapement."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 node; prerequisites from A6, A7.",
+   "crossTree": "none (cross-lane: industry)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04,
+     "why": "Known longitude shortens passages and cuts wrecks: ocean trade connects markets more reliably."
+    }
+   ],
+   "costConcern": "7,030 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; a terminal navigation achievement.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mercator",
+   "name": "Mercator projection",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "naval",
+   "cost": 4180.0,
+   "prereq": "cartography AND portolan AND trigonometry",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "cartography",
+     "verdict": "keep",
+     "why": "Redundant through portolan; harmless."
+    },
+    {
+     "atom": "portolan",
+     "verdict": "keep",
+     "why": "Rhumb-line charting."
+    },
+    {
+     "atom": "trigonometry",
+     "verdict": "keep",
+     "why": "The projection is a trigonometric construction."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 node; prerequisites from A5, A6.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03,
+     "why": "Straight-course ocean charts made long planned passages routine, including emigrant voyages: people move further."
+    }
+   ],
+   "costConcern": "4,180 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; overlaps portolan and celestial_navigation in capability, so the effect is deliberately placed on a different operand.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Cartography"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Cartography"
+   },
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "locomotive",
+   "name": "Steam locomotive",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "cost": 16730.0,
+   "prereq": "steam_high_pressure",
+   "dependents": [
+    "railway"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "steam_high_pressure",
+     "verdict": "keep",
+     "why": "Trevithick's high-pressure engine made a self-propelled engine light enough."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A8.",
+   "crossTree": "none (cross-lane: energy)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04,
+     "why": "The first locomotives (Penydarren 1804, colliery lines) hauled coal and ore from pits."
+    }
+   ],
+   "costConcern": "16,730 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steam Power"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "railway",
+   "name": "Railway network",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "cost": 23650.0,
+   "prereq": "locomotive AND puddling AND surveying",
+   "dependents": [
+    "electric_traction",
+    "mass_press",
+    "professional_sport",
+    "public_postal_service"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "locomotive",
+     "verdict": "keep",
+     "why": "Motive power."
+    },
+    {
+     "atom": "puddling",
+     "verdict": "keep",
+     "why": "Wrought-iron rails."
+    },
+    {
+     "atom": "surveying",
+     "verdict": "keep",
+     "why": "Graded alignments."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A3, A8.",
+   "crossTree": "none (cross-lane: materials, science)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.06,
+     "why": "Landmark: rail freight cut overland bulk haulage cost several-fold."
+    },
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.04,
+     "why": "Stations bring distant farms within a city's supply range."
+    }
+   ],
+   "costConcern": "23,650 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; live unlock plus landmark freight effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steam Power"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Industrialization"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.06
+    },
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "infra.railway"
+   ]
+  },
+  {
+   "id": "steamboat",
+   "name": "Steamboat",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "cost": 23650.0,
+   "prereq": "steam_rotary AND mortise_hull",
+   "dependents": [
+    "iron_hull",
+    "screw_propeller",
+    "submarine_cable"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "steam_rotary",
+     "verdict": "keep",
+     "why": "Rotary motion drives paddle wheels."
+    },
+    {
+     "atom": "mortise_hull",
+     "verdict": "keep",
+     "why": "Imprecise (19th-century hulls are frame-first, not mortise-and-tenon), but it only stands for 'a wooden hull' and is long complete under the A8 sweep; no change."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A3, A8.",
+   "crossTree": "none (cross-lane: energy, naval)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.1,
+     "why": "Landmark: steamboats run upstream against any current, transforming river freight."
+    }
+   ],
+   "costConcern": "23,650 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; the hull atom is a weak proxy with no reachability consequence.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steam Power"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine"
+   },
+   "effects": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.1
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "screw_propeller",
+   "name": "Screw propeller",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "naval",
+   "cost": 14070.0,
+   "prereq": "steamboat AND water_screw",
+   "dependents": [
+    "submarine"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "steamboat",
+     "verdict": "keep",
+     "why": "Steam propulsion."
+    },
+    {
+     "atom": "water_screw",
+     "verdict": "keep",
+     "why": "Smith's and Ericsson's propellers were explicitly Archimedean screws."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A5, A8.",
+   "crossTree": "none (cross-lane: infrastructure, transport)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03,
+     "why": "Screw steamers keep schedules at sea regardless of wind: distant markets integrate faster."
+    }
+   ],
+   "costConcern": "14,070 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; unit.ironclad is not live yet (M7/M8). Deferred (not live): unit.ironclad.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steam Power"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "iron_hull",
+   "name": "Iron hull",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "naval",
+   "cost": 14070.0,
+   "prereq": "puddling AND steamboat",
+   "dependents": [
+    "container_shipping",
+    "submarine"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "puddling",
+     "verdict": "keep",
+     "why": "Wrought-iron plate."
+    },
+    {
+     "atom": "steamboat",
+     "verdict": "keep",
+     "why": "Iron hulls first went to sea as steamers (Aaron Manby)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A8.",
+   "crossTree": "none (cross-lane: materials, transport)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.04,
+     "why": "Iron hulls allowed ships far larger than timber could, cutting cost per tonne carried."
+    }
+   ],
+   "costConcern": "14,070 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; unit.ironclad deferred. Deferred (not live): unit.ironclad.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steam Power"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "macadam",
+   "name": "Macadam road",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "cost": 8360.0,
+   "prereq": "road_paved",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "road_paved",
+     "verdict": "keep",
+     "why": "Macadam is a cheaper engineered road surface built on the road-engineering tradition."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A5.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "pathBuild.buildCostMultiplier",
+     "delta": 0.04,
+     "why": "Compacted broken stone without massive foundations makes road building cheaper."
+    }
+   ],
+   "costConcern": "8,360 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; live unlock plus build-cost effect.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "pathBuild.buildCostMultiplier",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "infra.road_macadam"
+   ]
+  },
+  {
+   "id": "bicycle",
+   "name": "Safety bicycle",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "cost": 9950.0,
+   "prereq": "interchangeable_parts AND steel_carburized",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "interchangeable_parts",
+     "verdict": "keep",
+     "why": "Mass-produced chains, bearings and frames."
+    },
+    {
+     "atom": "steel_carburized",
+     "verdict": "keep",
+     "why": "Steel tubing and spokes."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A4, A8.",
+   "crossTree": "none (cross-lane: industry, materials)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.02,
+     "why": "Cheap personal transport widened rural labour and marriage markets: people move more readily."
+    }
+   ],
+   "costConcern": "9,950 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "aircraft",
+   "name": "Powered heavier-than-air flight",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 66900.0,
+   "prereq": "internal_combustion AND glider",
+   "dependents": [
+    "aircraft_metal",
+    "combat_drone",
+    "helicopter",
+    "stealth"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "internal_combustion",
+     "verdict": "keep",
+     "why": "Light petrol engine."
+    },
+    {
+     "atom": "glider",
+     "verdict": "keep",
+     "why": "Lift data and three-axis control (Wright gliders)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A8. 1903 lies in the A8 window; A9 placement follows aviation's impact from 1914; kept.",
+   "crossTree": "none (cross-lane: energy)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.5,
+     "why": "Landmark: aerial reconnaissance; formation sight is an integer of base 1, so only a landmark delta changes it."
+    }
+   ],
+   "costConcern": "66,900 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; live airfield plus aerial reconnaissance. Deferred (not live): unit.aircraft_carrier, unit.military_aircraft.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Flight"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Flight"
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.5
+    }
+   ],
+   "liveUnlocks": [
+    "building.airfield"
+   ]
+  },
+  {
+   "id": "aircraft_metal",
+   "name": "All-metal monoplane",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 33450.0,
+   "prereq": "aircraft AND aluminium",
+   "dependents": [
+    "jet_airliner",
+    "jet_engine"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "aircraft",
+     "verdict": "keep",
+     "why": "Successor airframe."
+    },
+    {
+     "atom": "aluminium",
+     "verdict": "keep",
+     "why": "Duralumin stressed skin."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none (cross-lane: materials)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.06,
+     "why": "Long-range all-metal aircraft survey remote country: each expedition covers more ground."
+    }
+   ],
+   "costConcern": "33,450 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Advanced Flight"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Aerodynamics"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "automobile_mass",
+   "name": "Mass-produced automobile",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 16730.0,
+   "prereq": "internal_combustion AND interchangeable_parts AND petroleum_refining",
+   "dependents": [
+    "catalytic_converter",
+    "electric_vehicle",
+    "motor_road"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "internal_combustion",
+     "verdict": "keep",
+     "why": "Engine."
+    },
+    {
+     "atom": "interchangeable_parts",
+     "verdict": "keep",
+     "why": "Assembly-line production."
+    },
+    {
+     "atom": "petroleum_refining",
+     "verdict": "keep",
+     "why": "Petrol supply."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A8. 1913 sits at the A8/A9 boundary; kept.",
+   "crossTree": "none (cross-lane: energy, industry, science)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.06,
+     "why": "Motor trucks and cars bring a far wider rural area into each town's supply range."
+    }
+   ],
+   "costConcern": "16,730 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "rocket",
+   "name": "Liquid-fuel rocket",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 378470.0,
+   "prereq": "internal_combustion AND aluminium AND mechanics_newtonian",
+   "dependents": [
+    "guided_missile",
+    "icbm",
+    "orbital_launch_vehicle"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "internal_combustion",
+     "verdict": "keep",
+     "why": "Proxy for fuel-combustion engineering; a liquid-oxygen atom (refrigeration, Linde air liquefaction) would be more specific - noted, not changed."
+    },
+    {
+     "atom": "aluminium",
+     "verdict": "keep",
+     "why": "Light structures."
+    },
+    {
+     "atom": "mechanics_newtonian",
+     "verdict": "keep",
+     "why": "Rocket equation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A7, A8, A9.",
+   "crossTree": "none (cross-lane: energy, materials, science)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [],
+   "costConcern": "378,470 is 2x its own dependent orbital_launch_vehicle (189,240) and 5.7x aircraft; a 1926 sounding rocket should not outcost the 1957 orbital launcher.",
+   "action": "adjust-cost",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Cost inversion against its dependent; propose recalibrating to the A9 aircraft band (~66,900) at the integration step. Live spaceport unlock is its effect. Deferred (not live): project.orbital_launch, unit.missile.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Rocketry"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Rocketry"
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.spaceport"
+   ]
+  },
+  {
+   "id": "container_shipping",
+   "name": "Container shipping",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 16730.0,
+   "prereq": "iron_hull AND diesel",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "iron_hull",
+     "verdict": "keep",
+     "why": "Steel cellular hulls descend from iron hulls."
+    },
+    {
+     "atom": "diesel",
+     "verdict": "keep",
+     "why": "Diesel propulsion of the ships."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A8, A9.",
+   "crossTree": "none (cross-lane: energy, naval)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.06,
+     "why": "Landmark: standard boxes cut port handling cost and time by an order of magnitude."
+    }
+   ],
+   "costConcern": "16,730 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "electric_traction",
+   "name": "Electric railway and metro",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 47310.0,
+   "prereq": "electric_motor AND railway",
+   "dependents": [
+    "high_speed_rail"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electric_motor",
+     "verdict": "keep",
+     "why": "Traction motors."
+    },
+    {
+     "atom": "railway",
+     "verdict": "keep",
+     "why": "Track and operation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A8. Dated 1890 but placed A9; proposed move to A8.",
+   "crossTree": "none (cross-lane: energy)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03,
+     "why": "Trams and metros let workers reach factory, office and shop jobs across a whole city, so larger specialist classes can form."
+    }
+   ],
+   "costConcern": "47,310 is high if moved to A8 (A8 transport peers 8,360-23,650); recalibrate with the move.",
+   "action": "move-age",
+   "newPrereq": null,
+   "newAge": "A8",
+   "rationale": "Emerged 1890 (City and South London Railway) and the electric tram boom of 1888-1910 lie squarely in the A8 window; both prerequisites are A8 and its only dependent (high_speed_rail) is A9, so moving it to A8 breaks no edge.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "gps",
+   "name": "Satellite navigation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "naval",
+   "cost": 189240.0,
+   "prereq": "satellite AND microprocessor AND atomic_clock AND relativity",
+   "dependents": [
+    "combat_drone",
+    "precision_agriculture",
+    "reusable_launch"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "satellite",
+     "verdict": "keep",
+     "why": "Constellation."
+    },
+    {
+     "atom": "microprocessor",
+     "verdict": "keep",
+     "why": "Receivers."
+    },
+    {
+     "atom": "atomic_clock",
+     "verdict": "keep",
+     "why": "Timing."
+    },
+    {
+     "atom": "relativity",
+     "verdict": "keep",
+     "why": "Relativistic clock correction."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none (cross-lane: communication, engineering, science)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03,
+     "why": "Satellite-tracked fleets and routing speed goods from store to market."
+    }
+   ],
+   "costConcern": "189,240 high but four prerequisites; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "crewed_spaceflight",
+   "name": "Crewed spaceflight",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 33450.0,
+   "prereq": "satellite AND computer",
+   "dependents": [
+    "lunar_flight",
+    "space_station"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "satellite",
+     "verdict": "keep",
+     "why": "Orbital launch capability (via satellite)."
+    },
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Guidance and tracking."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none (cross-lane: communication, engineering)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02,
+     "why": "Biotelemetry built to monitor astronauts passed into hospital patient monitoring."
+    }
+   ],
+   "costConcern": "33,450 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; no direct terrestrial operand exists, so the documented medical spin-off is used.",
+   "civ6": {
+    "relation": "not-reviewed",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Rocketry"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "lunar_flight",
+   "name": "Crewed lunar flight",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 11830.0,
+   "prereq": "crewed_spaceflight AND integrated_circuit",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "crewed_spaceflight",
+     "verdict": "keep",
+     "why": "Crewed capability."
+    },
+    {
+     "atom": "integrated_circuit",
+     "verdict": "keep",
+     "why": "Apollo Guidance Computer."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none (cross-lane: engineering)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02,
+     "why": "The Earthrise view reshaped public thought (environmental movement), a civic rather than a technical return."
+    }
+   ],
+   "costConcern": "11,830 fine (follow-on of crewed_spaceflight).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "not-reviewed",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "space_station",
+   "name": "Space station",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 11830.0,
+   "prereq": "crewed_spaceflight",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "crewed_spaceflight",
+     "verdict": "keep",
+     "why": "Crewed capability."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02,
+     "why": "A permanent shared microgravity laboratory lowers the cost of experiments for research institutions."
+    }
+   ],
+   "costConcern": "11,830 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "reusable_launch",
+   "name": "Reusable launch vehicle",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 133810.0,
+   "prereq": "orbital_launch_vehicle AND gps AND composites",
+   "dependents": [
+    "asteroid_mining",
+    "frontier_launch",
+    "space_solar"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "orbital_launch_vehicle",
+     "verdict": "keep",
+     "why": "Launcher."
+    },
+    {
+     "atom": "gps",
+     "verdict": "keep",
+     "why": "Precision landing guidance."
+    },
+    {
+     "atom": "composites",
+     "verdict": "keep",
+     "why": "Light reusable structures."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none (cross-lane: materials, naval)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.03,
+     "why": "Cheap launch fills orbit with imaging constellations that map remote ground."
+    }
+   ],
+   "costConcern": "133,810 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "earth_observation",
+   "name": "Earth observation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "naval",
+   "cost": 23650.0,
+   "prereq": "satellite AND photography",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "satellite",
+     "verdict": "keep",
+     "why": "Platform."
+    },
+    {
+     "atom": "photography",
+     "verdict": "keep",
+     "why": "Imaging."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A8, A9.",
+   "crossTree": "none (cross-lane: communication, science)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.05,
+     "why": "Landsat imagery maps terrain beyond any ground expedition's reach."
+    }
+   ],
+   "costConcern": "23,650 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites; lane 'naval' is a misfit (it is remote sensing), reported as a finding, no lane change proposed.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Satellites"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Rocketry"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "high_speed_rail",
+   "name": "High-speed rail",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 33450.0,
+   "prereq": "electric_traction AND reinforced_concrete",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "electric_traction",
+     "verdict": "keep",
+     "why": "Electric traction."
+    },
+    {
+     "atom": "reinforced_concrete",
+     "verdict": "keep",
+     "why": "Dedicated viaduct and tunnel lines."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A8, A9.",
+   "crossTree": "none (cross-lane: construction)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.04,
+     "why": "Three-hour journeys over 500 km let people move and commute much further."
+    }
+   ],
+   "costConcern": "33,450 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "jet_airliner",
+   "name": "Jet airliner",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 66900.0,
+   "prereq": "jet_engine AND aircraft_metal AND superalloy",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "jet_engine",
+     "verdict": "keep",
+     "why": "Engine."
+    },
+    {
+     "atom": "aircraft_metal",
+     "verdict": "keep",
+     "why": "Airframe."
+    },
+    {
+     "atom": "superalloy",
+     "verdict": "keep",
+     "why": "Turbine blades."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none (cross-lane: energy, materials)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04,
+     "why": "Air freight and business travel tie distant markets together."
+    }
+   ],
+   "costConcern": "66,900 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Advanced Flight"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Aerodynamics"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "electric_vehicle",
+   "name": "Modern electric vehicle",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 66900.0,
+   "prereq": "lithium_battery AND electric_motor AND automobile_mass",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "lithium_battery",
+     "verdict": "keep",
+     "why": "Energy storage."
+    },
+    {
+     "atom": "electric_motor",
+     "verdict": "keep",
+     "why": "Drive."
+    },
+    {
+     "atom": "automobile_mass",
+     "verdict": "keep",
+     "why": "Vehicle production."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A8, A9.",
+   "crossTree": "none (cross-lane: energy)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02,
+     "why": "No tailpipe exhaust in cities: fewer deaths from urban air pollution."
+    }
+   ],
+   "costConcern": "66,900 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "helicopter",
+   "name": "Helicopter",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 11830.0,
+   "prereq": "aircraft",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "aircraft",
+     "verdict": "keep",
+     "why": "Powered flight lineage."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.02,
+     "why": "Helicopter airlift reaches cut-off districts with relief food."
+    }
+   ],
+   "costConcern": "11,830 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; unit.helicopter deferred to M7/M8. Deferred (not live): unit.helicopter.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Synthetic Materials"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "fusion_propulsion",
+   "name": "Fusion propulsion",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 189240.0,
+   "prereq": "fusion_power AND space_probe",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "fusion_power",
+     "verdict": "keep",
+     "why": "Reactor."
+    },
+    {
+     "atom": "space_probe",
+     "verdict": "keep",
+     "why": "Deep-space vehicle."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none (cross-lane: energy, science)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03,
+     "why": "Speculative: fast fusion transit makes off-world ore runs worthwhile."
+    }
+   ],
+   "costConcern": "189,240 fine for a speculative capstone.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; project.interstellar_probe deferred. Deferred (not live): project.interstellar_probe.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Fusion"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "frontier_launch",
+   "name": "Launch efficiency",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 16730.0,
+   "prereq": "reusable_launch",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "reusable_launch",
+     "verdict": "keep",
+     "why": "Repeatable refinement of reusable launch."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02,
+     "why": "Per level: cheaper launch thickens communications constellations that reach remote districts."
+    }
+   ],
+   "costConcern": "16,730 base; growth g set by the repeatables packet.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Repeatable; operand proposed as its per-level effect (convert to gapFraction under contract §4).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "frontier_propulsion",
+   "name": "Propulsion",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 33450.0,
+   "prereq": "space_probe",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "space_probe",
+     "verdict": "keep",
+     "why": "Repeatable refinement of probes."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02,
+     "why": "Per level: faster probes return science sooner."
+    }
+   ],
+   "costConcern": "33,450 base; growth g set by the repeatables packet.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Repeatable; operand proposed as its per-level effect (convert to gapFraction under contract §4).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "motor_road",
+   "name": "Motor road (highway)",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 33450.0,
+   "prereq": "automobile_mass AND reinforced_concrete AND petroleum_refining",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "automobile_mass",
+     "verdict": "keep",
+     "why": "Motor traffic."
+    },
+    {
+     "atom": "reinforced_concrete",
+     "verdict": "keep",
+     "why": "Bridges and pavements."
+    },
+    {
+     "atom": "petroleum_refining",
+     "verdict": "keep",
+     "why": "Redundant via automobile_mass, but also the source of asphalt; harmless."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A8, A9.",
+   "crossTree": "none (cross-lane: construction, science)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.06,
+     "why": "Motorways raise overland freight speed."
+    }
+   ],
+   "costConcern": "33,450 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": [
+    "infra.road_highway"
+   ]
+  },
+  {
+   "id": "ocean_junk",
+   "name": "Ocean-going junk",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "cost": 4180.0,
+   "prereq": "watertight_bulkhead AND compass_magnetic AND monsoon_sailing",
+   "dependents": [
+    "state_exploration"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "watertight_bulkhead",
+     "verdict": "keep",
+     "why": "Compartmented hull."
+    },
+    {
+     "atom": "compass_magnetic",
+     "verdict": "keep",
+     "why": "First recorded compass use at sea."
+    },
+    {
+     "atom": "monsoon_sailing",
+     "verdict": "keep",
+     "why": "Indian Ocean routes."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A5, A6.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04,
+     "why": "Large ocean junks joined Chinese, Southeast Asian and Indian Ocean markets."
+    }
+   ],
+   "costConcern": "4,180 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Shipbuilding"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "activity.ocean_shipping"
+   ]
+  },
+  {
+   "id": "balloon",
+   "name": "Balloon flight",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "cost": 19890.0,
+   "prereq": "barometer_vacuum",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "barometer_vacuum",
+     "verdict": "keep",
+     "why": "Understanding air pressure and density (and pneumatic chemistry for hydrogen)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A7.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.5,
+     "why": "Landmark: a tethered observer at 300 m sees ~60 km, doubling a formation's sight radius (integer base 1)."
+    }
+   ],
+   "costConcern": "19,890 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Flight"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.5
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "glider",
+   "name": "Gliding flight",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "cost": 9950.0,
+   "prereq": "mechanics_newtonian",
+   "dependents": [
+    "aircraft"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "mechanics_newtonian",
+     "verdict": "keep",
+     "why": "Theory of forces (Cayley's lift and drag)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A7.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02,
+     "why": "Systematic lift and drag measurement (Lilienthal's tables, Wright wind tunnel) founded aeronautical research."
+    }
+   ],
+   "costConcern": "9,950 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Bridge to aircraft; effect placed on research because gliding had no economic use.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "submarine",
+   "name": "Submarine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "naval",
+   "cost": 39780.0,
+   "prereq": "screw_propeller AND iron_hull AND electric_motor AND internal_combustion",
+   "dependents": [
+    "nuclear_submarine"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "screw_propeller",
+     "verdict": "keep",
+     "why": "Propulsion."
+    },
+    {
+     "atom": "iron_hull",
+     "verdict": "keep",
+     "why": "Pressure hull."
+    },
+    {
+     "atom": "electric_motor",
+     "verdict": "keep",
+     "why": "Submerged drive."
+    },
+    {
+     "atom": "internal_combustion",
+     "verdict": "keep",
+     "why": "Surface drive and charging (Holland)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A8.",
+   "crossTree": "none (cross-lane: energy)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02,
+     "why": "Pressure-hull and submersible engineering carried over to subsea work such as offshore oil and diving."
+    }
+   ],
+   "costConcern": "39,780 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; military role awaits live units (M7/M8).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Electricity"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mobilization"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "orbital_launch_vehicle",
+   "name": "Orbital launch vehicle",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "cost": 189240.0,
+   "prereq": "rocket",
+   "dependents": [
+    "reusable_launch",
+    "satellite"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "rocket",
+     "verdict": "keep",
+     "why": "Rocket lineage."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.03,
+     "why": "The Sputnik shock funded a crash expansion of university science (NDEA 1958): research institutions mature faster."
+    }
+   ],
+   "costConcern": "189,240 fine, but see rocket (inversion).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Rocketry"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Rocketry"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "camel_caravan",
+   "name": "Desert caravan",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "transport",
+   "emerged": "~1,000 BCE South Arabian incense caravans on the dromedary; ~300 CE trans-Saharan camel caravans",
+   "prereq": "camel AND trade",
+   "prereqRationale": "The dromedary (camel, ~1,000 BCE; Bactrian ~2,500 BCE) is the carrier that can go days without water; organised caravans presuppose exchange between communities at a counted standard (trade, ~3,500 BCE). Both A3 and older than the node.",
+   "desc": "Strings of camels, with wells, guides and halting places, carry goods across deserts that no cart or donkey could cross, so towns far apart can trade overland.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.25,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "different",
+    "analog": "Foreign Trade"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Currency"
+   },
+   "distinctFrom": "trade (A3) is exchange between settlements within ordinary route range by any carrier; this is the specific ability to cross waterless country, lengthening the longest viable overland route rather than cheapening haulage."
+  },
+  {
+   "id": "sprung_coach",
+   "name": "Sprung coach and stage service",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "transport",
+   "emerged": "~1,450 CE Kocs coach (Hungary); ~1,610 CE first scheduled stagecoach services; ~1,665 CE steel-spring suspension",
+   "prereq": "wheel_spoked AND horseshoe AND steel_carburized",
+   "prereqRationale": "A light passenger vehicle on spoked wheels (wheel_spoked) drawn by shod teams changed at stages (horseshoe, ~900 CE); steel leaf springs need carburized steel (steel_carburized). All three are dated before ~1,450 CE.",
+   "desc": "Coaches hung on straps and later steel springs, drawn by fresh teams changed at regular stages, carry passengers, mail and light goods on timetabled runs between towns.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.5,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 1.0
+   },
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "horseshoe (A6) protects the animal and macadam (A8) improves the surface; this is the vehicle and staging system, the only A7 overland transport node (the A7 transport lane is otherwise empty)."
+  }
+ ],
+ "newLanes": [],
+ "findings": [
+  "Lane coverage: transport has no A4 and no A7 node (A7 is entirely naval); the two new nodes (camel_caravan A4, sprung_coach A7) fill those overland gaps without duplicating trade or horseshoe.",
+  "A9 transport is crowded (19 nodes, 8 of them space nodes) and the registry has no space operands; space nodes carry spin-off effects (medicine, research, civics, universities) at the minimum delta. A space-programme operand would let them act causally.",
+  "Integer fog operands: formationSightNodes (base 1) moves only when Σ reaches 1.0 and exploreStepNodes (base 3) only at Σ 0.34; balloon and aircraft carry landmark 0.5 for sight, compass/caravel 0.08/0.12 for step. Small deltas on these operands are inert until summed past a threshold.",
+  "Cost inversion: rocket (378,470) costs 2x its dependent orbital_launch_vehicle (189,240); caravel (16,730) costs 2.8x the larger carrack (5,910); wheel_solid (3,520) is A3-scale inside A2.",
+  "Age placements: electric_traction (1890) is proposed for A8; aircraft (1903) and automobile_mass (1913) also predate 1914 but are kept in A9 for impact. sail_square (~5,500 BCE evidence) and stern_rudder (~100 CE) sit one Age later than their earliest dates; kept.",
+  "Redundant OR/AND atoms (stern_rudder's mortise_hull, cog's plank_boat, mercator's cartography, motor_road's petroleum_refining) are harmless and left as written.",
+  "earth_observation and gps sit in the naval lane; they are remote sensing and positioning, a lane misfit with no gameplay consequence.",
+  "Four nodes unlock activity.ocean_shipping by OR (caravel, carrack, polynesian_canoe, ocean_junk); only the first completed one matters, so each also carries its own operand effect.",
+  "trade.costPerBulkCostUnit receives 0.30 from this group (wheel_solid, collar_harness, mortise_hull, cog, carrack, iron_hull, railway, container_shipping) against a cap of 0.8, on top of 0.27 from T1-T3: the integrator should watch this cap.",
+  "Civ VI space-race projects and route types are not in the supplied data (no Projects or Routes table); crewed_spaceflight and lunar_flight are marked not-reviewed for Civ VI."
+ ]
+}

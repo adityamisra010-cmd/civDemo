@@ -1,0 +1,1110 @@
+{
+ "group": "C6-gapfill",
+ "audit": [],
+ "newNodes": [
+  {
+   "id": "marriage_exchange",
+   "name": "Out-marriage between bands",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "society-welfare",
+   "emerged": "~34 kya Sunghir (Russia): genomes of the buried show no close inbreeding, so mates came from a wide network; out-marriage is near-universal among recorded foragers",
+   "prereq": "gift_exchange",
+   "prereqRationale": "gift_exchange: the partners who pass shell and stone between bands are the same networks through which spouses are exchanged.",
+   "rationale": "gift_exchange: the partners who pass shell and stone between bands are the same networks through which spouses are exchanged.",
+   "desc": "Young people must marry outside their own band. Every family then has in-laws in other bands, and when its own country fails it can go and live with them.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 1.5,
+   "cost": 260.0,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Affines in other bands are a refuge in a local famine: families move to their in-laws' country instead of starving in place.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "seasonal_aggregation is the yearly meeting where matches can be made; this is the rule that spouses must come from outside the band. oath_alliance (A2) is a political league of communities that may be sealed by marriage."
+  },
+  {
+   "id": "initiation_rites",
+   "name": "Initiation of the young",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "education",
+   "emerged": "~15 kya adolescent footprints in the deep chambers of Tuc d'Audoubert and Niaux (initiation is one reading); initiation of youths is recorded in nearly every Australian and African forager society",
+   "prereq": "oral_tradition AND shamanic_ritual",
+   "prereqRationale": "oral_tradition: the lore taught to initiates is the memorised body of songs and stories. shamanic_ritual: ritual specialists conduct the seclusion and the rite.",
+   "rationale": "oral_tradition: the lore taught to initiates is the memorised body of songs and stories. shamanic_ritual: ritual specialists conduct the seclusion and the rite.",
+   "desc": "At puberty boys and girls are secluded with elders, taught the band's tracking, plant and animal lore and its rules, and come back as adults.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.0,
+   "cost": 370.0,
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Adult skills in tracking, trapping and fishing are taught to every youth in a set course, so the band's hunters and fishers are better trained.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "oral_tradition keeps the lore; initiation is the institution that transmits it to each cohort. age_sets (A2) turn initiation cohorts into lifelong graded bodies with military and political roles."
+  },
+  {
+   "id": "division_of_labour",
+   "name": "Division of labour by sex and age",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "labour",
+   "emerged": "~30 kya Upper Palaeolithic: plant grinding (Bilancino, Pavlov) beside specialised projectile hunting; Kuhn and Stiner (2006) argue a sexual division of foraging work arose with modern humans",
+   "prereq": "atlatl AND grinding_stone",
+   "prereqRationale": "atlatl: specialised long-range hunting gear for one task group. grinding_stone: plant-processing gear for the other; the split needs both kits.",
+   "rationale": "atlatl: specialised long-range hunting gear for one task group. grinding_stone: plant-processing gear for the other; the split needs both kits.",
+   "desc": "Men hunt large game far from camp while women, children and elders gather plants, trap small animals and process food. Each household draws on both.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.0,
+   "cost": 370.0,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A broader, two-track diet means a failed hunt is carried by gathered staples, so households absorb shortfalls they could not before.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "food_sharing_norms divides the food once it is brought in; this assigns who goes out for which food. craft_specialists (A2) is specialisation by household and trade, not by sex and age within each household."
+  },
+  {
+   "id": "hunt_season_leaders",
+   "name": "Hunt leaders",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "representation-local-government",
+   "emerged": "~20 kya Amvrosievka (Ukraine) bison drive-and-kill site and Solutré horse kills; Plains 'buffalo police' who commanded the communal hunt recorded ethnographically",
+   "prereq": "kin_council AND atlatl",
+   "prereqRationale": "kin_council: the household heads choose the leader for the season. atlatl: the spear-thrower is the weapon of the communal drive.",
+   "rationale": "kin_council: the household heads choose the leader for the season. atlatl: the spear-thrower is the weapon of the communal drive.",
+   "desc": "For the great autumn drive the bands choose a leader whose orders bind everyone; anyone who startles the herd early is punished. After the kill and drying of meat his authority lapses.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.0,
+   "cost": 370.0,
+   "effects": [
+    {
+     "operand": "consumption.granaryYearsOfDemand",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A disciplined mass kill yields a surplus of dried meat that is stored to carry the band through winter, so stores cover more of the year.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "prestige_leadership is voluntary following that anyone may leave; the hunt leader's command is binding but lasts only for the drive. war_band raids other groups; this organises a food harvest."
+  },
+  {
+   "id": "bridewealth",
+   "name": "Bridewealth",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "society-welfare",
+   "emerged": "~6,000 BCE inferred with cattle and sheep herding (ethnographic analogy: Nuer cattle, Zulu lobola); first written as terhatum in the Laws of Eshnunna ~1,800 BCE",
+   "prereq": "(cattle OR sheep_goat) AND kin_council",
+   "prereqRationale": "cattle OR sheep_goat: livestock is the usual currency of the payment. kin_council: the elders of both lineages negotiate and witness it.",
+   "rationale": "cattle OR sheep_goat: livestock is the usual currency of the payment. kin_council: the elders of both lineages negotiate and witness it.",
+   "desc": "The groom's kin give livestock to the bride's kin. The payment makes the marriage and gives the children to the father's lineage, which must then feed and protect them.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.75,
+   "cost": 620.0,
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Children whose bridewealth has been paid have a whole lineage answerable for them, so in hunger they are fed by uncles and cousins as well as parents.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "oath_alliance binds whole communities politically; bridewealth is the transfer between two lineages that creates one marriage. family_law (A3) is the later written law of marriage and inheritance."
+  },
+  {
+   "id": "age_sets",
+   "name": "Age sets",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "military-institutions",
+   "emerged": "~3,000 BCE inferred with the East African pastoral Neolithic (ethnographic analogy); recorded among the Maasai and Nuer and in the Oromo gada system",
+   "prereq": "cattle AND war_band",
+   "prereqRationale": "cattle: the age-set system is a herding society's way of guarding herds on distant pastures. war_band: the warrior grade grows out of the raiding party.",
+   "rationale": "cattle: the age-set system is a herding society's way of guarding herds on distant pastures. war_band: the warrior grade grows out of the raiding party.",
+   "desc": "Youths initiated together form a set for life. The set serves as warriors guarding herds and camps, then rises together to married men and to ruling elders.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.75,
+   "cost": 620.0,
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "The warrior grade lives in outlying cattle camps and patrols the edges of the range, so armed parties see much further around them.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Agoge"
+   },
+   "distinctFrom": "initiation_rites (A1) is a single passage into adulthood; age sets keep each cohort as a standing body that moves through graded duties. war_band is raised for one raid; the warrior grade is permanent."
+  },
+  {
+   "id": "extended_household",
+   "name": "Extended-family households",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "society-welfare",
+   "emerged": "~5,500 BCE LBK longhouses up to 40 m long, each housing several related couples; matrilineal longhouses recorded among the Iroquois",
+   "prereq": "timber_frame AND cereal_cultivation",
+   "prereqRationale": "timber_frame: long post-built houses can shelter several couples under one roof. cereal_cultivation: farming rewards keeping several workers in one household.",
+   "rationale": "timber_frame: long post-built houses can shelter several couples under one roof. cereal_cultivation: farming rewards keeping several workers in one household.",
+   "desc": "Parents, married sons or daughters and their children live in one long house under its senior couple, sharing hearths, stores and labour.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.75,
+   "cost": 620.0,
+   "effects": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Several related couples share one large dwelling, so the same housing stock holds more people.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Ohana"
+   },
+   "distinctFrom": "work_parties call on neighbours from other households; here several couples form one household. household_land_tenure governs fields, not residence."
+  },
+  {
+   "id": "sodalities",
+   "name": "Sodalities",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "representation-local-government",
+   "emerged": "~9,500 BCE Göbekli Tepe and ~8,000 BCE Nevalı Çori enclosures, read by their excavators as meeting places of cult societies (interpretation); kiva societies and Plains soldier societies recorded ethnographically",
+   "prereq": "communal_feasts AND kin_council",
+   "prereqRationale": "communal_feasts: the societies meet and recruit at the great feasts. kin_council: they cut across the kin groups whose heads sit in the council.",
+   "rationale": "communal_feasts: the societies meet and recruit at the great feasts. kin_council: they cut across the kin groups whose heads sit in the council.",
+   "desc": "Men's and women's societies recruit across lineages and villages. Members keep a lodge, hold rites and police camps, and a member is received by his society in any village where it meets.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.75,
+   "cost": 620.0,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A member travelling or moving is lodged and protected by his society in distant villages, so migrants can go further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "guest_right protects any peaceful stranger for a short stay; a sodality lodges its own sworn members. megalithic_monuments are the places built; this is the membership organisation itself."
+  },
+  {
+   "id": "stock_friendship",
+   "name": "Stock friendship",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "economy-commerce",
+   "emerged": "~4,500 BCE inferred with the spread of herding into the Sahara and East Africa (ethnographic analogy); bond-friends who keep each other's cattle recorded among the Turkana, Jie and Maasai",
+   "prereq": "cattle AND gift_exchange",
+   "prereqRationale": "cattle: the animals placed with partners. gift_exchange: the long-distance partnership is the forager exchange tie turned to livestock.",
+   "rationale": "cattle: the animals placed with partners. gift_exchange: the long-distance partnership is the forager exchange tie turned to livestock.",
+   "desc": "A herder places some of his animals with bond-friends in other districts and keeps theirs in return, so drought or disease never takes his whole herd.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.75,
+   "cost": 620.0,
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Herds split between distant partners survive local drought and epidemics, so each herder keeps and breeds more stock.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "transhumance moves one's own flock between seasonal pastures; stock friendship spreads ownership risk across partners. bridewealth moves animals once to make a marriage."
+  },
+  {
+   "id": "fishing_station_rights",
+   "name": "Fishing-station rights",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "environment-urban",
+   "emerged": "~6,000 BCE Mesolithic fish weirs on the Liffey (Dublin) rebuilt on the same spot for centuries; kin-owned fishing stations recorded on the Northwest Coast",
+   "prereq": "basketry AND dugout",
+   "prereqRationale": "basketry: weirs and traps are wattle work. dugout: the station is reached and worked by boat.",
+   "rationale": "basketry: weirs and traps are wattle work. dugout: the station is reached and worked by boat.",
+   "desc": "A kin group owns a named weir or fishing place and keeps it in repair. Others fish there only by its leave, so the weir is worth rebuilding every year.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.75,
+   "cost": 620.0,
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Secure ownership makes it worthwhile to build and maintain fixed weirs and traps, which take far more fish than line and spear.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "band_territories (A1) holds a whole foraging range; this is property in one fixed fishing installation. household_land_tenure covers fields, not waters."
+  },
+  {
+   "id": "seed_corn_reserve",
+   "name": "Inviolable seed corn",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "environment-urban",
+   "emerged": "~9,500 BCE purpose-built grain stores at Jerf el-Ahmar and Dhra'; keeping seed back from eating is the precondition of domestication, and peasant custom treats it as untouchable",
+   "prereq": "cereal_domesticated AND kin_council",
+   "prereqRationale": "cereal_domesticated: domestic cereals exist only because seed was kept back and replanted. kin_council: the elders enforce the rule against eating it.",
+   "rationale": "cereal_domesticated: domestic cereals exist only because seed was kept back and replanted. kin_council: the elders enforce the rule against eating it.",
+   "desc": "Next year's seed is set aside at harvest and may not be eaten even in hunger. The best ears are kept for it, so every planting starts from good seed.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.75,
+   "cost": 620.0,
+   "effects": [
+    {
+     "operand": "granaries.farmYieldBonusMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A protected store of selected seed raises the next crop; this is the stored-seed bonus the granary operand models.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "communal_storage is a famine reserve to be eaten in need; seed corn is the one store that must not be eaten. grain_storage is the building, not the rule."
+  },
+  {
+   "id": "clearance_usufruct",
+   "name": "Rights of clearance",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "law-justice",
+   "emerged": "~5,500 BCE inferred for early farmers clearing the European forest; recorded among swidden farmers of Africa, Southeast Asia and Amazonia (the clearer holds the plot while it is cropped)",
+   "prereq": "ground_stone_early AND cereal_cultivation",
+   "prereqRationale": "ground_stone_early: the ground axe fells the trees. cereal_cultivation: the cleared plot is sown.",
+   "rationale": "ground_stone_early: the ground axe fells the trees. cereal_cultivation: the cleared plot is sown.",
+   "desc": "Whoever clears a plot from the forest holds it while he crops it. When it is left to regrow it returns to the lineage, and any member may clear it again.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.75,
+   "cost": 620.0,
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Households may open new plots further out without asking for an allotment, so the settlement farms a wider area.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "household_land_tenure gives permanent heritable fields; clearance gives temporary use of forest plots. first_settler_rights is allotment by the founding lineage, not a right earned by clearing."
+  },
+  {
+   "id": "naruqqum_partnership",
+   "name": "Investment partnerships",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "economy-commerce",
+   "emerged": "~1,900 BCE Kanesh (Kültepe) tablets: Old Assyrian naruqqum 'money-bag' partnerships, investors pooling gold for a merchant for ten years or more",
+   "prereq": "trade AND hacksilver",
+   "prereqRationale": "trade: the long-distance caravan trade the fund finances. hacksilver: capital is pooled and reckoned in weighed metal.",
+   "rationale": "trade: the long-distance caravan trade the fund finances. hacksilver: capital is pooled and reckoned in weighed metal.",
+   "desc": "Several investors pool gold in one 'bag' entrusted to a travelling merchant for years. He trades with it, they share the profit, and the capital stays at work between caravans.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.75,
+   "cost": 1240.0,
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Standing pooled capital lets merchants buy stocks where they are cheap and move them to market without waiting to raise funds for each trip.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "interest_bearing_credit lends at a fixed rate; investors in a naruqqum share profit and loss. commenda (A6) funds one voyage; the naruqqum is a long-term fund across many caravans."
+  },
+  {
+   "id": "court_upbringing",
+   "name": "Court upbringing of vassal heirs",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "education",
+   "emerged": "~1,450 BCE Thutmose III brings the sons of Levantine rulers to be raised in the Egyptian royal nursery (kap) and sends them home as vassal kings",
+   "prereq": "royal_envoys AND scribal_schools",
+   "prereqRationale": "royal_envoys: the princes come as part of the diplomatic exchange with vassal courts. scribal_schools: they are educated alongside court children in the palace school.",
+   "rationale": "royal_envoys: the princes come as part of the diplomatic exchange with vassal courts. scribal_schools: they are educated alongside court children in the palace school.",
+   "desc": "Sons of subject kings are brought to the great king's palace, schooled with his own children and sent back to rule when their fathers die.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.75,
+   "cost": 1240.0,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Vassal rulers raised at court know its language and officials and owe it their thrones, so royal authority holds in distant subject lands.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "dynastic_marriage ties houses by marriage; here the heirs themselves are raised at court. scribal_schools train officials, not foreign rulers."
+  },
+  {
+   "id": "road_houses",
+   "name": "Royal road-houses",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "public-administration",
+   "emerged": "~2,090 BCE Shulgi of Ur claims to have built road-houses with gardens and wells along the highways; Ur III way-station accounts record rations to travellers",
+   "prereq": "appointed_officials AND donkey",
+   "prereqRationale": "appointed_officials: the stations are staffed and provisioned by officials. donkey: the pack animals they rest and fodder.",
+   "rationale": "appointed_officials: the stations are staffed and provisioned by officials. donkey: the pack animals they rest and fodder.",
+   "desc": "The crown builds staffed rest-houses a day's march apart on the main roads, with water, fodder and food for official travellers and caravans.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.75,
+   "cost": 1240.0,
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Travellers find water, food and fresh fodder at every stage instead of carrying them, so they cover more ground each day.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "campaign_provisioning stocks depots for one army's march; road-houses are permanent stations for all official travel. royal_post (A4) is a courier relay, not lodging."
+  },
+  {
+   "id": "herding_contracts",
+   "name": "Herding contracts",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "labour",
+   "emerged": "~2,050 BCE Ur III herding accounts fix lambing and wool quotas for temple flocks; Laws of Hammurabi §261-267 (~1,754 BCE) regulate hired herdsmen",
+   "prereq": "temple_economy AND wool",
+   "prereqRationale": "temple_economy: temple and palace own large flocks that must be entrusted to herdsmen. wool: the quotas are reckoned in fleeces and lambs.",
+   "rationale": "temple_economy: temple and palace own large flocks that must be entrusted to herdsmen. wool: the quotas are reckoned in fleeces and lambs.",
+   "desc": "Temple and palace flocks are entrusted to herdsmen under contract: a fixed number of lambs and weight of wool per hundred ewes, an allowance for losses, and the surplus is theirs.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.75,
+   "cost": 1240.0,
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Quotas with a share of the surplus give herdsmen a stake in breeding and fleece, so each herder delivers more.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "hire_tariffs fix day wages for hired work; herding contracts set yield quotas on entrusted flocks. stock_friendship (A2) swaps animals between equal owners for insurance."
+  },
+  {
+   "id": "peace_of_god",
+   "name": "Peace of God",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "belief-religion",
+   "emerged": "989 CE Council of Charroux; 1,027 CE Truce of God at Toulouges: bishops forbid violence against peasants, clergy and their goods on pain of excommunication",
+   "prereq": "feudal_monarchy AND monasticism",
+   "prereqRationale": "feudal_monarchy: the private wars of castellans that the movement restrains. monasticism: Cluniac monks led the peace councils.",
+   "rationale": "feudal_monarchy: the private wars of castellans that the movement restrains. monasticism: Cluniac monks led the peace councils.",
+   "desc": "Church councils forbid knights to attack peasants, clergy, mills or oxen, and ban fighting on holy days, enforcing it with excommunication and sworn peace leagues.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "cost": 2960.0,
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Peasants, ploughing oxen and mills are spared in private wars, so farm work goes on through feuds that once stripped the fields.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "pilgrimage (A4) protects travellers to a festival; the Peace of God protects farmers and their tools from local war. holy_war_doctrine redirects violence outward; this restrains it at home."
+  },
+  {
+   "id": "parish_tithe",
+   "name": "Parish tithe",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "administration-fiscal",
+   "emerged": "779 CE Capitulary of Herstal makes the tithe compulsory across the Frankish realm; tithe barns built across Europe from ~1,100 CE",
+   "prereq": "state_religion AND taxation",
+   "prereqRationale": "state_religion: a church established by the crown can have its levy enforced by royal law. taxation: assessment of a share of the harvest already exists.",
+   "rationale": "state_religion: a church established by the crown can have its levy enforced by royal law. taxation: assessment of a share of the harvest already exists.",
+   "desc": "Every household owes a tenth of its grain and young stock to its parish church. The tenth is gathered in the tithe barn to keep the clergy, the church and the parish poor.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "cost": 2960.0,
+   "effects": [
+    {
+     "operand": "consumption.granaryYearsOfDemand",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A tenth of every harvest is held in barns in each parish, so the district keeps larger stores against bad years.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "taxation is the ruler's levy; the tithe is a separate church levy collected parish by parish. temple_economy (A3) is a temple running its own estates, not a levy on everyone's harvest."
+  },
+  {
+   "id": "sharecropping",
+   "name": "Sharecropping contracts",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "labour",
+   "emerged": "~800 CE muzāraʿa and musāqāt sharecropping contracts in the Islamic law books; ~1,250 CE Tuscan mezzadria",
+   "prereq": "commercial_law AND plough_ard",
+   "prereqRationale": "commercial_law: the contract forms of the jurists, which also govern these agrarian partnerships. plough_ard: the plough team the owner usually supplies.",
+   "rationale": "commercial_law: the contract forms of the jurists, which also govern these agrarian partnerships. plough_ard: the plough team the owner usually supplies.",
+   "desc": "A landowner provides land, seed and plough oxen; a free tenant family provides labour, and the harvest is split by agreed shares.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "cost": 2960.0,
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "The owner's plough team and tools go to the family working the land, so tenants who could not afford them farm with full equipment.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "manorialism binds tenants with labour dues; sharecropping is a free contract that splits the crop. commenda pairs capital and labour for one trading voyage, not a farm season. tenancy_protection (A9) later protects these tenants."
+  },
+  {
+   "id": "bridge_trusts",
+   "name": "Bridge trusts",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "environment-urban",
+   "emerged": "~1,177 CE Pont Saint-Bénézet, Avignon, built by a bridge brotherhood; 1,282 CE London Bridge House estate; 1,399 CE Rochester Bridge Trust",
+   "prereq": "bridge_stone AND monasticism",
+   "prereqRationale": "bridge_stone: the masonry spans the trusts build and keep. monasticism: the brotherhoods and alms that fund them are a religious form of endowment.",
+   "rationale": "bridge_stone: the masonry spans the trusts build and keep. monasticism: the brotherhoods and alms that fund them are a religious form of endowment.",
+   "desc": "Brotherhoods and endowed trusts raise alms, rents and bequests to build stone bridges and keep them in repair forever, with wardens who answer for the fund.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "cost": 2960.0,
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Permanent bridges replace fords and ferries that were closed in flood or slow to cross, so overland journeys go faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_hospitals are endowed for care of the sick; bridge trusts for crossings. turnpike_trusts (A7) fund roads from tolls, not alms and endowment. forest_law and water_boards manage resources, not transport works."
+  },
+  {
+   "id": "crop_insurance",
+   "name": "Crop insurance",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "economy-commerce",
+   "emerged": "1,938 CE US Federal Crop Insurance Act; ~1,985 CE India's Comprehensive Crop Insurance Scheme",
+   "prereq": "probability_statistics AND cooperatives",
+   "prereqRationale": "probability_statistics: premiums are priced on yield records. cooperatives: the first crop and hail insurers were farmers' mutuals.",
+   "rationale": "probability_statistics: premiums are priced on yield records. cooperatives: the first crop and hail insurers were farmers' mutuals.",
+   "desc": "Farmers pay a premium each season and are compensated when drought, flood or hail cuts their yield below an insured level.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730.0,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Payouts arrive in the bad year itself, so farm households absorb a crop failure instead of selling stock and land.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "price_support guarantees a price for what is harvested; insurance pays when there is no harvest. deposit_insurance protects bank savings, not crops."
+  },
+  {
+   "id": "land_titling",
+   "name": "Land titling",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "emerged": "~1,984 CE Thailand Land Titling Project; 1,996 CE Peru's COFOPRI registers titles for urban squatter settlements",
+   "prereq": "land_registry AND civil_code",
+   "prereqRationale": "land_registry: titles are entered in a public register. civil_code: codified property law defines what a title secures.",
+   "rationale": "land_registry: titles are entered in a public register. civil_code: codified property law defines what a title secures.",
+   "desc": "The state surveys plots held by custom or occupation and issues registered titles to the families who live on and work them.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730.0,
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Families with secure title invest in solid walls and roofs instead of temporary shelters, so their homes last longer.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "land_reform redistributes land; titling secures what people already hold. indigenous_land_rights restores collective title; this issues individual titles. tenancy_protection secures tenants, not owners."
+  },
+  {
+   "id": "community_forestry",
+   "name": "Community forestry",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "emerged": "~1,978 CE Nepal hands forests to panchayats; 1,990 CE India's Joint Forest Management; 1,993 CE Nepal Forest Act creates community forest user groups",
+   "prereq": "nature_conservation AND cooperatives",
+   "prereqRationale": "nature_conservation: the state already reserves forests for protection. cooperatives: user groups manage the forest as a member association.",
+   "rationale": "nature_conservation: the state already reserves forests for protection. cooperatives: user groups manage the forest as a member association.",
+   "desc": "The state hands degraded forests to village user groups, which set harvest rules, guard the woods and share timber, fodder and firewood among members.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730.0,
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "housing.upkeepTimberPerDwellingYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Guarded forests regrow and are cut by plan, so timber yields rise; user groups allot members cheap timber for house repair.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "forest_law (A6) reserves woods for the crown; community forestry hands them to villagers. fisheries_management sets catch quotas by the state, not by local users."
+  },
+  {
+   "id": "land_consolidation",
+   "name": "Land consolidation",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-administration",
+   "emerged": "1,953 CE West German Flurbereinigungsgesetz; 1,954 CE Dutch land consolidation act; consolidation programmes across Europe and Asia in the following decades",
+   "prereq": "mechanised_agriculture AND land_registry",
+   "prereqRationale": "mechanised_agriculture: tractors and combines need large regular fields. land_registry: holdings must be registered before they can be exchanged.",
+   "rationale": "mechanised_agriculture: tractors and combines need large regular fields. land_registry: holdings must be registered before they can be exchanged.",
+   "desc": "Officials redraw a district's scattered strips into compact holdings of equal value, with new field roads and drains, so each farm works a few large fields.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730.0,
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Machines lose little time turning and travelling between large compact fields, so equipped farmers get more from their tools.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "land_reform changes who owns land; consolidation rearranges plots among the same owners. zoning regulates urban use."
+  },
+  {
+   "id": "rural_electrification",
+   "name": "Rural electrification",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "emerged": "1,920 CE Soviet GOELRO plan; 1,935 CE US Rural Electrification Administration lends to farmers' power cooperatives",
+   "prereq": "ac_transmission AND cooperatives",
+   "prereqRationale": "ac_transmission: long high-voltage lines reach scattered farms. cooperatives: rural power was built by member cooperatives on public loans.",
+   "rationale": "ac_transmission: long high-voltage lines reach scattered farms. cooperatives: rural power was built by member cooperatives on public loans.",
+   "desc": "The state lends to cooperatives and utilities to run power lines out to villages and farms that private companies would not serve.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730.0,
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Electric pumps lift groundwater for irrigation in dry spells, so harvests vary less from year to year.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "electricity_generation and ac_transmission are the technologies; this is the programme that extends them to rural areas. universal_telephone_service does the same for telephones. river_basin_authority builds dams, not distribution lines."
+  },
+  {
+   "id": "child_nutrition_programmes",
+   "name": "Child nutrition programmes",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-health",
+   "emerged": "1,975 CE India's Integrated Child Development Services (village anganwadi centres); 1,982 CE UNICEF's growth-monitoring drive",
+   "prereq": "epidemiology AND oral_rehydration",
+   "prereqRationale": "epidemiology: weighing and measuring children identifies who is malnourished. oral_rehydration: diarrhoea treatment is part of the same village package.",
+   "rationale": "epidemiology: weighing and measuring children identifies who is malnourished. oral_rehydration: diarrhoea treatment is part of the same village package.",
+   "desc": "Village centres weigh young children every month and give supplementary food to the underweight and to pregnant and nursing mothers.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730.0,
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Under-fives at risk are found early and fed, so fewer young children die when food runs short.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "school_meals feed pupils at school; this reaches children under school age and their mothers. primary_health_care treats illness; this monitors growth and feeds."
+  },
+  {
+   "id": "employment_guarantee",
+   "name": "Employment guarantee",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "labour",
+   "emerged": "1,972 CE Maharashtra Employment Guarantee Scheme during the drought; 2,005 CE India's National Rural Employment Guarantee Act (100 days of work a year on demand)",
+   "prereq": "income_tax AND mass_suffrage",
+   "prereqRationale": "income_tax: the guarantee is paid from general revenue. mass_suffrage: rural voters made work on demand a legal right.",
+   "rationale": "income_tax: the guarantee is paid from general revenue. mass_suffrage: rural voters made work on demand a legal right.",
+   "desc": "Any rural adult who asks for work must be given paid unskilled work on local public projects within a fortnight, or receive an allowance.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.0,
+   "cost": 23650.0,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "When harvests fail, labourers claim wages at once instead of migrating or starving; the Maharashtra scheme carried millions through the 1972 drought.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_works_relief hires the unemployed when the state chooses; the guarantee is a right claimed by the worker. unemployment_insurance pays insured wage earners, not rural labourers."
+  },
+  {
+   "id": "veterinary_campaigns",
+   "name": "Livestock disease campaigns",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-administration",
+   "emerged": "1,924 CE Office International des Épizooties founded; 1,994 CE Global Rinderpest Eradication Programme; rinderpest declared eradicated 2,011 CE",
+   "prereq": "vaccine_lab AND international_organizations",
+   "prereqRationale": "vaccine_lab: the vaccines the campaigns deliver. international_organizations: a standing international office coordinates reporting and eradication.",
+   "rationale": "vaccine_lab: the vaccines the campaigns deliver. international_organizations: a standing international office coordinates reporting and eradication.",
+   "desc": "Public veterinary services and an international office track cattle plagues, vaccinate herds and control movement until diseases like rinderpest are wiped out.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730.0,
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Herds no longer die in plague years, so each herder keeps and raises far more stock.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "expanded_immunization vaccinates people; this vaccinates herds. agricultural_extension advises on crops and methods, not on animal disease control."
+  }
+ ],
+ "newLanes": [],
+ "findings": [
+  "Scope: 28 new civics to lift the finite civics count from 449 to 477 (about 93 % of 515 technologies). By Age: A1 +4, A2 +8, A3 +4, A6 +4, A9 +8.",
+  "Every node was checked against all existing and tranche-2 new nodes, including the reviewer's merge and drop verdicts. Ideas the reviewer had already merged were not proposed again: storehouse sealing, stinted commons, pious endowments, transit authorities and free-movement areas.",
+  "Effects favour under-used operands: granaries.farmYieldBonusMax, consumption.granaryYearsOfDemand, housing.personsPerDwelling, housing.upkeepTimberPerDwellingYear, production.toolYieldBonusMax, production.outputPerHerderPerYear, fog.formationSightNodes and roads.baselineKmPerDay. None of the five saturated operands is used. One node, court_upbringing, uses the heavily used governance.authorityDecayCostUnits, because it is the causal operand for loyal vassal courts.",
+  "Grounding caveats. age_sets (A2), stock_friendship (A2) and clearance_usufruct (A2) are dated by ethnographic analogy and say so in their emerged text. sodalities rests on an excavators' interpretation of Göbekli Tepe, which is flagged as such. initiation_rites rests on a contested reading of adolescent cave footprints.",
+  "Prerequisites use only the 684 existing nodes or this file's own ids. No other author's tranche-2 new id is used. For example, prestige_leadership, interest_bearing_credit and primary_health_care are cited only in distinctFrom."
+ ]
+}

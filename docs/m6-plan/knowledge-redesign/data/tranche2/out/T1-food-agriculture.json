@@ -1,0 +1,3457 @@
+{
+ "group": "T1-food-agriculture",
+ "audit": [
+  {
+   "id": "fishing_hook",
+   "name": "Line and pelagic fishing",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "agriculture",
+   "cost": 260.0,
+   "prereq": "cordage",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "cordage",
+     "verdict": "keep",
+     "why": "Line fishing needs twisted fibre line; shell and bone hooks are useless without it."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A1 node on an A1 prerequisite; no gap.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04,
+     "why": "Hook-and-line gear opens deep-water and pelagic stocks, so each fishing worker lands more."
+    }
+   ],
+   "costConcern": "260 is in line with other A1 roots; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct, minimal causal prerequisite. Leaf is deliberate: later commercial fishing grows from nets, salt and ships (new node herring_buss), not from the hook.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Celestial Navigation (Fish harvest)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Sailing (fishing boat food)"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "grinding_stone",
+   "name": "Grinding stone",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "agriculture",
+   "cost": 370.0,
+   "prereq": null,
+   "dependents": [
+    "cereal_cultivation",
+    "ochre_processing",
+    "rotary_quern"
+   ],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "Root node.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.04,
+     "why": "Grinding makes wild seeds, nuts and tubers edible, widening the diet households fall back on in lean years."
+    }
+   ],
+   "costConcern": "370 is slightly above other A1 roots; acceptable for a node with three dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Root node with no prerequisite is right (Upper Palaeolithic plant processing needs only stone).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "dog_domestication",
+   "name": "Dog domestication",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "agriculture",
+   "cost": 260.0,
+   "prereq": null,
+   "dependents": [
+    "pig",
+    "sheep_goat"
+   ],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "Root node.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03,
+     "why": "Hunting dogs raise the take of the hunting-and-herding sector, which the herder operand scales."
+    }
+   ],
+   "costConcern": "260; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Root node is right. One dependent edge (pig) is replaced, see pig; sheep_goat keeps it.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Animal Husbandry"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Animal Husbandry"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cereal_cultivation",
+   "name": "Cereal cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 880.0,
+   "prereq": "grinding_stone",
+   "dependents": [
+    "ancestor_veneration",
+    "cereal_domesticated",
+    "communal_feasts",
+    "cotton_cultivation",
+    "flax",
+    "hereditary_rank",
+    "irrigation_basin",
+    "irrigation_canal",
+    "legume",
+    "maize",
+    "millet",
+    "orchard",
+    "organized_priesthood",
+    "rice_wet",
+    "sorghum_pearl_millet",
+    "terrace"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "grinding_stone",
+     "verdict": "keep",
+     "why": "Natufian ground-stone processing of wild cereals preceded and made worthwhile their deliberate sowing."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A1; adjacent Ages.",
+   "crossTree": "Four civics (ancestor_veneration, communal_feasts, hereditary_rank, organized_priesthood) depend on it; sedentary surplus is a sound social prerequisite.",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03,
+     "why": "Live: makes activity.farming eligible (ends wild-harvest pre-cultivation). Small yield delta for tended, denser stands so the node still matters when another staple opened farming first."
+    },
+    {
+     "liveUnlock": "activity.farming",
+     "why": "Live: makes activity.farming eligible (ends wild-harvest pre-cultivation). Small yield delta for tended, denser stands so the node still matters when another staple opened farming first."
+    }
+   ],
+   "costConcern": "880 for the hub of 16 dependents is reasonable.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Hub node; prerequisite is causal.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Agriculture"
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "activity.farming"
+   ]
+  },
+  {
+   "id": "cereal_domesticated",
+   "name": "Wheat and barley domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 880.0,
+   "prereq": "cereal_cultivation",
+   "dependents": [
+    "crop_rotation_norfolk",
+    "fermentation_grain"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Domestication is the genetic outcome of centuries of cultivation."
+    },
+    {
+     "atom": "sickle",
+     "verdict": "keep",
+     "why": "ADDED: sickle reaping of ripe-but-unshattered ears is the selection pressure that fixed the non-shattering rachis (the node's own description)."
+    }
+   ],
+   "andOr": "change(cereal_cultivation AND sickle)",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.08,
+     "why": "Non-shattering, larger-grained cereals put more harvestable grain on each km2 of arable."
+    }
+   ],
+   "costConcern": "880; fine.",
+   "action": "add-prereq",
+   "newPrereq": "cereal_cultivation AND sickle",
+   "newAge": null,
+   "rationale": "The node's description makes sickle harvesting the mechanism of domestication, yet sickle has no dependents. Adding it closes a missing bridge and gives the sickle a downstream role. sickle (~12,500 BCE) predates the node (~9,500 BCE).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Pottery (Wheat harvest)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Agriculture"
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.08
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "rice_wet",
+   "name": "Wet rice cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 620.0,
+   "prereq": "cereal_cultivation",
+   "dependents": [
+    "fermentation_grain",
+    "rice_champa"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Generic cultivation knowledge; paddy rice is an independent centre but the node models the practice, not the genome."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.06,
+     "why": "Paddies give the highest pre-modern yield per area, and controlled flooding steadies harvests."
+    },
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03,
+     "why": "Paddies give the highest pre-modern yield per area, and controlled flooding steadies harvests."
+    },
+    {
+     "liveUnlock": "activity.farming",
+     "why": "Paddies give the highest pre-modern yield per area, and controlled flooding steadies harvests."
+    }
+   ],
+   "costConcern": "620; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Irrigation is not required: Kuahuqiao and Tianluoshan paddies precede canal systems.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Pottery (Rice harvest)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Agriculture"
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.06
+    },
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "activity.farming"
+   ]
+  },
+  {
+   "id": "millet",
+   "name": "Millet cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 440.0,
+   "prereq": "cereal_cultivation",
+   "dependents": [
+    "fermentation_grain"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Same cultivation practice applied to Panicum and Setaria."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.05,
+     "why": "Short-season, drought-hardy millets make dryland harvests less variable."
+    },
+    {
+     "liveUnlock": "activity.farming",
+     "why": "Short-season, drought-hardy millets make dryland harvests less variable."
+    }
+   ],
+   "costConcern": "440; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Agriculture"
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [
+    "activity.farming"
+   ]
+  },
+  {
+   "id": "maize",
+   "name": "Maize domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 1240.0,
+   "prereq": "cereal_cultivation",
+   "dependents": [
+    "fermentation_grain",
+    "new_world_crops",
+    "nixtamalization"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Cultivation practice; teosinte-to-maize took millennia of tending."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.04,
+     "why": "Maize ears are large, easy to harvest and store on the cob, so each farmer brings in more food."
+    },
+    {
+     "liveUnlock": "activity.farming",
+     "why": "Maize ears are large, easy to harvest and store on the cob, so each farmer brings in more food."
+    }
+   ],
+   "costConcern": "1,240 is the highest A2 crop cost; defensible (slow domestication) but it penalises American starts whose only cereal path it is. Flag for calibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep prerequisite; flag cost only.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Agriculture"
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "activity.farming"
+   ]
+  },
+  {
+   "id": "sorghum_pearl_millet",
+   "name": "African cereal domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 310.0,
+   "prereq": "cereal_cultivation",
+   "dependents": [
+    "fermentation_grain"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Cultivation practice applied to Sahelian grasses."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "Date (~3,000 BCE) sits in the A3 window while the label is A2. Kept A2 deliberately: it is the African alternative to the other A2 staples in the activity.farming OR, and moving it would deny Sahel starts an A2 cereal.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03,
+     "why": "Drought-tolerant staples keep some harvest in dry years, cutting both variance and famine deaths."
+    },
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.03,
+     "why": "Drought-tolerant staples keep some harvest in dry years, cutting both variance and famine deaths."
+    },
+    {
+     "liveUnlock": "activity.farming",
+     "why": "Drought-tolerant staples keep some harvest in dry years, cutting both variance and famine deaths."
+    }
+   ],
+   "costConcern": "310 is cheap for A2; consistent with a regional alternative staple.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; Age label noted, not moved.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Agriculture"
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03
+    },
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "activity.farming"
+   ]
+  },
+  {
+   "id": "root_crop",
+   "name": "Root and tuber cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 440.0,
+   "prereq": null,
+   "dependents": [
+    "cotton_cultivation",
+    "irrigation_basin",
+    "irrigation_canal",
+    "new_world_crops",
+    "orchard",
+    "sugar_refining",
+    "terrace"
+   ],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "A2 root node.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.04,
+     "why": "Tubers yield heavily per area and stay in the ground until needed, a second staple that buffers grain shortfalls."
+    },
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.04,
+     "why": "Tubers yield heavily per area and stay in the ground until needed, a second staple that buffers grain shortfalls."
+    },
+    {
+     "liveUnlock": "activity.farming",
+     "why": "Tubers yield heavily per area and stay in the ground until needed, a second staple that buffers grain shortfalls."
+    }
+   ],
+   "costConcern": "440; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep with no prerequisite: vegetative propagation (Kuk, Andes) arose independently of seed agriculture and grinding.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.04
+    },
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "activity.farming"
+   ]
+  },
+  {
+   "id": "legume",
+   "name": "Legume cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 310.0,
+   "prereq": "cereal_cultivation",
+   "dependents": [
+    "crop_rotation_norfolk"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Pulses were co-domesticated with cereals in the same field systems."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03,
+     "why": "Nitrogen fixation lifts the following cereal crop; storable pulse protein protects children in lean years."
+    },
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.04,
+     "why": "Nitrogen fixation lifts the following cereal crop; storable pulse protein protects children in lean years."
+    }
+   ],
+   "costConcern": "310; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    },
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "orchard",
+   "name": "Fruit tree cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 440.0,
+   "prereq": "cereal_cultivation OR root_crop",
+   "dependents": [
+    "oil_press",
+    "silk"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Sedentary cultivators can make multi-decade perennial investments."
+    },
+    {
+     "atom": "root_crop",
+     "verdict": "keep",
+     "why": "Equally valid for vegeculture societies (bananas, breadfruit)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02,
+     "why": "Deep-rooted perennials fail on different years than annual grain, and dried fruit is a household reserve."
+    },
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03,
+     "why": "Deep-rooted perennials fail on different years than annual grain, and dried fruit is a household reserve."
+    }
+   ],
+   "costConcern": "440; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; OR is right (either sedentary farming path).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Irrigation (Bananas harvest, plantations)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Pottery (plantation food)"
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02
+    },
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "sickle",
+   "name": "Sickle",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 520.0,
+   "prereq": "microlith",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "microlith",
+     "verdict": "keep",
+     "why": "Natufian sickles were microlith blades set in bone or wood hafts."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A1.",
+   "crossTree": "none",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.04,
+     "why": "Reaping with a blade instead of plucking or beating raises harvest labour productivity."
+    }
+   ],
+   "costConcern": "520; fine.",
+   "action": "add-dependency",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Leaf today although it is the mechanism of cereal domestication; becomes a prerequisite of cereal_domesticated (see that record).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "digging_stick_hoe",
+   "name": "Hoe",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 620.0,
+   "prereq": "hafting AND ground_stone_early",
+   "dependents": [
+    "plough_ard"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "hafting",
+     "verdict": "keep",
+     "why": "A hoe is a hafted blade."
+    },
+    {
+     "atom": "ground_stone_early",
+     "verdict": "keep",
+     "why": "Neolithic hoe blades were ground stone."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A1.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.05,
+     "why": "The hoe is the first purpose-made tillage tool, so farmers equipped with tools gain more from them."
+    }
+   ],
+   "costConcern": "620; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "nixtamalization",
+   "name": "Nixtamalization",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "food",
+   "cost": 880.0,
+   "prereq": "maize AND pottery_open_fired",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "maize",
+     "verdict": "keep",
+     "why": "The process exists only for maize."
+    },
+    {
+     "atom": "pottery_open_fired",
+     "verdict": "keep",
+     "why": "Alkaline cooking at the ~1,500 BCE date is pottery-based."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 on A2.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.04,
+     "why": "Releases niacin and prevents pellagra, lowering baseline mortality in maize-dependent populations."
+    }
+   ],
+   "costConcern": "880 for A3 is low but this is a regional node; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Deliberate leaf: a health capability that changes mortality, not a gateway.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "sheep_goat",
+   "name": "Sheep and goat domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 620.0,
+   "prereq": "dog_domestication",
+   "dependents": [
+    "ancestor_veneration",
+    "cattle",
+    "communal_feasts",
+    "composite_bow",
+    "hereditary_rank",
+    "milking",
+    "organized_priesthood",
+    "selective_breeding",
+    "wool"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "dog_domestication",
+     "verdict": "keep",
+     "why": "The first managed animal relationship precedes herd management; weak but harmless, and it is the only route into herding."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A1.",
+   "crossTree": "Four civics depend on it (herd wealth and feasting); sound.",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.04,
+     "why": "Live: makes activity.herding eligible. Managed flocks also yield more per herder than hunting."
+    },
+    {
+     "liveUnlock": "activity.herding",
+     "why": "Live: makes activity.herding eligible. Managed flocks also yield more per herder than hunting."
+    }
+   ],
+   "costConcern": "620; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Animal Husbandry (Sheep)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Animal Husbandry (pasture food)"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "activity.herding"
+   ]
+  },
+  {
+   "id": "cattle",
+   "name": "Cattle domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 620.0,
+   "prereq": "sheep_goat",
+   "dependents": [
+    "animal_traction",
+    "camel",
+    "donkey",
+    "horse_domestication",
+    "milking",
+    "selective_breeding"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "sheep_goat",
+     "verdict": "keep",
+     "why": "Near Eastern cattle were domesticated by communities already managing caprines."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03,
+     "why": "Large stock add meat and milk per herder, and cattle dung manures the fields."
+    },
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02,
+     "why": "Large stock add meat and milk per herder, and cattle dung manures the fields."
+    },
+    {
+     "liveUnlock": "activity.herding",
+     "why": "Large stock add meat and milk per herder, and cattle dung manures the fields."
+    }
+   ],
+   "costConcern": "620; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Animal Husbandry (Cattle)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Animal Husbandry (pasture food)"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03
+    },
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "activity.herding"
+   ]
+  },
+  {
+   "id": "pig",
+   "name": "Pig domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 220.0,
+   "prereq": "dog_domestication",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "dog_domestication",
+     "verdict": "replace",
+     "why": "Dogs play no role in pig domestication. Pigs were domesticated as scavengers of sedentary cultivating villages (Cayonu ~8,500 BCE; Jiahu), so the causal prerequisite is cereal_cultivation."
+    }
+   ],
+   "andOr": "change(cereal_cultivation)",
+   "ageGap": "A2 on A2 after the change.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03,
+     "why": "Pigs turn household waste into meat, a walking larder that households draw on in a shortfall."
+    }
+   ],
+   "costConcern": "220 is the cheapest A2 node; fine for a minor domesticate.",
+   "action": "replace-prereq",
+   "newPrereq": "cereal_cultivation",
+   "newAge": null,
+   "rationale": "Replace the non-causal dog edge with sedentary cultivation (~11,500 BCE predates ~8,500 BCE).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Animal Husbandry"
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "milking",
+   "name": "Milking and dairying",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 440.0,
+   "prereq": "(sheep_goat OR cattle) AND pottery_open_fired",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "sheep_goat",
+     "verdict": "keep",
+     "why": "Earliest dairying is on caprines."
+    },
+    {
+     "atom": "cattle",
+     "verdict": "keep",
+     "why": "Equally on cattle."
+    },
+    {
+     "atom": "pottery_open_fired",
+     "verdict": "keep",
+     "why": "Milk lipids in pottery are the evidence; vessels make cheese and yoghurt possible."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.06,
+     "why": "Milking takes food from living animals year after year, the largest single rise in herd output before breeding."
+    }
+   ],
+   "costConcern": "440; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; (sheep_goat OR cattle) AND pottery is right.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "animal_traction",
+   "name": "Animal traction",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 880.0,
+   "prereq": "cattle",
+   "dependents": [
+    "plough_ard",
+    "wheel_solid"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cattle",
+     "verdict": "keep",
+     "why": "Oxen were the first draught animals."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.04,
+     "why": "Draught oxen thresh by treading and haul harvests, so farmers do more and fields further out become workable."
+    },
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.03,
+     "why": "Draught oxen thresh by treading and haul harvests, so farmers do more and fields further out become workable."
+    }
+   ],
+   "costConcern": "880; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.04
+    },
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "fermentation_grain",
+   "name": "Grain fermentation (beer)",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "food",
+   "cost": 620.0,
+   "prereq": "(cereal_domesticated OR rice_wet OR millet OR maize OR sorghum_pearl_millet) AND pottery_open_fired",
+   "dependents": [
+    "antibiotic_penicillin"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_domesticated",
+     "verdict": "keep",
+     "why": "Barley and wheat beer."
+    },
+    {
+     "atom": "rice_wet",
+     "verdict": "keep",
+     "why": "Rice wine."
+    },
+    {
+     "atom": "millet",
+     "verdict": "keep",
+     "why": "Millet beer."
+    },
+    {
+     "atom": "maize",
+     "verdict": "keep",
+     "why": "Chicha."
+    },
+    {
+     "atom": "sorghum_pearl_millet",
+     "verdict": "keep",
+     "why": "Sorghum beer."
+    },
+    {
+     "atom": "pottery_open_fired",
+     "verdict": "keep",
+     "why": "Malting and brewing at scale need vessels."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.03,
+     "why": "Turning surplus grain into beer before it rots preserves it; shared drink eases social strain."
+    },
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02,
+     "why": "Turning surplus grain into beer before it rots preserves it; shared drink eases social strain."
+    }
+   ],
+   "costConcern": "620; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; the OR over any cereal is right.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.03
+    },
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "fermentation_fruit",
+   "name": "Wine and fruit fermentation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "food",
+   "cost": 440.0,
+   "prereq": "pottery_open_fired",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "pottery_open_fired",
+     "verdict": "keep",
+     "why": "Jiahu and Georgian wine residues are in pottery jars."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03,
+     "why": "Wine and mead serve the Comfort need and feasting, slowing grievance."
+    }
+   ],
+   "costConcern": "440; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. orchard is not required: early fruit wines used wild fruit and honey.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Wine (luxury resource)"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Wine (resource, not tech-gated)"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "oil_press",
+   "name": "Oil pressing",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "food",
+   "cost": 620.0,
+   "prereq": "orchard AND stone_dry",
+   "dependents": [
+    "olive_press_beam"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "orchard",
+     "verdict": "keep",
+     "why": "Olive cultivation supplies the fruit."
+    },
+    {
+     "atom": "stone_dry",
+     "verdict": "keep",
+     "why": "Stone press beds and crushing basins."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "liveUnlock": "building.oil_press",
+     "why": "Live: makes building.oil_press constructible; that is the node's whole capability."
+    }
+   ],
+   "costConcern": "620; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.oil_press"
+   ]
+  },
+  {
+   "id": "salt_extraction",
+   "name": "Salt production",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "food",
+   "cost": 440.0,
+   "prereq": "pottery_open_fired",
+   "dependents": [
+    "glass_glaze",
+    "state_monopolies"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "pottery_open_fired",
+     "verdict": "keep",
+     "why": "Briquetage: brine evaporated in coarse pottery (Poiana Slatinei)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "Civic dependent state_monopolies (salt monopoly) is sound.",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.04,
+     "why": "Salted meat and fish are a household reserve; salt is a universal trade good that moves along price gaps."
+    },
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02,
+     "why": "Salted meat and fish are a household reserve; salt is a universal trade good that moves along price gaps."
+    }
+   ],
+   "costConcern": "440; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Salt (luxury resource)"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Salt (resource, not tech-gated)"
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.04
+    },
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "flax",
+   "name": "Flax cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 440.0,
+   "prereq": "cereal_cultivation",
+   "dependents": [
+    "spinning_spindle"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Flax was cultivated in the Levantine founder-crop package."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02,
+     "why": "Linen nets and lines raise fishing catches; linen cloth serves the Comfort need."
+    },
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02,
+     "why": "Linen nets and lines raise fishing catches; linen cloth serves the Comfort need."
+    }
+   ],
+   "costConcern": "440; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "terrace",
+   "name": "Agricultural terracing",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 620.0,
+   "prereq": "stone_dry AND (cereal_cultivation OR root_crop)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "stone_dry",
+     "verdict": "keep",
+     "why": "Terrace risers are dry-stone walls."
+    },
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Seed farming on slopes."
+    },
+    {
+     "atom": "root_crop",
+     "verdict": "keep",
+     "why": "Andean and New Guinea tuber terraces."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02,
+     "why": "Live: infra.terraces. Retained soil and water also steady hillside harvests."
+    },
+    {
+     "liveUnlock": "infra.terraces",
+     "why": "Live: infra.terraces. Retained soil and water also steady hillside harvests."
+    }
+   ],
+   "costConcern": "620; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Leaf is deliberate: the capability is the infrastructure.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mit'a (Inca civic: Terrace Farm)"
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "infra.terraces"
+   ]
+  },
+  {
+   "id": "plough_ard",
+   "name": "Ard plough",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 1240.0,
+   "prereq": "animal_traction AND digging_stick_hoe",
+   "dependents": [
+    "heavy_plough",
+    "iron_mouldboard",
+    "seed_drill",
+    "seed_drill_tull"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "animal_traction",
+     "verdict": "keep",
+     "why": "The ard is drawn by oxen."
+    },
+    {
+     "atom": "digging_stick_hoe",
+     "verdict": "keep",
+     "why": "The ard is a dragged hoe; tillage-tool lineage."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.15,
+     "why": "Landmark: animal tillage multiplies the area one farmer can cultivate; better seedbeds add a little yield."
+    },
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03,
+     "why": "Landmark: animal tillage multiplies the area one farmer can cultivate; better seedbeds add a little yield."
+    }
+   ],
+   "costConcern": "1,240 is the most expensive A2 node; appropriate for a landmark.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Agriculture"
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.15
+    },
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "horse_domestication",
+   "name": "Horse domestication",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "agriculture",
+   "cost": 1760.0,
+   "prereq": "cattle",
+   "dependents": [
+    "cavalry",
+    "chariot",
+    "collar_harness",
+    "horseshoe",
+    "royal_post"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cattle",
+     "verdict": "keep",
+     "why": "DOM2 horses were domesticated by Pontic-Caspian cattle herders."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.05,
+     "why": "Live: infra.courier_relay (with track_road). Riding raises overland travel speed."
+    },
+    {
+     "liveUnlock": "infra.courier_relay",
+     "why": "Live: infra.courier_relay (with track_road). Riding raises overland travel speed."
+    }
+   ],
+   "costConcern": "1,760 is high next to donkey and camel (620); justified by riding, chariot and cavalry dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Horseback Riding"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Horses (resource, not tech-gated)"
+   },
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [
+    "infra.courier_relay"
+   ]
+  },
+  {
+   "id": "donkey",
+   "name": "Donkey domestication",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "agriculture",
+   "cost": 620.0,
+   "prereq": "cattle",
+   "dependents": [
+    "trade"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cattle",
+     "verdict": "keep",
+     "why": "East African cattle pastoralists domesticated the wild ass."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.04,
+     "why": "Live: activity.caravans. Pack donkeys cut the cost of moving bulk goods."
+    },
+    {
+     "liveUnlock": "activity.caravans",
+     "why": "Live: activity.caravans. Pack donkeys cut the cost of moving bulk goods."
+    }
+   ],
+   "costConcern": "620; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "activity.caravans"
+   ]
+  },
+  {
+   "id": "camel",
+   "name": "Camel domestication",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "agriculture",
+   "cost": 620.0,
+   "prereq": "cattle",
+   "dependents": [
+    "trade"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cattle",
+     "verdict": "keep",
+     "why": "Herding know-how; Arabian and Bactrian pastoralists."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 on A2; dromedary date (~1,000 BCE) is A4-window but Bactrian (~2,500 BCE) fits A3.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.05,
+     "why": "Live: activity.caravans. Camels cross deserts, so longer overland routes become viable."
+    },
+    {
+     "liveUnlock": "activity.caravans",
+     "why": "Live: activity.caravans. Camels cross deserts, so longer overland routes become viable."
+    }
+   ],
+   "costConcern": "620; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Camels (resource, not tech-gated)"
+   },
+   "effects": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [
+    "activity.caravans"
+   ]
+  },
+  {
+   "id": "beekeeping",
+   "name": "Beekeeping",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "agriculture",
+   "cost": 740.0,
+   "prereq": "pottery_open_fired",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "pottery_open_fired",
+     "verdict": "keep",
+     "why": "Egyptian and Tel Rehov hives are clay cylinders."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 on A2.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03,
+     "why": "Managed hives are animal husbandry: honey and wax add to the husbandry sector's output."
+    }
+   ],
+   "costConcern": "740; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Leaf is acceptable; beeswax for lost-wax casting is a materials link left to that lane.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "rotary_quern",
+   "name": "Rotary quern",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "agriculture",
+   "cost": 1760.0,
+   "prereq": "grinding_stone AND wheel_solid",
+   "dependents": [
+    "water_mill"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "grinding_stone",
+     "verdict": "keep",
+     "why": "Direct lineage of the quern."
+    },
+    {
+     "atom": "wheel_solid",
+     "verdict": "keep",
+     "why": "Rotary motion on an axle."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A4 on A1/A2; long gap is legitimate (rotary grinding is late).",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.05,
+     "why": "Continuous rotary grinding cuts the household labour of turning grain into flour, freeing farm labour."
+    }
+   ],
+   "costConcern": "1,760; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "The Wheel (Water Mill)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Machinery (Gristmill)"
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "iron_mouldboard",
+   "name": "Iron mouldboard plough",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "agriculture",
+   "cost": 4180.0,
+   "prereq": "cast_iron AND plough_ard",
+   "dependents": [
+    "farm_machinery"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cast_iron",
+     "verdict": "keep",
+     "why": "Han shares and mouldboards were cast iron."
+    },
+    {
+     "atom": "plough_ard",
+     "verdict": "keep",
+     "why": "Plough lineage."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 on A5 and A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.06,
+     "why": "Turning the furrow buries weeds and works heavy soils; cast-iron shares outlast wooden ones."
+    },
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.05,
+     "why": "Turning the furrow buries weeds and works heavy soils; cast-iron shares outlast wooden ones."
+    }
+   ],
+   "costConcern": "4,180 for A5; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.06
+    },
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "seed_drill",
+   "name": "Seed drill",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "agriculture",
+   "cost": 2490.0,
+   "prereq": "plough_ard AND cast_iron",
+   "dependents": [
+    "seed_drill_tull"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "plough_ard",
+     "verdict": "keep",
+     "why": "The Han drill is a multi-tube ard."
+    },
+    {
+     "atom": "cast_iron",
+     "verdict": "keep",
+     "why": "Cast-iron coulters."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 on A2 and A5.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.05,
+     "why": "Row sowing at even depth saves seed and labour and gives more even germination."
+    },
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02,
+     "why": "Row sowing at even depth saves seed and labour and gives more even germination."
+    }
+   ],
+   "costConcern": "2,490; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.05
+    },
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "heavy_plough",
+   "name": "Heavy wheeled plough",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "agriculture",
+   "cost": 4970.0,
+   "prereq": "plough_ard AND iron_bloomery AND wheel_solid",
+   "dependents": [
+    "farm_machinery",
+    "manorialism"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "plough_ard",
+     "verdict": "keep",
+     "why": "Plough and traction lineage."
+    },
+    {
+     "atom": "iron_bloomery",
+     "verdict": "replace",
+     "why": "The iron share and coulter are forged farm ironwork; the new node iron_farm_tools (which itself requires iron_bloomery) is the exact capability."
+    },
+    {
+     "atom": "wheel_solid",
+     "verdict": "keep",
+     "why": "The wheeled forecarriage the node is named for."
+    }
+   ],
+   "andOr": "change(plough_ard AND iron_farm_tools AND wheel_solid)",
+   "ageGap": "A6 on A2/A4; gap is legitimate.",
+   "crossTree": "Civic dependent manorialism is sound (open-field estate farming).",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.1,
+     "why": "Landmark: opens the heavy clay lowlands of the north, raising grain per km2 of arable."
+    }
+   ],
+   "costConcern": "4,970; fine.",
+   "action": "replace-prereq",
+   "newPrereq": "plough_ard AND iron_farm_tools AND wheel_solid",
+   "newAge": null,
+   "rationale": "Route the iron requirement through the new A4 iron farm-tool node (forged shares, coulters); iron_bloomery remains an indirect prerequisite, so no capability is lost, and the A4 node stops being a leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Feudalism (farm food)"
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.1
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "horse_collar",
+   "name": "Padded horse collar",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "agriculture",
+   "cost": 2090.0,
+   "prereq": "collar_harness",
+   "dependents": [
+    "farm_machinery",
+    "seed_drill_tull"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "collar_harness",
+     "verdict": "keep",
+     "why": "The padded collar develops from the breast-strap harness."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 on A5.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.06,
+     "why": "Horses plough at oxen load and nearly twice the speed, and haul goods more cheaply."
+    },
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03,
+     "why": "Horses plough at oxen load and nearly twice the speed, and haul goods more cheaply."
+    }
+   ],
+   "costConcern": "2,090; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.06
+    },
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "rice_champa",
+   "name": "Early-ripening rice",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "agriculture",
+   "cost": 1480.0,
+   "prereq": "rice_wet",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "rice_wet",
+     "verdict": "keep",
+     "why": "Varietal improvement of paddy rice."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 on A2; long gap legitimate (a later variety on an early practice).",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.1,
+     "why": "Landmark for paddy regions: double-cropping lifts yield per area; drought tolerance steadies it."
+    },
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03,
+     "why": "Landmark for paddy regions: double-cropping lifts yield per area; drought tolerance steadies it."
+    }
+   ],
+   "costConcern": "1,480 is low for A6; flag for calibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.1
+    },
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "sugar_refining",
+   "name": "Sugar crystallisation",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "food",
+   "cost": 2090.0,
+   "prereq": "root_crop AND pottery_open_fired",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "root_crop",
+     "verdict": "keep",
+     "why": "Sugarcane is vegetatively propagated from New Guinea vegeculture (Kuk); the atom stands for clonal cultivation."
+    },
+    {
+     "atom": "pottery_open_fired",
+     "verdict": "keep",
+     "why": "Boiling and crystallising moulds were pottery."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 label on a ~350 CE date (A5 window); kept, the Islamic diffusion ~700 CE is the scale-up.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02,
+     "why": "Crystal sugar is a storable comfort good and a long-distance trade commodity."
+    },
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02,
+     "why": "Crystal sugar is a storable comfort good and a long-distance trade commodity."
+    }
+   ],
+   "costConcern": "2,090; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Irrigation (Sugar plantation)"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Sugar (Exploration resource)"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    },
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "crop_rotation_norfolk",
+   "name": "Four-course rotation",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "agriculture",
+   "cost": 4180.0,
+   "prereq": "legume AND cereal_domesticated",
+   "dependents": [
+    "selective_breeding"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "legume",
+     "verdict": "keep",
+     "why": "Clover in the course; also implied by three_field_rotation."
+    },
+    {
+     "atom": "cereal_domesticated",
+     "verdict": "keep",
+     "why": "Wheat and barley courses."
+    },
+    {
+     "atom": "three_field_rotation",
+     "verdict": "keep",
+     "why": "ADDED: the four-course system replaces the fallow year of the open-field rotation with turnips and clover; it is an elaboration of a rotation regime, not a direct leap from Neolithic crops."
+    }
+   ],
+   "andOr": "change(legume AND cereal_domesticated AND three_field_rotation)",
+   "ageGap": "A7 on A2 only today: a missing bridge across four Ages.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.15,
+     "why": "Landmark: no fallow plus fodder crops raise grain yield and double the livestock carried."
+    },
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.1,
+     "why": "Landmark: no fallow plus fodder crops raise grain yield and double the livestock carried."
+    }
+   ],
+   "costConcern": "4,180; fine.",
+   "action": "add-prereq",
+   "newPrereq": "legume AND cereal_domesticated AND three_field_rotation",
+   "newAge": null,
+   "rationale": "Bridge through the new A6 rotation node; ~800 CE predates ~1,650 CE.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.15
+    },
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.1
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "seed_drill_tull",
+   "name": "Horse-drawn seed drill (Europe)",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "agriculture",
+   "cost": 2960.0,
+   "prereq": "seed_drill OR (plough_ard AND horse_collar)",
+   "dependents": [
+    "mechanised_agriculture"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "seed_drill",
+     "verdict": "keep",
+     "why": "Transmission route."
+    },
+    {
+     "atom": "plough_ard",
+     "verdict": "keep",
+     "why": "Independent European route."
+    },
+    {
+     "atom": "horse_collar",
+     "verdict": "keep",
+     "why": "Horse-drawn."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 on A5/A6.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.06,
+     "why": "Horse-drilling and horse-hoeing cut sowing and weeding labour per farmer."
+    }
+   ],
+   "costConcern": "2,960; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; the OR captures transmission versus reinvention.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "selective_breeding",
+   "name": "Systematic livestock breeding",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "agriculture",
+   "cost": 4180.0,
+   "prereq": "crop_rotation_norfolk AND (sheep_goat OR cattle)",
+   "dependents": [
+    "evolution"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "crop_rotation_norfolk",
+     "verdict": "keep",
+     "why": "Winter fodder made year-round controlled breeding possible."
+    },
+    {
+     "atom": "sheep_goat",
+     "verdict": "keep",
+     "why": "Bakewell's Leicester sheep."
+    },
+    {
+     "atom": "cattle",
+     "verdict": "keep",
+     "why": "Longhorn cattle."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 on A7/A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.1,
+     "why": "Larger, faster-maturing animals raise output per herder."
+    }
+   ],
+   "costConcern": "4,180; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.1
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "new_world_crops",
+   "name": "Columbian crop exchange",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "agriculture",
+   "cost": 2960.0,
+   "prereq": "carrack AND (maize OR root_crop)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "carrack",
+     "verdict": "keep",
+     "why": "Ocean crossing carries the crops."
+    },
+    {
+     "atom": "maize",
+     "verdict": "keep",
+     "why": "Maize route."
+    },
+    {
+     "atom": "root_crop",
+     "verdict": "keep",
+     "why": "Potato, cassava, sweet potato route."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 on A7/A2.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.08,
+     "why": "Potato and maize raise calories per area and give famine-resistant staples on marginal land."
+    },
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.05,
+     "why": "Potato and maize raise calories per area and give famine-resistant staples on marginal land."
+    }
+   ],
+   "costConcern": "2,960; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Distant Lands resources (Exploration Age)"
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.08
+    },
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "refrigeration",
+   "name": "Mechanical refrigeration",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "food",
+   "cost": 33450.0,
+   "prereq": "chemistry_quantitative AND steam_rotary AND thermodynamics",
+   "dependents": [
+    "superconductivity_applied"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Refrigerant chemistry."
+    },
+    {
+     "atom": "steam_rotary",
+     "verdict": "keep",
+     "why": "Compressor drive."
+    },
+    {
+     "atom": "thermodynamics",
+     "verdict": "keep",
+     "why": "Linde's cycle is applied thermodynamics."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 on A8.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.2,
+     "why": "Landmark: the cold chain cuts losses in store, and chilled cargo lets food reach distant markets."
+    },
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04,
+     "why": "Landmark: the cold chain cuts losses in store, and chilled cargo lets food reach distant markets."
+    }
+   ],
+   "costConcern": "33,450 is double canning (16,730) in the same Age; flag for calibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.2
+    },
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "canning",
+   "name": "Canning",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "food",
+   "cost": 16730.0,
+   "prereq": "glass_blowing AND sheet_metal",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "glass_blowing",
+     "verdict": "keep",
+     "why": "Appert's bottles (1810)."
+    },
+    {
+     "atom": "sheet_metal",
+     "verdict": "keep",
+     "why": "Tinplate cans (Durand 1810, Donkin and Hall 1812)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 on A5/A3; long gap, sterilisation itself was an empirical discovery with no earlier node.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "consumption.granaryYearsOfDemand",
+     "delta": 0.1,
+     "why": "Sealed, sterilised food keeps for years, so stores cover longer and households absorb shortfalls."
+    },
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.05,
+     "why": "Sealed, sterilised food keeps for years, so stores cover longer and households absorb shortfalls."
+    }
+   ],
+   "costConcern": "16,730; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; AND reflects that commercial canning used both glass and tinplate.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mass Production (Cannery)"
+   },
+   "effects": [
+    {
+     "operand": "consumption.granaryYearsOfDemand",
+     "delta": 0.1
+    },
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "green_revolution",
+   "name": "High-yield dwarf cereals",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "cost": 16730.0,
+   "prereq": "scientific_plant_breeding AND chemical_fertilizer AND haber_bosch AND irrigation_canal",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "scientific_plant_breeding",
+     "verdict": "keep",
+     "why": "Dwarf varieties were bred."
+    },
+    {
+     "atom": "chemical_fertilizer",
+     "verdict": "keep",
+     "why": "Bred for fertiliser response."
+    },
+    {
+     "atom": "haber_bosch",
+     "verdict": "keep",
+     "why": "Nitrogen supply."
+    },
+    {
+     "atom": "irrigation_canal",
+     "verdict": "keep",
+     "why": "The package requires controlled water."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 on A9/A8/A2.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.25,
+     "why": "Landmark: yields roughly tripled in Asia and mass famine receded."
+    },
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.1,
+     "why": "Landmark: yields roughly tripled in Asia and mass famine receded."
+    }
+   ],
+   "costConcern": "16,730; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; the four-way AND is the real package.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.25
+    },
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.1
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mechanised_agriculture",
+   "name": "Tractor and combine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "cost": 23650.0,
+   "prereq": "internal_combustion AND seed_drill_tull AND farm_machinery",
+   "dependents": [
+    "precision_agriculture",
+    "tank"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "internal_combustion",
+     "verdict": "keep",
+     "why": "Tractor engine."
+    },
+    {
+     "atom": "seed_drill_tull",
+     "verdict": "keep",
+     "why": "Drilled row cultivation, mechanised."
+    },
+    {
+     "atom": "farm_machinery",
+     "verdict": "keep",
+     "why": "Reaper, thresher and plough lineage."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 on A8/A7.",
+   "crossTree": "Dependent tank is sound (tracked tractor).",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.25,
+     "why": "Landmark: tractor and combine let one farmer work many times the area."
+    }
+   ],
+   "costConcern": "23,650; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "not-reviewed",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.25
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "drip_irrigation",
+   "name": "Drip irrigation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "cost": 33450.0,
+   "prereq": "plastics AND (irrigation_basin OR irrigation_canal)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "plastics",
+     "verdict": "keep",
+     "why": "Polyethylene emitter lines."
+    },
+    {
+     "atom": "irrigation_basin",
+     "verdict": "keep",
+     "why": "Irrigation lineage."
+    },
+    {
+     "atom": "irrigation_canal",
+     "verdict": "keep",
+     "why": "Irrigation lineage."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 on A9/A2.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.08,
+     "why": "Water delivered to the root zone decouples harvests from rainfall."
+    }
+   ],
+   "costConcern": "33,450 is high against green_revolution (16,730); flag.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.08
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "precision_agriculture",
+   "name": "Precision agriculture",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "cost": 94620.0,
+   "prereq": "gps AND mechanised_agriculture",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "gps",
+     "verdict": "keep",
+     "why": "Field position."
+    },
+    {
+     "atom": "mechanised_agriculture",
+     "verdict": "keep",
+     "why": "The machinery being steered."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 on A9.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.05,
+     "why": "Inputs matched to each part of a field raise yield and cut wasted passes."
+    },
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.05,
+     "why": "Inputs matched to each part of a field raise yield and cut wasted passes."
+    }
+   ],
+   "costConcern": "94,620 is about four times the other A9 agriculture nodes for a modest capability; the largest outlier in the group.",
+   "action": "adjust-cost",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites are right; cost should come down toward the A9 agriculture band at calibration.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.05
+    },
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "frontier_crops",
+   "name": "Crop genomics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "cost": 8360.0,
+   "prereq": "crispr",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "crispr",
+     "verdict": "keep",
+     "why": "Genome editing is the repeatable's engine."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 on A9.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03,
+     "why": "Repeatable: each level raises yield per km2 (contract section 4: operand farming.yieldPerArableKm2PerYear, gapFraction ~0.05 suggested)."
+    }
+   ],
+   "costConcern": "8,360 base with growth per level; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as the agriculture repeatable.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Future Tech"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Future Tech"
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "repeatableProposal": {
+    "operand": "farming.yieldPerArableKm2PerYear",
+    "gapFraction": 0.05,
+    "costGrowth": 1.2
+   }
+  },
+  {
+   "id": "cotton_cultivation",
+   "name": "Cotton cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "cost": 440.0,
+   "prereq": "cereal_cultivation OR root_crop",
+   "dependents": [
+    "cotton_gin_roller",
+    "spinning_spindle"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Indus and Near East cotton growers were cereal farmers."
+    },
+    {
+     "atom": "root_crop",
+     "verdict": "keep",
+     "why": "Peruvian coastal cotton with tuber farming."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 on A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03,
+     "why": "Cotton cloth serves the bound Comfort need, slowing grievance."
+    }
+   ],
+   "costConcern": "440; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Irrigation (Cotton plantation)"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Cotton (resource, not tech-gated)"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "agricultural_chemistry",
+   "name": "Agricultural chemistry",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "agriculture",
+   "cost": 5910.0,
+   "prereq": "chemistry_quantitative",
+   "dependents": [
+    "chemical_fertilizer"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Plant nutrition is quantitative chemistry."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 on A8.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.04,
+     "why": "Knowing what soils lack lets manure and stored inputs be applied where they raise yield most."
+    },
+    {
+     "operand": "granaries.farmYieldBonusMax",
+     "delta": 0.04,
+     "why": "Knowing what soils lack lets manure and stored inputs be applied where they raise yield most."
+    }
+   ],
+   "costConcern": "5,910; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.04
+    },
+    {
+     "operand": "granaries.farmYieldBonusMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "chemical_fertilizer",
+   "name": "Chemical fertilizer",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "agriculture",
+   "cost": 23650.0,
+   "prereq": "agricultural_chemistry AND sulphuric_acid",
+   "dependents": [
+    "green_revolution"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "agricultural_chemistry",
+     "verdict": "keep",
+     "why": "The theory."
+    },
+    {
+     "atom": "sulphuric_acid",
+     "verdict": "keep",
+     "why": "Superphosphate is bone or rock phosphate treated with sulphuric acid."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 on A8.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.15,
+     "why": "Landmark: manufactured phosphate and potash lift yields beyond manure limits."
+    }
+   ],
+   "costConcern": "23,650 is four times agricultural_chemistry; acceptable for a landmark.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.15
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "farm_machinery",
+   "name": "Horse-drawn farm machinery",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "agriculture",
+   "cost": 19890.0,
+   "prereq": "(heavy_plough OR iron_mouldboard) AND horse_collar AND crank_connecting_rod",
+   "dependents": [
+    "mechanised_agriculture"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "heavy_plough",
+     "verdict": "keep",
+     "why": "Plough route."
+    },
+    {
+     "atom": "iron_mouldboard",
+     "verdict": "keep",
+     "why": "Plough route."
+    },
+    {
+     "atom": "horse_collar",
+     "verdict": "keep",
+     "why": "Horse draught."
+    },
+    {
+     "atom": "crank_connecting_rod",
+     "verdict": "keep",
+     "why": "Reaper and thresher drives."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 on A6/A5.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.12,
+     "why": "Reapers and threshers cut harvest labour; factory iron and steel implements raise what equipped farmers gain."
+    },
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.05,
+     "why": "Reapers and threshers cut harvest labour; factory iron and steel implements raise what equipped farmers gain."
+    }
+   ],
+   "costConcern": "19,890; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine (farm food)"
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.12
+    },
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "scientific_plant_breeding",
+   "name": "Scientific plant breeding",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "cost": 11830.0,
+   "prereq": "genetics_mendel",
+   "dependents": [
+    "green_revolution"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "genetics_mendel",
+     "verdict": "keep",
+     "why": "Mendelian crosses."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 on A9.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.08,
+     "why": "Planned crosses and hybrid seed raise yield and add rust- and drought-resistance."
+    },
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.04,
+     "why": "Planned crosses and hybrid seed raise yield and add rust- and drought-resistance."
+    }
+   ],
+   "costConcern": "11,830; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.08
+    },
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "grain_storage",
+   "name": "Purpose-built granaries",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "emerged": "~9,300 BCE Dhra' (Jordan Valley): raised-floor granaries; sealed storage pits and silos widespread by ~7,000 BCE",
+   "prereq": "cereal_cultivation",
+   "prereqRationale": "Only cultivated grain is stored in bulk; Dhra' granaries belong to the earliest cultivators.",
+   "desc": "Raised floors, sealed pits and mud-plastered bins keep stored grain dry and free of pests, so a harvest lasts until the next one and beyond.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.5,
+    "institutional": 0.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "effects": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.06
+    },
+    {
+     "operand": "consumption.granaryYearsOfDemand",
+     "delta": 0.1
+    }
+   ],
+   "civ6": {
+    "relation": "partial",
+    "analog": "Pottery (Granary)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Agriculture (Granary)"
+   },
+   "distinctFrom": "cereal_domesticated changes the plant; this changes how its grain is kept. The granary building has no research requirement; this node improves what granaries hold and how little rots.",
+   "liveUnlocks": []
+  },
+  {
+   "id": "iron_farm_tools",
+   "name": "Iron farm tools",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "agriculture",
+   "emerged": "~1,000 BCE Levant (iron sickles, hoes and plough tips); ~600 BCE China; ~500 BCE Ganges plain",
+   "prereq": "iron_bloomery AND digging_stick_hoe AND sickle",
+   "prereqRationale": "Forged bloomery iron applied to the two existing hand tools of tillage and harvest.",
+   "desc": "Forged iron sickles, hoe blades and ploughshares hold an edge and outlast stone and bronze, letting farmers clear forest and work harder soils.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.75,
+    "institutional": 0.75,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.12
+    },
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.06
+    }
+   ],
+   "civ6": {
+    "relation": "different",
+    "analog": "Iron Working"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Iron Working"
+   },
+   "distinctFrom": "iron_bloomery makes the metal; this puts it into everyday farm tools. Unlike heavy_plough it is a hand-tool and share capability, not a new plough.",
+   "liveUnlocks": []
+  },
+  {
+   "id": "three_field_rotation",
+   "name": "Three-field rotation",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "agriculture",
+   "emerged": "~800 CE Carolingian Francia (estate surveys); widespread in northern Europe by ~1,200 CE",
+   "prereq": "legume AND plough_ard",
+   "prereqRationale": "The spring course is legumes and oats; open-field strips are ploughed. A heavy_plough link is often argued but contested, so it is not required.",
+   "desc": "Fields rotate through winter grain, spring legumes or oats, and fallow, so only a third lies idle; oats feed horses and pulses restore the soil.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.05
+    },
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03
+    }
+   ],
+   "civ6": {
+    "relation": "partial",
+    "analog": "Feudalism (civic; farm adjacency)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Feudalism (farm food)"
+   },
+   "distinctFrom": "crop_rotation_norfolk abolishes fallow with fodder roots and clover; this is the earlier regime that halves fallow and adds a spring course.",
+   "liveUnlocks": []
+  },
+  {
+   "id": "herring_buss",
+   "name": "Herring buss and sea-curing",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "agriculture",
+   "emerged": "~1,380 CE Low Countries (gutting and salting at sea); ~1,415 CE first herring busses with drift nets",
+   "prereq": "cog AND salt_extraction",
+   "prereqRationale": "A decked, seaworthy hull for weeks at sea (cog) and salt to cure the catch aboard (salt_extraction).",
+   "desc": "Decked fishing ships stay out for weeks with drift nets, gutting and salting the herring aboard, so the catch reaches distant markets.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.5,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.06
+    },
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "civ6": {
+    "relation": "partial",
+    "analog": "Celestial Navigation (Fish harvest)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Cartography (fishing boat food)"
+   },
+   "distinctFrom": "fishing_hook is subsistence line fishing; this is an offshore commercial fishery with preservation at sea.",
+   "liveUnlocks": []
+  }
+ ],
+ "newLanes": [],
+ "findings": [
+  "Food lane coverage is front-loaded: 24 of 54 nodes sit in A2, while A4 had a single agriculture node (rotary_quern); iron_farm_tools fills the Iron Age tool step that the tree jumped over.",
+  "Only 13 of 54 nodes had a live effect (activity.farming x6, activity.herding x2, caravans x2, courier relay, terraces, oil press); every node now carries a registry operand or live unlock.",
+  "activity.farming is an OR of six crops, so only the first completed staple changes anything via the unlock; each crop now also carries its own small, distinct operand so later staples still matter.",
+  "Rotation history had a four-Age hole (Neolithic legumes straight to the 1650 Norfolk system); three_field_rotation is the A6 bridge and is proposed as a prerequisite of crop_rotation_norfolk.",
+  "Fishing beyond the A1 hook had no research at all although production.outputPerExtractorPerYear covers fishing; herring_buss adds the one commercial-fishery step (A6).",
+  "The granary building has no research requirement and no node improved it; grain_storage (A2) gives storage its own causal effects (spoilage, years of demand). Integrators may wish to link the public_granaries civic to it.",
+  "harvestVariance.sigmaLogYield draws on nine nodes in this group (sum 0.32 of a 0.6 cap); irrigation nodes in other groups will add to it, so the integrator should watch the cap.",
+  "Cost outliers to calibrate: precision_agriculture 94,620 (about four times its Age peers), refrigeration and drip_irrigation 33,450 versus canning and green_revolution 16,730, maize 1,240 versus other A2 staples 310-620, rice_champa 1,480 low for A6.",
+  "Dependency changes proposed (4): cereal_domesticated +sickle; pig dog_domestication -> cereal_cultivation; crop_rotation_norfolk +three_field_rotation; heavy_plough iron_bloomery -> iron_farm_tools."
+ ]
+}

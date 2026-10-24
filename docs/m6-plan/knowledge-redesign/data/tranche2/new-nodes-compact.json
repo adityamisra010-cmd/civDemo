@@ -1,0 +1,5962 @@
+[
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "mortuary_rites",
+"name": "Burial of the dead",
+"tree": "civics",
+"age": "A1",
+"lane": "belief-religion",
+"prereq": "ochre_processing",
+"desc": "The band buries its dead with ochre and ornaments and mourns them together, binding the living to one another and to the places where their kin lie.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "shamanic_ritual is a specialist's role; burial is a community-wide rite needing no specialist. ancestor_veneration (A2) is the later settled cult of named ancestors."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "sacred_sites",
+"name": "Sacred gathering places",
+"tree": "civics",
+"age": "A1",
+"lane": "belief-religion",
+"prereq": "shamanic_ritual",
+"desc": "Bands that live apart meet at painted caves and shrines in certain seasons to hold rites, exchange news and find spouses.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "shamanic_ritual is who leads the rite; this is where scattered bands gather for it."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "prestige_leadership",
+"name": "Prestige leadership",
+"tree": "civics",
+"age": "A1",
+"lane": "legitimacy-succession",
+"prereq": "gift_exchange AND kin_council",
+"desc": "Some men and women lead by skill and generosity rather than birth: others follow them on the hunt, in moves and in disputes, but can leave them at will.",
+"effects": [
+[
+"colonization.orderPartyFraction",
+0.03
+]
+],
+"distinctFrom": "kin_council is collective deliberation; this is personal, achieved authority within it. hereditary_rank (A2) is authority by birth."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "megalithic_monuments",
+"name": "Monumental shrines",
+"tree": "civics",
+"age": "A2",
+"lane": "belief-religion",
+"prereq": "communal_feasts AND shamanic_ritual",
+"desc": "Communities raise stone enclosures and tombs too large for any household, feeding the work parties with feasts and gathering at them for rites.",
+"effects": [
+[
+"pathBuild.laborPerAdultPerYear",
+0.03
+]
+],
+"distinctFrom": "communal_feasts is the feast; this is the monument the feast pays for. corvee_labour (A3) is labour owed to a state, not volunteered to a shrine."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "regalia",
+"name": "Insignia of rank",
+"tree": "civics",
+"age": "A2",
+"lane": "legitimacy-succession",
+"prereq": "hereditary_rank AND (copper_native OR gold_silver_native)",
+"desc": "Sceptres, maces and gold ornaments mark who holds rank, so authority is recognized by people who have never met its holder.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "hereditary_rank is the rule of inheritance; regalia are its visible signs, which carry authority beyond face-to-face contact."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "first_settler_rights",
+"name": "First-comer precedence",
+"tree": "civics",
+"age": "A2",
+"lane": "legitimacy-succession",
+"prereq": "ancestor_veneration",
+"desc": "The lineage descended from the first settlers keeps the shrine of the land and allots fields to later arrivals, who farm by its leave.",
+"effects": [
+[
+"catchment.hinterlandRadiusKm",
+0.03
+]
+],
+"distinctFrom": "ancestor_veneration honours the dead; this turns descent from the first settlers into a claim over land and newcomers."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "segmentary_lineage",
+"name": "Segmentary lineage society",
+"tree": "civics",
+"age": "A2",
+"lane": "regime-forms",
+"prereq": "ancestor_veneration AND kin_council",
+"desc": "Lineages unite against outsiders and split when they grow, with no permanent chief; elders of each segment settle disputes.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.03
+]
+],
+"distinctFrom": "chiefdom has a permanent paramount; tribal_confederacy is a sworn league. This form has neither: unity by descent, fission by growth."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "big_man_polity",
+"name": "Big-man polity",
+"tree": "civics",
+"age": "A2",
+"lane": "regime-forms",
+"prereq": "prestige_leadership AND communal_feasts",
+"desc": "Leaders compete for followers by sponsoring feasts and exchanges; their authority lasts only as long as their generosity and is not inherited.",
+"effects": [
+[
+"farming.outputPerFarmerPerYear",
+0.02
+]
+],
+"distinctFrom": "chiefdom is hereditary office; the big-man's position is achieved and lapses with him."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "coronation_rites",
+"name": "Enthronement rites",
+"tree": "civics",
+"age": "A3",
+"lane": "legitimacy-succession",
+"prereq": "sacral_kingship",
+"desc": "A new ruler is installed by public rite: anointing, crowning and the oath of the great men, so everyone knows who rules from the day of accession.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.02
+]
+],
+"distinctFrom": "succession_law says who the heir is; this rite makes the accession public and binding."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "pantheon_hierarchy",
+"name": "State pantheon",
+"tree": "civics",
+"age": "A3",
+"lane": "belief-religion",
+"prereq": "organized_priesthood AND (cuneiform OR hieroglyphic)",
+"desc": "The city gods are arranged in one ranked family under a high god, whose shrine confers kingship over all the cities.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "organized_priesthood serves one city's god; this joins many cities' gods into one hierarchy that legitimizes rule over all of them."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "temple_almsgiving",
+"name": "Temple relief",
+"tree": "civics",
+"age": "A3",
+"lane": "belief-religion",
+"prereq": "temple_economy",
+"desc": "Temples put widows, orphans and the destitute on their ration lists in return for light work, so the weakest are fed from temple stores.",
+"effects": [
+[
+"demographics.starvationChildMultiplier",
+0.04
+]
+],
+"distinctFrom": "temple_economy is the estate management; this is the temple's relief role. debt_remission is a royal edict cancelling debts."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "overkingship",
+"name": "Overkingship",
+"tree": "civics",
+"age": "A3",
+"lane": "regime-forms",
+"prereq": "sacral_kingship AND sworn_treaties",
+"desc": "A great king rules other kings, who keep their thrones in return for oaths, tribute and troops.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.03
+]
+],
+"distinctFrom": "territorial_kingship rules directly through officials; overkingship rules indirectly through sworn sub-kings."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "succession_oaths",
+"name": "Succession oaths",
+"tree": "civics",
+"age": "A4",
+"lane": "legitimacy-succession",
+"prereq": "succession_law AND sworn_treaties",
+"desc": "Officials and vassal kings swear in the old ruler's lifetime to support his chosen heir, under curses if they break the oath.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "succession_law names the heir; these oaths bind the realm's officials to him before the accession."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "ethical_religion",
+"name": "Ethical religion",
+"tree": "civics",
+"age": "A4",
+"lane": "belief-religion",
+"prereq": "organized_priesthood AND law_code",
+"desc": "Prophets teach that the gods demand justice for the poor rather than sacrifice alone, and judge kings and the rich by that standard.",
+"effects": [
+[
+"society.grievanceRelief",
+0.03
+]
+],
+"distinctFrom": "organized_priesthood is the cult; this is the moral content that holds rulers and rich to account. scriptural_canon fixes texts."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "pilgrimage",
+"name": "Pilgrimage and sacred truce",
+"tree": "civics",
+"age": "A4",
+"lane": "belief-religion",
+"prereq": "organized_priesthood AND track_road",
+"desc": "Sanctuaries draw pilgrims from many states; a sacred truce protects travellers on the roads to the festival.",
+"effects": [
+[
+"roads.baselineKmPerDay",
+0.02
+]
+],
+"distinctFrom": "public_games is the contest; pilgrimage is the protected journey and the sanctuary network."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "tyranny",
+"name": "Tyranny",
+"tree": "civics",
+"age": "A4",
+"lane": "regime-forms",
+"prereq": "elite_council AND (citizen_militia OR standing_army)",
+"desc": "A strongman seizes a city outside the traditional order, backed by the people or hired troops, and rules through patronage and public works.",
+"effects": [
+[
+"pathBuild.laborPerAdultPerYear",
+0.03
+]
+],
+"distinctFrom": "military_rule is government by the armed forces as a body; tyranny is one man's rule over a city, outside law but often popular."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "imperial_cult",
+"name": "Ruler cult",
+"tree": "civics",
+"age": "A5",
+"lane": "legitimacy-succession",
+"prereq": "sacral_kingship AND provincial_administration",
+"desc": "Provinces raise temples and priests to the living or deified ruler; local notables compete to hold the priesthood, binding them to the empire.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.04
+]
+],
+"distinctFrom": "sacral_kingship is the king's sanction by the gods; the ruler cult makes him an object of provincial worship run by local elites."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "adoptive_succession",
+"name": "Adoptive succession",
+"tree": "civics",
+"age": "A5",
+"lane": "legitimacy-succession",
+"prereq": "succession_law AND family_law",
+"desc": "The ruler adopts the ablest candidate as his son and heir, giving merit the form of dynastic succession.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.03
+]
+],
+"distinctFrom": "succession_law fixes the heir by birth order; adoption chooses him by ability while keeping dynastic form."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "congregational_worship",
+"name": "Congregations",
+"tree": "civics",
+"age": "A5",
+"lane": "belief-religion",
+"prereq": "scriptural_canon AND communal_feasts",
+"desc": "Lay believers meet weekly to hear scripture, share a meal and support their poor, sick and widows from a common fund.",
+"effects": [
+[
+"demographics.starvationMortalityMaxPerYear",
+0.03
+]
+],
+"distinctFrom": "organized_priesthood and temple_almsgiving are run by priests; congregations are lay communities supporting their own members."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "state_orthodoxy",
+"name": "State orthodoxy",
+"tree": "civics",
+"age": "A5",
+"lane": "ideology",
+"prereq": "mandate_doctrine AND philosophical_schools",
+"desc": "One school of thought is made the state's official doctrine: its classics are taught at a state academy and mastery of them leads to office.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.02
+]
+],
+"distinctFrom": "state_religion establishes a faith and clergy; state orthodoxy establishes a doctrine and a curriculum for officials."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "religious_endowments",
+"name": "Pious endowments",
+"tree": "civics",
+"age": "A6",
+"lane": "belief-religion",
+"prereq": "state_religion AND legal_code_roman",
+"desc": "Land and shops are endowed in perpetuity to fund hospitals, fountains, schools and kitchens, managed by trustees under religious law.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.02
+]
+],
+"distinctFrom": "temple_almsgiving is relief from temple stores; endowments are perpetual legal trusts with their own income."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "investiture_settlement",
+"name": "Church-state concordat",
+"tree": "civics",
+"age": "A6",
+"lane": "belief-religion",
+"prereq": "state_religion AND service_tenure",
+"desc": "Church and crown divide authority over bishops: the church confers spiritual office, the ruler the lands, ending wars over who appoints them.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.03
+]
+],
+"distinctFrom": "state_religion makes the church official; the concordat sets the boundary between church and crown."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "mendicant_orders",
+"name": "Mendicant friars",
+"tree": "civics",
+"age": "A6",
+"lane": "belief-religion",
+"prereq": "monasticism AND canon_law",
+"desc": "Friars without property preach and beg in the towns, nursing the sick and serving the urban poor.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "monasticism withdraws from the world to estates; friars live among townspeople without estates."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "holy_war_doctrine",
+"name": "Holy war",
+"tree": "civics",
+"age": "A6",
+"lane": "belief-religion",
+"prereq": "state_religion AND standing_army",
+"desc": "War against unbelievers is declared a religious duty with spiritual rewards, and conquered frontier land is settled by the faithful.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "military_orders are the fighting monks; this is the doctrine that sanctions the war and the settlement behind it."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "primogeniture",
+"name": "Primogeniture",
+"tree": "civics",
+"age": "A6",
+"lane": "legitimacy-succession",
+"prereq": "succession_law AND service_tenure",
+"desc": "The eldest son inherits the realm or fief undivided; younger sons go to the church, the army or abroad.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.04
+]
+],
+"distinctFrom": "succession_law names an heir; primogeniture also keeps the inheritance undivided."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "caliphate",
+"name": "Caliphate",
+"tree": "civics",
+"age": "A6",
+"lane": "regime-forms",
+"prereq": "scriptural_canon AND state_religion AND provincial_administration",
+"desc": "The successor of the Prophet leads the community of believers in war, law and taxation, through governors and a register of revenues.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.03
+]
+],
+"distinctFrom": "theocracy is rule by priests under religious law; the caliph is a lay successor-ruler, not a priest."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "confessionalization",
+"name": "Confessional state",
+"tree": "civics",
+"age": "A7",
+"lane": "belief-religion",
+"prereq": "religious_reform AND state_religion",
+"desc": "Each ruler fixes his territory's confession; the church keeps parish registers of births, marriages and deaths and disciplines the parish.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "state_religion establishes a faith; confessionalization builds parish registration and discipline in each territory's confession."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "revivalism",
+"name": "Revival movements",
+"tree": "civics",
+"age": "A7",
+"lane": "belief-religion",
+"prereq": "religious_reform",
+"desc": "Lay devotional circles call for personal conversion and good works, founding orphanages, charity schools and Bible societies.",
+"effects": [
+[
+"demographics.starvationChildMultiplier",
+0.03
+]
+],
+"distinctFrom": "religious_reform founds new churches; revivalism renews piety inside them and builds charitable foundations."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "reason_of_state",
+"name": "Reason of state",
+"tree": "civics",
+"age": "A7",
+"lane": "ideology",
+"prereq": "statecraft_doctrine AND printing_press",
+"desc": "The interest of the state is placed above religious and dynastic claims: rulers build revenue, armies and alliances for the state's sake.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.03
+]
+],
+"distinctFrom": "statecraft_doctrine is advice to rulers; reason of state elevates the state's interest above faith and dynasty."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "plebiscite",
+"name": "Plebiscitary legitimacy",
+"tree": "civics",
+"age": "A8",
+"lane": "legitimacy-succession",
+"prereq": "popular_sovereignty AND census",
+"desc": "A ruler seeks the people's direct approval in a yes-or-no vote on his rule or constitution, bypassing representatives.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.03
+]
+],
+"distinctFrom": "referendum lets citizens decide a law; a plebiscite asks them to endorse a ruler or regime."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "civic_religion",
+"name": "Civic ritual",
+"tree": "civics",
+"age": "A8",
+"lane": "legitimacy-succession",
+"prereq": "popular_sovereignty AND public_games",
+"desc": "Flags, anthems, national holidays and monuments give the sovereign nation its own rites, celebrated in every town.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.02
+]
+],
+"distinctFrom": "nationalism is the doctrine; civic ritual is its calendar of festivals and symbols."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "social_christianity",
+"name": "Social Christianity",
+"tree": "civics",
+"age": "A8",
+"lane": "belief-religion",
+"prereq": "labour_unions AND state_religion",
+"desc": "Churches take up the labour question, backing fair wages, workers' associations, settlement houses and relief for the industrial poor.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "socialism demands collective ownership; social Christianity seeks reform within property and church."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "missionary_societies",
+"name": "Missionary societies",
+"tree": "civics",
+"age": "A8",
+"lane": "belief-religion",
+"prereq": "missionary_religion AND printing_press",
+"desc": "Voluntary societies fund missionaries abroad, who found schools and clinics and send home reports and maps of the interior.",
+"effects": [
+[
+"fog.exploreStepNodes",
+0.05
+]
+],
+"distinctFrom": "missionary_religion is the duty to convert; these are the organized, subscription-funded overseas societies."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "bonapartist_regime",
+"name": "Plebiscitary empire",
+"tree": "civics",
+"age": "A8",
+"lane": "regime-forms",
+"prereq": "plebiscite AND universal_conscription",
+"desc": "An emperor rules with authoritarian powers confirmed by plebiscites, through prefects, a mass army and public works.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "absolute_monarchy rests on dynastic right; this form rests on plebiscites and the mass army."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "feminism",
+"name": "Feminism",
+"tree": "civics",
+"age": "A8",
+"lane": "ideology",
+"prereq": "social_contract",
+"desc": "A movement claims for women the rights of citizens: education, property, the professions and the vote.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.03
+]
+],
+"distinctFrom": "womens_suffrage is the vote; feminism is the wider movement for education, property and work."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "social_democracy",
+"name": "Social democracy",
+"tree": "civics",
+"age": "A8",
+"lane": "ideology",
+"prereq": "socialism AND mass_political_party AND mass_suffrage",
+"desc": "Socialist parties seek reform through elections and parliament: social insurance, labour law and public services instead of revolution.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.03
+]
+],
+"distinctFrom": "socialism is the movement's goal; social democracy is its parliamentary, reformist strategy."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "imperialism_doctrine",
+"name": "New imperialism",
+"tree": "civics",
+"age": "A8",
+"lane": "ideology",
+"prereq": "nationalism AND colonial_administration",
+"desc": "Overseas empire is argued to be a national necessity and a civilizing mission; colonies are claimed and settled by agreement among powers.",
+"effects": [
+[
+"colonization.orderPartyFraction",
+0.03
+]
+],
+"distinctFrom": "colonial_administration governs colonies; this is the doctrine that drives their acquisition."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "progressivism",
+"name": "Progressivism",
+"tree": "civics",
+"age": "A8",
+"lane": "ideology",
+"prereq": "classical_liberalism AND mass_press",
+"desc": "Reformers use investigative journalism, experts and regulation to clean up cities, food, factories and politics.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.02
+]
+],
+"distinctFrom": "classical_liberalism limits government; progressivism uses it to regulate."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "semi_presidential_republic",
+"name": "Semi-presidential republic",
+"tree": "civics",
+"age": "A9",
+"lane": "regime-forms",
+"prereq": "ministerial_responsibility AND separation_of_powers AND mass_suffrage",
+"desc": "A directly elected president shares executive power with a prime minister responsible to parliament.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.03
+]
+],
+"distinctFrom": "presidential_republic has no prime minister responsible to parliament; parliamentary_government has no elected president with real powers."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "dominant_party_system",
+"name": "Dominant-party system",
+"tree": "civics",
+"age": "A9",
+"lane": "regime-forms",
+"prereq": "mass_political_party AND mass_suffrage",
+"desc": "One party wins every election for decades while opposition parties remain legal; politics happens among its factions.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "one_party_state bans other parties; here opposition is legal but never wins."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "personalist_dictatorship",
+"name": "Personalist dictatorship",
+"tree": "civics",
+"age": "A9",
+"lane": "regime-forms",
+"prereq": "personality_cult AND standing_army",
+"desc": "One man rules through family, cronies and a loyal guard, above any party or army institution.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.03
+]
+],
+"distinctFrom": "military_rule is rule by the army as a body; one_party_state by a party; here power is personal."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "clerical_republic",
+"name": "Clerical republic",
+"tree": "civics",
+"age": "A9",
+"lane": "regime-forms",
+"prereq": "religious_political_movements AND written_constitution AND mass_suffrage",
+"desc": "Elected institutions govern under the guardianship of senior clerics, who can veto laws and candidates.",
+"effects": [
+[
+"pathBuild.buildCostMultiplier",
+0.03
+]
+],
+"distinctFrom": "theocracy is government by religious office; here elected republican institutions sit under clerical guardianship."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "supranational_union",
+"name": "Supranational union",
+"tree": "civics",
+"age": "A9",
+"lane": "regime-forms",
+"prereq": "customs_union AND international_organizations",
+"desc": "Member states pool sovereignty in common institutions with their own law, court and market, and allow free movement of goods and people.",
+"effects": [
+[
+"trade.gapClosingFraction",
+0.04
+],
+[
+"migration.baseRatePerYear",
+0.03
+]
+],
+"distinctFrom": "federal_republic is one sovereign state; a supranational union pools only part of its members' sovereignty."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "personality_cult",
+"name": "Cult of personality",
+"tree": "civics",
+"age": "A9",
+"lane": "legitimacy-succession",
+"prereq": "state_propaganda AND mass_political_party",
+"desc": "The leader is glorified as infallible in portraits, songs and slogans; loyalty to him becomes the test of loyalty to the state.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "state_propaganda is a ministry and method; the cult concentrates legitimacy in one person."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "constitutional_court",
+"name": "Constitutional court",
+"tree": "civics",
+"age": "A9",
+"lane": "legitimacy-succession",
+"prereq": "judicial_review AND written_constitution",
+"desc": "A special court rules on whether laws and official acts are constitutional and settles disputes between branches and levels of government.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+],
+[
+"governance.authorityDecayCostUnits",
+0.02
+]
+],
+"distinctFrom": "judicial_review is any court's power to void laws; this is a dedicated court that arbitrates the constitution itself."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "transitional_justice",
+"name": "Transitional justice",
+"tree": "civics",
+"age": "A9",
+"lane": "legitimacy-succession",
+"prereq": "human_rights AND international_tribunals",
+"desc": "After a dictatorship or civil war, truth commissions, trials and reparations establish what happened and give the new order legitimacy.",
+"effects": [
+[
+"society.grievanceRelief",
+0.04
+]
+],
+"distinctFrom": "international_tribunals try individuals; transitional justice is the domestic process that legitimizes a new regime."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "power_sharing",
+"name": "Power-sharing",
+"tree": "civics",
+"age": "A9",
+"lane": "legitimacy-succession",
+"prereq": "mass_suffrage AND religious_toleration",
+"desc": "Offices, seats and vetoes are divided among a country's communities by agreement, so no group can rule the others alone.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+],
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "federal_republic divides power by territory; power-sharing divides it among communities."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "term_limits",
+"name": "Term limits",
+"tree": "civics",
+"age": "A9",
+"lane": "legitimacy-succession",
+"prereq": "separation_of_powers AND mass_suffrage",
+"desc": "The head of government may serve only a fixed number of terms, forcing regular turnover at the top.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.02
+]
+],
+"distinctFrom": "presidential_republic fixes terms; term limits cap how many a person may hold."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "electoral_commission",
+"name": "Independent electoral administration",
+"tree": "civics",
+"age": "A9",
+"lane": "legitimacy-succession",
+"prereq": "secret_ballot AND merit_civil_service",
+"desc": "Elections are run by an independent body of officials, not by the government in power, so results are trusted by losers.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.02
+]
+],
+"distinctFrom": "secret_ballot protects the voter; this protects the count and the electoral roll."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "ceremonial_monarchy",
+"name": "Ceremonial monarchy",
+"tree": "civics",
+"age": "A9",
+"lane": "legitimacy-succession",
+"prereq": "succession_law AND ministerial_responsibility AND mass_suffrage",
+"desc": "The hereditary monarch keeps only ceremonial duties as a non-partisan symbol of the state, above party politics.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+]
+],
+"distinctFrom": "constitutional_monarchy still gives the monarch political powers; here the role is purely symbolic."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "ecumenism",
+"name": "Ecumenical movement",
+"tree": "civics",
+"age": "A9",
+"lane": "belief-religion",
+"prereq": "religious_toleration AND international_organizations",
+"desc": "Churches and faiths cooperate through councils and dialogue instead of competing for converts and condemning one another.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+]
+],
+"distinctFrom": "religious_toleration is state policy; ecumenism is cooperation among the faiths themselves."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "liberation_theology",
+"name": "Liberation theology",
+"tree": "civics",
+"age": "A9",
+"lane": "belief-religion",
+"prereq": "systematic_theology AND socialism",
+"desc": "Clergy and lay base communities read scripture as a call to free the poor, organizing cooperatives, soup kitchens and land claims.",
+"effects": [
+[
+"foodState.adaptationAbsorbableShortfall",
+0.02
+]
+],
+"distinctFrom": "social_christianity is reform from above; liberation theology organizes the poor themselves."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "religious_political_movements",
+"name": "Religious mass movements",
+"tree": "civics",
+"age": "A9",
+"lane": "belief-religion",
+"prereq": "mass_political_party AND scriptural_canon",
+"desc": "Mass movements seek to order state and society by religious values, combining preaching, welfare networks and electoral politics.",
+"effects": [
+[
+"demographics.starvationMortalityMaxPerYear",
+0.02
+]
+],
+"distinctFrom": "state_religion is establishment by a ruler; these are mass movements from below."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "faith_based_relief",
+"name": "Religious relief agencies",
+"tree": "civics",
+"age": "A9",
+"lane": "belief-religion",
+"prereq": "social_christianity AND international_organizations",
+"desc": "Religious agencies run famine relief, child feeding and refugee aid across borders.",
+"effects": [
+[
+"demographics.starvationChildMultiplier",
+0.04
+]
+],
+"distinctFrom": "temple_almsgiving is local; these are international agencies with supply chains."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "vanguard_party",
+"name": "Vanguard party",
+"tree": "civics",
+"age": "A9",
+"lane": "ideology",
+"prereq": "socialism AND mass_political_party",
+"desc": "A disciplined party of professional revolutionaries claims to lead the working class, seize power and run the state in its name.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.03
+]
+],
+"distinctFrom": "socialism is the movement; the vanguard party is its Leninist organization for taking power."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "civil_disobedience",
+"name": "Nonviolent resistance",
+"tree": "civics",
+"age": "A9",
+"lane": "ideology",
+"prereq": "mass_press AND mass_political_party",
+"desc": "Movements break unjust laws openly and without violence, using boycotts, strikes and marches to win public opinion.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.04
+]
+],
+"distinctFrom": "civil_rights_law is the legal result; nonviolent resistance is the method that won it."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "neoliberalism",
+"name": "Neoliberalism",
+"tree": "civics",
+"age": "A9",
+"lane": "ideology",
+"prereq": "classical_liberalism AND central_banking",
+"desc": "Markets are promoted over state management: privatization, deregulation, independent central banks and open capital flows.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.03
+]
+],
+"distinctFrom": "classical_liberalism argued against mercantilism; neoliberalism against the post-war mixed economy."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "developmentalism",
+"name": "Developmental state",
+"tree": "civics",
+"age": "A9",
+"lane": "ideology",
+"prereq": "central_planning AND nationalism",
+"desc": "The state guides private industry with credit, targets and protection to catch up with industrial nations.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.03
+]
+],
+"distinctFrom": "central_planning replaces markets; the developmental state steers private firms within them."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "multiculturalism",
+"name": "Multiculturalism",
+"tree": "civics",
+"age": "A9",
+"lane": "ideology",
+"prereq": "secular_state AND human_rights",
+"desc": "The state recognizes and supports the cultures of immigrant and minority communities as part of the nation.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.03
+]
+],
+"distinctFrom": "secular_state treats faiths equally; multiculturalism supports distinct communities' cultures."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "environmentalism",
+"name": "Environmentalism",
+"tree": "civics",
+"age": "A9",
+"lane": "ideology",
+"prereq": "nature_conservation AND mass_press",
+"desc": "A mass movement demands protection of air, water, land and climate, and green parties enter parliaments.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.02
+]
+],
+"distinctFrom": "environmental_regulation is the law; environmentalism is the movement that demands it."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "populism_modern",
+"name": "Mass populism",
+"tree": "civics",
+"age": "A9",
+"lane": "ideology",
+"prereq": "mass_suffrage AND labour_unions AND nationalism",
+"desc": "A leader claims to speak for the common people against the elite, winning elections and bringing unions under the state.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "fascism abolishes elections; populism wins them and keeps them."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "modernizing_nationalism",
+"name": "Modernizing nationalism",
+"tree": "civics",
+"age": "A9",
+"lane": "ideology",
+"prereq": "nationalism AND secular_state AND compulsory_education",
+"desc": "A nationalist state modernizes by decree: secular law, script reform, Western dress and mass schooling.",
+"effects": [
+[
+"research.civicsPointsCoefficient",
+0.02
+]
+],
+"distinctFrom": "nationalism defines the nation; this programme remakes its society from above."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "social_liberalism",
+"name": "Social liberalism",
+"tree": "civics",
+"age": "A9",
+"lane": "ideology",
+"prereq": "classical_liberalism AND income_tax",
+"desc": "Liberals accept that the state must insure citizens against unemployment, sickness and old age to keep a free society.",
+"effects": [
+[
+"foodState.adaptationAbsorbableShortfall",
+0.03
+]
+],
+"distinctFrom": "classical_liberalism limits the state; social liberalism adds social insurance."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "liberal_internationalism",
+"name": "Liberal internationalism",
+"tree": "civics",
+"age": "A9",
+"lane": "ideology",
+"prereq": "classical_liberalism AND international_organizations",
+"desc": "Peace is to be kept by open trade, self-determination and international institutions.",
+"effects": [
+[
+"trade.gapClosingFraction",
+0.03
+]
+],
+"distinctFrom": "collective_security is the alliance mechanism; liberal internationalism is the doctrine behind it."
+},
+{
+"g": "C1-legitimacy-belief-regimes-ideology",
+"id": "pan_movements",
+"name": "Pan-national movements",
+"tree": "civics",
+"age": "A9",
+"lane": "ideology",
+"prereq": "nationalism AND international_organizations",
+"desc": "Movements unite peoples across many states by shared language, history or continent, and found regional organizations.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.02
+]
+],
+"distinctFrom": "nationalism builds one nation-state; pan-national movements unite many."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "customary_sanctions",
+"name": "Customary sanctions",
+"tree": "civics",
+"age": "A1",
+"lane": "law-justice",
+"prereq": "oral_tradition",
+"desc": "Ridicule, shunning and, at the last, expulsion from the band keep bullies and shirkers in line. Everyone knows the rules because everyone tells them.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+]
+],
+"distinctFrom": "kin_council decides matters at a meeting; customary sanctions are the band's standing penalties applied without one."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "band_territories",
+"name": "Band territories",
+"tree": "civics",
+"age": "A1",
+"lane": "law-justice",
+"prereq": "gift_exchange",
+"desc": "Each band holds a known range. In a lean season its members may forage on a neighbour's land by asking leave through kin and exchange partners.",
+"effects": [
+[
+"foodState.adaptationAbsorbableShortfall",
+0.02
+]
+],
+"distinctFrom": "gift_exchange moves objects between partners; band territories govern who may use which land and how access is asked."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "seasonal_aggregation",
+"name": "Seasonal gatherings",
+"tree": "civics",
+"age": "A1",
+"lane": "representation-local-government",
+"prereq": "kin_council AND gift_exchange",
+"desc": "Several bands meet at a rich place each year to feast, trade, arrange marriages and settle quarrels between groups, then disperse again.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.02
+]
+],
+"distinctFrom": "kin_council governs one band; seasonal gatherings bring many bands together for a few weeks."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "blood_compensation",
+"name": "Compensation for injury",
+"tree": "civics",
+"age": "A2",
+"lane": "law-justice",
+"prereq": "gift_exchange AND kin_council",
+"desc": "A killing or injury is settled by a fixed payment from the offender's kin to the victim's, set by the elders, instead of by revenge.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "customary_sanctions punish a band member; compensation settles wrongs between kin groups by payment."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "witnessed_agreements",
+"name": "Witnessed agreements",
+"tree": "civics",
+"age": "A2",
+"lane": "law-justice",
+"prereq": "gift_exchange AND token_counting",
+"desc": "A sale, loan or pledge is made before named witnesses who can later swear to its terms, so a deal with a stranger can be enforced.",
+"effects": [
+[
+"trade.gapClosingFraction",
+0.02
+]
+],
+"distinctFrom": "gift_exchange is reciprocity between partners; witnessed agreements bind strangers to stated terms."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "household_land_tenure",
+"name": "Household fields",
+"tree": "civics",
+"age": "A2",
+"lane": "law-justice",
+"prereq": "cereal_cultivation AND kin_council",
+"desc": "Each household works its own fields within marked boundaries and passes them to its heirs; the village recognizes the holding.",
+"effects": [
+[
+"farming.yieldPerArableKm2PerYear",
+0.02
+]
+],
+"distinctFrom": "C1's first_settler_rights lets a founding lineage allot fields; household fields are heritable holdings of each household."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "storehouse_sealing",
+"name": "Sealed stores",
+"tree": "civics",
+"age": "A2",
+"lane": "administration-fiscal",
+"prereq": "stamp_seal AND pottery_open_fired",
+"desc": "Store doors and jars are closed with clay pressed by an owner's seal; a broken sealing shows who took grain and when.",
+"effects": [
+[
+"consumption.grainSpoilagePerYear",
+0.02
+]
+],
+"distinctFrom": "stamp_seal is the object; sealed stores are the custom of controlling and auditing store access with it."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "village_headship",
+"name": "Village headship",
+"tree": "civics",
+"age": "A2",
+"lane": "representation-local-government",
+"prereq": "kin_council AND cereal_cultivation",
+"desc": "One household head is acknowledged as the village's head: he speaks for it to outsiders and calls the households to common work.",
+"effects": [
+[
+"pathBuild.laborPerAdultPerYear",
+0.02
+]
+],
+"distinctFrom": "kin_council decides by consensus; headship is a standing office in a settled village, not a regional chief (C1 chiefdom)."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "royal_judges",
+"name": "Judges and court records",
+"tree": "civics",
+"age": "A3",
+"lane": "law-justice",
+"prereq": "law_code AND appointed_officials",
+"desc": "Appointed judges hear cases, take witnesses' oaths and record the verdict on a tablet, so a decided case stays decided.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.03
+]
+],
+"distinctFrom": "law_code is the text of the law; royal judges are the office that applies it and keeps records of verdicts."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "ration_administration",
+"name": "Ration lists",
+"tree": "civics",
+"age": "A3",
+"lane": "administration-fiscal",
+"prereq": "taxation AND temple_economy",
+"desc": "Dependents of temple and palace draw fixed monthly rations of barley, oil and wool by age and status, so a short year is shared out by rule.",
+"effects": [
+[
+"demographics.starvationMortalityMaxPerYear",
+0.02
+]
+],
+"distinctFrom": "temple_economy is the institution; ration lists are the written scale by which its stores are paid out."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "village_mayors",
+"name": "Village and ward heads",
+"tree": "civics",
+"age": "A3",
+"lane": "representation-local-government",
+"prereq": "village_headship AND taxation",
+"desc": "A head chosen in the village or city ward answers to the palace for its dues, labour levies and crimes, and speaks for it before officials.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.02
+]
+],
+"distinctFrom": "elite_council is a council of great families at the centre; village heads link each local community to the state."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "karum_courts",
+"name": "Merchant colony courts",
+"tree": "civics",
+"age": "A3",
+"lane": "law-justice",
+"prereq": "trade AND law_code",
+"desc": "Merchants abroad form a colony with its own court; disputes over debts and lost goods are settled on the spot under the home city's law.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.02
+]
+],
+"distinctFrom": "C3's commercial_law (A6) is a general merchant law; karum courts are an early colony court abroad."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "published_law",
+"name": "Published laws",
+"tree": "civics",
+"age": "A4",
+"lane": "law-justice",
+"prereq": "law_code AND (alphabet_vowels OR abjad)",
+"desc": "Laws are carved on stone and set up in public so any citizen who can read knows the rule and the penalty, and magistrates cannot invent them.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "law_code is law written by and for officials; published law is displayed for citizens to read."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "state_treasury",
+"name": "Royal storehouses",
+"tree": "civics",
+"age": "A4",
+"lane": "administration-fiscal",
+"prereq": "provincial_administration AND royal_archives",
+"desc": "Revenue in grain, wine and silver is held in sealed provincial storehouses and paid out only by written order, keeping years of reserves.",
+"effects": [
+[
+"consumption.granaryYearsOfDemand",
+0.03
+]
+],
+"distinctFrom": "storehouse_sealing controls one store; the treasury is a provincial network of stores run on written orders."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "property_class_franchise",
+"name": "Property classes",
+"tree": "civics",
+"age": "A4",
+"lane": "representation-local-government",
+"prereq": "citizen_assembly AND census",
+"desc": "Citizens are ranked by assessed wealth instead of birth; a family that grows rich can climb into the classes that may hold office.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.03
+]
+],
+"distinctFrom": "elite_council admits leading families by birth; property classes admit by assessed wealth."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "citizenship_grants",
+"name": "Extended citizenship",
+"tree": "civics",
+"age": "A5",
+"lane": "law-justice",
+"prereq": "legal_code_roman AND citizen_assembly",
+"desc": "Citizenship is granted to allies, freedmen and whole towns; new citizens may marry, trade, sue and settle anywhere under the common law.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.02
+]
+],
+"distinctFrom": "citizen_assembly is the body of citizens; extended citizenship opens it to outsiders by law."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "sortition",
+"name": "Selection by lot",
+"tree": "civics",
+"age": "A5",
+"lane": "representation-local-government",
+"prereq": "citizen_assembly AND elected_magistracies",
+"desc": "Many offices are filled by drawing lots among eligible citizens, so no faction can buy or monopolize them and every citizen may serve.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+]
+],
+"distinctFrom": "elected_magistracies choose by vote; sortition by lot."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "household_registers",
+"name": "Household registers",
+"tree": "civics",
+"age": "A5",
+"lane": "administration-fiscal",
+"prereq": "census AND provincial_administration",
+"desc": "Every household is entered on a standing register kept by county officials, updated for births, deaths and moves; groups of five answer for each other's dues.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.03
+]
+],
+"distinctFrom": "census is a periodic count; household registers are continuous and tie each household to duties."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "appellate_courts",
+"name": "Courts of appeal",
+"tree": "civics",
+"age": "A6",
+"lane": "law-justice",
+"prereq": "legal_code_roman AND appointed_officials",
+"desc": "A higher court reviews the judgments of local judges and petitions against officials; a wrong verdict can be overturned without bribing the governor.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "royal_judges decide cases at first instance; appellate courts review those decisions."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "notaries",
+"name": "Public notaries",
+"tree": "civics",
+"age": "A6",
+"lane": "law-justice",
+"prereq": "legal_code_roman AND commercial_law",
+"desc": "Licensed notaries draw up contracts, wills and sales in set forms and keep registers; a notarial deed is proof in any court.",
+"effects": [
+[
+"trade.gapClosingFraction",
+0.02
+]
+],
+"distinctFrom": "witnessed_agreements rely on living witnesses; a notarial deed is a public record that proves itself."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "roman_law_revival",
+"name": "Law faculties",
+"tree": "civics",
+"age": "A6",
+"lane": "law-justice",
+"prereq": "jurists",
+"desc": "Masters lecture on the Roman Digest and train students in glossing and disputation; their graduates staff courts and chanceries across the realm.",
+"effects": [
+[
+"institutions.universities.maturityTauYears",
+0.04
+]
+],
+"distinctFrom": "jurists are practitioners; law faculties are the organized teaching of law in universities."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "exchequer_audit",
+"name": "Exchequer audit",
+"tree": "civics",
+"age": "A6",
+"lane": "administration-fiscal",
+"prereq": "taxation AND abacus",
+"desc": "Sheriffs account twice a year at a chequered counting table; sums owed and paid are written on rolls, and arrears follow the official until cleared.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.03
+]
+],
+"distinctFrom": "taxation declares the levy; the Exchequer audits each collector's account against it."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "chancery_rolls",
+"name": "Chancery enrolment",
+"tree": "civics",
+"age": "A6",
+"lane": "administration-fiscal",
+"prereq": "appointed_officials AND royal_archives",
+"desc": "Copies of every letter and writ sent out are entered on rolls, so the government knows what it has granted and ordered and can enforce it.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "royal_archives keep incoming records; chancery rolls copy every outgoing order."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "village_bylaws",
+"name": "Village by-laws",
+"tree": "civics",
+"age": "A6",
+"lane": "representation-local-government",
+"prereq": "kin_council AND heavy_plough",
+"desc": "The village meeting sets the dates of ploughing, harvest and gleaning and the number of beasts on the common, and fines those who break the rules.",
+"effects": [
+[
+"farming.yieldPerArableKm2PerYear",
+0.02
+]
+],
+"distinctFrom": "municipal_charter governs towns; village by-laws govern open-field farming by the village meeting."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "provincial_intendants",
+"name": "Intendants",
+"tree": "civics",
+"age": "A7",
+"lane": "administration-fiscal",
+"prereq": "provincial_administration AND royal_post",
+"desc": "Royal commissioners, removable at will and paid by the crown, oversee justice, police and finance in each province and report by post to the council.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.04
+]
+],
+"distinctFrom": "provincial_administration places governors; intendants are revocable commissioners checking them and the venal officers."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "bankruptcy_law",
+"name": "Bankruptcy law",
+"tree": "civics",
+"age": "A7",
+"lane": "law-justice",
+"prereq": "commercial_law AND legal_code_roman",
+"desc": "When a trader fails, his goods are gathered and shared among creditors by rule, and an honest debtor can be discharged and trade again.",
+"effects": [
+[
+"trade.gapClosingFraction",
+0.02
+]
+],
+"distinctFrom": "commercial_law covers contracts between solvent merchants; bankruptcy law governs what happens when one fails."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "administrative_courts",
+"name": "Administrative courts",
+"tree": "civics",
+"age": "A8",
+"lane": "law-justice",
+"prereq": "separation_of_powers AND appointed_officials",
+"desc": "Citizens can sue the administration before specialist judges; officials who exceed their powers see their acts annulled, so every province is run by the same rules.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "judicial_review tests laws against the constitution; administrative courts test officials' acts against the law."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "penitentiary_reform",
+"name": "Penitentiaries",
+"tree": "civics",
+"age": "A8",
+"lane": "law-justice",
+"prereq": "civil_police AND enlightenment",
+"desc": "Prison terms graded by offence replace branding, flogging and the gallows for most crimes; convicts are held, worked and released rather than maimed or killed.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+]
+],
+"distinctFrom": "civil_police arrests offenders; penitentiaries decide what is done with them after conviction."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "married_womens_property",
+"name": "Married women's property",
+"tree": "civics",
+"age": "A8",
+"lane": "law-justice",
+"prereq": "family_law AND classical_liberalism",
+"desc": "A wife keeps her own earnings, property and inheritance and may contract and sue in her own name, so women can run shops and enter trades.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.02
+]
+],
+"distinctFrom": "family_law fixes marriage and inheritance; this act gives wives separate legal personality in property."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "trademark_law",
+"name": "Trademark law",
+"tree": "civics",
+"age": "A8",
+"lane": "law-justice",
+"prereq": "patent AND railway",
+"desc": "Makers register their marks and copying one is a wrong, so buyers far away can trust a branded sack of flour or tin of tea.",
+"effects": [
+[
+"price.stockReleaseRatePerYear",
+0.02
+]
+],
+"distinctFrom": "patent protects an invention; a trademark protects a maker's name on goods."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "prefectoral_system",
+"name": "Prefects",
+"tree": "civics",
+"age": "A8",
+"lane": "administration-fiscal",
+"prereq": "provincial_intendants AND official_statistics",
+"desc": "Each uniform department is run by a prefect appointed by and answering to the interior ministry, applying the same laws, levies and conscription everywhere.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.05
+]
+],
+"distinctFrom": "provincial_intendants supervised historic provinces with mixed privileges; prefects run uniform departments under one ministry."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "civil_registration",
+"name": "Civil registration",
+"tree": "civics",
+"age": "A8",
+"lane": "administration-fiscal",
+"prereq": "official_statistics AND secular_state",
+"desc": "Every birth, marriage and death is recorded by a public registrar; each person has a legal identity, and the state sees where infants are dying.",
+"effects": [
+[
+"demographics.starvationChildMultiplier",
+0.02
+]
+],
+"distinctFrom": "official_statistics publishes tables; civil registration is the record of each person from which they are drawn."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "internal_toll_abolition",
+"name": "Abolition of internal tolls",
+"tree": "civics",
+"age": "A8",
+"lane": "administration-fiscal",
+"prereq": "customs_tolls AND provincial_administration",
+"desc": "Tolls at provincial borders, rivers and town gates are abolished; duties are collected once, at the national frontier, by one customs service.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.03
+]
+],
+"distinctFrom": "customs_tolls levy duties at internal gates; this replaces them with one frontier tariff. C3's customs_union joins several states' tariffs."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "municipal_corporations",
+"name": "Elected town councils",
+"tree": "civics",
+"age": "A8",
+"lane": "representation-local-government",
+"prereq": "municipal_charter AND representative_assembly",
+"desc": "Ratepayers elect a town council with a budget of its own; it paves, lights and drains streets and maintains the roads of its district.",
+"effects": [
+[
+"pathBuild.buildCostMultiplier",
+0.03
+]
+],
+"distinctFrom": "municipal_charter grants self-government to an oligarchy; elected councils answer to all ratepayers and run public works."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "zemstvo_councils",
+"name": "Elected rural councils",
+"tree": "civics",
+"age": "A8",
+"lane": "representation-local-government",
+"prereq": "municipal_corporations AND abolition",
+"desc": "Elected district councils of landowners, townsmen and peasants run rural schools, clinics, roads and grain reserves for relief in bad years.",
+"effects": [
+[
+"granaries.famineReductionMax",
+0.03
+]
+],
+"distinctFrom": "municipal_corporations govern towns; zemstvos govern the countryside."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "patent_cooperation",
+"name": "Patent Cooperation Treaty",
+"tree": "civics",
+"age": "A9",
+"lane": "law-justice",
+"prereq": "patent AND international_organizations",
+"desc": "One international application and search covers many countries: inventors file once, and laboratories can see what is already claimed anywhere.",
+"effects": [
+[
+"institutions.universities.maxResearchCostReduction",
+0.02
+]
+],
+"distinctFrom": "patent is a national grant; this is one international filing and search for all members."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "land_reform",
+"name": "Land to the tiller",
+"tree": "civics",
+"age": "A9",
+"lane": "law-justice",
+"prereq": "land_registry AND mass_suffrage",
+"desc": "The state buys out absentee landlords and sells their land in small plots to the tenants who farm it; owner-farmers invest in their own fields.",
+"effects": [
+[
+"farming.outputPerFarmerPerYear",
+0.04
+]
+],
+"distinctFrom": "household_land_tenure recognizes existing holdings; land reform transfers land from landlords to tenants."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "tenancy_protection",
+"name": "Tenancy protection",
+"tree": "civics",
+"age": "A9",
+"lane": "law-justice",
+"prereq": "land_registry AND civil_code",
+"desc": "Sharecroppers are registered and cannot be evicted while they pay a fixed share; secure tenants manure, drain and double-crop the land.",
+"effects": [
+[
+"farming.yieldPerArableKm2PerYear",
+0.02
+]
+],
+"distinctFrom": "land_reform transfers ownership; tenancy protection leaves ownership but secures the tenant."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "commercial_arbitration",
+"name": "International arbitration",
+"tree": "civics",
+"age": "A9",
+"lane": "law-justice",
+"prereq": "commercial_law AND international_organizations",
+"desc": "Traders in different countries choose private arbitrators whose awards courts everywhere enforce, so a cross-border deal no longer hangs on a foreign judge.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.02
+]
+],
+"distinctFrom": "karum_courts settled disputes within one merchant colony; arbitration awards are enforceable across states."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "refugee_law",
+"name": "Refugee protection",
+"tree": "civics",
+"age": "A9",
+"lane": "law-justice",
+"prereq": "international_organizations AND law_of_nations",
+"desc": "People fleeing persecution receive travel papers and may not be sent back to danger; states share the task of receiving them.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "human_rights declares rights in general; refugee law gives a specific status and travel papers to the displaced."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "equal_pay_law",
+"name": "Equal pay law",
+"tree": "civics",
+"age": "A9",
+"lane": "law-justice",
+"prereq": "womens_suffrage AND labour_unions",
+"desc": "Employers must pay women the same as men for the same work, so more women train for and stay in skilled and professional jobs.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.03
+]
+],
+"distinctFrom": "married_womens_property gave wives control of earnings; equal pay governs what employers must pay."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "consumer_protection",
+"name": "Consumer protection",
+"tree": "civics",
+"age": "A9",
+"lane": "law-justice",
+"prereq": "civil_code AND antitrust",
+"desc": "Labels must state contents, weights must be true and dangerous goods can be recalled, so buyers trust goods from distant makers.",
+"effects": [
+[
+"trade.gapClosingFraction",
+0.02
+]
+],
+"distinctFrom": "trademark_law protects the seller's mark; consumer protection protects the buyer against the seller."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "legal_aid",
+"name": "Legal aid",
+"tree": "civics",
+"age": "A9",
+"lane": "law-justice",
+"prereq": "bill_of_rights AND jurists",
+"desc": "The state pays for a lawyer for those who cannot afford one, in criminal trials and in disputes over wages, housing and family.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.02
+]
+],
+"distinctFrom": "jurists serve those who can pay; legal aid extends counsel to everyone."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "withholding_tax",
+"name": "Tax withholding",
+"tree": "civics",
+"age": "A9",
+"lane": "administration-fiscal",
+"prereq": "income_tax AND punched_card_tabulation",
+"desc": "Employers deduct income tax from every wage packet and pay it to the state; wage earners pay as they earn and evasion falls.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.05
+]
+],
+"distinctFrom": "income_tax assesses declared incomes; withholding collects it at the payroll."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "value_added_tax",
+"name": "Value-added tax",
+"tree": "civics",
+"age": "A9",
+"lane": "administration-fiscal",
+"prereq": "income_tax AND double_entry",
+"desc": "Each firm pays tax on the value it adds and deducts the tax paid on its inputs; invoices check one another, and exports leave untaxed.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.03
+],
+[
+"trade.gapClosingFraction",
+0.02
+]
+],
+"distinctFrom": "customs_tolls tax goods at gates; VAT taxes value added at each stage with credit for tax already paid."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "executive_budget",
+"name": "Executive budget",
+"tree": "civics",
+"age": "A9",
+"lane": "administration-fiscal",
+"prereq": "income_tax AND ministerial_responsibility",
+"desc": "A central budget office prepares one plan of revenue and spending for every department and audits it afterwards, so distant agencies spend as planned.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.02
+]
+],
+"distinctFrom": "exchequer_audit checks collectors after the fact; the executive budget plans all spending before it happens."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "sample_surveys",
+"name": "Sample surveys",
+"tree": "civics",
+"age": "A9",
+"lane": "administration-fiscal",
+"prereq": "official_statistics AND probability_statistics",
+"desc": "Statisticians measure a random sample of fields and households instead of all, giving crop and employment estimates within weeks, in time to move stocks.",
+"effects": [
+[
+"price.stockReleaseRatePerYear",
+0.02
+]
+],
+"distinctFrom": "official_statistics counts everyone; sample surveys estimate quickly from a random part."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "fiscal_equalization",
+"name": "Fiscal equalization",
+"tree": "civics",
+"age": "A9",
+"lane": "administration-fiscal",
+"prereq": "income_tax AND federal_republic",
+"desc": "The central treasury transfers revenue to poorer or stricken regions by formula, so provinces can keep services and relief going after a bad year.",
+"effects": [
+[
+"foodState.adaptationAbsorbableShortfall",
+0.02
+]
+],
+"distinctFrom": "income_tax raises revenue; equalization moves it to regions that need it."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "customs_automation",
+"name": "Customs modernization",
+"tree": "civics",
+"age": "A9",
+"lane": "administration-fiscal",
+"prereq": "multilateral_trade_rules AND computer",
+"desc": "Goods are classified by one world nomenclature and declared electronically; most cargo clears in hours, with checks targeted by risk.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.02
+]
+],
+"distinctFrom": "internal_toll_abolition removes internal duties; customs modernization speeds the frontier itself."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "public_procurement",
+"name": "Competitive procurement",
+"tree": "civics",
+"age": "A9",
+"lane": "administration-fiscal",
+"prereq": "merit_civil_service AND multilateral_trade_rules",
+"desc": "Public works are let by open, advertised tender under published rules, and contracts go to the lowest compliant bid rather than to friends of officials.",
+"effects": [
+[
+"pathBuild.buildCostMultiplier",
+0.03
+]
+],
+"distinctFrom": "exchequer_audit checks what was spent; procurement governs how contracts are awarded."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "agricultural_extension",
+"name": "Agricultural extension",
+"tree": "civics",
+"age": "A9",
+"lane": "public-administration",
+"prereq": "research_university AND agricultural_chemistry",
+"desc": "Public agents trained at agricultural colleges visit farms, run demonstration plots and teach new seed, fertiliser and methods to working farmers.",
+"effects": [
+[
+"farming.outputPerFarmerPerYear",
+0.03
+]
+],
+"distinctFrom": "agricultural_chemistry is the science; extension is the public service that carries it to farmers."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "disaster_management",
+"name": "Disaster management",
+"tree": "civics",
+"age": "A9",
+"lane": "public-administration",
+"prereq": "official_statistics AND radio_broadcasting",
+"desc": "A standing agency plans for flood, drought and earthquake, stocks relief, broadcasts warnings and moves food and shelter to the stricken within days.",
+"effects": [
+[
+"demographics.starvationMortalityMaxPerYear",
+0.03
+]
+],
+"distinctFrom": "zemstvo_councils kept local grain reserves; a disaster agency plans and moves relief nationally."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "freedom_of_information",
+"name": "Freedom of information",
+"tree": "civics",
+"age": "A9",
+"lane": "public-administration",
+"prereq": "press_freedom AND merit_civil_service",
+"desc": "Any citizen may request government files and must receive them unless a stated exemption applies, so abuses come to light and are corrected.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "C5's press_freedom lets publishers print; freedom of information compels the state to open its files."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "e_government",
+"name": "Digital government",
+"tree": "civics",
+"age": "A9",
+"lane": "public-administration",
+"prereq": "internet AND merit_civil_service",
+"desc": "Citizens file taxes, register businesses and claim benefits online; agencies share data through secure links, so remote districts are served as well as the capital.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.04
+]
+],
+"distinctFrom": "chancery_rolls and executive_budget are paper records; digital government delivers the services themselves online."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "digital_identity",
+"name": "Digital identity",
+"tree": "civics",
+"age": "A9",
+"lane": "public-administration",
+"prereq": "e_government AND civil_registration",
+"desc": "Every resident has a unique, verifiable digital identity; entitlements such as rations and pensions can be drawn anywhere, so workers can move without losing them.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.02
+]
+],
+"distinctFrom": "civil_registration records identity on paper locally; digital identity verifies it anywhere online."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "road_traffic_regulation",
+"name": "Road traffic law",
+"tree": "civics",
+"age": "A9",
+"lane": "public-administration",
+"prereq": "automobile_mass AND civil_police",
+"desc": "Licensed drivers, registered vehicles, speed limits, uniform signs and right-of-way rules let heavy motor traffic flow safely between towns.",
+"effects": [
+[
+"roads.baselineKmPerDay",
+0.02
+]
+],
+"distinctFrom": "C3's zoning plans land use; traffic law governs movement on the roads."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "anti_corruption_agency",
+"name": "Anti-corruption commission",
+"tree": "civics",
+"age": "A9",
+"lane": "public-administration",
+"prereq": "merit_civil_service AND civil_police",
+"desc": "An independent commission investigates officials' bribes and kickbacks with power to arrest, so revenue stops leaking between taxpayer and treasury.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.03
+]
+],
+"distinctFrom": "exchequer_audit checks accounts; an anti-corruption commission investigates and prosecutes officials."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "administrative_procedure",
+"name": "Administrative procedure law",
+"tree": "civics",
+"age": "A9",
+"lane": "public-administration",
+"prereq": "administrative_courts AND merit_civil_service",
+"desc": "Agencies must publish proposed rules, hear comments and give reasons for decisions, which courts can review; those affected are heard before, not after.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+]
+],
+"distinctFrom": "administrative_courts annul unlawful acts afterwards; administrative procedure governs how decisions are made."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "proportional_representation",
+"name": "Proportional representation",
+"tree": "civics",
+"age": "A9",
+"lane": "representation-local-government",
+"prereq": "mass_suffrage AND mass_political_party",
+"desc": "Seats are shared among parties in proportion to their votes, so minorities and new movements win a voice in the chamber instead of the street.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "mass_suffrage gives everyone a vote; proportional representation makes each vote count toward seats."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "regional_devolution",
+"name": "Regional self-government",
+"tree": "civics",
+"age": "A9",
+"lane": "representation-local-government",
+"prereq": "provincial_administration AND mass_suffrage",
+"desc": "Elected regional assemblies and governments take over schools, health and roads within a region, extending effective government to its far corners.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "provincial_administration appoints governors from the centre; devolution elects regional governments."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "reserved_seats",
+"name": "Reserved seats",
+"tree": "civics",
+"age": "A9",
+"lane": "representation-local-government",
+"prereq": "mass_suffrage AND written_constitution",
+"desc": "A share of seats and council headships is set aside for excluded castes, tribes or women; their members gain office, patronage and a route upward.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.03
+]
+],
+"distinctFrom": "C1's power_sharing divides offices among communities; reserved seats guarantee places for disadvantaged groups within any party system."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "participatory_budgeting",
+"name": "Participatory budgeting",
+"tree": "civics",
+"age": "A9",
+"lane": "representation-local-government",
+"prereq": "municipal_corporations AND mass_suffrage",
+"desc": "Neighbourhood assemblies vote each year on which streets, drains and clinics the city's investment budget will build, and monitor the works.",
+"effects": [
+[
+"pathBuild.buildCostMultiplier",
+0.02
+]
+],
+"distinctFrom": "municipal_corporations decide budgets in council; participatory budgeting gives the decision to neighbourhood assemblies."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "democratic_decentralization",
+"name": "Elected village councils",
+"tree": "civics",
+"age": "A9",
+"lane": "representation-local-government",
+"prereq": "zemstvo_councils AND mass_suffrage",
+"desc": "Every village elects a council with its own funds and duties; it runs public works and relief schemes and decides who needs help when harvests fail.",
+"effects": [
+[
+"foodState.adaptationAbsorbableShortfall",
+0.02
+]
+],
+"distinctFrom": "zemstvo_councils govern a district; elected village councils govern each village."
+},
+{
+"g": "C2-law-administration-representation",
+"id": "metropolitan_government",
+"name": "Metropolitan government",
+"tree": "civics",
+"age": "A9",
+"lane": "representation-local-government",
+"prereq": "municipal_corporations AND automobile_mass",
+"desc": "One authority plans transport, water and land use for a city and its suburbs together, so the whole commuting region works as one.",
+"effects": [
+[
+"catchment.hinterlandRadiusKm",
+0.03
+]
+],
+"distinctFrom": "municipal_corporations govern within city limits; metropolitan government spans the whole urban region."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "food_sharing_norms",
+"name": "Food-sharing norms",
+"tree": "civics",
+"age": "A1",
+"lane": "society-welfare",
+"prereq": "fire_making",
+"desc": "Whoever brings in meat must share it with the whole band. A hunter's bad week no longer starves his children, and no family hoards while others go hungry.",
+"effects": [
+[
+"demographics.starvationChildMultiplier",
+0.03
+]
+],
+"distinctFrom": "gift_exchange moves goods between bands; food sharing divides food within the band."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "seasonal_round",
+"name": "Seasonal round",
+"tree": "civics",
+"age": "A1",
+"lane": "environment-urban",
+"prereq": "shelter_hut",
+"desc": "The band moves between known camps on a fixed yearly schedule, reaching fish runs, nut groves and herds when each is at its best.",
+"effects": [
+[
+"catchment.hinterlandRadiusKm",
+0.03
+]
+],
+"distinctFrom": "transhumance (A2) moves herds between pastures; the seasonal round moves the whole band between wild resources."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "landscape_burning",
+"name": "Fire-stick land management",
+"tree": "civics",
+"age": "A1",
+"lane": "environment-urban",
+"prereq": "fire_making",
+"desc": "The band burns country in small patches at chosen seasons, opening grassland that draws game and renews food plants.",
+"effects": [
+[
+"demographics.starvationMortalityMaxPerYear",
+0.02
+]
+],
+"distinctFrom": "fire_making is the technique; this is the shared rule of when and where the band burns its land."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "communal_storage",
+"name": "Communal storehouses",
+"tree": "civics",
+"age": "A2",
+"lane": "society-welfare",
+"prereq": "cereal_cultivation AND kin_council",
+"desc": "The village keeps its grain in common storehouses under agreed rules, so a household with a poor crop can draw on the common stock.",
+"effects": [
+[
+"foodState.adaptationAbsorbableShortfall",
+0.03
+]
+],
+"distinctFrom": "public_granaries (A5) is a state buffer stock sold in dearth; this is a village pool held in common."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "transhumance",
+"name": "Transhumance",
+"tree": "civics",
+"age": "A2",
+"lane": "environment-urban",
+"prereq": "sheep_goat AND seasonal_round",
+"desc": "Herders move flocks between summer mountain pastures and winter lowlands along customary routes, so neither range is grazed bare.",
+"effects": [
+[
+"production.outputPerHerderPerYear",
+0.04
+]
+],
+"distinctFrom": "stinted_commons (A6) caps beasts on one common; transhumance moves herds between distant pastures."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "craft_specialists",
+"name": "Craft specialization",
+"tree": "civics",
+"age": "A2",
+"lane": "economy-commerce",
+"prereq": "pottery_open_fired AND gift_exchange",
+"desc": "Some households work part-time as potters, bead-makers or smiths and exchange their wares for food.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.03
+]
+],
+"distinctFrom": "craft_guilds (A5) regulates organised trades; this is the first appearance of specialists at all."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "barter_exchange",
+"name": "Barter of staples",
+"tree": "civics",
+"age": "A2",
+"lane": "economy-commerce",
+"prereq": "gift_exchange AND cereal_cultivation",
+"desc": "Villagers trade surplus grain, salt and stone with neighbours at agreed equivalents, without waiting for a gift to be returned.",
+"effects": [
+[
+"price.stockReleaseRatePerYear",
+0.02
+]
+],
+"distinctFrom": "gift_exchange is reciprocal and delayed between partners; barter is an immediate exchange of equivalents."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "work_parties",
+"name": "Reciprocal work parties",
+"tree": "civics",
+"age": "A2",
+"lane": "labour",
+"prereq": "communal_feasts AND mudbrick",
+"desc": "Households call on neighbours to raise houses and bring in harvests, repaying with food, drink and labour in turn.",
+"effects": [
+[
+"housing.buildLaborAdultYearsPerDwelling",
+0.03
+]
+],
+"distinctFrom": "corvee_labour (A3) is labour owed to a ruler; work parties are reciprocal among equals."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "ration_distribution",
+"name": "Ration distribution",
+"tree": "civics",
+"age": "A3",
+"lane": "society-welfare",
+"prereq": "temple_economy AND token_counting",
+"desc": "Temple and palace issue standard monthly rations of barley, oil and wool to workers, widows and orphans on their lists.",
+"effects": [
+[
+"demographics.starvationMortalityMaxPerYear",
+0.03
+]
+],
+"distinctFrom": "public_granaries (A5) sells and issues stock in dearth; rations are a routine, standing payment in kind."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "interest_bearing_credit",
+"name": "Interest-bearing loans",
+"tree": "civics",
+"age": "A3",
+"lane": "economy-commerce",
+"prereq": "temple_economy AND standard_weights",
+"desc": "Temples and merchants lend barley and silver at fixed interest, recorded on sealed tablets, to finance seed and caravans.",
+"effects": [
+[
+"trade.gapClosingFraction",
+0.03
+]
+],
+"distinctFrom": "debt_remission cancels debts; this is the credit contract itself."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "hire_tariffs",
+"name": "Wage and hire tariffs",
+"tree": "civics",
+"age": "A3",
+"lane": "labour",
+"prereq": "law_code AND corvee_labour",
+"desc": "The law fixes what a harvester, an ox-team or a boat earns for a day's hire, so workers can be hired without haggling.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.02
+]
+],
+"distinctFrom": "corvee_labour is unpaid obligation; hire tariffs set the price of free hired work."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "banking_houses",
+"name": "Private banking houses",
+"tree": "civics",
+"age": "A4",
+"lane": "economy-commerce",
+"prereq": "interest_bearing_credit AND land_registry",
+"desc": "Family firms take deposits, pay on written orders and lend against land, linking farmers, merchants and the treasury.",
+"effects": [
+[
+"price.stockReleaseRatePerYear",
+0.03
+]
+],
+"distinctFrom": "interest_bearing_credit is the single loan; banking houses are standing firms holding deposits."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "weekly_rest",
+"name": "Weekly rest day",
+"tree": "civics",
+"age": "A4",
+"lane": "labour",
+"prereq": "scriptural_canon AND hire_tariffs",
+"desc": "One day in seven, servants, hired workers and draught animals are released from work by law.",
+"effects": [
+[
+"society.grievanceRelief",
+0.03
+]
+],
+"distinctFrom": "Working-hours limits in factory_inspection (A8) are enforced by inspectors; this is a customary rest day."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "water_turn_shares",
+"name": "Water-turn shares",
+"tree": "civics",
+"age": "A4",
+"lane": "environment-urban",
+"prereq": "qanat AND water_rights",
+"desc": "Those who dig a channel own its flow in timed turns that can be inherited or sold, so new channels are dug.",
+"effects": [
+[
+"farming.yieldPerArableKm2PerYear",
+0.03
+]
+],
+"distinctFrom": "water_rights fixes duties on existing canals; water-turn shares make new water a tradable property."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "maritime_loans",
+"name": "Sea loans",
+"tree": "civics",
+"age": "A5",
+"lane": "economy-commerce",
+"prereq": "banking_houses AND trade",
+"desc": "Lenders advance money on a ship and cargo, repayable only if the voyage succeeds, so the merchant does not bear the risk of loss alone.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.03
+]
+],
+"distinctFrom": "insurance_underwriting (A7) prices risk separately from credit; the sea loan combines loan and insurance."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "public_physicians",
+"name": "Public physicians",
+"tree": "civics",
+"age": "A5",
+"lane": "public-health",
+"prereq": "medicine_hippocratic AND citizen_assembly",
+"desc": "The city pays a salaried physician to treat its citizens, rich and poor alike.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.02
+]
+],
+"distinctFrom": "public_health_board (A7) holds powers of quarantine; public physicians treat individual patients."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "water_commission",
+"name": "Water commissioners",
+"tree": "civics",
+"age": "A5",
+"lane": "environment-urban",
+"prereq": "aqueduct_arcade AND appointed_officials",
+"desc": "A permanent office maintains the aqueducts, licenses private connections and punishes theft of water.",
+"effects": [
+[
+"housing.personsPerDwelling",
+0.03
+]
+],
+"distinctFrom": "building_regulation governs construction; the water commission runs a public supply."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "alimenta",
+"name": "Child-support foundations",
+"tree": "civics",
+"age": "A5",
+"lane": "society-welfare",
+"prereq": "public_granaries AND municipal_charter",
+"desc": "Endowed funds pay a monthly allowance to poor children in each town, financed by interest on loans to local landowners.",
+"effects": [
+[
+"demographics.starvationChildMultiplier",
+0.04
+]
+],
+"distinctFrom": "public_granaries feeds citizens at large; alimenta is targeted at children."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "commenda",
+"name": "Commenda partnership",
+"tree": "civics",
+"age": "A6",
+"lane": "economy-commerce",
+"prereq": "commercial_law",
+"desc": "A stay-at-home investor funds a travelling merchant for one voyage and they split the profit, so a young trader without capital can start out.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.03
+]
+],
+"distinctFrom": "joint_stock pools many investors in a permanent company; the commenda is a two-party contract for one venture."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "public_hospitals",
+"name": "Hospitals",
+"tree": "civics",
+"age": "A6",
+"lane": "public-health",
+"prereq": "pharmacology AND state_religion",
+"desc": "Endowed hospitals with wards, physicians and pharmacies take in the sick without charge.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.03
+]
+],
+"distinctFrom": "public_physicians (A5) are salaried doctors; hospitals are permanent institutions with beds."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "stinted_commons",
+"name": "Stinted commons",
+"tree": "civics",
+"age": "A6",
+"lane": "environment-urban",
+"prereq": "manorialism",
+"desc": "The village court limits how many beasts each holding may graze on the common, so the pasture is not overgrazed.",
+"effects": [
+[
+"production.outputPerHerderPerYear",
+0.03
+]
+],
+"distinctFrom": "forest_law reserves woods for a lord; stinting shares a pasture among commoners."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "mutual_aid_fraternities",
+"name": "Mutual-aid fraternities",
+"tree": "civics",
+"age": "A6",
+"lane": "society-welfare",
+"prereq": "craft_guilds AND municipal_charter",
+"desc": "Members pay regular dues into a common box that supports them when sick and pays for their burial.",
+"effects": [
+[
+"foodState.adaptationAbsorbableShortfall",
+0.02
+]
+],
+"distinctFrom": "craft_guilds regulates a trade; fraternities insure their members."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "apprenticeship",
+"name": "Apprenticeship indentures",
+"tree": "civics",
+"age": "A6",
+"lane": "labour",
+"prereq": "craft_guilds",
+"desc": "A written indenture binds a youth to a master for years of training in return for board and the right to become a journeyman.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.03
+]
+],
+"distinctFrom": "craft_guilds governs masters; apprenticeship is the training contract that makes them."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "water_boards",
+"name": "Water boards",
+"tree": "civics",
+"age": "A6",
+"lane": "environment-urban",
+"prereq": "water_rights AND municipal_charter",
+"desc": "Landholders elect a board that levies a rate, keeps the dikes and drains the polders.",
+"effects": [
+[
+"harvestVariance.sigmaLogYield",
+0.03
+],
+[
+"farming.yieldPerArableKm2PerYear",
+0.02
+]
+],
+"distinctFrom": "water_rights allocates water; water boards are standing bodies that build and keep flood defences."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "insurance_underwriting",
+"name": "Insurance underwriting",
+"tree": "civics",
+"age": "A7",
+"lane": "economy-commerce",
+"prereq": "probability_statistics AND stock_exchange",
+"desc": "Underwriters take a share of a ship's or a life's risk for a premium priced on recorded losses.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.03
+]
+],
+"distinctFrom": "maritime_loans fold insurance into credit; underwriting sells risk cover on its own."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "fire_brigades",
+"name": "Organised fire-fighting",
+"tree": "civics",
+"age": "A7",
+"lane": "environment-urban",
+"prereq": "building_regulation AND municipal_charter",
+"desc": "Towns keep engines, hoses and trained crews ready to answer any fire.",
+"effects": [
+[
+"housing.tauYears",
+0.03
+]
+],
+"distinctFrom": "building_regulation prevents fires by design; brigades fight them when they start."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "turnpike_trusts",
+"name": "Turnpike trusts",
+"tree": "civics",
+"age": "A7",
+"lane": "environment-urban",
+"prereq": "customs_tolls AND road_paved",
+"desc": "Trusts collect tolls from road users and spend them on resurfacing and straightening the highway.",
+"effects": [
+[
+"roads.baselineKmPerDay",
+0.04
+]
+],
+"distinctFrom": "customs_tolls raises revenue; turnpike trusts spend road tolls on the road itself."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "friendly_societies",
+"name": "Friendly societies",
+"tree": "civics",
+"age": "A8",
+"lane": "society-welfare",
+"prereq": "mutual_aid_fraternities AND coined_wage",
+"desc": "Wage-earners pay weekly into registered societies that pay benefit in sickness, old age and death.",
+"effects": [
+[
+"demographics.starvationMortalityMaxPerYear",
+0.03
+]
+],
+"distinctFrom": "mutual_aid_fraternities are guild bodies; friendly societies are open, registered insurance clubs."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "social_insurance",
+"name": "Social insurance",
+"tree": "civics",
+"age": "A8",
+"lane": "society-welfare",
+"prereq": "friendly_societies AND official_statistics",
+"desc": "The law requires workers and employers to pay into funds that cover sickness, accident and old age.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.04
+],
+[
+"society.grievanceRelief",
+0.03
+]
+],
+"distinctFrom": "friendly_societies is voluntary; social insurance is compulsory and state-backed."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "municipal_waterworks",
+"name": "Municipal waterworks",
+"tree": "civics",
+"age": "A8",
+"lane": "environment-urban",
+"prereq": "sanitary_engineering AND public_health_board",
+"desc": "The city builds and runs its own filtered water supply and sewers for every street.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.04
+]
+],
+"distinctFrom": "sanitary_engineering is the technique; this is the civic duty to supply every street."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "compulsory_vaccination",
+"name": "Compulsory vaccination",
+"tree": "civics",
+"age": "A8",
+"lane": "public-health",
+"prereq": "vaccination AND public_health_board",
+"desc": "The law requires every infant to be vaccinated against smallpox and records each vaccination.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.05
+]
+],
+"distinctFrom": "vaccination is the medical technique; this is the legal duty that makes coverage universal."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "labour_exchanges",
+"name": "Labour exchanges",
+"tree": "civics",
+"age": "A8",
+"lane": "labour",
+"prereq": "merit_civil_service AND telegraph",
+"desc": "Public offices list vacancies and job-seekers and match them across the country.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "hire_tariffs set wages; labour exchanges match workers to jobs."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "workmens_compensation",
+"name": "Workmen's compensation",
+"tree": "civics",
+"age": "A8",
+"lane": "labour",
+"prereq": "factory_inspection AND labour_unions",
+"desc": "Employers must compensate workers injured on the job, whoever was at fault.",
+"effects": [
+[
+"demographics.starvationMortalityMaxPerYear",
+0.02
+]
+],
+"distinctFrom": "factory_inspection prevents accidents; compensation pays for them."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "industrial_arbitration",
+"name": "Industrial arbitration",
+"tree": "civics",
+"age": "A8",
+"lane": "labour",
+"prereq": "labour_unions AND (civil_code OR common_law)",
+"desc": "Disputes between unions and employers go to a conciliation board or arbitration court instead of a strike.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.04
+]
+],
+"distinctFrom": "labour_unions organises workers; arbitration settles their disputes without a stoppage."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "minimum_wage",
+"name": "Minimum wage",
+"tree": "civics",
+"age": "A8",
+"lane": "labour",
+"prereq": "labour_unions AND factory_inspection",
+"desc": "Wage boards set a legal floor under the pay of the lowest-paid trades.",
+"effects": [
+[
+"foodState.adaptationAbsorbableShortfall",
+0.03
+]
+],
+"distinctFrom": "hire_tariffs fixes customary rates; the minimum wage is a floor, not a fixed price."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "commodity_exchange",
+"name": "Commodity exchange",
+"tree": "civics",
+"age": "A8",
+"lane": "economy-commerce",
+"prereq": "stock_exchange AND telegraph",
+"desc": "Graded grain and cotton are traded for present and future delivery on a regulated exchange.",
+"effects": [
+[
+"price.stockReleaseRatePerYear",
+0.04
+]
+],
+"distinctFrom": "market_fairs meet periodically for goods in hand; the exchange trades graded lots continuously and forward."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "housing_acts",
+"name": "Housing reform acts",
+"tree": "civics",
+"age": "A8",
+"lane": "environment-urban",
+"prereq": "building_regulation AND public_health_board",
+"desc": "Councils may condemn unfit slums and require new dwellings to meet standards of light, drainage and soundness.",
+"effects": [
+[
+"housing.tauYears",
+0.03
+]
+],
+"distinctFrom": "building_regulation governs height and fire; housing acts set minimum standards of habitability."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "deposit_insurance",
+"name": "Deposit insurance",
+"tree": "civics",
+"age": "A9",
+"lane": "economy-commerce",
+"prereq": "central_banking AND limited_liability",
+"desc": "A public fund guarantees ordinary deposits, so savers no longer lose everything when a bank fails.",
+"effects": [
+[
+"foodState.adaptationAbsorbableShortfall",
+0.03
+]
+],
+"distinctFrom": "central_banking manages the currency; deposit insurance protects the individual saver."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "demand_management",
+"name": "Countercyclical demand management",
+"tree": "civics",
+"age": "A9",
+"lane": "economy-commerce",
+"prereq": "central_banking AND income_tax AND official_statistics",
+"desc": "The state cuts taxes and spends in slumps, and restrains demand in booms, to keep output steady.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.04
+]
+],
+"distinctFrom": "central_planning sets output by plan; demand management steers a market economy."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "managed_exchange_rates",
+"name": "Managed exchange rates",
+"tree": "civics",
+"age": "A9",
+"lane": "economy-commerce",
+"prereq": "central_banking AND international_organizations",
+"desc": "Currencies are pegged to an agreed standard and defended by central banks with a shared reserve fund.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.03
+]
+],
+"distinctFrom": "multilateral_trade_rules binds tariffs; this binds the currencies trade is paid in."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "price_support",
+"name": "Farm price support",
+"tree": "civics",
+"age": "A9",
+"lane": "economy-commerce",
+"prereq": "public_granaries AND commodity_exchange",
+"desc": "The state buys surplus grain at a guaranteed price and holds it in reserve stocks.",
+"effects": [
+[
+"consumption.granaryYearsOfDemand",
+0.04
+]
+],
+"distinctFrom": "public_granaries is a city's famine stock; price support is a national reserve bought to hold up farm prices."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "microfinance",
+"name": "Microfinance",
+"tree": "civics",
+"age": "A9",
+"lane": "economy-commerce",
+"prereq": "cooperatives AND central_banking",
+"desc": "Small loans are made to groups of poor borrowers who guarantee each other, without collateral.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.03
+]
+],
+"distinctFrom": "cooperatives share a business; microfinance lends to individuals backed by group guarantee."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "special_economic_zones",
+"name": "Special economic zones",
+"tree": "civics",
+"age": "A9",
+"lane": "economy-commerce",
+"prereq": "multilateral_trade_rules",
+"desc": "Designated districts offer foreign firms low tariffs, light regulation and ready sites, drawing industry and workers.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.03
+]
+],
+"distinctFrom": "customs_union removes tariffs between states; a zone removes them for one district."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "collective_bargaining",
+"name": "Collective bargaining law",
+"tree": "civics",
+"age": "A9",
+"lane": "labour",
+"prereq": "labour_unions AND industrial_arbitration",
+"desc": "Employers must recognise a union chosen by their workers and bargain with it in good faith.",
+"effects": [
+[
+"society.grievanceRelief",
+0.03
+]
+],
+"distinctFrom": "labour_unions makes combination legal; this law obliges employers to bargain."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "unemployment_insurance",
+"name": "Unemployment insurance",
+"tree": "civics",
+"age": "A9",
+"lane": "labour",
+"prereq": "social_insurance AND labour_exchanges",
+"desc": "Insured workers who lose their jobs draw a weekly benefit while they look for work.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.03
+]
+],
+"distinctFrom": "social_insurance covers sickness and age; this covers loss of work."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "occupational_safety",
+"name": "Occupational safety agencies",
+"tree": "civics",
+"age": "A9",
+"lane": "labour",
+"prereq": "factory_inspection AND workmens_compensation",
+"desc": "An agency sets exposure limits and safety standards for every workplace, not only factories.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.03
+]
+],
+"distinctFrom": "factory_inspection covers mills and hours; this sets scientific exposure limits across all work."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "vocational_training",
+"name": "Public vocational training",
+"tree": "civics",
+"age": "A9",
+"lane": "labour",
+"prereq": "apprenticeship AND compulsory_education",
+"desc": "Schools and employers jointly train young people in trades to a national standard.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.04
+]
+],
+"distinctFrom": "apprenticeship is a private contract with a master; this is a public, certified system."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "equal_pay",
+"name": "Equal pay law",
+"tree": "civics",
+"age": "A9",
+"lane": "labour",
+"prereq": "minimum_wage AND womens_suffrage",
+"desc": "Employers must pay women the same as men for the same work.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.03
+]
+],
+"distinctFrom": "civil_rights_law bans discrimination broadly; equal pay governs wages for the same work."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "guest_worker_programmes",
+"name": "Guest-worker programmes",
+"tree": "civics",
+"age": "A9",
+"lane": "labour",
+"prereq": "labour_exchanges AND sworn_treaties",
+"desc": "States agree to recruit workers abroad on fixed contracts to fill labour shortages.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.04
+]
+],
+"distinctFrom": "refugee_protection admits those fleeing danger; guest-worker schemes recruit labour by contract."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "welfare_state",
+"name": "Universal social security",
+"tree": "civics",
+"age": "A9",
+"lane": "society-welfare",
+"prereq": "social_insurance AND income_tax",
+"desc": "Every citizen is covered from cradle to grave: insurance for all and a national safety net beneath it.",
+"effects": [
+[
+"demographics.starvationMortalityMaxPerYear",
+0.05
+],
+[
+"foodState.adaptationAbsorbableShortfall",
+0.03
+]
+],
+"distinctFrom": "social_insurance covers insured workers; universal social security covers every citizen."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "school_meals",
+"name": "School meals",
+"tree": "civics",
+"age": "A9",
+"lane": "society-welfare",
+"prereq": "compulsory_education AND poor_law",
+"desc": "Schools serve every pupil a free or cheap midday meal.",
+"effects": [
+[
+"demographics.starvationChildMultiplier",
+0.05
+]
+],
+"distinctFrom": "alimenta pays a cash allowance; school meals feed children directly."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "conditional_cash_transfers",
+"name": "Conditional cash transfers",
+"tree": "civics",
+"age": "A9",
+"lane": "society-welfare",
+"prereq": "school_meals AND official_statistics",
+"desc": "Poor mothers receive monthly cash on condition that children attend school and health checks.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.03
+],
+[
+"demographics.starvationChildMultiplier",
+0.02
+]
+],
+"distinctFrom": "school_meals feeds pupils; transfers pay families for schooling and health visits."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "refugee_protection",
+"name": "Refugee protection",
+"tree": "civics",
+"age": "A9",
+"lane": "society-welfare",
+"prereq": "human_rights AND international_organizations",
+"desc": "States may not send refugees back to danger and grant them legal status and relief.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "guest_worker_programmes recruit labour; refugee protection admits people fleeing danger."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "national_health_service",
+"name": "Universal health care",
+"tree": "civics",
+"age": "A9",
+"lane": "public-health",
+"prereq": "social_insurance AND public_hospitals",
+"desc": "Medical care is free at the point of use for every resident, paid for from taxes or universal insurance.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.05
+]
+],
+"distinctFrom": "social_insurance covers insured workers; universal care covers every resident."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "expanded_immunization",
+"name": "Mass immunization programmes",
+"tree": "civics",
+"age": "A9",
+"lane": "public-health",
+"prereq": "compulsory_vaccination AND vaccine_lab",
+"desc": "Health services vaccinate every child against measles, polio, diphtheria and whooping cough on a fixed schedule.",
+"effects": [
+[
+"demographics.starvationChildMultiplier",
+0.04
+]
+],
+"distinctFrom": "compulsory_vaccination covers smallpox; this schedules many vaccines for every child."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "international_health_regulations",
+"name": "International health regulations",
+"tree": "civics",
+"age": "A9",
+"lane": "public-health",
+"prereq": "public_health_board AND international_organizations",
+"desc": "States report outbreaks to a common body and apply agreed, limited quarantine rules at ports and borders.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.02
+],
+[
+"demographics.mortalityPerYear",
+0.02
+]
+],
+"distinctFrom": "public_health_board acts within one polity; these rules coordinate between polities."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "drug_regulation",
+"name": "Drug regulation",
+"tree": "civics",
+"age": "A9",
+"lane": "public-health",
+"prereq": "public_health_board AND sulfonamides",
+"desc": "New medicines must be proven safe and effective in trials before sale.",
+"effects": [
+[
+"institutions.universities.maxMortalityReduction",
+0.03
+]
+],
+"distinctFrom": "pharmacology compiles remedies; regulation requires proof before sale."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "primary_health_care",
+"name": "Primary health care",
+"tree": "civics",
+"age": "A9",
+"lane": "public-health",
+"prereq": "public_physicians AND international_health_regulations",
+"desc": "Trained village health workers give basic care, clean water advice and maternal care in every community.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.03
+],
+[
+"demographics.starvationMortalityMaxPerYear",
+0.02
+]
+],
+"distinctFrom": "national_health_service is a hospital-based system; primary care puts trained workers in every village."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "public_housing",
+"name": "Public housing",
+"tree": "civics",
+"age": "A9",
+"lane": "environment-urban",
+"prereq": "housing_acts AND income_tax",
+"desc": "Councils build and let standard homes at controlled rents on a large scale.",
+"effects": [
+[
+"housing.buildLaborAdultYearsPerDwelling",
+0.04
+]
+],
+"distinctFrom": "housing_acts set standards; public housing builds the homes."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "highway_programmes",
+"name": "National highway programmes",
+"tree": "civics",
+"age": "A9",
+"lane": "environment-urban",
+"prereq": "motor_road AND turnpike_trusts",
+"desc": "A national authority plans and finances a network of motorways linking every region.",
+"effects": [
+[
+"roads.maxRouteKm",
+0.05
+]
+],
+"distinctFrom": "turnpike_trusts maintain local roads; a national programme builds a planned trunk network."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "transit_authority",
+"name": "Metropolitan transit authorities",
+"tree": "civics",
+"age": "A9",
+"lane": "environment-urban",
+"prereq": "electric_traction AND zoning",
+"desc": "One public authority runs a city's buses, trams and metro as a single network.",
+"effects": [
+[
+"catchment.hinterlandRadiusKm",
+0.04
+]
+],
+"distinctFrom": "zoning governs land use; the transit authority moves people between zones."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "new_towns",
+"name": "Planned new towns",
+"tree": "civics",
+"age": "A9",
+"lane": "environment-urban",
+"prereq": "housing_acts AND railway",
+"desc": "Development corporations build complete new towns, with homes, factories and services, to take people from crowded cities.",
+"effects": [
+[
+"colonization.orderPartyFraction",
+0.03
+]
+],
+"distinctFrom": "planned_cities lays out one town; new towns are a programme of founding."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "river_basin_authority",
+"name": "River basin authorities",
+"tree": "civics",
+"age": "A9",
+"lane": "environment-urban",
+"prereq": "water_boards AND hydroelectric",
+"desc": "One authority manages a whole river basin's dams, locks, flood control and power.",
+"effects": [
+[
+"transport.riverCostFactor",
+0.04
+],
+[
+"farming.yieldPerArableKm2PerYear",
+0.02
+]
+],
+"distinctFrom": "water_boards keep local dikes; a basin authority plans an entire river."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "soil_conservation",
+"name": "Soil conservation",
+"tree": "civics",
+"age": "A9",
+"lane": "environment-urban",
+"prereq": "nature_conservation AND agricultural_chemistry",
+"desc": "Advisers and grants teach contour ploughing, terracing and shelter belts to stop soil blowing and washing away.",
+"effects": [
+[
+"farming.yieldPerArableKm2PerYear",
+0.04
+]
+],
+"distinctFrom": "nature_conservation sets land aside; soil conservation keeps farmland productive."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "fisheries_management",
+"name": "Fisheries management",
+"tree": "civics",
+"age": "A9",
+"lane": "environment-urban",
+"prereq": "nature_conservation AND law_of_nations",
+"desc": "Coastal states set catch quotas in their waters to let fish stocks recover.",
+"effects": [
+[
+"production.outputPerExtractorPerYear",
+0.03
+]
+],
+"distinctFrom": "stinted_commons caps grazing on land; this caps catches at sea."
+},
+{
+"g": "C3-economy-society-environment",
+"id": "public_works_relief",
+"name": "Public works relief",
+"tree": "civics",
+"age": "A9",
+"lane": "environment-urban",
+"prereq": "poor_law AND income_tax",
+"desc": "The state hires the unemployed to build roads, bridges, dams and parks.",
+"effects": [
+[
+"pathBuild.laborPerAdultPerYear",
+0.04
+]
+],
+"distinctFrom": "corvee_labour is compulsory; relief work is paid work offered to the unemployed."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "wayfinding_lore",
+"name": "Wayfinding lore",
+"tree": "civics",
+"age": "A1",
+"lane": "exploration-empire",
+"prereq": "oral_tradition",
+"desc": "Bands memorise routes, landmarks, water holes and star rises in song and story, so a party can travel far beyond its home range and find its way back.",
+"effects": [
+[
+"fog.exploreMaxRadiusNodes",
+0.04
+]
+],
+"distinctFrom": "oral_tradition carries any story; this is the practical knowledge of routes used for travel."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "guest_right",
+"name": "Guest right",
+"tree": "civics",
+"age": "A1",
+"lane": "diplomacy",
+"prereq": "gift_exchange",
+"desc": "Strangers who come in peace are fed and protected for a time, so people can cross other bands' land to trade, marry or resettle without being treated as raiders.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "gift_exchange moves goods between partners; guest right protects the person travelling."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "village_defences",
+"name": "Village defences",
+"tree": "civics",
+"age": "A2",
+"lane": "military-institutions",
+"prereq": "war_band AND (stone_dry OR timber_frame)",
+"desc": "The village digs ditches, raises a wall or palisade and keeps a watch, so raiders cannot simply carry off the stored harvest.",
+"effects": [
+[
+"granaries.famineReductionMax",
+0.03
+]
+],
+"distinctFrom": "war_band raids others; defences protect the community's own stores."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "chiefly_retinue",
+"name": "Warrior retinues",
+"tree": "civics",
+"age": "A2",
+"lane": "military-institutions",
+"prereq": "hereditary_rank AND war_band",
+"desc": "A chief keeps armed followers who are fed from his hall and fight at his call, and who also collect what is owed to him.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.03
+]
+],
+"distinctFrom": "war_band forms for one raid; a retinue is kept all year by one leader."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "village_budding",
+"name": "Daughter villages",
+"tree": "civics",
+"age": "A2",
+"lane": "exploration-empire",
+"prereq": "cereal_cultivation AND kin_council",
+"desc": "When a village grows too large, a group of households leaves with seed and stock to found a new village nearby.",
+"effects": [
+[
+"colonization.orderPartyFraction",
+0.03
+]
+],
+"distinctFrom": "daughter_colonies (A4) are overseas cities; this is overland village fission among farmers."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "island_voyaging",
+"name": "Island colonization voyages",
+"tree": "civics",
+"age": "A2",
+"lane": "exploration-empire",
+"prereq": "(raft OR dugout) AND sheep_goat",
+"desc": "Settlers sail to islands with seed, breeding stock and supplies to found new communities beyond sight of land.",
+"effects": [
+[
+"fog.exploreStepNodes",
+0.04
+]
+],
+"distinctFrom": "wayfinding_lore is route memory on land; this is planned settlement across open water."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "exchange_partnerships",
+"name": "Exchange partners",
+"tree": "civics",
+"age": "A2",
+"lane": "diplomacy",
+"prereq": "gift_exchange AND communal_feasts",
+"desc": "Communities keep standing exchange partners in other villages and renew the tie at feasts, so axes, shell and stone pass from hand to hand across hundreds of km.",
+"effects": [
+[
+"trade.gapClosingFraction",
+0.02
+]
+],
+"distinctFrom": "gift_exchange is one-off giving; partnerships are lasting ties between communities."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "campaign_provisioning",
+"name": "Campaign supply depots",
+"tree": "civics",
+"age": "A3",
+"lane": "military-institutions",
+"prereq": "appointed_officials AND (donkey OR cart)",
+"desc": "Officials stock grain, fodder and weapons at stations along the march so an army can campaign far from home.",
+"effects": [
+[
+"roads.maxRouteKm",
+0.04
+]
+],
+"distinctFrom": "service_tenure raises soldiers; this feeds them on the march."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "royal_expeditions",
+"name": "Royal expeditions",
+"tree": "civics",
+"age": "A3",
+"lane": "exploration-empire",
+"prereq": "appointed_officials AND (sail_square OR donkey)",
+"desc": "The crown sends organised expeditions to distant lands for incense, gold and stone, and records what they find.",
+"effects": [
+[
+"fog.exploreMaxRadiusNodes",
+0.04
+]
+],
+"distinctFrom": "royal_envoys go to known courts; expeditions go to lands not yet known."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "frontier_fortresses",
+"name": "Frontier fortresses",
+"tree": "civics",
+"age": "A3",
+"lane": "exploration-empire",
+"prereq": "territorial_kingship AND appointed_officials",
+"desc": "A chain of forts with commandants and scribes holds a frontier, controls crossings and reports movements to the capital.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.04
+]
+],
+"distinctFrom": "service_tenure settles soldiers on land; fortresses are state garrisons at the border."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "siege_engineers",
+"name": "Siege and road engineers",
+"tree": "civics",
+"age": "A4",
+"lane": "military-institutions",
+"prereq": "standing_army AND siege_ram",
+"desc": "Specialist troops build ramps, bridges and tracks for the army, and their skills are turned to roads in peace.",
+"effects": [
+[
+"pathBuild.laborPerAdultPerYear",
+0.04
+]
+],
+"distinctFrom": "siege_ram is the machine; this is the corps that builds and moves armies."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "state_resettlement",
+"name": "State resettlement",
+"tree": "civics",
+"age": "A4",
+"lane": "exploration-empire",
+"prereq": "provincial_administration AND standing_army",
+"desc": "The state moves whole communities from conquered lands to new provinces to farm empty land and break old loyalties.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.04
+]
+],
+"distinctFrom": "daughter_colonies send volunteers out; resettlement moves whole communities by order."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "veteran_colonies",
+"name": "Veteran colonies",
+"tree": "civics",
+"age": "A5",
+"lane": "exploration-empire",
+"prereq": "standing_army AND land_registry",
+"desc": "Discharged soldiers receive surveyed plots in new or conquered land, founding colonies loyal to the state.",
+"effects": [
+[
+"colonization.orderPartyFraction",
+0.03
+],
+[
+"catchment.hinterlandRadiusKm",
+0.02
+]
+],
+"distinctFrom": "daughter_colonies are civic foundations; these are state grants to discharged soldiers."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "military_roads",
+"name": "Military roads",
+"tree": "civics",
+"age": "A5",
+"lane": "military-institutions",
+"prereq": "standing_army AND road_paved",
+"desc": "The state builds straight, paved, all-weather roads to move armies fast; merchants and couriers use them too.",
+"effects": [
+[
+"roads.baselineKmPerDay",
+0.05
+]
+],
+"distinctFrom": "road_paved is the technique; this is the state road network and its upkeep."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "hegemonic_leagues",
+"name": "Hegemonic leagues",
+"tree": "civics",
+"age": "A5",
+"lane": "diplomacy",
+"prereq": "sworn_treaties AND (citizen_assembly OR elite_council)",
+"desc": "Allied cities swear to a common league led by the strongest, paying into a shared treasury for a common fleet or army.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.03
+]
+],
+"distinctFrom": "oath_alliance binds equals; a league has a leader, a treasury and assessed dues."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "art_of_war",
+"name": "Military treatises",
+"tree": "civics",
+"age": "A5",
+"lane": "military-institutions",
+"prereq": "standing_army AND philosophical_schools",
+"desc": "Commanders write down doctrine on scouting, spies, supply and terrain, and officers study it.",
+"effects": [
+[
+"fog.formationSightNodes",
+0.08
+]
+],
+"distinctFrom": "military_academies (A7) are schools; this is written doctrine itself."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "ghulam_corps",
+"name": "Slave-soldier corps",
+"tree": "civics",
+"age": "A6",
+"lane": "military-institutions",
+"prereq": "standing_army AND coined_wage",
+"desc": "The ruler buys or levies boys from outside, trains them as soldiers, and promotes the able to command and governorships.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.03
+]
+],
+"distinctFrom": "military_rule is a regime; this is a recruitment and promotion system."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "safe_conduct",
+"name": "Safe-conduct",
+"tree": "civics",
+"age": "A6",
+"lane": "diplomacy",
+"prereq": "royal_envoys AND law_code",
+"desc": "A ruler's written guarantee protects named foreigners, their goods and their servants while they travel in his land.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "guest_right is custom among bands; safe-conduct is a written state guarantee."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "merchant_consuls",
+"name": "Merchant consuls",
+"tree": "civics",
+"age": "A6",
+"lane": "diplomacy",
+"prereq": "trade_treaties AND commercial_law",
+"desc": "Merchants abroad elect or receive a consul who judges their disputes, speaks for them to the ruler and keeps their warehouse.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.03
+]
+],
+"distinctFrom": "trade_treaties are agreements; consuls are officers resident abroad who enforce them."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "settler_charters",
+"name": "Settlement charters",
+"tree": "civics",
+"age": "A6",
+"lane": "exploration-empire",
+"prereq": "land_registry AND municipal_charter",
+"desc": "Lords grant written charters with free plots, low dues and self-government to attract settlers to frontier land.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.04
+],
+[
+"colonization.orderPartyFraction",
+0.02
+]
+],
+"distinctFrom": "municipal_charter governs a town; settlement charters recruit settlers to empty land."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "marches",
+"name": "Marcher lordships",
+"tree": "civics",
+"age": "A6",
+"lane": "exploration-empire",
+"prereq": "service_tenure AND provincial_administration",
+"desc": "Frontier districts are granted to lords with wide powers to raise troops, build castles and push the border outward.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "frontier_fortresses are royal garrisons; marches delegate the frontier to lords."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "army_magazines",
+"name": "Army magazines",
+"tree": "civics",
+"age": "A7",
+"lane": "military-institutions",
+"prereq": "standing_army AND public_granaries",
+"desc": "The state keeps grain magazines for the army along the frontier and opens them to the public in famine years.",
+"effects": [
+[
+"granaries.famineReductionMax",
+0.04
+]
+],
+"distinctFrom": "public_granaries are civil stores; magazines are military stores also used in famine."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "military_engineers",
+"name": "Corps of engineers",
+"tree": "civics",
+"age": "A7",
+"lane": "military-institutions",
+"prereq": "standing_army AND trace_italienne",
+"desc": "A permanent corps of trained engineers designs fortresses, bridges and roads and surveys the ground.",
+"effects": [
+[
+"pathBuild.buildCostMultiplier",
+0.03
+]
+],
+"distinctFrom": "siege_engineers are field troops; this is a trained professional corps."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "chartered_companies",
+"name": "Chartered companies",
+"tree": "civics",
+"age": "A7",
+"lane": "exploration-empire",
+"prereq": "joint_stock AND state_exploration",
+"desc": "The state charters a company with a trade monopoly and powers to fortify, make treaties and govern overseas.",
+"effects": [
+[
+"price.stockReleaseRatePerYear",
+0.03
+]
+],
+"distinctFrom": "joint_stock is the firm form; this is a firm granted sovereign powers overseas."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "military_railways",
+"name": "Military railways",
+"tree": "civics",
+"age": "A8",
+"lane": "military-institutions",
+"prereq": "general_staff AND railway",
+"desc": "The staff plans railway timetables to move troops and supplies, and lines are built where the army needs them.",
+"effects": [
+[
+"roads.baselineKmPerDay",
+0.04
+]
+],
+"distinctFrom": "railway is the technology; this is its planned military use."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "army_reserves",
+"name": "Trained reserves",
+"tree": "civics",
+"age": "A8",
+"lane": "military-institutions",
+"prereq": "universal_conscription",
+"desc": "Conscripts serve a short term, then return home as trained reserves called up only in war.",
+"effects": [
+[
+"farming.outputPerFarmerPerYear",
+0.02
+]
+],
+"distinctFrom": "universal_conscription calls men up; reserves send them home trained."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "colonial_regiments",
+"name": "Colonial regiments",
+"tree": "civics",
+"age": "A8",
+"lane": "military-institutions",
+"prereq": "colonial_administration AND mercenary_contracts",
+"desc": "The colonial government raises regiments from local recruits under contract to garrison and police its territories.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "mercenary_contracts hire foreign soldiers; these are standing colonial units."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "consular_service",
+"name": "Consular service",
+"tree": "civics",
+"age": "A8",
+"lane": "diplomacy",
+"prereq": "merchant_consuls AND resident_embassies",
+"desc": "Salaried state consuls in foreign ports protect nationals and report on markets, prices and shipping.",
+"effects": [
+[
+"trade.gapClosingFraction",
+0.03
+]
+],
+"distinctFrom": "merchant_consuls serve one merchant community; this is a state service reporting on markets."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "river_commissions",
+"name": "River commissions",
+"tree": "civics",
+"age": "A8",
+"lane": "diplomacy",
+"prereq": "great_power_congress",
+"desc": "States along a river set common rules, tolls and channel works under a standing commission so ships move freely.",
+"effects": [
+[
+"transport.riverCostFactor",
+0.04
+]
+],
+"distinctFrom": "international_organizations are general bodies; this regulates one shared river."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "coaling_stations",
+"name": "Coaling stations",
+"tree": "civics",
+"age": "A8",
+"lane": "exploration-empire",
+"prereq": "state_navy AND (steamboat OR screw_propeller) AND colonial_administration",
+"desc": "The navy holds a chain of ports stocked with coal so steam ships can cross oceans.",
+"effects": [
+[
+"fog.exploreStepNodes",
+0.04
+]
+],
+"distinctFrom": "state_navy is the fleet; this is its global base network."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "geographical_societies",
+"name": "Geographical societies",
+"tree": "civics",
+"age": "A8",
+"lane": "exploration-empire",
+"prereq": "scientific_societies AND state_exploration",
+"desc": "Learned societies fund expeditions, publish maps and train explorers in survey.",
+"effects": [
+[
+"fog.exploreMaxRadiusNodes",
+0.04
+]
+],
+"distinctFrom": "state_exploration is crown voyages; this is private learned exploration."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "assisted_emigration",
+"name": "Assisted emigration",
+"tree": "civics",
+"age": "A8",
+"lane": "exploration-empire",
+"prereq": "colonial_administration AND land_registry",
+"desc": "Colonies pay the passage of chosen emigrants from land-sale revenue so labourers can reach distant colonies.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.05
+]
+],
+"distinctFrom": "settler_land_grants give land; this pays for the journey."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "responsible_colonial_government",
+"name": "Colonial self-government",
+"tree": "civics",
+"age": "A8",
+"lane": "exploration-empire",
+"prereq": "colonial_administration AND ministerial_responsibility",
+"desc": "Settler colonies gain their own cabinet answerable to an elected assembly, while foreign affairs stay with the empire.",
+"effects": [
+[
+"society.grievanceRelief",
+0.03
+]
+],
+"distinctFrom": "indirect_rule governs through princes; this hands self-government to settlers."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "peacekeeping_operations",
+"name": "Peacekeeping",
+"tree": "civics",
+"age": "A9",
+"lane": "diplomacy",
+"prereq": "collective_security",
+"desc": "International forces, accepted by both sides, watch ceasefire lines and protect aid convoys.",
+"effects": [
+[
+"demographics.starvationMortalityMaxPerYear",
+0.02
+]
+],
+"distinctFrom": "collective_security pledges action; peacekeeping is a neutral force in the field."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "international_food_aid",
+"name": "International food aid",
+"tree": "civics",
+"age": "A9",
+"lane": "diplomacy",
+"prereq": "international_organizations AND public_granaries",
+"desc": "Surplus food is shipped through international programmes to countries in famine.",
+"effects": [
+[
+"granaries.famineReductionMax",
+0.04
+]
+],
+"distinctFrom": "public_granaries are national; this pools food across states."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "law_of_the_sea",
+"name": "Law of the sea",
+"tree": "civics",
+"age": "A9",
+"lane": "diplomacy",
+"prereq": "law_of_nations AND international_organizations",
+"desc": "Treaties fix territorial waters and economic zones, giving coastal states rights over fisheries and the seabed.",
+"effects": [
+[
+"production.outputPerExtractorPerYear",
+0.03
+]
+],
+"distinctFrom": "law_of_nations covers neutrality at sea; this assigns ocean resources."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "air_navigation_agreements",
+"name": "Civil aviation agreements",
+"tree": "civics",
+"age": "A9",
+"lane": "diplomacy",
+"prereq": "international_organizations AND aircraft",
+"desc": "States agree rights to fly over and land in each other's territory and common air safety rules.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "international_organizations is general; this opens airspace."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "development_lending",
+"name": "Development lending",
+"tree": "civics",
+"age": "A9",
+"lane": "diplomacy",
+"prereq": "international_organizations AND central_banking",
+"desc": "International banks lend to governments for roads, dams and power plants.",
+"effects": [
+[
+"pathBuild.buildCostMultiplier",
+0.03
+]
+],
+"distinctFrom": "central_banking is national; this lends across borders for infrastructure."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "visa_free_travel",
+"name": "Passport-free travel areas",
+"tree": "civics",
+"age": "A9",
+"lane": "diplomacy",
+"prereq": "international_organizations AND customs_union",
+"desc": "Member states abolish passport checks at their common borders and let citizens live and work across them.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.04
+]
+],
+"distinctFrom": "customs_union frees goods; this frees people."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "academic_exchange",
+"name": "Academic exchange",
+"tree": "civics",
+"age": "A9",
+"lane": "diplomacy",
+"prereq": "research_university AND international_organizations",
+"desc": "Governments fund students and scholars to study and teach abroad.",
+"effects": [
+[
+"institutions.universities.maturityTauYears",
+0.03
+]
+],
+"distinctFrom": "research_university is domestic; this links universities across states."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "international_standards",
+"name": "International standards bodies",
+"tree": "civics",
+"age": "A9",
+"lane": "diplomacy",
+"prereq": "international_organizations AND interchangeable_parts",
+"desc": "States and industries agree common standards for parts, measures and shipping containers.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.03
+]
+],
+"distinctFrom": "multilateral_trade_rules govern tariffs; standards govern the goods themselves."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "transboundary_water_treaties",
+"name": "Shared-river treaties",
+"tree": "civics",
+"age": "A9",
+"lane": "diplomacy",
+"prereq": "river_commissions AND irrigation_canal",
+"desc": "States sharing a river divide its water by treaty so irrigation works on both sides have an assured supply.",
+"effects": [
+[
+"farming.yieldPerArableKm2PerYear",
+0.02
+]
+],
+"distinctFrom": "river_commissions regulate navigation; this allocates water."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "weather_cooperation",
+"name": "International weather service",
+"tree": "civics",
+"age": "A9",
+"lane": "diplomacy",
+"prereq": "international_organizations AND weather_prediction",
+"desc": "States share weather observations in real time so every country can forecast storms, frost and drought.",
+"effects": [
+[
+"harvestVariance.sigmaLogYield",
+0.02
+]
+],
+"distinctFrom": "weather_prediction is the science; this is the exchange of observations."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "military_intelligence",
+"name": "Intelligence agencies",
+"tree": "civics",
+"age": "A9",
+"lane": "military-institutions",
+"prereq": "general_staff AND radio",
+"desc": "A permanent agency gathers and analyses intelligence from agents, signals and photographs.",
+"effects": [
+[
+"fog.formationSightNodes",
+0.08
+]
+],
+"distinctFrom": "general_staff plans; this agency collects information."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "satellite_reconnaissance",
+"name": "Satellite reconnaissance",
+"tree": "civics",
+"age": "A9",
+"lane": "military-institutions",
+"prereq": "satellite AND military_intelligence",
+"desc": "Satellites photograph any part of the earth and return the images.",
+"effects": [
+[
+"fog.exploreMaxRadiusNodes",
+0.03
+]
+],
+"distinctFrom": "military_intelligence uses agents and signals; this uses orbital imagery."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "motorized_supply",
+"name": "Motor transport corps",
+"tree": "civics",
+"age": "A9",
+"lane": "military-institutions",
+"prereq": "general_staff AND automobile_mass",
+"desc": "Army lorry columns carry supplies far beyond the railhead.",
+"effects": [
+[
+"roads.maxRouteKm",
+0.04
+]
+],
+"distinctFrom": "military_railways move by rail; this carries supplies by road from the railhead."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "civil_defence",
+"name": "Civil defence",
+"tree": "civics",
+"age": "A9",
+"lane": "military-institutions",
+"prereq": "total_mobilization AND aircraft",
+"desc": "Wardens, shelters and emergency food depots protect civilians in war and disaster.",
+"effects": [
+[
+"consumption.granaryYearsOfDemand",
+0.03
+]
+],
+"distinctFrom": "total_mobilization directs production; civil defence protects civilians."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "wartime_rationing",
+"name": "Ration books",
+"tree": "civics",
+"age": "A9",
+"lane": "military-institutions",
+"prereq": "total_mobilization",
+"desc": "Scarce food is shared by fixed rations per person so households get through shortages.",
+"effects": [
+[
+"foodState.adaptationAbsorbableShortfall",
+0.04
+]
+],
+"distinctFrom": "total_mobilization directs production; rationing divides consumption."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "veterans_benefits",
+"name": "Veterans' benefits",
+"tree": "civics",
+"age": "A9",
+"lane": "military-institutions",
+"prereq": "universal_conscription AND compulsory_education",
+"desc": "Former soldiers receive paid schooling, training and home loans.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.04
+]
+],
+"distinctFrom": "universal_conscription calls up; this rewards and retrains after service."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "counterinsurgency",
+"name": "Counter-insurgency doctrine",
+"tree": "civics",
+"age": "A9",
+"lane": "military-institutions",
+"prereq": "military_intelligence AND colonial_administration",
+"desc": "Armies and police protect the population, gather intelligence and address grievances to isolate insurgents.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+]
+],
+"distinctFrom": "civil_police keep ordinary order; this counters armed insurgency."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "strategic_stockpiles",
+"name": "Strategic stockpiles",
+"tree": "civics",
+"age": "A9",
+"lane": "military-institutions",
+"prereq": "total_mobilization",
+"desc": "The state stores fuel, metals and food and releases them to the market when supplies fail.",
+"effects": [
+[
+"price.stockReleaseRatePerYear",
+0.03
+]
+],
+"distinctFrom": "civil_defence stocks food locally; this holds national strategic reserves."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "all_volunteer_force",
+"name": "All-volunteer forces",
+"tree": "civics",
+"age": "A9",
+"lane": "military-institutions",
+"prereq": "universal_conscription AND veterans_benefits",
+"desc": "The state ends conscription and recruits paid professionals.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.02
+]
+],
+"distinctFrom": "mercenary_contracts hire foreigners; this recruits citizens as paid volunteers."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "defence_research_agencies",
+"name": "Defence research agencies",
+"tree": "civics",
+"age": "A9",
+"lane": "military-institutions",
+"prereq": "general_staff AND research_university",
+"desc": "Defence agencies fund research at universities and laboratories.",
+"effects": [
+[
+"institutions.universities.maxResearchCostReduction",
+0.02
+]
+],
+"distinctFrom": "science_policy funds civil science; this funds military research."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "independent_air_arm",
+"name": "Independent air force",
+"tree": "civics",
+"age": "A9",
+"lane": "military-institutions",
+"prereq": "general_staff AND aircraft",
+"desc": "Air power is organised as its own service, which flies reconnaissance and survey.",
+"effects": [
+[
+"fog.exploreStepNodes",
+0.03
+]
+],
+"distinctFrom": "aircraft is the machine; this is the service."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "polar_research_stations",
+"name": "Polar research stations",
+"tree": "civics",
+"age": "A9",
+"lane": "exploration-empire",
+"prereq": "international_organizations AND geographical_societies",
+"desc": "States keep permanent scientific stations in the polar regions and share their findings.",
+"effects": [
+[
+"fog.exploreMaxRadiusNodes",
+0.02
+]
+],
+"distinctFrom": "geographical_societies fund expeditions; this keeps permanent shared stations."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "commonwealth_association",
+"name": "Commonwealth association",
+"tree": "civics",
+"age": "A9",
+"lane": "exploration-empire",
+"prereq": "responsible_colonial_government AND international_organizations",
+"desc": "Former colonies and the old imperial power form a free association of equal states.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "decolonization ends empire; this keeps a voluntary association."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "frontier_development_programmes",
+"name": "Frontier development programmes",
+"tree": "civics",
+"age": "A9",
+"lane": "exploration-empire",
+"prereq": "settler_land_grants AND mechanised_agriculture",
+"desc": "The state plans and funds settlement of thinly peopled interior land, with new towns, roads and farms.",
+"effects": [
+[
+"colonization.orderPartyFraction",
+0.03
+]
+],
+"distinctFrom": "settler_land_grants offer land; this plans and funds the whole settlement."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "overseas_departments",
+"name": "Overseas departments",
+"tree": "civics",
+"age": "A9",
+"lane": "exploration-empire",
+"prereq": "colonial_administration AND mass_suffrage",
+"desc": "Former colonies become full parts of the state, with the same laws and representation.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "decolonization separates; this integrates."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "states_reorganisation",
+"name": "States reorganisation",
+"tree": "civics",
+"age": "A9",
+"lane": "exploration-empire",
+"prereq": "decolonization AND federal_republic",
+"desc": "A new state redraws its internal provinces along language lines.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+]
+],
+"distinctFrom": "federal_republic sets the units; this redraws them."
+},
+{
+"g": "C4-diplomacy-military-exploration",
+"id": "indigenous_land_rights",
+"name": "Indigenous land rights",
+"tree": "civics",
+"age": "A9",
+"lane": "exploration-empire",
+"prereq": "decolonization AND human_rights",
+"desc": "Law recognises indigenous peoples' title to their land and returns some of it.",
+"effects": [
+[
+"society.grievanceRelief",
+0.03
+]
+],
+"distinctFrom": "decolonization frees colonies; this restores rights inside settler states."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "ritual_music",
+"name": "Ritual music and dance",
+"tree": "civics",
+"age": "A1",
+"lane": "arts-culture",
+"prereq": "oral_tradition AND bone_tools",
+"desc": "Bands sing, drum and dance together at night and at gatherings. Shared rhythm binds people who quarrel by day.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "oral_tradition is remembered lore; ritual music is a group practice of sound and movement."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "landscape_lore",
+"name": "Landscape lore",
+"tree": "civics",
+"age": "A1",
+"lane": "thought-learning",
+"prereq": "oral_tradition",
+"desc": "Bands memorize a wide landscape as a chain of named landmarks, water holes and seasonal resources, and teach it to the young.",
+"effects": [
+[
+"fog.exploreStepNodes",
+0.05
+]
+],
+"distinctFrom": "C3's seasonal_round is a yearly schedule of known camps; landscape lore is the remembered map that lets a band go beyond them."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "calendar_keepers",
+"name": "Calendar keepers",
+"tree": "civics",
+"age": "A2",
+"lane": "thought-learning",
+"prereq": "calendar_lunar AND cereal_cultivation",
+"desc": "Ritual specialists watch the moon and sunrise points and announce when to sow, harvest and hold the festivals.",
+"effects": [
+[
+"farming.yieldPerArableKm2PerYear",
+0.02
+]
+],
+"distinctFrom": "calendar_lunar is the technique of counting months; calendar keepers are the office that turns it into a farming timetable."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "herd_lore",
+"name": "Herd lore",
+"tree": "civics",
+"age": "A2",
+"lane": "thought-learning",
+"prereq": "sheep_goat AND oral_tradition",
+"desc": "Herders keep the lineage, temper and grazing of each animal in memory and pass on when to cull, breed and move the flock.",
+"effects": [
+[
+"production.outputPerHerderPerYear",
+0.02
+]
+],
+"distinctFrom": "sheep_goat is domestication itself; herd lore is the remembered management practice built on it."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "wall_painting",
+"name": "House painting and plaster",
+"tree": "civics",
+"age": "A2",
+"lane": "arts-culture",
+"prereq": "communal_feasts AND lime_plaster",
+"desc": "Households replaster and paint their walls each year with hunting scenes and patterns, and rebuild ancestral houses on the same spot.",
+"effects": [
+[
+"housing.tauYears",
+0.02
+]
+],
+"distinctFrom": "C1's megalithic_monuments are communal stone enclosures; this is the decoration and upkeep of ordinary houses."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "sign_systems",
+"name": "Sign systems",
+"tree": "civics",
+"age": "A2",
+"lane": "information-media",
+"prereq": "token_counting AND pottery_open_fired",
+"desc": "Communities use a repertoire of incised signs on pots, spindle whorls and figurines to mark owners, offerings and messages.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.02
+]
+],
+"distinctFrom": "C2's storehouse_sealing is impressed seals on stores; sign systems are a shared repertoire of written marks before full writing."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "epic_literature",
+"name": "Epic literature",
+"tree": "civics",
+"age": "A3",
+"lane": "arts-culture",
+"prereq": "oral_tradition AND scribal_schools",
+"desc": "Heroic tales once sung are written down, copied in the schools and recited at court and festival.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "oral_tradition is unwritten lore; epic literature is a fixed written canon taught and recited."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "lexical_lists",
+"name": "Lexical lists",
+"tree": "civics",
+"age": "A3",
+"lane": "thought-learning",
+"prereq": "proto_writing AND temple_economy",
+"desc": "Scribes copy standard lists of words for trades, goods, animals and places, the first ordered body of knowledge.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.02
+]
+],
+"distinctFrom": "scribal_schools is the school; lexical lists are the standard reference corpus it copies."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "victory_stelae",
+"name": "Victory stelae",
+"tree": "civics",
+"age": "A3",
+"lane": "information-media",
+"prereq": "court_patronage AND (cuneiform OR hieroglyphic)",
+"desc": "Kings set up carved and inscribed stones at frontiers and city gates announcing their victories and warning rebels.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+]
+],
+"distinctFrom": "C2's published_law displays laws for citizens; victory stelae proclaim a ruler's might to subjects and enemies."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "palace_library",
+"name": "Palace library",
+"tree": "civics",
+"age": "A4",
+"lane": "thought-learning",
+"prereq": "royal_archives",
+"desc": "The palace collects and catalogues copies of scholarly, religious and medical texts from across the realm.",
+"effects": [
+[
+"research.researchPointsCoefficient",
+0.02
+]
+],
+"distinctFrom": "royal_archives keeps administrative records; the library collects scholarly works."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "letter_schools",
+"name": "Letter schools",
+"tree": "civics",
+"age": "A4",
+"lane": "education",
+"prereq": "alphabet_vowels AND citizen_assembly",
+"desc": "Fee-paying teachers teach citizens' children reading, writing and music in small schools.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.02
+]
+],
+"distinctFrom": "scribal_schools train a professional caste; letter schools teach ordinary citizens' children."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "agronomic_treatises",
+"name": "Agronomic treatises",
+"tree": "civics",
+"age": "A5",
+"lane": "thought-learning",
+"prereq": "scribal_schools AND (alphabet_vowels OR chinese_script OR abjad)",
+"desc": "Landowners write and read manuals on crops, soils, manuring and estate management.",
+"effects": [
+[
+"farming.outputPerFarmerPerYear",
+0.03
+]
+],
+"distinctFrom": "iron_mouldboard and other techs are tools; treatises are the written learning of how to farm."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "medical_schools",
+"name": "Medical schools",
+"tree": "civics",
+"age": "A5",
+"lane": "thought-learning",
+"prereq": "philosophical_schools AND medicine_hippocratic",
+"desc": "Physicians train pupils in schools with a shared corpus of texts, case records and dissection.",
+"effects": [
+[
+"institutions.universities.maxMortalityReduction",
+0.03
+]
+],
+"distinctFrom": "C3's public_physicians is a city paying a doctor; medical schools train doctors."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "rhetoric_schools",
+"name": "Rhetoric schools",
+"tree": "civics",
+"age": "A5",
+"lane": "education",
+"prereq": "philosophical_schools AND (citizen_assembly OR jury_courts)",
+"desc": "Paid teachers train young men to argue in courts and assemblies, the path to a public career.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.02
+]
+],
+"distinctFrom": "philosophical_schools pursue truth; rhetoric schools train advocates and politicians."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "cathedral_madrasa_schools",
+"name": "Cathedral and madrasa schools",
+"tree": "civics",
+"age": "A6",
+"lane": "education",
+"prereq": "scribal_schools AND (monasticism OR systematic_theology)",
+"desc": "Endowed schools at cathedrals and mosques teach grammar, law and theology to boys who will become clergy, judges and clerks.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.03
+]
+],
+"distinctFrom": "scribal_schools train scribes for a palace; these endowed schools train clergy and jurists across a whole faith."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "chartered_universities",
+"name": "Chartered universities",
+"tree": "civics",
+"age": "A6",
+"lane": "thought-learning",
+"prereq": "cathedral_madrasa_schools AND jurists",
+"desc": "Masters and students form self-governing corporations with charters, faculties and degrees recognized across realms.",
+"effects": [
+[
+"institutions.universities.maturityTauYears",
+0.03
+],
+[
+"institutions.universities.maxMortalityReduction",
+0.03
+]
+],
+"distinctFrom": "state_academy is a ruler's school; a chartered university is a self-governing corporation granting degrees."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "translation_patronage",
+"name": "Patronage of translation",
+"tree": "civics",
+"age": "A6",
+"lane": "thought-learning",
+"prereq": "philosophical_schools AND paper",
+"desc": "Patrons pay scholars to translate the science and philosophy of other languages and copy the translations widely.",
+"effects": [
+[
+"research.researchPointsCoefficient",
+0.02
+]
+],
+"distinctFrom": "humanism recovers one's own classics; this imports another civilization's learning. The runtime entity inst.translation_movement (institution, not live) is the house of translation; this civic is the patronage that funds it."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "printed_classics",
+"name": "Printed classics",
+"tree": "civics",
+"age": "A6",
+"lane": "information-media",
+"prereq": "woodblock_print AND civil_service_examinations",
+"desc": "The state prints authorized editions of the classics and sells them cheaply to schools and examination candidates.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.02
+]
+],
+"distinctFrom": "woodblock_print is the technique; printed classics is the state publishing programme."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "vernacular_literature",
+"name": "Vernacular literature",
+"tree": "civics",
+"age": "A6",
+"lane": "arts-culture",
+"prereq": "epic_literature AND paper",
+"desc": "Poets and storytellers write in the spoken tongue for lay readers rather than in the learned language.",
+"effects": [
+[
+"research.civicsPointsCoefficient",
+0.02
+]
+],
+"distinctFrom": "epic_literature is a learned canon in a classical tongue; vernacular literature writes in the people's speech."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "geographic_compendia",
+"name": "Geographic compendia",
+"tree": "civics",
+"age": "A6",
+"lane": "thought-learning",
+"prereq": "translation_patronage AND cartography",
+"desc": "Scholars compile travellers' and merchants' reports into world descriptions with maps and itineraries.",
+"effects": [
+[
+"fog.exploreMaxRadiusNodes",
+0.05
+]
+],
+"distinctFrom": "cartography is map-making; compendia gather what is known of the world into reference works."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "printed_newspapers",
+"name": "Printed newspapers",
+"tree": "civics",
+"age": "A7",
+"lane": "information-media",
+"prereq": "printing_press AND royal_post",
+"desc": "Printers issue weekly sheets of news and merchants' price currents gathered from the posts.",
+"effects": [
+[
+"price.stockReleaseRatePerYear",
+0.03
+]
+],
+"distinctFrom": "state_gazette is official decrees; newspapers are commercial news sold to the public."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "humanist_colleges",
+"name": "Humanist colleges",
+"tree": "civics",
+"age": "A7",
+"lane": "education",
+"prereq": "humanism AND printing_press",
+"desc": "Colleges teach graded classes of boys Latin, Greek, rhetoric and history from printed textbooks.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.02
+]
+],
+"distinctFrom": "humanism is the scholarly movement; humanist colleges are the schools that spread it to boys."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "language_academies",
+"name": "Language academies",
+"tree": "civics",
+"age": "A7",
+"lane": "thought-learning",
+"prereq": "humanism AND printing_press",
+"desc": "Chartered academies fix the standard language in an official dictionary and grammar.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.02
+]
+],
+"distinctFrom": "humanism studies classical Latin; language academies standardize the national vernacular."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "telegraph_news_agencies",
+"name": "Telegraph news agencies",
+"tree": "civics",
+"age": "A8",
+"lane": "information-media",
+"prereq": "telegraph AND mass_press",
+"desc": "Agencies gather news and market prices by telegraph and sell them to every paper at once.",
+"effects": [
+[
+"trade.gapClosingFraction",
+0.03
+]
+],
+"distinctFrom": "mass_press sells papers; the agencies supply wired news and prices to all papers."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "advertising_agencies",
+"name": "Advertising",
+"tree": "civics",
+"age": "A8",
+"lane": "information-media",
+"prereq": "mass_press",
+"desc": "Agencies buy space in the papers and write notices that tell buyers what is for sale, where and at what price.",
+"effects": [
+[
+"price.stockReleaseRatePerYear",
+0.02
+]
+],
+"distinctFrom": "telegraph_news_agencies carry news to the press; advertising carries sellers' offers to readers."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "public_libraries",
+"name": "Public libraries",
+"tree": "civics",
+"age": "A8",
+"lane": "thought-learning",
+"prereq": "enlightenment AND compulsory_education",
+"desc": "Towns fund free lending libraries and reading rooms open to every resident.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.02
+]
+],
+"distinctFrom": "palace_library serves the court's scholars; public libraries lend to everyone."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "technical_academies",
+"name": "Mining and technical academies",
+"tree": "civics",
+"age": "A8",
+"lane": "education",
+"prereq": "scientific_societies AND mineralogy",
+"desc": "State academies train engineers and mine officials in chemistry, mechanics and geology.",
+"effects": [
+[
+"production.outputPerExtractorPerYear",
+0.04
+]
+],
+"distinctFrom": "research_university pursues research; technical academies train practising engineers."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "normal_schools",
+"name": "Normal schools",
+"tree": "civics",
+"age": "A8",
+"lane": "education",
+"prereq": "compulsory_education AND humanist_colleges",
+"desc": "Teacher-training colleges prepare elementary teachers in subject and method to a common standard.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.02
+]
+],
+"distinctFrom": "compulsory_education requires attendance; normal schools supply the teachers."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "agricultural_colleges",
+"name": "Agricultural colleges",
+"tree": "civics",
+"age": "A8",
+"lane": "education",
+"prereq": "agricultural_chemistry AND technical_academies",
+"desc": "Colleges teach scientific farming, run experimental fields and train estate managers and farmers' sons.",
+"effects": [
+[
+"farming.yieldPerArableKm2PerYear",
+0.03
+]
+],
+"distinctFrom": "C2's agricultural_extension sends agents to farms; colleges train the agents and farmers."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "medical_education_reform",
+"name": "Medical education reform",
+"tree": "civics",
+"age": "A8",
+"lane": "education",
+"prereq": "research_university AND germ_theory",
+"desc": "Medical schools are tied to universities and teaching hospitals, with laboratory science and clinical training required.",
+"effects": [
+[
+"institutions.universities.maxMortalityReduction",
+0.05
+]
+],
+"distinctFrom": "medical_schools pass on a tradition; this reform ties training to research science and hospitals."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "womens_higher_education",
+"name": "Women's higher education",
+"tree": "civics",
+"age": "A8",
+"lane": "education",
+"prereq": "normal_schools AND research_university",
+"desc": "Colleges and secondary schools open to women and girls, and women begin to take degrees and enter the professions.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.02
+]
+],
+"distinctFrom": "normal_schools train teachers; this opens all higher study to women."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "industrial_exhibitions",
+"name": "Industrial exhibitions",
+"tree": "civics",
+"age": "A8",
+"lane": "arts-culture",
+"prereq": "railway AND public_museums",
+"desc": "Great halls display the newest machines, crops and manufactures to millions of visitors and juries award prizes.",
+"effects": [
+[
+"production.toolYieldBonusMax",
+0.03
+]
+],
+"distinctFrom": "public_museums display the past; exhibitions display the newest products for adoption."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "national_literature",
+"name": "National literature",
+"tree": "civics",
+"age": "A8",
+"lane": "arts-culture",
+"prereq": "printing_press AND nationalism",
+"desc": "Scholars collect folk tales and songs and print them as the nation's own literature, taught in schools.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "vernacular_literature is authored works; national literature collects folk tradition as a nation's heritage."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "broadcast_market_reports",
+"name": "Broadcast market reports",
+"tree": "civics",
+"age": "A9",
+"lane": "information-media",
+"prereq": "radio_broadcasting AND telegraph_news_agencies",
+"desc": "Daily radio bulletins read out crop and livestock prices so farmers know where and when to sell.",
+"effects": [
+[
+"price.stockReleaseRatePerYear",
+0.03
+]
+],
+"distinctFrom": "telegraph agencies serve the press; broadcast reports reach the farmer directly."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "famine_early_warning",
+"name": "Famine early warning",
+"tree": "civics",
+"age": "A9",
+"lane": "information-media",
+"prereq": "earth_observation AND international_organizations",
+"desc": "Agencies combine satellite crop monitoring with market and household reports and publish warnings months before a famine.",
+"effects": [
+[
+"foodState.adaptationAbsorbableShortfall",
+0.03
+]
+],
+"distinctFrom": "C2's disaster_management organizes response; early warning is the published forecast that triggers it."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "public_opinion_polling",
+"name": "Public opinion polling",
+"tree": "civics",
+"age": "A9",
+"lane": "information-media",
+"prereq": "mass_press AND probability_statistics",
+"desc": "Pollsters question a sample of the public and publish what people think of leaders and policies.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+],
+[
+"governance.authorityDecayCostUnits",
+0.02
+]
+],
+"distinctFrom": "C2's sample_surveys measure crops and jobs; polling measures opinion."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "universal_telephone_service",
+"name": "Universal telephone service",
+"tree": "civics",
+"age": "A9",
+"lane": "information-media",
+"prereq": "telephone AND public_postal_service",
+"desc": "Telephone carriers must connect every household and farm at regulated rates, cross-subsidizing remote lines.",
+"effects": [
+[
+"catchment.hinterlandRadiusKm",
+0.03
+]
+],
+"distinctFrom": "public_postal_service carries letters; this obliges telephone carriers to serve everyone."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "social_media_platforms",
+"name": "Social media",
+"tree": "civics",
+"age": "A9",
+"lane": "information-media",
+"prereq": "internet AND personal_computer",
+"desc": "Anyone can publish posts, photos and video to followers worldwide on shared platforms.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.03
+]
+],
+"distinctFrom": "internet_governance sets rules for the network; social media is mass publishing on it."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "satellite_communications",
+"name": "Satellite communications consortium",
+"tree": "civics",
+"age": "A9",
+"lane": "information-media",
+"prereq": "communications_satellite AND international_organizations",
+"desc": "An international consortium runs satellites that carry telephone and television between continents.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.02
+]
+],
+"distinctFrom": "universal_telephone_service is a domestic mandate; this is the international network."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "civil_satellite_navigation",
+"name": "Civil satellite navigation",
+"tree": "civics",
+"age": "A9",
+"lane": "information-media",
+"prereq": "gps AND international_organizations",
+"desc": "Governments open military navigation satellites to free civilian use worldwide.",
+"effects": [
+[
+"fog.exploreStepNodes",
+0.05
+]
+],
+"distinctFrom": "gps is the technology; this is the policy of free civil access."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "script_reform",
+"name": "Script and language reform",
+"tree": "civics",
+"age": "A9",
+"lane": "information-media",
+"prereq": "compulsory_education AND nationalism",
+"desc": "The state replaces or simplifies the national script and standard language to speed up mass literacy.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.02
+],
+[
+"governance.authorityDecayCostUnits",
+0.02
+]
+],
+"distinctFrom": "language_academies codify an elite standard; script reform changes how the whole population writes."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "national_laboratories",
+"name": "National laboratories",
+"tree": "civics",
+"age": "A9",
+"lane": "thought-learning",
+"prereq": "research_university AND nuclear_physics",
+"desc": "The state builds large laboratories with permanent staff and giant instruments beyond any university's means.",
+"effects": [
+[
+"research.researchPointsCoefficient",
+0.03
+]
+],
+"distinctFrom": "science_policy funds research by grants; national labs are state-run research institutions."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "think_tanks",
+"name": "Think tanks",
+"tree": "civics",
+"age": "A9",
+"lane": "thought-learning",
+"prereq": "research_university AND (parliamentary_government OR mass_political_party)",
+"desc": "Independent institutes employ researchers to analyse public policy and propose reforms to governments and parties.",
+"effects": [
+[
+"research.civicsPointsCoefficient",
+0.02
+]
+],
+"distinctFrom": "political_philosophy is reflection on rule; think tanks are paid policy research institutes."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "national_accounts",
+"name": "National accounts",
+"tree": "civics",
+"age": "A9",
+"lane": "thought-learning",
+"prereq": "official_statistics AND income_tax",
+"desc": "Statisticians measure the whole economy's output, income and spending in one system of accounts each year.",
+"effects": [
+[
+"governance.taxExtractionResponseMax",
+0.03
+]
+],
+"distinctFrom": "official_statistics counts people; national accounts measure the economy."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "agricultural_research_system",
+"name": "Agricultural research system",
+"tree": "civics",
+"age": "A9",
+"lane": "thought-learning",
+"prereq": "agricultural_colleges AND scientific_plant_breeding",
+"desc": "National and international stations breed high-yield crop varieties and test them across climates.",
+"effects": [
+[
+"farming.yieldPerArableKm2PerYear",
+0.04
+]
+],
+"distinctFrom": "C2's agricultural_extension teaches farmers; this system breeds and tests the varieties."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "open_access_science",
+"name": "Open access science",
+"tree": "civics",
+"age": "A9",
+"lane": "thought-learning",
+"prereq": "internet AND science_policy",
+"desc": "Research papers and data are published free online for anyone to read and reuse.",
+"effects": [
+[
+"institutions.universities.maxResearchCostReduction",
+0.02
+]
+],
+"distinctFrom": "scientific_societies publish proceedings to members; open access publishes free to all."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "clinical_trials",
+"name": "Clinical trials",
+"tree": "civics",
+"age": "A9",
+"lane": "thought-learning",
+"prereq": "medical_education_reform AND probability_statistics",
+"desc": "Treatments are tested by randomized controlled trials before they are adopted.",
+"effects": [
+[
+"institutions.universities.maxMortalityReduction",
+0.04
+]
+],
+"distinctFrom": "medical_education_reform trains doctors; clinical trials test what they prescribe."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "operations_research",
+"name": "Operations research",
+"tree": "civics",
+"age": "A9",
+"lane": "thought-learning",
+"prereq": "radar AND probability_statistics",
+"desc": "Scientists apply mathematics to routing, scheduling and supply problems of armies and firms.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.03
+]
+],
+"distinctFrom": "national_accounts measure the economy; operations research optimizes its logistics."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "civil_space_agency",
+"name": "Civil space agency",
+"tree": "civics",
+"age": "A9",
+"lane": "thought-learning",
+"prereq": "orbital_launch_vehicle AND science_policy",
+"desc": "A civilian agency runs space science, mapping and exploration programmes.",
+"effects": [
+[
+"fog.exploreMaxRadiusNodes",
+0.05
+]
+],
+"distinctFrom": "national_laboratories pursue physics; the space agency runs exploration and earth survey."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "mass_literacy_campaigns",
+"name": "Mass literacy campaigns",
+"tree": "civics",
+"age": "A9",
+"lane": "education",
+"prereq": "compulsory_education AND mass_press",
+"desc": "The state mobilizes teachers and students to teach every adult to read within a few years.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.04
+]
+],
+"distinctFrom": "compulsory_education schools children; literacy campaigns teach the adults left out."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "universal_secondary_education",
+"name": "Universal secondary education",
+"tree": "civics",
+"age": "A9",
+"lane": "education",
+"prereq": "compulsory_education AND normal_schools",
+"desc": "Every child stays at school into the teens, in free state secondary schools.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.03
+]
+],
+"distinctFrom": "humanist_colleges served an elite; universal secondary education enrols every child."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "mass_higher_education",
+"name": "Mass higher education",
+"tree": "civics",
+"age": "A9",
+"lane": "education",
+"prereq": "research_university AND universal_secondary_education",
+"desc": "Public grants and new campuses open university study to a large share of each generation.",
+"effects": [
+[
+"institutions.universities.maturityTauYears",
+0.03
+],
+[
+"mobility.promoteRatePerYear",
+0.02
+]
+],
+"distinctFrom": "research_university is a model of research; mass higher education is enrolment at scale."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "distance_education",
+"name": "Distance education",
+"tree": "civics",
+"age": "A9",
+"lane": "education",
+"prereq": "mass_higher_education AND (public_broadcasting OR television)",
+"desc": "Adults study for degrees at home through broadcast lectures, post and later the internet.",
+"effects": [
+[
+"mobility.promoteRatePerYear",
+0.02
+],
+[
+"mobility.targetShareCap",
+0.02
+]
+],
+"distinctFrom": "mass_higher_education builds campuses; distance education reaches those who cannot attend."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "international_student_exchange",
+"name": "International student exchange",
+"tree": "civics",
+"age": "A9",
+"lane": "education",
+"prereq": "mass_higher_education AND international_organizations",
+"desc": "Governments fund students and scholars to study abroad and recognize each other's degrees.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "cultural_institutes teach a language abroad; exchanges send students to study abroad."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "film_industry",
+"name": "Film industry",
+"tree": "civics",
+"age": "A9",
+"lane": "arts-culture",
+"prereq": "photography AND electric_light",
+"desc": "Studios make feature films shown in thousands of cinemas to mass weekly audiences.",
+"effects": [
+[
+"society.unrestOutputDrag",
+0.02
+]
+],
+"distinctFrom": "public_theatre is live drama; film is mass-reproduced drama shown everywhere at once."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "arts_councils",
+"name": "Arts councils",
+"tree": "civics",
+"age": "A9",
+"lane": "arts-culture",
+"prereq": "arts_academies AND income_tax",
+"desc": "Public bodies grant tax money at arm's length to theatres, orchestras, galleries and artists.",
+"effects": [
+[
+"research.civicsPointsCoefficient",
+0.02
+]
+],
+"distinctFrom": "court_patronage is a ruler's taste; arts councils are arm's-length public funding."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "cultural_institutes",
+"name": "Cultural institutes",
+"tree": "civics",
+"age": "A9",
+"lane": "arts-culture",
+"prereq": "national_literature AND resident_embassies",
+"desc": "States fund institutes abroad that teach their language and present their culture.",
+"effects": [
+[
+"migration.baseRatePerYear",
+0.02
+]
+],
+"distinctFrom": "international_student_exchange sends students; institutes teach the language abroad."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "recorded_music_industry",
+"name": "Recorded music industry",
+"tree": "civics",
+"age": "A9",
+"lane": "arts-culture",
+"prereq": "radio_broadcasting AND public_opera",
+"desc": "Firms record and sell music to every home and radio station, making popular music a mass culture.",
+"effects": [
+[
+"society.grievanceRelief",
+0.02
+]
+],
+"distinctFrom": "public_opera is live performance; recorded music is mass-reproduced sound."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "modernist_design",
+"name": "Modernist design",
+"tree": "civics",
+"age": "A9",
+"lane": "arts-culture",
+"prereq": "arts_academies AND reinforced_concrete",
+"desc": "Designers and architects plan compact, standardized dwellings and furniture for mass housing.",
+"effects": [
+[
+"housing.personsPerDwelling",
+0.03
+]
+],
+"distinctFrom": "arts_academies train artists; modernist design applies art to mass housing and goods."
+},
+{
+"g": "C5-thought-arts-information",
+"id": "public_art_programmes",
+"name": "Public art programmes",
+"tree": "civics",
+"age": "A9",
+"lane": "arts-culture",
+"prereq": "arts_academies AND mass_political_party",
+"desc": "The state employs artists to paint murals and make public works that teach history to all citizens.",
+"effects": [
+[
+"mobility.targetShareCap",
+0.02
+]
+],
+"distinctFrom": "arts_councils make grants at arm's length; public art programmes commission and employ artists directly."
+},
+{
+"g": "T1-food-agriculture",
+"id": "grain_storage",
+"name": "Purpose-built granaries",
+"tree": "technology",
+"age": "A2",
+"lane": "agriculture",
+"prereq": "cereal_cultivation",
+"desc": "Raised floors, sealed pits and mud-plastered bins keep stored grain dry and free of pests, so a harvest lasts until the next one and beyond.",
+"effects": [
+[
+"consumption.grainSpoilagePerYear",
+0.06
+],
+[
+"consumption.granaryYearsOfDemand",
+0.1
+]
+],
+"distinctFrom": "cereal_domesticated changes the plant; this changes how its grain is kept. The granary building has no research requirement; this node improves what granaries hold and how little rots."
+},
+{
+"g": "T1-food-agriculture",
+"id": "iron_farm_tools",
+"name": "Iron farm tools",
+"tree": "technology",
+"age": "A4",
+"lane": "agriculture",
+"prereq": "iron_bloomery AND digging_stick_hoe AND sickle",
+"desc": "Forged iron sickles, hoe blades and ploughshares hold an edge and outlast stone and bronze, letting farmers clear forest and work harder soils.",
+"effects": [
+[
+"production.toolWearPerEquippedFarmerPerYear",
+0.12
+],
+[
+"production.toolYieldBonusMax",
+0.06
+]
+],
+"distinctFrom": "iron_bloomery makes the metal; this puts it into everyday farm tools. Unlike heavy_plough it is a hand-tool and share capability, not a new plough."
+},
+{
+"g": "T1-food-agriculture",
+"id": "three_field_rotation",
+"name": "Three-field rotation",
+"tree": "technology",
+"age": "A6",
+"lane": "agriculture",
+"prereq": "legume AND plough_ard",
+"desc": "Fields rotate through winter grain, spring legumes or oats, and fallow, so only a third lies idle; oats feed horses and pulses restore the soil.",
+"effects": [
+[
+"farming.yieldPerArableKm2PerYear",
+0.05
+],
+[
+"production.outputPerHerderPerYear",
+0.03
+]
+],
+"distinctFrom": "crop_rotation_norfolk abolishes fallow with fodder roots and clover; this is the earlier regime that halves fallow and adds a spring course."
+},
+{
+"g": "T1-food-agriculture",
+"id": "herring_buss",
+"name": "Herring buss and sea-curing",
+"tree": "technology",
+"age": "A6",
+"lane": "agriculture",
+"prereq": "cog AND salt_extraction",
+"desc": "Decked fishing ships stay out for weeks with drift nets, gutting and salting the herring aboard, so the catch reaches distant markets.",
+"effects": [
+[
+"production.outputPerExtractorPerYear",
+0.06
+],
+[
+"foodState.adaptationAbsorbableShortfall",
+0.02
+]
+],
+"distinctFrom": "fishing_hook is subsistence line fishing; this is an offshore commercial fishery with preservation at sea."
+},
+{
+"g": "T2-materials",
+"id": "tinplate",
+"name": "Tinplate",
+"tree": "technology",
+"age": "A6",
+"lane": "materials",
+"prereq": "iron_bloomery AND sheet_metal AND trip_hammer",
+"desc": "Thin iron sheet coated with molten tin so it will not rust: light, cheap, sealable boxes, canisters and kitchenware, and later the tin can.",
+"effects": [
+[
+"consumption.grainSpoilagePerYear",
+0.02
+]
+],
+"distinctFrom": "sheet_metal is hammered bronze for vessels and armour; tinplate is rust-proofed iron sheet for sealed containers (the missing bridge to canning)."
+},
+{
+"g": "T2-materials",
+"id": "crucible_cast_steel",
+"name": "Crucible cast steel",
+"tree": "technology",
+"age": "A7",
+"lane": "materials",
+"prereq": "coke AND steel_carburized",
+"desc": "Blister steel melted in sealed clay crucibles and cast into ingots: uniform, slag-free tool steel for files, springs, razors and edge tools.",
+"effects": [
+[
+"production.toolYieldBonusMax",
+0.03
+]
+],
+"distinctFrom": "wootz is small-batch South Indian crucible steel for blades without coke; this is coke-fired, homogeneous cast tool steel made in quantity for machine and edge tools."
+},
+{
+"g": "T2-materials",
+"id": "galvanized_iron",
+"name": "Galvanized corrugated iron",
+"tree": "technology",
+"age": "A8",
+"lane": "materials",
+"prereq": "puddling AND brass_calamine",
+"desc": "Iron sheet dipped in molten zinc and rolled into corrugations: a light, stiff, rust-resistant roof and wall cladding shipped flat and nailed up anywhere.",
+"effects": [
+[
+"housing.upkeepTimberPerDwellingYear",
+0.04
+],
+[
+"housing.buildTimberPerDwelling",
+0.02
+]
+],
+"distinctFrom": "portland_cement replaces timber in walls and foundations; galvanized iron replaces shingle and thatch roofing that must be renewed, chiefly cutting upkeep."
+},
+{
+"g": "T3-industry-construction-infra",
+"id": "reservoir_dam",
+"name": "Masonry dam and reservoir",
+"tree": "technology",
+"age": "A3",
+"lane": "infrastructure",
+"prereq": "stone_dry AND irrigation_canal",
+"desc": "Walls of stone and earth across a valley hold back seasonal runoff, so channels can water the fields through a dry year.",
+"effects": [
+[
+"harvestVariance.sigmaLogYield",
+0.04
+]
+],
+"distinctFrom": "irrigation_canal leads water already flowing; this stores it across seasons. hydroelectric (A9) is a power dam, not water storage for farming."
+},
+{
+"g": "T3-industry-construction-infra",
+"id": "insula",
+"name": "Multi-storey apartment block",
+"tree": "technology",
+"age": "A5",
+"lane": "construction",
+"prereq": "concrete_pozzolan AND fired_brick",
+"desc": "Brick-faced concrete walls carry several floors of rented flats over street shops, packing many households onto one plot.",
+"effects": [
+[
+"housing.personsPerDwelling",
+0.06
+]
+],
+"distinctFrom": "timber_frame houses one large household under one roof; this stacks many households vertically. The civic building_regulation (A5) regulates such blocks; this is the building technique itself."
+},
+{
+"g": "T3-industry-construction-infra",
+"id": "balloon_frame",
+"name": "Balloon framing",
+"tree": "technology",
+"age": "A8",
+"lane": "construction",
+"prereq": "timber_frame AND crank_connecting_rod",
+"desc": "Light sawn studs nailed together replace heavy jointed timbers, so a small crew can raise a house in days.",
+"effects": [
+[
+"housing.buildLaborAdultYearsPerDwelling",
+0.1
+],
+[
+"housing.buildTimberPerDwelling",
+0.04
+]
+],
+"distinctFrom": "timber_frame is jointed post-and-beam; this is a nailed frame of light sawn studs with no joinery, which cuts the labour per dwelling."
+},
+{
+"g": "T3-industry-construction-infra",
+"id": "precast_housing",
+"name": "Industrialised panel building",
+"tree": "technology",
+"age": "A9",
+"lane": "construction",
+"prereq": "reinforced_concrete AND electric_motor",
+"desc": "Wall and floor panels are cast in factories and lifted into place by crane, so whole housing estates rise with little site labour.",
+"effects": [
+[
+"housing.buildLaborAdultYearsPerDwelling",
+0.08
+]
+],
+"distinctFrom": "reinforced_concrete is the material, poured on site; skyscraper is height and density. This is factory prefabrication of whole dwellings, which cuts labour per dwelling."
+},
+{
+"g": "T4-engineering-energy",
+"id": "lifting_crane",
+"name": "Lifting crane",
+"tree": "technology",
+"age": "A4",
+"lane": "engineering",
+"prereq": "cordage AND wheel_solid AND ashlar_masonry",
+"desc": "A timber jib with pulleys and a winch lifts heavy blocks and beams: small gangs raise walls and roofs that once needed ramps and crowds.",
+"effects": [
+[
+"housing.buildLaborAdultYearsPerDwelling",
+0.03
+]
+],
+"distinctFrom": "mechanics_archimedean (A5) is the theory of the lever and compound pulley; the crane is the practical builder's machine, about 250 years earlier."
+},
+{
+"g": "T4-engineering-energy",
+"id": "coal_fuel",
+"name": "Coal as fuel",
+"tree": "technology",
+"age": "A6",
+"lane": "energy",
+"prereq": "mining_shaft AND bellows",
+"desc": "Mining and burning mineral coal for heating, lime-burning, forging and smelting, where firewood has grown scarce.",
+"effects": [
+[
+"catchment.hinterlandRadiusKm",
+0.03
+],
+[
+"production.outputPerExtractorPerYear",
+0.02
+]
+],
+"distinctFrom": "coke (A7) is coal carbonised for blast furnaces; this node is the earlier use of raw coal as a fuel. charcoal (A2) is a wood fuel."
+},
+{
+"g": "T4-engineering-energy",
+"id": "mine_pumping_engines",
+"name": "Mine pumping engines",
+"tree": "technology",
+"age": "A7",
+"lane": "engineering",
+"prereq": "water_mill AND crank_connecting_rod AND mining_shaft",
+"desc": "Water wheels and horse gins drive chains of pumps and lifting rods that keep deep mine shafts dry.",
+"effects": [
+[
+"production.outputPerExtractorPerYear",
+0.03
+]
+],
+"distinctFrom": "steam_atmospheric (A7, 1712) drains mines with a heat engine; this node is the water- and animal-powered pumping it replaced."
+},
+{
+"g": "T4-engineering-energy",
+"id": "town_gas",
+"name": "Coal-gas lighting",
+"tree": "technology",
+"age": "A8",
+"lane": "energy",
+"prereq": "coke AND chemistry_quantitative",
+"desc": "Coal is baked in retorts and the gas piped under the streets to burners: lit streets, mills, homes, and later fuel for gas engines.",
+"effects": [
+[
+"research.civicsPointsCoefficient",
+0.02
+]
+],
+"distinctFrom": "electric_light (A8, 1879) is electric incandescence; this is the earlier piped coal-gas supply, also the fuel of gas_engine."
+},
+{
+"g": "T5-transport-naval",
+"id": "camel_caravan",
+"name": "Desert caravan",
+"tree": "technology",
+"age": "A4",
+"lane": "transport",
+"prereq": "camel AND trade",
+"desc": "Strings of camels, with wells, guides and halting places, carry goods across deserts that no cart or donkey could cross, so towns far apart can trade overland.",
+"effects": [
+[
+"roads.maxRouteKm",
+0.06
+]
+],
+"distinctFrom": "trade (A3) is exchange between settlements within ordinary route range by any carrier; this is the specific ability to cross waterless country, lengthening the longest viable overland route rather than cheapening haulage."
+},
+{
+"g": "T5-transport-naval",
+"id": "sprung_coach",
+"name": "Sprung coach and stage service",
+"tree": "technology",
+"age": "A7",
+"lane": "transport",
+"prereq": "wheel_spoked AND horseshoe AND steel_carburized",
+"desc": "Coaches hung on straps and later steel springs, drawn by fresh teams changed at regular stages, carry passengers, mail and light goods on timetabled runs between towns.",
+"effects": [
+[
+"roads.baselineKmPerDay",
+0.05
+]
+],
+"distinctFrom": "horseshoe (A6) protects the animal and macadam (A8) improves the surface; this is the vehicle and staging system, the only A7 overland transport node (the A7 transport lane is otherwise empty)."
+},
+{
+"g": "T6-science",
+"id": "logarithms",
+"name": "Logarithms",
+"tree": "technology",
+"age": "A7",
+"lane": "science",
+"prereq": "hindu_arabic AND trigonometry",
+"desc": "Tables that turn multiplication into addition. Navigators, astronomers and surveyors compute in minutes what took hours, and Gunter's scale puts the method in a ship's master's hands.",
+"effects": [
+[
+"trade.costPerBulkCostUnit",
+0.02
+]
+],
+"distinctFrom": "calculus (A7) is the theory of rates; logarithms are a computational shortcut 60 years earlier, used by practitioners rather than theorists."
+},
+{
+"g": "T6-science",
+"id": "electrostatics",
+"name": "Electrostatics and the lightning rod",
+"tree": "technology",
+"age": "A7",
+"lane": "science",
+"prereq": "barometer_vacuum",
+"desc": "Friction machines, the Leyden jar and Franklin's experiments show that lightning is electricity. Grounded rods protect roofs, steeples and powder magazines.",
+"effects": [
+[
+"housing.tauYears",
+0.03
+]
+],
+"distinctFrom": "electromagnetism (A8) is current electricity and induction; electrostatics is the earlier science of charge, and its only direct product is the lightning rod."
+},
+{
+"g": "T6-science",
+"id": "synoptic_meteorology",
+"name": "Synoptic meteorology",
+"tree": "technology",
+"age": "A8",
+"lane": "science",
+"prereq": "barometer_vacuum AND telegraph",
+"desc": "Simultaneous barometer readings, telegraphed to one office, become a weather map. Storm warnings reach ports, and frost warnings reach growers.",
+"effects": [
+[
+"harvestVariance.sigmaLogYield",
+0.02
+],
+[
+"trade.costPerBulkCostUnit",
+0.01
+]
+],
+"distinctFrom": "weather_prediction (A9, engineering) is computer-based numerical forecasting from 1950; this is the earlier telegraph-and-map forecast, and it bridges barometer_vacuum to it."
+},
+{
+"g": "T6-science",
+"id": "metric_system",
+"name": "Metric system",
+"tree": "technology",
+"age": "A8",
+"lane": "science",
+"prereq": "standard_weights AND trigonometry AND chemistry_quantitative",
+"desc": "Decimal units defined by nature and kept by international standards. Goods, land and loads are measured the same way in every market.",
+"effects": [
+[
+"trade.gapClosingFraction",
+0.03
+]
+],
+"distinctFrom": "standard_weights (A3) are local state standards; the metric system is a decimal, nature-based, international system tied to geodesy and chemistry."
+},
+{
+"g": "T7-communication-environment",
+"id": "codex",
+"name": "Parchment codex",
+"tree": "technology",
+"age": "A5",
+"lane": "communication",
+"prereq": "hide_working AND abjad",
+"desc": "Pages of durable parchment bound between boards. A codex can be opened at any page, indexed and carried, so reference books, law codes and scripture survive and can be consulted quickly.",
+"effects": [
+[
+"research.researchPointsCoefficient",
+0.03
+]
+],
+"distinctFrom": "papyrus (A3) is the scroll writing surface and paper (A5) the cheap sheet material; this is the bound, page-addressable, long-lasting book format, so its effect is on accumulated knowledge, not on administrative scale."
+},
+{
+"g": "T7-communication-environment",
+"id": "sustained_yield_forestry",
+"name": "Sustained-yield forestry",
+"tree": "technology",
+"age": "A7",
+"lane": "environment",
+"prereq": "forest_law AND surveying",
+"desc": "Forests divided into measured plots, cut in rotation and replanted so that no more wood is taken each year than grows back. Timber and fuel stop running out.",
+"effects": [
+[
+"production.outputPerExtractorPerYear",
+0.04
+]
+],
+"distinctFrom": "forest_law (A6 civic) reserves forests by decree; this is the technical practice of rotation, measurement and replanting that raises the sustained timber harvest. It is the environment lane's first finite node."
+},
+{
+"g": "T7-communication-environment",
+"id": "steam_printing_press",
+"name": "Steam-powered printing press",
+"tree": "technology",
+"age": "A8",
+"lane": "communication",
+"prereq": "printing_press AND steam_rotary",
+"desc": "Cylinder and then rotary presses driven by steam print thousands of sheets an hour. Daily newspapers sell for a penny, and politics, prices and news reach every reader.",
+"effects": [
+[
+"research.civicsPointsCoefficient",
+0.03
+]
+],
+"distinctFrom": "printing_press (A7) is the hand press of books and pamphlets; this is the mechanised mass-circulation press behind the penny press (mass_press civic). It has no live building of its own, only the civic-discourse effect."
+},
+{
+"g": "T8-medicine-military",
+"id": "herbal_remedies",
+"name": "Herbal remedies",
+"tree": "technology",
+"age": "A1",
+"lane": "medicine",
+"prereq": "fire_making",
+"desc": "Knowledge of plants that ease pain, purge worms and dress wounds, passed from healer to healer. The root of every later pharmacopoeia.",
+"effects": [
+[
+"demographics.mortalityPerYear",
+0.01
+]
+],
+"distinctFrom": "pharmacology (A5) is a written, systematic catalogue; herbal remedies are oral lore, 45,000 years earlier, and the root medicine_recorded writes down."
+},
+{
+"g": "T8-medicine-military",
+"id": "signal_beacons",
+"name": "Signal beacons",
+"tree": "technology",
+"age": "A3",
+"lane": "military",
+"prereq": "fire_making AND stone_dry",
+"desc": "Chains of watch posts on high ground pass a pre-arranged fire or smoke signal from hilltop to hilltop: news of raiders reaches the capital in hours instead of days.",
+"effects": [
+[
+"governance.authorityDecayCostUnits",
+0.03
+]
+],
+"distinctFrom": "optical_telegraph (A7) sends arbitrary coded messages along a line; beacons carry one pre-agreed signal, 3,500 years earlier, for frontier warning."
+},
+{
+"g": "T8-medicine-military",
+"id": "antiscorbutics",
+"name": "Antiscorbutics",
+"tree": "technology",
+"age": "A7",
+"lane": "medicine",
+"prereq": "medicine_hippocratic AND carrack",
+"desc": "Citrus juice and fresh food prevent scurvy, which killed more sailors on long voyages than storms or battle. Crews and emigrants arrive alive.",
+"effects": [
+[
+"migration.dampingDecayCostUnits",
+0.04
+],
+[
+"fog.exploreMaxRadiusNodes",
+0.02
+]
+],
+"distinctFrom": "inoculation (A7) protects against one infection; antiscorbutics prevent a deficiency disease of long voyages, with a migration and exploration effect, not mortality."
+},
+{
+"g": "T8-medicine-military",
+"id": "quinine",
+"name": "Quinine",
+"tree": "technology",
+"age": "A8",
+"lane": "medicine",
+"prereq": "pharmacology AND chemistry_quantitative",
+"desc": "The alkaloid of cinchona bark, isolated and dosed, prevents and treats malaria. Settlers and soldiers survive in malarial lands that had killed most newcomers.",
+"effects": [
+[
+"colonization.orderPartyFraction",
+0.03
+],
+[
+"demographics.mortalityPerYear",
+0.01
+]
+],
+"distinctFrom": "pharmacology (A5) catalogues drugs; quinine is one purified, dosed alkaloid against the deadliest endemic disease, with a colonization effect."
+},
+{
+"g": "T8-medicine-military",
+"id": "aerial_reconnaissance",
+"name": "Aerial reconnaissance",
+"tree": "technology",
+"age": "A9",
+"lane": "military",
+"prereq": "aircraft AND photography",
+"desc": "Aircraft with cameras photograph the land beyond the front and far from home. Maps of unseen country are made from the air.",
+"effects": [
+[
+"fog.exploreMaxRadiusNodes",
+0.04
+]
+],
+"distinctFrom": "radar (A9) detects by radio at night and in cloud for air defence; aerial reconnaissance photographs terrain by daylight, decades earlier, and maps land rather than tracking targets."
+}
+]

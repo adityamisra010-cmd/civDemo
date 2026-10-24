@@ -1,0 +1,4712 @@
+{
+ "group": "C2-law-administration-representation",
+ "audit": [
+  {
+   "id": "law_code",
+   "name": "Written law",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "law-justice",
+   "cost": 1240.0,
+   "prereq": "(cuneiform OR hieroglyphic OR chinese_script)",
+   "dependents": [
+    "assembly_democracy",
+    "city_state_oligarchy",
+    "civil_police",
+    "common_law",
+    "debt_remission",
+    "family_law",
+    "jury_courts",
+    "land_registry",
+    "legal_code_roman",
+    "mandate_doctrine",
+    "municipal_charter",
+    "political_philosophy",
+    "service_tenure",
+    "succession_law",
+    "theocracy",
+    "water_rights"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cuneiform",
+     "verdict": "keep",
+     "why": "Ur-Nammu (~2,100 BCE) and Hammurabi (~1,754 BCE) wrote their laws in cuneiform."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "Egyptian royal decrees and court records are an independent written route to law."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Western Zhou bronze inscriptions record judgments and penalties; a separate route."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cuneiform A3; hieroglyphic A3; chinese_script A3 (same Age or earlier; no gap issue)",
+   "crossTree": "technology atoms: cuneiform, hieroglyphic, chinese_script (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.grievanceRelief +0.04"
+   ],
+   "effectRationale": "Known rules and fixed penalties replace the ruler's whim: wrongs are settled by rule instead of nursed as grievances. Landmark of the lane, hence 0.04.",
+   "costConcern": "1,240 is 0.84x the A3 civics median (1,480); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound gate with 16 dependents. Any one script suffices (OR is right). emerged is null: suggest '~2,100 BCE Ur-Nammu; ~1,754 BCE Hammurabi'.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Code Of Laws"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Code of Laws"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "legal_code_roman",
+   "name": "Systematic law",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "law-justice",
+   "cost": 2490.0,
+   "prereq": "law_code",
+   "dependents": [
+    "abolition",
+    "bill_of_rights",
+    "building_regulation",
+    "canon_law",
+    "civil_code",
+    "commercial_law",
+    "copyright",
+    "craft_guilds",
+    "joint_stock",
+    "jurists",
+    "law_of_nations",
+    "patent",
+    "religious_toleration",
+    "written_constitution"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Systematic law organizes, classifies and extends an existing body of written law."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "law_code A3 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.03",
+    "live unlock inst.university"
+   ],
+   "effectRationale": "A systematic law of contract, sale and obligation lets strangers deal on known terms across a realm, so goods move toward higher prices faster. inst.university (library AND legal_code_roman) is live.",
+   "costConcern": "2,490 is 1.00x the A4 civics median (2,490); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. emerged is null: suggest '~450 BCE Twelve Tables; 529-534 CE Corpus Juris Civilis'; both dates sit after the A4 window, but the node is a long-established A4 gate with the live university behind it, so no Age move is proposed.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Code Of Laws"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Ritsuryo (Heian Japan unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "inst.university"
+   ]
+  },
+  {
+   "id": "census",
+   "name": "Census",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "administration-fiscal",
+   "cost": 4970.0,
+   "prereq": "(cuneiform OR hieroglyphic OR chinese_script) AND stamp_seal",
+   "dependents": [
+    "compulsory_education",
+    "mass_suffrage",
+    "official_statistics",
+    "provincial_administration",
+    "public_health_board",
+    "universal_conscription"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cuneiform",
+     "verdict": "keep",
+     "why": "Counts were written lists; any script serves (OR group)."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "Egypt's biennial count of cattle and people from the first dynasties is a hieroglyphic record."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Han household counts are written in Chinese script; separate route."
+    },
+    {
+     "atom": "stamp_seal",
+     "verdict": "replace",
+     "why": "Sealing controls goods; it does not count people. A census is carried out house by house by officials acting on written orders (Egyptian counts, Roman censors, Han registers): replace with appointed_officials. stamp_seal stays in the closure through appointed_officials -> taxation, so nothing earlier is lost."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cuneiform A3; hieroglyphic A3; chinese_script A3; stamp_seal A2 (same Age or earlier; no gap issue)",
+   "crossTree": "technology atoms: cuneiform, hieroglyphic, chinese_script, stamp_seal (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.05"
+   ],
+   "effectRationale": "Counted households can be assessed: the levy is applied to everyone, not only to those an official happens to know. 0.05 because the census is the fiscal base of the A4 state.",
+   "costConcern": "4,970 is 2.00x the A4 civics median (2,490); high for a micro civic, pacing calibration should check it",
+   "action": "replace-prereq",
+   "newPrereq": "(cuneiform OR hieroglyphic OR chinese_script) AND appointed_officials",
+   "newAge": null,
+   "rationale": "Replace stamp_seal with appointed_officials (causal: the count is an official act). Age A4 kept. emerged is null: suggest '~3,000 BCE Egyptian biennial count; 2 CE Han census'.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "patent",
+   "name": "Patent system",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "cost": 4180.0,
+   "prereq": "legal_code_roman AND printing_press",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "A patent is a legal privilege enforced in court against copiers."
+    },
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "Published specifications and printed registers are the disclosure that justifies the monopoly; the system of 1624 onward relies on print, though the 1474 Venetian statute came before print spread."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "legal_code_roman A4; printing_press A7 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "technology atoms: printing_press (causal inputs; kept)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.03"
+   ],
+   "effectRationale": "Disclosure: a patent publishes how the invention works, so later inventors and university workshops start from it instead of rediscovering it.",
+   "costConcern": "4,180 is 0.84x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. It was a leaf; this group adds trademark_law (A8) and patent_cooperation (A9) as successors. emerged is null: suggest '1474 CE Venetian Patent Statute; 1624 CE Statute of Monopolies'.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "taxation",
+   "name": "Taxation",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "administration-fiscal",
+   "cost": 1050.0,
+   "prereq": "token_counting AND stamp_seal AND (proto_writing OR hieroglyphic OR chinese_script)",
+   "dependents": [
+    "appointed_officials",
+    "corvee_labour",
+    "customs_tolls",
+    "income_tax",
+    "poor_law",
+    "public_granaries",
+    "representative_assembly",
+    "service_tenure",
+    "state_navy",
+    "tax_farming"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "token_counting",
+     "verdict": "keep",
+     "why": "Counted tokens and later tablets record what is owed; the levy is a counted share."
+    },
+    {
+     "atom": "stamp_seal",
+     "verdict": "keep",
+     "why": "Sealed stores and sealed receipts are how levies were delivered and checked at Uruk."
+    },
+    {
+     "atom": "proto_writing",
+     "verdict": "keep",
+     "why": "Uruk IV accounting tablets are the earliest written levy records."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "Egyptian harvest assessment is an independent written route."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Shang and Zhou tribute records are a separate route."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "token_counting A2; stamp_seal A2; proto_writing A3; hieroglyphic A3; chinese_script A3 (same Age or earlier; no gap issue)",
+   "crossTree": "technology atoms: token_counting, stamp_seal, proto_writing, hieroglyphic, chinese_script (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "live unlock order.tax_edict"
+   ],
+   "effectRationale": "The tax edict (live order) is the effect: a declared levy on the realm's production.",
+   "costConcern": "1,050 is 0.71x the A3 civics median (1,480); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Live gate (sim.json taxationRequires). Three-part AND with an OR of scripts is right; no change.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "order.tax_edict"
+   ]
+  },
+  {
+   "id": "kin_council",
+   "name": "Council of elders",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "representation-local-government",
+   "cost": 310.0,
+   "prereq": null,
+   "dependents": [
+    "citizen_assembly",
+    "elite_council",
+    "gift_exchange",
+    "oath_alliance",
+    "war_band"
+   ],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "root (no prerequisites)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Elders' mediation settles quarrels before they become feuds: grievance builds more slowly.",
+   "costConcern": "310 is 1.19x the A1 civics median (260); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Root civic of the representation lane; five dependents. Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Chiefdom"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "appointed_officials",
+   "name": "Appointed officials",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "administration-fiscal",
+   "cost": 2090.0,
+   "prereq": "taxation AND (cuneiform OR hieroglyphic OR chinese_script)",
+   "dependents": [
+    "civil_police",
+    "civil_service_examinations",
+    "common_law",
+    "factory_inspection",
+    "heritage_preservation",
+    "merit_civil_service",
+    "ministerial_responsibility",
+    "planned_cities",
+    "press_licensing",
+    "provincial_administration",
+    "public_broadcasting",
+    "public_granaries",
+    "resident_embassies",
+    "royal_post",
+    "standing_army",
+    "state_exploration",
+    "state_monopolies",
+    "state_religion",
+    "statecraft_doctrine",
+    "territorial_kingship",
+    "tributary_relations"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "taxation",
+     "verdict": "keep",
+     "why": "Officials are paid from, and exist to collect and spend, the levy."
+    },
+    {
+     "atom": "cuneiform",
+     "verdict": "keep",
+     "why": "Written orders are what make an official removable and accountable; any script (OR)."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "Old Kingdom officials acted on written royal orders."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Zhou appointment inscriptions record offices conferred in writing."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "taxation A3; cuneiform A3; hieroglyphic A3; chinese_script A3 (same Age or earlier; no gap issue)",
+   "crossTree": "technology atoms: cuneiform, hieroglyphic, chinese_script (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.06"
+   ],
+   "effectRationale": "Officials carrying written orders project the ruler's authority far from the court. Landmark of administration, hence 0.06.",
+   "costConcern": "2,090 is 1.41x the A3 civics median (1,480); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; 21 dependents, a true hub.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "corvee_labour",
+   "name": "Corvée labour",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "administration-fiscal",
+   "cost": 880.0,
+   "prereq": "taxation",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "taxation",
+     "verdict": "keep",
+     "why": "Labour service is the levy taken in work rather than in kind."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "taxation A3 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "pathBuild.laborPerAdultPerYear +0.05"
+   ],
+   "effectRationale": "Rotating gangs owed to the state dig canals and build roads: more path-building per worker.",
+   "costConcern": "880 is 0.59x the A3 civics median (1,480); below the median, acceptable for a narrow one-step civic (cheap single-step levy)",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as a deliberate leaf: its successors are conscription and wage labour, which live in other lanes.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "State Workforce"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mit'a (Inca unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "pathBuild.laborPerAdultPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "elite_council",
+   "name": "Council of notables",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "representation-local-government",
+   "cost": 1240.0,
+   "prereq": "kin_council AND hereditary_rank",
+   "dependents": [
+    "bill_of_rights",
+    "citizen_militia",
+    "city_state_oligarchy",
+    "classical_republic",
+    "elective_succession",
+    "municipal_charter"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "kin_council",
+     "verdict": "keep",
+     "why": "The council of notables narrows the elders' council to the leading families."
+    },
+    {
+     "atom": "hereditary_rank",
+     "verdict": "keep",
+     "why": "Membership by family standing presupposes inherited rank."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "kin_council A1; hereditary_rank A2 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "Binding the great families into decisions keeps their rivalries in the council chamber rather than in armed faction.",
+   "costConcern": "1,240 is 0.84x the A3 civics median (1,480); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Its emerged dates (~700 BCE Sparta, ~500 BCE Rome) fall in A4/A5 while the node is A3; Early Dynastic Mesopotamian city elders are the A3 evidence and should be cited in emerged.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Senatus Populusque Romanus (Rome unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "citizen_assembly",
+   "name": "Popular assembly",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "representation-local-government",
+   "cost": 1760.0,
+   "prereq": "kin_council",
+   "dependents": [
+    "assembly_democracy",
+    "citizen_militia",
+    "elected_magistracies",
+    "jury_courts",
+    "municipal_charter",
+    "referendum"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "kin_council",
+     "verdict": "keep",
+     "why": "The popular assembly extends the household heads' meeting to all free men of the community."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "kin_council A1 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Free members who vote on war and law accept outcomes they helped decide.",
+   "costConcern": "1,760 is 0.71x the A4 civics median (2,490); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. The A1->A4 gap is the real history: the assembly is the council of household heads grown to a community.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Ekklesia (Greece unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "elected_magistracies",
+   "name": "Elected magistracies",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "representation-local-government",
+   "cost": 1240.0,
+   "prereq": "citizen_assembly",
+   "dependents": [
+    "classical_republic",
+    "merchant_republic",
+    "presidential_republic"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "citizen_assembly",
+     "verdict": "keep",
+     "why": "Magistrates are elected by the assembly."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "citizen_assembly A4 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "Fixed terms and annual rotation stop one man or faction from holding power until it must be taken by force.",
+   "costConcern": "1,240 is 0.50x the A4 civics median (2,490); below the median, acceptable for a narrow one-step civic (single capability, few dependents)",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Classical Republic (government)"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "land_registry",
+   "name": "Land registry",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "administration-fiscal",
+   "cost": 1760.0,
+   "prereq": "surveying AND law_code",
+   "dependents": [
+    "forest_law",
+    "settler_land_grants"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "surveying",
+     "verdict": "keep",
+     "why": "Fields must be measured before they can be registered."
+    },
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "A register is evidence of title only under a law that recognizes it."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "surveying A3; law_code A3 (same Age or earlier; no gap issue)",
+   "crossTree": "technology atoms: surveying (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.03"
+   ],
+   "effectRationale": "Recorded boundaries and title end boundary disputes and let holders invest in drainage and manuring with confidence.",
+   "costConcern": "1,760 is 0.71x the A4 civics median (2,490); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. emerged spans 2,500 BCE to 1858 CE; the A4 node is the early register, and the 1858 Torrens title is a later refinement, not a separate node.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Domesday Book (Norman unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "provincial_administration",
+   "name": "Provincial governors",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "administration-fiscal",
+   "cost": 3520.0,
+   "prereq": "appointed_officials AND census",
+   "dependents": [
+    "absolute_monarchy",
+    "bureaucratic_empire",
+    "colonial_administration",
+    "federal_republic"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Governors are appointed officials placed over provinces."
+    },
+    {
+     "atom": "census",
+     "verdict": "keep",
+     "why": "A province is administered and assessed through its count of people and land."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3; census A4 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.07"
+   ],
+   "effectRationale": "Governors answering to the capital carry its authority to distant provinces. Landmark (satrapies, Assyrian provinces), hence 0.07.",
+   "costConcern": "3,520 is 1.41x the A4 civics median (2,490); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Early Empire"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Satrapies (Achaemenid Persia unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.07
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "tax_farming",
+   "name": "Tax farming",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "administration-fiscal",
+   "cost": 1050.0,
+   "prereq": "taxation AND coinage_electrum",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "taxation",
+     "verdict": "keep",
+     "why": "Tax farming contracts out an existing levy."
+    },
+    {
+     "atom": "coinage_electrum",
+     "verdict": "keep",
+     "why": "Farms were bid for and paid in coin; contractors turned in-kind revenue into money."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "taxation A3; coinage_electrum A4 (same Age or earlier; no gap issue)",
+   "crossTree": "technology atoms: coinage_electrum (causal inputs; kept)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "price.stockReleaseRatePerYear +0.03"
+   ],
+   "effectRationale": "Tax farmers sell the grain and goods they collect to raise the coin they owe: stocks reach markets faster.",
+   "costConcern": "1,050 is 0.42x the A4 civics median (2,490); below the median, acceptable for a narrow one-step civic (single capability, few dependents)",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as a deliberate leaf: superseded by salaried collection (income_tax path), not a parent of it.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "municipal_charter",
+   "name": "Municipal charters",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "representation-local-government",
+   "cost": 3520.0,
+   "prereq": "law_code AND (elite_council OR citizen_assembly)",
+   "dependents": [
+    "craft_guilds",
+    "federal_republic",
+    "market_fairs",
+    "merchant_republic",
+    "poor_law",
+    "representative_assembly"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "A charter is written law granted to a town."
+    },
+    {
+     "atom": "elite_council",
+     "verdict": "keep",
+     "why": "Town government by a council of notables is one route (OR)."
+    },
+    {
+     "atom": "citizen_assembly",
+     "verdict": "keep",
+     "why": "Town government by an assembly of citizens is the other route (OR)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "law_code A3; elite_council A3; citizen_assembly A4 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "catchment.hinterlandRadiusKm +0.04"
+   ],
+   "effectRationale": "A chartered town gets jurisdiction and market rights over its surrounding district, so it draws on a wider hinterland.",
+   "costConcern": "3,520 is 1.00x the A5 civics median (3,520); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; the OR of council or assembly is historically right.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nagaram (Chola unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "civil_service_examinations",
+   "name": "Civil service examinations",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "administration-fiscal",
+   "cost": 5910.0,
+   "prereq": "appointed_officials AND paper",
+   "dependents": [
+    "absolute_monarchy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Examinations select among candidates for appointed office."
+    },
+    {
+     "atom": "paper",
+     "verdict": "keep",
+     "why": "Mass written examinations on the classics depend on cheap paper."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3; paper A5 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "technology atoms: paper (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.05"
+   ],
+   "effectRationale": "Office by examination lets talented commoners rise into the official class.",
+   "costConcern": "5,910 is 1.68x the A6 civics median (3,520); high for a micro civic, pacing calibration should check it",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Now also proposed as the parent of merit_civil_service (see that record).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Civil Service"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Bureaucracy"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "representative_assembly",
+   "name": "Representative assembly",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "representation-local-government",
+   "cost": 4970.0,
+   "prereq": "taxation AND (municipal_charter OR service_tenure)",
+   "dependents": [
+    "antitrust",
+    "bill_of_rights",
+    "constitutional_monarchy",
+    "mass_suffrage",
+    "ministerial_responsibility",
+    "popular_sovereignty",
+    "written_constitution"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "taxation",
+     "verdict": "keep",
+     "why": "The assembly meets to consent to taxation."
+    },
+    {
+     "atom": "municipal_charter",
+     "verdict": "keep",
+     "why": "Chartered towns send representatives (OR)."
+    },
+    {
+     "atom": "service_tenure",
+     "verdict": "keep",
+     "why": "Holders of land for service form the noble estate (OR)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "taxation A3; municipal_charter A5; service_tenure A3 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.04"
+   ],
+   "effectRationale": "Taxes granted by the estates are collected with less resistance: consent raises what the levy yields.",
+   "costConcern": "4,970 is 1.41x the A6 civics median (3,520); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "bill_of_rights",
+   "name": "Bill of rights",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "cost": 4970.0,
+   "prereq": "legal_code_roman AND (representative_assembly OR elite_council)",
+   "dependents": [
+    "civil_rights_law",
+    "constitutional_monarchy",
+    "data_protection",
+    "human_rights",
+    "press_freedom"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "Rights enforceable in court require a developed body of law."
+    },
+    {
+     "atom": "representative_assembly",
+     "verdict": "keep",
+     "why": "Parliament imposed the 1689 bill (OR)."
+    },
+    {
+     "atom": "elite_council",
+     "verdict": "keep",
+     "why": "The barons imposed Magna Carta (OR)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "legal_code_roman A4; representative_assembly A6; elite_council A3 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.grievanceRelief +0.04"
+   ],
+   "effectRationale": "Rights the ruler cannot override, enforceable in court, remove the main causes of grievance against the state.",
+   "costConcern": "4,970 is 1.00x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "civil_police",
+   "name": "Professional police",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "cost": 4180.0,
+   "prereq": "appointed_officials AND law_code",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "A police force is a salaried public office."
+    },
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Police enforce written law."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3; law_code A3 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.04"
+   ],
+   "effectRationale": "A standing civil police contains disorder before it stops work and trade.",
+   "costConcern": "4,180 is 0.84x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. It was a leaf; this group adds penitentiary_reform (A8), road_traffic_regulation and anti_corruption_agency (A9) as successors.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Police State (policy, Socialism)"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "official_statistics",
+   "name": "Statistical office",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "administration-fiscal",
+   "cost": 5910.0,
+   "prereq": "census AND (hindu_arabic OR counting_rods)",
+   "dependents": [
+    "central_planning",
+    "income_tax",
+    "science_policy",
+    "total_mobilization"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "census",
+     "verdict": "keep",
+     "why": "Regular tables extend the census into continuous counts."
+    },
+    {
+     "atom": "hindu_arabic",
+     "verdict": "keep",
+     "why": "Tabulation needs positional arithmetic (OR)."
+    },
+    {
+     "atom": "counting_rods",
+     "verdict": "keep",
+     "why": "Rod arithmetic is the East Asian route (OR)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "census A4; hindu_arabic A6; counting_rods A5 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "technology atoms: hindu_arabic, counting_rods (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "granaries.famineReductionMax +0.03"
+   ],
+   "effectRationale": "Known numbers of mouths by parish let stores and relief be sized to need, so granaries relieve famine more.",
+   "costConcern": "5,910 is 1.19x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "granaries.famineReductionMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "separation_of_powers",
+   "name": "Separation of powers",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "cost": 2960.0,
+   "prereq": "written_constitution",
+   "dependents": [
+    "judicial_review",
+    "presidential_republic"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "written_constitution",
+     "verdict": "keep",
+     "why": "The separation is laid down by a constitution."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "written_constitution A7 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "Credible commitment (North and Weingast): when the executive cannot seize or repudiate at will, taxpayers and lenders pay more willingly.",
+   "costConcern": "2,960 is 0.60x the A7 civics median (4,970); below the median, acceptable for a narrow one-step civic (single capability, few dependents)",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Montesquieu (1748) predates 1787 but the written_constitution node dates from 1653, so the order holds.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "written_constitution",
+   "name": "Written constitution",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "cost": 5910.0,
+   "prereq": "legal_code_roman AND representative_assembly",
+   "dependents": [
+    "civil_code",
+    "constitutional_monarchy",
+    "federal_republic",
+    "one_party_state",
+    "press_freedom",
+    "referendum",
+    "revolutionary_republic",
+    "secular_state",
+    "separation_of_powers"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "A fundamental law is drafted in the vocabulary of systematic law."
+    },
+    {
+     "atom": "representative_assembly",
+     "verdict": "keep",
+     "why": "Constitutions were made by representative conventions."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "legal_code_roman A4; representative_assembly A6 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.04"
+   ],
+   "effectRationale": "One fundamental law fixes the organs of government for every province alike: authority carries further with less negotiation.",
+   "costConcern": "5,910 is 1.19x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; nine dependents.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Constitution (policy, Bureaucracy)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mass_political_party",
+   "name": "Mass political parties",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "cost": 9950.0,
+   "prereq": "mass_suffrage AND printing_press",
+   "dependents": [
+    "fascism",
+    "fascist_state",
+    "marxist_leninist_state",
+    "one_party_state",
+    "state_propaganda"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "mass_suffrage",
+     "verdict": "keep",
+     "why": "Mass parties organize a mass electorate."
+    },
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "Party newspapers and pamphlets; mass_press (A8) would be closer but is in another lane and not needed for the closure."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "mass_suffrage A8; printing_press A7 (same Age or earlier; no gap issue)",
+   "crossTree": "technology atoms: printing_press (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.03"
+   ],
+   "effectRationale": "Party machines and workers' parties carry men of modest origin into councils and office: faster social promotion.",
+   "costConcern": "9,950 is 1.00x the A8 civics median (9,950); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Ideology"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mass_suffrage",
+   "name": "Mass suffrage",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "cost": 11830.0,
+   "prereq": "representative_assembly AND census",
+   "dependents": [
+    "civil_rights_law",
+    "mass_political_party",
+    "secret_ballot",
+    "womens_suffrage"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "representative_assembly",
+     "verdict": "keep",
+     "why": "The franchise elects a representative chamber."
+    },
+    {
+     "atom": "census",
+     "verdict": "keep",
+     "why": "Voters are drawn from a public register of adults."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "representative_assembly A6; census A4 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.grievanceRelief +0.04"
+   ],
+   "effectRationale": "Every adult has a lawful voice: grievances go to the polls. Landmark of the lane, hence 0.04.",
+   "costConcern": "11,830 is 1.19x the A8 civics median (9,950); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Its desc says 'by secret ballot', which overlaps secret_ballot; suggest dropping that phrase from the desc.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Suffrage"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Suffrage (policy, Democracy)"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "ministerial_responsibility",
+   "name": "Responsible ministers",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "cost": 7030.0,
+   "prereq": "representative_assembly AND appointed_officials",
+   "dependents": [
+    "parliamentary_government"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "representative_assembly",
+     "verdict": "keep",
+     "why": "Ministers answer to the elected chamber."
+    },
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Ministers head departments of appointed officials."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "representative_assembly A6; appointed_officials A3 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.03"
+   ],
+   "effectRationale": "Ministers answerable in the chamber for every act of their departments discipline officials everywhere.",
+   "costConcern": "7,030 is 0.71x the A8 civics median (9,950); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "customs_tolls",
+   "name": "Customs and tolls",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "administration-fiscal",
+   "cost": 1480.0,
+   "prereq": "taxation AND trade",
+   "dependents": [
+    "customs_union",
+    "free_trade",
+    "mercantilism"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "taxation",
+     "verdict": "keep",
+     "why": "Customs are a levy."
+    },
+    {
+     "atom": "trade",
+     "verdict": "keep",
+     "why": "There must be trade flows to tax."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "taxation A3; trade A3 (same Age or earlier; no gap issue)",
+   "crossTree": "technology atoms: trade (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "Duties at gates, fords and borders capture a share of trade that a levy on the harvest misses.",
+   "costConcern": "1,480 is 1.00x the A3 civics median (1,480); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. This group adds internal_toll_abolition (A8) as a further successor.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Foreign Trade"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Tariffs (policy, Imperialism)"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "family_law",
+   "name": "Family and inheritance law",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "law-justice",
+   "cost": 1240.0,
+   "prereq": "law_code",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Family law is a chapter of written law."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "law_code A3 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "demographics.starvationChildMultiplier +0.03"
+   ],
+   "effectRationale": "Written duties of support, guardianship and adoption put orphans and widows' children under someone's care when food is short.",
+   "costConcern": "1,240 is 0.84x the A3 civics median (1,480); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. It was a leaf; this group adds married_womens_property (A8) as its successor.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Code Of Laws"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Code of Laws"
+   },
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "jurists",
+   "name": "Legal profession",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "law-justice",
+   "cost": 2090.0,
+   "prereq": "legal_code_roman",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "Jurists comment on and develop a systematic law."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "legal_code_roman A4 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.02"
+   ],
+   "effectRationale": "Jurists' opinions refine contract and sale law, so merchants can rely on agreements made far away.",
+   "costConcern": "2,090 is 0.59x the A5 civics median (3,520); below the median, acceptable for a narrow one-step civic (single capability, few dependents)",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. It was a leaf; this group adds roman_law_revival (A6) and legal_aid (A9) as successors.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "jury_courts",
+   "name": "Jury courts",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "law-justice",
+   "cost": 2960.0,
+   "prereq": "citizen_assembly AND law_code",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "citizen_assembly",
+     "verdict": "keep",
+     "why": "Juries are panels of the citizen body."
+    },
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Juries apply written law."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "citizen_assembly A4; law_code A3 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Judgment by one's peers is accepted where an official's verdict would be resented.",
+   "costConcern": "2,960 is 0.84x the A5 civics median (3,520); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as a deliberate leaf: later courts in this group descend from royal and appellate justice, not from the jury.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Citizenship"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "state_monopolies",
+   "name": "State monopolies",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "administration-fiscal",
+   "cost": 2960.0,
+   "prereq": "appointed_officials AND salt_extraction",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Monopolies are run by salaried officials."
+    },
+    {
+     "atom": "salt_extraction",
+     "verdict": "keep",
+     "why": "Salt was the first staple monopolized."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3; salt_extraction A2 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "technology atoms: salt_extraction (causal inputs; kept)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.03"
+   ],
+   "effectRationale": "State salt works and iron foundries concentrate capital and labour at scale (Han monopoly): extraction yields more per worker.",
+   "costConcern": "2,960 is 0.84x the A5 civics median (3,520); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as a deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Centralism"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "common_law",
+   "name": "Common law",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "law-justice",
+   "cost": 3520.0,
+   "prereq": "law_code AND appointed_officials",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Royal judges build on and record written law."
+    },
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Royal judges are appointed officials of the crown."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "law_code A3; appointed_officials A3 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.04"
+   ],
+   "effectRationale": "Itinerant royal justices carry the king's law into every county: authority reaches further.",
+   "costConcern": "3,520 is 1.00x the A6 civics median (3,520); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as a deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Common Law (Norman unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "copyright",
+   "name": "Copyright",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "cost": 3520.0,
+   "prereq": "printing_press AND legal_code_roman",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "Copyright exists because printing makes copying cheap."
+    },
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "A property right in texts enforced in court."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "printing_press A7; legal_code_roman A4 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "technology atoms: printing_press (causal inputs; kept)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "research.civicsPointsCoefficient +0.02"
+   ],
+   "effectRationale": "Paid authors write more: more books, pamphlets and treatises per person.",
+   "costConcern": "3,520 is 0.71x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as a deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "civil_code",
+   "name": "Civil code",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "law-justice",
+   "cost": 14060.0,
+   "prereq": "legal_code_roman AND written_constitution",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "The code systematizes Roman-derived law."
+    },
+    {
+     "atom": "written_constitution",
+     "verdict": "keep",
+     "why": "Codification followed the constitutional settlement in France."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "legal_code_roman A4; written_constitution A7 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.04"
+   ],
+   "effectRationale": "One code for persons, property and contract replaces hundreds of local customs: trade across regions faces one law.",
+   "costConcern": "14,060 is 1.41x the A8 civics median (9,950); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. It was a leaf; this group adds tenancy_protection and consumer_protection (A9).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Code Civil des Français (French Empire unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "income_tax",
+   "name": "Income tax",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "administration-fiscal",
+   "cost": 14060.0,
+   "prereq": "taxation AND official_statistics",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "taxation",
+     "verdict": "keep",
+     "why": "Income tax is a form of taxation."
+    },
+    {
+     "atom": "official_statistics",
+     "verdict": "keep",
+     "why": "Assessing declared incomes needs statistical administration."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "taxation A3; official_statistics A7 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.06"
+   ],
+   "effectRationale": "A broad base on all incomes raises far more than levies on land and goods. Landmark of the fiscal lane, hence 0.06.",
+   "costConcern": "14,060 is 1.41x the A8 civics median (9,950); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. It was a leaf; this group adds withholding_tax, value_added_tax, executive_budget and fiscal_equalization (A9).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "judicial_review",
+   "name": "Judicial review",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "law-justice",
+   "cost": 7030.0,
+   "prereq": "separation_of_powers",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "separation_of_powers",
+     "verdict": "keep",
+     "why": "Review presupposes an independent judiciary."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "separation_of_powers A7 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Laws that violate constitutional rights are struck down instead of enforced.",
+   "costConcern": "7,030 is 0.71x the A8 civics median (9,950); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Leaf within this group; C1 builds its new constitutional_court on it.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "merit_civil_service",
+   "name": "Merit civil service",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "administration-fiscal",
+   "cost": 7030.0,
+   "prereq": "appointed_officials AND compulsory_education",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "appointed_officials",
+     "verdict": "replace",
+     "why": "Northcote-Trevelyan and the Pendleton Act took competitive examination from the Chinese model via the East India Company's Haileybury tests; civil_service_examinations is the causal parent. It already requires appointed_officials, so nothing is lost."
+    },
+    {
+     "atom": "compulsory_education",
+     "verdict": "keep",
+     "why": "Open competition needs a schooled pool of candidates."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3; compulsory_education A7 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.04"
+   ],
+   "effectRationale": "Open competition opens office to the schooled sons of shopkeepers and clerks: faster promotion.",
+   "costConcern": "7,030 is 0.71x the A8 civics median (9,950); within range",
+   "action": "replace-prereq",
+   "newPrereq": "civil_service_examinations AND compulsory_education",
+   "newAge": null,
+   "rationale": "Replace appointed_officials with civil_service_examinations: it bridges the A6 examination node (whose only dependent is absolute_monarchy) to its modern successor. This group also hangs five A9 administrative nodes on merit_civil_service.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Civil Service"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Bureaucracy"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "referendum",
+   "name": "Referendum",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "cost": 9950.0,
+   "prereq": "citizen_assembly AND written_constitution",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "citizen_assembly",
+     "verdict": "keep",
+     "why": "Direct decision by voters descends from the assembly."
+    },
+    {
+     "atom": "written_constitution",
+     "verdict": "keep",
+     "why": "The referendum is a constitutional procedure."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "citizen_assembly A4; written_constitution A7 (gap of 3+ Ages: chain is direct, kept)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.02"
+   ],
+   "effectRationale": "Tax morale is higher where voters approve taxes directly (Feld and Frey on Swiss cantons): taxes extract more.",
+   "costConcern": "9,950 is 1.00x the A8 civics median (9,950); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as a deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Democracy (ideology)"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "secret_ballot",
+   "name": "Secret ballot",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "cost": 4970.0,
+   "prereq": "mass_suffrage",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "mass_suffrage",
+     "verdict": "keep",
+     "why": "Victoria introduced the ballot with manhood suffrage; it protects a mass electorate."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "mass_suffrage A8 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "Private, official ballots end election-day intimidation, bribery and riots.",
+   "costConcern": "4,970 is 0.50x the A8 civics median (9,950); below the median, acceptable for a narrow one-step civic (single capability, few dependents)",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as a deliberate leaf.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Suffrage"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Democracy (ideology)"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "womens_suffrage",
+   "name": "Women's suffrage",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "cost": 4970.0,
+   "prereq": "mass_suffrage",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "mass_suffrage",
+     "verdict": "keep",
+     "why": "Extension of an existing franchise."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "mass_suffrage A8 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "demographics.starvationChildMultiplier +0.03"
+   ],
+   "effectRationale": "Enfranchised women shifted public spending to child health and relief (Miller 2008, US states): children are better protected.",
+   "costConcern": "4,970 is 0.50x the A8 civics median (9,950); below the median, acceptable for a narrow one-step civic (single capability, few dependents)",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as a deliberate leaf; equal_pay_law (A9) builds on it.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Suffrage"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Suffrage (policy, Democracy)"
+   },
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "human_rights",
+   "name": "Human rights law",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "cost": 28130.0,
+   "prereq": "bill_of_rights AND international_organizations",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "bill_of_rights",
+     "verdict": "keep",
+     "why": "Universal rights generalize national bills of rights."
+    },
+    {
+     "atom": "international_organizations",
+     "verdict": "keep",
+     "why": "The declaration and its monitoring are international."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "bill_of_rights A7; international_organizations A8 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.grievanceRelief +0.03"
+   ],
+   "effectRationale": "Rights declared for every person and monitored abroad restrain the worst abuses at home.",
+   "costConcern": "28,130 is 1.00x the A9 civics median (28,130); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Cost 28,130 equals the A9 median; acceptable.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "international_tribunals",
+   "name": "International tribunals",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "cost": 19890.0,
+   "prereq": "laws_of_war AND international_organizations",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "laws_of_war",
+     "verdict": "keep",
+     "why": "Tribunals try breaches of the laws of war."
+    },
+    {
+     "atom": "international_organizations",
+     "verdict": "keep",
+     "why": "International courts are created by international bodies."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "laws_of_war A8; international_organizations A8 (same Age or earlier; no gap issue)",
+   "crossTree": "none (civics atoms only)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "Trials for atrocities replace cycles of revenge after war, so disorder costs less output.",
+   "costConcern": "19,890 is 0.71x the A9 civics median (28,130); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; C1's transitional_justice builds on it.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "customary_sanctions",
+   "name": "Customary sanctions",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "law-justice",
+   "emerged": "~40 kya and earlier (inferred from forager ethnography: ridicule, shunning and expulsion; no direct date)",
+   "prereq": "oral_tradition",
+   "prereqRationale": "oral_tradition: a sanction works only if the band's norms are shared and remembered, and foragers carry them in stories and sayings (both ~40 kya).",
+   "rationale": "oral_tradition: a sanction works only if the band's norms are shared and remembered, and foragers carry them in stories and sayings (both ~40 kya).",
+   "desc": "Ridicule, shunning and, at the last, expulsion from the band keep bullies and shirkers in line. Everyone knows the rules because everyone tells them.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 1.75,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Standing penalties check bullies and free-riders before quarrels stop the band's work.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "kin_council decides matters at a meeting; customary sanctions are the band's standing penalties applied without one."
+  },
+  {
+   "id": "band_territories",
+   "name": "Band territories",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "law-justice",
+   "emerged": "~40-30 kya regional ornament styles marking group areas in Aurignacian Europe (Vanhaeren and d'Errico); access by kin permission in forager ethnography (Ju/'hoansi n!ore)",
+   "prereq": "gift_exchange",
+   "prereqRationale": "gift_exchange: leave to forage on a neighbour's range is asked through exchange partners (hxaro among the Ju/'hoansi); the partnerships come first (~40 kya).",
+   "rationale": "gift_exchange: leave to forage on a neighbour's range is asked through exchange partners (hxaro among the Ju/'hoansi); the partnerships come first (~40 kya).",
+   "desc": "Each band holds a known range. In a lean season its members may forage on a neighbour's land by asking leave through kin and exchange partners.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 1.75,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Reciprocal access to other ranges lets a band ride out a local failure instead of starving: shortfalls are absorbed.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "gift_exchange moves objects between partners; band territories govern who may use which land and how access is asked."
+  },
+  {
+   "id": "seasonal_aggregation",
+   "name": "Seasonal gatherings",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "representation-local-government",
+   "emerged": "~17 kya Magdalenian aggregation sites inferred in Cantabria (Conkey on Altamira); ethnographic analogy with seasonal camps of many bands",
+   "prereq": "kin_council AND gift_exchange",
+   "prereqRationale": "kin_council: each band's household heads negotiate with the others. gift_exchange: gatherings are where exchange partners meet and goods change hands. Both are in place by ~10 kya and earlier.",
+   "rationale": "kin_council: each band's household heads negotiate with the others. gift_exchange: gatherings are where exchange partners meet and goods change hands. Both are in place by ~10 kya and earlier.",
+   "desc": "Several bands meet at a rich place each year to feast, trade, arrange marriages and settle quarrels between groups, then disperse again.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.25,
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Marriages and adoptions arranged between bands let people move from one group to another.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "kin_council governs one band; seasonal gatherings bring many bands together for a few weeks."
+  },
+  {
+   "id": "blood_compensation",
+   "name": "Compensation for injury",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "law-justice",
+   "emerged": "pre-literate practice (ethnographic analogy: payments in livestock and valuables); first written ~2,100 BCE in the laws of Ur-Nammu (silver for injuries)",
+   "prereq": "gift_exchange AND kin_council",
+   "prereqRationale": "gift_exchange: compensation is paid in the valuables that circulate as gifts. kin_council: elders fix the price and witness the settlement. Both far earlier than the first written schedule (~2,100 BCE).",
+   "rationale": "gift_exchange: compensation is paid in the valuables that circulate as gifts. kin_council: elders fix the price and witness the settlement. Both far earlier than the first written schedule (~2,100 BCE).",
+   "desc": "A killing or injury is settled by a fixed payment from the offender's kin to the victim's, set by the elders, instead of by revenge.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A settled price ends the wrong; the feud that would have festered does not start.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "customary_sanctions punish a band member; compensation settles wrongs between kin groups by payment."
+  },
+  {
+   "id": "witnessed_agreements",
+   "name": "Witnessed agreements",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "law-justice",
+   "emerged": "pre-literate practice; witness lists on Sumerian land-sale contracts by ~2,600 BCE (Fara)",
+   "prereq": "gift_exchange AND token_counting",
+   "prereqRationale": "gift_exchange: obligations between partners precede formal agreements. token_counting: counted tokens record the quantities promised (~8,000 BCE). Both precede the first written witness lists (~2,600 BCE).",
+   "rationale": "gift_exchange: obligations between partners precede formal agreements. token_counting: counted tokens record the quantities promised (~8,000 BCE). Both precede the first written witness lists (~2,600 BCE).",
+   "desc": "A sale, loan or pledge is made before named witnesses who can later swear to its terms, so a deal with a stranger can be enforced.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Enforceable deals with strangers let goods move between villages where prices differ.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "gift_exchange is reciprocity between partners; witnessed agreements bind strangers to stated terms."
+  },
+  {
+   "id": "household_land_tenure",
+   "name": "Household fields",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "law-justice",
+   "emerged": "~3,700 BCE Ceide Fields (Ireland), a stone-walled field system of separate holdings",
+   "prereq": "cereal_cultivation AND kin_council",
+   "prereqRationale": "cereal_cultivation: fields worth holding exist only once crops are sown (~11,500 BCE). kin_council: the household heads recognize each other's holdings.",
+   "rationale": "cereal_cultivation: fields worth holding exist only once crops are sown (~11,500 BCE). kin_council: the household heads recognize each other's holdings.",
+   "desc": "Each household works its own fields within marked boundaries and passes them to its heirs; the village recognizes the holding.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A household that keeps its field next year manures, weeds and walls it: land yields more.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "C1's first_settler_rights lets a founding lineage allot fields; household fields are heritable holdings of each household."
+  },
+  {
+   "id": "storehouse_sealing",
+   "name": "Sealed stores",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "administration-fiscal",
+   "emerged": "~6,000 BCE Tell Sabi Abyad (Syria): clay sealings on store jars and doors",
+   "prereq": "stamp_seal AND pottery_open_fired",
+   "prereqRationale": "stamp_seal: the seal impression is the control (~6,000 BCE). pottery_open_fired: sealed jars are the stores (far earlier).",
+   "rationale": "stamp_seal: the seal impression is the control (~6,000 BCE). pottery_open_fired: sealed jars are the stores (far earlier).",
+   "desc": "Store doors and jars are closed with clay pressed by an owner's seal; a broken sealing shows who took grain and when.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "effects": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Sealed jars and doors keep vermin and pilferers out of the grain: less is lost in store.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "stamp_seal is the object; sealed stores are the custom of controlling and auditing store access with it."
+  },
+  {
+   "id": "village_headship",
+   "name": "Village headship",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "representation-local-government",
+   "emerged": "~5,500 BCE Ubaid villages with a larger central house (inferred leadership); ethnographic analogy with village headmen",
+   "prereq": "kin_council AND cereal_cultivation",
+   "prereqRationale": "kin_council: the head is chosen from and by the household heads. cereal_cultivation: a permanent farming village needs a standing head (~11,500 BCE onward).",
+   "rationale": "kin_council: the head is chosen from and by the household heads. cereal_cultivation: a permanent farming village needs a standing head (~11,500 BCE onward).",
+   "desc": "One household head is acknowledged as the village's head: he speaks for it to outsiders and calls the households to common work.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "effects": [
+    {
+     "operand": "pathBuild.laborPerAdultPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "The head calls work parties for ditches, walls and tracks: more path-building per worker.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "kin_council decides by consensus; headship is a standing office in a settled village, not a regional chief (C1 chiefdom)."
+  },
+  {
+   "id": "royal_judges",
+   "name": "Judges and court records",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "law-justice",
+   "emerged": "~2,100 BCE Ur III ditilla records of completed lawsuits; ~1,754 BCE judges in Hammurabi's laws",
+   "prereq": "law_code AND appointed_officials",
+   "prereqRationale": "law_code: judges apply written law. appointed_officials: judges are officials named by the ruler (~2,600 BCE), earlier than the first case records (~2,100 BCE).",
+   "rationale": "law_code: judges apply written law. appointed_officials: judges are officials named by the ruler (~2,600 BCE), earlier than the first case records (~2,100 BCE).",
+   "desc": "Appointed judges hear cases, take witnesses' oaths and record the verdict on a tablet, so a decided case stays decided.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.0,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Disputes end in a recorded verdict instead of self-help and brawls that stop work.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "law_code is the text of the law; royal judges are the office that applies it and keeps records of verdicts."
+  },
+  {
+   "id": "ration_administration",
+   "name": "Ration lists",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "administration-fiscal",
+   "emerged": "~3,000 BCE Uruk bevelled-rim bowls (inferred standard ration measure); ~2,050 BCE Ur III ration lists",
+   "prereq": "taxation AND temple_economy",
+   "prereqRationale": "taxation: rations are paid out of collected levies. temple_economy: the temple household (~3,200 BCE) is the first institution feeding dependents by fixed scale.",
+   "rationale": "taxation: rations are paid out of collected levies. temple_economy: the temple household (~3,200 BCE) is the first institution feeding dependents by fixed scale.",
+   "desc": "Dependents of temple and palace draw fixed monthly rations of barley, oil and wool by age and status, so a short year is shared out by rule.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.75,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A scaled ration spreads a shortfall over everyone on the list, so fewer starve outright.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Annona (policy, Public Life)"
+   },
+   "distinctFrom": "temple_economy is the institution; ration lists are the written scale by which its stores are paid out."
+  },
+  {
+   "id": "village_mayors",
+   "name": "Village and ward heads",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "representation-local-government",
+   "emerged": "~1,900 BCE Old Babylonian rabianum (village mayor) and city elders answering to the palace",
+   "prereq": "village_headship AND taxation",
+   "prereqRationale": "village_headship: the community already has a head (~5,500 BCE). taxation: the state now holds that head responsible for its dues (~3,300 BCE).",
+   "rationale": "village_headship: the community already has a head (~5,500 BCE). taxation: the state now holds that head responsible for its dues (~3,300 BCE).",
+   "desc": "A head chosen in the village or city ward answers to the palace for its dues, labour levies and crimes, and speaks for it before officials.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.75,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A local head who knows every household collects the levy more completely than an outsider.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "elite_council is a council of great families at the centre; village heads link each local community to the state."
+  },
+  {
+   "id": "karum_courts",
+   "name": "Merchant colony courts",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "law-justice",
+   "emerged": "~1,900 BCE Old Assyrian karum at Kanesh deciding merchants' disputes",
+   "prereq": "trade AND law_code",
+   "prereqRationale": "trade: a merchant colony abroad exists for long-distance trade (~3,500 BCE). law_code: its court applies the home city's written law.",
+   "rationale": "trade: a merchant colony abroad exists for long-distance trade (~3,500 BCE). law_code: its court applies the home city's written law.",
+   "desc": "Merchants abroad form a colony with its own court; disputes over debts and lost goods are settled on the spot under the home city's law.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.0,
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Disputes settled at the trading post, not sent home, mean fewer losses and delays on each caravan.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "C3's commercial_law (A6) is a general merchant law; karum courts are an early colony court abroad."
+  },
+  {
+   "id": "published_law",
+   "name": "Published laws",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "law-justice",
+   "emerged": "~650 BCE Dreros law inscription (Crete); ~621 BCE Draco's laws displayed at Athens; ~450 BCE Gortyn code",
+   "prereq": "law_code AND (alphabet_vowels OR abjad)",
+   "prereqRationale": "law_code: the laws exist in writing. alphabet_vowels or abjad: an alphabet many citizens can read makes public display meaningful (Greek ~800 BCE, Phoenician ~1,050 BCE).",
+   "rationale": "law_code: the laws exist in writing. alphabet_vowels or abjad: an alphabet many citizens can read makes public display meaningful (Greek ~800 BCE, Phoenician ~1,050 BCE).",
+   "desc": "Laws are carved on stone and set up in public so any citizen who can read knows the rule and the penalty, and magistrates cannot invent them.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.25,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Citizens can check a magistrate against the posted text: fewer grievances of arbitrary judgment.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "law_code is law written by and for officials; published law is displayed for citizens to read."
+  },
+  {
+   "id": "state_treasury",
+   "name": "Royal storehouses",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "administration-fiscal",
+   "emerged": "~509-493 BCE Persepolis Fortification tablets (Achaemenid stores and disbursements)",
+   "prereq": "provincial_administration AND royal_archives",
+   "prereqRationale": "provincial_administration: stores are kept province by province (~2,300 BCE onward). royal_archives: every receipt and issue is filed (~2,400 BCE).",
+   "rationale": "provincial_administration: stores are kept province by province (~2,300 BCE onward). royal_archives: every receipt and issue is filed (~2,400 BCE).",
+   "desc": "Revenue in grain, wine and silver is held in sealed provincial storehouses and paid out only by written order, keeping years of reserves.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.25,
+   "effects": [
+    {
+     "operand": "consumption.granaryYearsOfDemand",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A network of provincial stores holds several years of revenue in kind: granaries hold more.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "storehouse_sealing controls one store; the treasury is a provincial network of stores run on written orders."
+  },
+  {
+   "id": "property_class_franchise",
+   "name": "Property classes",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "representation-local-government",
+   "emerged": "~594 BCE Solon's four property classes at Athens; ~550 BCE Servian classes at Rome (traditional)",
+   "prereq": "citizen_assembly AND census",
+   "prereqRationale": "citizen_assembly: the classes sort the members of an assembly (~700 BCE). census: classes are assigned by an assessment of wealth.",
+   "rationale": "citizen_assembly: the classes sort the members of an assembly (~700 BCE). census: classes are assigned by an assessment of wealth.",
+   "desc": "Citizens are ranked by assessed wealth instead of birth; a family that grows rich can climb into the classes that may hold office.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.25,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Office by wealth rather than birth lets new families rise: faster promotion.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "elite_council admits leading families by birth; property classes admit by assessed wealth."
+  },
+  {
+   "id": "citizenship_grants",
+   "name": "Extended citizenship",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "law-justice",
+   "emerged": "~338 BCE Roman grants of citizenship to Latin towns; 212 CE Constitutio Antoniniana",
+   "prereq": "legal_code_roman AND citizen_assembly",
+   "prereqRationale": "legal_code_roman: citizenship is a legal status with rights at law. citizen_assembly: it is membership of a citizen body (~700 BCE).",
+   "rationale": "legal_code_roman: citizenship is a legal status with rights at law. citizen_assembly: it is membership of a citizen body (~700 BCE).",
+   "desc": "Citizenship is granted to allies, freedmen and whole towns; new citizens may marry, trade, sue and settle anywhere under the common law.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.75,
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Citizens may settle and own property anywhere in the state: people move more freely.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Citizenship"
+   },
+   "distinctFrom": "citizen_assembly is the body of citizens; extended citizenship opens it to outsiders by law."
+  },
+  {
+   "id": "sortition",
+   "name": "Selection by lot",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "representation-local-government",
+   "emerged": "~487 BCE Athenian archons chosen by lot; ~462 BCE allotted jury panels",
+   "prereq": "citizen_assembly AND elected_magistracies",
+   "prereqRationale": "citizen_assembly: lots are drawn among citizens (~700 BCE). elected_magistracies: the lot replaced election for offices that already existed (~683 BCE).",
+   "rationale": "citizen_assembly: lots are drawn among citizens (~700 BCE). elected_magistracies: the lot replaced election for offices that already existed (~683 BCE).",
+   "desc": "Many offices are filled by drawing lots among eligible citizens, so no faction can buy or monopolize them and every citizen may serve.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.75,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Factions cannot capture office by bribery or force, so their struggles cost less.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "elected_magistracies choose by vote; sortition by lot."
+  },
+  {
+   "id": "household_registers",
+   "name": "Household registers",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "administration-fiscal",
+   "emerged": "~375 BCE Qin registration of households in groups of five; 2 CE Han population register",
+   "prereq": "census AND provincial_administration",
+   "prereqRationale": "census: the register continues the count. provincial_administration: county and provincial officials keep it up to date (~2,300 BCE onward).",
+   "rationale": "census: the register continues the count. provincial_administration: county and provincial officials keep it up to date (~2,300 BCE onward).",
+   "desc": "Every household is entered on a standing register kept by county officials, updated for births, deaths and moves; groups of five answer for each other's dues.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.75,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A continuously updated register with mutual responsibility leaves few households off the tax rolls.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Lijia (Ming unique civic)"
+   },
+   "distinctFrom": "census is a periodic count; household registers are continuous and tie each household to duties."
+  },
+  {
+   "id": "appellate_courts",
+   "name": "Courts of appeal",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "law-justice",
+   "emerged": "~800 CE Abbasid mazalim courts hearing complaints against officials; ~1,250 CE Parlement of Paris",
+   "prereq": "legal_code_roman AND appointed_officials",
+   "prereqRationale": "legal_code_roman: appeal presupposes a systematic law that higher judges interpret. appointed_officials: appeal judges sit above appointed local judges.",
+   "rationale": "legal_code_roman: appeal presupposes a systematic law that higher judges interpret. appointed_officials: appeal judges sit above appointed local judges.",
+   "desc": "A higher court reviews the judgments of local judges and petitions against officials; a wrong verdict can be overturned without bribing the governor.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A wrong verdict can be corrected: injustice by local judges stops turning into lasting grievance.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "royal_judges decide cases at first instance; appellate courts review those decisions."
+  },
+  {
+   "id": "notaries",
+   "name": "Public notaries",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "law-justice",
+   "emerged": "~1,154 CE Genoese notarial cartulary (Giovanni Scriba); ~1,255 CE Rolandino's Summa artis notariae (Bologna)",
+   "prereq": "legal_code_roman AND commercial_law",
+   "prereqRationale": "legal_code_roman: notarial forms follow Roman law. commercial_law: the notary's main business is merchants' contracts (~800 CE onward).",
+   "rationale": "legal_code_roman: notarial forms follow Roman law. commercial_law: the notary's main business is merchants' contracts (~800 CE onward).",
+   "desc": "Licensed notaries draw up contracts, wills and sales in set forms and keep registers; a notarial deed is proof in any court.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Contracts that prove themselves in court let merchants deal at a distance: price gaps close faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "witnessed_agreements rely on living witnesses; a notarial deed is a public record that proves itself."
+  },
+  {
+   "id": "roman_law_revival",
+   "name": "Law faculties",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "law-justice",
+   "emerged": "~1,088 CE teaching of the Digest at Bologna (Irnerius); ~1,155 CE Habita privilege for scholars",
+   "prereq": "jurists",
+   "prereqRationale": "jurists: the faculties study and gloss the jurists' Digest (~100 BCE onward).",
+   "rationale": "jurists: the faculties study and gloss the jurists' Digest (~100 BCE onward).",
+   "desc": "Masters lecture on the Roman Digest and train students in glossing and disputation; their graduates staff courts and chanceries across the realm.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 5.0,
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Law was the first faculty around which universities formed: a university with a law school matures faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "jurists are practitioners; law faculties are the organized teaching of law in universities."
+  },
+  {
+   "id": "exchequer_audit",
+   "name": "Exchequer audit",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "administration-fiscal",
+   "emerged": "~1,110 CE English Exchequer; 1,130 CE first surviving pipe roll",
+   "prereq": "taxation AND abacus",
+   "prereqRationale": "taxation: the Exchequer audits the levy. abacus: accounts were cast on a chequered counting board (~300 BCE onward).",
+   "rationale": "taxation: the Exchequer audits the levy. abacus: accounts were cast on a chequered counting board (~300 BCE onward).",
+   "desc": "Sheriffs account twice a year at a chequered counting table; sums owed and paid are written on rolls, and arrears follow the official until cleared.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Audited collectors cannot pocket the difference: more of the levy reaches the treasury.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "taxation declares the levy; the Exchequer audits each collector's account against it."
+  },
+  {
+   "id": "chancery_rolls",
+   "name": "Chancery enrolment",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "administration-fiscal",
+   "emerged": "~1,199 CE English chancery rolls of outgoing letters and writs",
+   "prereq": "appointed_officials AND royal_archives",
+   "prereqRationale": "appointed_officials: the chancery is a department of officials. royal_archives: enrolment extends archiving to every outgoing order (~2,400 BCE onward).",
+   "rationale": "appointed_officials: the chancery is a department of officials. royal_archives: enrolment extends archiving to every outgoing order (~2,400 BCE onward).",
+   "desc": "Copies of every letter and writ sent out are entered on rolls, so the government knows what it has granted and ordered and can enforce it.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Orders that are recorded can be checked and enforced far from the court: authority carries further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "royal_archives keep incoming records; chancery rolls copy every outgoing order."
+  },
+  {
+   "id": "village_bylaws",
+   "name": "Village by-laws",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "representation-local-government",
+   "emerged": "~1,270 CE English manorial by-laws on harvest and grazing; ~1,300 CE Landsgemeinde of the Swiss forest cantons",
+   "prereq": "kin_council AND heavy_plough",
+   "prereqRationale": "kin_council: the village meeting of household heads. heavy_plough: open strip fields worked in common need common rules (~500 CE onward).",
+   "rationale": "kin_council: the village meeting of household heads. heavy_plough: open strip fields worked in common need common rules (~500 CE onward).",
+   "desc": "The village meeting sets the dates of ploughing, harvest and gleaning and the number of beasts on the common, and fines those who break the rules.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Coordinated rotation, fallow grazing and stinted commons keep the open fields fertile.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "municipal_charter governs towns; village by-laws govern open-field farming by the village meeting."
+  },
+  {
+   "id": "provincial_intendants",
+   "name": "Intendants",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "administration-fiscal",
+   "emerged": "~1,635 CE French intendants made permanent under Richelieu",
+   "prereq": "provincial_administration AND royal_post",
+   "prereqRationale": "provincial_administration: intendants supervise existing provinces. royal_post: they report by regular post to the council (~550 BCE onward).",
+   "rationale": "provincial_administration: intendants supervise existing provinces. royal_post: they report by regular post to the council (~550 BCE onward).",
+   "desc": "Royal commissioners, removable at will and paid by the crown, oversee justice, police and finance in each province and report by post to the council.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.5,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Removable commissioners replace venal officers who owned their posts: the centre's orders are carried out in distant provinces.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Bureaucracy"
+   },
+   "distinctFrom": "provincial_administration places governors; intendants are revocable commissioners checking them and the venal officers."
+  },
+  {
+   "id": "bankruptcy_law",
+   "name": "Bankruptcy law",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "emerged": "~1,542 CE English Statute of Bankrupts; 1,705 CE discharge of honest bankrupts (England)",
+   "prereq": "commercial_law AND legal_code_roman",
+   "prereqRationale": "commercial_law: the law of merchants' debts (~800 CE onward). legal_code_roman: collective proceedings rest on systematic law.",
+   "rationale": "commercial_law: the law of merchants' debts (~800 CE onward). legal_code_roman: collective proceedings rest on systematic law.",
+   "desc": "When a trader fails, his goods are gathered and shared among creditors by rule, and an honest debtor can be discharged and trade again.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.5,
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Creditors who know what they will recover lend to traders more readily: goods move toward better prices faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "commercial_law covers contracts between solvent merchants; bankruptcy law governs what happens when one fails."
+  },
+  {
+   "id": "administrative_courts",
+   "name": "Administrative courts",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "law-justice",
+   "emerged": "1,799 CE French Conseil d'Etat; 1,872 CE its independent jurisdiction",
+   "prereq": "separation_of_powers AND appointed_officials",
+   "prereqRationale": "separation_of_powers: a court separate from the administration (1748 onward). appointed_officials: the officials whose acts it reviews.",
+   "rationale": "separation_of_powers: a court separate from the administration (1748 onward). appointed_officials: the officials whose acts it reviews.",
+   "desc": "Citizens can sue the administration before specialist judges; officials who exceed their powers see their acts annulled, so every province is run by the same rules.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Officials held to legal rules everywhere: the centre's rules apply uniformly far from the capital.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "judicial_review tests laws against the constitution; administrative courts test officials' acts against the law."
+  },
+  {
+   "id": "penitentiary_reform",
+   "name": "Penitentiaries",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "law-justice",
+   "emerged": "1,790 CE Walnut Street Jail (Philadelphia); 1,842 CE Pentonville prison (London)",
+   "prereq": "civil_police AND enlightenment",
+   "prereqRationale": "civil_police: offenders are arrested by a standing force (1667 onward). enlightenment: Beccaria's and Howard's reform arguments (1687 onward).",
+   "rationale": "civil_police: offenders are arrested by a standing force (1667 onward). enlightenment: Beccaria's and Howard's reform arguments (1687 onward).",
+   "desc": "Prison terms graded by offence replace branding, flogging and the gallows for most crimes; convicts are held, worked and released rather than maimed or killed.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Public executions and floggings drew riotous crowds; graded imprisonment removes the spectacle and the disorder.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "civil_police arrests offenders; penitentiaries decide what is done with them after conviction."
+  },
+  {
+   "id": "married_womens_property",
+   "name": "Married women's property",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "law-justice",
+   "emerged": "1,839 CE Mississippi Married Women's Property Act; 1,882 CE English Married Women's Property Act",
+   "prereq": "family_law AND classical_liberalism",
+   "prereqRationale": "family_law: reforms the law of marriage and estates. classical_liberalism: equal legal personality argued from 1776 onward (Mill).",
+   "rationale": "family_law: reforms the law of marriage and estates. classical_liberalism: equal legal personality argued from 1776 onward (Mill).",
+   "desc": "A wife keeps her own earnings, property and inheritance and may contract and sue in her own name, so women can run shops and enter trades.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Women who own what they earn can keep a shop or trade: larger specialist classes become possible.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "family_law fixes marriage and inheritance; this act gives wives separate legal personality in property."
+  },
+  {
+   "id": "trademark_law",
+   "name": "Trademark law",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "law-justice",
+   "emerged": "1,857 CE French trademark law; 1,875 CE UK Trade Marks Registration Act",
+   "prereq": "patent AND railway",
+   "prereqRationale": "patent: trademarks are registered industrial property like patents. railway: national markets carried branded goods far from their maker (1830 onward).",
+   "rationale": "patent: trademarks are registered industrial property like patents. railway: national markets carried branded goods far from their maker (1830 onward).",
+   "desc": "Makers register their marks and copying one is a wrong, so buyers far away can trust a branded sack of flour or tin of tea.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Goods whose quality is known by their mark sell at a distance without inspection: stocks reach markets faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "patent protects an invention; a trademark protects a maker's name on goods."
+  },
+  {
+   "id": "prefectoral_system",
+   "name": "Prefects",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "administration-fiscal",
+   "emerged": "1,800 CE French prefects (law of 28 Pluviose year VIII)",
+   "prereq": "provincial_intendants AND official_statistics",
+   "prereqRationale": "provincial_intendants: the prefect is the intendant's successor (1635). official_statistics: prefects compiled the departmental statistics of 1801 (1749 onward).",
+   "rationale": "provincial_intendants: the prefect is the intendant's successor (1635). official_statistics: prefects compiled the departmental statistics of 1801 (1749 onward).",
+   "desc": "Each uniform department is run by a prefect appointed by and answering to the interior ministry, applying the same laws, levies and conscription everywhere.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.75,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "One chain of command over uniform departments: authority reaches the whole country. 0.05: the template of the modern centralized state.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "provincial_intendants supervised historic provinces with mixed privileges; prefects run uniform departments under one ministry."
+  },
+  {
+   "id": "civil_registration",
+   "name": "Civil registration",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "administration-fiscal",
+   "emerged": "1,792 CE French etat civil; 1,837 CE General Register Office (England and Wales)",
+   "prereq": "official_statistics AND secular_state",
+   "prereqRationale": "official_statistics: registration feeds the vital tables (1749 onward). secular_state: registers pass from the parish clergy to the state (1791 onward).",
+   "rationale": "official_statistics: registration feeds the vital tables (1749 onward). secular_state: registers pass from the parish clergy to the state (1791 onward).",
+   "desc": "Every birth, marriage and death is recorded by a public registrar; each person has a legal identity, and the state sees where infants are dying.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Registered births let relief officers find orphans and foundlings when food is short: children are better protected.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "official_statistics publishes tables; civil registration is the record of each person from which they are drawn."
+  },
+  {
+   "id": "internal_toll_abolition",
+   "name": "Abolition of internal tolls",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "administration-fiscal",
+   "emerged": "1,790 CE abolition of internal customs in France; 1,818 CE Prussian customs law",
+   "prereq": "customs_tolls AND provincial_administration",
+   "prereqRationale": "customs_tolls: the tolls being abolished. provincial_administration: a central administration able to replace provincial duties with one frontier tariff.",
+   "rationale": "customs_tolls: the tolls being abolished. provincial_administration: a central administration able to replace provincial duties with one frontier tariff.",
+   "desc": "Tolls at provincial borders, rivers and town gates are abolished; duties are collected once, at the national frontier, by one customs service.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Goods cross a country without paying at every river and gate: cheaper haulage.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "customs_tolls levy duties at internal gates; this replaces them with one frontier tariff. C3's customs_union joins several states' tariffs."
+  },
+  {
+   "id": "municipal_corporations",
+   "name": "Elected town councils",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "emerged": "1,808 CE Prussian Stadteordnung; 1,835 CE Municipal Corporations Act (England)",
+   "prereq": "municipal_charter AND representative_assembly",
+   "prereqRationale": "municipal_charter: the town already governs itself (~90 CE onward). representative_assembly: the council is elected by ratepayers (1188 onward).",
+   "rationale": "municipal_charter: the town already governs itself (~90 CE onward). representative_assembly: the council is elected by ratepayers (1188 onward).",
+   "desc": "Ratepayers elect a town council with a budget of its own; it paves, lights and drains streets and maintains the roads of its district.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "effects": [
+    {
+     "operand": "pathBuild.buildCostMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Rate-funded councils with their own surveyors build and keep local roads more cheaply.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "municipal_charter grants self-government to an oligarchy; elected councils answer to all ratepayers and run public works."
+  },
+  {
+   "id": "zemstvo_councils",
+   "name": "Elected rural councils",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "emerged": "1,864 CE Russian zemstvo reform; 1,888 CE English county councils",
+   "prereq": "municipal_corporations AND abolition",
+   "prereqRationale": "municipal_corporations: elected councils on the town model (1808). abolition: the zemstvo was created after the emancipation of the serfs (1861) to give the countryside its own government.",
+   "rationale": "municipal_corporations: elected councils on the town model (1808). abolition: the zemstvo was created after the emancipation of the serfs (1861) to give the countryside its own government.",
+   "desc": "Elected district councils of landowners, townsmen and peasants run rural schools, clinics, roads and grain reserves for relief in bad years.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "effects": [
+    {
+     "operand": "granaries.famineReductionMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Zemstvo grain reserves and relief committees (1891-92) make stored food reach the hungry.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "municipal_corporations govern towns; zemstvos govern the countryside."
+  },
+  {
+   "id": "patent_cooperation",
+   "name": "Patent Cooperation Treaty",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "emerged": "1,970 CE Patent Cooperation Treaty; 1,994 CE TRIPS agreement",
+   "prereq": "patent AND international_organizations",
+   "prereqRationale": "patent: national patent systems. international_organizations: the treaty is administered by an international bureau (1865 onward).",
+   "rationale": "patent: national patent systems. international_organizations: the treaty is administered by an international bureau (1865 onward).",
+   "desc": "One international application and search covers many countries: inventors file once, and laboratories can see what is already claimed anywhere.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.0,
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Worldwide prior-art search keeps research teams from repeating work already patented elsewhere.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "patent is a national grant; this is one international filing and search for all members."
+  },
+  {
+   "id": "land_reform",
+   "name": "Land to the tiller",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "emerged": "1,917 CE Mexican constitution, Article 27 (ejidos); 1,946 CE Japanese land reform; 1,953 CE Taiwan",
+   "prereq": "land_registry AND mass_suffrage",
+   "prereqRationale": "land_registry: title must be recorded to be transferred. mass_suffrage: enfranchised peasants made redistribution a political demand (1820 onward).",
+   "rationale": "land_registry: title must be recorded to be transferred. mass_suffrage: enfranchised peasants made redistribution a political demand (1820 onward).",
+   "desc": "The state buys out absentee landlords and sells their land in small plots to the tenants who farm it; owner-farmers invest in their own fields.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.0,
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Owner-cultivators keep the whole crop and work harder and better (Japan, Korea, Taiwan after 1946). 0.04: a landmark reform.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "household_land_tenure recognizes existing holdings; land reform transfers land from landlords to tenants."
+  },
+  {
+   "id": "tenancy_protection",
+   "name": "Tenancy protection",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "emerged": "1,881 CE Irish Land Act (fair rent and fixity of tenure, a forerunner); 1,978 CE Operation Barga in West Bengal",
+   "prereq": "land_registry AND civil_code",
+   "prereqRationale": "land_registry: tenancies are registered. civil_code: the law of leases is codified and courts can enforce fixed terms (1804 onward).",
+   "rationale": "land_registry: tenancies are registered. civil_code: the law of leases is codified and courts can enforce fixed terms (1804 onward).",
+   "desc": "Sharecroppers are registered and cannot be evicted while they pay a fixed share; secure tenants manure, drain and double-crop the land.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Secure tenants invest in the land (Banerjee, Gertler and Ghatak on Operation Barga): land yields more.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "land_reform transfers ownership; tenancy protection leaves ownership but secures the tenant."
+  },
+  {
+   "id": "commercial_arbitration",
+   "name": "International arbitration",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "emerged": "1,923 CE ICC Court of Arbitration (Paris); 1,958 CE New York Convention",
+   "prereq": "commercial_law AND international_organizations",
+   "prereqRationale": "commercial_law: merchants' own law of contract. international_organizations: the convention binds many states (1865 onward).",
+   "rationale": "commercial_law: merchants' own law of contract. international_organizations: the convention binds many states (1865 onward).",
+   "desc": "Traders in different countries choose private arbitrators whose awards courts everywhere enforce, so a cross-border deal no longer hangs on a foreign judge.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Enforceable awards cut the risk premium on long-distance contracts: cheaper trade.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "karum_courts settled disputes within one merchant colony; arbitration awards are enforceable across states."
+  },
+  {
+   "id": "refugee_law",
+   "name": "Refugee protection",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "emerged": "1,922 CE Nansen passport; 1,951 CE Refugee Convention",
+   "prereq": "international_organizations AND law_of_nations",
+   "prereqRationale": "international_organizations: the League's High Commissioner issued the first papers (1865 onward). law_of_nations: duties between states toward foreigners (1625).",
+   "rationale": "international_organizations: the League's High Commissioner issued the first papers (1865 onward). law_of_nations: duties between states toward foreigners (1625).",
+   "desc": "People fleeing persecution receive travel papers and may not be sent back to danger; states share the task of receiving them.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Papers and a duty not to return refugees let them cross several borders to safety: migrants travel further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "human_rights declares rights in general; refugee law gives a specific status and travel papers to the displaced."
+  },
+  {
+   "id": "equal_pay_law",
+   "name": "Equal pay law",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "emerged": "1,951 CE ILO Equal Remuneration Convention; 1,963 CE US Equal Pay Act; 1,970 CE UK Equal Pay Act",
+   "prereq": "womens_suffrage AND labour_unions",
+   "prereqRationale": "womens_suffrage: women voters pressed the law (1893 onward). labour_unions: pay is set by bargaining that the law now constrains (1824 onward).",
+   "rationale": "womens_suffrage: women voters pressed the law (1893 onward). labour_unions: pay is set by bargaining that the law now constrains (1824 onward).",
+   "desc": "Employers must pay women the same as men for the same work, so more women train for and stay in skilled and professional jobs.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Equal pay makes skilled work worth training for: larger specialist classes become possible.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "married_womens_property gave wives control of earnings; equal pay governs what employers must pay."
+  },
+  {
+   "id": "consumer_protection",
+   "name": "Consumer protection",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "emerged": "1,938 CE US Food, Drug, and Cosmetic Act; 1,973 CE UK Fair Trading Act",
+   "prereq": "civil_code AND antitrust",
+   "prereqRationale": "civil_code: contract law on which buyers' rights are built (1804). antitrust: consumer law grew out of competition law (1890 onward).",
+   "rationale": "civil_code: contract law on which buyers' rights are built (1804). antitrust: consumer law grew out of competition law (1890 onward).",
+   "desc": "Labels must state contents, weights must be true and dangerous goods can be recalled, so buyers trust goods from distant makers.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Buyers who trust distant sellers widen markets: price gaps close faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "trademark_law protects the seller's mark; consumer protection protects the buyer against the seller."
+  },
+  {
+   "id": "legal_aid",
+   "name": "Legal aid",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "emerged": "1,949 CE Legal Aid and Advice Act (England); 1,963 CE Gideon v. Wainwright (right to counsel)",
+   "prereq": "bill_of_rights AND jurists",
+   "prereqRationale": "bill_of_rights: a right to a fair trial (1215 onward). jurists: a legal profession whose services the state now pays for (~100 BCE onward).",
+   "rationale": "bill_of_rights: a right to a fair trial (1215 onward). jurists: a legal profession whose services the state now pays for (~100 BCE onward).",
+   "desc": "The state pays for a lawyer for those who cannot afford one, in criminal trials and in disputes over wages, housing and family.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Poor households can defend their wages, tenancies and liberty in court instead of losing them: fewer are pushed down and more rise.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "jurists serve those who can pay; legal aid extends counsel to everyone."
+  },
+  {
+   "id": "withholding_tax",
+   "name": "Tax withholding",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "administration-fiscal",
+   "emerged": "1,943 CE US Current Tax Payment Act; 1,944 CE PAYE (Britain)",
+   "prereq": "income_tax AND punched_card_tabulation",
+   "prereqRationale": "income_tax: the tax being withheld (1799). punched_card_tabulation: payroll machines compute each deduction (1889 onward).",
+   "rationale": "income_tax: the tax being withheld (1799). punched_card_tabulation: payroll machines compute each deduction (1889 onward).",
+   "desc": "Employers deduct income tax from every wage packet and pay it to the state; wage earners pay as they earn and evasion falls.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Tax taken at source cannot be evaded or defaulted on: the levy extracts far more. 0.05: the basis of the mass income tax.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "income_tax assesses declared incomes; withholding collects it at the payroll."
+  },
+  {
+   "id": "value_added_tax",
+   "name": "Value-added tax",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "administration-fiscal",
+   "emerged": "1,954 CE France (Maurice Laure); 1,967 CE Brazil and Denmark",
+   "prereq": "income_tax AND double_entry",
+   "prereqRationale": "income_tax: a mature tax administration. double_entry: the credit-invoice method needs firms' accounts of sales and purchases (~1,300 CE onward).",
+   "rationale": "income_tax: a mature tax administration. double_entry: the credit-invoice method needs firms' accounts of sales and purchases (~1,300 CE onward).",
+   "desc": "Each firm pays tax on the value it adds and deducts the tax paid on its inputs; invoices check one another, and exports leave untaxed.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    },
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Self-checking invoices raise revenue; refunds on inputs and zero-rated exports remove cascading tax from goods that travel.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "customs_tolls tax goods at gates; VAT taxes value added at each stage with credit for tax already paid."
+  },
+  {
+   "id": "executive_budget",
+   "name": "Executive budget",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "administration-fiscal",
+   "emerged": "1,921 CE US Budget and Accounting Act (Bureau of the Budget, General Accounting Office)",
+   "prereq": "income_tax AND ministerial_responsibility",
+   "prereqRationale": "income_tax: the revenue base the budget plans (1799). ministerial_responsibility: the cabinet answers to the chamber for one budget (1782 onward).",
+   "rationale": "income_tax: the revenue base the budget plans (1799). ministerial_responsibility: the cabinet answers to the chamber for one budget (1782 onward).",
+   "desc": "A central budget office prepares one plan of revenue and spending for every department and audits it afterwards, so distant agencies spend as planned.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Every agency's spending is planned and audited from the centre: authority reaches its far offices.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "exchequer_audit checks collectors after the fact; the executive budget plans all spending before it happens."
+  },
+  {
+   "id": "sample_surveys",
+   "name": "Sample surveys",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "administration-fiscal",
+   "emerged": "1,937 CE Mahalanobis crop surveys of Bengal jute; 1,940 CE US monthly labour-force sample",
+   "prereq": "official_statistics AND probability_statistics",
+   "prereqRationale": "official_statistics: the statistical office runs the surveys (1749 onward). probability_statistics: random sampling and error estimation (1654 onward).",
+   "rationale": "official_statistics: the statistical office runs the surveys (1749 onward). probability_statistics: random sampling and error estimation (1654 onward).",
+   "desc": "Statisticians measure a random sample of fields and households instead of all, giving crop and employment estimates within weeks, in time to move stocks.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Early crop estimates tell traders and stores where to send grain before prices spike: stocks reach markets faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "official_statistics counts everyone; sample surveys estimate quickly from a random part."
+  },
+  {
+   "id": "fiscal_equalization",
+   "name": "Fiscal equalization",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "administration-fiscal",
+   "emerged": "1,933 CE Commonwealth Grants Commission (Australia); 1,957 CE Canadian equalization payments",
+   "prereq": "income_tax AND federal_republic",
+   "prereqRationale": "income_tax: central revenue to redistribute (1799). federal_republic: transfers between the federation and its states (1787).",
+   "rationale": "income_tax: central revenue to redistribute (1799). federal_republic: transfers between the federation and its states (1787).",
+   "desc": "The central treasury transfers revenue to poorer or stricken regions by formula, so provinces can keep services and relief going after a bad year.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Regions hit by a bad year keep their relief and services funded: households absorb the shortfall.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "income_tax raises revenue; equalization moves it to regions that need it."
+  },
+  {
+   "id": "customs_automation",
+   "name": "Customs modernization",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "administration-fiscal",
+   "emerged": "~1,981 CE ASYCUDA computerized customs; 1,988 CE Harmonized System of tariff nomenclature",
+   "prereq": "multilateral_trade_rules AND computer",
+   "prereqRationale": "multilateral_trade_rules: common tariff rules and valuation (1947). computer: declarations processed electronically (1948 onward).",
+   "rationale": "multilateral_trade_rules: common tariff rules and valuation (1947). computer: declarations processed electronically (1948 onward).",
+   "desc": "Goods are classified by one world nomenclature and declared electronically; most cargo clears in hours, with checks targeted by risk.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Hours instead of days at the border: cheaper haulage.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "internal_toll_abolition removes internal duties; customs modernization speeds the frontier itself."
+  },
+  {
+   "id": "public_procurement",
+   "name": "Competitive procurement",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "administration-fiscal",
+   "emerged": "1,979 CE GATT Government Procurement Code; 1,994 CE WTO Agreement on Government Procurement",
+   "prereq": "merit_civil_service AND multilateral_trade_rules",
+   "prereqRationale": "merit_civil_service: impartial officials run the tender (1854). multilateral_trade_rules: the procurement codes are part of the trade rules (1947).",
+   "rationale": "merit_civil_service: impartial officials run the tender (1854). multilateral_trade_rules: the procurement codes are part of the trade rules (1947).",
+   "desc": "Public works are let by open, advertised tender under published rules, and contracts go to the lowest compliant bid rather than to friends of officials.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "pathBuild.buildCostMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Competitive tenders cut the price of roads and works the state pays for.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "exchequer_audit checks what was spent; procurement governs how contracts are awarded."
+  },
+  {
+   "id": "agricultural_extension",
+   "name": "Agricultural extension",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-administration",
+   "emerged": "1,914 CE Smith-Lever Act (US Cooperative Extension Service)",
+   "prereq": "research_university AND agricultural_chemistry",
+   "prereqRationale": "research_university: land-grant colleges train the agents (1810 onward). agricultural_chemistry: the fertiliser and soil science they teach (1813 onward).",
+   "rationale": "research_university: land-grant colleges train the agents (1810 onward). agricultural_chemistry: the fertiliser and soil science they teach (1813 onward).",
+   "desc": "Public agents trained at agricultural colleges visit farms, run demonstration plots and teach new seed, fertiliser and methods to working farmers.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Demonstrated methods spread from college to farm within a season: each farmer produces more.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "agricultural_chemistry is the science; extension is the public service that carries it to farmers."
+  },
+  {
+   "id": "disaster_management",
+   "name": "Disaster management",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-administration",
+   "emerged": "1,950 CE US Federal Civil Defense Administration; 1,979 CE FEMA; 2,005 CE India's National Disaster Management Authority",
+   "prereq": "official_statistics AND radio_broadcasting",
+   "prereqRationale": "official_statistics: needs are assessed from population data (1749 onward). radio_broadcasting: warnings reach everyone at once (1920 onward).",
+   "rationale": "official_statistics: needs are assessed from population data (1749 onward). radio_broadcasting: warnings reach everyone at once (1920 onward).",
+   "desc": "A standing agency plans for flood, drought and earthquake, stocks relief, broadcasts warnings and moves food and shelter to the stricken within days.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Relief planned and stocked in advance reaches the stricken before hunger kills: fewer famine deaths.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "zemstvo_councils kept local grain reserves; a disaster agency plans and moves relief nationally."
+  },
+  {
+   "id": "freedom_of_information",
+   "name": "Freedom of information",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-administration",
+   "emerged": "1,951 CE Finnish Act on the Publicity of Official Documents; 1,966 CE US Freedom of Information Act",
+   "prereq": "press_freedom AND merit_civil_service",
+   "prereqRationale": "press_freedom: journalists use the files (1766 onward). merit_civil_service: a records-keeping bureaucracy bound by rules (1854).",
+   "rationale": "press_freedom: journalists use the files (1766 onward). merit_civil_service: a records-keeping bureaucracy bound by rules (1854).",
+   "desc": "Any citizen may request government files and must receive them unless a stated exemption applies, so abuses come to light and are corrected.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Exposed abuses are corrected instead of resented in silence.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "C5's press_freedom lets publishers print; freedom of information compels the state to open its files."
+  },
+  {
+   "id": "e_government",
+   "name": "Digital government",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-administration",
+   "emerged": "~2,000 CE online tax filing; ~2,001 CE Estonia's X-Road data exchange",
+   "prereq": "internet AND merit_civil_service",
+   "prereqRationale": "internet: services delivered online (1983 onward). merit_civil_service: the bureaucracy being digitized (1854).",
+   "rationale": "internet: services delivered online (1983 onward). merit_civil_service: the bureaucracy being digitized (1854).",
+   "desc": "Citizens file taxes, register businesses and claim benefits online; agencies share data through secure links, so remote districts are served as well as the capital.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.0,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Distance from the capital stops mattering for a service delivered online: administrative reach extends further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "chancery_rolls and executive_budget are paper records; digital government delivers the services themselves online."
+  },
+  {
+   "id": "digital_identity",
+   "name": "Digital identity",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-administration",
+   "emerged": "~2,002 CE Estonian electronic ID card; 2,009 CE India's Aadhaar",
+   "prereq": "e_government AND civil_registration",
+   "prereqRationale": "e_government: the services the ID unlocks (~2,000 CE). civil_registration: the identity records it is built on (1792).",
+   "rationale": "e_government: the services the ID unlocks (~2,000 CE). civil_registration: the identity records it is built on (1792).",
+   "desc": "Every resident has a unique, verifiable digital identity; entitlements such as rations and pensions can be drawn anywhere, so workers can move without losing them.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Portable entitlements (India's One Nation One Ration Card) remove a reason not to move.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "civil_registration records identity on paper locally; digital identity verifies it anywhere online."
+  },
+  {
+   "id": "road_traffic_regulation",
+   "name": "Road traffic law",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-administration",
+   "emerged": "1,926 CE International Convention relative to Motor Traffic (Paris); 1,968 CE Vienna Convention on Road Traffic",
+   "prereq": "automobile_mass AND civil_police",
+   "prereqRationale": "automobile_mass: mass motor traffic to regulate (1913). civil_police: traffic police enforce the rules (1667 onward).",
+   "rationale": "automobile_mass: mass motor traffic to regulate (1913). civil_police: traffic police enforce the rules (1667 onward).",
+   "desc": "Licensed drivers, registered vehicles, speed limits, uniform signs and right-of-way rules let heavy motor traffic flow safely between towns.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Uniform rules and signs keep mixed traffic moving: faster overland travel.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "C3's zoning plans land use; traffic law governs movement on the roads."
+  },
+  {
+   "id": "anti_corruption_agency",
+   "name": "Anti-corruption commission",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-administration",
+   "emerged": "1,952 CE Singapore Corrupt Practices Investigation Bureau; 1,974 CE Hong Kong ICAC",
+   "prereq": "merit_civil_service AND civil_police",
+   "prereqRationale": "merit_civil_service: a service with rules to enforce (1854). civil_police: the commission's investigators and powers of arrest come from police practice (1667 onward).",
+   "rationale": "merit_civil_service: a service with rules to enforce (1854). civil_police: the commission's investigators and powers of arrest come from police practice (1667 onward).",
+   "desc": "An independent commission investigates officials' bribes and kickbacks with power to arrest, so revenue stops leaking between taxpayer and treasury.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Less leakage in collection: taxes extract more of what is owed.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "exchequer_audit checks accounts; an anti-corruption commission investigates and prosecutes officials."
+  },
+  {
+   "id": "administrative_procedure",
+   "name": "Administrative procedure law",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-administration",
+   "emerged": "1,946 CE US Administrative Procedure Act; 1,976 CE German Administrative Procedure Act",
+   "prereq": "administrative_courts AND merit_civil_service",
+   "prereqRationale": "administrative_courts: courts review agency decisions (1799). merit_civil_service: the agencies bound by the procedure (1854).",
+   "rationale": "administrative_courts: courts review agency decisions (1799). merit_civil_service: the agencies bound by the procedure (1854).",
+   "desc": "Agencies must publish proposed rules, hear comments and give reasons for decisions, which courts can review; those affected are heard before, not after.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "People heard before a rule is made protest less after it: unrest costs less output.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "administrative_courts annul unlawful acts afterwards; administrative procedure governs how decisions are made."
+  },
+  {
+   "id": "proportional_representation",
+   "name": "Proportional representation",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "representation-local-government",
+   "emerged": "1,899 CE Belgium; 1,918-1,920 CE adopted across much of continental Europe",
+   "prereq": "mass_suffrage AND mass_political_party",
+   "prereqRationale": "mass_suffrage: a mass electorate (1820 onward). mass_political_party: seats are allotted to party lists (1830 onward).",
+   "rationale": "mass_suffrage: a mass electorate (1820 onward). mass_political_party: seats are allotted to party lists (1830 onward).",
+   "desc": "Seats are shared among parties in proportion to their votes, so minorities and new movements win a voice in the chamber instead of the street.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Minorities represented in the chamber accumulate less grievance against it.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "mass_suffrage gives everyone a vote; proportional representation makes each vote count toward seats."
+  },
+  {
+   "id": "regional_devolution",
+   "name": "Regional self-government",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "representation-local-government",
+   "emerged": "1,947 CE Italian constitution's regions; 1,978 CE Spanish autonomous communities; 1,999 CE UK devolution",
+   "prereq": "provincial_administration AND mass_suffrage",
+   "prereqRationale": "provincial_administration: the regions already exist as administrative units. mass_suffrage: their governments are now elected (1820 onward).",
+   "rationale": "provincial_administration: the regions already exist as administrative units. mass_suffrage: their governments are now elected (1820 onward).",
+   "desc": "Elected regional assemblies and governments take over schools, health and roads within a region, extending effective government to its far corners.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Regional governments administer what the capital could not reach: administrative reach extends.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "provincial_administration appoints governors from the centre; devolution elects regional governments."
+  },
+  {
+   "id": "reserved_seats",
+   "name": "Reserved seats",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "representation-local-government",
+   "emerged": "1,950 CE Indian constitution's reserved seats for Scheduled Castes and Tribes; 1,993 CE one third of village council seats reserved for women (India)",
+   "prereq": "mass_suffrage AND written_constitution",
+   "prereqRationale": "mass_suffrage: excluded groups vote. written_constitution: the reservation is a constitutional guarantee (1653 onward).",
+   "rationale": "mass_suffrage: excluded groups vote. written_constitution: the reservation is a constitutional guarantee (1653 onward).",
+   "desc": "A share of seats and council headships is set aside for excluded castes, tribes or women; their members gain office, patronage and a route upward.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Reserved office raises members of excluded groups into public positions (Pande 2003): faster promotion.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "C1's power_sharing divides offices among communities; reserved seats guarantee places for disadvantaged groups within any party system."
+  },
+  {
+   "id": "participatory_budgeting",
+   "name": "Participatory budgeting",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "representation-local-government",
+   "emerged": "1,989 CE Porto Alegre",
+   "prereq": "municipal_corporations AND mass_suffrage",
+   "prereqRationale": "municipal_corporations: an elected city government with an investment budget (1808). mass_suffrage: every resident takes part (1820 onward).",
+   "rationale": "municipal_corporations: an elected city government with an investment budget (1808). mass_suffrage: every resident takes part (1820 onward).",
+   "desc": "Neighbourhood assemblies vote each year on which streets, drains and clinics the city's investment budget will build, and monitor the works.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "pathBuild.buildCostMultiplier",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Works chosen and watched by the neighbourhood are built with less waste.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "municipal_corporations decide budgets in council; participatory budgeting gives the decision to neighbourhood assemblies."
+  },
+  {
+   "id": "democratic_decentralization",
+   "name": "Elected village councils",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "representation-local-government",
+   "emerged": "1,959 CE panchayati raj in Rajasthan; 1,992 CE India's 73rd Amendment",
+   "prereq": "zemstvo_councils AND mass_suffrage",
+   "prereqRationale": "zemstvo_councils: elected rural government (1864). mass_suffrage: every villager votes (1820 onward).",
+   "rationale": "zemstvo_councils: elected rural government (1864). mass_suffrage: every villager votes (1820 onward).",
+   "desc": "Every village elects a council with its own funds and duties; it runs public works and relief schemes and decides who needs help when harvests fail.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Relief allocated by people who know each household reaches those in need: households absorb shortfalls.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "zemstvo_councils govern a district; elected village councils govern each village."
+  },
+  {
+   "id": "metropolitan_government",
+   "name": "Metropolitan government",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "representation-local-government",
+   "emerged": "1,954 CE Metropolitan Toronto; 1,965 CE Greater London Council",
+   "prereq": "municipal_corporations AND automobile_mass",
+   "prereqRationale": "municipal_corporations: the town councils being federated (1808). automobile_mass: suburbs spread beyond city limits by car (1913).",
+   "rationale": "municipal_corporations: the town councils being federated (1808). automobile_mass: suburbs spread beyond city limits by car (1913).",
+   "desc": "One authority plans transport, water and land use for a city and its suburbs together, so the whole commuting region works as one.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A city governed with its suburbs draws on a wider region.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "municipal_corporations govern within city limits; metropolitan government spans the whole urban region."
+  }
+ ],
+ "newLanes": [
+  {
+   "name": "public-administration",
+   "scope": "The administrative state's service and oversight agencies (A9 onward): extension services, disaster management, information access, digital government and identity, traffic regulation, administrative procedure and anti-corruption. Split from administration-fiscal, which keeps levies, budgets, registers, statistics and revenue institutions."
+  }
+ ],
+ "findings": [
+  "Dependency changes proposed: 2, no Age moves. census replaces stamp_seal with appointed_officials (a count is an act of officials; stamp_seal stays in the closure through taxation). merit_civil_service replaces appointed_officials with civil_service_examinations (Northcote-Trevelyan took the Chinese examination model via Haileybury; the A6 node otherwise has a single regime dependent). Every other edge is kept; Age and tree crossings were not treated as reasons.",
+  "Effects: all 41 audited nodes carry an effect. Only legal_code_roman (inst.university) and taxation (order.tax_edict) have live unlocks today; the other 39 were knowledge-only (institutions or M8 policy/regime modules) and now carry operand effects. Within every lane+Age no two nodes share the same single operand.",
+  "New lane declared: public-administration (8 A9 nodes: extension, disaster management, freedom of information, digital government and identity, traffic law, anti-corruption, administrative procedure). Without it the A9 fiscal lane would need ~15 distinct operands for a single domain.",
+  "Operand pressure: with T1-T8 and C1 already written, society.grievanceRelief sums to 1.05 against cap 0.6 (C2 adds 0.33 over 13 nodes at 0.02-0.04), society.unrestOutputDrag 0.83 against 0.6 (C2 0.23), research.civicsPointsCoefficient 0.33 against 0.3 (C2 only 0.02). governance.taxExtractionResponseMax is at 1.20 of 1.5 (C2 0.42) and will pass the cap once C3 adds fiscal nodes. The integrator should rescale the society operands per tree or raise their caps; C2 routed most administrative nodes to governance.authorityDecayCostUnits (1.82 of 3.0) to leave headroom.",
+  "Missing emerged dates on four runtime civics (law_code, legal_code_roman, census, patent); suggested texts are in their audit rationales. Date-Age mismatches noted, not acted on: elite_council (A3) cites only ~700 BCE and later; legal_code_roman (A4) is evidenced by the Twelve Tables (~450 BCE) and later.",
+  "Leaves bridged by new nodes: family_law, jurists, patent, civil_police, civil_code, income_tax, merit_civil_service. Deliberate leaves kept: corvee_labour, tax_farming, jury_courts, state_monopolies, common_law, copyright, judicial_review, referendum, secret_ballot, womens_suffrage (equal_pay_law hangs on it), human_rights, international_tribunals.",
+  "Dating notes on new nodes: blood_compensation and witnessed_agreements are A2 pre-literate practices whose only era-marked dates are their first written attestations (~2,100 and ~2,600 BCE). proportional_representation (1899 Belgium) and tenancy_protection (1881 Irish forerunner) carry late-A8 origins but sit in A9, where the modern forms spread.",
+  "Coordination: C1 already authored constitutional_court and electoral_commission, so C2 did not. Possible topic overlap with C3 (land_reform, tenancy_protection, consumer_protection, bankruptcy_law, trademark_law, equal_pay_law, internal_toll_abolition vs customs_union, disaster_management) and C5 (freedom_of_information vs press_freedom); the integrator should dedupe by topic as well as id.",
+  "Pacing: A9 civics grows by 29 here (plus C1's A9 nodes), so the per-node A9 civic cost must fall under the section 5 scale; new A9 magnitudes are 7.0-8.0 (median ~16,700 before scaling) against an existing A9 median of 28,130. census (2.0x the A4 median) and civil_service_examinations (1.68x the A6 median) are the dearest audited nodes for their Ages. mass_suffrage's desc says 'by secret ballot', duplicating secret_ballot; suggest dropping the phrase."
+ ]
+}

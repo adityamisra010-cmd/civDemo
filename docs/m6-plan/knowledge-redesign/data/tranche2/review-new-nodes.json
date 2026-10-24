@@ -1,0 +1,497 @@
+{
+ "verdicts": [
+  {
+   "id": "equal_pay",
+   "verdict": "merge-into",
+   "target": "equal_pay_law",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Known duplicate: C3 equal_pay is word-for-word the same law as C2 equal_pay_law (same A9, same mobility.targetShareCap 0.03). Keep the C2 node."
+  },
+  {
+   "id": "refugee_protection",
+   "verdict": "merge-into",
+   "target": "refugee_law",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Known duplicate: C3 refugee_protection = C2 refugee_law (non-refoulement + status; same A9, same migration.dampingDecayCostUnits 0.03). Keep the C2 node; update guest_worker_programmes.distinctFrom."
+  },
+  {
+   "id": "ration_administration",
+   "verdict": "merge-into",
+   "target": "ration_distribution",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Cross-group duplicate (C2 vs C3): both A3 temple/palace monthly rations of barley, oil and wool by list, both demographics.starvationMortalityMaxPerYear. Same Mesopotamian ration system under two names."
+  },
+  {
+   "id": "temple_almsgiving",
+   "verdict": "merge-into",
+   "target": "ration_distribution",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Third name for the same A3 temple ration lists: ration_distribution already issues rations to 'widows and orphans on their lists'. Fold its child-relief effect into the survivor (see ration_distribution fix-effect)."
+  },
+  {
+   "id": "ration_distribution",
+   "verdict": "fix-effect",
+   "target": null,
+   "newAge": null,
+   "newEffects": [
+    [
+     "demographics.starvationMortalityMaxPerYear",
+     0.03
+    ],
+    [
+     "demographics.starvationChildMultiplier",
+     0.03
+    ]
+   ],
+   "why": "Survivor of the ration_administration + temple_almsgiving merge; carries the widows/orphans relief as a second effect so nothing causal is lost."
+  },
+  {
+   "id": "sacred_sites",
+   "verdict": "merge-into",
+   "target": "seasonal_aggregation",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Cross-group duplicate (C1 vs C2), both A1: scattered bands meet at a place each season to hold rites, exchange news and find spouses. Same capability (seasonal band aggregation); seasonal_aggregation is the fuller description."
+  },
+  {
+   "id": "landscape_lore",
+   "verdict": "merge-into",
+   "target": "wayfinding_lore",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Cross-group duplicate (C5 vs C4), both A1: bands memorise landmarks and water holes to travel beyond their range. Same capability with fog operands split between two nodes; survivor may take exploreStepNodes as a second effect."
+  },
+  {
+   "id": "herd_lore",
+   "verdict": "merge-into",
+   "target": "transhumance",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Same A2 herd-management capability and same operand (production.outputPerHerderPerYear) as C3 transhumance; 'when to move the flock' is transhumance, culling/breeding is sheep_goat/selective_breeding. No distinct role."
+  },
+  {
+   "id": "calendar_keepers",
+   "verdict": "merge-into",
+   "target": "calendar_lunar",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Two names for one capability: calendar_lunar (A2) already models timing sowing by the moon (harvestVariance.sigmaLogYield); calendar_keepers is the same timing knowledge held by an office (organized_priesthood/shamanic_ritual already exist)."
+  },
+  {
+   "id": "storehouse_sealing",
+   "verdict": "merge-into",
+   "target": "stamp_seal",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Duplicate of existing stamp_seal (A2), which already carries consumption.grainSpoilagePerYear 0.03 precisely for sealing stores; sealing store doors is the stamp seal's use, not a separate capability."
+  },
+  {
+   "id": "sign_systems",
+   "verdict": "drop",
+   "target": null,
+   "newAge": null,
+   "newEffects": null,
+   "why": "Filler: pre-writing owner/offering marks are already covered by stamp_seal and token_counting (A2) and proto_writing (A3); governance.authorityDecayCostUnits from incised pot marks is not causal."
+  },
+  {
+   "id": "wall_painting",
+   "verdict": "merge-into",
+   "target": "lime_plaster",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Duplicate effect and mechanism: annual replastering is lime_plaster's housing.tauYears 0.04 and 'rebuilding ancestral houses' is ancestor_veneration's housing.tauYears 0.02, both A2. Decoration adds no capability."
+  },
+  {
+   "id": "exchange_partnerships",
+   "verdict": "merge-into",
+   "target": "gift_exchange",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Same capability as existing 'Gift exchange networks' (shell, obsidian passed partner to partner over hundreds of km) and same operand trade.gapClosingFraction 0.02."
+  },
+  {
+   "id": "lexical_lists",
+   "verdict": "merge-into",
+   "target": "scribal_schools",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Lexical lists were the curriculum of the scribal schools; existing scribal_schools (A3) already carries governance.taxExtractionResponseMax 0.02, the same operand. Two names for one capability."
+  },
+  {
+   "id": "published_law",
+   "verdict": "merge-into",
+   "target": "law_code",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Duplicate of law_code: the distinction 'written for officials vs displayed for citizens' is false for law_code's own exemplar (Hammurabi's public stele invites any wronged man to read it); same operand society.grievanceRelief."
+  },
+  {
+   "id": "coronation_rites",
+   "verdict": "merge-into",
+   "target": "sacral_kingship",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Sub-aspect of sacral_kingship (same A3, sole prereq): anointing/enthronement is how sacred kingship is conferred. No distinct choice; succession_oaths (A4) already covers binding the great men to the heir."
+  },
+  {
+   "id": "state_orthodoxy",
+   "verdict": "merge-into",
+   "target": "state_academy",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Same A5 capability and operand (mobility.promoteRatePerYear) as existing state_academy, whose own exemplar is the Han Taixue teaching the Confucian classics to officials (124 BCE)."
+  },
+  {
+   "id": "medical_schools",
+   "verdict": "merge-into",
+   "target": "medicine_hippocratic",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Existing medicine_hippocratic (A4) already unlocks building.university (medical_university) and carries institutions.universities.maxMortalityReduction 0.05; medical schools training physicians from a shared corpus is that same capability."
+  },
+  {
+   "id": "roman_law_revival",
+   "verdict": "merge-into",
+   "target": "chartered_universities",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Cross-group duplicate (C2 vs C5), both A6 and both institutions.universities.maturityTauYears: the medieval law faculty (Bologna) IS the chartered university. Keep one node."
+  },
+  {
+   "id": "religious_endowments",
+   "verdict": "merge-into",
+   "target": "public_hospitals",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Same A6 capability and operand (demographics.mortalityPerYear) as C3 public_hospitals, whose description is 'endowed hospitals'; the waqf/pious endowment is the funding form of the same institution."
+  },
+  {
+   "id": "stinted_commons",
+   "verdict": "merge-into",
+   "target": "village_bylaws",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Cross-group duplicate (C3 vs C2), both A6: the village meeting/court limiting beasts on the common is literally part of village by-laws. Fold the herder effect into the survivor (see village_bylaws fix-effect)."
+  },
+  {
+   "id": "village_bylaws",
+   "verdict": "fix-effect",
+   "target": null,
+   "newAge": null,
+   "newEffects": [
+    [
+     "farming.yieldPerArableKm2PerYear",
+     0.02
+    ],
+    [
+     "production.outputPerHerderPerYear",
+     0.03
+    ]
+   ],
+   "why": "Survivor of the stinted_commons merge: by-laws regulate both open-field cropping and stinting of the common."
+  },
+  {
+   "id": "merchant_consuls",
+   "verdict": "merge-into",
+   "target": "karum_courts",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Same capability across groups (C4 A6 vs C2 A3) and same operand trade.costPerBulkCostUnit: a self-governing merchant colony abroad with its own judge. Rewire consular_service prereq to karum_courts AND resident_embassies."
+  },
+  {
+   "id": "settler_charters",
+   "verdict": "merge-into",
+   "target": "settler_land_grants",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Same capability (free plots and low dues offered to attract settlers to frontier land) and the same effect pair (migration.baseRatePerYear + colonization.orderPartyFraction) as existing settler_land_grants. If an A6 version is wanted, re-date the existing node instead of adding a second name."
+  },
+  {
+   "id": "chartered_companies",
+   "verdict": "merge-into",
+   "target": "joint_stock",
+   "newAge": null,
+   "newEffects": null,
+   "why": "The first joint-stock companies were the chartered companies (EIC 1600, VOC 1602); the chosen effect (price.stockReleaseRatePerYear) is a trading-firm effect, not the company-state role. If company rule is wanted it needs an authority-reach effect; as written it is joint_stock again."
+  },
+  {
+   "id": "military_roads",
+   "verdict": "merge-into",
+   "target": "road_paved",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Existing road_paved (A5, Via Appia 312 BCE, a military road) already carries the state-reach role (governance.authorityDecayCostUnits) and the infra unlock; 'the state road network' is the same capability."
+  },
+  {
+   "id": "international_student_exchange",
+   "verdict": "merge-into",
+   "target": "academic_exchange",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Cross-group duplicate (C5 vs C4), both A9: 'governments fund students and scholars to study abroad'. Keep academic_exchange, whose effect (universities mature faster) is the more causal one."
+  },
+  {
+   "id": "recorded_music_industry",
+   "verdict": "drop",
+   "target": null,
+   "newAge": null,
+   "newEffects": null,
+   "why": "Filler: same role as film_industry (mass-reproduced entertainment, A9 arts) and existing radio_broadcasting; generic grievanceRelief 0.02 with no distinct mechanism."
+  },
+  {
+   "id": "public_art_programmes",
+   "verdict": "merge-into",
+   "target": "arts_councils",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Two forms of the same A9 capability (the state pays artists); arm's-length vs direct commissioning is not a gameplay choice and the targetShareCap effect is not causally specific to art."
+  },
+  {
+   "id": "broadcast_market_reports",
+   "verdict": "drop",
+   "target": null,
+   "newAge": null,
+   "newEffects": null,
+   "why": "Third node for one capability (market-price dissemination): printed_newspapers (A7) and telegraph_news_agencies (A8) already carry it; radio delivery is radio_broadcasting's."
+  },
+  {
+   "id": "civil_satellite_navigation",
+   "verdict": "merge-into",
+   "target": "gps",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Two names for one capability: the existing gps node (Satellite navigation, 1995) is civil satellite navigation; opening it to civilians is not a separate capability."
+  },
+  {
+   "id": "satellite_communications",
+   "verdict": "merge-into",
+   "target": "communications_satellite",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Intelsat consortium = existing communications_satellite (1962/1964 Syncom); institution and technology are the same capability."
+  },
+  {
+   "id": "satellite_reconnaissance",
+   "verdict": "merge-into",
+   "target": "earth_observation",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Orbital imagery is existing earth_observation, which already carries fog.exploreMaxRadiusNodes 0.05 (same operand)."
+  },
+  {
+   "id": "civil_space_agency",
+   "verdict": "merge-into",
+   "target": "earth_observation",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Its effect (fog.exploreMaxRadiusNodes via mapping and earth survey) is earth_observation's exactly; space science has no further live effect. Fourth A9 node on the same fog operand."
+  },
+  {
+   "id": "independent_air_arm",
+   "verdict": "merge-into",
+   "target": "aerial_reconnaissance",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Its only modelled role ('flies reconnaissance and survey') is T8 aerial_reconnaissance (same A9, fog operand); force organisation is battle-layer (M7/M8), not live."
+  },
+  {
+   "id": "polar_research_stations",
+   "verdict": "drop",
+   "target": null,
+   "newAge": null,
+   "newEffects": null,
+   "why": "Filler: fifth A9 node on fog.exploreMaxRadiusNodes (with earth_observation, aerial_reconnaissance, satellite_reconnaissance, civil_space_agency) at 0.02, for a narrow capability with no distinct gameplay."
+  },
+  {
+   "id": "weather_cooperation",
+   "verdict": "merge-into",
+   "target": "weather_prediction",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Sharing observations is the substance of synoptic_meteorology (A8) and numerical weather_prediction (A9, harvestVariance.sigmaLogYield 0.04); same operand, no distinct capability."
+  },
+  {
+   "id": "law_of_the_sea",
+   "verdict": "merge-into",
+   "target": "fisheries_management",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Cross-group duplicate, both A9 and both production.outputPerExtractorPerYear 0.03: EEZ jurisdiction over fisheries vs catch quotas in those waters. Keep fisheries_management, which is the part that actually raises sustained yield."
+  },
+  {
+   "id": "visa_free_travel",
+   "verdict": "merge-into",
+   "target": "supranational_union",
+   "newAge": null,
+   "newEffects": null,
+   "why": "supranational_union (C1 A9) already grants free movement of people with migration.baseRatePerYear 0.03; passport-free areas are the same capability with the same operand."
+  },
+  {
+   "id": "faith_based_relief",
+   "verdict": "merge-into",
+   "target": "international_food_aid",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Same A9 capability (cross-border famine and child-feeding relief) as C4 international_food_aid; whether the agency is religious adds no mechanism."
+  },
+  {
+   "id": "transit_authority",
+   "verdict": "merge-into",
+   "target": "metropolitan_government",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Cross-group duplicate (C3 vs C2), both A9 and both catchment.hinterlandRadiusKm: one authority running the region's transport so the commuting region works as one."
+  },
+  {
+   "id": "frontier_development_programmes",
+   "verdict": "merge-into",
+   "target": "new_towns",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Cross-group duplicate, both A9 and both colonization.orderPartyFraction 0.03: the state plans and funds whole new settlements with towns, roads and services."
+  },
+  {
+   "id": "agricultural_research_system",
+   "verdict": "merge-into",
+   "target": "green_revolution",
+   "newAge": null,
+   "newEffects": null,
+   "why": "The international stations breeding high-yield varieties (CIMMYT/IRRI) ARE existing green_revolution (yield 0.25) built on scientific_plant_breeding; same operand, institution vs its product."
+  },
+  {
+   "id": "clinical_trials",
+   "verdict": "merge-into",
+   "target": "drug_regulation",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Cross-group duplicate (C5 vs C3), both A9 and both institutions.universities.maxMortalityReduction: drug_regulation requires trial proof before sale. Carry the 0.04 on the survivor. (clinical_trials is also a method, i.e. technology-like.)"
+  },
+  {
+   "id": "defence_research_agencies",
+   "verdict": "merge-into",
+   "target": "science_policy",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Same capability as existing science_policy (state funding of university and laboratory research, A9); civil vs military funder has no live distinction."
+  },
+  {
+   "id": "civil_defence",
+   "verdict": "merge-into",
+   "target": "disaster_management",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Overlaps C2 disaster_management (civil defence agencies became disaster agencies); its food-depot effect also duplicates price_support's granaryYearsOfDemand at A9. Shelters and wardens are battle-layer, not live."
+  },
+  {
+   "id": "military_railways",
+   "verdict": "drop",
+   "target": null,
+   "newAge": null,
+   "newEffects": null,
+   "why": "Filler: troop timetabling is battle-layer (not live); roads.baselineKmPerDay is general overland speed, which military use of an existing railway does not raise. railway already carries the transport effects."
+  },
+  {
+   "id": "motorized_supply",
+   "verdict": "drop",
+   "target": null,
+   "newAge": null,
+   "newEffects": null,
+   "why": "Filler: army lorry columns are battle-layer; roads.maxRouteKm duplicates highway_programmes (A9, same operand) and automobile_mass/motor_road."
+  },
+  {
+   "id": "army_reserves",
+   "verdict": "drop",
+   "target": null,
+   "newAge": null,
+   "newEffects": null,
+   "why": "Bad effect and no live capability: reserve service is mobilization (battle layer), and returning conscripts home does not raise output per farmer (farming.outputPerFarmerPerYear)."
+  },
+  {
+   "id": "all_volunteer_force",
+   "verdict": "drop",
+   "target": null,
+   "newAge": null,
+   "newEffects": null,
+   "why": "No live capability (force composition is M7/M8) and migration.baseRatePerYear is not causally moved by ending conscription."
+  },
+  {
+   "id": "feminism",
+   "verdict": "drop",
+   "target": null,
+   "newAge": null,
+   "newEffects": null,
+   "why": "Umbrella with no capability of its own: its stated content (education, property, professions, vote) is womens_higher_education, married_womens_property, womens_suffrage and equal_pay_law; three of those already use mobility.targetShareCap."
+  },
+  {
+   "id": "environmentalism",
+   "verdict": "merge-into",
+   "target": "environmental_regulation",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Same A9 effect (demographics.mortalityPerYear) as existing environmental_regulation, and its only causal path is that law; movement and law are one capability in-sim."
+  },
+  {
+   "id": "social_liberalism",
+   "verdict": "merge-into",
+   "target": "progressivism",
+   "newAge": null,
+   "newEffects": null,
+   "why": "New Liberalism and Progressivism are the same transatlantic reform movement (both from classical_liberalism); its insurance content is already social_insurance/unemployment_insurance/welfare_state."
+  },
+  {
+   "id": "modernizing_nationalism",
+   "verdict": "drop",
+   "target": null,
+   "newAge": null,
+   "newEffects": null,
+   "why": "Composite with no distinct capability: secular law, script reform and mass schooling are secular_state, script_reform and compulsory_education/mass_literacy_campaigns; overlaps developmentalism in the same lane and Age; generic civicsPoints effect."
+  },
+  {
+   "id": "ceremonial_monarchy",
+   "verdict": "merge-into",
+   "target": "constitutional_monarchy",
+   "newAge": null,
+   "newEffects": null,
+   "why": "Not a selectable regime form (legitimacy lane); constitutional_monarchy + parliamentary_government already produce the ceremonial crown. Same capability under two names."
+  },
+  {
+   "id": "ritual_music",
+   "verdict": "drop",
+   "target": null,
+   "newAge": null,
+   "newEffects": null,
+   "why": "Filler: third A1 node with society.grievanceRelief 0.02 for 'binding the band' (with mortuary_rites and kin_council); no distinct role."
+  },
+  {
+   "id": "clerical_republic",
+   "verdict": "fix-effect",
+   "target": null,
+   "newAge": null,
+   "newEffects": [
+    [
+     "governance.authorityDecayCostUnits",
+     0.03
+    ]
+   ],
+   "why": "pathBuild.buildCostMultiplier (cheaper paths) has no causal link to clerical guardianship. The clerical hierarchy and mosque network extending state reach is the causal channel; no other regime-forms A9 node uses this operand."
+  },
+  {
+   "id": "electoral_commission",
+   "verdict": "fix-effect",
+   "target": null,
+   "newAge": null,
+   "newEffects": [
+    [
+     "society.unrestOutputDrag",
+     0.02
+    ]
+   ],
+   "why": "governance.taxExtractionResponseMax is not causally moved by who counts the votes; trusted counts reduce post-election unrest. Free in legitimacy A9 once ceremonial_monarchy merges."
+  }
+ ],
+ "summary": "Reviewed 344 new nodes (315 civics, 29 tech) against each other and the 684 existing nodes, using the audit effects in out/*.json. Actions on 58 nodes: 43 merge-into, 11 drop, 4 fix-effect, 0 move-age. No exact same-lane/same-Age/same-single-operand clashes remain; the filler is mostly cross-group. Two names for one capability show up in three patterns. (1) Different author groups wrote the same institution (ration lists x3, seasonal aggregation, wayfinding lore, law faculties = universities, stinting = village by-laws, merchant colony courts, student exchange, transit/metro government, trials/drug regulation, new towns). (2) A civic duplicates the existing technology or institution it describes (gps, communications_satellite, earth_observation, stamp_seal, scribal_schools, law_code, state_academy, medicine_hippocratic, green_revolution, road_paved, joint_stock). (3) A9 military or ideology nodes have no live capability (units and force structure are M7/M8), or restate a law the tree already has. The A9 fog operands are crowded: five nodes used fog.exploreMaxRadiusNodes. Ages are historically sound throughout. No node is in a clearly wrong tree; operations_research is method-like (closer to technology) but acceptable. Follow-ups for the integrator: merge-into survivors keep their own ids and effects except where a fix-effect entry gives the absorbed effect; rewire consular_service prereq merchant_consuls -> karum_courts; update the distinctFrom texts that cite merged ids (guest_worker_programmes, agricultural_colleges, famine_early_warning, sign/sealing pairs)."
+}

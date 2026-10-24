@@ -1,0 +1,4509 @@
+{
+ "group": "C3-economy-society-environment",
+ "audit": [
+  {
+   "id": "coined_wage",
+   "name": "Wage labour in coin",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "economy-commerce",
+   "cost": 1240.0,
+   "prereq": "coinage_electrum",
+   "dependents": [
+    "cooperatives",
+    "labour_unions",
+    "mercenary_contracts"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "coinage_electrum",
+     "verdict": "keep",
+     "why": "Wages counted in coin need a coin standard; before coinage, hire was paid in grain or weighed silver (hire_tariffs)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "coinage_electrum A4; largest gap 0 Age(s)",
+   "crossTree": "technology atoms: coinage_electrum (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "migration.baseRatePerYear +0.03"
+   ],
+   "effectRationale": "A wage in coin is portable and spendable anywhere, so labourers can leave the estate that feeds them and follow work.",
+   "costConcern": "1240 is 0.50x the A4 civics median (2490); outside 0.6-1.6x, reviewed: a narrow early node, kept.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Runtime anchor (inst.coined_wage, deferred to its owner); feeds mercenary_contracts, labour_unions, cooperatives and the new friendly_societies.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Currency (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Skilled Trades (Coinage policy)"
+   },
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "joint_stock",
+   "name": "Joint-stock company",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "economy-commerce",
+   "cost": 2960.0,
+   "prereq": "bill_of_exchange AND legal_code_roman",
+   "dependents": [
+    "central_banking",
+    "limited_liability",
+    "stock_exchange"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "bill_of_exchange",
+     "verdict": "keep",
+     "why": "Transferable paper claims are the precondition for transferable shares in a common fund."
+    },
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "A company needs corporate personality (societas, universitas) from systematic law to outlive its members."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "bill_of_exchange A6, legal_code_roman A4; largest gap 2 Age(s)",
+   "crossTree": "technology atoms: bill_of_exchange (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.04"
+   ],
+   "effectRationale": "Pooled capital pays for larger ships, convoys and warehouses, so each unit of bulk freight costs less to move.",
+   "costConcern": "2960 is 0.84x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Runtime anchor with three dependents; the 1250 CE Bazacle mill company of Toulouse supports the A6 placement.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Chartered Companies (Great Britain unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "craft_guilds",
+   "name": "Craft guilds",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "economy-commerce",
+   "cost": 1760.0,
+   "prereq": "legal_code_roman OR municipal_charter",
+   "dependents": [
+    "cooperatives"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "Roman craft collegia were licensed associations under systematic law."
+    },
+    {
+     "atom": "municipal_charter",
+     "verdict": "keep",
+     "why": "Medieval guilds drew their monopoly from the town charter; the OR keeps both historical routes."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "legal_code_roman A4, municipal_charter A5; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "production.toolWearPerEquippedFarmerPerYear +0.04"
+   ],
+   "effectRationale": "Guild masters enforce standards of temper and finish, so the tools smiths and wrights sell to farmers wear out more slowly.",
+   "costConcern": "1760 is 0.50x the A5 civics median (3520); outside 0.6-1.6x, reviewed: a narrow early node, kept.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound OR of two independent origins; now also feeds apprenticeship and mutual_aid_fraternities.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Guilds"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Rakuichi-Rakuza (Sengoku Japan unique civic; Kabunakama tradition)"
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "religious_toleration",
+   "name": "Religious toleration",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "society-welfare",
+   "cost": 2960.0,
+   "prereq": "organized_priesthood AND legal_code_roman",
+   "dependents": [
+    "secular_state"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "Toleration is a legal status (Ashoka's edicts, the Edict of Milan) that needs systematic law to grant and protect it."
+    },
+    {
+     "atom": "organized_priesthood",
+     "verdict": "keep",
+     "why": "Toleration presupposes organised cults whose rival claims the law must arbitrate."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "legal_code_roman A4, organized_priesthood A2; largest gap 3 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.03"
+   ],
+   "effectRationale": "When minority faiths are protected by law, sectarian disturbances interrupt less work.",
+   "costConcern": "2960 is 0.84x the A5 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites and Age are right; feeds secular_state.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "commercial_law",
+   "name": "Merchant law",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "economy-commerce",
+   "cost": 2960.0,
+   "prereq": "legal_code_roman AND trade",
+   "dependents": [
+    "classical_liberalism",
+    "limited_liability",
+    "mercantilism",
+    "merchant_republic"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "Merchant courts apply systematic contract law, whether Islamic fiqh or the European law merchant."
+    },
+    {
+     "atom": "trade",
+     "verdict": "keep",
+     "why": "There must be long-distance trade between strangers for a merchant law to govern."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "legal_code_roman A4, trade A3; largest gap 3 Age(s)",
+   "crossTree": "technology atoms: trade (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.04"
+   ],
+   "effectRationale": "Enforceable contracts between strangers let merchants act on distant price differences, so prices converge faster.",
+   "costConcern": "2960 is 0.84x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Hub of the commerce lane with four dependents and the new commenda.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Economics (Maritime Law policy)"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "central_banking",
+   "name": "Central banking",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "economy-commerce",
+   "cost": 4970.0,
+   "prereq": "joint_stock AND paper_money",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "joint_stock",
+     "verdict": "keep",
+     "why": "The Bank of England was founded as a joint-stock company."
+    },
+    {
+     "atom": "paper_money",
+     "verdict": "keep",
+     "why": "Note issue is the central bank's defining instrument."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "joint_stock A6, paper_money A6; largest gap 1 Age(s)",
+   "crossTree": "technology atoms: paper_money (cross-tree; kept on merit)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.03"
+   ],
+   "effectRationale": "A public bank discounts bills and settles accounts in its notes, so payment between distant markets clears faster.",
+   "costConcern": "4970 is 1.00x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; the bridge is supplied by new A9 nodes (deposit_insurance, demand_management, managed_exchange_rates, microfinance) rather than a new edge.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "compulsory_education",
+   "name": "Compulsory education",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "society-welfare",
+   "cost": 5910.0,
+   "prereq": "census AND printing_press",
+   "dependents": [
+    "merit_civil_service"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "census",
+     "verdict": "keep",
+     "why": "Compulsion requires enumerating the children who must attend."
+    },
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "Mass schooling depends on cheap printed primers and catechisms."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "census A4, printing_press A7; largest gap 3 Age(s)",
+   "crossTree": "technology atoms: printing_press (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.04"
+   ],
+   "effectRationale": "Universal literacy lets children of labourers qualify for clerical and skilled posts, so promotion between classes runs faster.",
+   "costConcern": "5910 is 1.19x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct pair of atoms; now also feeds school_meals and vocational_training.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "public_health_board",
+   "name": "Boards of health",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "society-welfare",
+   "cost": 4180.0,
+   "prereq": "census AND medicine_hippocratic",
+   "dependents": [
+    "environmental_regulation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "census",
+     "verdict": "keep",
+     "why": "Health magistrates counted the sick and the dead to decide quarantine and closure."
+    },
+    {
+     "atom": "medicine_hippocratic",
+     "verdict": "keep",
+     "why": "Airs-and-waters (miasma) medicine supplied the rationale for sanitation and isolation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "census A4, medicine_hippocratic A4; largest gap 3 Age(s)",
+   "crossTree": "technology atoms: medicine_hippocratic (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.03"
+   ],
+   "effectRationale": "Quarantine and sanitary powers cut deaths from plague and fever in all age groups.",
+   "costConcern": "4180 is 0.84x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Key public-health root; feeds environmental_regulation and the new public-health lane.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Sanitation (technology)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "abolition",
+   "name": "Abolition of slavery and serfdom",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "society-welfare",
+   "cost": 5910.0,
+   "prereq": "legal_code_roman",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "Abolition is an act of law dissolving a legal status, so systematic law is needed. The single A4 atom under-specifies the A8 node (see findings), but the obvious extra atom (social_contract, 1651) would be dated after the node's Solonian precursor (594 BCE), so it is not proposed until the emerged text is narrowed."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "legal_code_roman A4; largest gap 4 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "migration.baseRatePerYear +0.05"
+   ],
+   "effectRationale": "Freed slaves and serfs may leave the land they were bound to, so people move far more freely.",
+   "costConcern": "5910 is 0.59x the A8 civics median (9950); outside 0.6-1.6x, reviewed: a narrow early node, kept.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Landmark leaf; its weak prerequisite is reported as a finding rather than changed, because the emerged text dates a precursor to 594 BCE.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Serfdom (Russia unique civic; Krestyanskaya Reforma tradition)"
+   },
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "central_planning",
+   "name": "Central economic planning",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "economy-commerce",
+   "cost": 23650.0,
+   "prereq": "official_statistics AND telegraph",
+   "dependents": [
+    "marxist_leninist_state"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "official_statistics",
+     "verdict": "keep",
+     "why": "A plan is written against statistical balances of output and stocks."
+    },
+    {
+     "atom": "telegraph",
+     "verdict": "keep",
+     "why": "Central allocation needs fast reporting from and instructions to distant enterprises."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "official_statistics A7, telegraph A8; largest gap 2 Age(s)",
+   "crossTree": "technology atoms: telegraph (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.04"
+   ],
+   "effectRationale": "State procurement at plan prices captures a larger share of output for the centre.",
+   "costConcern": "23650 is 0.84x the A9 civics median (28130); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct atoms; feeds marxist_leninist_state.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Class Struggle"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Centralism (Collectivization policy)"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "gift_exchange",
+   "name": "Gift exchange networks",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "economy-commerce",
+   "cost": 260.0,
+   "prereq": "kin_council",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "kin_council",
+     "verdict": "keep",
+     "why": "Exchange partnerships are negotiated between kin groups; the council is the band's earliest institution."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "kin_council A1; largest gap 0 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.02"
+   ],
+   "effectRationale": "Rare stone and shell move hand to hand between bands, so scarce goods reach places that lack them.",
+   "costConcern": "260 is 1.00x the A1 civics median (260); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Leaf in the index; bridged by new nodes craft_specialists and barter_exchange (and C1's prestige_leadership).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Foreign Trade"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Cah-nah-ha (Mississippian unique civic; Gift Economy tradition)"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "debt_remission",
+   "name": "Debt remission edicts",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "society-welfare",
+   "cost": 1480.0,
+   "prereq": "law_code AND sacral_kingship",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Remission edicts (misharum) are royal legal acts cancelling written obligations."
+    },
+    {
+     "atom": "sacral_kingship",
+     "verdict": "keep",
+     "why": "Remission is proclaimed by a king acting as guarantor of justice at accession."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "law_code A3, sacral_kingship A3; largest gap 0 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.grievanceRelief +0.04"
+   ],
+   "effectRationale": "Periodic cancellation of debts frees debt-bondsmen and stops grievance from piling up.",
+   "costConcern": "1480 is 1.00x the A3 civics median (1480); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "A deliberate leaf: the crisis edict is superseded by standing institutions (interest_bearing_credit regulation, poor relief).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "planned_cities",
+   "name": "Planned towns",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "environment-urban",
+   "cost": 1480.0,
+   "prereq": "fired_brick AND appointed_officials",
+   "dependents": [
+    "building_regulation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "A plan laid out before building needs officials to survey and enforce it."
+    },
+    {
+     "atom": "fired_brick",
+     "verdict": "keep",
+     "why": "Harappan grids and drains are built in standard fired brick."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3, fired_brick A3; largest gap 0 Age(s)",
+   "crossTree": "technology atoms: fired_brick (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "housing.personsPerDwelling +0.03"
+   ],
+   "effectRationale": "Regular plots and drains let houses stand wall to wall, so more people live in each block.",
+   "costConcern": "1480 is 1.00x the A3 civics median (1480); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds building_regulation.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Urbanization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Urban Grid (Heian Japan unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "water_rights",
+   "name": "Water rights",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "environment-urban",
+   "cost": 1480.0,
+   "prereq": "law_code AND irrigation_canal",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "irrigation_canal",
+     "verdict": "keep",
+     "why": "There must be canals to allocate."
+    },
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Water shares and bank-maintenance duties are written law (Hammurabi 53-56)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "irrigation_canal A2, law_code A3; largest gap 1 Age(s)",
+   "crossTree": "technology atoms: irrigation_canal (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "harvestVariance.sigmaLogYield +0.03"
+   ],
+   "effectRationale": "Maintained banks and fixed water turns keep fields watered in dry years, so harvests swing less.",
+   "costConcern": "1480 is 1.00x the A3 civics median (1480); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; now feeds water_turn_shares and water_boards.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "building_regulation",
+   "name": "Building regulation",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "environment-urban",
+   "cost": 2960.0,
+   "prereq": "planned_cities AND legal_code_roman",
+   "dependents": [
+    "zoning"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "legal_code_roman",
+     "verdict": "keep",
+     "why": "Imperial building rules are statutes of systematic law."
+    },
+    {
+     "atom": "planned_cities",
+     "verdict": "keep",
+     "why": "Regulation of height and fire breaks extends town planning."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "legal_code_roman A4, planned_cities A3; largest gap 2 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "housing.tauYears +0.04"
+   ],
+   "effectRationale": "Limits on height, required materials and fire breaks mean fewer houses collapse or burn.",
+   "costConcern": "2960 is 0.84x the A5 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds zoning, fire_brigades and housing_acts.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Civil Engineering"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "public_granaries",
+   "name": "Public granaries",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "society-welfare",
+   "cost": 4180.0,
+   "prereq": "taxation AND appointed_officials",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Officials buy, store and release the stock."
+    },
+    {
+     "atom": "taxation",
+     "verdict": "keep",
+     "why": "The granary is filled from grain levies."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3, taxation A3; largest gap 2 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "granaries.famineReductionMax +0.05"
+   ],
+   "effectRationale": "State stocks released in dearth relieve famine more than private stores can.",
+   "costConcern": "4180 is 1.19x the A5 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds alimenta and price_support.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Public Life (Annona policy)"
+   },
+   "effects": [
+    {
+     "operand": "granaries.famineReductionMax",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "forest_law",
+   "name": "Forest law",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "environment-urban",
+   "cost": 3520.0,
+   "prereq": "land_registry AND service_tenure",
+   "dependents": [
+    "nature_conservation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "land_registry",
+     "verdict": "keep",
+     "why": "Reserved forests are defined and recorded tracts."
+    },
+    {
+     "atom": "service_tenure",
+     "verdict": "keep",
+     "why": "Forest rights were granted and policed through tenure (verderers, foresters)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "land_registry A4, service_tenure A3; largest gap 3 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "production.outputPerExtractorPerYear +0.03"
+   ],
+   "effectRationale": "Licensed cutting and coppice rotation keep woods productive, so loggers yield more over time.",
+   "costConcern": "3520 is 1.00x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds nature_conservation (and T7's sustained_yield_forestry).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Conservation"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Angevin Empire (England unique civic; Charter of the Forest tradition)"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "legal_estates",
+   "name": "Legal estates",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "society-welfare",
+   "cost": 4970.0,
+   "prereq": "hereditary_rank AND state_religion",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "hereditary_rank",
+     "verdict": "keep",
+     "why": "Orders are hereditary ranks fixed in law."
+    },
+    {
+     "atom": "state_religion",
+     "verdict": "keep",
+     "why": "The clergy as a legal estate presupposes an established church."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "hereditary_rank A2, state_religion A5; largest gap 4 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.03"
+   ],
+   "effectRationale": "Each order has recognised rights and an assembly voice, so conflicts are bargained out rather than fought.",
+   "costConcern": "4970 is 1.41x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: an order of society later dissolved (abolition, civil_code) rather than built upon.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Social Class"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "manorialism",
+   "name": "Manorialism",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "society-welfare",
+   "cost": 4970.0,
+   "prereq": "service_tenure AND heavy_plough",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "heavy_plough",
+     "verdict": "replace",
+     "why": "The bipartite manor was not a heavy-plough artefact: Byzantine, Italian and Iberian estates bound tenants (the colonate, 332 CE) while ploughing with the ard. The heavy plough should be one route, not a must-hold."
+    },
+    {
+     "atom": "service_tenure",
+     "verdict": "keep",
+     "why": "The lord holds the manor by service tenure."
+    }
+   ],
+   "andOr": "change(service_tenure AND (heavy_plough OR legal_code_roman))",
+   "ageGap": "heavy_plough A6, service_tenure A3; largest gap 3 Age(s)",
+   "crossTree": "technology atoms: heavy_plough (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "farming.yieldPerArableKm2PerYear +0.03"
+   ],
+   "effectRationale": "Demesne and tenant strips are worked to a common calendar with shared teams, so land yields more.",
+   "costConcern": "4970 is 1.41x the A6 civics median (3520); within range.",
+   "action": "change-andor",
+   "newPrereq": "service_tenure AND (heavy_plough OR legal_code_roman)",
+   "newAge": null,
+   "rationale": "Turn the heavy-plough requirement into an OR with systematic law (the Roman colonate binding tenants to the soil), so the manor is reachable in Mediterranean economies.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Feudalism"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Serfdom (Russia unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "market_fairs",
+   "name": "Market fairs",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "economy-commerce",
+   "cost": 3520.0,
+   "prereq": "trade AND municipal_charter",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "municipal_charter",
+     "verdict": "keep",
+     "why": "A fair is a chartered privilege with its own peace and court."
+    },
+    {
+     "atom": "trade",
+     "verdict": "keep",
+     "why": "Fairs gather long-distance merchants."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "municipal_charter A5, trade A3; largest gap 3 Age(s)",
+   "crossTree": "technology atoms: trade (cross-tree; kept on merit)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "price.stockReleaseRatePerYear +0.04"
+   ],
+   "effectRationale": "Periodic fairs draw stored goods to market at known dates, so stocks are sold sooner.",
+   "costConcern": "3520 is 1.00x the A6 civics median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: fairs were superseded by permanent exchanges (stock_exchange, commodity_exchange).",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Medieval Faires"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Economics"
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mercantilism",
+   "name": "Mercantilism",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "economy-commerce",
+   "cost": 7030.0,
+   "prereq": "commercial_law AND customs_tolls",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "commercial_law",
+     "verdict": "keep",
+     "why": "Trade rules presuppose a merchant law."
+    },
+    {
+     "atom": "customs_tolls",
+     "verdict": "keep",
+     "why": "Mercantilist policy works through tariffs."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "commercial_law A6, customs_tolls A3; largest gap 4 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "Tariffs and export monopolies channel trade revenue to the crown, raising what taxes extract.",
+   "costConcern": "7030 is 1.41x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: a doctrine answered by free_trade, not built upon.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Mercantilism"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Mercantilism"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "poor_law",
+   "name": "Poor law",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "society-welfare",
+   "cost": 4970.0,
+   "prereq": "taxation AND municipal_charter",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "municipal_charter",
+     "verdict": "keep",
+     "why": "The parish or town administers relief."
+    },
+    {
+     "atom": "taxation",
+     "verdict": "keep",
+     "why": "Relief is financed by a compulsory rate."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "municipal_charter A5, taxation A3; largest gap 4 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "demographics.starvationMortalityMaxPerYear +0.04"
+   ],
+   "effectRationale": "Parish relief in dearth keeps the destitute from starving.",
+   "costConcern": "4970 is 1.00x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; feeds school_meals and public_works_relief.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Social Question"
+   },
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "stock_exchange",
+   "name": "Stock exchange",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "economy-commerce",
+   "cost": 3520.0,
+   "prereq": "joint_stock",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "joint_stock",
+     "verdict": "keep",
+     "why": "Shares must exist before they can be traded."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "joint_stock A6; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.03"
+   ],
+   "effectRationale": "A share market finances enterprises beyond family capital, sustaining a larger merchant and managerial class.",
+   "costConcern": "3520 is 0.71x the A7 civics median (4970); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; feeds insurance_underwriting and commodity_exchange.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Economics (technology; Stock Exchange building)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Capitalism"
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "antitrust",
+   "name": "Antitrust law",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "economy-commerce",
+   "cost": 9950.0,
+   "prereq": "limited_liability AND representative_assembly",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "limited_liability",
+     "verdict": "keep",
+     "why": "Trusts were combinations of limited companies."
+    },
+    {
+     "atom": "representative_assembly",
+     "verdict": "keep",
+     "why": "Antitrust is legislation passed against organised interests."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "limited_liability A8, representative_assembly A6; largest gap 2 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.02",
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Broken cartels stop holding prices apart between markets, and the public resentment of monopolies eases.",
+   "costConcern": "9950 is 1.00x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf of the corporate branch.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Progressivism"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    },
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cooperatives",
+   "name": "Cooperatives",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "economy-commerce",
+   "cost": 8360.0,
+   "prereq": "craft_guilds AND coined_wage",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "coined_wage",
+     "verdict": "keep",
+     "why": "Members pool wages to buy shares in the store."
+    },
+    {
+     "atom": "craft_guilds",
+     "verdict": "keep",
+     "why": "Guild mutual funds are the associational precedent; weaker than socialism (Rochdale were Owenites), but replacing it would leave craft_guilds with no dependent in its own lane, and Raiffeisen co-operatives were not socialist."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "coined_wage A4, craft_guilds A5; largest gap 4 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "foodState.adaptationAbsorbableShortfall +0.03"
+   ],
+   "effectRationale": "Co-operative stores and credit unions give members goods on credit and a dividend, so households absorb short falls in supply.",
+   "costConcern": "8360 is 0.84x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept; now feeds microfinance.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Social Question"
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "customs_union",
+   "name": "Customs union",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "economy-commerce",
+   "cost": 9950.0,
+   "prereq": "customs_tolls AND sworn_treaties",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "customs_tolls",
+     "verdict": "keep",
+     "why": "A union abolishes internal tolls and shares an external tariff."
+    },
+    {
+     "atom": "sworn_treaties",
+     "verdict": "keep",
+     "why": "Members bind themselves by treaty."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "customs_tolls A3, sworn_treaties A3; largest gap 5 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.04"
+   ],
+   "effectRationale": "Goods cross member borders without toll stops, so bulk haulage costs less.",
+   "costConcern": "9950 is 1.00x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds C1's supranational_union.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Zollverein (Prussia unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "factory_inspection",
+   "name": "Factory inspection",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "society-welfare",
+   "cost": 9950.0,
+   "prereq": "power_loom AND appointed_officials",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Inspectors are salaried officials with powers of entry."
+    },
+    {
+     "atom": "power_loom",
+     "verdict": "keep",
+     "why": "Inspection began in power-driven textile mills (Factory Act 1833)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3, power_loom A8; largest gap 5 Age(s)",
+   "crossTree": "technology atoms: power_loom (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02"
+   ],
+   "effectRationale": "Fencing of machinery and limits on hours reduce deaths from accidents and exhaustion.",
+   "costConcern": "9950 is 1.00x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; feeds workmens_compensation, minimum_wage and occupational_safety.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Progressivism"
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "free_trade",
+   "name": "Free trade",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "economy-commerce",
+   "cost": 14060.0,
+   "prereq": "classical_liberalism AND customs_tolls",
+   "dependents": [
+    "multilateral_trade_rules"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "classical_liberalism",
+     "verdict": "keep",
+     "why": "Free trade is the doctrine of Smith and Ricardo put into law."
+    },
+    {
+     "atom": "customs_tolls",
+     "verdict": "keep",
+     "why": "Tariffs must exist to be lowered."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "classical_liberalism A8, customs_tolls A3; largest gap 5 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.05"
+   ],
+   "effectRationale": "With tariffs lowered, arbitrage between markets is no longer blocked, so price gaps close much faster.",
+   "costConcern": "14060 is 1.41x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds multilateral_trade_rules.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Capitalism"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Capitalism (Laissez-Faire policy)"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "labour_unions",
+   "name": "Trade unions",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "society-welfare",
+   "cost": 14060.0,
+   "prereq": "coined_wage AND (power_loom OR spinning_mule)",
+   "dependents": [
+    "socialism"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "coined_wage",
+     "verdict": "keep",
+     "why": "Unions bargain over a money wage."
+    },
+    {
+     "atom": "power_loom",
+     "verdict": "keep",
+     "why": "Factory workforces concentrated workers who could combine."
+    },
+    {
+     "atom": "spinning_mule",
+     "verdict": "keep",
+     "why": "Mule spinners formed some of the first durable unions; the OR with the power loom is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "coined_wage A4, power_loom A8, spinning_mule A8; largest gap 4 Age(s)",
+   "crossTree": "technology atoms: power_loom, spinning_mule (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.grievanceRelief +0.04"
+   ],
+   "effectRationale": "Collective bargaining gives workers a channel for complaint, so grievance builds more slowly.",
+   "costConcern": "14060 is 1.41x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds socialism, industrial_arbitration, minimum_wage, workmens_compensation and collective_bargaining.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Class Struggle"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Social Question"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "limited_liability",
+   "name": "Limited liability",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "economy-commerce",
+   "cost": 7030.0,
+   "prereq": "joint_stock AND commercial_law",
+   "dependents": [
+    "antitrust"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "commercial_law",
+     "verdict": "keep",
+     "why": "It is a rule of commercial law on creditors' claims."
+    },
+    {
+     "atom": "joint_stock",
+     "verdict": "keep",
+     "why": "Limited liability is a privilege of joint-stock companies."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "commercial_law A6, joint_stock A6; largest gap 2 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.03"
+   ],
+   "effectRationale": "Small investors can found and back firms without risking ruin, so people rise into the owning class faster.",
+   "costConcern": "7030 is 0.71x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds antitrust and deposit_insurance.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Capitalism"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "nature_conservation",
+   "name": "Nature conservation",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "environment-urban",
+   "cost": 9950.0,
+   "prereq": "forest_law AND taxonomy",
+   "dependents": [
+    "environmental_regulation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "forest_law",
+     "verdict": "keep",
+     "why": "Royal forest reserves are the legal precedent for protected land."
+    },
+    {
+     "atom": "taxonomy",
+     "verdict": "keep",
+     "why": "Protecting species requires classifying them."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "forest_law A6, taxonomy A7; largest gap 2 Age(s)",
+   "crossTree": "technology atoms: taxonomy (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "harvestVariance.sigmaLogYield +0.03"
+   ],
+   "effectRationale": "Protected forests and watersheds buffer floods and droughts, steadying harvests downstream.",
+   "costConcern": "9950 is 1.00x the A8 civics median (9950); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds environmental_regulation, soil_conservation and fisheries_management.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Conservation"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Natural History (Land Heritage policy)"
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "civil_rights_law",
+   "name": "Civil rights law",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "society-welfare",
+   "cost": 28130.0,
+   "prereq": "bill_of_rights AND mass_suffrage",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "bill_of_rights",
+     "verdict": "keep",
+     "why": "Civil rights extend declared rights to protected groups."
+    },
+    {
+     "atom": "mass_suffrage",
+     "verdict": "keep",
+     "why": "Civil rights legislation followed the enfranchisement of the groups it protects."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "bill_of_rights A7, mass_suffrage A8; largest gap 2 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.05",
+    "society.grievanceRelief +0.03"
+   ],
+   "effectRationale": "Banning discrimination in work and schooling opens promotion to excluded groups and removes a standing grievance.",
+   "costConcern": "28130 is 1.00x the A9 civics median (28130); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Landmark leaf of the welfare lane.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Progressivism"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.05
+    },
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "climate_accords",
+   "name": "Climate accords",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "cost": 39780.0,
+   "prereq": "environmental_regulation AND international_organizations AND weather_prediction",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "environmental_regulation",
+     "verdict": "keep",
+     "why": "International limits extend national pollution regulation."
+    },
+    {
+     "atom": "international_organizations",
+     "verdict": "keep",
+     "why": "Accords are negotiated within UN bodies."
+    },
+    {
+     "atom": "weather_prediction",
+     "verdict": "keep",
+     "why": "Climate models grew from numerical weather prediction."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "environmental_regulation A9, international_organizations A8, weather_prediction A9; largest gap 1 Age(s)",
+   "crossTree": "technology atoms: weather_prediction (cross-tree; kept on merit)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "harvestVariance.sigmaLogYield +0.04"
+   ],
+   "effectRationale": "Limiting warming reduces the frequency of droughts and floods, so harvests vary less.",
+   "costConcern": "39780 is 1.41x the A9 civics median (28130); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Terminal node of the environment lane.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Environmentalism (Gathering Storm civic; outside the base-game data file)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Globalism"
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "environmental_regulation",
+   "name": "Environmental regulation",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "cost": 28130.0,
+   "prereq": "nature_conservation AND public_health_board",
+   "dependents": [
+    "climate_accords"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "nature_conservation",
+     "verdict": "keep",
+     "why": "Regulation of pollution extends protection of land."
+    },
+    {
+     "atom": "public_health_board",
+     "verdict": "keep",
+     "why": "Pollution standards are health standards enforced by an agency."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "nature_conservation A8, public_health_board A7; largest gap 2 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.03"
+   ],
+   "effectRationale": "Limits on smoke, effluent and toxins cut deaths from respiratory and water-borne disease.",
+   "costConcern": "28130 is 1.00x the A9 civics median (28130); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds climate_accords.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Environmentalism (Gathering Storm civic; outside the base-game data file)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "multilateral_trade_rules",
+   "name": "Multilateral trade rules",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "economy-commerce",
+   "cost": 28130.0,
+   "prereq": "free_trade AND international_organizations",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "free_trade",
+     "verdict": "keep",
+     "why": "GATT bound the tariffs that free-trade states had lowered."
+    },
+    {
+     "atom": "international_organizations",
+     "verdict": "keep",
+     "why": "Rules are administered by an international body."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "free_trade A8, international_organizations A8; largest gap 1 Age(s)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.04"
+   ],
+   "effectRationale": "Bound tariffs and dispute settlement keep markets open, so prices converge across borders.",
+   "costConcern": "28130 is 1.00x the A9 civics median (28130); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds special_economic_zones.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Globalization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Globalism"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "zoning",
+   "name": "Zoning",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "cost": 19890.0,
+   "prereq": "building_regulation AND skyscraper",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "building_regulation",
+     "verdict": "keep",
+     "why": "Zoning extends building law to land use."
+    },
+    {
+     "atom": "skyscraper",
+     "verdict": "keep",
+     "why": "New York's 1916 resolution answered the Equitable Building; German zoning (1891) shows other routes existed, but the edge is kept since it is the documented trigger."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "building_regulation A5, skyscraper A9; largest gap 4 Age(s)",
+   "crossTree": "technology atoms: skyscraper (cross-tree; kept on merit)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "housing.personsPerDwelling +0.02"
+   ],
+   "effectRationale": "Envelopes and use zones permit apartment blocks where light and air are protected, so dwellings hold more people.",
+   "costConcern": "19890 is 0.71x the A9 civics median (28130); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct; feeds the new transit_authority.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Urbanization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Urbanization (Modern technology)"
+   },
+   "effects": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "food_sharing_norms",
+   "name": "Food-sharing norms",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "society-welfare",
+   "emerged": "~100 kya and earlier: shared butchery at hearths; demand-sharing universal among recorded foragers",
+   "prereq": "fire_making",
+   "prereqRationale": "fire_making: the kill is cooked and divided at the common hearth; the sharing rule grows around it.",
+   "rationale": "fire_making: the kill is cooked and divided at the common hearth; the sharing rule grows around it.",
+   "desc": "Whoever brings in meat must share it with the whole band. A hunter's bad week no longer starves his children, and no family hoards while others go hungry.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 1.75,
+   "cost": 310,
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Sharing pools the band's food, so children of unlucky hunters are fed in lean seasons.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "gift_exchange moves goods between bands; food sharing divides food within the band."
+  },
+  {
+   "id": "seasonal_round",
+   "name": "Seasonal round",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "environment-urban",
+   "emerged": "~23 kya Ohalo II (Sea of Galilee): brush huts reoccupied season after season",
+   "prereq": "shelter_hut",
+   "prereqRationale": "shelter_hut: a scheduled round returns to known base camps with built shelters.",
+   "rationale": "shelter_hut: a scheduled round returns to known base camps with built shelters.",
+   "desc": "The band moves between known camps on a fixed yearly schedule, reaching fish runs, nut groves and herds when each is at its best.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 1.5,
+   "cost": 260,
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A scheduled round exploits a wider territory than a single camp, so the settlement draws on a larger hinterland.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "transhumance (A2) moves herds between pastures; the seasonal round moves the whole band between wild resources."
+  },
+  {
+   "id": "landscape_burning",
+   "name": "Fire-stick land management",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "environment-urban",
+   "emerged": "~45 kya change in Sahul fire regimes (contested); recorded Aboriginal mosaic burning",
+   "prereq": "fire_making",
+   "prereqRationale": "fire_making: deliberate burning is a use of controlled fire.",
+   "rationale": "fire_making: deliberate burning is a use of controlled fire.",
+   "desc": "The band burns country in small patches at chosen seasons, opening grassland that draws game and renews food plants.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 1.5,
+   "cost": 260,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Fresh regrowth and concentrated game shorten the lean season, so fewer die of hunger in bad years.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "fire_making is the technique; this is the shared rule of when and where the band burns its land."
+  },
+  {
+   "id": "communal_storage",
+   "name": "Communal storehouses",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "society-welfare",
+   "emerged": "~9,300 BCE Dhra' (Jordan): free-standing granaries shared by the settlement",
+   "prereq": "cereal_cultivation AND kin_council",
+   "prereqRationale": "cereal_cultivation: there must be grain to store; kin_council: a shared store needs an agreed rule of access.",
+   "rationale": "cereal_cultivation: there must be grain to store; kin_council: a shared store needs an agreed rule of access.",
+   "desc": "The village keeps its grain in common storehouses under agreed rules, so a household with a poor crop can draw on the common stock.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "cost": 740,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A pooled reserve lets households ride out a shortfall without going hungry.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Ayllu (Inca unique civic; Qullqa tradition)"
+   },
+   "distinctFrom": "public_granaries (A5) is a state buffer stock sold in dearth; this is a village pool held in common."
+  },
+  {
+   "id": "transhumance",
+   "name": "Transhumance",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "environment-urban",
+   "emerged": "~5,000 BCE seasonal herd movement in the Zagros and the Alps (isotopic evidence)",
+   "prereq": "sheep_goat AND seasonal_round",
+   "prereqRationale": "sheep_goat: herds to move; seasonal_round: the scheduled movement between seasonal places.",
+   "rationale": "sheep_goat: herds to move; seasonal_round: the scheduled movement between seasonal places.",
+   "desc": "Herders move flocks between summer mountain pastures and winter lowlands along customary routes, so neither range is grazed bare.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.75,
+   "cost": 620,
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Rotating pastures by season keeps grazing fresh, so herds yield more.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "stinted_commons (A6) caps beasts on one common; transhumance moves herds between distant pastures."
+  },
+  {
+   "id": "craft_specialists",
+   "name": "Craft specialization",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "economy-commerce",
+   "emerged": "~6,000 BCE Halaf workshop pottery; ~4,500 BCE Varna goldsmiths",
+   "prereq": "pottery_open_fired AND gift_exchange",
+   "prereqRationale": "pottery_open_fired: the first workshop craft; gift_exchange: a demand for crafted valuables beyond the household.",
+   "rationale": "pottery_open_fired: the first workshop craft; gift_exchange: a demand for crafted valuables beyond the household.",
+   "desc": "Some households work part-time as potters, bead-makers or smiths and exchange their wares for food.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.0,
+   "cost": 740,
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Exchange for food lets a share of people live by craft, enlarging the specialist class.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Craftsmanship"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Skilled Trades"
+   },
+   "distinctFrom": "craft_guilds (A5) regulates organised trades; this is the first appearance of specialists at all."
+  },
+  {
+   "id": "barter_exchange",
+   "name": "Barter of staples",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "economy-commerce",
+   "emerged": "~7,000 BCE obsidian, shell and grain exchanged between Anatolian and Levantine villages",
+   "prereq": "gift_exchange AND cereal_cultivation",
+   "prereqRationale": "gift_exchange: the older exchange network; cereal_cultivation: a storable staple to offer in exchange.",
+   "rationale": "gift_exchange: the older exchange network; cereal_cultivation: a storable staple to offer in exchange.",
+   "desc": "Villagers trade surplus grain, salt and stone with neighbours at agreed equivalents, without waiting for a gift to be returned.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.75,
+   "cost": 620,
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Surplus held in store can be traded away at once, so stocks reach those who need them sooner.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Commerce (Commodities policy)"
+   },
+   "distinctFrom": "gift_exchange is reciprocal and delayed between partners; barter is an immediate exchange of equivalents."
+  },
+  {
+   "id": "work_parties",
+   "name": "Reciprocal work parties",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "labour",
+   "emerged": "~7,400 BCE Çatalhöyük houses rebuilt in place by neighbouring households (inferred)",
+   "prereq": "communal_feasts AND mudbrick",
+   "prereqRationale": "communal_feasts: the host feeds the workers; mudbrick: house-raising is the commonest task.",
+   "rationale": "communal_feasts: the host feeds the workers; mudbrick: house-raising is the commonest task.",
+   "desc": "Households call on neighbours to raise houses and bring in harvests, repaying with food, drink and labour in turn.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 2.75,
+   "cost": 620,
+   "effects": [
+    {
+     "operand": "housing.buildLaborAdultYearsPerDwelling",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Pooled neighbours raise a house in days, so each dwelling costs less labour.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "corvee_labour (A3) is labour owed to a ruler; work parties are reciprocal among equals."
+  },
+  {
+   "id": "ration_distribution",
+   "name": "Ration distribution",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "society-welfare",
+   "emerged": "~3,100 BCE Uruk bevelled-rim ration bowls; ~2,100 BCE Ur III ration lists",
+   "prereq": "temple_economy AND token_counting",
+   "prereqRationale": "temple_economy: the institution that feeds its dependants; token_counting: rations are counted and recorded.",
+   "rationale": "temple_economy: the institution that feeds its dependants; token_counting: rations are counted and recorded.",
+   "desc": "Temple and palace issue standard monthly rations of barley, oil and wool to workers, widows and orphans on their lists.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.75,
+   "cost": 1240,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Dependants on the ration lists are fed even in bad years, so fewer die of famine.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_granaries (A5) sells and issues stock in dearth; rations are a routine, standing payment in kind."
+  },
+  {
+   "id": "interest_bearing_credit",
+   "name": "Interest-bearing loans",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "economy-commerce",
+   "emerged": "~2,400 BCE Lagash barley and silver loans at interest; ~1,754 BCE Hammurabi fixes the rates",
+   "prereq": "temple_economy AND standard_weights",
+   "prereqRationale": "temple_economy: temples were the first lenders; standard_weights: loans of silver are measured by weight.",
+   "rationale": "temple_economy: temples were the first lenders; standard_weights: loans of silver are measured by weight.",
+   "desc": "Temples and merchants lend barley and silver at fixed interest, recorded on sealed tablets, to finance seed and caravans.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 3.75,
+   "cost": 1240,
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Credit finances caravans to distant markets, so merchants act on price differences sooner.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "debt_remission cancels debts; this is the credit contract itself."
+  },
+  {
+   "id": "hire_tariffs",
+   "name": "Wage and hire tariffs",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "labour",
+   "emerged": "~1,800 BCE Laws of Eshnunna fix harvesters' wages and the hire of oxen and boats",
+   "prereq": "law_code AND corvee_labour",
+   "prereqRationale": "law_code: tariffs are clauses of written law; corvee_labour: organised labour gangs precede hired labour.",
+   "rationale": "law_code: tariffs are clauses of written law; corvee_labour: organised labour gangs precede hired labour.",
+   "desc": "The law fixes what a harvester, an ox-team or a boat earns for a day's hire, so workers can be hired without haggling.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.0,
+   "cost": 1480,
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A known daily wage lets labourers travel to wherever harvest hands are needed.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "corvee_labour is unpaid obligation; hire tariffs set the price of free hired work."
+  },
+  {
+   "id": "banking_houses",
+   "name": "Private banking houses",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "economy-commerce",
+   "emerged": "~600 BCE Egibi house of Babylon takes deposits and makes loans; ~440 BCE Murashu house finances tenants",
+   "prereq": "interest_bearing_credit AND land_registry",
+   "prereqRationale": "interest_bearing_credit: the loan contract; land_registry: registered land serves as security.",
+   "rationale": "interest_bearing_credit: the loan contract; land_registry: registered land serves as security.",
+   "desc": "Family firms take deposits, pay on written orders and lend against land, linking farmers, merchants and the treasury.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.25,
+   "cost": 1760,
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Advances against harvests let farmers and merchants sell stock without waiting for a buyer to bring silver.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Banking (technology)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "interest_bearing_credit is the single loan; banking houses are standing firms holding deposits."
+  },
+  {
+   "id": "weekly_rest",
+   "name": "Weekly rest day",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "labour",
+   "emerged": "~600 BCE Deuteronomic law extends sabbath rest to servants and hired workers",
+   "prereq": "scriptural_canon AND hire_tariffs",
+   "prereqRationale": "scriptural_canon: the rest day is a written religious command; hire_tariffs: it protects hired workers.",
+   "rationale": "scriptural_canon: the rest day is a written religious command; hire_tariffs: it protects hired workers.",
+   "desc": "One day in seven, servants, hired workers and draught animals are released from work by law.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.25,
+   "cost": 1760,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A guaranteed rest day removes a constant source of resentment among labourers.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "Working-hours limits in factory_inspection (A8) are enforced by inspectors; this is a customary rest day."
+  },
+  {
+   "id": "water_turn_shares",
+   "name": "Water-turn shares",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "environment-urban",
+   "emerged": "~500 BCE Achaemenid kings grant qanat water to its builders for five generations (Polybius)",
+   "prereq": "qanat AND water_rights",
+   "prereqRationale": "qanat: the channel whose flow is shared; water_rights: the legal frame for shares.",
+   "rationale": "qanat: the channel whose flow is shared; water_rights: the legal frame for shares.",
+   "desc": "Those who dig a channel own its flow in timed turns that can be inherited or sold, so new channels are dug.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.25,
+   "cost": 1760,
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Secure, tradable water shares reward new channels, so more land is watered and yields rise.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "water_rights fixes duties on existing canals; water-turn shares make new water a tradable property."
+  },
+  {
+   "id": "maritime_loans",
+   "name": "Sea loans",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "economy-commerce",
+   "emerged": "~400 BCE Athenian bottomry loans repayable only if the ship returns",
+   "prereq": "banking_houses AND trade",
+   "prereqRationale": "banking_houses: lenders with capital; trade: seaborne trade to finance.",
+   "rationale": "banking_houses: lenders with capital; trade: seaborne trade to finance.",
+   "desc": "Lenders advance money on a ship and cargo, repayable only if the voyage succeeds, so the merchant does not bear the risk of loss alone.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.75,
+   "cost": 2490,
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Shifting shipwreck risk to lenders lowers what merchants must charge for carrying bulk goods.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "insurance_underwriting (A7) prices risk separately from credit; the sea loan combines loan and insurance."
+  },
+  {
+   "id": "public_physicians",
+   "name": "Public physicians",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "public-health",
+   "emerged": "~525 BCE Democedes paid as public physician by Aegina and Athens (Herodotus)",
+   "prereq": "medicine_hippocratic AND citizen_assembly",
+   "prereqRationale": "medicine_hippocratic: a trained profession to hire; citizen_assembly: the city votes the salary.",
+   "rationale": "medicine_hippocratic: a trained profession to hire; citizen_assembly: the city votes the salary.",
+   "desc": "The city pays a salaried physician to treat its citizens, rich and poor alike.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.75,
+   "cost": 2490,
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Treatment available to all citizens reduces deaths from injury and illness.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Commerce (Medicine policy)"
+   },
+   "distinctFrom": "public_health_board (A7) holds powers of quarantine; public physicians treat individual patients."
+  },
+  {
+   "id": "water_commission",
+   "name": "Water commissioners",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "environment-urban",
+   "emerged": "~11 BCE Roman cura aquarum; ~97 CE Frontinus' De aquaeductu",
+   "prereq": "aqueduct_arcade AND appointed_officials",
+   "prereqRationale": "aqueduct_arcade: the supply to administer; appointed_officials: a permanent office with staff.",
+   "rationale": "aqueduct_arcade: the supply to administer; appointed_officials: a permanent office with staff.",
+   "desc": "A permanent office maintains the aqueducts, licenses private connections and punishes theft of water.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 4.75,
+   "cost": 2490,
+   "effects": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Reliable public water lets crowded blocks stay habitable, so more people live in each dwelling.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Engineering (technology; Aqueduct district)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "building_regulation governs construction; the water commission runs a public supply."
+  },
+  {
+   "id": "alimenta",
+   "name": "Child-support foundations",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "society-welfare",
+   "emerged": "~97 CE Nerva's and Trajan's alimenta for freeborn children in Italian towns",
+   "prereq": "public_granaries AND municipal_charter",
+   "prereqRationale": "public_granaries: the state already feeds citizens; municipal_charter: towns administer the funds.",
+   "rationale": "public_granaries: the state already feeds citizens; municipal_charter: towns administer the funds.",
+   "desc": "Endowed funds pay a monthly allowance to poor children in each town, financed by interest on loans to local landowners.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "cost": 2960,
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A guaranteed allowance for children protects them first when food is scarce.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_granaries feeds citizens at large; alimenta is targeted at children."
+  },
+  {
+   "id": "commenda",
+   "name": "Commenda partnership",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "economy-commerce",
+   "emerged": "~800 CE Islamic qirad contracts; ~1,072 CE Venetian colleganza",
+   "prereq": "commercial_law",
+   "prereqRationale": "commercial_law: the partnership is enforced by merchant courts.",
+   "rationale": "commercial_law: the partnership is enforced by merchant courts.",
+   "desc": "A stay-at-home investor funds a travelling merchant for one voyage and they split the profit, so a young trader without capital can start out.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 4.5,
+   "cost": 2090,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Partnerships give poor but able traders capital, so they rise into the merchant class faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "joint_stock pools many investors in a permanent company; the commenda is a two-party contract for one venture."
+  },
+  {
+   "id": "public_hospitals",
+   "name": "Hospitals",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "public-health",
+   "emerged": "~805 CE Baghdad bimaristan; ~1,136 CE Pantokrator hospital, Constantinople",
+   "prereq": "pharmacology AND state_religion",
+   "prereqRationale": "pharmacology: physicians with a pharmacopoeia staff the wards; state_religion: hospitals were founded as pious endowments.",
+   "rationale": "pharmacology: physicians with a pharmacopoeia staff the wards; state_religion: hospitals were founded as pious endowments.",
+   "desc": "Endowed hospitals with wards, physicians and pharmacies take in the sick without charge.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "cost": 2960,
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Nursing and treatment in wards cut deaths from illness among the poor.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_physicians (A5) are salaried doctors; hospitals are permanent institutions with beds."
+  },
+  {
+   "id": "stinted_commons",
+   "name": "Stinted commons",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "environment-urban",
+   "emerged": "~1,240 CE English manor-court by-laws limit beasts per holding on the common",
+   "prereq": "manorialism",
+   "prereqRationale": "manorialism: the manor court that makes and enforces the by-laws.",
+   "rationale": "manorialism: the manor court that makes and enforces the by-laws.",
+   "desc": "The village court limits how many beasts each holding may graze on the common, so the pasture is not overgrazed.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 4.5,
+   "cost": 2090,
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A capped common keeps its grass, so herds on it yield more.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "forest_law reserves woods for a lord; stinting shares a pasture among commoners."
+  },
+  {
+   "id": "mutual_aid_fraternities",
+   "name": "Mutual-aid fraternities",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "society-welfare",
+   "emerged": "~1,200 CE guild and parish fraternities fund sick members and burials",
+   "prereq": "craft_guilds AND municipal_charter",
+   "prereqRationale": "craft_guilds: fraternities grew from guild membership; municipal_charter: they were chartered urban bodies.",
+   "rationale": "craft_guilds: fraternities grew from guild membership; municipal_charter: they were chartered urban bodies.",
+   "desc": "Members pay regular dues into a common box that supports them when sick and pays for their burial.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.0,
+   "cost": 2960,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A sickness fund keeps a household fed while its earner cannot work.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "craft_guilds regulates a trade; fraternities insure their members."
+  },
+  {
+   "id": "apprenticeship",
+   "name": "Apprenticeship indentures",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "labour",
+   "emerged": "~1,268 CE Paris Livre des métiers fixes apprenticeship terms",
+   "prereq": "craft_guilds",
+   "prereqRationale": "craft_guilds: guilds register and supervise the indentures.",
+   "rationale": "craft_guilds: guilds register and supervise the indentures.",
+   "desc": "A written indenture binds a youth to a master for years of training in return for board and the right to become a journeyman.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 4.5,
+   "cost": 2090,
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Formal training produces more skilled craftsmen, so the specialist class can be larger.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Apprenticeship (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Guilds (Exploration technology)"
+   },
+   "distinctFrom": "craft_guilds governs masters; apprenticeship is the training contract that makes them."
+  },
+  {
+   "id": "water_boards",
+   "name": "Water boards",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "environment-urban",
+   "emerged": "~1,255 CE Hoogheemraadschap van Rijnland: landholders govern dikes and drainage",
+   "prereq": "water_rights AND municipal_charter",
+   "prereqRationale": "water_rights: the duty to maintain banks; municipal_charter: a chartered self-governing body with its own levy.",
+   "rationale": "water_rights: the duty to maintain banks; municipal_charter: a chartered self-governing body with its own levy.",
+   "desc": "Landholders elect a board that levies a rate, keeps the dikes and drains the polders.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.25,
+   "cost": 3520,
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03
+    },
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Maintained dikes stop floods ruining harvests, and drained land is more fertile.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "water_rights allocates water; water boards are standing bodies that build and keep flood defences."
+  },
+  {
+   "id": "insurance_underwriting",
+   "name": "Insurance underwriting",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "economy-commerce",
+   "emerged": "~1,688 CE Lloyd's coffee-house underwriters; ~1,693 CE Halley's life table",
+   "prereq": "probability_statistics AND stock_exchange",
+   "prereqRationale": "probability_statistics: premiums are priced from loss rates; stock_exchange: an organised market of risk-takers.",
+   "rationale": "probability_statistics: premiums are priced from loss rates; stock_exchange: an organised market of risk-takers.",
+   "desc": "Underwriters take a share of a ship's or a life's risk for a premium priced on recorded losses.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.5,
+   "cost": 4180,
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Cheap, priced insurance lowers the risk charge on every bulk cargo.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "maritime_loans fold insurance into credit; underwriting sells risk cover on its own."
+  },
+  {
+   "id": "fire_brigades",
+   "name": "Organised fire-fighting",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "environment-urban",
+   "emerged": "~1,672 CE Amsterdam fire-hose brigades; ~1,680 CE London Fire Office",
+   "prereq": "building_regulation AND municipal_charter",
+   "prereqRationale": "building_regulation: fire prevention by law comes first; municipal_charter: towns fund and command the brigades.",
+   "rationale": "building_regulation: fire prevention by law comes first; municipal_charter: towns fund and command the brigades.",
+   "desc": "Towns keep engines, hoses and trained crews ready to answer any fire.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.5,
+   "cost": 4180,
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Fires are put out before they spread, so houses last longer.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "building_regulation prevents fires by design; brigades fight them when they start."
+  },
+  {
+   "id": "turnpike_trusts",
+   "name": "Turnpike trusts",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "environment-urban",
+   "emerged": "~1,663 CE first English turnpike act; ~1,706 CE turnpike trusts",
+   "prereq": "customs_tolls AND road_paved",
+   "prereqRationale": "customs_tolls: the toll as a source of finance; road_paved: the engineered road it pays for.",
+   "rationale": "customs_tolls: the toll as a source of finance; road_paved: the engineered road it pays for.",
+   "desc": "Trusts collect tolls from road users and spend them on resurfacing and straightening the highway.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 5.5,
+   "cost": 4180,
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Tolls pay for maintained surfaces, so coaches and wagons travel faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "customs_tolls raises revenue; turnpike trusts spend road tolls on the road itself."
+  },
+  {
+   "id": "friendly_societies",
+   "name": "Friendly societies",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "society-welfare",
+   "emerged": "~1,793 CE Rose's Act registers friendly societies",
+   "prereq": "mutual_aid_fraternities AND coined_wage",
+   "prereqRationale": "mutual_aid_fraternities: the older mutual fund; coined_wage: weekly dues paid from money wages.",
+   "rationale": "mutual_aid_fraternities: the older mutual fund; coined_wage: weekly dues paid from money wages.",
+   "desc": "Wage-earners pay weekly into registered societies that pay benefit in sickness, old age and death.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "cost": 8360,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Sick pay and burial money keep wage-earning families from destitution in hard years.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "mutual_aid_fraternities are guild bodies; friendly societies are open, registered insurance clubs."
+  },
+  {
+   "id": "social_insurance",
+   "name": "Social insurance",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "society-welfare",
+   "emerged": "~1,883 CE German sickness insurance; ~1,889 CE old-age and invalidity insurance",
+   "prereq": "friendly_societies AND official_statistics",
+   "prereqRationale": "friendly_societies: the voluntary model made compulsory; official_statistics: contributions are set from statistics of sickness and age.",
+   "rationale": "friendly_societies: the voluntary model made compulsory; official_statistics: contributions are set from statistics of sickness and age.",
+   "desc": "The law requires workers and employers to pay into funds that cover sickness, accident and old age.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.25,
+   "cost": 14060,
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.04
+    },
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Compulsory sickness cover brings treatment to every insured worker, and security in old age removes a major grievance.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "friendly_societies is voluntary; social insurance is compulsory and state-backed."
+  },
+  {
+   "id": "municipal_waterworks",
+   "name": "Municipal waterworks",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "environment-urban",
+   "emerged": "~1,842 CE Croton Aqueduct, New York; ~1,859 CE London main drainage",
+   "prereq": "sanitary_engineering AND public_health_board",
+   "prereqRationale": "sanitary_engineering: filtered water and sewers as technique; public_health_board: the authority that commissions them.",
+   "rationale": "sanitary_engineering: filtered water and sewers as technique; public_health_board: the authority that commissions them.",
+   "desc": "The city builds and runs its own filtered water supply and sewers for every street.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.75,
+   "cost": 9950,
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Clean water and sewers end cholera and typhoid outbreaks, cutting deaths at every age.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Sanitation (technology)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "sanitary_engineering is the technique; this is the civic duty to supply every street."
+  },
+  {
+   "id": "compulsory_vaccination",
+   "name": "Compulsory vaccination",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "public-health",
+   "emerged": "~1,807 CE Bavarian vaccination mandate; ~1,853 CE UK Vaccination Act",
+   "prereq": "vaccination AND public_health_board",
+   "prereqRationale": "vaccination: the procedure; public_health_board: the authority that enforces it.",
+   "rationale": "vaccination: the procedure; public_health_board: the authority that enforces it.",
+   "desc": "The law requires every infant to be vaccinated against smallpox and records each vaccination.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.0,
+   "cost": 11830,
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Universal vaccination ends smallpox epidemics, a landmark fall in deaths.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "vaccination is the medical technique; this is the legal duty that makes coverage universal."
+  },
+  {
+   "id": "labour_exchanges",
+   "name": "Labour exchanges",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "labour",
+   "emerged": "~1,894 CE German municipal labour exchanges; ~1,909 CE UK Labour Exchanges Act",
+   "prereq": "merit_civil_service AND telegraph",
+   "prereqRationale": "merit_civil_service: public offices run by trained clerks; telegraph: vacancies are posted between towns.",
+   "rationale": "merit_civil_service: public offices run by trained clerks; telegraph: vacancies are posted between towns.",
+   "desc": "Public offices list vacancies and job-seekers and match them across the country.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "cost": 8360,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Known vacancies in distant towns draw job-seekers further than rumour would.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "hire_tariffs set wages; labour exchanges match workers to jobs."
+  },
+  {
+   "id": "workmens_compensation",
+   "name": "Workmen's compensation",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "labour",
+   "emerged": "~1,884 CE German accident insurance; ~1,897 CE UK Workmen's Compensation Act",
+   "prereq": "factory_inspection AND labour_unions",
+   "prereqRationale": "factory_inspection: the state already polices workplace hazards; labour_unions: unions pressed the claim.",
+   "rationale": "factory_inspection: the state already polices workplace hazards; labour_unions: unions pressed the claim.",
+   "desc": "Employers must compensate workers injured on the job, whoever was at fault.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "cost": 8360,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "An injured worker's family keeps an income, so it does not starve in a hard year.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "factory_inspection prevents accidents; compensation pays for them."
+  },
+  {
+   "id": "industrial_arbitration",
+   "name": "Industrial arbitration",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "labour",
+   "emerged": "~1,894 CE New Zealand Industrial Conciliation and Arbitration Act; ~1,896 CE UK Conciliation Act",
+   "prereq": "labour_unions AND (civil_code OR common_law)",
+   "prereqRationale": "labour_unions: organised parties to a dispute; civil_code OR common_law: a court tradition to host the tribunal, in either legal family.",
+   "rationale": "labour_unions: organised parties to a dispute; civil_code OR common_law: a court tradition to host the tribunal, in either legal family.",
+   "desc": "Disputes between unions and employers go to a conciliation board or arbitration court instead of a strike.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.75,
+   "cost": 9950,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Settling disputes by award instead of strikes and lockouts costs far less lost output.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "labour_unions organises workers; arbitration settles their disputes without a stoppage."
+  },
+  {
+   "id": "minimum_wage",
+   "name": "Minimum wage",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "labour",
+   "emerged": "~1,896 CE Victoria wages boards; ~1,909 CE UK Trade Boards Act",
+   "prereq": "labour_unions AND factory_inspection",
+   "prereqRationale": "labour_unions: organised pressure for a floor; factory_inspection: inspectors who can enforce it.",
+   "rationale": "labour_unions: organised pressure for a floor; factory_inspection: inspectors who can enforce it.",
+   "desc": "Wage boards set a legal floor under the pay of the lowest-paid trades.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "cost": 8360,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A wage floor leaves poor households a margin to absorb dearer food.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "hire_tariffs fixes customary rates; the minimum wage is a floor, not a fixed price."
+  },
+  {
+   "id": "commodity_exchange",
+   "name": "Commodity exchange",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "economy-commerce",
+   "emerged": "~1,848 CE Chicago Board of Trade; ~1,865 CE standardised grain futures",
+   "prereq": "stock_exchange AND telegraph",
+   "prereqRationale": "stock_exchange: the organised exchange model; telegraph: prices quoted between markets in minutes.",
+   "rationale": "stock_exchange: the organised exchange model; telegraph: prices quoted between markets in minutes.",
+   "desc": "Graded grain and cotton are traded for present and future delivery on a regulated exchange.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "cost": 8360,
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Grading and futures let elevators sell stored grain the moment a price is offered.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "market_fairs meet periodically for goods in hand; the exchange trades graded lots continuously and forward."
+  },
+  {
+   "id": "housing_acts",
+   "name": "Housing reform acts",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "environment-urban",
+   "emerged": "~1,875 CE Artisans' Dwellings Act; ~1,890 CE Housing of the Working Classes Act",
+   "prereq": "building_regulation AND public_health_board",
+   "prereqRationale": "building_regulation: standards to apply; public_health_board: slums condemned as a health danger.",
+   "rationale": "building_regulation: standards to apply; public_health_board: slums condemned as a health danger.",
+   "desc": "Councils may condemn unfit slums and require new dwellings to meet standards of light, drainage and soundness.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 6.5,
+   "cost": 8360,
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Sound construction standards mean dwellings last longer.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "building_regulation governs height and fire; housing acts set minimum standards of habitability."
+  },
+  {
+   "id": "deposit_insurance",
+   "name": "Deposit insurance",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "economy-commerce",
+   "emerged": "~1,933 CE US Federal Deposit Insurance Corporation",
+   "prereq": "central_banking AND limited_liability",
+   "prereqRationale": "central_banking: a lender behind the banks; limited_liability: bank shareholders' liability is limited, so depositors need cover.",
+   "rationale": "central_banking: a lender behind the banks; limited_liability: bank shareholders' liability is limited, so depositors need cover.",
+   "desc": "A public fund guarantees ordinary deposits, so savers no longer lose everything when a bank fails.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Household savings survive bank failures, so families can draw on them in a shortfall.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "central_banking manages the currency; deposit insurance protects the individual saver."
+  },
+  {
+   "id": "demand_management",
+   "name": "Countercyclical demand management",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "economy-commerce",
+   "emerged": "~1,936 CE Keynes' General Theory; ~1,946 CE US Employment Act",
+   "prereq": "central_banking AND income_tax AND official_statistics",
+   "prereqRationale": "central_banking: monetary levers; income_tax: fiscal levers; official_statistics: national accounts to steer by.",
+   "rationale": "central_banking: monetary levers; income_tax: fiscal levers; official_statistics: national accounts to steer by.",
+   "desc": "The state cuts taxes and spends in slumps, and restrains demand in booms, to keep output steady.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 1.0,
+    "prereq_complexity": 1.0
+   },
+   "magnitude": 8.75,
+   "cost": 39780,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Shallower slumps mean unrest and lost work cost less output.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Progressivism (New Deal policy)"
+   },
+   "distinctFrom": "central_planning sets output by plan; demand management steers a market economy."
+  },
+  {
+   "id": "managed_exchange_rates",
+   "name": "Managed exchange rates",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "economy-commerce",
+   "emerged": "~1,944 CE Bretton Woods agreement; ~1,945 CE International Monetary Fund",
+   "prereq": "central_banking AND international_organizations",
+   "prereqRationale": "central_banking: banks that hold reserves and defend a parity; international_organizations: the fund that coordinates them.",
+   "rationale": "central_banking: banks that hold reserves and defend a parity; international_organizations: the fund that coordinates them.",
+   "desc": "Currencies are pegged to an agreed standard and defended by central banks with a shared reserve fund.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Stable exchange rates remove currency risk from every shipment.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "multilateral_trade_rules binds tariffs; this binds the currencies trade is paid in."
+  },
+  {
+   "id": "price_support",
+   "name": "Farm price support",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "economy-commerce",
+   "emerged": "~1,933 CE US Agricultural Adjustment Act and Commodity Credit Corporation; ~1,962 CE EEC Common Agricultural Policy",
+   "prereq": "public_granaries AND commodity_exchange",
+   "prereqRationale": "public_granaries: state stockholding; commodity_exchange: a market price for the state to support.",
+   "rationale": "public_granaries: state stockholding; commodity_exchange: a market price for the state to support.",
+   "desc": "The state buys surplus grain at a guaranteed price and holds it in reserve stocks.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "consumption.granaryYearsOfDemand",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Support buying builds large public reserves, so stores can hold more years of demand.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_granaries is a city's famine stock; price support is a national reserve bought to hold up farm prices."
+  },
+  {
+   "id": "microfinance",
+   "name": "Microfinance",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "economy-commerce",
+   "emerged": "~1,983 CE Grameen Bank, Bangladesh",
+   "prereq": "cooperatives AND central_banking",
+   "prereqRationale": "cooperatives: group lending and joint liability; central_banking: a regulated banking system to charter it.",
+   "rationale": "cooperatives: group lending and joint liability; central_banking: a regulated banking system to charter it.",
+   "desc": "Small loans are made to groups of poor borrowers who guarantee each other, without collateral.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Capital for the poorest lets them start trades, so they rise out of labouring poverty faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "cooperatives share a business; microfinance lends to individuals backed by group guarantee."
+  },
+  {
+   "id": "special_economic_zones",
+   "name": "Special economic zones",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "economy-commerce",
+   "emerged": "~1,959 CE Shannon Free Zone, Ireland; ~1,980 CE Shenzhen",
+   "prereq": "multilateral_trade_rules",
+   "prereqRationale": "multilateral_trade_rules: export zones were designed to plug into the GATT trading order.",
+   "rationale": "multilateral_trade_rules: export zones were designed to plug into the GATT trading order.",
+   "desc": "Designated districts offer foreign firms low tariffs, light regulation and ready sites, drawing industry and workers.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 7.0,
+   "cost": 11830,
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Factory jobs in the zones draw migrants from the countryside.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Open Customs (Qing unique civic)"
+   },
+   "distinctFrom": "customs_union removes tariffs between states; a zone removes them for one district."
+  },
+  {
+   "id": "collective_bargaining",
+   "name": "Collective bargaining law",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "labour",
+   "emerged": "~1,935 CE US National Labor Relations Act",
+   "prereq": "labour_unions AND industrial_arbitration",
+   "prereqRationale": "labour_unions: the bargaining party; industrial_arbitration: the state's earlier role in labour disputes.",
+   "rationale": "labour_unions: the bargaining party; industrial_arbitration: the state's earlier role in labour disputes.",
+   "desc": "Employers must recognise a union chosen by their workers and bargain with it in good faith.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Recognised bargaining turns workplace complaints into contracts, so grievance builds more slowly.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "labour_unions makes combination legal; this law obliges employers to bargain."
+  },
+  {
+   "id": "unemployment_insurance",
+   "name": "Unemployment insurance",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "labour",
+   "emerged": "~1,911 CE UK National Insurance Act, Part II; ~1,935 CE US Social Security Act",
+   "prereq": "social_insurance AND labour_exchanges",
+   "prereqRationale": "social_insurance: the contributory model; labour_exchanges: benefit is paid while the claimant seeks work through the exchange.",
+   "rationale": "social_insurance: the contributory model; labour_exchanges: benefit is paid while the claimant seeks work through the exchange.",
+   "desc": "Insured workers who lose their jobs draw a weekly benefit while they look for work.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Laid-off workers keep an income, so slumps cause less disorder and lost output.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "social_insurance covers sickness and age; this covers loss of work."
+  },
+  {
+   "id": "occupational_safety",
+   "name": "Occupational safety agencies",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "labour",
+   "emerged": "~1,970 CE US Occupational Safety and Health Act; ~1,974 CE UK Health and Safety at Work Act",
+   "prereq": "factory_inspection AND workmens_compensation",
+   "prereqRationale": "factory_inspection: the inspectorate; workmens_compensation: employers already bear the cost of injury.",
+   "rationale": "factory_inspection: the inspectorate; workmens_compensation: employers already bear the cost of injury.",
+   "desc": "An agency sets exposure limits and safety standards for every workplace, not only factories.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Standards for chemicals, machinery and construction cut deaths at work.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "factory_inspection covers mills and hours; this sets scientific exposure limits across all work."
+  },
+  {
+   "id": "vocational_training",
+   "name": "Public vocational training",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "labour",
+   "emerged": "~1,917 CE US Smith–Hughes Act; ~1,969 CE German Vocational Training Act",
+   "prereq": "apprenticeship AND compulsory_education",
+   "prereqRationale": "apprenticeship: the training contract; compulsory_education: the school system it is joined to.",
+   "rationale": "apprenticeship: the training contract; compulsory_education: the school system it is joined to.",
+   "desc": "Schools and employers jointly train young people in trades to a national standard.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Recognised qualifications let workers' children move into skilled trades faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "apprenticeship is a private contract with a master; this is a public, certified system."
+  },
+  {
+   "id": "equal_pay",
+   "name": "Equal pay law",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "labour",
+   "emerged": "~1,951 CE ILO Equal Remuneration Convention; ~1,963 CE US Equal Pay Act",
+   "prereq": "minimum_wage AND womens_suffrage",
+   "prereqRationale": "minimum_wage: the state already regulates pay; womens_suffrage: women voters pressed for the law.",
+   "rationale": "minimum_wage: the state already regulates pay; womens_suffrage: women voters pressed for the law.",
+   "desc": "Employers must pay women the same as men for the same work.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Women can enter skilled and professional work on equal terms, so the specialist classes can be larger.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "civil_rights_law bans discrimination broadly; equal pay governs wages for the same work."
+  },
+  {
+   "id": "guest_worker_programmes",
+   "name": "Guest-worker programmes",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "labour",
+   "emerged": "~1,942 CE Bracero Program; ~1,961 CE German–Turkish recruitment agreement",
+   "prereq": "labour_exchanges AND sworn_treaties",
+   "prereqRationale": "labour_exchanges: recruitment offices; sworn_treaties: bilateral recruitment agreements.",
+   "rationale": "labour_exchanges: recruitment offices; sworn_treaties: bilateral recruitment agreements.",
+   "desc": "States agree to recruit workers abroad on fixed contracts to fill labour shortages.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Organised recruitment moves workers across borders in large numbers.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "refugee_protection admits those fleeing danger; guest-worker schemes recruit labour by contract."
+  },
+  {
+   "id": "welfare_state",
+   "name": "Universal social security",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "society-welfare",
+   "emerged": "~1,942 CE Beveridge Report; ~1,948 CE UK National Insurance and National Assistance Acts",
+   "prereq": "social_insurance AND income_tax",
+   "prereqRationale": "social_insurance: the contributory schemes unified; income_tax: general taxation funds the safety net.",
+   "rationale": "social_insurance: the contributory schemes unified; income_tax: general taxation funds the safety net.",
+   "desc": "Every citizen is covered from cradle to grave: insurance for all and a national safety net beneath it.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 3.0,
+    "breadth": 1.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 9.0,
+   "cost": 47310,
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.05
+    },
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A universal safety net means no one starves in a crisis and households weather shortfalls.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Liberalism (Welfare State policy)"
+   },
+   "distinctFrom": "social_insurance covers insured workers; universal social security covers every citizen."
+  },
+  {
+   "id": "school_meals",
+   "name": "School meals",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "society-welfare",
+   "emerged": "~1,906 CE UK Education (Provision of Meals) Act; ~1,946 CE US National School Lunch Act",
+   "prereq": "compulsory_education AND poor_law",
+   "prereqRationale": "compulsory_education: children are in school to be fed; poor_law: public relief in kind.",
+   "rationale": "compulsory_education: children are in school to be fed; poor_law: public relief in kind.",
+   "desc": "Schools serve every pupil a free or cheap midday meal.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A daily meal at school protects children when food is scarce at home.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "alimenta pays a cash allowance; school meals feed children directly."
+  },
+  {
+   "id": "conditional_cash_transfers",
+   "name": "Conditional cash transfers",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "society-welfare",
+   "emerged": "~1,997 CE Mexico Progresa; ~2,003 CE Brazil Bolsa Família",
+   "prereq": "school_meals AND official_statistics",
+   "prereqRationale": "school_meals: welfare tied to school attendance; official_statistics: a registry to target poor households.",
+   "rationale": "school_meals: welfare tied to school attendance; official_statistics: a registry to target poor households.",
+   "desc": "Poor mothers receive monthly cash on condition that children attend school and health checks.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    },
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Paid attendance keeps poor children in school, and the cash protects them in dearth.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "school_meals feeds pupils; transfers pay families for schooling and health visits."
+  },
+  {
+   "id": "refugee_protection",
+   "name": "Refugee protection",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "society-welfare",
+   "emerged": "~1,951 CE Convention Relating to the Status of Refugees",
+   "prereq": "human_rights AND international_organizations",
+   "prereqRationale": "human_rights: the right to asylum; international_organizations: the agency that registers refugees.",
+   "rationale": "human_rights: the right to asylum; international_organizations: the agency that registers refugees.",
+   "desc": "States may not send refugees back to danger and grant them legal status and relief.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Assured asylum lets people fleeing war travel further to safety.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "guest_worker_programmes recruit labour; refugee protection admits people fleeing danger."
+  },
+  {
+   "id": "national_health_service",
+   "name": "Universal health care",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-health",
+   "emerged": "~1,948 CE UK National Health Service",
+   "prereq": "social_insurance AND public_hospitals",
+   "prereqRationale": "social_insurance: health cover by contribution; public_hospitals: the hospital network nationalised or contracted.",
+   "rationale": "social_insurance: health cover by contribution; public_hospitals: the hospital network nationalised or contracted.",
+   "desc": "Medical care is free at the point of use for every resident, paid for from taxes or universal insurance.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 3.0,
+    "breadth": 1.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 9.0,
+   "cost": 47310,
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Everyone can see a doctor and enter hospital, a landmark fall in deaths.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "social_insurance covers insured workers; universal care covers every resident."
+  },
+  {
+   "id": "expanded_immunization",
+   "name": "Mass immunization programmes",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-health",
+   "emerged": "~1,955 CE US polio vaccination campaign; ~1,974 CE WHO Expanded Programme on Immunization",
+   "prereq": "compulsory_vaccination AND vaccine_lab",
+   "prereqRationale": "compulsory_vaccination: the duty to vaccinate; vaccine_lab: new vaccines for measles, polio and diphtheria.",
+   "rationale": "compulsory_vaccination: the duty to vaccinate; vaccine_lab: new vaccines for measles, polio and diphtheria.",
+   "desc": "Health services vaccinate every child against measles, polio, diphtheria and whooping cough on a fixed schedule.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Measles and whooping cough kill malnourished children first; immunised children survive famine years.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "compulsory_vaccination covers smallpox; this schedules many vaccines for every child."
+  },
+  {
+   "id": "international_health_regulations",
+   "name": "International health regulations",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-health",
+   "emerged": "~1,948 CE World Health Organization; ~1,951 CE International Sanitary Regulations",
+   "prereq": "public_health_board AND international_organizations",
+   "prereqRationale": "public_health_board: national quarantine powers; international_organizations: the body that harmonises them.",
+   "rationale": "public_health_board: national quarantine powers; international_organizations: the body that harmonises them.",
+   "desc": "States report outbreaks to a common body and apply agreed, limited quarantine rules at ports and borders.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02
+    },
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Agreed rules replace arbitrary quarantines that held up cargo, and early warning contains epidemics.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_health_board acts within one polity; these rules coordinate between polities."
+  },
+  {
+   "id": "drug_regulation",
+   "name": "Drug regulation",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-health",
+   "emerged": "~1,938 CE US Food, Drug, and Cosmetic Act; ~1,962 CE Kefauver–Harris amendments",
+   "prereq": "public_health_board AND sulfonamides",
+   "prereqRationale": "public_health_board: a regulating authority; sulfonamides: the 1937 sulfanilamide poisoning prompted the 1938 Act.",
+   "rationale": "public_health_board: a regulating authority; sulfonamides: the 1937 sulfanilamide poisoning prompted the 1938 Act.",
+   "desc": "New medicines must be proven safe and effective in trials before sale.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Only tested drugs reach patients, so university medicine saves more lives.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "pharmacology compiles remedies; regulation requires proof before sale."
+  },
+  {
+   "id": "primary_health_care",
+   "name": "Primary health care",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "public-health",
+   "emerged": "~1,968 CE Chinese barefoot doctors; ~1,978 CE Alma-Ata Declaration",
+   "prereq": "public_physicians AND international_health_regulations",
+   "prereqRationale": "public_physicians: publicly paid first-line care; international_health_regulations: the WHO framework that set the Alma-Ata goals.",
+   "rationale": "public_physicians: publicly paid first-line care; international_health_regulations: the WHO framework that set the Alma-Ata goals.",
+   "desc": "Trained village health workers give basic care, clean water advice and maternal care in every community.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.03
+    },
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Care reaches villages without hospitals, cutting deaths from common illness and in famine.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "national_health_service is a hospital-based system; primary care puts trained workers in every village."
+  },
+  {
+   "id": "public_housing",
+   "name": "Public housing",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "emerged": "~1,919 CE UK Addison Act; ~1,923 CE Vienna municipal housing programme",
+   "prereq": "housing_acts AND income_tax",
+   "prereqRationale": "housing_acts: standards and slum clearance; income_tax: subsidy from general taxation.",
+   "rationale": "housing_acts: standards and slum clearance; income_tax: subsidy from general taxation.",
+   "desc": "Councils build and let standard homes at controlled rents on a large scale.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "housing.buildLaborAdultYearsPerDwelling",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Standard designs built in long runs take less labour per home.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Modernity (Living Standards policy)"
+   },
+   "distinctFrom": "housing_acts set standards; public housing builds the homes."
+  },
+  {
+   "id": "highway_programmes",
+   "name": "National highway programmes",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "emerged": "~1,934 CE Reichsautobahn programme; ~1,956 CE US Interstate Highway Act",
+   "prereq": "motor_road AND turnpike_trusts",
+   "prereqRationale": "motor_road: the engineered motorway; turnpike_trusts: the older idea of a road financed for through traffic.",
+   "rationale": "motor_road: the engineered motorway; turnpike_trusts: the older idea of a road financed for through traffic.",
+   "desc": "A national authority plans and finances a network of motorways linking every region.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A national network lets roads run much further between cities.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "turnpike_trusts maintain local roads; a national programme builds a planned trunk network."
+  },
+  {
+   "id": "transit_authority",
+   "name": "Metropolitan transit authorities",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "emerged": "~1,933 CE London Passenger Transport Board",
+   "prereq": "electric_traction AND zoning",
+   "prereqRationale": "electric_traction: trams and metros to operate; zoning: planned residential districts for transit to serve.",
+   "rationale": "electric_traction: trams and metros to operate; zoning: planned residential districts for transit to serve.",
+   "desc": "One public authority runs a city's buses, trams and metro as a single network.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Integrated transit lets workers commute from further out, widening the city's hinterland.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "zoning governs land use; the transit authority moves people between zones."
+  },
+  {
+   "id": "new_towns",
+   "name": "Planned new towns",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "emerged": "~1,903 CE Letchworth garden city; ~1,946 CE UK New Towns Act",
+   "prereq": "housing_acts AND railway",
+   "prereqRationale": "housing_acts: overcrowding to relieve; railway: a line to link the new town to the old.",
+   "rationale": "housing_acts: overcrowding to relieve; railway: a line to link the new town to the old.",
+   "desc": "Development corporations build complete new towns, with homes, factories and services, to take people from crowded cities.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Planned overspill moves large parties of settlers at once.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "planned_cities lays out one town; new towns are a programme of founding."
+  },
+  {
+   "id": "river_basin_authority",
+   "name": "River basin authorities",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "emerged": "~1,933 CE Tennessee Valley Authority",
+   "prereq": "water_boards AND hydroelectric",
+   "prereqRationale": "water_boards: a body that governs water by catchment; hydroelectric: dams that pay for the scheme.",
+   "rationale": "water_boards: a body that governs water by catchment; hydroelectric: dams that pay for the scheme.",
+   "desc": "One authority manages a whole river basin's dams, locks, flood control and power.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.75,
+   "cost": 19890,
+   "effects": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.04
+    },
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Locked, regulated rivers carry barges cheaply, and controlled floods spare the fields.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "water_boards keep local dikes; a basin authority plans an entire river."
+  },
+  {
+   "id": "soil_conservation",
+   "name": "Soil conservation",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "emerged": "~1,935 CE US Soil Conservation Service",
+   "prereq": "nature_conservation AND agricultural_chemistry",
+   "prereqRationale": "nature_conservation: protection of land as a public duty; agricultural_chemistry: soil science to diagnose erosion.",
+   "rationale": "nature_conservation: protection of land as a public duty; agricultural_chemistry: soil science to diagnose erosion.",
+   "desc": "Advisers and grants teach contour ploughing, terracing and shelter belts to stop soil blowing and washing away.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Soil kept on the fields keeps its fertility, so land yields more.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "nature_conservation sets land aside; soil conservation keeps farmland productive."
+  },
+  {
+   "id": "fisheries_management",
+   "name": "Fisheries management",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "emerged": "~1,976 CE US Magnuson Fishery Act; ~1,982 CE UN Law of the Sea exclusive economic zones",
+   "prereq": "nature_conservation AND law_of_nations",
+   "prereqRationale": "nature_conservation: protection of living resources; law_of_nations: maritime jurisdiction over coastal waters.",
+   "rationale": "nature_conservation: protection of living resources; law_of_nations: maritime jurisdiction over coastal waters.",
+   "desc": "Coastal states set catch quotas in their waters to let fish stocks recover.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Recovered stocks give larger sustainable catches.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "stinted_commons caps grazing on land; this caps catches at sea."
+  },
+  {
+   "id": "public_works_relief",
+   "name": "Public works relief",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "emerged": "~1,933 CE US Public Works Administration and Civilian Conservation Corps; ~1,935 CE Works Progress Administration",
+   "prereq": "poor_law AND income_tax",
+   "prereqRationale": "poor_law: public relief of the able-bodied; income_tax: the revenue that pays relief wages.",
+   "rationale": "poor_law: public relief of the able-bodied; income_tax: the revenue that pays relief wages.",
+   "desc": "The state hires the unemployed to build roads, bridges, dams and parks.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 7.5,
+   "cost": 16730,
+   "effects": [
+    {
+     "operand": "pathBuild.laborPerAdultPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Organised relief gangs build more road per worker.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Socialism (Public Works policy)"
+   },
+   "distinctFrom": "corvee_labour is compulsory; relief work is paid work offered to the unemployed."
+  }
+ ],
+ "newLanes": [
+  {
+   "id": "labour",
+   "name": "Labour",
+   "scope": "Terms of work: hire and wage rules, training contracts, working conditions, workplace safety and compensation, collective bargaining, labour markets and labour migration. Split from society-welfare.",
+   "parent": "society-welfare"
+  },
+  {
+   "id": "public-health",
+   "name": "Public health",
+   "scope": "Collective protection of health: public physicians, hospitals, vaccination duties, drug regulation, primary care and international disease control. Water and sewer works stay in environment-urban (public works).",
+   "parent": "society-welfare"
+  }
+ ],
+ "findings": [
+  "Dependency changes proposed: 1. manorialism: service_tenure AND heavy_plough becomes service_tenure AND (heavy_plough OR legal_code_roman). The bound-tenant estate (Roman colonate 332 CE, Byzantine and Iberian estates) ploughed with the ard; the heavy plough is one route, not a must-hold. Every other edge in the group was assessed and kept.",
+  "abolition (A8) rests on a single A4 atom (legal_code_roman). The natural second atom is social_contract (natural-rights doctrine, 1651), but the node's emerged text opens with Solon (594 BCE), so the chronology rule forbids it. Recommend narrowing emerged to the 1794/1833/1861 acts (Solon as a precursor note) and then adding social_contract.",
+  "Leaves bridged by new nodes rather than new edges: central_banking (deposit_insurance, demand_management, managed_exchange_rates, microfinance), stock_exchange (insurance_underwriting, commodity_exchange), poor_law (school_meals, public_works_relief), water_rights (water_turn_shares, water_boards), factory_inspection (workmens_compensation, minimum_wage, occupational_safety), public_granaries (alimenta, price_support), gift_exchange (craft_specialists, barter_exchange), zoning (transit_authority), cooperatives (microfinance). Deliberate leaves: debt_remission, legal_estates, market_fairs, mercantilism, antitrust, abolition, civil_rights_law, climate_accords.",
+  "Two lanes declared (labour, public-health), both split from society-welfare. On import, labour_unions and factory_inspection fit the labour lane and public_health_board the public-health lane; they are left in society-welfare here because lane moves are not an audit action.",
+  "Thematic gap closed: before this tranche the group had no labour or public-health node before A7 and no welfare node between A3 and A5. New early nodes (food_sharing_norms, communal_storage, ration_distribution, hire_tariffs, public_physicians, alimenta, public_hospitals) give every Age a welfare or labour step.",
+  "No treasury: every welfare node acts on mortality, famine deaths, child protection, shortfall absorption, grievance, unrest drag or mobility, never on money. Banking and credit nodes act on trade and price operands.",
+  "Pacing: A9 carries 29 new nodes (quota) against 7 existing; per the pacing rule the A9 civics scale must fall accordingly. Several A8/A9 nodes have earliest dates just before their Age window (minimum_wage 1896, unemployment_insurance 1911, school_meals 1906, new_towns 1903); they are placed by when the institution spread.",
+  "Operand pressure: demographics.mortalityPerYear is used by 12 nodes in this group (sum 0.39 of cap 0.7); combined with other groups' use it may approach the cap, which the integrator should check.",
+  "Comparators: Civ VI base data has no labour, public-health or welfare civics at all (its welfare content is in Gathering Storm or policy cards outside the data file); Civ VII touches them only as policies (Annona, Welfare State, New Deal, Public Works). Most new nodes are therefore none-by-design."
+ ]
+}

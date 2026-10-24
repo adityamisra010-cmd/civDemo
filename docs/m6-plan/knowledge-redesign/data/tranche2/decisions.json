@@ -1,0 +1,73 @@
+{
+ "applyAllValid": true,
+ "caps": {
+  "farming.outputPerFarmerPerYear": 3.0,
+  "production.outputPerHerderPerYear": 2.0,
+  "production.outputPerExtractorPerYear": 3.0,
+  "production.toolYieldBonusMax": 1.0,
+  "production.toolWearPerEquippedFarmerPerYear": 0.8,
+  "consumption.grainSpoilagePerYear": 0.85,
+  "consumption.granaryYearsOfDemand": 1.0,
+  "harvestVariance.sigmaLogYield": 0.6,
+  "granaries.famineReductionMax": 1.0,
+  "granaries.farmYieldBonusMax": 1.0,
+  "foodState.adaptationAbsorbableShortfall": 1.0,
+  "housing.buildLaborAdultYearsPerDwelling": 0.8,
+  "housing.buildTimberPerDwelling": 0.7,
+  "housing.upkeepTimberPerDwellingYear": 0.8,
+  "housing.tauYears": 1.5,
+  "housing.personsPerDwelling": 0.5,
+  "pathBuild.laborPerAdultPerYear": 1.0,
+  "pathBuild.buildCostMultiplier": 0.7,
+  "pathBuild.dirtPathSpeedFactor": 0.8,
+  "transport.riverCostFactor": 0.8,
+  "roads.baselineKmPerDay": 3.0,
+  "roads.maxRouteKm": 3.0,
+  "catchment.hinterlandRadiusKm": 1.0,
+  "trade.gapClosingFraction": 1.5,
+  "trade.costPerBulkCostUnit": 0.8,
+  "price.stockReleaseRatePerYear": 1.0,
+  "demographics.mortalityPerYear": 0.7,
+  "demographics.starvationMortalityMaxPerYear": 0.6,
+  "demographics.starvationChildMultiplier": 0.5,
+  "institutions.universities.maxMortalityReduction": 2.0,
+  "institutions.universities.maxResearchCostReduction": 0.5,
+  "institutions.universities.maturityTauYears": 0.5,
+  "governance.authorityDecayCostUnits": 3.0,
+  "governance.taxExtractionResponseMax": 1.5,
+  "migration.baseRatePerYear": 1.0,
+  "migration.dampingDecayCostUnits": 2.0,
+  "mobility.promoteRatePerYear": 1.5,
+  "mobility.targetShareCap": 1.0,
+  "colonization.orderPartyFraction": 0.5,
+  "fog.exploreStepNodes": 1.0,
+  "fog.exploreMaxRadiusNodes": 1.0,
+  "fog.formationSightNodes": 2.0,
+  "research.civicsPointsCoefficient": 0.3,
+  "research.researchPointsCoefficient": 0.3,
+  "society.grievanceRelief": 0.6,
+  "society.unrestOutputDrag": 0.6
+ },
+ "extraEdits": [
+  {
+   "id": "canning",
+   "newPrereq": "glass_blowing AND sheet_metal AND tinplate",
+   "why": "T2: the 1810 tin canister is tinplate (Durand); bridges the new tinplate node"
+  },
+  {
+   "id": "petroleum_refining",
+   "newPrereq": "chemistry_quantitative AND percussion_drilling",
+   "why": "T2: crude came from drilled wells (Drake 1859 used percussion drilling); percussion_drilling was a leaf"
+  },
+  {
+   "id": "mining_shaft",
+   "newPrereq": "stone_dry AND copper_smelting AND lamp",
+   "why": "T4: underground galleries need portable light (Grimes Graves chalk lamps)"
+  },
+  {
+   "id": "coke",
+   "newPrereq": "blast_furnace_water AND coal_fuel",
+   "why": "T4: coking presupposes coal as a fuel (new coal_fuel node)"
+  }
+ ]
+}

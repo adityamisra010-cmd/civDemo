@@ -1,0 +1,4034 @@
+{
+ "group": "C5-thought-arts-information",
+ "audit": [
+  {
+   "id": "oral_tradition",
+   "name": "Oral tradition",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "arts-culture",
+   "cost": 260.0,
+   "prereq": null,
+   "dependents": [
+    "communal_feasts"
+   ],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "root node; no prerequisite",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "foodState.adaptationAbsorbableShortfall +0.03"
+   ],
+   "effectRationale": "Remembered lore of famine foods, water holes and fallback grounds is what lets a band ride out a bad season; the effect is on the household's absorbable shortfall, not on output.",
+   "costConcern": "260 is 1.00x the A1 civics median (260); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Root of the lane; no prerequisite is right for the earliest transmissible lore. Its single dependent (communal_feasts) plus the new A1-A3 arts/learning nodes now hang from it.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Drama Poetry"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Chiefdom"
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "communal_feasts",
+   "name": "Communal feasts",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "arts-culture",
+   "cost": 620.0,
+   "prereq": "oral_tradition AND (cereal_cultivation OR sheep_goat)",
+   "dependents": [
+    "public_games"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "oral_tradition",
+     "verdict": "keep",
+     "why": "Feasts mark a remembered calendar and recite genealogies; the lore is the frame of the event."
+    },
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Pre-domestication cultivation (~11,500 BCE) supplies the storable surplus that big feasts consume; dated before Hilazon Tachtit."
+    },
+    {
+     "atom": "sheep_goat",
+     "verdict": "keep",
+     "why": "A herd is the alternative feast surplus; OR is correct since either route suffices."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "oral_tradition A1; cereal_cultivation A2; sheep_goat A2 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: cereal_cultivation, sheep_goat (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02",
+    "catchment.hinterlandRadiusKm +0.02"
+   ],
+   "effectRationale": "Shared feasts settle tension between households (grievance) and draw contributions and guests from a wider territory around the host settlement (catchment).",
+   "costConcern": "620 is 0.84x the A2 civics median (740); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Causally sound; Natufian and Göbekli Tepe feasting predates full domestication, which the early cereal_cultivation atom respects.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Games Recreation"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Public Life"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    },
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "court_patronage",
+   "name": "Court patronage",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "arts-culture",
+   "cost": 1240.0,
+   "prereq": "temple_economy OR sacral_kingship",
+   "dependents": [
+    "arts_academies",
+    "public_opera"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "temple_economy",
+     "verdict": "keep",
+     "why": "Temple estates fed full-time craftsmen in Uruk before kings did."
+    },
+    {
+     "atom": "sacral_kingship",
+     "verdict": "keep",
+     "why": "Divine kings commissioned royal workshops (Old Kingdom); an alternative route, so OR."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "temple_economy A3; sacral_kingship A3 (same Age or near; no gap issue)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.02"
+   ],
+   "effectRationale": "Rulers and temples feed workshops of full-time sculptors, goldsmiths and builders, enlarging the specialist share a society can carry.",
+   "costConcern": "1,240 is 0.84x the A3 civics median (1,480); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct OR of the two Bronze Age patrons. Dependents arts_academies and public_opera are long jumps (A3 to A7) but they are genuine lineages of patronage, not gaps.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Society (Patronage policy)"
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "royal_archives",
+   "name": "Royal archives",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "thought-learning",
+   "cost": 1480.0,
+   "prereq": "scribal_schools AND stamp_seal",
+   "dependents": [
+    "state_academy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "scribal_schools",
+     "verdict": "keep",
+     "why": "An archive needs trained scribes to write, file and read it."
+    },
+    {
+     "atom": "stamp_seal",
+     "verdict": "keep",
+     "why": "Sealed tablets and bullae authenticate the filed record; weak but historically present at Ebla and Mari. Kept: not worth a change."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "scribal_schools A3; stamp_seal A2 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: stamp_seal (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.04"
+   ],
+   "effectRationale": "Filed accounts, treaties and precedents let the palace govern distant places from records instead of personal memory: administrative reach extends.",
+   "costConcern": "1,480 is 1.00x the A3 civics median (1,480); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound. stamp_seal is a minor atom but causally present (sealed archives); no change proposed.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Recorded History"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Literacy"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "scribal_schools",
+   "name": "Scribal schools",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "thought-learning",
+   "cost": 1240.0,
+   "prereq": "cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script",
+   "dependents": [
+    "philosophical_schools",
+    "royal_archives"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cuneiform",
+     "verdict": "keep",
+     "why": "Edubba schools of Sumer taught cuneiform."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "Egyptian scribal training is an independent route."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Shang-Zhou scribal training; independent route."
+    },
+    {
+     "atom": "mesoamerican_script",
+     "verdict": "keep",
+     "why": "Maya scribes trained in their script; independent route."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cuneiform A3; hieroglyphic A3; chinese_script A3; mesoamerican_script A3 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: cuneiform, hieroglyphic, chinese_script, mesoamerican_script (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.03",
+    "governance.taxExtractionResponseMax +0.02"
+   ],
+   "effectRationale": "Schools are a route by which sons of farmers and craftsmen enter the literate class (promotion); trained accountant-scribes collect dues more completely (tax).",
+   "costConcern": "1,240 is 0.84x the A3 civics median (1,480); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Any one script suffices, so OR is right. Gate of the learning lane with two dependents.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Recorded History"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Literacy"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    },
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "public_games",
+   "name": "Public games",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "arts-culture",
+   "cost": 1760.0,
+   "prereq": "communal_feasts AND organized_priesthood",
+   "dependents": [
+    "professional_sport",
+    "public_theatre"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "communal_feasts",
+     "verdict": "keep",
+     "why": "Olympia began as a sanctuary festival with feasting; games are the formalized descendant."
+    },
+    {
+     "atom": "organized_priesthood",
+     "verdict": "keep",
+     "why": "Games were held at sanctuaries under priestly calendars and truces."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "communal_feasts A2; organized_priesthood A2 (same Age or near; no gap issue)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "Regular contests channel rivalry and young men's violence into licensed spectacle, so unrest costs less output.",
+   "costConcern": "1,760 is 0.71x the A4 civics median (2,490); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound religious-festival lineage. Dependents professional_sport and public_theatre are kept (see public_theatre note).",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Games Recreation"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Entertainment"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "royal_post",
+   "name": "Royal post",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "information-media",
+   "cost": 2960.0,
+   "prereq": "appointed_officials AND horse_domestication",
+   "dependents": [
+    "public_postal_service",
+    "state_gazette"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Relay stations are staffed and provisioned by officials."
+    },
+    {
+     "atom": "horse_domestication",
+     "verdict": "keep",
+     "why": "Mounted relays are what makes a post faster than a runner."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "appointed_officials A3; horse_domestication A3 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: horse_domestication (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.05"
+   ],
+   "effectRationale": "Orders and reports cross the realm in days instead of weeks, so the centre's authority decays far more slowly with distance; the lane's Iron Age landmark, hence 0.05.",
+   "costConcern": "2,960 is 1.19x the A4 civics median (2,490); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound. A road atom would be defensible but the Achaemenid post ran on existing tracks; not added.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Satrapies (Čāpār-Kāna tradition, Achaemenid Persia unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "philosophical_schools",
+   "name": "Philosophical schools",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "thought-learning",
+   "cost": 3520.0,
+   "prereq": "scribal_schools AND (abjad OR alphabet_vowels OR brahmi OR chinese_script)",
+   "dependents": [
+    "humanism",
+    "political_philosophy",
+    "state_academy",
+    "systematic_theology"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "scribal_schools",
+     "verdict": "keep",
+     "why": "Lasting schools presuppose a literate teaching tradition."
+    },
+    {
+     "atom": "abjad",
+     "verdict": "keep",
+     "why": "Script routes: Hebrew/Aramaic wisdom schools."
+    },
+    {
+     "atom": "alphabet_vowels",
+     "verdict": "keep",
+     "why": "Greek Academy and Lyceum."
+    },
+    {
+     "atom": "brahmi",
+     "verdict": "keep",
+     "why": "Indian darshana schools; Brahmi is ~300 BCE, later than the Buddha but in the OR group only."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Confucian and Mohist schools."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "scribal_schools A3; abjad A4; alphabet_vowels A4; brahmi A4; chinese_script A3 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: abjad, alphabet_vowels, brahmi, chinese_script (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maturityTauYears +0.03"
+   ],
+   "effectRationale": "A school with a succession of heads, a curriculum and a library is the institutional template every later academy and university copies; they reach maturity faster.",
+   "costConcern": "3,520 is 1.00x the A5 civics median (3,520); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound; four dependents. RP is deliberately not used here (the RP coefficient is oversubscribed across tranche 2).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Political Philosophy"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Philosophy"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "political_philosophy",
+   "name": "Political philosophy",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "thought-learning",
+   "cost": 3520.0,
+   "prereq": "philosophical_schools AND law_code",
+   "dependents": [
+    "enlightenment",
+    "social_contract",
+    "statecraft_doctrine"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "philosophical_schools",
+     "verdict": "keep",
+     "why": "Political theory is a branch of the schools' argument."
+    },
+    {
+     "atom": "law_code",
+     "verdict": "keep",
+     "why": "Comparing constitutions presupposes written law to compare."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "philosophical_schools A5; law_code A3 (same Age or near; no gap issue)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.civicsPointsCoefficient +0.02"
+   ],
+   "effectRationale": "Systematic thought about just rule raises the rate at which a society produces civic ideas; one of the few CP coefficients in this group.",
+   "costConcern": "3,520 is 1.00x the A5 civics median (3,520); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound; three dependents.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Political Philosophy"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Political Theory"
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "public_theatre",
+   "name": "Public theatre",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "arts-culture",
+   "cost": 2490.0,
+   "prereq": "public_games AND (alphabet_vowels OR brahmi)",
+   "dependents": [
+    "public_opera"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "public_games",
+     "verdict": "keep",
+     "why": "Weak causally (drama grew from the Dionysia, a religious festival, not athletic games), but public_games carries the festival-crowd institution and the same parents (communal_feasts AND organized_priesthood); replacing it would only duplicate that closure."
+    },
+    {
+     "atom": "alphabet_vowels",
+     "verdict": "keep",
+     "why": "Written Greek drama."
+    },
+    {
+     "atom": "brahmi",
+     "verdict": "keep",
+     "why": "Sanskrit drama and the Natyashastra."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "public_games A4; alphabet_vowels A4; brahmi A4 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: alphabet_vowels, brahmi (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Drama before the citizen body airs and works through public quarrels (comedy mocks the powerful, tragedy rehearses civic dilemmas): grievance builds more slowly.",
+   "costConcern": "2,490 is 0.71x the A5 civics median (3,520); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Kept with the note on public_games; no change is worth the churn.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Drama Poetry"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Citizenship (Drama and Poetry policy)"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "state_academy",
+   "name": "State academy",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "thought-learning",
+   "cost": 4180.0,
+   "prereq": "philosophical_schools AND royal_archives",
+   "dependents": [
+    "research_university"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "philosophical_schools",
+     "verdict": "keep",
+     "why": "The Mouseion and the Han Taixue institutionalize existing schools of learning."
+    },
+    {
+     "atom": "royal_archives",
+     "verdict": "keep",
+     "why": "A state library grows out of palace archives."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "philosophical_schools A5; royal_archives A3 (same Age or near; no gap issue)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.03",
+    "governance.authorityDecayCostUnits +0.02"
+   ],
+   "effectRationale": "A state school recruits talent into office (promotion) and turns out officials trained in one canon, extending administrative reach.",
+   "costConcern": "4,180 is 1.19x the A5 civics median (3,520); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound; dependent research_university.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Recorded History"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Zhi (Xiu Taixue tradition, Han unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    },
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "state_gazette",
+   "name": "State gazette",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "information-media",
+   "cost": 2490.0,
+   "prereq": "royal_post AND (alphabet_vowels OR chinese_script)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "royal_post",
+     "verdict": "keep",
+     "why": "The gazette travels by the official post."
+    },
+    {
+     "atom": "alphabet_vowels",
+     "verdict": "keep",
+     "why": "Acta Diurna in Latin."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Han-Tang court gazettes (dibao)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "royal_post A4; alphabet_vowels A4; chinese_script A3 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: alphabet_vowels, chinese_script (causal inputs; kept)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02",
+    "governance.authorityDecayCostUnits +0.02"
+   ],
+   "effectRationale": "Published decrees reach officials and townsmen in one authoritative form: fewer rumours turning into disorder, and provincial officials act on the same orders.",
+   "costConcern": "2,490 is 0.71x the A5 civics median (3,520); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Leaf by design: the official-news genre's modern descendants enter through printing and the press (printed_newspapers, mass_press), which do not need it.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Gorkhapatra (Nepal unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    },
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "statecraft_doctrine",
+   "name": "Statecraft doctrine",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "thought-learning",
+   "cost": 2960.0,
+   "prereq": "political_philosophy AND appointed_officials",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "political_philosophy",
+     "verdict": "keep",
+     "why": "The Arthashastra and Han Feizi answer the philosophers' question with manuals."
+    },
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "The manuals are about running appointed officials."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "political_philosophy A5; appointed_officials A3 (same Age or near; no gap issue)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.03"
+   ],
+   "effectRationale": "Rules for supervising, rotating and spying on officials keep distant agents obedient: authority decays more slowly with distance.",
+   "costConcern": "2,960 is 0.84x the A5 civics median (3,520); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: its successors are in administration-fiscal (civil_service_examinations) and do not hinge on it.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Mantriparishad (Arthashastra tradition, Maurya unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "arts_academies",
+   "name": "Arts academies",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "arts-culture",
+   "cost": 4970.0,
+   "prereq": "court_patronage AND humanism",
+   "dependents": [
+    "public_museums"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "court_patronage",
+     "verdict": "keep",
+     "why": "Academies were founded and chartered by princes."
+    },
+    {
+     "atom": "humanism",
+     "verdict": "keep",
+     "why": "The academy model and the theory of the arts are humanist."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "court_patronage A3; humanism A7 - long reach from court_patronage A3 (a causal ancestor; not a reason to change)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.02"
+   ],
+   "effectRationale": "Admission and prizes by competition (Prix de Rome) open the artist's career to talented commoners: faster social promotion.",
+   "costConcern": "4,970 is 1.00x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound. If public_museums takes court_patronage instead (below), arts_academies keeps dependents through the new modernist_design, arts_councils and public_art_programmes.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Inspiration (Renaissance policy)"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "enlightenment",
+   "name": "Enlightenment",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "thought-learning",
+   "cost": 5910.0,
+   "prereq": "scientific_societies AND political_philosophy",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "scientific_societies",
+     "verdict": "keep",
+     "why": "The republic of letters runs on the societies' journals and correspondence."
+    },
+    {
+     "atom": "political_philosophy",
+     "verdict": "keep",
+     "why": "Enlightenment critique of government is political philosophy applied."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "scientific_societies A7; political_philosophy A5 (same Age or near; no gap issue)",
+   "crossTree": "none",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.02",
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Careers open to talent and reasoned reform of punishment and toleration: faster promotion and grievance building more slowly.",
+   "costConcern": "5,910 is 1.19x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf with no dependents in the whole graph, which is wrong for the hinge of modern civic thought. Bridged in this file by public_libraries (enlightenment AND compulsory_education); integrators may also wire it into classical_liberalism or separation_of_powers in other groups.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "The Enlightenment"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Social Class (Enlightenment policy)"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "humanism",
+   "name": "Humanism",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "thought-learning",
+   "cost": 5910.0,
+   "prereq": "philosophical_schools AND paper",
+   "dependents": [
+    "arts_academies",
+    "scientific_societies"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "philosophical_schools",
+     "verdict": "keep",
+     "why": "Humanists recovered the classical schools' texts."
+    },
+    {
+     "atom": "paper",
+     "verdict": "keep",
+     "why": "Cheap paper made the humanist book and letter culture possible before print."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "philosophical_schools A5; paper A5 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: paper (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.03"
+   ],
+   "effectRationale": "Rhetoric and letters became the qualification for secretaries, chancellors and diplomats of lay birth: faster social promotion.",
+   "costConcern": "5,910 is 1.19x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Emerged (~1,350 CE) lies in the A6 window, but the movement's institutional spread is A7; Age kept (a crossing is not a reason to move).",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Humanism"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Inspiration (Renaissance policy)"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "press_licensing",
+   "name": "Press licensing",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "information-media",
+   "cost": 4970.0,
+   "prereq": "printing_press AND appointed_officials",
+   "dependents": [
+    "press_freedom"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "Licensing regulates printers."
+    },
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Censors and licensers are officials."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "printing_press A7; appointed_officials A3 - long reach from appointed_officials A3 (a causal ancestor; not a reason to change)",
+   "crossTree": "technology atoms: printing_press (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "Seditious pamphlets are stopped before they circulate, so disorder costs less output (the cost is borne later via press_freedom).",
+   "costConcern": "4,970 is 1.00x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "public_museums",
+   "name": "Public museums",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "arts-culture",
+   "cost": 4970.0,
+   "prereq": "arts_academies AND scientific_societies",
+   "dependents": [
+    "heritage_preservation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "arts_academies",
+     "verdict": "replace",
+     "why": "The first public museums (Ashmolean 1683 from the Tradescant cabinet, British Museum 1753 from Sloane, Uffizi opened 1765) grew from princely and scholarly collections, not from art academies; court_patronage is the causal input."
+    },
+    {
+     "atom": "scientific_societies",
+     "verdict": "keep",
+     "why": "Collections were catalogued and studied by the learned societies (the Ashmolean housed the Oxford Philosophical Society)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "arts_academies A7; scientific_societies A7 (same Age or near; no gap issue)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.civicsPointsCoefficient +0.02"
+   ],
+   "effectRationale": "Open collections make history and nature a public study, raising the society's civic output; sparing CP use.",
+   "costConcern": "4,970 is 1.00x the A7 civics median (4,970); within range",
+   "action": "replace-prereq",
+   "newPrereq": "court_patronage AND scientific_societies",
+   "newAge": null,
+   "rationale": "Replace arts_academies with court_patronage: museums are opened princely and scholarly cabinets. arts_academies keeps its new dependents in this file.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Natural History"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Natural History"
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "public_opera",
+   "name": "Public opera and concerts",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "arts-culture",
+   "cost": 4180.0,
+   "prereq": "public_theatre AND court_patronage",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "public_theatre",
+     "verdict": "keep",
+     "why": "Ticketed opera is theatre opened to a paying public."
+    },
+    {
+     "atom": "court_patronage",
+     "verdict": "keep",
+     "why": "Opera began as court spectacle (Mantua, Florence) before Venice sold tickets."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "public_theatre A5; court_patronage A3 - long reach from court_patronage A3 (a causal ancestor; not a reason to change)",
+   "crossTree": "none",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "Cheap seats in the opera house and concert hall give townspeople a shared public pleasure: grievance builds more slowly.",
+   "costConcern": "4,180 is 0.84x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; bridged by the new recorded_music_industry (radio_broadcasting AND public_opera).",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Opera Ballet"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "scientific_societies",
+   "name": "Scientific societies",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "thought-learning",
+   "cost": 7030.0,
+   "prereq": "humanism AND printing_press",
+   "dependents": [
+    "enlightenment",
+    "public_museums",
+    "research_university"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "humanism",
+     "verdict": "keep",
+     "why": "The academies grew out of humanist sodalities."
+    },
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "Published proceedings (Philosophical Transactions) are the societies' product."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "humanism A7; printing_press A7 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: printing_press (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.03"
+   ],
+   "effectRationale": "Claims tested by experiment and published to peers raise the yield of every researcher; the learning lane's early-modern landmark.",
+   "costConcern": "7,030 is 1.41x the A7 civics median (4,970); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound; four dependents.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "The Enlightenment"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Society of Antiquaries (Great Britain unique civic)"
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "heritage_preservation",
+   "name": "Heritage preservation",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "arts-culture",
+   "cost": 9950.0,
+   "prereq": "public_museums AND appointed_officials",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "public_museums",
+     "verdict": "keep",
+     "why": "Listing monuments extends the museum's curatorial idea to buildings."
+    },
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Inspectors of monuments are officials."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "public_museums A7; appointed_officials A3 - long reach from appointed_officials A3 (a causal ancestor; not a reason to change)",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "housing.tauYears +0.03"
+   ],
+   "effectRationale": "Listed buildings must be maintained and may not be pulled down: the building stock lasts longer.",
+   "costConcern": "9,950 is 1.00x the A8 civics median (9,950); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: an end-state protection law.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Cultural Heritage"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Natural History (Land Heritage policy)"
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mass_press",
+   "name": "Mass press",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "information-media",
+   "cost": 11830.0,
+   "prereq": "printing_press AND railway",
+   "dependents": [
+    "state_propaganda"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "The press is the base technology."
+    },
+    {
+     "atom": "railway",
+     "verdict": "replace",
+     "why": "The 1833 penny press (and The Times from 1814) depended on steam-driven cylinder presses printing thousands of sheets an hour and sold on city streets; rail distribution came later and is not the enabling input. steam_rotary (1781) is the steam power that drove Koenig's press. If T7's new steam_printing_press is accepted, it is the better atom still."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "printing_press A7; railway A8 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: printing_press, railway (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "migration.baseRatePerYear +0.04"
+   ],
+   "effectRationale": "Cheap papers carry job advertisements, ship sailings and emigrant letters to every reader, so people move more freely.",
+   "costConcern": "11,830 is 1.19x the A8 civics median (9,950); within range",
+   "action": "replace-prereq",
+   "newPrereq": "printing_press AND steam_rotary",
+   "newAge": null,
+   "rationale": "Replace railway by steam_rotary (or T7 steam_printing_press when integrated): the mass press is a product of steam printing, not of railways.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mass Media"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "press_freedom",
+   "name": "Freedom of the press",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "information-media",
+   "cost": 14060.0,
+   "prereq": "press_licensing AND (bill_of_rights OR written_constitution)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "press_licensing",
+     "verdict": "keep",
+     "why": "Freedom of the press is defined as abolishing prior licensing."
+    },
+    {
+     "atom": "bill_of_rights",
+     "verdict": "keep",
+     "why": "Rights charters entrench the freedom (1689 precursor, 1791 First Amendment)."
+    },
+    {
+     "atom": "written_constitution",
+     "verdict": "keep",
+     "why": "Sweden's 1766 act was a fundamental law; OR with bill_of_rights is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "press_licensing A7; bill_of_rights A7; written_constitution A7 (same Age or near; no gap issue)",
+   "crossTree": "none",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.03"
+   ],
+   "effectRationale": "Abuses can be printed and answered before they fester: grievance accumulates more slowly.",
+   "costConcern": "14,060 is 1.41x the A8 civics median (9,950); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf in this group; integrators should note C2's new freedom_of_information already depends on it.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Liberalism (Free Press policy)"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "professional_sport",
+   "name": "Professional sport",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "arts-culture",
+   "cost": 8360.0,
+   "prereq": "public_games AND railway",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "public_games",
+     "verdict": "keep",
+     "why": "Professional leagues continue the public contest."
+    },
+    {
+     "atom": "railway",
+     "verdict": "keep",
+     "why": "National leagues need teams and crowds to travel between cities weekly."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "public_games A4; railway A8 - long reach from public_games A4 (a causal ancestor; not a reason to change)",
+   "crossTree": "technology atoms: railway (causal inputs; kept)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "Weekly matches give urban workers a licensed outlet and shared loyalty, damping the output cost of unrest.",
+   "costConcern": "8,360 is 0.84x the A8 civics median (9,950); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate end-state leaf of the spectacle line; kept.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Professional Sports"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "public_postal_service",
+   "name": "Public postal service",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "information-media",
+   "cost": 9950.0,
+   "prereq": "royal_post AND railway",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "royal_post",
+     "verdict": "keep",
+     "why": "The public post opens the state's relay network to everyone."
+    },
+    {
+     "atom": "railway",
+     "verdict": "keep",
+     "why": "Rail mail made a uniform cheap rate feasible (Penny Post 1840)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "royal_post A4; railway A8 - long reach from royal_post A4 (a causal ancestor; not a reason to change)",
+   "crossTree": "technology atoms: railway (causal inputs; kept)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "migration.dampingDecayCostUnits +0.04"
+   ],
+   "effectRationale": "Cheap letters keep emigrants in touch with home and send back prepaid tickets: migration chains reach much further.",
+   "costConcern": "9,950 is 1.00x the A8 civics median (9,950); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; bridged by universal_telephone_service (telephone AND public_postal_service), the same universal-service idea applied to the telephone.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "research_university",
+   "name": "Research university",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "thought-learning",
+   "cost": 14060.0,
+   "prereq": "scientific_societies AND state_academy",
+   "dependents": [
+    "science_policy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "scientific_societies",
+     "verdict": "keep",
+     "why": "Research as a professional duty comes from the societies' experimental culture."
+    },
+    {
+     "atom": "state_academy",
+     "verdict": "keep",
+     "why": "Berlin was a state foundation training state officials; the state-academy model."
+    },
+    {
+     "atom": "chartered_universities",
+     "verdict": "keep",
+     "why": "(proposed addition) New A6 node in this file: the Berlin model reformed an existing corporate university (faculties, degrees, doctorates); the medieval university is its direct institutional ancestor."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "scientific_societies A7; state_academy A5 - long reach from state_academy A5 (a causal ancestor; not a reason to change)",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.03",
+    "institutions.universities.maturityTauYears +0.03"
+   ],
+   "effectRationale": "Paid professors who must publish and train doctoral students raise research yield and bring new universities to maturity faster; the lane's industrial landmark.",
+   "costConcern": "14,060 is 1.41x the A8 civics median (9,950); within range",
+   "action": "add-prereq",
+   "newPrereq": "scientific_societies AND state_academy AND chartered_universities",
+   "newAge": null,
+   "rationale": "Add chartered_universities (new, A6) to make the institutional lineage explicit. The A6 sweep already forces it complete before A8, so this costs no extra pacing.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Education (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Academics (modern technology)"
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.03
+    },
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "data_protection",
+   "name": "Data protection law",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "cost": 19890.0,
+   "prereq": "computer AND bill_of_rights",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "The law answers computerized personal databases."
+    },
+    {
+     "atom": "bill_of_rights",
+     "verdict": "keep",
+     "why": "It is framed as a privacy right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "computer A9; bill_of_rights A7 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: computer (causal inputs; kept)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.02"
+   ],
+   "effectRationale": "People can see and correct what states and firms hold on them, removing a standing source of grievance.",
+   "costConcern": "19,890 is 0.71x the A9 civics median (28,130); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate end-state leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "internet_governance",
+   "name": "Internet governance",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "cost": 28130.0,
+   "prereq": "internet AND international_organizations",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "internet",
+     "verdict": "keep",
+     "why": "The object governed."
+    },
+    {
+     "atom": "international_organizations",
+     "verdict": "keep",
+     "why": "ICANN and the ITU are international bodies."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "internet A9; international_organizations A8 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: internet (causal inputs; kept)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.02"
+   ],
+   "effectRationale": "Stable naming, addressing and rules for a global network let prices and orders travel instantly between markets, closing price gaps faster.",
+   "costConcern": "28,130 is 1.00x the A9 civics median (28,130); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate end-state leaf.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Social Media"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Globalism"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "public_broadcasting",
+   "name": "Public broadcasting",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "cost": 28130.0,
+   "prereq": "radio_broadcasting AND appointed_officials",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "radio_broadcasting",
+     "verdict": "keep",
+     "why": "The medium."
+    },
+    {
+     "atom": "appointed_officials",
+     "verdict": "keep",
+     "why": "Weak (an A3 atom); the licence and charter are state acts, so kept rather than churned."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "radio_broadcasting A9; appointed_officials A3 - long reach from appointed_officials A3 (a causal ancestor; not a reason to change)",
+   "crossTree": "technology atoms: radio_broadcasting (causal inputs; kept)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.civicsPointsCoefficient +0.02"
+   ],
+   "effectRationale": "A national public service of news, talks and schools programmes raises the society's civic output; sparing CP use.",
+   "costConcern": "28,130 is 1.00x the A9 civics median (28,130); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; bridged by distance_education ((public_broadcasting OR television) AND mass_higher_education).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mass Media"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Democracy (Fireside Chats policy)"
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "science_policy",
+   "name": "Science policy",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "thought-learning",
+   "cost": 28130.0,
+   "prereq": "research_university AND official_statistics",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "research_university",
+     "verdict": "keep",
+     "why": "Grant agencies fund university research."
+    },
+    {
+     "atom": "official_statistics",
+     "verdict": "keep",
+     "why": "Setting national research priorities needs statistics of the research system."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "research_university A8; official_statistics A7 (same Age or near; no gap issue)",
+   "crossTree": "none",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "research.researchPointsCoefficient +0.02",
+    "institutions.universities.maturityTauYears +0.02"
+   ],
+   "effectRationale": "Grant agencies and national priorities raise research yield and build up new universities faster.",
+   "costConcern": "28,130 is 1.00x the A9 civics median (28,130); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Was a leaf; bridged by civil_space_agency and open_access_science.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Centralism (Naukograd policy)"
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    },
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "state_propaganda",
+   "name": "State propaganda",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "cost": 28130.0,
+   "prereq": "mass_political_party AND (mass_press OR radio_broadcasting)",
+   "dependents": [
+    "fascist_state"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "mass_political_party",
+     "verdict": "keep",
+     "why": "Propaganda ministries were party instruments."
+    },
+    {
+     "atom": "mass_press",
+     "verdict": "keep",
+     "why": "Print route (US CPI 1917)."
+    },
+    {
+     "atom": "radio_broadcasting",
+     "verdict": "keep",
+     "why": "Broadcast route (1933 ministry); OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "mass_political_party A8; mass_press A8; radio_broadcasting A9 (same Age or near; no gap issue)",
+   "crossTree": "technology atoms: radio_broadcasting (causal inputs; kept)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.04"
+   ],
+   "effectRationale": "A controlled flood of news and film mobilizes opinion and smothers strikes and dissent, cutting the output cost of unrest; strong lever, hence 0.04.",
+   "costConcern": "28,130 is 1.00x the A9 civics median (28,130); within range",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound; dependent fascist_state.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mass Media"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Radicalism (Propaganda policy)"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "ritual_music",
+   "name": "Ritual music and dance",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "arts-culture",
+   "emerged": "~40 kya Hohle Fels and Geissenklösterle bone and ivory flutes",
+   "prereq": "oral_tradition AND bone_tools",
+   "prereqRationale": "oral_tradition: songs carry the remembered lore; bone_tools: the earliest flutes are worked bird bone and mammoth ivory.",
+   "rationale": "oral_tradition: songs carry the remembered lore; bone_tools: the earliest flutes are worked bird bone and mammoth ivory.",
+   "desc": "Bands sing, drum and dance together at night and at gatherings. Shared rhythm binds people who quarrel by day.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Synchronized music and dance are a cheap, repeatable way to repair band tensions.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "oral_tradition is remembered lore; ritual music is a group practice of sound and movement.",
+   "magnitude": 2.0
+  },
+  {
+   "id": "landscape_lore",
+   "name": "Landscape lore",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "thought-learning",
+   "emerged": "~40 kya long-distance raw-material transfers; songline-style route memory inferred from ethnography",
+   "prereq": "oral_tradition",
+   "prereqRationale": "oral_tradition: routes, landmarks and water holes are remembered as named places in story and song.",
+   "rationale": "oral_tradition: routes, landmarks and water holes are remembered as named places in story and song.",
+   "desc": "Bands memorize a wide landscape as a chain of named landmarks, water holes and seasonal resources, and teach it to the young.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.0,
+    "institutional": 0.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Scouts sent out already know what lies beyond the next ridge, so each exploration reaches further.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "C3's seasonal_round is a yearly schedule of known camps; landscape lore is the remembered map that lets a band go beyond them.",
+   "magnitude": 1.5
+  },
+  {
+   "id": "calendar_keepers",
+   "name": "Calendar keepers",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "thought-learning",
+   "emerged": "~8,000 BCE Warren Field lunar pit alignment; ~4,500 BCE Nabta Playa stone alignments",
+   "prereq": "calendar_lunar AND cereal_cultivation",
+   "prereqRationale": "calendar_lunar: the observation it institutionalizes; cereal_cultivation: sowing dates are what the keepers announce.",
+   "rationale": "calendar_lunar: the observation it institutionalizes; cereal_cultivation: sowing dates are what the keepers announce.",
+   "desc": "Ritual specialists watch the moon and sunrise points and announce when to sow, harvest and hold the festivals.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Sowing at the right moment across a whole village raises yields per field.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Calendar Round (Maya unique civic)"
+   },
+   "distinctFrom": "calendar_lunar is the technique of counting months; calendar keepers are the office that turns it into a farming timetable.",
+   "magnitude": 2.75
+  },
+  {
+   "id": "herd_lore",
+   "name": "Herd lore",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "thought-learning",
+   "emerged": "~7,900 BCE Ganj Dareh goats culled by age and sex",
+   "prereq": "sheep_goat AND oral_tradition",
+   "prereqRationale": "sheep_goat: the herds managed; oral_tradition: the lore is carried in memory and taught to young herders.",
+   "rationale": "sheep_goat: the herds managed; oral_tradition: the lore is carried in memory and taught to young herders.",
+   "desc": "Herders keep the lineage, temper and grazing of each animal in memory and pass on when to cull, breed and move the flock.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Culling young males and keeping breeding females by rule raises the meat and milk a herder gets from the same flock.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Animal Husbandry (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Animal Husbandry (technology)"
+   },
+   "distinctFrom": "sheep_goat is domestication itself; herd lore is the remembered management practice built on it.",
+   "magnitude": 2.75
+  },
+  {
+   "id": "wall_painting",
+   "name": "House painting and plaster",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "arts-culture",
+   "emerged": "~7,000 BCE Çatalhöyük wall paintings and plastered reliefs",
+   "prereq": "communal_feasts AND lime_plaster",
+   "prereqRationale": "communal_feasts: paintings and reliefs mark houses used for gatherings; lime_plaster: the painted surface.",
+   "rationale": "communal_feasts: paintings and reliefs mark houses used for gatherings; lime_plaster: the painted surface.",
+   "desc": "Households replaster and paint their walls each year with hunting scenes and patterns, and rebuild ancestral houses on the same spot.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Annual replastering of mud walls is maintenance; ritual rebuilding on the same plan keeps houses standing for generations.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "C1's megalithic_monuments are communal stone enclosures; this is the decoration and upkeep of ordinary houses.",
+   "magnitude": 2.75
+  },
+  {
+   "id": "sign_systems",
+   "name": "Sign systems",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "information-media",
+   "emerged": "~6,600 BCE Jiahu incised signs; ~5,300 BCE Vinča symbols",
+   "prereq": "token_counting AND pottery_open_fired",
+   "prereqRationale": "token_counting: marks standing for things; pottery_open_fired: most surviving signs are incised on pots.",
+   "rationale": "token_counting: marks standing for things; pottery_open_fired: most surviving signs are incised on pots.",
+   "desc": "Communities use a repertoire of incised signs on pots, spindle whorls and figurines to mark owners, offerings and messages.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.5,
+    "material": 0.0,
+    "institutional": 0.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A recognised mark carries a leader's claim or message beyond face-to-face reach.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Writing (technology)"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Writing (technology)"
+   },
+   "distinctFrom": "C2's storehouse_sealing is impressed seals on stores; sign systems are a shared repertoire of written marks before full writing.",
+   "magnitude": 2.75
+  },
+  {
+   "id": "epic_literature",
+   "name": "Epic literature",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "arts-culture",
+   "emerged": "~2,100 BCE Sumerian Gilgamesh poems; ~1,800 BCE Old Babylonian Gilgamesh epic",
+   "prereq": "oral_tradition AND scribal_schools",
+   "prereqRationale": "oral_tradition: the epics write down older sung tales; scribal_schools: copied as school texts.",
+   "rationale": "oral_tradition: the epics write down older sung tales; scribal_schools: copied as school texts.",
+   "desc": "Heroic tales once sung are written down, copied in the schools and recited at court and festival.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A shared heroic past recited across cities binds townspeople and rulers to one story.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Drama Poetry"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Enuma Elish (Babylon unique civic)"
+   },
+   "distinctFrom": "oral_tradition is unwritten lore; epic literature is a fixed written canon taught and recited.",
+   "magnitude": 4.25
+  },
+  {
+   "id": "lexical_lists",
+   "name": "Lexical lists",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "thought-learning",
+   "emerged": "~3,200 BCE Uruk lexical lists of professions and commodities",
+   "prereq": "proto_writing AND temple_economy",
+   "prereqRationale": "proto_writing: the lists are among the first texts; temple_economy: they list the temple's goods and trades.",
+   "rationale": "proto_writing: the lists are among the first texts; temple_economy: they list the temple's goods and trades.",
+   "desc": "Scribes copy standard lists of words for trades, goods, animals and places, the first ordered body of knowledge.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "One standard vocabulary of goods and trades makes the temple's levies countable and checkable.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Tupšarrūtu (Assyria unique civic)"
+   },
+   "distinctFrom": "scribal_schools is the school; lexical lists are the standard reference corpus it copies.",
+   "magnitude": 3.75
+  },
+  {
+   "id": "victory_stelae",
+   "name": "Victory stelae",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "information-media",
+   "emerged": "~2,250 BCE Naram-Sin victory stele; ~1,850 BCE Senusret III boundary stelae at Semna",
+   "prereq": "court_patronage AND (cuneiform OR hieroglyphic)",
+   "prereqRationale": "court_patronage: royal workshops carve them; cuneiform OR hieroglyphic: the inscribed message.",
+   "rationale": "court_patronage: royal workshops carve them; cuneiform OR hieroglyphic: the inscribed message.",
+   "desc": "Kings set up carved and inscribed stones at frontiers and city gates announcing their victories and warning rebels.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.0,
+    "institutional": 0.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A public, lasting announcement of royal power deters revolt in the places it stands.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Monumentum Adulitanum (Aksum unique civic)"
+   },
+   "distinctFrom": "C2's published_law displays laws for citizens; victory stelae proclaim a ruler's might to subjects and enemies.",
+   "magnitude": 4.25
+  },
+  {
+   "id": "palace_library",
+   "name": "Palace library",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "thought-learning",
+   "emerged": "~650 BCE Ashurbanipal's library at Nineveh",
+   "prereq": "royal_archives",
+   "prereqRationale": "royal_archives: the library grows from the palace record store, adding copied scholarly works.",
+   "rationale": "royal_archives: the library grows from the palace record store, adding copied scholarly works.",
+   "desc": "The palace collects and catalogues copies of scholarly, religious and medical texts from across the realm.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A catalogued collection of the realm's learning lets scholars build on all of it.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Recorded History"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Literacy"
+   },
+   "distinctFrom": "royal_archives keeps administrative records; the library collects scholarly works.",
+   "magnitude": 4.25
+  },
+  {
+   "id": "letter_schools",
+   "name": "Letter schools",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "education",
+   "emerged": "~494 BCE school at Chios (Herodotus); ~480 BCE Athenian school scenes on pottery",
+   "prereq": "alphabet_vowels AND citizen_assembly",
+   "prereqRationale": "alphabet_vowels: an easy script children can learn; citizen_assembly: citizens who need to read laws and ostraca.",
+   "rationale": "alphabet_vowels: an easy script children can learn; citizen_assembly: citizens who need to read laws and ostraca.",
+   "desc": "Fee-paying teachers teach citizens' children reading, writing and music in small schools.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.0,
+    "institutional": 1.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Reading spreads beyond a scribal caste, so ordinary families can climb.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Writing (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Literacy"
+   },
+   "distinctFrom": "scribal_schools train a professional caste; letter schools teach ordinary citizens' children.",
+   "magnitude": 4.75
+  },
+  {
+   "id": "agronomic_treatises",
+   "name": "Agronomic treatises",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "thought-learning",
+   "emerged": "~160 BCE Cato's On Agriculture; ~20 BCE Fan Shengzhi's farming manual",
+   "prereq": "scribal_schools AND (alphabet_vowels OR chinese_script OR abjad)",
+   "prereqRationale": "scribal_schools: a literate class writes and reads manuals; scripts: Latin, Chinese and Punic (Mago) routes.",
+   "rationale": "scribal_schools: a literate class writes and reads manuals; scripts: Latin, Chinese and Punic (Mago) routes.",
+   "desc": "Landowners write and read manuals on crops, soils, manuring and estate management.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Best practice written down and copied lets estate managers raise the output of each worker.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "iron_mouldboard and other techs are tools; treatises are the written learning of how to farm.",
+   "magnitude": 5.25
+  },
+  {
+   "id": "medical_schools",
+   "name": "Medical schools",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "thought-learning",
+   "emerged": "~400 BCE Hippocratic school of Cos; ~290 BCE Alexandrian anatomists",
+   "prereq": "philosophical_schools AND medicine_hippocratic",
+   "prereqRationale": "philosophical_schools: the teaching institution; medicine_hippocratic: the body of medicine taught.",
+   "rationale": "philosophical_schools: the teaching institution; medicine_hippocratic: the body of medicine taught.",
+   "desc": "Physicians train pupils in schools with a shared corpus of texts, case records and dissection.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A taught medical tradition is what later university faculties of medicine inherit, raising the lives they can save.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Commerce (Medicine policy)"
+   },
+   "distinctFrom": "C3's public_physicians is a city paying a doctor; medical schools train doctors.",
+   "magnitude": 5.25
+  },
+  {
+   "id": "rhetoric_schools",
+   "name": "Rhetoric schools",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "education",
+   "emerged": "~390 BCE Isocrates' school at Athens; ~92 BCE Latin rhetors at Rome",
+   "prereq": "philosophical_schools AND (citizen_assembly OR jury_courts)",
+   "prereqRationale": "philosophical_schools: the teaching tradition; citizen_assembly OR jury_courts: the forums where speaking well wins power.",
+   "rationale": "philosophical_schools: the teaching tradition; citizen_assembly OR jury_courts: the forums where speaking well wins power.",
+   "desc": "Paid teachers train young men to argue in courts and assemblies, the path to a public career.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Trained eloquence is a route into office for able men outside the old families.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Code of Laws (Oratory policy)"
+   },
+   "distinctFrom": "philosophical_schools pursue truth; rhetoric schools train advocates and politicians.",
+   "magnitude": 5.25
+  },
+  {
+   "id": "cathedral_madrasa_schools",
+   "name": "Cathedral and madrasa schools",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "education",
+   "emerged": "~1,067 CE Nizamiyya madrasa, Baghdad; ~1,079 CE papal decree requiring cathedral schools",
+   "prereq": "scribal_schools AND (monasticism OR systematic_theology)",
+   "prereqRationale": "scribal_schools: the literate teaching tradition; monasticism OR systematic_theology: the religious learning the schools teach.",
+   "rationale": "scribal_schools: the literate teaching tradition; monasticism OR systematic_theology: the religious learning the schools teach.",
+   "desc": "Endowed schools at cathedrals and mosques teach grammar, law and theology to boys who will become clergy, judges and clerks.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Endowed places open clerical and legal careers to poor but able boys.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Education (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Tarnovo Schools (Bulgaria unique civic)"
+   },
+   "distinctFrom": "scribal_schools train scribes for a palace; these endowed schools train clergy and jurists across a whole faith.",
+   "magnitude": 5.5
+  },
+  {
+   "id": "chartered_universities",
+   "name": "Chartered universities",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "thought-learning",
+   "emerged": "~1,088 CE Bologna; ~1,150 CE Paris masters' guild",
+   "prereq": "cathedral_madrasa_schools AND jurists",
+   "prereqRationale": "cathedral_madrasa_schools: the schools from which the masters' guilds grew; jurists: Bologna began as a law school.",
+   "rationale": "cathedral_madrasa_schools: the schools from which the masters' guilds grew; jurists: Bologna began as a law school.",
+   "desc": "Masters and students form self-governing corporations with charters, faculties and degrees recognized across realms.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.03
+    },
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Charters and degrees make the university a durable corporation that matures fast; faculties of medicine (Salerno, Montpellier) train physicians.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Education (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Education (technology)"
+   },
+   "distinctFrom": "state_academy is a ruler's school; a chartered university is a self-governing corporation granting degrees.",
+   "magnitude": 6.0
+  },
+  {
+   "id": "translation_patronage",
+   "name": "Patronage of translation",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "thought-learning",
+   "emerged": "~830 CE House of Wisdom, Baghdad; ~1,150 CE Toledo translators",
+   "prereq": "philosophical_schools AND paper",
+   "prereqRationale": "philosophical_schools: the Greek works translated; paper: Baghdad's paper mills made mass copying cheap.",
+   "rationale": "philosophical_schools: the Greek works translated; paper: Baghdad's paper mills made mass copying cheap.",
+   "desc": "Patrons pay scholars to translate the science and philosophy of other languages and copy the translations widely.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Scholars work with the accumulated learning of several civilizations instead of one.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Al-Jabr (Abbasid unique civic)"
+   },
+   "distinctFrom": "humanism recovers one's own classics; this imports another civilization's learning. The runtime entity inst.translation_movement (institution, not live) is the house of translation; this civic is the patronage that funds it.",
+   "magnitude": 5.5
+  },
+  {
+   "id": "printed_classics",
+   "name": "Printed classics",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "information-media",
+   "emerged": "~932 CE Feng Dao begins state printing of the Confucian classics (completed 953 CE)",
+   "prereq": "woodblock_print AND civil_service_examinations",
+   "prereqRationale": "woodblock_print: the technique; civil_service_examinations: the demand for standard texts.",
+   "rationale": "woodblock_print: the technique; civil_service_examinations: the demand for standard texts.",
+   "desc": "The state prints authorized editions of the classics and sells them cheaply to schools and examination candidates.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Cheap standard texts let far more families educate a son for office: a larger literate class is possible.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Printing (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Tripitaka Koreana (Goryeo unique civic)"
+   },
+   "distinctFrom": "woodblock_print is the technique; printed classics is the state publishing programme.",
+   "magnitude": 5.5
+  },
+  {
+   "id": "vernacular_literature",
+   "name": "Vernacular literature",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "arts-culture",
+   "emerged": "~1,008 CE The Tale of Genji; ~1,320 CE Dante's Commedia",
+   "prereq": "epic_literature AND paper",
+   "prereqRationale": "epic_literature: the written literary tradition; paper: cheap enough for lay readers' books.",
+   "rationale": "epic_literature: the written literary tradition; paper: cheap enough for lay readers' books.",
+   "desc": "Poets and storytellers write in the spoken tongue for lay readers rather than in the learned language.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Literature lay people can read widens the circle that takes part in civic life; sparing CP use.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Drama Poetry"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mono No Aware (Heian Japan unique civic)"
+   },
+   "distinctFrom": "epic_literature is a learned canon in a classical tongue; vernacular literature writes in the people's speech.",
+   "magnitude": 5.5
+  },
+  {
+   "id": "geographic_compendia",
+   "name": "Geographic compendia",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "thought-learning",
+   "emerged": "~1,154 CE al-Idrisi's Tabula Rogeriana; ~1,225 CE Zhao Rugua's Records of Foreign Peoples",
+   "prereq": "translation_patronage AND cartography",
+   "prereqRationale": "translation_patronage: Ptolemy and travellers' reports reach the compilers; cartography: the maps.",
+   "rationale": "translation_patronage: Ptolemy and travellers' reports reach the compilers; cartography: the maps.",
+   "desc": "Scholars compile travellers' and merchants' reports into world descriptions with maps and itineraries.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.75,
+    "material": 0.0,
+    "institutional": 1.25,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Compiled knowledge of distant lands extends how far exploration can be planned.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Cartography (technology)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Cartography (technology)"
+   },
+   "distinctFrom": "cartography is map-making; compendia gather what is known of the world into reference works.",
+   "magnitude": 5.5
+  },
+  {
+   "id": "printed_newspapers",
+   "name": "Printed newspapers",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "information-media",
+   "emerged": "~1,605 CE Strasbourg Relation; ~1,618 CE Amsterdam Courante",
+   "prereq": "printing_press AND royal_post",
+   "prereqRationale": "printing_press: the medium; royal_post: weekly news arrived with the post and the papers went out by it.",
+   "rationale": "printing_press: the medium; royal_post: weekly news arrived with the post and the papers went out by it.",
+   "desc": "Printers issue weekly sheets of news and merchants' price currents gathered from the posts.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Printed prices and ship news tell holders where and when to sell, so stocks reach markets faster.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Printing (technology)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "state_gazette is official decrees; newspapers are commercial news sold to the public.",
+   "magnitude": 6.0
+  },
+  {
+   "id": "humanist_colleges",
+   "name": "Humanist colleges",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "education",
+   "emerged": "~1,538 CE Sturm's Strasbourg Gymnasium; ~1,548 CE Jesuit college at Messina",
+   "prereq": "humanism AND printing_press",
+   "prereqRationale": "humanism: the curriculum; printing_press: standard printed textbooks for whole classes.",
+   "rationale": "humanism: the curriculum; printing_press: standard printed textbooks for whole classes.",
+   "desc": "Colleges teach graded classes of boys Latin, Greek, rhetoric and history from printed textbooks.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Graded secondary schooling turns out many more educated men than tutors could: a larger professional class.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Humanism"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "humanism is the scholarly movement; humanist colleges are the schools that spread it to boys.",
+   "magnitude": 6.0
+  },
+  {
+   "id": "language_academies",
+   "name": "Language academies",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "thought-learning",
+   "emerged": "~1,582 CE Accademia della Crusca; ~1,635 CE Académie française",
+   "prereq": "humanism AND printing_press",
+   "prereqRationale": "humanism: the study of correct language; printing_press: the dictionaries and grammars they publish.",
+   "rationale": "humanism: the study of correct language; printing_press: the dictionaries and grammars they publish.",
+   "desc": "Chartered academies fix the standard language in an official dictionary and grammar.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.0,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "One standard written language lets orders and laws be read the same way in every province.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "humanism studies classical Latin; language academies standardize the national vernacular.",
+   "magnitude": 5.5
+  },
+  {
+   "id": "telegraph_news_agencies",
+   "name": "Telegraph news agencies",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "information-media",
+   "emerged": "~1,849 CE Wolff's telegraphic bureau; ~1,851 CE Reuters",
+   "prereq": "telegraph AND mass_press",
+   "prereqRationale": "telegraph: the wire; mass_press: the papers that buy the agency's service.",
+   "rationale": "telegraph: the wire; mass_press: the papers that buy the agency's service.",
+   "desc": "Agencies gather news and market prices by telegraph and sell them to every paper at once.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Prices on distant exchanges are known within hours, so traders close gaps between markets faster.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mass Media"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "mass_press sells papers; the agencies supply wired news and prices to all papers.",
+   "magnitude": 7.0
+  },
+  {
+   "id": "advertising_agencies",
+   "name": "Advertising",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "information-media",
+   "emerged": "~1,841 CE Volney Palmer's advertising agency, Philadelphia",
+   "prereq": "mass_press",
+   "prereqRationale": "mass_press: advertising pays for and fills the cheap papers.",
+   "rationale": "mass_press: advertising pays for and fills the cheap papers.",
+   "desc": "Agencies buy space in the papers and write notices that tell buyers what is for sale, where and at what price.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.0
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Sellers can reach buyers across a city at once, so stocks clear to market faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "telegraph_news_agencies carry news to the press; advertising carries sellers' offers to readers.",
+   "magnitude": 6.0
+  },
+  {
+   "id": "public_libraries",
+   "name": "Public libraries",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "thought-learning",
+   "emerged": "~1,850 CE Public Libraries Act; ~1,854 CE Boston Public Library",
+   "prereq": "enlightenment AND compulsory_education",
+   "prereqRationale": "enlightenment: the ideal of self-improvement through reading; compulsory_education: a public able to read.",
+   "rationale": "enlightenment: the ideal of self-improvement through reading; compulsory_education: a public able to read.",
+   "desc": "Towns fund free lending libraries and reading rooms open to every resident.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Free books let workers educate themselves into skilled and clerical posts.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Writing (technology)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "palace_library serves the court's scholars; public libraries lend to everyone.",
+   "magnitude": 7.0
+  },
+  {
+   "id": "technical_academies",
+   "name": "Mining and technical academies",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "education",
+   "emerged": "~1,765 CE Freiberg Mining Academy; ~1,794 CE École polytechnique",
+   "prereq": "scientific_societies AND mineralogy",
+   "prereqRationale": "scientific_societies: experimental science; mineralogy: the core mining science taught at Freiberg.",
+   "rationale": "scientific_societies: experimental science; mineralogy: the core mining science taught at Freiberg.",
+   "desc": "State academies train engineers and mine officials in chemistry, mechanics and geology.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Trained mine engineers find and work ore bodies far more efficiently.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Twelve Gates (Dār al-Fonūn tradition, Qajar unique civic)"
+   },
+   "distinctFrom": "research_university pursues research; technical academies train practising engineers.",
+   "magnitude": 7.0
+  },
+  {
+   "id": "normal_schools",
+   "name": "Normal schools",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "education",
+   "emerged": "~1,794 CE Paris École normale; ~1,839 CE Lexington normal school",
+   "prereq": "compulsory_education AND humanist_colleges",
+   "prereqRationale": "compulsory_education: the schools needing teachers; humanist_colleges: the graded-class pedagogy taught.",
+   "rationale": "compulsory_education: the schools needing teachers; humanist_colleges: the graded-class pedagogy taught.",
+   "desc": "Teacher-training colleges prepare elementary teachers in subject and method to a common standard.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Trained teachers make elementary schooling actually teach, opening promotion to more children.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "compulsory_education requires attendance; normal schools supply the teachers.",
+   "magnitude": 7.0
+  },
+  {
+   "id": "agricultural_colleges",
+   "name": "Agricultural colleges",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "education",
+   "emerged": "~1,818 CE Hohenheim agricultural academy; ~1,862 CE Morrill Land-Grant Act",
+   "prereq": "agricultural_chemistry AND technical_academies",
+   "prereqRationale": "agricultural_chemistry: the science taught; technical_academies: the model of a state technical college.",
+   "rationale": "agricultural_chemistry: the science taught; technical_academies: the model of a state technical college.",
+   "desc": "Colleges teach scientific farming, run experimental fields and train estate managers and farmers' sons.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Trained farmers apply fertilizer, rotation and drainage science, raising yields per field.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "C2's agricultural_extension sends agents to farms; colleges train the agents and farmers.",
+   "magnitude": 7.0
+  },
+  {
+   "id": "medical_education_reform",
+   "name": "Medical education reform",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "education",
+   "emerged": "~1,893 CE Johns Hopkins School of Medicine; ~1,910 CE Flexner Report",
+   "prereq": "research_university AND germ_theory",
+   "prereqRationale": "research_university: medicine taught in a research faculty; germ_theory: the science standardizing it.",
+   "rationale": "research_university: medicine taught in a research faculty; germ_theory: the science standardizing it.",
+   "desc": "Medical schools are tied to universities and teaching hospitals, with laboratory science and clinical training required.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Doctors trained in laboratory medicine save far more lives; landmark of university medicine, hence 0.05.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "medical_schools pass on a tradition; this reform ties training to research science and hospitals.",
+   "magnitude": 7.0
+  },
+  {
+   "id": "womens_higher_education",
+   "name": "Women's higher education",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "education",
+   "emerged": "~1,869 CE Girton College; ~1,880 CE Camille Sée law founding girls' lycées",
+   "prereq": "normal_schools AND research_university",
+   "prereqRationale": "normal_schools: women trained as teachers first; research_university: the degrees women sought admission to.",
+   "rationale": "normal_schools: women trained as teachers first; research_university: the degrees women sought admission to.",
+   "desc": "Colleges and secondary schools open to women and girls, and women begin to take degrees and enter the professions.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Half the population can now enter the educated professions: a larger specialist class is possible.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "normal_schools train teachers; this opens all higher study to women.",
+   "magnitude": 6.5
+  },
+  {
+   "id": "industrial_exhibitions",
+   "name": "Industrial exhibitions",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "arts-culture",
+   "emerged": "~1,851 CE Great Exhibition, London",
+   "prereq": "railway AND public_museums",
+   "prereqRationale": "railway: cheap excursion trains brought six million visitors; public_museums: the curatorial model of display.",
+   "rationale": "railway: cheap excursion trains brought six million visitors; public_museums: the curatorial model of display.",
+   "desc": "Great halls display the newest machines, crops and manufactures to millions of visitors and juries award prizes.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Farmers and makers see reapers, ploughs and tools at work and adopt them, so equipped workers gain more.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_museums display the past; exhibitions display the newest products for adoption.",
+   "magnitude": 7.0
+  },
+  {
+   "id": "national_literature",
+   "name": "National literature",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "arts-culture",
+   "emerged": "~1,812 CE Grimms' Children's and Household Tales; ~1,835 CE Kalevala",
+   "prereq": "printing_press AND nationalism",
+   "prereqRationale": "printing_press: the collected tales are printed; nationalism: the cause they serve.",
+   "rationale": "printing_press: the collected tales are printed; nationalism: the cause they serve.",
+   "desc": "Scholars collect folk tales and songs and print them as the nation's own literature, taught in schools.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.0,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A shared national story gives peasants and townsmen a common identity, easing grievance between them.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nationalism"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nationalism"
+   },
+   "distinctFrom": "vernacular_literature is authored works; national literature collects folk tradition as a nation's heritage.",
+   "magnitude": 7.0
+  },
+  {
+   "id": "broadcast_market_reports",
+   "name": "Broadcast market reports",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "emerged": "~1,921 CE US radio market-news broadcasts",
+   "prereq": "radio_broadcasting AND telegraph_news_agencies",
+   "prereqRationale": "radio_broadcasting: the medium; telegraph_news_agencies: the price-gathering service read on air.",
+   "rationale": "radio_broadcasting: the medium; telegraph_news_agencies: the price-gathering service read on air.",
+   "desc": "Daily radio bulletins read out crop and livestock prices so farmers know where and when to sell.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Farmers holding grain sell into the right market at the right time, releasing stocks faster.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "telegraph agencies serve the press; broadcast reports reach the farmer directly.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "famine_early_warning",
+   "name": "Famine early warning",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "emerged": "~1,985 CE Famine Early Warning Systems Network",
+   "prereq": "earth_observation AND international_organizations",
+   "prereqRationale": "earth_observation: satellite crop and rainfall monitoring; international_organizations: the agencies that run and act on it.",
+   "rationale": "earth_observation: satellite crop and rainfall monitoring; international_organizations: the agencies that run and act on it.",
+   "desc": "Agencies combine satellite crop monitoring with market and household reports and publish warnings months before a famine.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Households and relief agencies prepare in time, so a shortfall is absorbed rather than turning into famine.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "C2's disaster_management organizes response; early warning is the published forecast that triggers it.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "public_opinion_polling",
+   "name": "Public opinion polling",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "emerged": "~1,936 CE Gallup's election poll",
+   "prereq": "mass_press AND probability_statistics",
+   "prereqRationale": "mass_press: polls are commissioned and published by papers; probability_statistics: sampling theory.",
+   "rationale": "mass_press: polls are commissioned and published by papers; probability_statistics: sampling theory.",
+   "desc": "Pollsters question a sample of the public and publish what people think of leaders and policies.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    },
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Governments learn of grievances before they harden, and of conditions in distant regions without sending officials.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "C2's sample_surveys measure crops and jobs; polling measures opinion.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "universal_telephone_service",
+   "name": "Universal telephone service",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "emerged": "~1,934 CE US Communications Act universal-service mandate",
+   "prereq": "telephone AND public_postal_service",
+   "prereqRationale": "telephone: the network; public_postal_service: the universal-service principle extended from letters.",
+   "rationale": "telephone: the network; public_postal_service: the universal-service principle extended from letters.",
+   "desc": "Telephone carriers must connect every household and farm at regulated rates, cross-subsidizing remote lines.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Farms and villages far out can order, sell and call for help by telephone, widening the hinterland a town draws on.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Telecommunications (technology)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_postal_service carries letters; this obliges telephone carriers to serve everyone.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "social_media_platforms",
+   "name": "Social media",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "emerged": "~2,004 CE Facebook; ~2,006 CE Twitter",
+   "prereq": "internet AND personal_computer",
+   "prereqRationale": "internet: the network; personal_computer: the devices on which ordinary users publish.",
+   "rationale": "internet: the network; personal_computer: the devices on which ordinary users publish.",
+   "desc": "Anyone can publish posts, photos and video to followers worldwide on shared platforms.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Diaspora networks share jobs, routes and housing instantly, so people move more freely.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Social Media"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "internet_governance sets rules for the network; social media is mass publishing on it.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "satellite_communications",
+   "name": "Satellite communications consortium",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "emerged": "~1,964 CE Intelsat agreement; ~1,965 CE Early Bird satellite",
+   "prereq": "communications_satellite AND international_organizations",
+   "prereqRationale": "communications_satellite: the technology; international_organizations: the treaty consortium that operates it.",
+   "rationale": "communications_satellite: the technology; international_organizations: the treaty consortium that operates it.",
+   "desc": "An international consortium runs satellites that carry telephone and television between continents.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Cheap intercontinental calls keep migrants tied to home, so migration chains span oceans.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Satellites (technology)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "universal_telephone_service is a domestic mandate; this is the international network.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "civil_satellite_navigation",
+   "name": "Civil satellite navigation",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "emerged": "~2,000 CE Selective Availability switched off, opening full GPS accuracy to civilians",
+   "prereq": "gps AND international_organizations",
+   "prereqRationale": "gps: the system; international_organizations: civil aviation and maritime bodies that won open civil access.",
+   "rationale": "gps: the system; international_organizations: civil aviation and maritime bodies that won open civil access.",
+   "desc": "Governments open military navigation satellites to free civilian use worldwide.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Anyone can fix position anywhere, so each exploration reaches further without getting lost.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Satellites (technology)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "gps is the technology; this is the policy of free civil access.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "script_reform",
+   "name": "Script and language reform",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "emerged": "~1,928 CE Turkish alphabet reform; ~1,956 CE simplified Chinese characters",
+   "prereq": "compulsory_education AND nationalism",
+   "prereqRationale": "compulsory_education: reform is delivered through schools; nationalism: reform serves the nation-state.",
+   "rationale": "compulsory_education: reform is delivered through schools; nationalism: reform serves the nation-state.",
+   "desc": "The state replaces or simplifies the national script and standard language to speed up mass literacy.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Easier reading opens promotion to more people, and one standard language carries orders across the country.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Chữ Nôm (Đại Việt unique civic)"
+   },
+   "distinctFrom": "language_academies codify an elite standard; script reform changes how the whole population writes.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "national_laboratories",
+   "name": "National laboratories",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "thought-learning",
+   "emerged": "~1,942 CE Manhattan Project laboratories; ~1,954 CE CERN",
+   "prereq": "research_university AND nuclear_physics",
+   "prereqRationale": "research_university: the scientists and methods; nuclear_physics: the field that first demanded big science.",
+   "rationale": "research_university: the scientists and methods; nuclear_physics: the field that first demanded big science.",
+   "desc": "The state builds large laboratories with permanent staff and giant instruments beyond any university's means.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Teams and instruments at national scale raise research yield.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Program"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Centralism (Naukograd policy)"
+   },
+   "distinctFrom": "science_policy funds research by grants; national labs are state-run research institutions.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "think_tanks",
+   "name": "Think tanks",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "thought-learning",
+   "emerged": "~1,916 CE Institute for Government Research (Brookings); ~1,948 CE RAND",
+   "prereq": "research_university AND (parliamentary_government OR mass_political_party)",
+   "prereqRationale": "research_university: trained social scientists; parliamentary_government OR mass_political_party: the demand for policy analysis.",
+   "rationale": "research_university: trained social scientists; parliamentary_government OR mass_political_party: the demand for policy analysis.",
+   "desc": "Independent institutes employ researchers to analyse public policy and propose reforms to governments and parties.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Organized policy research raises the rate of civic innovation; sparing CP use.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Globalism (Think-tanks policy)"
+   },
+   "distinctFrom": "political_philosophy is reflection on rule; think tanks are paid policy research institutes.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "national_accounts",
+   "name": "National accounts",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "thought-learning",
+   "emerged": "~1,934 CE Kuznets's national income estimates; ~1,953 CE UN System of National Accounts",
+   "prereq": "official_statistics AND income_tax",
+   "prereqRationale": "official_statistics: the statistical office; income_tax: returns supply the income data.",
+   "rationale": "official_statistics: the statistical office; income_tax: returns supply the income data.",
+   "desc": "Statisticians measure the whole economy's output, income and spending in one system of accounts each year.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Knowing the size of each sector lets the treasury set and collect taxes closer to capacity.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "official_statistics counts people; national accounts measure the economy.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "agricultural_research_system",
+   "name": "Agricultural research system",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "thought-learning",
+   "emerged": "~1,943 CE Mexican Agricultural Program; ~1,971 CE CGIAR",
+   "prereq": "agricultural_colleges AND scientific_plant_breeding",
+   "prereqRationale": "agricultural_colleges: trained agronomists; scientific_plant_breeding: the method.",
+   "rationale": "agricultural_colleges: trained agronomists; scientific_plant_breeding: the method.",
+   "desc": "National and international stations breed high-yield crop varieties and test them across climates.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Bred varieties suited to each region raise yields per field; a landmark of the Green Revolution.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "C2's agricultural_extension teaches farmers; this system breeds and tests the varieties.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "open_access_science",
+   "name": "Open access science",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "thought-learning",
+   "emerged": "~1,991 CE arXiv preprint server; ~2,002 CE Budapest Open Access Initiative",
+   "prereq": "internet AND science_policy",
+   "prereqRationale": "internet: free distribution; science_policy: funders mandate open publication.",
+   "rationale": "internet: free distribution; science_policy: funders mandate open publication.",
+   "desc": "Research papers and data are published free online for anyone to read and reuse.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Every institution reads all research without paywalls, cutting research cost.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "scientific_societies publish proceedings to members; open access publishes free to all.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "clinical_trials",
+   "name": "Clinical trials",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "thought-learning",
+   "emerged": "~1,948 CE Medical Research Council streptomycin trial",
+   "prereq": "medical_education_reform AND probability_statistics",
+   "prereqRationale": "medical_education_reform: research medicine in teaching hospitals; probability_statistics: randomization and significance.",
+   "rationale": "medical_education_reform: research medicine in teaching hospitals; probability_statistics: randomization and significance.",
+   "desc": "Treatments are tested by randomized controlled trials before they are adopted.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Only treatments that work are used, so university medicine saves more lives.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "medical_education_reform trains doctors; clinical trials test what they prescribe.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "operations_research",
+   "name": "Operations research",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "thought-learning",
+   "emerged": "~1,940 CE Blackett's operational research sections",
+   "prereq": "radar AND probability_statistics",
+   "prereqRationale": "radar: the first problems studied were radar operations; probability_statistics: the mathematics.",
+   "rationale": "radar: the first problems studied were radar operations; probability_statistics: the mathematics.",
+   "desc": "Scientists apply mathematics to routing, scheduling and supply problems of armies and firms.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Optimized routing and loading cuts the cost of hauling goods.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "national_accounts measure the economy; operations research optimizes its logistics.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "civil_space_agency",
+   "name": "Civil space agency",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "thought-learning",
+   "emerged": "~1,958 CE NASA; ~1,975 CE European Space Agency",
+   "prereq": "orbital_launch_vehicle AND science_policy",
+   "prereqRationale": "orbital_launch_vehicle: the means; science_policy: the state's research priorities that fund it.",
+   "rationale": "orbital_launch_vehicle: the means; science_policy: the state's research priorities that fund it.",
+   "desc": "A civilian agency runs space science, mapping and exploration programmes.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Orbital mapping and survey extend how far exploration can reach.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Space Race"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "national_laboratories pursue physics; the space agency runs exploration and earth survey.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "mass_literacy_campaigns",
+   "name": "Mass literacy campaigns",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "education",
+   "emerged": "~1,919 CE Soviet literacy decree (likbez); ~1,961 CE Cuban literacy campaign",
+   "prereq": "compulsory_education AND mass_press",
+   "prereqRationale": "compulsory_education: the school system mobilized; mass_press: cheap reading matter for new readers.",
+   "rationale": "compulsory_education: the school system mobilized; mass_press: cheap reading matter for new readers.",
+   "desc": "The state mobilizes teachers and students to teach every adult to read within a few years.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Adults who learn to read can move into skilled and official work: much faster promotion.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "compulsory_education schools children; literacy campaigns teach the adults left out.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "universal_secondary_education",
+   "name": "Universal secondary education",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "education",
+   "emerged": "~1,918 CE Fisher Education Act; ~1,944 CE Butler Education Act",
+   "prereq": "compulsory_education AND normal_schools",
+   "prereqRationale": "compulsory_education: the elementary base extended upward; normal_schools: the trained teachers needed.",
+   "rationale": "compulsory_education: the elementary base extended upward; normal_schools: the trained teachers needed.",
+   "desc": "Every child stays at school into the teens, in free state secondary schools.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "A whole cohort with secondary schooling supports much larger skilled and professional classes.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "humanist_colleges served an elite; universal secondary education enrols every child.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "mass_higher_education",
+   "name": "Mass higher education",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "education",
+   "emerged": "~1,944 CE GI Bill; ~1,963 CE Robbins Report",
+   "prereq": "research_university AND universal_secondary_education",
+   "prereqRationale": "research_university: the institutions expanded; universal_secondary_education: the qualified entrants.",
+   "rationale": "research_university: the institutions expanded; universal_secondary_education: the qualified entrants.",
+   "desc": "Public grants and new campuses open university study to a large share of each generation.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.03
+    },
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Many new campuses with public funding reach maturity fast, and degrees open promotion widely.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "research_university is a model of research; mass higher education is enrolment at scale.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "distance_education",
+   "name": "Distance education",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "education",
+   "emerged": "~1,969 CE Open University",
+   "prereq": "mass_higher_education AND (public_broadcasting OR television)",
+   "prereqRationale": "mass_higher_education: the degrees offered; public_broadcasting OR television: the lectures were broadcast.",
+   "rationale": "mass_higher_education: the degrees offered; public_broadcasting OR television: the lectures were broadcast.",
+   "desc": "Adults study for degrees at home through broadcast lectures, post and later the internet.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Working adults gain qualifications without leaving work, widening promotion and the skilled share.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "mass_higher_education builds campuses; distance education reaches those who cannot attend.",
+   "magnitude": 7.5
+  },
+  {
+   "id": "international_student_exchange",
+   "name": "International student exchange",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "education",
+   "emerged": "~1,946 CE Fulbright Program; ~1,987 CE Erasmus Programme",
+   "prereq": "mass_higher_education AND international_organizations",
+   "prereqRationale": "mass_higher_education: the students and places; international_organizations: the treaty frameworks for exchange.",
+   "rationale": "mass_higher_education: the students and places; international_organizations: the treaty frameworks for exchange.",
+   "desc": "Governments fund students and scholars to study abroad and recognize each other's degrees.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Graduates with foreign degrees and contacts move far more readily across borders.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "cultural_institutes teach a language abroad; exchanges send students to study abroad.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "film_industry",
+   "name": "Film industry",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "arts-culture",
+   "emerged": "~1,911 CE first Hollywood studio; ~1,927 CE sound film",
+   "prereq": "photography AND electric_light",
+   "prereqRationale": "photography: the film image; electric_light: projection.",
+   "rationale": "photography: the film image; electric_light: projection.",
+   "desc": "Studios make feature films shown in thousands of cinemas to mass weekly audiences.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Cheap weekly escape for urban workers lowers the output cost of unrest.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_theatre is live drama; film is mass-reproduced drama shown everywhere at once.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "arts_councils",
+   "name": "Arts councils",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "arts-culture",
+   "emerged": "~1,946 CE Arts Council of Great Britain; ~1,965 CE National Endowment for the Arts",
+   "prereq": "arts_academies AND income_tax",
+   "prereqRationale": "arts_academies: the professional arts world funded; income_tax: the tax base that pays the grants.",
+   "rationale": "arts_academies: the professional arts world funded; income_tax: the tax base that pays the grants.",
+   "desc": "Public bodies grant tax money at arm's length to theatres, orchestras, galleries and artists.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Publicly funded arts widen civic culture beyond the market; sparing CP use.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "court_patronage is a ruler's taste; arts councils are arm's-length public funding.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "cultural_institutes",
+   "name": "Cultural institutes",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "arts-culture",
+   "emerged": "~1,934 CE British Council; ~1,951 CE Goethe-Institut",
+   "prereq": "national_literature AND resident_embassies",
+   "prereqRationale": "national_literature: the culture promoted; resident_embassies: the diplomatic network that hosts them.",
+   "rationale": "national_literature: the culture promoted; resident_embassies: the diplomatic network that hosts them.",
+   "desc": "States fund institutes abroad that teach their language and present their culture.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Foreigners who have learned the language find it easier to move to the country.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Hegemony (Cultural Imperialism policy)"
+   },
+   "distinctFrom": "international_student_exchange sends students; institutes teach the language abroad.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "recorded_music_industry",
+   "name": "Recorded music industry",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "arts-culture",
+   "emerged": "~1,925 CE electrical recording; ~1,948 CE long-playing record",
+   "prereq": "radio_broadcasting AND public_opera",
+   "prereqRationale": "radio_broadcasting: the airplay that sells records; public_opera: the concert repertoire and paying public.",
+   "rationale": "radio_broadcasting: the airplay that sells records; public_opera: the concert repertoire and paying public.",
+   "desc": "Firms record and sell music to every home and radio station, making popular music a mass culture.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Music in every home and dance hall is a cheap shared pleasure that eases grievance.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "public_opera is live performance; recorded music is mass-reproduced sound.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "modernist_design",
+   "name": "Modernist design",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "arts-culture",
+   "emerged": "~1,919 CE Bauhaus; ~1,926 CE Frankfurt Kitchen in the New Frankfurt estates",
+   "prereq": "arts_academies AND reinforced_concrete",
+   "prereqRationale": "arts_academies: design as a taught discipline; reinforced_concrete: the material of standardized housing.",
+   "rationale": "arts_academies: design as a taught discipline; reinforced_concrete: the material of standardized housing.",
+   "desc": "Designers and architects plan compact, standardized dwellings and furniture for mass housing.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Efficient plans and fitted kitchens house more people well in the same dwelling stock.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "arts_academies train artists; modernist design applies art to mass housing and goods.",
+   "magnitude": 8.0
+  },
+  {
+   "id": "public_art_programmes",
+   "name": "Public art programmes",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "arts-culture",
+   "emerged": "~1,921 CE Mexican public mural programme; ~1,935 CE US Federal Art Project",
+   "prereq": "arts_academies AND mass_political_party",
+   "prereqRationale": "arts_academies: trained artists; mass_political_party: the mass politics that commissions public art.",
+   "rationale": "arts_academies: trained artists; mass_political_party: the mass politics that commissions public art.",
+   "desc": "The state employs artists to paint murals and make public works that teach history to all citizens.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "State employment sustains a larger professional artist class.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Planes Políticos (Muralismo tradition, Mexico unique civic)"
+   },
+   "distinctFrom": "arts_councils make grants at arm's length; public art programmes commission and employ artists directly.",
+   "magnitude": 8.0
+  }
+ ],
+ "newLanes": [
+  {
+   "name": "education",
+   "scope": "Schooling and training that form people rather than produce knowledge: letter and rhetoric schools, cathedral and madrasa schools, humanist colleges, teacher training, technical, agricultural and medical education, women's education, universal secondary and mass higher education, literacy campaigns, distance learning and student exchange. Research bodies (academies, universities as research institutions, laboratories) stay in thought-learning; C3's labour lane keeps apprenticeship and vocational training."
+  }
+ ],
+ "findings": [
+  "All 31 input nodes are D13 proposal civics (not in runtime) and no live entity requires any of them, so effectsNow is none for all and the group has no live unlocks; every audited and new node now carries 1-2 registry operand effects. No two nodes in one lane+Age share the same effect signature.",
+  "Dependency changes proposed: 3, no Age moves. public_museums replaces arts_academies with court_patronage (museums are opened princely and scholarly cabinets). mass_press replaces railway with steam_rotary (penny press = steam cylinder printing; prefer T7's new steam_printing_press if accepted). research_university adds the new chartered_universities (A6) to state its lineage; the A6 sweep already forces it, so no pacing cost.",
+  "Structural hole closed: the group had no node at all in A6 (500-1450), so learning jumped from state_academy (A5) to humanism (A7). New A6: cathedral_madrasa_schools, chartered_universities, translation_patronage, printed_classics, vernacular_literature, geographic_compendia.",
+  "Leaves: enlightenment had no dependent anywhere in the graph; bridged by public_libraries. Also bridged: public_opera (recorded_music_industry), public_postal_service (universal_telephone_service), public_broadcasting (distance_education), science_policy (open_access_science, civil_space_agency); press_freedom is already a prereq of C2's freedom_of_information. Deliberate leaves: state_gazette, statecraft_doctrine, heritage_preservation, professional_sport, data_protection, internet_governance.",
+  "New lane declared: education (14 new nodes, A4-A9). Without it, thought-learning would have to hold both research institutions and schooling, and A9 would need ~16 distinct operands in one lane.",
+  "Operand budget: before this file the other groups already exceed the cap on research.researchPointsCoefficient (0.59 vs 0.3), research.civicsPointsCoefficient (0.33 vs 0.3), society.grievanceRelief (1.27 vs 0.6), society.unrestOutputDrag (1.0 vs 0.6), demographics.mortalityPerYear, starvation operands, harvestVariance and universities.maxResearchCostReduction. This group therefore avoided demographics and harvest operands entirely, kept RP and CP to 6 nodes each (sum 0.15 and 0.12), and leaned on under-used operands (mobility, migration, catchment, price release, fog, universities maturity/mortality, authority reach). The integrator still needs a per-operand rescale or the society.* and RP/CP sums saturate long before A9.",
+  "Overlap control: drafts that duplicated other groups' new nodes were dropped (C1 sacred_sites, megalithic_monuments; C2 storehouse_sealing, published_law, freedom_of_information; C3 craft_specialists/apprenticeship, vocational_training; T8 herbal_remedies, signal_beacons). id translation_movement was avoided because the entity inst.translation_movement exists. Integration suggestion: C2's agricultural_extension could require agricultural_colleges (new here) instead of research_university AND agricultural_chemistry.",
+  "Comparators: the supplied Civ VI data is the base ruleset only (no R&F/GS civics) and treats education and printing as technologies; Civ VII puts press, propaganda, think-tanks and scholarship into policies (Free Press, Propaganda, Think-tanks, Scholars, Literature) and civ-unique trees. Most new education/information nodes are therefore none-by-design there; analogues were named only where the data has them.",
+  "Pacing: the D13 costs of this group's A9 nodes (19,890-28,130) sit at or above the A9 civics median; with 27 new A9 nodes here the A9 civics cohort grows sharply, so the per-(tree, Age) scale of contract §5 must lower A9 civic unit costs or the civics A9 sweep will lag the technology tree."
+ ]
+}

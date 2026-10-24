@@ -1,0 +1,3437 @@
+{
+ "group": "T3-industry-construction-infra",
+ "audit": [
+  {
+   "id": "cordage",
+   "name": "Cordage",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "industry",
+   "cost": 1050.0,
+   "prereq": null,
+   "dependents": [
+    "basketry",
+    "bow_simple",
+    "fishing_hook",
+    "hafting",
+    "paper",
+    "raft",
+    "sewing",
+    "shelter_hut",
+    "sling",
+    "spinning_spindle",
+    "wool"
+   ],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "Root node; no prerequisite.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04,
+     "why": "Nets, snares and lines let each forager-fisher take more fish and small game per year."
+    }
+   ],
+   "costConcern": "1,050 is high for an A1 root next to basketry 620 and shelter_hut 260, but it is a hub that unlocks most of A1-A2; acceptable.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct root: fibre twisting has no technical precursor beyond hands and plants. Hub node with 11 dependents; keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "basketry",
+   "name": "Basketry",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "industry",
+   "cost": 620.0,
+   "prereq": "cordage",
+   "dependents": [
+    "papyrus",
+    "pottery_open_fired"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cordage",
+     "verdict": "keep",
+     "why": "Coiled and twined basketry uses the same twisting and binding of fibre that cordage establishes."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A1 node; prerequisites from A1.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02,
+     "why": "Baskets let households cache nuts, seeds and dried fish, so a lean season is partly absorbed from store."
+    }
+   ],
+   "costConcern": "620 fine for A1.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Causal prerequisite is right. The live unlock (infra.fish_weir) is its main effect; a small storage effect gives the container role its own weight.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Pottery"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "infra.fish_weir"
+   ]
+  },
+  {
+   "id": "shelter_hut",
+   "name": "Framed hut",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "construction",
+   "cost": 260.0,
+   "prereq": "cordage",
+   "dependents": [
+    "timber_frame"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cordage",
+     "verdict": "keep",
+     "why": "Framed huts are lashed together; without cordage there is no frame of poles or bones."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A1 node; prerequisites from A1.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.05,
+     "why": "A lashed frame with a turf or hide cover outlasts a windbreak, so dwellings survive more seasons."
+    }
+   ],
+   "costConcern": "260 is the cheapest node in the group; fine for a single-prerequisite A1 step.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Minimal and correct prerequisite; the frame is the bridge to timber_frame.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "hide_working",
+   "name": "Hide working",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "industry",
+   "cost": 620.0,
+   "prereq": "knapping_levallois",
+   "dependents": [
+    "bellows",
+    "composite_bow",
+    "sewing",
+    "siege_ram"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "knapping_levallois",
+     "verdict": "keep",
+     "why": "Hide scrapers are prepared-core flake tools; the Middle Palaeolithic scraper kit is what makes systematic hide work possible."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A1 node; prerequisites from A1.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02,
+     "why": "Scraped and softened hides make clothing and covers that cut exposure deaths in cold seasons."
+    }
+   ],
+   "costConcern": "620 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct causal prerequisite (cross-lane to materials, same Age).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "sewing",
+   "name": "Eyed needle and sewing",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "industry",
+   "cost": 260.0,
+   "prereq": "hide_working AND cordage",
+   "dependents": [
+    "collar_harness",
+    "saddle"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "hide_working",
+     "verdict": "keep",
+     "why": "Fitted garments are sewn from prepared hides and furs."
+    },
+    {
+     "atom": "cordage",
+     "verdict": "keep",
+     "why": "Sewing needs thread or sinew twisted into cord."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A1 node; prerequisites from A1.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.05,
+     "why": "Tailored, sewn clothing and tents let people cross and settle cold country, so migrants travel further."
+    }
+   ],
+   "costConcern": "260 is cheap for a two-prerequisite node; fine for A1.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "AND is right: both the material (hide) and the thread are required. The node is the cold-climate expansion enabler, so its effect is on migration reach.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "wool",
+   "name": "Wool sheep and fleece",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "industry",
+   "cost": 620.0,
+   "prereq": "sheep_goat AND cordage",
+   "dependents": [
+    "spinning_spindle"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "sheep_goat",
+     "verdict": "keep",
+     "why": "Woolly fleece is a product of selective breeding of domestic sheep."
+    },
+    {
+     "atom": "cordage",
+     "verdict": "keep",
+     "why": "Weak but harmless: fleece was selected because fibre could already be twisted into yarn; it keeps the fibre logic of the lane."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A1, A2.",
+   "crossTree": "Cross-lane to agriculture (sheep_goat), same tree.",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.05,
+     "why": "Fleece is a second, annual product from the same flock, so each herder yields more."
+    }
+   ],
+   "costConcern": "620 fine for A2.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep: the sheep_goat atom is essential; cordage is weak but not wrong and removing it would change nothing material.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Animal Husbandry"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Animal Husbandry"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mudbrick",
+   "name": "Mudbrick",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "construction",
+   "cost": 1050.0,
+   "prereq": null,
+   "dependents": [
+    "arch",
+    "fired_brick",
+    "kiln_updraft"
+   ],
+   "prereqAssessment": [],
+   "andOr": "ok",
+   "ageGap": "Root node; no prerequisite.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "housing.buildTimberPerDwelling",
+     "delta": 0.06,
+     "why": "Earth walls replace timber walls, so a dwelling needs less timber."
+    }
+   ],
+   "costConcern": "1,050 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Root is defensible: moulded earth bricks need no prior technique in the tree. The live unlock (building.city_wall) is kept; the timber saving is its housing role.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Masonry (Ancient Walls)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Pottery (Brickyard)"
+   },
+   "effects": [
+    {
+     "operand": "housing.buildTimberPerDwelling",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": [
+    "building.city_wall"
+   ]
+  },
+  {
+   "id": "lime_plaster",
+   "name": "Lime plaster",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "construction",
+   "cost": 1240.0,
+   "prereq": "fire_making",
+   "dependents": [
+    "concrete_pozzolan"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "fire_making",
+     "verdict": "keep",
+     "why": "Quicklime is made by burning limestone at ~800 C; controlled fire is the causal precursor."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A1.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.04,
+     "why": "Plastered walls and floors shed rain and damp, so earth and stone houses last longer."
+    },
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.02,
+     "why": "Plastered bins and floors keep stored grain dry and away from rodents."
+    }
+   ],
+   "costConcern": "1,240 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct, minimal causal prerequisite (cross-lane to energy, A1 to A2).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.04
+    },
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "timber_frame",
+   "name": "Timber-frame construction",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "construction",
+   "cost": 880.0,
+   "prereq": "ground_stone_early AND shelter_hut",
+   "dependents": [
+    "canal_lock",
+    "loom_warp_weighted",
+    "track_road",
+    "traction_trebuchet",
+    "well"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "ground_stone_early",
+     "verdict": "keep",
+     "why": "Ground stone axes and adzes fell and shape the posts and beams."
+    },
+    {
+     "atom": "shelter_hut",
+     "verdict": "keep",
+     "why": "The framed hut is the direct structural ancestor of the post-and-beam house."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A1.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.05,
+     "why": "Post-and-beam longhouses roof large spaces, so one dwelling houses a larger household."
+    }
+   ],
+   "costConcern": "880 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. After the loom change it still has four dependents (canal_lock, track_road, traction_trebuchet, well).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "stone_dry",
+   "name": "Dry-stone construction",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "construction",
+   "cost": 880.0,
+   "prereq": "ground_stone_early",
+   "dependents": [
+    "aqueduct_channel",
+    "ashlar_masonry",
+    "mining_shaft",
+    "oil_press",
+    "olive_press_beam",
+    "terrace",
+    "well"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "ground_stone_early",
+     "verdict": "keep",
+     "why": "Pecked and ground stone working is the precursor of fitted unmortared stone."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A1.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "housing.upkeepTimberPerDwellingYear",
+     "delta": 0.03,
+     "why": "Stone footings and walls rot no timber, so less timber goes into yearly repair."
+    }
+   ],
+   "costConcern": "880 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct. Hub for walls, harbour and built roads (all live).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Masonry (Ancient Walls)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Masonry (Ancient Walls)"
+   },
+   "effects": [
+    {
+     "operand": "housing.upkeepTimberPerDwellingYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.city_wall",
+    "building.harbour",
+    "infra.road_built"
+   ]
+  },
+  {
+   "id": "well",
+   "name": "Dug well",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "infrastructure",
+   "cost": 440.0,
+   "prereq": "stone_dry OR timber_frame",
+   "dependents": [
+    "percussion_drilling",
+    "qanat"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "stone_dry",
+     "verdict": "keep",
+     "why": "Stone-lined shafts (Atlit-Yam) are one way to keep a well open."
+    },
+    {
+     "atom": "timber_frame",
+     "verdict": "keep",
+     "why": "Timber-lined shafts (LBK oak wells) are the other."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02,
+     "why": "Groundwater from a lined shaft is cleaner and steadier than pond or stream water."
+    }
+   ],
+   "costConcern": "440 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "OR is right: either lining technique suffices.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Stepwell (Maurya unique improvement)"
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "infra.well"
+   ]
+  },
+  {
+   "id": "spinning_spindle",
+   "name": "Spindle spinning",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "industry",
+   "cost": 620.0,
+   "prereq": "cordage AND (flax OR wool OR cotton_cultivation)",
+   "dependents": [
+    "dyeing",
+    "loom_warp_weighted",
+    "spinning_wheel"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cordage",
+     "verdict": "keep",
+     "why": "The spindle mechanises the twisting that cordage does by hand."
+    },
+    {
+     "atom": "flax",
+     "verdict": "keep",
+     "why": "One of three alternative fibre sources; OR is right."
+    },
+    {
+     "atom": "wool",
+     "verdict": "keep",
+     "why": "Alternative fibre source; OR is right."
+    },
+    {
+     "atom": "cotton_cultivation",
+     "verdict": "keep",
+     "why": "Alternative fibre source; OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A1, A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03,
+     "why": "Spun thread at volume makes woven sacks and bags, so grain and other bulk goods are packed and hauled more cheaply."
+    }
+   ],
+   "costConcern": "620 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "cordage AND (any fibre) is the right shape: any one spinnable fibre suffices.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "loom_warp_weighted",
+   "name": "Warp-weighted loom",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "industry",
+   "cost": 2090.0,
+   "prereq": "spinning_spindle AND timber_frame",
+   "dependents": [
+    "fulling_mill",
+    "horizontal_loom",
+    "sail_square",
+    "silk"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "spinning_spindle",
+     "verdict": "keep",
+     "why": "A loom needs spun thread for the warp."
+    },
+    {
+     "atom": "timber_frame",
+     "verdict": "remove",
+     "why": "A warp-weighted loom is two uprights and a beam leaned on a wall; it does not need post-and-beam house joinery. Chronology also fails: Çatalhöyük textiles (~7,000 BCE) predate LBK timber framing (~5,500 BCE)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A2. After the change its only prerequisite is A2, same Age.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.04,
+     "why": "Cloth production supports specialist weavers and workshops, so a larger specialist class can exist."
+    }
+   ],
+   "costConcern": "2,090 is high against A2 peers (440-1,760); expect the per-(tree, Age) calibration to bring it down.",
+   "action": "remove-prereq",
+   "newPrereq": "spinning_spindle",
+   "newAge": null,
+   "rationale": "Remove timber_frame: not causal, and dated 1,500 years after the node's own emerged date (contract §6 chronology). The textile workshop it requires (inst.textile_workshop) is not live, so the node gets a specialist-class effect.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "dyeing",
+   "name": "Dyeing",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "industry",
+   "cost": 1240.0,
+   "prereq": "spinning_spindle AND ochre_processing",
+   "dependents": [
+    "synthetic_dye"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "spinning_spindle",
+     "verdict": "keep",
+     "why": "Dye is applied to fibre and thread; spun fibre is what is dyed."
+    },
+    {
+     "atom": "ochre_processing",
+     "verdict": "keep",
+     "why": "Mineral pigment preparation is the precursor of dye and mordant chemistry."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A1, A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03,
+     "why": "Coloured cloth and dyestuffs are high-value trade goods, so merchants close price gaps between places faster."
+    }
+   ],
+   "costConcern": "1,240 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND; A1 ochre to A2 dyeing is a reasonable cross-Age chain.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Irrigation (Plantation on Dyes)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "irrigation_basin",
+   "name": "Basin irrigation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "infrastructure",
+   "cost": 440.0,
+   "prereq": "cereal_cultivation OR root_crop",
+   "dependents": [
+    "drip_irrigation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Floodplain basins were built for cereal fields."
+    },
+    {
+     "atom": "root_crop",
+     "verdict": "keep",
+     "why": "Alternative cultivated base; OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.04,
+     "why": "Bunded basins hold the flood in place, so harvests track the flood less erratically."
+    }
+   ],
+   "costConcern": "440 is low next to irrigation_canal 1,760; the gap is plausible (bunding is simpler than levelled channels).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "OR over staple crops is right.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Irrigation"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Irrigation"
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "infra.basin_irrigation"
+   ]
+  },
+  {
+   "id": "irrigation_canal",
+   "name": "Canal irrigation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "infrastructure",
+   "cost": 1760.0,
+   "prereq": "cereal_cultivation OR root_crop",
+   "dependents": [
+    "canal_lock",
+    "drip_irrigation",
+    "green_revolution",
+    "noria",
+    "water_rights"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cereal_cultivation",
+     "verdict": "keep",
+     "why": "Canal irrigation served cereal fields."
+    },
+    {
+     "atom": "root_crop",
+     "verdict": "keep",
+     "why": "Alternative cultivated base; OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites from A2.",
+   "crossTree": "Civic dependents: water_rights. Dependent water_rights is a civic.",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.05,
+     "why": "Water led beyond the rainfall line makes each cultivated square kilometre yield more."
+    }
+   ],
+   "costConcern": "1,760 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "OR over staples is right; surveying (A3) is not required for the Samarran canals.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Irrigation"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Irrigation"
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [
+    "infra.canal_irrigation"
+   ]
+  },
+  {
+   "id": "stone_fortification",
+   "name": "Ashlar fortification",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "construction",
+   "cost": 2490.0,
+   "prereq": "ashlar_masonry AND surveying",
+   "dependents": [
+    "trace_italienne"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "ashlar_masonry",
+     "verdict": "keep",
+     "why": "Cut-stone walls are ashlar work."
+    },
+    {
+     "atom": "surveying",
+     "verdict": "keep",
+     "why": "Laying out curtain walls, towers and gate approaches needs measured layout."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A4 node; prerequisites from A3.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03,
+     "why": "Garrisoned stone strongholds hold distant districts, so administrative reach decays more slowly."
+    }
+   ],
+   "costConcern": "2,490 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct. Its live unlocks are AND/OR with other nodes (castle also needs vault_dome; lighthouse is already open via ashlar), so a reach effect gives it its own weight.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Masonry (Ancient Walls)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Masonry (Ancient Walls)"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.castle",
+    "building.lighthouse"
+   ]
+  },
+  {
+   "id": "qanat",
+   "name": "Qanat",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "infrastructure",
+   "cost": 2490.0,
+   "prereq": "well AND surveying AND mining_shaft",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "well",
+     "verdict": "keep",
+     "why": "The mother well and access shafts are dug wells."
+    },
+    {
+     "atom": "surveying",
+     "verdict": "keep",
+     "why": "The gradient of a qanat (often <1:1000) needs levelling."
+    },
+    {
+     "atom": "mining_shaft",
+     "verdict": "keep",
+     "why": "Underground tunnelling between shafts is mining technique."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A4 node; prerequisites from A2, A3.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03,
+     "why": "Aquifer water reaches arid plains without evaporation, raising yields where rain alone fails."
+    }
+   ],
+   "costConcern": "2,490 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct three-way AND. Deliberate leaf.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Engineering (Aqueduct)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "infra.qanat"
+   ]
+  },
+  {
+   "id": "aqueduct_tunnel",
+   "name": "Rock-cut water tunnel",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "infrastructure",
+   "cost": 1760.0,
+   "prereq": "mining_shaft AND surveying",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "mining_shaft",
+     "verdict": "keep",
+     "why": "Rock-cut tunnels are mining technique applied to water."
+    },
+    {
+     "atom": "surveying",
+     "verdict": "keep",
+     "why": "Eupalinos's tunnel was dug from both ends and met; surveying is essential."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A4 node; prerequisites from A3.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02,
+     "why": "A protected, buried supply keeps city water clean and secure, under siege too."
+    }
+   ],
+   "costConcern": "1,760 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. Deliberate leaf; infra.aqueduct is OR with channel and arcade, so the node also carries a health effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Engineering (Aqueduct)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "infra.aqueduct"
+   ]
+  },
+  {
+   "id": "aqueduct_channel",
+   "name": "Aqueduct channel",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "infrastructure",
+   "cost": 2490.0,
+   "prereq": "surveying AND stone_dry",
+   "dependents": [
+    "aqueduct_arcade"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "surveying",
+     "verdict": "keep",
+     "why": "A gravity channel over distance needs a measured fall."
+    },
+    {
+     "atom": "stone_dry",
+     "verdict": "keep",
+     "why": "The channel is lined and bridged in stone (Jerwan)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A4 node; prerequisites from A2, A3.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.03,
+     "why": "Water piped into the city supports denser urban households."
+    }
+   ],
+   "costConcern": "2,490 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. Feeds aqueduct_arcade.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Engineering (Aqueduct)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "infra.aqueduct"
+   ]
+  },
+  {
+   "id": "arch",
+   "name": "True arch",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "construction",
+   "cost": 1760.0,
+   "prereq": "mudbrick AND surveying",
+   "dependents": [
+    "aqueduct_arcade",
+    "bridge_stone",
+    "vault_dome"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "mudbrick",
+     "verdict": "keep",
+     "why": "The first voussoir arches are Mesopotamian mudbrick."
+    },
+    {
+     "atom": "surveying",
+     "verdict": "keep",
+     "why": "Laying out the curve and the centring needs measured geometry; marginal but defensible."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites from A2, A3.",
+   "crossTree": "Cross-tree none; cross-lane to science (surveying).",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "housing.buildTimberPerDwelling",
+     "delta": 0.04,
+     "why": "Arches and vaults roof rooms without long timber beams, which timber-poor plains lacked."
+    }
+   ],
+   "costConcern": "1,760 fine for A3.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep both atoms. surveying is the weaker atom, but replacing it would add an edge without evidence.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Engineering"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Engineering"
+   },
+   "effects": [
+    {
+     "operand": "housing.buildTimberPerDwelling",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "olive_press_beam",
+   "name": "Beam press",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "industry",
+   "cost": 1240.0,
+   "prereq": "oil_press AND stone_dry",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "oil_press",
+     "verdict": "keep",
+     "why": "The beam press is a better oil press."
+    },
+    {
+     "atom": "stone_dry",
+     "verdict": "keep",
+     "why": "Press beds, weights and anchor stones are cut and set stone."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A4 node; prerequisites from A2. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change.",
+   "crossTree": "Cross-lane to food (oil_press).",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.03,
+     "why": "Lever pressure extracts more oil from the same olive crop, so each grower's labour yields more."
+    }
+   ],
+   "costConcern": "1,240 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. Deliberate leaf; oil export volumes are its game role.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "water_screw",
+   "name": "Water screw",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "infrastructure",
+   "cost": 1760.0,
+   "prereq": "mechanics_archimedean",
+   "dependents": [
+    "screw_propeller"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "mechanics_archimedean",
+     "verdict": "keep",
+     "why": "The screw is the Archimedean helix applied to lifting."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A5.",
+   "crossTree": "Dependent screw_propeller (naval) is a sound downstream link.",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04,
+     "why": "Screws drained Roman mines (Rio Tinto), so miners worked deeper ore."
+    }
+   ],
+   "costConcern": "1,760 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct, single causal prerequisite.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "noria",
+   "name": "Water-lifting wheel",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "infrastructure",
+   "cost": 2960.0,
+   "prereq": "wheel_solid AND irrigation_canal",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "wheel_solid",
+     "verdict": "keep",
+     "why": "A bucket wheel is a wheel on an axle."
+    },
+    {
+     "atom": "irrigation_canal",
+     "verdict": "keep",
+     "why": "The noria lifts from a channel or river into an irrigation system."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A2. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.04,
+     "why": "Lifted water irrigates fields above river level, so the irrigated share of arable land rises."
+    }
+   ],
+   "costConcern": "2,960 is high against water_screw 1,760 for a similar lifting device; flag only.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. Deliberate leaf.",
+   "civ6": {
+    "relation": "different",
+    "analog": "The Wheel (Water Mill)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.yieldPerArableKm2PerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "gearing",
+   "name": "Gear trains",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "industry",
+   "cost": 5910.0,
+   "prereq": "mechanics_archimedean AND casting_closed",
+   "dependents": [
+    "crank_connecting_rod",
+    "escapement_verge"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "mechanics_archimedean",
+     "verdict": "keep",
+     "why": "Gear theory and calculation rest on Hellenistic mechanics."
+    },
+    {
+     "atom": "casting_closed",
+     "verdict": "keep",
+     "why": "Bronze gear blanks are cast; the Antikythera gears are cut bronze sheet and castings."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A3, A5.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02,
+     "why": "Geared instruments compute astronomical cycles, the start of the scientific-instrument tradition."
+    }
+   ],
+   "costConcern": "5,910 is about twice the A5 lane peers (2,960-3,520); flag for calibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Machinery"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Machinery"
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "vault_dome",
+   "name": "Vault and dome",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "construction",
+   "cost": 3520.0,
+   "prereq": "arch AND (concrete_pozzolan OR fired_brick OR ashlar_masonry)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "arch",
+     "verdict": "keep",
+     "why": "Vaults and domes are arches extended or rotated."
+    },
+    {
+     "atom": "concrete_pozzolan",
+     "verdict": "keep",
+     "why": "Roman concrete vaults; alternative route, OR is right."
+    },
+    {
+     "atom": "fired_brick",
+     "verdict": "keep",
+     "why": "Brick vaults (Byzantine, Sasanian); alternative route."
+    },
+    {
+     "atom": "ashlar_masonry",
+     "verdict": "keep",
+     "why": "Cut-stone vaults; alternative route."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A3, A5.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.03,
+     "why": "Masonry and concrete roofs replace timber roofs that rot and burn."
+    }
+   ],
+   "costConcern": "3,520 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "arch AND (any vaulting material) is the right shape.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Construction"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Currency (Bath)"
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.bathhouse",
+    "building.castle",
+    "infra.sewer"
+   ]
+  },
+  {
+   "id": "bridge_stone",
+   "name": "Stone arch bridge",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "construction",
+   "cost": 2490.0,
+   "prereq": "arch AND (concrete_pozzolan OR ashlar_masonry)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "arch",
+     "verdict": "keep",
+     "why": "A stone bridge is a chain of arches."
+    },
+    {
+     "atom": "concrete_pozzolan",
+     "verdict": "keep",
+     "why": "Roman bridge piers in concrete; alternative."
+    },
+    {
+     "atom": "ashlar_masonry",
+     "verdict": "keep",
+     "why": "Cut-stone voussoirs; alternative."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A3, A5.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.04,
+     "why": "Permanent river crossings remove fords and ferries, so overland travel is faster."
+    }
+   ],
+   "costConcern": "2,490 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND/OR. Deliberate leaf; its value is the live bridge.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Engineering (Ancient Bridge)"
+   },
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "infra.bridge"
+   ]
+  },
+  {
+   "id": "aqueduct_arcade",
+   "name": "Arcaded aqueduct",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "infrastructure",
+   "cost": 3520.0,
+   "prereq": "aqueduct_channel AND arch",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "aqueduct_channel",
+     "verdict": "keep",
+     "why": "The arcade carries the gravity channel."
+    },
+    {
+     "atom": "arch",
+     "verdict": "keep",
+     "why": "Arcades are tiers of arches."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A3, A4.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.03,
+     "why": "Abundant piped water for fountains and baths lowers urban disease."
+    }
+   ],
+   "costConcern": "3,520 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. Deliberate leaf.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Engineering (Aqueduct)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.bathhouse",
+    "infra.aqueduct"
+   ]
+  },
+  {
+   "id": "silk",
+   "name": "Sericulture",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "industry",
+   "cost": 620.0,
+   "prereq": "loom_warp_weighted AND orchard",
+   "dependents": [
+    "drawloom"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "loom_warp_weighted",
+     "verdict": "keep",
+     "why": "Silk is a weaving fibre; a loom is needed."
+    },
+    {
+     "atom": "orchard",
+     "verdict": "keep",
+     "why": "Mulberry cultivation is tree-crop husbandry."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites from A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.05,
+     "why": "Silk is the archetypal high-value long-distance good, so trade networks close price gaps faster."
+    }
+   ],
+   "costConcern": "620 is low for A3 (peers 1,760-2,960); flag for the integrator, no change proposed here.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. The node is the root of the figured-silk branch (drawloom).",
+   "civ6": {
+    "relation": "different",
+    "analog": "Irrigation (Plantation on Silk)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "fulling_mill",
+   "name": "Fulling mill",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "industry",
+   "cost": 4970.0,
+   "prereq": "trip_hammer AND loom_warp_weighted",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "trip_hammer",
+     "verdict": "keep",
+     "why": "Fulling stocks are cam-driven water hammers."
+    },
+    {
+     "atom": "loom_warp_weighted",
+     "verdict": "keep",
+     "why": "There must be woven woollen cloth to full."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A2, A5.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [],
+   "costConcern": "4,970 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. The live building is the node's effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Apprenticeship (Workshop)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Machinery"
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.fulling_mill"
+   ]
+  },
+  {
+   "id": "spinning_wheel",
+   "name": "Spinning wheel",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "industry",
+   "cost": 4970.0,
+   "prereq": "spinning_spindle AND wheel_solid",
+   "dependents": [
+    "spinning_jenny",
+    "water_frame"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "spinning_spindle",
+     "verdict": "keep",
+     "why": "The wheel drives a spindle."
+    },
+    {
+     "atom": "wheel_solid",
+     "verdict": "keep",
+     "why": "A wheel on an axle, belt-driven."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A2. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03,
+     "why": "Thread three times faster makes cloth cheaper, easing the Comfort need households feel."
+    }
+   ],
+   "costConcern": "4,970 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "horizontal_loom",
+   "name": "Horizontal treadle loom",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "industry",
+   "cost": 2960.0,
+   "prereq": "loom_warp_weighted",
+   "dependents": [
+    "drawloom",
+    "flying_shuttle"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "loom_warp_weighted",
+     "verdict": "keep",
+     "why": "The treadle loom develops the upright loom."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A2. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03,
+     "why": "Professional weaving becomes a trade that household spinners can rise into."
+    }
+   ],
+   "costConcern": "2,960 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cotton_gin_roller",
+   "name": "Roller cotton gin",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "industry",
+   "cost": 2960.0,
+   "prereq": "wheel_solid AND cotton_cultivation",
+   "dependents": [
+    "cotton_gin_saw"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "wheel_solid",
+     "verdict": "keep",
+     "why": "Rollers turned by a crank wheel."
+    },
+    {
+     "atom": "cotton_cultivation",
+     "verdict": "keep",
+     "why": "There must be cotton to gin."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A2. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03,
+     "why": "Ginned lint is compact and ready to spin, so raw cotton stocks reach market faster."
+    }
+   ],
+   "costConcern": "2,960 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND.",
+   "civ6": {
+    "relation": "different",
+    "analog": "Irrigation (Plantation on Cotton)"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "crank_connecting_rod",
+   "name": "Crank and connecting rod",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "industry",
+   "cost": 4180.0,
+   "prereq": "gearing AND water_mill",
+   "dependents": [
+    "blast_furnace_water",
+    "farm_machinery",
+    "steam_rotary",
+    "wire_drawing"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "gearing",
+     "verdict": "keep",
+     "why": "Mill gear trains feed the crank."
+    },
+    {
+     "atom": "water_mill",
+     "verdict": "keep",
+     "why": "Water power drives the first crank-and-rod sawmills (Hierapolis)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A5.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.05,
+     "why": "Powered saws and pumps raise timber and mining output per worker."
+    }
+   ],
+   "costConcern": "4,180 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Machinery"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Machinery (Sawmill)"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "escapement_verge",
+   "name": "Verge escapement",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "industry",
+   "cost": 7030.0,
+   "prereq": "gearing AND water_clock",
+   "dependents": [
+    "longitude_problem",
+    "slide_rest_lathe",
+    "wheellock"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "gearing",
+     "verdict": "keep",
+     "why": "A clock is a gear train."
+    },
+    {
+     "atom": "water_clock",
+     "verdict": "keep",
+     "why": "The regulated timekeeping tradition the escapement mechanises."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A3, A5.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02,
+     "why": "Accurate clocks serve astronomy and found the precision-instrument craft."
+    }
+   ],
+   "costConcern": "7,030 is the most expensive A6 node in the lane; flag for calibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "canal_lock",
+   "name": "Pound lock",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "infrastructure",
+   "cost": 4180.0,
+   "prereq": "irrigation_canal AND timber_frame",
+   "dependents": [
+    "canal_navigation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "irrigation_canal",
+     "verdict": "keep",
+     "why": "Locks are built on dug canals."
+    },
+    {
+     "atom": "timber_frame",
+     "verdict": "keep",
+     "why": "Mitre and guillotine lock gates are framed timber."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites from A2. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.06,
+     "why": "Locks let boats climb gradients, so canal and river haulage gets cheaper."
+    }
+   ],
+   "costConcern": "4,180 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "transport.riverCostFactor",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "type_founding",
+   "name": "Type founding",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "industry",
+   "cost": 8360.0,
+   "prereq": "casting_closed",
+   "dependents": [
+    "printing_press"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "casting_closed",
+     "verdict": "keep",
+     "why": "Type is cast in a closed hand mould."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 node; prerequisites from A3. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change. Single A3 prerequisite for an A7 node: a four-Age gap, accepted.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02,
+     "why": "Cheap uniform type makes broadsheets, statutes and catechisms cheap to set."
+    }
+   ],
+   "costConcern": "8,360 is high against canal_navigation 5,910; flag only.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. The A3-to-A7 gap is large, but nothing between them is causally required (punch-cutting is goldsmith work, outside the tree).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Printing"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "canal_navigation",
+   "name": "Navigation canal",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "infrastructure",
+   "cost": 5910.0,
+   "prereq": "canal_lock AND surveying",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "canal_lock",
+     "verdict": "keep",
+     "why": "Summit-level freight canals need flights of locks."
+    },
+    {
+     "atom": "surveying",
+     "verdict": "keep",
+     "why": "Route and summit levels are surveyed."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 node; prerequisites from A3, A6.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.06,
+     "why": "Bulk freight by canal costs about a quarter of road haulage."
+    }
+   ],
+   "costConcern": "5,910 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. Deliberate leaf; the live canal is its main effect.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": [
+    "infra.navigation_canal"
+   ]
+  },
+  {
+   "id": "cylinder_boring",
+   "name": "Precision cylinder boring",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "cost": 33450.0,
+   "prereq": "cannon_cast_iron AND water_mill",
+   "dependents": [
+    "slide_rest_lathe",
+    "steam_rotary"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cannon_cast_iron",
+     "verdict": "keep",
+     "why": "Wilkinson's boring mill was a cannon-boring machine."
+    },
+    {
+     "atom": "water_mill",
+     "verdict": "keep",
+     "why": "The boring bar was water-driven."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A5, A7.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.05,
+     "why": "Sealed cylinders made Watt engines efficient mine pumps, so miners work deeper."
+    }
+   ],
+   "costConcern": "33,450 is about 4x the A8 industry median (~8,360); flag for calibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND (cross-lane to military).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steam Power"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "slide_rest_lathe",
+   "name": "Slide-rest screw-cutting lathe",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "cost": 33450.0,
+   "prereq": "cylinder_boring AND escapement_verge",
+   "dependents": [
+    "interchangeable_parts",
+    "milling_machine",
+    "rifled_artillery"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cylinder_boring",
+     "verdict": "keep",
+     "why": "Heavy precision boring precedes the slide rest."
+    },
+    {
+     "atom": "escapement_verge",
+     "verdict": "keep",
+     "why": "Clockmakers' screw-cutting lathes are the other ancestor."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A6, A8.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.04,
+     "why": "Machined, standard-threaded iron parts make implements that wear less and can be repaired."
+    }
+   ],
+   "costConcern": "33,450 is an outlier in A8 industry; flag.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. Its only entity (inst.standard_threads) is not live, so it carries an operand effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Industrialization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mass Production"
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "interchangeable_parts",
+   "name": "Interchangeable parts",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "cost": 11830.0,
+   "prereq": "slide_rest_lathe",
+   "dependents": [
+    "automobile_mass",
+    "bicycle",
+    "breech_loading_rifle"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "slide_rest_lathe",
+     "verdict": "keep",
+     "why": "Precision screw-cutting and turning."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A8.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.05,
+     "why": "Gauge-made implements with replaceable parts give equipped farmers better tools."
+    }
+   ],
+   "costConcern": "11,830 fine.",
+   "action": "add-prereq",
+   "newPrereq": "slide_rest_lathe AND milling_machine",
+   "newAge": null,
+   "rationale": "Add milling_machine: the Harpers Ferry and Springfield achievement (Hall 1820s, North) depended on milling, not only turning. Milling (~1,818) predates the node (~1,820).",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Replaceable Parts"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mass Production"
+   },
+   "effects": [
+    {
+     "operand": "production.toolYieldBonusMax",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "milling_machine",
+   "name": "Milling machine",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "cost": 5910.0,
+   "prereq": "slide_rest_lathe",
+   "dependents": [
+    "gas_engine",
+    "numerical_control"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "slide_rest_lathe",
+     "verdict": "keep",
+     "why": "Lead-screw feeds and precise slides."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A8.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03,
+     "why": "Machine shops need machinists and toolmakers, enlarging the skilled class."
+    }
+   ],
+   "costConcern": "5,910 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct. Gains interchangeable_parts as a dependent under the proposal.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mass Production"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mass Production"
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "flying_shuttle",
+   "name": "Flying shuttle",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "cost": 5910.0,
+   "prereq": "horizontal_loom",
+   "dependents": [
+    "power_loom"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "horizontal_loom",
+     "verdict": "keep",
+     "why": "Kay's shuttle runs on a broadloom with a batten."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A5. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02,
+     "why": "Doubled weaver output raised handloom earnings for a generation, a route up for craft households."
+    }
+   ],
+   "costConcern": "5,910 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "spinning_jenny",
+   "name": "Spinning jenny",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "cost": 5910.0,
+   "prereq": "spinning_wheel",
+   "dependents": [
+    "spinning_mule"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "spinning_wheel",
+     "verdict": "keep",
+     "why": "The jenny multiplies the spindles of the wheel."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A6. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03,
+     "why": "Eight spindles per spinner make yarn and cloth cheap, easing the Comfort need."
+    }
+   ],
+   "costConcern": "5,910 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "water_frame",
+   "name": "Water frame",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "cost": 8360.0,
+   "prereq": "spinning_wheel AND water_mill",
+   "dependents": [
+    "spinning_mule"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "spinning_wheel",
+     "verdict": "keep",
+     "why": "Roller spinning develops wheel spinning."
+    },
+    {
+     "atom": "water_mill",
+     "verdict": "keep",
+     "why": "The frame is water-powered."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A5, A6. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.04,
+     "why": "Mill employment draws rural families to factory villages such as Cromford."
+    }
+   ],
+   "costConcern": "8,360 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Industrialization (Factory)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mass Production (Factory)"
+   },
+   "effects": [
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "building.textile_mill"
+   ]
+  },
+  {
+   "id": "spinning_mule",
+   "name": "Spinning mule",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "cost": 8360.0,
+   "prereq": "spinning_jenny AND water_frame",
+   "dependents": [
+    "labour_unions"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "spinning_jenny",
+     "verdict": "keep",
+     "why": "Carriage spinning from the jenny."
+    },
+    {
+     "atom": "water_frame",
+     "verdict": "keep",
+     "why": "Drafting rollers from the frame."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A8.",
+   "crossTree": "Civic dependents: labour_unions. Dependent labour_unions is a civic.",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04,
+     "why": "Fine mule yarn competes with Indian cloth, so cotton goods flow between markets."
+    }
+   ],
+   "costConcern": "8,360 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND (Crompton combined the two).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "power_loom",
+   "name": "Power loom",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "cost": 14070.0,
+   "prereq": "flying_shuttle AND (water_mill OR steam_rotary)",
+   "dependents": [
+    "factory_inspection",
+    "labour_unions"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "flying_shuttle",
+     "verdict": "keep",
+     "why": "Mechanised picking extends the flying shuttle."
+    },
+    {
+     "atom": "water_mill",
+     "verdict": "keep",
+     "why": "Power source; OR is right."
+    },
+    {
+     "atom": "steam_rotary",
+     "verdict": "keep",
+     "why": "Power source; OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A5, A8.",
+   "crossTree": "Civic dependents: factory_inspection, labour_unions. Dependents factory_inspection and labour_unions are civics.",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02,
+     "why": "Mill-woven cloth at scale makes clothing cheap for households."
+    }
+   ],
+   "costConcern": "14,070 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND/OR.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Industrialization (Factory)"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mass Production (Factory)"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "building.textile_mill"
+   ]
+  },
+  {
+   "id": "cotton_gin_saw",
+   "name": "Saw gin",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "cost": 5910.0,
+   "prereq": "cotton_gin_roller AND wire_drawing",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "cotton_gin_roller",
+     "verdict": "keep",
+     "why": "The saw gin develops roller ginning."
+    },
+    {
+     "atom": "wire_drawing",
+     "verdict": "keep",
+     "why": "The saw teeth are wire hooks or toothed discs."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A6. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.04,
+     "why": "Upland cotton cleaned 50x faster: the ginning bottleneck no longer holds stock back from market."
+    }
+   ],
+   "costConcern": "5,910 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "jacquard",
+   "name": "Jacquard loom",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "cost": 9950.0,
+   "prereq": "drawloom AND paper",
+   "dependents": [
+    "punched_card_tabulation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "drawloom",
+     "verdict": "keep",
+     "why": "The Jacquard head automates the drawloom's figure harness."
+    },
+    {
+     "atom": "paper",
+     "verdict": "keep",
+     "why": "The pattern is punched into card."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A5. Nearest prerequisite is two or more Ages earlier; noted, not a reason to change.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02,
+     "why": "A stored, punched-card program is the direct ancestor of tabulation."
+    }
+   ],
+   "costConcern": "9,950 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND (cross-lane to communication).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "reinforced_concrete",
+   "name": "Reinforced concrete",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "construction",
+   "cost": 33450.0,
+   "prereq": "portland_cement AND bessemer",
+   "dependents": [
+    "high_speed_rail",
+    "hydroelectric",
+    "motor_road"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "portland_cement",
+     "verdict": "keep",
+     "why": "Reinforced concrete is Portland-cement concrete."
+    },
+    {
+     "atom": "bessemer",
+     "verdict": "keep",
+     "why": "Cheap mild-steel bar made reinforcement practical (Hennebique)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A8.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.05,
+     "why": "Fireproof concrete frames and floors outlast timber and brick."
+    }
+   ],
+   "costConcern": "33,450 is high for A8 construction; flag.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steel"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Urbanization (Modern Bridge)"
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [
+    "infra.sewerage_system"
+   ]
+  },
+  {
+   "id": "skyscraper",
+   "name": "Steel-frame skyscraper",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "construction",
+   "cost": 66910.0,
+   "prereq": "structural_iron AND bessemer AND electric_motor",
+   "dependents": [
+    "zoning"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "structural_iron",
+     "verdict": "keep",
+     "why": "The metal skeleton frame."
+    },
+    {
+     "atom": "bessemer",
+     "verdict": "keep",
+     "why": "Steel beams (Home Insurance Building upper floors)."
+    },
+    {
+     "atom": "electric_motor",
+     "verdict": "keep",
+     "why": "Electric lifts made tall buildings usable beyond ~10 storeys (1889 onward)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A8. Currently A9 with only A8 prerequisites; proposed A8.",
+   "crossTree": "Civic dependents: zoning. Dependent zoning is an A9 civic; moving to A8 keeps it valid.",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.08,
+     "why": "Vertical cities: far more households per plot; a landmark node."
+    }
+   ],
+   "costConcern": "66,910 is the most expensive node in the group; at A8 it needs recalibration with its new cohort.",
+   "action": "move-age",
+   "newPrereq": null,
+   "newAge": "A8",
+   "rationale": "Move to A8: emerged 1885 sits inside the Industrial window (~1750-1914), the Chicago school is a pre-1914 phenomenon, and all three prerequisites are A8. A9 placement delays the unlock by an entire Age with no causal reason.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Steel"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Urbanization"
+   },
+   "effects": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.08
+    }
+   ],
+   "liveUnlocks": [
+    "building.skyscraper"
+   ]
+  },
+  {
+   "id": "numerical_control",
+   "name": "Numerical control and robotics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "industry",
+   "cost": 47310.0,
+   "prereq": "computer AND milling_machine",
+   "dependents": [
+    "additive_manufacturing"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Programs come from a computer."
+    },
+    {
+     "atom": "milling_machine",
+     "verdict": "keep",
+     "why": "The first NC machine was a milling machine (MIT 1952)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A8, A9.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.04,
+     "why": "Flexible automation shifts labour from machining to programming and maintenance, enlarging specialist classes."
+    }
+   ],
+   "costConcern": "47,310 is high against desalination 16,730 and additive 11,830; flag.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Robotics"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Computation"
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "desalination",
+   "name": "Desalination",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "infrastructure",
+   "cost": 16730.0,
+   "prereq": "electricity_generation AND (distillation OR plastics)",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "electricity_generation",
+     "verdict": "keep",
+     "why": "Pumps and plants need grid power."
+    },
+    {
+     "atom": "distillation",
+     "verdict": "keep",
+     "why": "Flash distillation route; OR is right."
+    },
+    {
+     "atom": "plastics",
+     "verdict": "keep",
+     "why": "Polymer membranes for reverse osmosis; OR is right."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A5, A8, A9.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [],
+   "costConcern": "16,730 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND/OR. Deliberate leaf; the live plant is its effect.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.desalination_plant"
+   ]
+  },
+  {
+   "id": "additive_manufacturing",
+   "name": "Additive manufacturing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "industry",
+   "cost": 11830.0,
+   "prereq": "numerical_control AND plastics",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "numerical_control",
+     "verdict": "keep",
+     "why": "Computer-controlled positioning."
+    },
+    {
+     "atom": "plastics",
+     "verdict": "keep",
+     "why": "First printers built in photopolymer."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites from A9.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.03,
+     "why": "Spare parts printed on demand keep tools and machines in service."
+    }
+   ],
+   "costConcern": "11,830 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.toolWearPerEquippedFarmerPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "ashlar_masonry",
+   "name": "Ashlar (dressed-stone) masonry",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "construction",
+   "cost": 2960.0,
+   "prereq": "stone_dry AND copper_smelting",
+   "dependents": [
+    "bridge_stone",
+    "stone_fortification",
+    "vault_dome"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "stone_dry",
+     "verdict": "keep",
+     "why": "Ashlar refines fitted stone construction."
+    },
+    {
+     "atom": "copper_smelting",
+     "verdict": "keep",
+     "why": "Dressing blocks needs metal chisels and saws (with abrasive sand) — copper tools at Saqqara."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites from A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.03,
+     "why": "Dressed-stone footings and walls outlast earth, so buildings stand longer."
+    }
+   ],
+   "costConcern": "2,960 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND; hub for lighthouse, bridges, vaults and fortification.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Masonry"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Masonry"
+   },
+   "effects": [
+    {
+     "operand": "housing.tauYears",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.lighthouse"
+   ]
+  },
+  {
+   "id": "drawloom",
+   "name": "Pattern loom (drawloom)",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "industry",
+   "cost": 2960.0,
+   "prereq": "silk AND horizontal_loom",
+   "dependents": [
+    "jacquard"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "silk",
+     "verdict": "keep",
+     "why": "The pattern loom was built for figured silks (jin)."
+    },
+    {
+     "atom": "horizontal_loom",
+     "verdict": "keep",
+     "why": "The figure harness is mounted on a treadle loom."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites from A3, A5.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03,
+     "why": "Figured weaving needs master weavers and drawboys, enlarging the skilled class."
+    }
+   ],
+   "costConcern": "2,960 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "sanitary_engineering",
+   "name": "Sanitary engineering",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "infrastructure",
+   "cost": 19890.0,
+   "prereq": "steam_rotary AND fired_brick",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "steam_rotary",
+     "verdict": "keep",
+     "why": "Steam pumping drives water supply and sewage lifting."
+    },
+    {
+     "atom": "fired_brick",
+     "verdict": "keep",
+     "why": "Brick egg-section sewers."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A3, A8.",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.06,
+     "why": "Water-carriage sewerage and filtered supply cut waterborne disease sharply; a landmark node."
+    }
+   ],
+   "costConcern": "19,890 fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct AND. Deliberate leaf.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Sanitation"
+   },
+   "civ7": {
+    "relation": "different",
+    "analog": "Urban Planning (Hospital)"
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": [
+    "infra.sewerage_system"
+   ]
+  },
+  {
+   "id": "structural_iron",
+   "name": "Structural iron",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "construction",
+   "cost": 23650.0,
+   "prereq": "coke",
+   "dependents": [
+    "skyscraper"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "coke",
+     "verdict": "keep",
+     "why": "Coke smelting gave the cheap iron for the Iron Bridge and iron-framed mills."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites from A7.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.04,
+     "why": "Iron girder bridges span rivers and gorges, so roads can run further."
+    }
+   ],
+   "costConcern": "23,650 flag (A8 lane spread).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct single prerequisite.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Industrialization"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Steam Engine (Ironworks)"
+   },
+   "effects": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "reservoir_dam",
+   "name": "Masonry dam and reservoir",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "infrastructure",
+   "emerged": "~3,000 BCE Jawa (Jordan) dams and reservoirs; ~2,600 BCE Sadd el-Kafara (Egypt); ~2,500 BCE Dholavira reservoirs (Indus)",
+   "prereq": "stone_dry AND irrigation_canal",
+   "prereqRationale": "A dam is fitted stone and earth fill across a wadi (stone_dry); impounded water is only worth holding once fields are fed by channels (irrigation_canal). Both are A2 and centuries older than Jawa.",
+   "desc": "Walls of stone and earth across a valley hold back seasonal runoff, so channels can water the fields through a dry year.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.25,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "irrigation_canal leads water already flowing; this stores it across seasons. hydroelectric (A9) is a power dam, not water storage for farming."
+  },
+  {
+   "id": "insula",
+   "name": "Multi-storey apartment block",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "construction",
+   "emerged": "~218 BCE Rome (three-storey insulae noted by Livy); ~100 CE Ostia brick-faced concrete blocks of four to five storeys",
+   "prereq": "concrete_pozzolan AND fired_brick",
+   "prereqRationale": "Insulae stand on brick-faced pozzolan concrete walls; concrete (~300 BCE) and fired brick (~2,900 BCE) both predate the first recorded blocks.",
+   "desc": "Brick-faced concrete walls carry several floors of rented flats over street shops, packing many households onto one plot.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.5,
+    "material": 0.5,
+    "institutional": 1.25,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "housing.personsPerDwelling",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Radio (Tenement)"
+   },
+   "distinctFrom": "timber_frame houses one large household under one roof; this stacks many households vertically. The civic building_regulation (A5) regulates such blocks; this is the building technique itself."
+  },
+  {
+   "id": "balloon_frame",
+   "name": "Balloon framing",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "construction",
+   "emerged": "1832 CE Chicago (George W. Snow); 1833 CE St Mary's Church, Chicago",
+   "prereq": "timber_frame AND crank_connecting_rod",
+   "prereqRationale": "It is light timber framing (timber_frame) made from standard sawn studs, which need powered crank-and-rod sawmills (crank_connecting_rod); both long predate 1832.",
+   "desc": "Light sawn studs nailed together replace heavy jointed timbers, so a small crew can raise a house in days.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.25,
+    "material": 0.5,
+    "institutional": 1.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "housing.buildLaborAdultYearsPerDwelling",
+     "delta": 0.1
+    },
+    {
+     "operand": "housing.buildTimberPerDwelling",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "timber_frame is jointed post-and-beam; this is a nailed frame of light sawn studs with no joinery, which cuts the labour per dwelling."
+  },
+  {
+   "id": "precast_housing",
+   "name": "Industrialised panel building",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "construction",
+   "emerged": "1953 CE Camus large-panel system (France); 1959 CE Soviet five-storey panel blocks",
+   "prereq": "reinforced_concrete AND electric_motor",
+   "prereqRationale": "Factory-cast reinforced concrete panels (reinforced_concrete) are set in place by electric tower cranes (electric_motor); both are A8 and older than 1953.",
+   "desc": "Wall and floor panels are cast in factories and lifted into place by crane, so whole housing estates rise with little site labour.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.75,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "housing.buildLaborAdultYearsPerDwelling",
+     "delta": 0.08
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Radio (Tenement)"
+   },
+   "distinctFrom": "reinforced_concrete is the material, poured on site; skyscraper is height and density. This is factory prefabrication of whole dwellings, which cuts labour per dwelling."
+  }
+ ],
+ "newLanes": [],
+ "findings": [
+  "Of 58 nodes, 22 had a live effect today (building./infra. unlocks). The other 36 had none, among them every mechanism and machine-tool node and 14 of the 17 textile nodes. Every node now carries a registry operand or a live unlock; in A8 industry, spinning_jenny and power_loom share society.grievanceRelief but differ in role, because power_loom also carries the textile_mill unlock.",
+  "Textiles (17 nodes, A2-A8) have no textile operand in the registry. Their effects therefore go through cloth's social and trade channels: Comfort/grievance, trade, specialist classes, migration to mills. A cloth-output operand (ProductionSystem fibre to cloth) would serve the lane better. Logged as a registry gap, not invented here.",
+  "Construction had no node at A6 or A7, and A9 would be empty once skyscraper moves to A8. insula (A5), balloon_frame (A8) and precast_housing (A9) fill the housing line. A7 stays empty on purpose: early-modern building advances were mostly fortification (military lane) and regulation (civics).",
+  "Infrastructure had no Bronze Age (A3) node between the Neolithic canals and the Iron Age water tunnels. reservoir_dam (Jawa, Sadd el-Kafara) fills it.",
+  "Three dependency changes are proposed. loom_warp_weighted drops timber_frame (not causal, and dated after the node). interchangeable_parts adds milling_machine. skyscraper moves from A9 to A8 (1885, all prerequisites are A8).",
+  "Cost outliers to calibrate: cylinder_boring and slide_rest_lathe (33,450 each, about 4x the A8 industry median), skyscraper 66,910 and numerical_control 47,310, gearing 5,910 (A5), escapement_verge 7,030 (A6), loom_warp_weighted 2,090 (A2). silk 620 is low for A3.",
+  "infra.aqueduct is an OR over three A4/A5 nodes, building.lighthouse is open via ashlar before stone_fortification, and building.textile_mill is OR over two A8 nodes. Only the first such node completed unlocks anything, so each also carries a distinct operand.",
+  "Civilization VI (base) and VII have no textile, fibre or machine-tool techs. Their tech trees jump from Pottery/Masonry to Machinery and Industrialization, so most of this lane is none-by-design there. Masonry, Irrigation, Engineering (aqueduct, bridge), Sanitation and Replaceable Parts/Robotics are the direct matches."
+ ]
+}

@@ -1,0 +1,926 @@
+{
+ "applied": [
+  {
+   "id": "canning",
+   "old": {
+    "prereq": "glass_blowing AND sheet_metal"
+   },
+   "new": {
+    "prereq": "glass_blowing AND sheet_metal AND tinplate"
+   },
+   "action": "integrator cross-lane edge",
+   "rationale": "T2: the 1810 tin canister is tinplate (Durand); bridges the new tinplate node"
+  },
+  {
+   "id": "petroleum_refining",
+   "old": {
+    "prereq": "chemistry_quantitative"
+   },
+   "new": {
+    "prereq": "chemistry_quantitative AND percussion_drilling"
+   },
+   "action": "integrator cross-lane edge",
+   "rationale": "T2: crude came from drilled wells (Drake 1859 used percussion drilling); percussion_drilling was a leaf"
+  },
+  {
+   "id": "mining_shaft",
+   "old": {
+    "prereq": "stone_dry AND copper_smelting"
+   },
+   "new": {
+    "prereq": "stone_dry AND copper_smelting AND lamp"
+   },
+   "action": "integrator cross-lane edge",
+   "rationale": "T4: underground galleries need portable light (Grimes Graves chalk lamps)"
+  },
+  {
+   "id": "coke",
+   "old": {
+    "prereq": "blast_furnace_water"
+   },
+   "new": {
+    "prereq": "blast_furnace_water AND coal_fuel"
+   },
+   "action": "integrator cross-lane edge",
+   "rationale": "T4: coking presupposes coal as a fuel (new coal_fuel node)"
+  },
+  {
+   "id": "marxist_leninist_state",
+   "old": {
+    "prereq": "mass_political_party AND central_planning",
+    "age": "A9"
+   },
+   "new": {
+    "prereq": "mass_political_party AND central_planning AND socialism",
+    "age": "A9"
+   },
+   "action": "add-prereq",
+   "rationale": "Missing bridge: socialism (A8 ideology) has no dependents, and central_planning requires only official_statistics and telegraph, so today a polity can found a Marxist-Leninist state without the socialist ideology it embodies. Adding socialism (dated 1825-1848, before 1922) closes the ideology-to-regime link, as fascism does for fascist_state. Note for the integrator: socialism is a D13 civic, so this edge lands only when D13 is imported."
+  },
+  {
+   "id": "religious_reform",
+   "old": {
+    "prereq": "printing_press AND (canon_law OR scriptural_canon)",
+    "age": "A7"
+   },
+   "new": {
+    "prereq": "printing_press AND scriptural_canon",
+    "age": "A7"
+   },
+   "action": "change-andor",
+   "rationale": "The OR admitted a scripture-less route through canon_law alone, which contradicts the node's own capability (lay readers challenging clergy from the text). The new expression is the required core; no Age or tree crossing is involved."
+  },
+  {
+   "id": "census",
+   "old": {
+    "prereq": "(cuneiform OR hieroglyphic OR chinese_script) AND stamp_seal",
+    "age": "A4"
+   },
+   "new": {
+    "prereq": "(cuneiform OR hieroglyphic OR chinese_script) AND appointed_officials",
+    "age": "A4"
+   },
+   "action": "replace-prereq",
+   "rationale": "Replace stamp_seal with appointed_officials (causal: the count is an official act). Age A4 kept. emerged is null: suggest '~3,000 BCE Egyptian biennial count; 2 CE Han census'."
+  },
+  {
+   "id": "merit_civil_service",
+   "old": {
+    "prereq": "appointed_officials AND compulsory_education",
+    "age": "A8"
+   },
+   "new": {
+    "prereq": "civil_service_examinations AND compulsory_education",
+    "age": "A8"
+   },
+   "action": "replace-prereq",
+   "rationale": "Replace appointed_officials with civil_service_examinations: it bridges the A6 examination node (whose only dependent is absolute_monarchy) to its modern successor. This group also hangs five A9 administrative nodes on merit_civil_service."
+  },
+  {
+   "id": "manorialism",
+   "old": {
+    "prereq": "service_tenure AND heavy_plough",
+    "age": "A6"
+   },
+   "new": {
+    "prereq": "service_tenure AND (heavy_plough OR legal_code_roman)",
+    "age": "A6"
+   },
+   "action": "change-andor",
+   "rationale": "Turn the heavy-plough requirement into an OR with systematic law (the Roman colonate binding tenants to the soil), so the manor is reachable in Mediterranean economies."
+  },
+  {
+   "id": "settler_land_grants",
+   "old": {
+    "prereq": "land_registry AND colonial_administration",
+    "age": "A8"
+   },
+   "new": {
+    "prereq": "land_registry AND (colonial_administration OR federal_republic)",
+    "age": "A8"
+   },
+   "action": "change-andor",
+   "rationale": "The current AND forbids the node's own anchor case (the US public domain). federal_republic (1787 CE) predates 1862, A7 is earlier than A8; chronology and sweep are safe."
+  },
+  {
+   "id": "public_museums",
+   "old": {
+    "prereq": "arts_academies AND scientific_societies",
+    "age": "A7"
+   },
+   "new": {
+    "prereq": "court_patronage AND scientific_societies",
+    "age": "A7"
+   },
+   "action": "replace-prereq",
+   "rationale": "Replace arts_academies with court_patronage: museums are opened princely and scholarly cabinets. arts_academies keeps its new dependents in this file."
+  },
+  {
+   "id": "mass_press",
+   "old": {
+    "prereq": "printing_press AND railway",
+    "age": "A8"
+   },
+   "new": {
+    "prereq": "printing_press AND steam_rotary",
+    "age": "A8"
+   },
+   "action": "replace-prereq",
+   "rationale": "Replace railway by steam_rotary (or T7 steam_printing_press when integrated): the mass press is a product of steam printing, not of railways."
+  },
+  {
+   "id": "research_university",
+   "old": {
+    "prereq": "scientific_societies AND state_academy",
+    "age": "A8"
+   },
+   "new": {
+    "prereq": "scientific_societies AND state_academy AND chartered_universities",
+    "age": "A8"
+   },
+   "action": "add-prereq",
+   "rationale": "Add chartered_universities (new, A6) to make the institutional lineage explicit. The A6 sweep already forces it complete before A8, so this costs no extra pacing."
+  },
+  {
+   "id": "cereal_domesticated",
+   "old": {
+    "prereq": "cereal_cultivation",
+    "age": "A2"
+   },
+   "new": {
+    "prereq": "cereal_cultivation AND sickle",
+    "age": "A2"
+   },
+   "action": "add-prereq",
+   "rationale": "The node's description makes sickle harvesting the mechanism of domestication, yet sickle has no dependents. Adding it closes a missing bridge and gives the sickle a downstream role. sickle (~12,500 BCE) predates the node (~9,500 BCE)."
+  },
+  {
+   "id": "pig",
+   "old": {
+    "prereq": "dog_domestication",
+    "age": "A2"
+   },
+   "new": {
+    "prereq": "cereal_cultivation",
+    "age": "A2"
+   },
+   "action": "replace-prereq",
+   "rationale": "Replace the non-causal dog edge with sedentary cultivation (~11,500 BCE predates ~8,500 BCE)."
+  },
+  {
+   "id": "heavy_plough",
+   "old": {
+    "prereq": "plough_ard AND iron_bloomery AND wheel_solid",
+    "age": "A6"
+   },
+   "new": {
+    "prereq": "plough_ard AND iron_farm_tools AND wheel_solid",
+    "age": "A6"
+   },
+   "action": "replace-prereq",
+   "rationale": "Route the iron requirement through the new A4 iron farm-tool node (forged shares, coulters); iron_bloomery remains an indirect prerequisite, so no capability is lost, and the A4 node stops being a leaf."
+  },
+  {
+   "id": "crop_rotation_norfolk",
+   "old": {
+    "prereq": "legume AND cereal_domesticated",
+    "age": "A7"
+   },
+   "new": {
+    "prereq": "legume AND cereal_domesticated AND three_field_rotation",
+    "age": "A7"
+   },
+   "action": "add-prereq",
+   "rationale": "Bridge through the new A6 rotation node; ~800 CE predates ~1,650 CE."
+  },
+  {
+   "id": "knapping_levallois",
+   "old": {
+    "prereq": null,
+    "age": "A1"
+   },
+   "new": {
+    "prereq": "knapping_oldowan",
+    "age": "A1"
+   },
+   "action": "add-prereq",
+   "rationale": "Levallois is a prepared-core refinement of hard-hammer flaking; making knapping_oldowan its prerequisite gives the knapping family one root instead of two unrelated roots (both A1, Oldowan ~2.6 Mya precedes ~300 kya). Not a chronology edge: the prepared core is literally flaking applied with foresight."
+  },
+  {
+   "id": "pressure_flaking",
+   "old": {
+    "prereq": null,
+    "age": "A1"
+   },
+   "new": {
+    "prereq": "heat_treatment_stone",
+    "age": "A1"
+   },
+   "action": "add-prereq",
+   "rationale": "Currently an isolated root and leaf. The Blombos evidence ties the two directly: silcrete was heat-treated precisely so it could be pressure-flaked (~75 kya, after heat treatment at ~164 kya). Pressure retouch of a fine blank presupposes improving the stone first. Remains a deliberate leaf (finishing technique)."
+  },
+  {
+   "id": "copper_smelting",
+   "old": {
+    "prereq": "kiln_updraft AND (copper_native OR ochre_processing)",
+    "age": "A2"
+   },
+   "new": {
+    "prereq": "kiln_updraft AND charcoal AND (copper_native OR ochre_processing)",
+    "age": "A2"
+   },
+   "action": "add-prereq",
+   "rationale": "Reduction smelting needs charcoal: its carbon monoxide is the reductant and a wood fire cannot reach or hold reducing conditions. The node's own description says 'in a charcoal fire'. charcoal (A2, ~5,500 BCE) predates smelting (~5,000 BCE); charcoal already feeds iron_bloomery on the same grounds."
+  },
+  {
+   "id": "blast_furnace_water",
+   "old": {
+    "prereq": "iron_bloomery AND crank_connecting_rod AND bellows",
+    "age": "A6"
+   },
+   "new": {
+    "prereq": "iron_bloomery AND trip_hammer AND bellows",
+    "age": "A6"
+   },
+   "action": "replace-prereq",
+   "rationale": "Replace crank_connecting_rod with trip_hammer (A5, ~40 BCE; prereq water_mill): water power with cams is the mechanism the node is named for, and the crank (general ~1,400) postdates the node's earliest date (~1,150)."
+  },
+  {
+   "id": "loom_warp_weighted",
+   "old": {
+    "prereq": "spinning_spindle AND timber_frame",
+    "age": "A2"
+   },
+   "new": {
+    "prereq": "spinning_spindle",
+    "age": "A2"
+   },
+   "action": "remove-prereq",
+   "rationale": "Remove timber_frame: not causal, and dated 1,500 years after the node's own emerged date (contract §6 chronology). The textile workshop it requires (inst.textile_workshop) is not live, so the node gets a specialist-class effect."
+  },
+  {
+   "id": "interchangeable_parts",
+   "old": {
+    "prereq": "slide_rest_lathe",
+    "age": "A8"
+   },
+   "new": {
+    "prereq": "slide_rest_lathe AND milling_machine",
+    "age": "A8"
+   },
+   "action": "add-prereq",
+   "rationale": "Add milling_machine: the Harpers Ferry and Springfield achievement (Hall 1820s, North) depended on milling, not only turning. Milling (~1,818) predates the node (~1,820)."
+  },
+  {
+   "id": "skyscraper",
+   "old": {
+    "prereq": "structural_iron AND bessemer AND electric_motor",
+    "age": "A9"
+   },
+   "new": {
+    "prereq": "structural_iron AND bessemer AND electric_motor",
+    "age": "A8"
+   },
+   "action": "move-age",
+   "rationale": "Move to A8: emerged 1885 sits inside the Industrial window (~1750-1914), the Chicago school is a pre-1914 phenomenon, and all three prerequisites are A8. A9 placement delays the unlock by an entire Age with no causal reason."
+  },
+  {
+   "id": "bellows",
+   "old": {
+    "prereq": "hide_working AND kiln_updraft",
+    "age": "A4"
+   },
+   "new": {
+    "prereq": "hide_working AND kiln_updraft",
+    "age": "A3"
+   },
+   "action": "move-age",
+   "rationale": "Its own emerged date (~1,500 BCE, Rekhmire tomb) lies inside the A3 window (~3,500-1,200 BCE), so the A4 label contradicts the dating. Moving it fills the empty A3 energy cohort. Prerequisites (A1, A2) and dependents (cast_iron A5, blast_furnace_water A6) stay order-safe."
+  },
+  {
+   "id": "windmill_post",
+   "old": {
+    "prereq": "water_mill AND sail_square",
+    "age": "A6"
+   },
+   "new": {
+    "prereq": "water_mill AND sail_square AND gearing",
+    "age": "A6"
+   },
+   "action": "add-prereq",
+   "rationale": "Add gearing: the post mill is defined by its right-angle drive, and water_mill does not imply gearing in this graph (its anchor is the gearless horizontal mill). gearing is A5 (~150 BCE), well before 1,180 CE."
+  },
+  {
+   "id": "steam_turbine",
+   "old": {
+    "prereq": "steam_high_pressure AND open_hearth AND thermodynamics",
+    "age": "A9"
+   },
+   "new": {
+    "prereq": "steam_high_pressure AND open_hearth AND thermodynamics",
+    "age": "A8"
+   },
+   "action": "move-age",
+   "rationale": "Dated 1884 (Parsons), well inside A8 (1750-1914); all prerequisites are A8 and its impact (turbo-alternators, turbine liners, Dreadnought) is pre-1914. Dependents jet_engine and nuclear_power stay A9, so the move is order-safe."
+  },
+  {
+   "id": "gas_engine",
+   "old": {
+    "prereq": "steam_rotary AND chemistry_quantitative AND milling_machine",
+    "age": "A8"
+   },
+   "new": {
+    "prereq": "steam_rotary AND town_gas AND milling_machine",
+    "age": "A8"
+   },
+   "action": "replace-prereq",
+   "rationale": "The engine's fuel was town gas; without a gas-supply node the bridge is missing. The replacement keeps chemistry_quantitative transitively."
+  },
+  {
+   "id": "road_paved",
+   "old": {
+    "prereq": "surveying",
+    "age": "A5"
+   },
+   "new": {
+    "prereq": "surveying AND track_road",
+    "age": "A5"
+   },
+   "action": "add-prereq",
+   "rationale": "Add track_road: the road-building craft (causeway, drainage, graded track) is the lineage of the engineered road, and the infrastructure ladder is road_track -> road_built -> road_paved. Without the edge a polity can build paved roads without ever knowing trackways; both atoms are A2/A3, so no sweep or chronology risk."
+  },
+  {
+   "id": "electric_traction",
+   "old": {
+    "prereq": "electric_motor AND railway",
+    "age": "A9"
+   },
+   "new": {
+    "prereq": "electric_motor AND railway",
+    "age": "A8"
+   },
+   "action": "move-age",
+   "rationale": "Emerged 1890 (City and South London Railway) and the electric tram boom of 1888-1910 lie squarely in the A8 window; both prerequisites are A8 and its only dependent (high_speed_rail) is A9, so moving it to A8 breaks no edge."
+  },
+  {
+   "id": "geometry_practical",
+   "old": {
+    "prereq": "surveying AND (cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script)",
+    "age": "A3"
+   },
+   "new": {
+    "prereq": "surveying",
+    "age": "A3"
+   },
+   "action": "remove-prereq",
+   "rationale": "The script clause is identical to the one surveying already carries, so removing it changes no closure and no route; it only removes noise. Effect: storage geometry."
+  },
+  {
+   "id": "abacus",
+   "old": {
+    "prereq": "arithmetic_babylonian OR chinese_script",
+    "age": "A5"
+   },
+   "new": {
+    "prereq": "arithmetic_babylonian OR counting_rods",
+    "age": "A5"
+   },
+   "action": "replace-prereq",
+   "rationale": "Replace chinese_script with counting_rods: the Chinese route then passes through the rod arithmetic the abacus actually mechanised. A deliberate leaf: an end-user computing aid."
+  },
+  {
+   "id": "electromagnetism",
+   "old": {
+    "prereq": "calculus",
+    "age": "A8"
+   },
+   "new": {
+    "prereq": "calculus AND electrostatics",
+    "age": "A8"
+   },
+   "action": "add-prereq",
+   "rationale": "Add electrostatics (new A7 node): Volta's pile (1800) grew out of Galvani's experiments and Volta's electrophorus and electroscope. The science of charge comes before the current; calculus alone leaves electricity without an ancestor."
+  },
+  {
+   "id": "radioactivity",
+   "old": {
+    "prereq": "photography AND electromagnetism",
+    "age": "A9"
+   },
+   "new": {
+    "prereq": "photography AND electromagnetism",
+    "age": "A8"
+   },
+   "action": "move-age",
+   "rationale": "Move A9 to A8 by its own dates (1896-1898, wholly before 1914). Both prerequisites are A8 and all four dependents are A9, so no edge breaks and nothing is blocked by the Age sweep."
+  },
+  {
+   "id": "abjad",
+   "old": {
+    "prereq": "(cuneiform OR hieroglyphic OR chinese_script)",
+    "age": "A4"
+   },
+   "new": {
+    "prereq": "(cuneiform OR hieroglyphic)",
+    "age": "A4"
+   },
+   "action": "remove-prereq",
+   "rationale": "Drop chinese_script from the OR: the alphabet derives from Egyptian hieroglyphs via Proto-Sinaitic, with cuneiform as the parallel Levantine scribal tradition. A Chinese-script player loses nothing reachable: both remaining atoms are A3 and the A5 sweep requires them anyway."
+  },
+  {
+   "id": "medicine_recorded",
+   "old": {
+    "prereq": "(cuneiform OR hieroglyphic OR chinese_script)",
+    "age": "A3"
+   },
+   "new": {
+    "prereq": "herbal_remedies AND (cuneiform OR hieroglyphic OR chinese_script)",
+    "age": "A3"
+   },
+   "action": "add-prereq",
+   "rationale": "Add herbal_remedies: the earliest medical texts are mostly plant prescriptions (the Sumerian tablet, Ebers papyrus); what they write down is herbal lore. Script OR kept."
+  },
+  {
+   "id": "xray",
+   "old": {
+    "prereq": "electromagnetism AND barometer_vacuum AND photography",
+    "age": "A9"
+   },
+   "new": {
+    "prereq": "electromagnetism AND barometer_vacuum AND photography",
+    "age": "A8"
+   },
+   "action": "move-age",
+   "rationale": "Move A9 to A8 by its own date (1895, Röntgen) and by its use by 1914; all prerequisites are A7-A8 and all four dependents are A9, so no edge or sweep is affected."
+  },
+  {
+   "id": "oral_rehydration",
+   "old": {
+    "prereq": "germ_theory AND chemistry_quantitative",
+    "age": "A9"
+   },
+   "new": {
+    "prereq": "germ_theory AND chemistry_quantitative AND physiology",
+    "age": "A9"
+   },
+   "action": "add-prereq",
+   "rationale": "Add physiology: ORT rests on the 1960s discovery of sodium-glucose co-transport in the gut. Cost 740 is 0.016x the A9 median, an extreme outlier; recalibrate."
+  },
+  {
+   "id": "missile_defence",
+   "old": {
+    "prereq": "radar AND guided_munitions",
+    "age": "A9"
+   },
+   "new": {
+    "prereq": "radar AND guided_missile AND computer",
+    "age": "A9"
+   },
+   "action": "replace-prereq",
+   "rationale": "Replace guided_munitions with guided_missile AND computer: the interceptor lineage is the guided missile, and fire control is computed. Closure barely changes (laser drops out)."
+  }
+ ],
+ "rejected": [],
+ "warnings": [],
+ "review": [
+  {
+   "id": "sacred_sites",
+   "verdict": "merge-into",
+   "target": "seasonal_aggregation",
+   "why": "Cross-group duplicate (C1 vs C2), both A1: scattered bands meet at a place each season to hold rites, exchange news and find spouses. Same capability (seasonal band aggregation); seasonal_aggregation is the fuller description."
+  },
+  {
+   "id": "coronation_rites",
+   "verdict": "merge-into",
+   "target": "sacral_kingship",
+   "why": "Sub-aspect of sacral_kingship (same A3, sole prereq): anointing/enthronement is how sacred kingship is conferred. No distinct choice; succession_oaths (A4) already covers binding the great men to the heir."
+  },
+  {
+   "id": "temple_almsgiving",
+   "verdict": "merge-into",
+   "target": "ration_distribution",
+   "why": "Third name for the same A3 temple ration lists: ration_distribution already issues rations to 'widows and orphans on their lists'. Fold its child-relief effect into the survivor (see ration_distribution fix-effect)."
+  },
+  {
+   "id": "state_orthodoxy",
+   "verdict": "merge-into",
+   "target": "state_academy",
+   "why": "Same A5 capability and operand (mobility.promoteRatePerYear) as existing state_academy, whose own exemplar is the Han Taixue teaching the Confucian classics to officials (124 BCE)."
+  },
+  {
+   "id": "religious_endowments",
+   "verdict": "merge-into",
+   "target": "public_hospitals",
+   "why": "Same A6 capability and operand (demographics.mortalityPerYear) as C3 public_hospitals, whose description is 'endowed hospitals'; the waqf/pious endowment is the funding form of the same institution."
+  },
+  {
+   "id": "feminism",
+   "verdict": "drop",
+   "target": null,
+   "why": "Umbrella with no capability of its own: its stated content (education, property, professions, vote) is womens_higher_education, married_womens_property, womens_suffrage and equal_pay_law; three of those already use mobility.targetShareCap."
+  },
+  {
+   "id": "ceremonial_monarchy",
+   "verdict": "merge-into",
+   "target": "constitutional_monarchy",
+   "why": "Not a selectable regime form (legitimacy lane); constitutional_monarchy + parliamentary_government already produce the ceremonial crown. Same capability under two names."
+  },
+  {
+   "id": "faith_based_relief",
+   "verdict": "merge-into",
+   "target": "international_food_aid",
+   "why": "Same A9 capability (cross-border famine and child-feeding relief) as C4 international_food_aid; whether the agency is religious adds no mechanism."
+  },
+  {
+   "id": "environmentalism",
+   "verdict": "merge-into",
+   "target": "environmental_regulation",
+   "why": "Same A9 effect (demographics.mortalityPerYear) as existing environmental_regulation, and its only causal path is that law; movement and law are one capability in-sim."
+  },
+  {
+   "id": "modernizing_nationalism",
+   "verdict": "drop",
+   "target": null,
+   "why": "Composite with no distinct capability: secular law, script reform and mass schooling are secular_state, script_reform and compulsory_education/mass_literacy_campaigns; overlaps developmentalism in the same lane and Age; generic civicsPoints effect."
+  },
+  {
+   "id": "social_liberalism",
+   "verdict": "merge-into",
+   "target": "progressivism",
+   "why": "New Liberalism and Progressivism are the same transatlantic reform movement (both from classical_liberalism); its insurance content is already social_insurance/unemployment_insurance/welfare_state."
+  },
+  {
+   "id": "storehouse_sealing",
+   "verdict": "merge-into",
+   "target": "stamp_seal",
+   "why": "Duplicate of existing stamp_seal (A2), which already carries consumption.grainSpoilagePerYear 0.03 precisely for sealing stores; sealing store doors is the stamp seal's use, not a separate capability."
+  },
+  {
+   "id": "ration_administration",
+   "verdict": "merge-into",
+   "target": "ration_distribution",
+   "why": "Cross-group duplicate (C2 vs C3): both A3 temple/palace monthly rations of barley, oil and wool by list, both demographics.starvationMortalityMaxPerYear. Same Mesopotamian ration system under two names."
+  },
+  {
+   "id": "published_law",
+   "verdict": "merge-into",
+   "target": "law_code",
+   "why": "Duplicate of law_code: the distinction 'written for officials vs displayed for citizens' is false for law_code's own exemplar (Hammurabi's public stele invites any wronged man to read it); same operand society.grievanceRelief."
+  },
+  {
+   "id": "roman_law_revival",
+   "verdict": "merge-into",
+   "target": "chartered_universities",
+   "why": "Cross-group duplicate (C2 vs C5), both A6 and both institutions.universities.maturityTauYears: the medieval law faculty (Bologna) IS the chartered university. Keep one node."
+  },
+  {
+   "id": "stinted_commons",
+   "verdict": "merge-into",
+   "target": "village_bylaws",
+   "why": "Cross-group duplicate (C3 vs C2), both A6: the village meeting/court limiting beasts on the common is literally part of village by-laws. Fold the herder effect into the survivor (see village_bylaws fix-effect)."
+  },
+  {
+   "id": "equal_pay",
+   "verdict": "merge-into",
+   "target": "equal_pay_law",
+   "why": "Known duplicate: C3 equal_pay is word-for-word the same law as C2 equal_pay_law (same A9, same mobility.targetShareCap 0.03). Keep the C2 node."
+  },
+  {
+   "id": "refugee_protection",
+   "verdict": "merge-into",
+   "target": "refugee_law",
+   "why": "Known duplicate: C3 refugee_protection = C2 refugee_law (non-refoulement + status; same A9, same migration.dampingDecayCostUnits 0.03). Keep the C2 node; update guest_worker_programmes.distinctFrom."
+  },
+  {
+   "id": "transit_authority",
+   "verdict": "merge-into",
+   "target": "metropolitan_government",
+   "why": "Cross-group duplicate (C3 vs C2), both A9 and both catchment.hinterlandRadiusKm: one authority running the region's transport so the commuting region works as one."
+  },
+  {
+   "id": "exchange_partnerships",
+   "verdict": "merge-into",
+   "target": "gift_exchange",
+   "why": "Same capability as existing 'Gift exchange networks' (shell, obsidian passed partner to partner over hundreds of km) and same operand trade.gapClosingFraction 0.02."
+  },
+  {
+   "id": "military_roads",
+   "verdict": "merge-into",
+   "target": "road_paved",
+   "why": "Existing road_paved (A5, Via Appia 312 BCE, a military road) already carries the state-reach role (governance.authorityDecayCostUnits) and the infra unlock; 'the state road network' is the same capability."
+  },
+  {
+   "id": "merchant_consuls",
+   "verdict": "merge-into",
+   "target": "karum_courts",
+   "why": "Same capability across groups (C4 A6 vs C2 A3) and same operand trade.costPerBulkCostUnit: a self-governing merchant colony abroad with its own judge. Rewire consular_service prereq to karum_courts AND resident_embassies."
+  },
+  {
+   "id": "settler_charters",
+   "verdict": "merge-into",
+   "target": "settler_land_grants",
+   "why": "Same capability (free plots and low dues offered to attract settlers to frontier land) and the same effect pair (migration.baseRatePerYear + colonization.orderPartyFraction) as existing settler_land_grants. If an A6 version is wanted, re-date the existing node instead of adding a second name."
+  },
+  {
+   "id": "chartered_companies",
+   "verdict": "merge-into",
+   "target": "joint_stock",
+   "why": "The first joint-stock companies were the chartered companies (EIC 1600, VOC 1602); the chosen effect (price.stockReleaseRatePerYear) is a trading-firm effect, not the company-state role. If company rule is wanted it needs an authority-reach effect; as written it is joint_stock again."
+  },
+  {
+   "id": "military_railways",
+   "verdict": "drop",
+   "target": null,
+   "why": "Filler: troop timetabling is battle-layer (not live); roads.baselineKmPerDay is general overland speed, which military use of an existing railway does not raise. railway already carries the transport effects."
+  },
+  {
+   "id": "army_reserves",
+   "verdict": "drop",
+   "target": null,
+   "why": "Bad effect and no live capability: reserve service is mobilization (battle layer), and returning conscripts home does not raise output per farmer (farming.outputPerFarmerPerYear)."
+  },
+  {
+   "id": "law_of_the_sea",
+   "verdict": "merge-into",
+   "target": "fisheries_management",
+   "why": "Cross-group duplicate, both A9 and both production.outputPerExtractorPerYear 0.03: EEZ jurisdiction over fisheries vs catch quotas in those waters. Keep fisheries_management, which is the part that actually raises sustained yield."
+  },
+  {
+   "id": "visa_free_travel",
+   "verdict": "merge-into",
+   "target": "supranational_union",
+   "why": "supranational_union (C1 A9) already grants free movement of people with migration.baseRatePerYear 0.03; passport-free areas are the same capability with the same operand."
+  },
+  {
+   "id": "weather_cooperation",
+   "verdict": "merge-into",
+   "target": "weather_prediction",
+   "why": "Sharing observations is the substance of synoptic_meteorology (A8) and numerical weather_prediction (A9, harvestVariance.sigmaLogYield 0.04); same operand, no distinct capability."
+  },
+  {
+   "id": "satellite_reconnaissance",
+   "verdict": "merge-into",
+   "target": "earth_observation",
+   "why": "Orbital imagery is existing earth_observation, which already carries fog.exploreMaxRadiusNodes 0.05 (same operand)."
+  },
+  {
+   "id": "motorized_supply",
+   "verdict": "drop",
+   "target": null,
+   "why": "Filler: army lorry columns are battle-layer; roads.maxRouteKm duplicates highway_programmes (A9, same operand) and automobile_mass/motor_road."
+  },
+  {
+   "id": "civil_defence",
+   "verdict": "merge-into",
+   "target": "disaster_management",
+   "why": "Overlaps C2 disaster_management (civil defence agencies became disaster agencies); its food-depot effect also duplicates price_support's granaryYearsOfDemand at A9. Shelters and wardens are battle-layer, not live."
+  },
+  {
+   "id": "all_volunteer_force",
+   "verdict": "drop",
+   "target": null,
+   "why": "No live capability (force composition is M7/M8) and migration.baseRatePerYear is not causally moved by ending conscription."
+  },
+  {
+   "id": "defence_research_agencies",
+   "verdict": "merge-into",
+   "target": "science_policy",
+   "why": "Same capability as existing science_policy (state funding of university and laboratory research, A9); civil vs military funder has no live distinction."
+  },
+  {
+   "id": "independent_air_arm",
+   "verdict": "merge-into",
+   "target": "aerial_reconnaissance",
+   "why": "Its only modelled role ('flies reconnaissance and survey') is T8 aerial_reconnaissance (same A9, fog operand); force organisation is battle-layer (M7/M8), not live."
+  },
+  {
+   "id": "polar_research_stations",
+   "verdict": "drop",
+   "target": null,
+   "why": "Filler: fifth A9 node on fog.exploreMaxRadiusNodes (with earth_observation, aerial_reconnaissance, satellite_reconnaissance, civil_space_agency) at 0.02, for a narrow capability with no distinct gameplay."
+  },
+  {
+   "id": "frontier_development_programmes",
+   "verdict": "merge-into",
+   "target": "new_towns",
+   "why": "Cross-group duplicate, both A9 and both colonization.orderPartyFraction 0.03: the state plans and funds whole new settlements with towns, roads and services."
+  },
+  {
+   "id": "ritual_music",
+   "verdict": "drop",
+   "target": null,
+   "why": "Filler: third A1 node with society.grievanceRelief 0.02 for 'binding the band' (with mortuary_rites and kin_council); no distinct role."
+  },
+  {
+   "id": "landscape_lore",
+   "verdict": "merge-into",
+   "target": "wayfinding_lore",
+   "why": "Cross-group duplicate (C5 vs C4), both A1: bands memorise landmarks and water holes to travel beyond their range. Same capability with fog operands split between two nodes; survivor may take exploreStepNodes as a second effect."
+  },
+  {
+   "id": "calendar_keepers",
+   "verdict": "merge-into",
+   "target": "calendar_lunar",
+   "why": "Two names for one capability: calendar_lunar (A2) already models timing sowing by the moon (harvestVariance.sigmaLogYield); calendar_keepers is the same timing knowledge held by an office (organized_priesthood/shamanic_ritual already exist)."
+  },
+  {
+   "id": "herd_lore",
+   "verdict": "merge-into",
+   "target": "transhumance",
+   "why": "Same A2 herd-management capability and same operand (production.outputPerHerderPerYear) as C3 transhumance; 'when to move the flock' is transhumance, culling/breeding is sheep_goat/selective_breeding. No distinct role."
+  },
+  {
+   "id": "wall_painting",
+   "verdict": "merge-into",
+   "target": "lime_plaster",
+   "why": "Duplicate effect and mechanism: annual replastering is lime_plaster's housing.tauYears 0.04 and 'rebuilding ancestral houses' is ancestor_veneration's housing.tauYears 0.02, both A2. Decoration adds no capability."
+  },
+  {
+   "id": "sign_systems",
+   "verdict": "drop",
+   "target": null,
+   "why": "Filler: pre-writing owner/offering marks are already covered by stamp_seal and token_counting (A2) and proto_writing (A3); governance.authorityDecayCostUnits from incised pot marks is not causal."
+  },
+  {
+   "id": "lexical_lists",
+   "verdict": "merge-into",
+   "target": "scribal_schools",
+   "why": "Lexical lists were the curriculum of the scribal schools; existing scribal_schools (A3) already carries governance.taxExtractionResponseMax 0.02, the same operand. Two names for one capability."
+  },
+  {
+   "id": "medical_schools",
+   "verdict": "merge-into",
+   "target": "medicine_hippocratic",
+   "why": "Existing medicine_hippocratic (A4) already unlocks building.university (medical_university) and carries institutions.universities.maxMortalityReduction 0.05; medical schools training physicians from a shared corpus is that same capability."
+  },
+  {
+   "id": "broadcast_market_reports",
+   "verdict": "drop",
+   "target": null,
+   "why": "Third node for one capability (market-price dissemination): printed_newspapers (A7) and telegraph_news_agencies (A8) already carry it; radio delivery is radio_broadcasting's."
+  },
+  {
+   "id": "satellite_communications",
+   "verdict": "merge-into",
+   "target": "communications_satellite",
+   "why": "Intelsat consortium = existing communications_satellite (1962/1964 Syncom); institution and technology are the same capability."
+  },
+  {
+   "id": "civil_satellite_navigation",
+   "verdict": "merge-into",
+   "target": "gps",
+   "why": "Two names for one capability: the existing gps node (Satellite navigation, 1995) is civil satellite navigation; opening it to civilians is not a separate capability."
+  },
+  {
+   "id": "agricultural_research_system",
+   "verdict": "merge-into",
+   "target": "green_revolution",
+   "why": "The international stations breeding high-yield varieties (CIMMYT/IRRI) ARE existing green_revolution (yield 0.25) built on scientific_plant_breeding; same operand, institution vs its product."
+  },
+  {
+   "id": "clinical_trials",
+   "verdict": "merge-into",
+   "target": "drug_regulation",
+   "why": "Cross-group duplicate (C5 vs C3), both A9 and both institutions.universities.maxMortalityReduction: drug_regulation requires trial proof before sale. Carry the 0.04 on the survivor. (clinical_trials is also a method, i.e. technology-like.)"
+  },
+  {
+   "id": "civil_space_agency",
+   "verdict": "merge-into",
+   "target": "earth_observation",
+   "why": "Its effect (fog.exploreMaxRadiusNodes via mapping and earth survey) is earth_observation's exactly; space science has no further live effect. Fourth A9 node on the same fog operand."
+  },
+  {
+   "id": "international_student_exchange",
+   "verdict": "merge-into",
+   "target": "academic_exchange",
+   "why": "Cross-group duplicate (C5 vs C4), both A9: 'governments fund students and scholars to study abroad'. Keep academic_exchange, whose effect (universities mature faster) is the more causal one."
+  },
+  {
+   "id": "recorded_music_industry",
+   "verdict": "drop",
+   "target": null,
+   "why": "Filler: same role as film_industry (mass-reproduced entertainment, A9 arts) and existing radio_broadcasting; generic grievanceRelief 0.02 with no distinct mechanism."
+  },
+  {
+   "id": "public_art_programmes",
+   "verdict": "merge-into",
+   "target": "arts_councils",
+   "why": "Two forms of the same A9 capability (the state pays artists); arm's-length vs direct commissioning is not a gameplay choice and the targetShareCap effect is not causally specific to art."
+  }
+ ],
+ "saturation": {
+  "demographics.mortalityPerYear": {
+   "sum": 1.1,
+   "cap": 0.7,
+   "scaledBy": 0.5727
+  },
+  "demographics.starvationChildMultiplier": {
+   "sum": 0.58,
+   "cap": 0.5,
+   "scaledBy": 0.7759
+  },
+  "demographics.starvationMortalityMaxPerYear": {
+   "sum": 0.65,
+   "cap": 0.6,
+   "scaledBy": 0.8308
+  },
+  "fog.exploreMaxRadiusNodes": {
+   "sum": 0.95,
+   "cap": 1.0,
+   "scaledBy": 0.9474
+  },
+  "foodState.adaptationAbsorbableShortfall": {
+   "sum": 0.93,
+   "cap": 1.0,
+   "scaledBy": 0.9677
+  },
+  "governance.taxExtractionResponseMax": {
+   "sum": 1.44,
+   "cap": 1.5,
+   "scaledBy": 0.9375
+  },
+  "harvestVariance.sigmaLogYield": {
+   "sum": 0.73,
+   "cap": 0.6,
+   "scaledBy": 0.7397
+  },
+  "institutions.universities.maturityTauYears": {
+   "sum": 0.46,
+   "cap": 0.5,
+   "scaledBy": 0.9783
+  },
+  "institutions.universities.maxResearchCostReduction": {
+   "sum": 0.59,
+   "cap": 0.5,
+   "scaledBy": 0.7627
+  },
+  "mobility.promoteRatePerYear": {
+   "sum": 1.41,
+   "cap": 1.5,
+   "scaledBy": 0.9574
+  },
+  "mobility.targetShareCap": {
+   "sum": 0.93,
+   "cap": 1.0,
+   "scaledBy": 0.9677
+  },
+  "research.civicsPointsCoefficient": {
+   "sum": 0.43,
+   "cap": 0.3,
+   "scaledBy": 0.6279
+  },
+  "research.researchPointsCoefficient": {
+   "sum": 0.74,
+   "cap": 0.3,
+   "scaledBy": 0.3649
+  },
+  "society.grievanceRelief": {
+   "sum": 1.54,
+   "cap": 0.6,
+   "scaledBy": 0.3506
+  },
+  "society.unrestOutputDrag": {
+   "sum": 1.3,
+   "cap": 0.6,
+   "scaledBy": 0.4154
+  },
+  "trade.costPerBulkCostUnit": {
+   "sum": 1.29,
+   "cap": 0.8,
+   "scaledBy": 0.5581
+  },
+  "trade.gapClosingFraction": {
+   "sum": 1.65,
+   "cap": 1.5,
+   "scaledBy": 0.8182
+  }
+ },
+ "counts": {
+  "technologies": 525,
+  "civics": 477,
+  "technologiesFinite": 515,
+  "civicsFinite": 477,
+  "imported": 439,
+  "withRealizedEffects": 979
+ }
+}

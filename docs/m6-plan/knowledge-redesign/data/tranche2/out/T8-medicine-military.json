@@ -1,0 +1,4404 @@
+{
+ "group": "T8-medicine-military",
+ "audit": [
+  {
+   "id": "atlatl",
+   "name": "Spear-thrower",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "military",
+   "cost": 180.0,
+   "prereq": "hafting",
+   "dependents": [
+    "war_band"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "hafting",
+     "verdict": "keep",
+     "why": "The dart is a hafted point; the thrower is a lever for a hafted projectile."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "hafting A1 -> node A1",
+   "crossTree": "civic dependents: war_band",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "foodState.adaptationAbsorbableShortfall +0.02"
+   ],
+   "effectRationale": "Large game taken at range is a reserve when gathered food fails: a band absorbs a lean season instead of going hungry.",
+   "costConcern": "180 is 0.57x the technology A1 median (315); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Sound A1 root of ranged hunting; feeds the war_band civic. Small food-security effect, distinct from the bow (range of movement) and sling (herds).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "bow_simple",
+   "name": "Simple bow",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "military",
+   "cost": 370.0,
+   "prereq": "cordage",
+   "dependents": [
+    "composite_bow",
+    "crossbow",
+    "longbow",
+    "war_band"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cordage",
+     "verdict": "keep",
+     "why": "A bow is useless without a strong fibre string; cordage is the binding requirement."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cordage A1 -> node A1",
+   "crossTree": "civic dependents: war_band",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "fog.exploreStepNodes +0.03"
+   ],
+   "effectRationale": "Bow hunters feed themselves on the move from small and medium game, so a scouting party can push each step further into unknown ground.",
+   "costConcern": "370 is 1.17x the technology A1 median (315); within range. Deferred entities: unit.archers (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep: the bow is the root of four later bows and feeds war_band. Units are not live, so the effect is the bow's provisioning role for parties on the move.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Archery"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Bronze Working"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "sling",
+   "name": "Sling",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "military",
+   "cost": 260.0,
+   "prereq": "cordage",
+   "dependents": [
+    "traction_trebuchet"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cordage",
+     "verdict": "keep",
+     "why": "The sling is two cords and a pouch."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cordage A1 -> node A1",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "production.outputPerHerderPerYear +0.02"
+   ],
+   "effectRationale": "The sling is the shepherd's weapon: predators and thieves are driven off at range, so herds lose fewer animals.",
+   "costConcern": "260 is 0.83x the technology A1 median (315); within range. Deferred entities: unit.slingers (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Effect follows the node's own capability (herd protection); it only bites once herding exists.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Animal Husbandry"
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "trepanation",
+   "name": "Trepanation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "medicine",
+   "cost": 310.0,
+   "prereq": "knapping_blade",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "knapping_blade",
+     "verdict": "keep",
+     "why": "Flint blades cut the skull."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "knapping_blade A1 -> node A2",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.01"
+   ],
+   "effectRationale": "Many trepanations treated depressed skull fractures; healed edges show survival above 50%.",
+   "costConcern": "310 is 0.50x the technology A2 median (620); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: a Neolithic surgical practice with no line to later medicine.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "chariot",
+   "name": "Chariot",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "military",
+   "cost": 2090.0,
+   "prereq": "wheel_spoked AND horse_domestication",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "wheel_spoked",
+     "verdict": "keep",
+     "why": "Light spoked wheels are what make the war chariot possible (Sintashta)."
+    },
+    {
+     "atom": "horse_domestication",
+     "verdict": "keep",
+     "why": "Draught horses pull it."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "wheel_spoked A3, horse_domestication A3 -> node A3",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.02"
+   ],
+   "effectRationale": "The chariot is an expensive platform crewed by a trained warrior elite (the maryannu): a specialist class the surplus must support.",
+   "costConcern": "2090 is 1.19x the technology A3 median (1760); within range. Deferred entities: unit.chariot (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: chariotry is superseded by cavalry rather than leading into it. Effect is the chariot elite as a specialist class.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "The Wheel"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "The Wheel"
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "composite_bow",
+   "name": "Composite bow",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "military",
+   "cost": 1760.0,
+   "prereq": "bow_simple AND sheep_goat AND hide_working",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "bow_simple",
+     "verdict": "keep",
+     "why": "Lamination refines the self bow."
+    },
+    {
+     "atom": "sheep_goat",
+     "verdict": "keep",
+     "why": "Horn belly from domestic caprines."
+    },
+    {
+     "atom": "hide_working",
+     "verdict": "keep",
+     "why": "Sinew backing and hide glue."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "bow_simple A1, sheep_goat A2, hide_working A1 -> node A3",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "production.outputPerHerderPerYear +0.03"
+   ],
+   "effectRationale": "A short bow usable from horseback lets mounted herders guard and work larger herds on open steppe.",
+   "costConcern": "1760 is 1.00x the technology A3 median (1760); within range. Deferred entities: unit.horse_archers (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf (unit.horse_archers requires it). Herder effect is the steppe pastoral role; the A1 sling has the same operand in another Age and role.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Horseback Riding"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerHerderPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "medicine_recorded",
+   "name": "Medical texts",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "medicine",
+   "cost": 880.0,
+   "prereq": "(cuneiform OR hieroglyphic OR chinese_script)",
+   "dependents": [
+    "medicine_hippocratic"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cuneiform",
+     "verdict": "keep",
+     "why": "Sumerian prescriptions (OR)."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "Edwin Smith and Ebers papyri (OR)."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "Chinese medical writing (OR)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cuneiform A3, hieroglyphic A3, chinese_script A3 -> node A3",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.01"
+   ],
+   "effectRationale": "Recorded prescriptions and case descriptions spread effective treatment beyond one healer's lifetime.",
+   "costConcern": "880 is 0.50x the technology A3 median (1760); within range.",
+   "action": "add-prereq",
+   "newPrereq": "herbal_remedies AND (cuneiform OR hieroglyphic OR chinese_script)",
+   "newAge": null,
+   "rationale": "Add herbal_remedies: the earliest medical texts are mostly plant prescriptions (the Sumerian tablet, Ebers papyrus); what they write down is herbal lore. Script OR kept.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cavalry",
+   "name": "Cavalry",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "cost": 1240.0,
+   "prereq": "horse_domestication",
+   "dependents": [
+    "saddle",
+    "steppe_empire"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "horse_domestication",
+     "verdict": "keep",
+     "why": "Riding needs the domestic horse; nothing else is binding."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "horse_domestication A3 -> node A4",
+   "crossTree": "civic dependents: steppe_empire",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "fog.exploreStepNodes +0.05"
+   ],
+   "effectRationale": "Mounted scouts cover several times the ground of foot parties: each exploration step reaches further.",
+   "costConcern": "1240 is 0.50x the technology A4 median (2490); within range. Deferred entities: unit.horse_archers (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. The classic role of light cavalry is scouting and screening.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Horseback Riding"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Iron Working"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "saddle",
+   "name": "Saddle",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "cost": 1760.0,
+   "prereq": "cavalry AND sewing",
+   "dependents": [
+    "stirrup"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cavalry",
+     "verdict": "keep",
+     "why": "The saddle improves riding that already exists."
+    },
+    {
+     "atom": "sewing",
+     "verdict": "keep",
+     "why": "Padded, stitched leather and felt."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cavalry A4, sewing A1 -> node A4; gaps of 3+ Ages (sewing) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "roads.baselineKmPerDay +0.02"
+   ],
+   "effectRationale": "A padded seat makes long days in the saddle bearable, so riders and couriers cover more kilometres per day overland.",
+   "costConcern": "1760 is 0.71x the technology A4 median (2490); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; the bridge from cavalry to the stirrup.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "siege_ram",
+   "name": "Battering ram",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "cost": 4970.0,
+   "prereq": "wheel_solid AND hide_working",
+   "dependents": [
+    "siege_tower"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "wheel_solid",
+     "verdict": "keep",
+     "why": "Assyrian rams are wheeled sheds."
+    },
+    {
+     "atom": "hide_working",
+     "verdict": "keep",
+     "why": "Wet hides protect the roof against fire."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "wheel_solid A2, hide_working A1 -> node A4; gaps of 3+ Ages (hide_working) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.03"
+   ],
+   "effectRationale": "Walled towns can no longer defy the centre behind their walls, so the reach of royal authority extends (Assyrian provincial system).",
+   "costConcern": "4970 is 2.00x the technology A4 median (2490); within range. Deferred entities: unit.siege_engine (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Cost note: 4,970 is about 2x the A4 median and 5.6x its own dependent siege_tower; the integrator's recalibration should bring it into line.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Masonry"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "siege_tower",
+   "name": "Siege tower and ramp",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "cost": 880.0,
+   "prereq": "siege_ram",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "siege_ram",
+     "verdict": "keep",
+     "why": "Tower and ramp complete the Assyrian assault kit that the ram began; dated two centuries after it."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "siege_ram A4 -> node A4",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "pathBuild.laborPerAdultPerYear +0.02"
+   ],
+   "effectRationale": "The assault ramp is organised mass earth-moving (Lachish): the same drilled labour gangs build paths faster.",
+   "costConcern": "880 is 0.35x the technology A4 median (2490); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf. Effect follows the ramp, the part of the capability with a civil use.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Construction"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "pathBuild.laborPerAdultPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "crossbow",
+   "name": "Crossbow",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "cost": 4180.0,
+   "prereq": "bow_simple AND casting_closed",
+   "dependents": [
+    "crossbow_repeating",
+    "torsion_artillery"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "bow_simple",
+     "verdict": "keep",
+     "why": "A bow mounted on a stock."
+    },
+    {
+     "atom": "casting_closed",
+     "verdict": "keep",
+     "why": "The Chinese trigger is a precision bronze casting."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "bow_simple A1, casting_closed A3 -> node A4; gaps of 3+ Ages (bow_simple) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "A crossbow needs little training, so town militias can shoot back: banditry and disorder cost less output.",
+   "costConcern": "4180 is 1.68x the technology A4 median (2490); within range. Deferred entities: unit.crossbowmen (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; feeds torsion artillery and the repeating crossbow. Cost 4,180 is 1.7x the A4 median (precision casting justifies some of it).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Machinery"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Castles"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "naval_ram",
+   "name": "Ramming warship",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "cost": 2960.0,
+   "prereq": "plank_boat AND casting_closed",
+   "dependents": [
+    "state_navy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "plank_boat",
+     "verdict": "keep",
+     "why": "A galley is a plank-built hull."
+    },
+    {
+     "atom": "casting_closed",
+     "verdict": "keep",
+     "why": "The bronze ram is cast in a closed mould."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "plank_boat A3, casting_closed A3 -> node A4",
+   "crossTree": "civic dependents: state_navy",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.02"
+   ],
+   "effectRationale": "A war fleet suppresses piracy on sea lanes, so bulk sea haulage needs less escort and loses fewer cargoes.",
+   "costConcern": "2960 is 1.19x the technology A4 median (2490); within range. Deferred entities: unit.war_galley (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; feeds state_navy.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Sailing"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Sailing"
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "medicine_hippocratic",
+   "name": "Clinical medicine",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "medicine",
+   "cost": 1760.0,
+   "prereq": "medicine_recorded",
+   "dependents": [
+    "anatomy_dissection",
+    "epidemiology",
+    "inoculation",
+    "pharmacology",
+    "public_health_board",
+    "surgery_instruments"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "medicine_recorded",
+     "verdict": "keep",
+     "why": "Clinical medicine builds on the written record of cases."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "medicine_recorded A3 -> node A4",
+   "crossTree": "civic dependents: public_health_board",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.05",
+    "unlock building.hospital",
+    "unlock building.university"
+   ],
+   "effectRationale": "Trained physicians: the operand by which university medicine saves lives. Also the live hospital and university buildings.",
+   "costConcern": "1760 is 0.71x the technology A4 median (2490); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Landmark node (six dependents, three live unlocks).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Urban Planning"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [
+    "building.hospital",
+    "building.university"
+   ]
+  },
+  {
+   "id": "torsion_artillery",
+   "name": "Torsion catapult",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "military",
+   "cost": 4970.0,
+   "prereq": "crossbow",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "crossbow",
+     "verdict": "keep",
+     "why": "The gastraphetes (belly-bow) is the stated ancestor of torsion engines."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "crossbow A4 -> node A5",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.02"
+   ],
+   "effectRationale": "Bolt-throwers on the walls let small garrisons hold frontier towns, extending the reach of administration.",
+   "costConcern": "4970 is 1.41x the technology A5 median (3520); within range. Deferred entities: unit.siege_engine (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf. Philo's calibration formula (~250 BCE) is later than the node date but not a requirement.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Engineering"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "The Wheel"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "crossbow_repeating",
+   "name": "Repeating crossbow",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "military",
+   "cost": 1240.0,
+   "prereq": "crossbow",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "crossbow",
+     "verdict": "keep",
+     "why": "A magazine added to the crossbow."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "crossbow A4 -> node A5",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.01",
+    "colonization.orderPartyFraction +0.01"
+   ],
+   "effectRationale": "A cheap rapid-fire weapon for household and village defence: disorder costs less, and settler parties can defend themselves.",
+   "costConcern": "1240 is 0.35x the technology A5 median (3520); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf. Paired effect keeps it distinct from the A4 crossbow's single unrest effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Machinery"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.01
+    },
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "stirrup",
+   "name": "Stirrup",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "military",
+   "cost": 2490.0,
+   "prereq": "saddle AND iron_bloomery",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "saddle",
+     "verdict": "keep",
+     "why": "The stirrup is fixed to a saddle."
+    },
+    {
+     "atom": "iron_bloomery",
+     "verdict": "keep",
+     "why": "The earliest (302 CE) stirrups were gilt bronze or wood, but the forms that spread with the Avars were iron; kept."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "saddle A4, iron_bloomery A4 -> node A5",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "Heavy horsemen maintained from estates enforce lordly and royal dues over the countryside: taxes extract more.",
+   "costConcern": "2490 is 0.71x the technology A5 median (3520); within range. Deferred entities: unit.heavy_cavalry (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. The link between stirrup and feudal levy is contested (White's thesis); the effect is stated as mounted coercion, not as the cause of feudalism.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Stirrups"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Heraldry"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "pharmacology",
+   "name": "Pharmacopoeia",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "medicine",
+   "cost": 1760.0,
+   "prereq": "medicine_hippocratic",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "medicine_hippocratic",
+     "verdict": "keep",
+     "why": "A catalogue of drugs and their effects is a clinical-medicine product."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "medicine_hippocratic A4 -> node A5",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02",
+    "unlock building.hospital"
+   ],
+   "effectRationale": "A transmissible materia medica raises what taught physicians can do. Live: building.hospital (with clinical medicine).",
+   "costConcern": "1760 is 0.50x the technology A5 median (3520); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. No longer a leaf: the new quinine node takes it as a prerequisite.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "building.hospital"
+   ]
+  },
+  {
+   "id": "surgery_instruments",
+   "name": "Surgical instrument set",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "medicine",
+   "cost": 4180.0,
+   "prereq": "medicine_hippocratic AND casting_closed",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "medicine_hippocratic",
+     "verdict": "keep",
+     "why": "Surgery as clinical practice."
+    },
+    {
+     "atom": "casting_closed",
+     "verdict": "keep",
+     "why": "Bronze instruments; iron blades are not separately required."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "medicine_hippocratic A4, casting_closed A3 -> node A5",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.01"
+   ],
+   "effectRationale": "Trauma and cataract surgery with proper instruments save lives and sight.",
+   "costConcern": "4180 is 1.19x the technology A5 median (3520); within range. Deferred entities: inst.military_medicine (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf for now. inst.military_medicine requires it, but institutions are not live.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cannon_early",
+   "name": "Early cannon",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "military",
+   "cost": 7030.0,
+   "prereq": "saltpetre_refining AND (casting_closed OR iron_bloomery)",
+   "dependents": [
+    "cannon_cast_bronze",
+    "matchlock"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "saltpetre_refining",
+     "verdict": "keep",
+     "why": "Gunpowder rich enough to propel needs refined saltpetre."
+    },
+    {
+     "atom": "casting_closed",
+     "verdict": "keep",
+     "why": "Bronze barrels are closed castings (OR branch)."
+    },
+    {
+     "atom": "iron_bloomery",
+     "verdict": "keep",
+     "why": "Wrought-iron hooped barrels (OR branch)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "saltpetre_refining A6, casting_closed A3, iron_bloomery A4 -> node A6; gaps of 3+ Ages (casting_closed) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.03"
+   ],
+   "effectRationale": "Even weak guns let a ruler batter down a rebel's gate: the reach of central authority extends.",
+   "costConcern": "7030 is 1.68x the technology A6 median (4180); within range. Deferred entities: unit.artillery (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. OR between bronze casting and wrought iron is historically right (both barrel types existed).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Gunpowder"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Gunpowder"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "trebuchet",
+   "name": "Counterweight trebuchet",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "military",
+   "cost": 5910.0,
+   "prereq": "traction_trebuchet",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "traction_trebuchet",
+     "verdict": "keep",
+     "why": "The counterweight replaces the hauling crew."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "traction_trebuchet A5 -> node A6",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "Castles of magnates fall to the crown's engines, so dues long withheld behind walls are collected.",
+   "costConcern": "5910 is 1.41x the technology A6 median (4180); within range. Deferred entities: unit.siege_engine (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Military Engineering"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Metallurgy"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "longbow",
+   "name": "Longbow",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "military",
+   "cost": 2090.0,
+   "prereq": "bow_simple",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "bow_simple",
+     "verdict": "keep",
+     "why": "The longbow is a self bow scaled up; no other requirement is binding."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "bow_simple A1 -> node A6; gaps of 3+ Ages (bow_simple) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.02"
+   ],
+   "effectRationale": "Archery is practised by law in every parish and well paid in war; trained commoners rise into the yeomanry.",
+   "costConcern": "2090 is 0.50x the technology A6 median (4180); within range. Deferred entities: unit.longbowmen (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "plate_armour",
+   "name": "Plate armour",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "military",
+   "cost": 5910.0,
+   "prereq": "tempering AND sheet_metal",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "tempering",
+     "verdict": "keep",
+     "why": "Hardened, tempered steel plates."
+    },
+    {
+     "atom": "sheet_metal",
+     "verdict": "keep",
+     "why": "Plates are hammered sheet."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "tempering A4, sheet_metal A3 -> node A6; gaps of 3+ Ages (sheet_metal) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.02"
+   ],
+   "effectRationale": "A few armoured men-at-arms can put down a peasant rising (Jacquerie 1358): unrest is suppressed at less cost in output.",
+   "costConcern": "5910 is 1.41x the technology A6 median (4180); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Apprenticeship"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Heraldry"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "greek_fire",
+   "name": "Greek fire",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "military",
+   "cost": 2090.0,
+   "prereq": "distillation",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "distillation",
+     "verdict": "keep",
+     "why": "A distilled petroleum fraction is the most accepted reconstruction."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "distillation A5 -> node A6",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.02"
+   ],
+   "effectRationale": "A fleet armed with a feared incendiary holds sea lanes against raiders, lowering the cost of sea haulage.",
+   "costConcern": "2090 is 0.50x the technology A6 median (4180); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf: a lost state secret with no successor.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cannon_cast_bronze",
+   "name": "Cast bronze cannon",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "cost": 7030.0,
+   "prereq": "cannon_early AND casting_closed",
+   "dependents": [
+    "cannon_cast_iron",
+    "trace_italienne"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cannon_early",
+     "verdict": "keep",
+     "why": "Scales up the gun."
+    },
+    {
+     "atom": "casting_closed",
+     "verdict": "keep",
+     "why": "One-piece casting; it is redundant only on cannon_early's bronze branch, so it is kept."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cannon_early A6, casting_closed A3 -> node A7; gaps of 3+ Ages (casting_closed) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.04"
+   ],
+   "effectRationale": "Siege trains end the castle as a refuge (Constantinople 1453, French Italy 1494): central authority reaches much further.",
+   "costConcern": "7030 is 1.00x the technology A7 median (7030); within range. Deferred entities: unit.artillery (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; landmark of the gunpowder state, slightly larger delta.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Metal Casting"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Metal Casting"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cannon_cast_iron",
+   "name": "Cast iron cannon",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "cost": 7030.0,
+   "prereq": "cannon_cast_bronze AND blast_furnace_water",
+   "dependents": [
+    "cylinder_boring",
+    "ship_of_line"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cannon_cast_bronze",
+     "verdict": "keep",
+     "why": "Iron guns follow the bronze designs."
+    },
+    {
+     "atom": "blast_furnace_water",
+     "verdict": "keep",
+     "why": "Cast iron in gun-sized quantity needs the blast furnace."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cannon_cast_bronze A7, blast_furnace_water A6 -> node A7",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.costPerBulkCostUnit +0.02"
+   ],
+   "effectRationale": "Iron guns at a quarter the price arm ordinary merchantmen, which then sail without escort: cheaper bulk haulage by sea.",
+   "costConcern": "7030 is 1.00x the technology A7 median (7030); within range. Deferred entities: unit.artillery (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "matchlock",
+   "name": "Matchlock arquebus",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "cost": 4180.0,
+   "prereq": "cannon_early AND corned_powder",
+   "dependents": [
+    "rifling",
+    "wheellock"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cannon_early",
+     "verdict": "keep",
+     "why": "The hand gun descends from the cannon."
+    },
+    {
+     "atom": "corned_powder",
+     "verdict": "keep",
+     "why": "Corned powder makes small arms reliable."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cannon_early A6, corned_powder A7 -> node A7",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.03"
+   ],
+   "effectRationale": "Gunpowder infantry is the military revolution that builds the fiscal-military state: armies paid by taxes collect taxes.",
+   "costConcern": "4180 is 0.59x the technology A7 median (7030); within range. Deferred entities: unit.musketeers (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Gunpowder"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Gunpowder"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "wheellock",
+   "name": "Wheellock",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "cost": 2960.0,
+   "prereq": "matchlock AND escapement_verge",
+   "dependents": [
+    "flintlock"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "matchlock",
+     "verdict": "keep",
+     "why": "A new ignition on the same gun."
+    },
+    {
+     "atom": "escapement_verge",
+     "verdict": "keep",
+     "why": "Spring-driven wheel from clockwork."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "matchlock A7, escapement_verge A6 -> node A7",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.01",
+    "roads.baselineKmPerDay +0.01"
+   ],
+   "effectRationale": "Pistols for mounted patrols: highway robbery is policed, so roads are travelled faster and disorder costs less.",
+   "costConcern": "2960 is 0.42x the technology A7 median (7030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; bridge from matchlock to flintlock.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.01
+    },
+    {
+     "operand": "roads.baselineKmPerDay",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "flintlock",
+   "name": "Flintlock",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "cost": 2960.0,
+   "prereq": "wheellock",
+   "dependents": [
+    "breech_loading_rifle"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "wheellock",
+     "verdict": "keep",
+     "why": "Snaphance and flintlock simplify the wheellock's self-ignition."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "wheellock A7 -> node A7",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "colonization.orderPartyFraction +0.03"
+   ],
+   "effectRationale": "A cheap, reliable musket in every settler's hands lets founding parties strike out larger and further (colonial frontiers).",
+   "costConcern": "2960 is 0.42x the technology A7 median (7030); within range. Deferred entities: unit.musketeers (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Military Science"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "trace_italienne",
+   "name": "Bastion fort",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "cost": 5910.0,
+   "prereq": "cannon_cast_bronze AND geometry_axiomatic AND stone_fortification",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "cannon_cast_bronze",
+     "verdict": "keep",
+     "why": "It is the answer to the bronze gun."
+    },
+    {
+     "atom": "geometry_axiomatic",
+     "verdict": "keep",
+     "why": "Bastion traces are designed by geometry."
+    },
+    {
+     "atom": "stone_fortification",
+     "verdict": "keep",
+     "why": "Masonry revetment of the earthworks."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "cannon_cast_bronze A7, geometry_axiomatic A5, stone_fortification A4 -> node A7; gaps of 3+ Ages (stone_fortification) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "unlock building.bastion_fort"
+   ],
+   "effectRationale": "Live unlock: building.bastion_fort requires it.",
+   "costConcern": "5910 is 0.84x the technology A7 median (7030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Live entity unlock is its real effect.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Siege Tactics"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Castles"
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.bastion_fort"
+   ]
+  },
+  {
+   "id": "ship_of_line",
+   "name": "Ship of the line",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "cost": 4180.0,
+   "prereq": "carrack AND cannon_cast_iron",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "carrack",
+     "verdict": "keep",
+     "why": "The heavy frame-first hull."
+    },
+    {
+     "atom": "cannon_cast_iron",
+     "verdict": "keep",
+     "why": "Dozens of guns per ship need cheap iron guns."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "carrack A7, cannon_cast_iron A7 -> node A7",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "trade.gapClosingFraction +0.02"
+   ],
+   "effectRationale": "Sea control keeps convoy routes open in war, so distant markets stay connected and price gaps close.",
+   "costConcern": "4180 is 0.59x the technology A7 median (7030); within range. Deferred entities: unit.ship_of_the_line (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Square Rigging"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Gunpowder"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "inoculation",
+   "name": "Variolation",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "medicine",
+   "cost": 2960.0,
+   "prereq": "medicine_hippocratic",
+   "dependents": [
+    "vaccination"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "medicine_hippocratic",
+     "verdict": "keep",
+     "why": "Deliberate infection as treatment is a clinical practice."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "medicine_hippocratic A4 -> node A7; gaps of 3+ Ages (medicine_hippocratic) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02"
+   ],
+   "effectRationale": "Variolation cut smallpox mortality from about 30% to 1-2% in those treated.",
+   "costConcern": "2960 is 0.42x the technology A7 median (7030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; leads to vaccination.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "anatomy_dissection",
+   "name": "Systematic anatomy",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "medicine",
+   "cost": 2960.0,
+   "prereq": "medicine_hippocratic AND printing_press",
+   "dependents": [
+    "anaesthesia",
+    "physiology"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "medicine_hippocratic",
+     "verdict": "keep",
+     "why": "Galenic medicine is what Vesalius corrected."
+    },
+    {
+     "atom": "printing_press",
+     "verdict": "keep",
+     "why": "The Fabrica's illustrations needed accurate print."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "medicine_hippocratic A4, printing_press A7 -> node A7; gaps of 3+ Ages (medicine_hippocratic) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.04"
+   ],
+   "effectRationale": "Accurate anatomy taught in university theatres makes surgery and diagnosis safer.",
+   "costConcern": "2960 is 0.42x the technology A7 median (7030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "vaccination",
+   "name": "Vaccination",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "medicine",
+   "cost": 11830.0,
+   "prereq": "inoculation",
+   "dependents": [
+    "vaccine_lab"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "inoculation",
+     "verdict": "keep",
+     "why": "Jenner's cowpox method replaced variolation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "inoculation A7 -> node A8",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.05"
+   ],
+   "effectRationale": "Safe immunisation against the largest single killer of the eighteenth century.",
+   "costConcern": "11830 is 0.71x the technology A8 median (16730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; landmark, larger delta.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "anaesthesia",
+   "name": "Surgical anaesthesia",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "medicine",
+   "cost": 5910.0,
+   "prereq": "chemistry_quantitative AND anatomy_dissection",
+   "dependents": [
+    "antisepsis"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Ether and chloroform are chemical preparations."
+    },
+    {
+     "atom": "anatomy_dissection",
+     "verdict": "keep",
+     "why": "Long deliberate operations need anatomy."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "chemistry_quantitative A8, anatomy_dissection A7 -> node A8",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02"
+   ],
+   "effectRationale": "Painless surgery lets teaching hospitals perform long operations.",
+   "costConcern": "5910 is 0.35x the technology A8 median (16730); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "germ_theory",
+   "name": "Germ theory",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "medicine",
+   "cost": 47310.0,
+   "prereq": "microscope",
+   "dependents": [
+    "antibiotic_penicillin",
+    "antisepsis",
+    "oral_rehydration",
+    "sulfonamides",
+    "vaccine_lab"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "microscope",
+     "verdict": "keep",
+     "why": "Microbes are seen with the microscope."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "microscope A7 -> node A8",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02",
+    "consumption.grainSpoilagePerYear +0.02",
+    "unlock infra.sewerage_system"
+   ],
+   "effectRationale": "Specific microbes, specific diseases; and Pasteur's work on spoilage microbes cuts losses in store. Live: infra.sewerage_system (OR route).",
+   "costConcern": "47310 is 2.83x the technology A8 median (16730); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Single prerequisite is thin (Pasteur's chemistry and Koch's aniline stains are not required) but the closure is acceptable; cost 47,310 is 2.8x the A8 median.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Sanitation"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "infra.sewerage_system"
+   ]
+  },
+  {
+   "id": "antisepsis",
+   "name": "Antiseptic and aseptic surgery",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "medicine",
+   "cost": 5910.0,
+   "prereq": "germ_theory AND anaesthesia",
+   "dependents": [
+    "organ_transplant"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "germ_theory",
+     "verdict": "keep",
+     "why": "Lister acted on Pasteur."
+    },
+    {
+     "atom": "anaesthesia",
+     "verdict": "keep",
+     "why": "Long operations created the infection problem."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "germ_theory A8, anaesthesia A8 -> node A8",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.03",
+    "demographics.mortalityPerYear +0.01"
+   ],
+   "effectRationale": "Surgical mortality collapses; childbed fever falls with aseptic midwifery.",
+   "costConcern": "5910 is 0.35x the technology A8 median (16730); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.03
+    },
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "tank",
+   "name": "Tank",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 23650.0,
+   "prereq": "internal_combustion AND basic_process AND rifled_artillery AND machine_gun AND mechanised_agriculture",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "internal_combustion",
+     "verdict": "keep",
+     "why": "Engine."
+    },
+    {
+     "atom": "basic_process",
+     "verdict": "keep",
+     "why": "Cheap steel armour plate."
+    },
+    {
+     "atom": "rifled_artillery",
+     "verdict": "keep",
+     "why": "Main gun."
+    },
+    {
+     "atom": "machine_gun",
+     "verdict": "keep",
+     "why": "Secondary armament and the trench problem it answered."
+    },
+    {
+     "atom": "mechanised_agriculture",
+     "verdict": "keep",
+     "why": "Caterpillar track from the Holt tractor."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "internal_combustion A8, basic_process A8, rifled_artillery A8, machine_gun A8, mechanised_agriculture A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.02"
+   ],
+   "effectRationale": "Armoured columns project force over long distances without roads: administrative reach extends.",
+   "costConcern": "23650 is 0.50x the technology A9 median (47310); within range. Deferred entities: unit.tank (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf. Five-way AND is heavy but each atom is a real component.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Combustion"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Combustion"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "radar",
+   "name": "Radar",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 23650.0,
+   "prereq": "vacuum_tube AND electromagnetic_field_theory",
+   "dependents": [
+    "computer",
+    "guided_missile",
+    "missile_defence",
+    "stealth"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "vacuum_tube",
+     "verdict": "keep",
+     "why": "Transmitters and receivers."
+    },
+    {
+     "atom": "electromagnetic_field_theory",
+     "verdict": "keep",
+     "why": "Radio reflection is Hertz's result."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "vacuum_tube A9, electromagnetic_field_theory A8 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.formationSightNodes +0.05",
+    "trade.costPerBulkCostUnit +0.02"
+   ],
+   "effectRationale": "Detection beyond sight: formations see much further, and ships navigate in fog and darkness, lowering haulage costs.",
+   "costConcern": "23650 is 0.50x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; landmark sensor node, four dependents.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.05
+    },
+    {
+     "operand": "trade.costPerBulkCostUnit",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "thermonuclear",
+   "name": "Thermonuclear weapon",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 47310.0,
+   "prereq": "fission_weapon",
+   "dependents": [
+    "icbm",
+    "nuclear_fusion_research"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "fission_weapon",
+     "verdict": "keep",
+     "why": "A fission primary ignites the fusion stage."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "fission_weapon A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maturityTauYears +0.02"
+   ],
+   "effectRationale": "Weapons laboratories and their university contracts (Livermore, Los Alamos) grow new research faculties quickly.",
+   "costConcern": "47310 is 1.00x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. No live mechanic; the effect is the Cold War research spillover.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Nuclear Fusion"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Nuclear Fission"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "antibiotic_penicillin",
+   "name": "Penicillin",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 94620.0,
+   "prereq": "germ_theory AND fermentation_grain",
+   "dependents": [
+    "antibiotic_broad"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "germ_theory",
+     "verdict": "keep",
+     "why": "Bacterial disease."
+    },
+    {
+     "atom": "fermentation_grain",
+     "verdict": "keep",
+     "why": "Deep-tank fermentation is the mass-production method; the A2 atom stands for fermentation craft."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "germ_theory A8, fermentation_grain A2 -> node A9; gaps of 3+ Ages (fermentation_grain) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.04",
+    "institutions.universities.maxMortalityReduction +0.02"
+   ],
+   "effectRationale": "Bacterial infection cured: wound and maternal mortality collapse.",
+   "costConcern": "94620 is 2.00x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; landmark. Cost 94,620 is 2x the A9 median.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.04
+    },
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "antibiotic_broad",
+   "name": "Broad-spectrum antibiotics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 23650.0,
+   "prereq": "antibiotic_penicillin",
+   "dependents": [
+    "antibiotic_resistance",
+    "genetic_engineering"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "antibiotic_penicillin",
+     "verdict": "keep",
+     "why": "Same screening programme."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "antibiotic_penicillin A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02",
+    "farming.outputPerFarmerPerYear +0.01"
+   ],
+   "effectRationale": "Tuberculosis becomes curable; it chronically disabled working adults, so cured farmers produce more.",
+   "costConcern": "23650 is 0.50x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "antibiotic_resistance",
+   "name": "Antibiotic resistance management",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 33450.0,
+   "prereq": "antibiotic_broad AND evolution AND epidemiology",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "antibiotic_broad",
+     "verdict": "keep",
+     "why": "Resistance to them."
+    },
+    {
+     "atom": "evolution",
+     "verdict": "keep",
+     "why": "Selection explains resistance."
+    },
+    {
+     "atom": "epidemiology",
+     "verdict": "keep",
+     "why": "Surveillance of resistance."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "antibiotic_broad A9, evolution A8, epidemiology A8 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.01",
+    "demographics.starvationMortalityMaxPerYear +0.01"
+   ],
+   "effectRationale": "Stewardship keeps hospital and famine-camp infections treatable.",
+   "costConcern": "33450 is 0.71x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.01
+    },
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "vaccine_lab",
+   "name": "Laboratory vaccines",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 33450.0,
+   "prereq": "germ_theory AND vaccination",
+   "dependents": [
+    "immunology",
+    "mrna_vaccines"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "germ_theory",
+     "verdict": "keep",
+     "why": "Vaccines designed from the isolated pathogen."
+    },
+    {
+     "atom": "vaccination",
+     "verdict": "keep",
+     "why": "The principle of immunisation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "germ_theory A8, vaccination A8 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.02",
+    "demographics.starvationChildMultiplier +0.02"
+   ],
+   "effectRationale": "Childhood vaccines (diphtheria, polio, measles) cut child mortality, including in hungry years.",
+   "costConcern": "33450 is 0.71x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep in A9: the node spans 1885-1955 and its bulk (polio, measles) is post-1914. Data note: its emerged text marks only 1955 CE, so the validator dates it after its dependent immunology (1890 CE).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.02
+    },
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "blood_transfusion",
+   "name": "Blood transfusion",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 16730.0,
+   "prereq": "immunology AND physiology",
+   "dependents": [
+    "organ_transplant"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "immunology",
+     "verdict": "keep",
+     "why": "Blood groups are serology."
+    },
+    {
+     "atom": "physiology",
+     "verdict": "keep",
+     "why": "Circulation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "immunology A9, physiology A7 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.03"
+   ],
+   "effectRationale": "Surgical and trauma survival through stored, matched blood.",
+   "costConcern": "16730 is 0.35x the technology A9 median (47310); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "hormonal_contraception",
+   "name": "Oral contraceptive",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 47310.0,
+   "prereq": "endocrinology AND synthetic_dye",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "endocrinology",
+     "verdict": "keep",
+     "why": "Hormonal control of ovulation."
+    },
+    {
+     "atom": "synthetic_dye",
+     "verdict": "keep",
+     "why": "Stands for organic synthesis (norethindrone, 1951)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "endocrinology A9, synthetic_dye A8 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.04"
+   ],
+   "effectRationale": "Fertility by choice let women complete education and enter careers (the 'power of the pill'): faster social promotion.",
+   "costConcern": "47310 is 1.00x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "xray",
+   "name": "X-ray imaging",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 66910.0,
+   "prereq": "electromagnetism AND barometer_vacuum AND photography",
+   "dependents": [
+    "dna_structure",
+    "medical_imaging",
+    "radiation_protection",
+    "radiotherapy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electromagnetism",
+     "verdict": "keep",
+     "why": "Induction coil."
+    },
+    {
+     "atom": "barometer_vacuum",
+     "verdict": "keep",
+     "why": "Evacuated Crookes tube."
+    },
+    {
+     "atom": "photography",
+     "verdict": "keep",
+     "why": "Plates record the image."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "electromagnetism A8, barometer_vacuum A7, photography A8 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02",
+    "institutions.universities.maxResearchCostReduction +0.01"
+   ],
+   "effectRationale": "Diagnosis without cutting in hospitals; X-ray crystallography becomes a university instrument.",
+   "costConcern": "66910 is 1.41x the technology A9 median (47310); within range.",
+   "action": "move-age",
+   "newPrereq": null,
+   "newAge": "A8",
+   "rationale": "Move A9 to A8 by its own date (1895, Röntgen) and by its use by 1914; all prerequisites are A7-A8 and all four dependents are A9, so no edge or sweep is affected.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    },
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "organ_transplant",
+   "name": "Organ transplantation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 8360.0,
+   "prereq": "antisepsis AND blood_transfusion",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "antisepsis",
+     "verdict": "keep",
+     "why": "Major sterile surgery."
+    },
+    {
+     "atom": "blood_transfusion",
+     "verdict": "keep",
+     "why": "Major surgery needs blood; immunology comes through it."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "antisepsis A8, blood_transfusion A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.01",
+    "institutions.universities.maturityTauYears +0.01"
+   ],
+   "effectRationale": "Transplant programmes concentrate in academic medical centres.",
+   "costConcern": "8360 is 0.18x the technology A9 median (47310); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf. Cost 8,360 is 0.18x the A9 median; low for a technique needing immunosuppression.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.01
+    },
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "chemotherapy",
+   "name": "Chemotherapy",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 16730.0,
+   "prereq": "sulfonamides",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "sulfonamides",
+     "verdict": "keep",
+     "why": "Screening synthetic compounds against disease began with Prontosil; antifolates followed that paradigm."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "sulfonamides A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02",
+    "demographics.mortalityPerYear +0.01"
+   ],
+   "effectRationale": "Drug treatment of cancer, given in hospitals.",
+   "costConcern": "16730 is 0.35x the technology A9 median (47310); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    },
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "medical_imaging",
+   "name": "Cross-sectional imaging",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 23650.0,
+   "prereq": "xray AND computer",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "xray",
+     "verdict": "keep",
+     "why": "CT is computed X-ray."
+    },
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Reconstruction."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "xray A9, computer A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02",
+    "institutions.universities.maxResearchCostReduction +0.01"
+   ],
+   "effectRationale": "Non-invasive diagnosis in hospitals; scanners are also research instruments.",
+   "costConcern": "23650 is 0.50x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    },
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "antiviral_drugs",
+   "name": "Antiviral drugs",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 23650.0,
+   "prereq": "dna_structure AND chemistry_quantitative",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "dna_structure",
+     "verdict": "keep",
+     "why": "Nucleoside analogues target replication."
+    },
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Synthesis."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "dna_structure A9, chemistry_quantitative A8 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.01",
+    "farming.outputPerFarmerPerYear +0.01"
+   ],
+   "effectRationale": "Antiretroviral therapy restored the labour of working-age adults where HIV had struck.",
+   "costConcern": "23650 is 0.50x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    },
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "monoclonal_antibodies",
+   "name": "Monoclonal antibodies",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 47310.0,
+   "prereq": "dna_structure AND immunology",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "dna_structure",
+     "verdict": "keep",
+     "why": "Molecular biology context."
+    },
+    {
+     "atom": "immunology",
+     "verdict": "keep",
+     "why": "Antibodies."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "dna_structure A9, immunology A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.02"
+   ],
+   "effectRationale": "Hybridoma antibodies became the standard reagent of biomedical laboratories, cutting research cost.",
+   "costConcern": "47310 is 1.00x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "ivf",
+   "name": "In-vitro fertilisation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 16730.0,
+   "prereq": "endocrinology",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "endocrinology",
+     "verdict": "keep",
+     "why": "Hormonal ovarian stimulation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "endocrinology A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.grievanceRelief +0.01"
+   ],
+   "effectRationale": "Relief of involuntary childlessness.",
+   "costConcern": "16730 is 0.35x the technology A9 median (47310); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf; weak population effect, smallest delta.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "mrna_vaccines",
+   "name": "mRNA vaccines",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 47310.0,
+   "prereq": "genetic_engineering AND vaccine_lab AND genome_sequencing",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "genetic_engineering",
+     "verdict": "keep",
+     "why": "Engineered sequences."
+    },
+    {
+     "atom": "vaccine_lab",
+     "verdict": "keep",
+     "why": "Vaccine principle."
+    },
+    {
+     "atom": "genome_sequencing",
+     "verdict": "keep",
+     "why": "Antigen designed from the sequence."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "genetic_engineering A9, vaccine_lab A9, genome_sequencing A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.01",
+    "migration.baseRatePerYear +0.02"
+   ],
+   "effectRationale": "Vaccines designed in days end pandemic closures sooner, so movement of people resumes.",
+   "costConcern": "47310 is 1.00x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    },
+    {
+     "operand": "migration.baseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "oral_rehydration",
+   "name": "Oral rehydration therapy",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 740.0,
+   "prereq": "germ_theory AND chemistry_quantitative",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "germ_theory",
+     "verdict": "keep",
+     "why": "Diarrhoeal disease."
+    },
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Exact salt-glucose formula."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "germ_theory A8, chemistry_quantitative A8 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.starvationChildMultiplier +0.03",
+    "demographics.starvationMortalityMaxPerYear +0.02"
+   ],
+   "effectRationale": "Cheap salt-sugar solution stops death from diarrhoeal dehydration, the main killer of children in famine.",
+   "costConcern": "740 is 0.02x the technology A9 median (47310); outlier, for the pacing recalibration. Extreme: 740 RP in an Age whose median is 47,310.",
+   "action": "add-prereq",
+   "newPrereq": "germ_theory AND chemistry_quantitative AND physiology",
+   "newAge": null,
+   "rationale": "Add physiology: ORT rests on the 1960s discovery of sodium-glucose co-transport in the gut. Cost 740 is 0.016x the A9 median, an extreme outlier; recalibrate.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.03
+    },
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "icbm",
+   "name": "Intercontinental ballistic missile",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 189240.0,
+   "prereq": "rocket AND thermonuclear AND computer",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "rocket",
+     "verdict": "keep",
+     "why": "Launcher."
+    },
+    {
+     "atom": "thermonuclear",
+     "verdict": "keep",
+     "why": "Megaton warhead small enough to lift."
+    },
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Inertial guidance."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "rocket A9, thermonuclear A9, computer A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "mobility.promoteRatePerYear +0.02"
+   ],
+   "effectRationale": "The ICBM-launched Sputnik produced mass science education programmes (US NDEA 1958): faster social promotion through education.",
+   "costConcern": "189240 is 4.00x the technology A9 median (47310); outlier, for the pacing recalibration. Deferred entities: unit.icbm (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf. Cost 189,240 is 4x the A9 median.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Rocketry"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Rocketry"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "nuclear_submarine",
+   "name": "Nuclear submarine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 133810.0,
+   "prereq": "light_water_reactor AND submarine",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "light_water_reactor",
+     "verdict": "keep",
+     "why": "Naval PWR."
+    },
+    {
+     "atom": "submarine",
+     "verdict": "keep",
+     "why": "The hull and its systems."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "light_water_reactor A9, submarine A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "fog.exploreMaxRadiusNodes +0.02",
+    "fog.exploreStepNodes +0.01"
+   ],
+   "effectRationale": "Unlimited submerged endurance opens unseen seas (under-ice transit of the Pole, 1958) to survey.",
+   "costConcern": "133810 is 2.83x the technology A9 median (47310); outlier, for the pacing recalibration. Deferred entities: unit.nuclear_submarine (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Telecommunications"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Mobilization"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.02
+    },
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "guided_munitions",
+   "name": "Precision-guided munitions",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 94620.0,
+   "prereq": "laser AND computer AND guided_missile",
+   "dependents": [
+    "frontier_military",
+    "missile_defence"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "laser",
+     "verdict": "keep",
+     "why": "Laser designation."
+    },
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Guidance computation."
+    },
+    {
+     "atom": "guided_missile",
+     "verdict": "keep",
+     "why": "Guided-weapon lineage."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "laser A9, computer A9, guided_missile A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.02",
+    "society.unrestOutputDrag +0.01"
+   ],
+   "effectRationale": "Precision strike lets small forces hold distant territory and suppress insurgents with fewer side effects.",
+   "costConcern": "94620 is 2.00x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Guidance Systems"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.02
+    },
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "stealth",
+   "name": "Stealth",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 133810.0,
+   "prereq": "composites AND radar AND computer AND aircraft",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "composites",
+     "verdict": "keep",
+     "why": "Radar-absorbent structures."
+    },
+    {
+     "atom": "radar",
+     "verdict": "keep",
+     "why": "Defeating radar presumes it."
+    },
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Shaping by computed radar cross-section."
+    },
+    {
+     "atom": "aircraft",
+     "verdict": "keep",
+     "why": "An aircraft to make stealthy."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "composites A9, radar A9, computer A9, aircraft A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "fog.exploreStepNodes +0.02"
+   ],
+   "effectRationale": "Unseen reconnaissance overflights reach further into guarded territory on each mission.",
+   "costConcern": "133810 is 2.83x the technology A9 median (47310); outlier, for the pacing recalibration. Deferred entities: unit.stealth_aircraft (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Stealth Technology"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "combat_drone",
+   "name": "Remotely piloted aircraft",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 23650.0,
+   "prereq": "gps AND microprocessor AND aircraft",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "gps",
+     "verdict": "keep",
+     "why": "Navigation."
+    },
+    {
+     "atom": "microprocessor",
+     "verdict": "keep",
+     "why": "Onboard control."
+    },
+    {
+     "atom": "aircraft",
+     "verdict": "keep",
+     "why": "Airframe."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "gps A9, microprocessor A9, aircraft A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "fog.formationSightNodes +0.03",
+    "fog.exploreStepNodes +0.02"
+   ],
+   "effectRationale": "Persistent uncrewed surveillance: formations see further, and scouting reaches further each step.",
+   "costConcern": "23650 is 0.50x the technology A9 median (47310); within range. Deferred entities: unit.combat_drone (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.03
+    },
+    {
+     "operand": "fog.exploreStepNodes",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "missile_defence",
+   "name": "Missile defence",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 16730.0,
+   "prereq": "radar AND guided_munitions",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "radar",
+     "verdict": "keep",
+     "why": "Tracking."
+    },
+    {
+     "atom": "guided_munitions",
+     "verdict": "replace",
+     "why": "Interceptors are guided missiles, not laser-guided bombs: Nike Zeus (1962) and A-35 preceded precision munitions. Replace with guided_missile AND computer."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "radar A9, guided_munitions A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.formationSightNodes +0.01",
+    "governance.authorityDecayCostUnits +0.01"
+   ],
+   "effectRationale": "Early-warning radars and command networks built for interception extend detection and central command.",
+   "costConcern": "16730 is 0.35x the technology A9 median (47310); outlier, for the pacing recalibration.",
+   "action": "replace-prereq",
+   "newPrereq": "radar AND guided_missile AND computer",
+   "newAge": null,
+   "rationale": "Replace guided_munitions with guided_missile AND computer: the interceptor lineage is the guided missile, and fire control is computed. Closure barely changes (laser drops out).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Guidance Systems"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.01
+    },
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "frontier_medicine",
+   "name": "Biomedical research",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 8360.0,
+   "prereq": "genome_sequencing",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "genome_sequencing",
+     "verdict": "keep",
+     "why": "Molecular medicine frontier."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "genome_sequencing A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.01"
+   ],
+   "effectRationale": "Each level lowers mortality (descriptor); convert to gapFraction under contract §4.",
+   "costConcern": "8360 is 0.18x the technology A9 median (47310); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as the medicine repeatable.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "frontier_military",
+   "name": "Military research",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 8360.0,
+   "prereq": "guided_munitions",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "guided_munitions",
+     "verdict": "keep",
+     "why": "End of the military chain."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "guided_munitions A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.formationSightNodes +0.01",
+    "society.unrestOutputDrag +0.01"
+   ],
+   "effectRationale": "Per-level placeholder until combat is live: better sensors and internal-security capability. Convert to gapFraction under contract §4.",
+   "costConcern": "8360 is 0.18x the technology A9 median (47310); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep as the military repeatable. Its descriptor (relative combat effectiveness) needs M7/M8 combat; until then the operand effect stands in.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.01
+    },
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "traction_trebuchet",
+   "name": "Traction trebuchet",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "military",
+   "cost": 2490.0,
+   "prereq": "sling AND timber_frame",
+   "dependents": [
+    "trebuchet"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "sling",
+     "verdict": "keep",
+     "why": "The trebuchet's sling is the hand sling on a beam."
+    },
+    {
+     "atom": "timber_frame",
+     "verdict": "keep",
+     "why": "A framed timber pivot and beam."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "sling A1, timber_frame A2 -> node A5; gaps of 3+ Ages (sling, timber_frame) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "pathBuild.laborPerAdultPerYear +0.01",
+    "governance.authorityDecayCostUnits +0.01"
+   ],
+   "effectRationale": "Crew-hauled engines are built and worked by drilled rope teams; the organised crews and the state's ability to reduce towns both carry over.",
+   "costConcern": "2490 is 0.71x the technology A5 median (3520); within range. Deferred entities: unit.siege_engine (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; parent of the counterweight trebuchet.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Engineering"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "pathBuild.laborPerAdultPerYear",
+     "delta": 0.01
+    },
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "rifling",
+   "name": "Rifled barrel",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "cost": 4180.0,
+   "prereq": "matchlock",
+   "dependents": [
+    "breech_loading_rifle",
+    "rifled_artillery"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "matchlock",
+     "verdict": "keep",
+     "why": "Grooves cut in a matchlock barrel; the first rifles were hunting guns."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "matchlock A7 -> node A7",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.exploreMaxRadiusNodes +0.02"
+   ],
+   "effectRationale": "Rifled hunting guns let woodsmen live off game deep in wild country, extending how far exploration can range.",
+   "costConcern": "4180 is 0.59x the technology A7 median (7030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. Note the 300-year gap between invention (~1500) and military issue (~1800).",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Rifling"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "physiology",
+   "name": "Physiology",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "medicine",
+   "cost": 8360.0,
+   "prereq": "anatomy_dissection",
+   "dependents": [
+    "blood_transfusion",
+    "endocrinology"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "anatomy_dissection",
+     "verdict": "keep",
+     "why": "Function is studied on known structure."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "anatomy_dissection A7 -> node A7",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02",
+    "institutions.universities.maturityTauYears +0.02"
+   ],
+   "effectRationale": "Experimental physiology founded lecture and laboratory traditions (Padua, Leiden) that matured medical faculties.",
+   "costConcern": "8360 is 1.19x the technology A7 median (7030); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. The node's own date (1628) is late A7; Ibn al-Nafis is noted as an earlier precursor only.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    },
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "breech_loading_rifle",
+   "name": "Breech-loading rifle",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "military",
+   "cost": 16730.0,
+   "prereq": "rifling AND flintlock AND chemistry_quantitative AND interchangeable_parts",
+   "dependents": [
+    "machine_gun"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "rifling",
+     "verdict": "keep",
+     "why": "A rifled barrel."
+    },
+    {
+     "atom": "flintlock",
+     "verdict": "keep",
+     "why": "The musket lineage it replaces; partly redundant with rifling's matchlock root but kept as the infantry-arm line."
+    },
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Fulminate primers and cartridges."
+    },
+    {
+     "atom": "interchangeable_parts",
+     "verdict": "keep",
+     "why": "Mass production of a precise action."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "rifling A7, flintlock A7, chemistry_quantitative A8, interchangeable_parts A8 -> node A8",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.authorityDecayCostUnits +0.03"
+   ],
+   "effectRationale": "Small garrisons with breech-loaders hold great territories (the colonial conquests of the 1870s-90s): administrative reach extends.",
+   "costConcern": "16730 is 1.00x the technology A8 median (16730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Rifling"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "machine_gun",
+   "name": "Machine gun",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "military",
+   "cost": 5910.0,
+   "prereq": "breech_loading_rifle",
+   "dependents": [
+    "tank"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "breech_loading_rifle",
+     "verdict": "keep",
+     "why": "Cartridges and a breech action are prerequisites of automatic fire."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "breech_loading_rifle A8 -> node A8",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "society.unrestOutputDrag +0.03"
+   ],
+   "effectRationale": "A handful of guns suppress large risings, so unrest is put down at less cost to output.",
+   "costConcern": "5910 is 0.35x the technology A8 median (16730); outlier, for the pacing recalibration.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; feeds tank.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Advanced Ballistics"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "rifled_artillery",
+   "name": "Rifled breech-loading artillery",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "military",
+   "cost": 19890.0,
+   "prereq": "rifling AND puddling AND slide_rest_lathe",
+   "dependents": [
+    "tank"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "rifling",
+     "verdict": "keep",
+     "why": "Rifled bore."
+    },
+    {
+     "atom": "puddling",
+     "verdict": "keep",
+     "why": "Wrought iron for built-up guns."
+    },
+    {
+     "atom": "slide_rest_lathe",
+     "verdict": "keep",
+     "why": "Precision boring and rifling."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "rifling A7, puddling A8, slide_rest_lathe A8 -> node A8",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "governance.taxExtractionResponseMax +0.02"
+   ],
+   "effectRationale": "No town or militia can resist shellfire, so armed refusal to pay ends: tax extraction rises.",
+   "costConcern": "19890 is 1.19x the technology A8 median (16730); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; feeds tank.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Ballistics"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Industrialization"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "epidemiology",
+   "name": "Epidemiology",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "medicine",
+   "cost": 11830.0,
+   "prereq": "medicine_hippocratic AND probability_statistics",
+   "dependents": [
+    "antibiotic_resistance"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "medicine_hippocratic",
+     "verdict": "keep",
+     "why": "Disease as natural causation."
+    },
+    {
+     "atom": "probability_statistics",
+     "verdict": "keep",
+     "why": "Rates and comparisons."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "medicine_hippocratic A4, probability_statistics A7 -> node A8; gaps of 3+ Ages (medicine_hippocratic) are standing components, not a reason to change the edge",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    "demographics.starvationMortalityMaxPerYear +0.03"
+   ],
+   "effectRationale": "Famine deaths are mostly epidemic (typhus, cholera, dysentery); surveillance directs relief and sanitation to where they spread.",
+   "costConcern": "11830 is 0.71x the technology A8 median (16730); within range. Deferred entities: inst.statistics_vital (not live).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep. inst.statistics_vital requires it but institutions are not live.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "fission_weapon",
+   "name": "Fission weapon",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 94620.0,
+   "prereq": "uranium_enrichment OR reprocessing",
+   "dependents": [
+    "arms_control",
+    "nuclear_deterrence",
+    "thermonuclear"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "uranium_enrichment",
+     "verdict": "keep",
+     "why": "Little Boy route (OR)."
+    },
+    {
+     "atom": "reprocessing",
+     "verdict": "keep",
+     "why": "Plutonium route (OR)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "uranium_enrichment A9, reprocessing A9 -> node A9",
+   "crossTree": "civic dependents: arms_control, nuclear_deterrence",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxResearchCostReduction +0.02"
+   ],
+   "effectRationale": "The Manhattan Project left a system of national laboratories and federal research funding for universities.",
+   "costConcern": "94620 is 2.00x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; OR of the two fissile-material routes is correct.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Nuclear Fission"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Nuclear Fission"
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "guided_missile",
+   "name": "Guided missile",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "cost": 94620.0,
+   "prereq": "rocket AND radar",
+   "dependents": [
+    "guided_munitions"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "rocket",
+     "verdict": "keep",
+     "why": "Propulsion."
+    },
+    {
+     "atom": "radar",
+     "verdict": "keep",
+     "why": "Radar homing and command guidance; the 1943 Hs 293 was radio-commanded, but its radar-homing successors define the node."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "rocket A9, radar A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "fog.formationSightNodes +0.02"
+   ],
+   "effectRationale": "Homing seekers (radar and infrared) are sensors; seeker and tracking technology extends what formations can detect.",
+   "costConcern": "94620 is 2.00x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Guidance Systems"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "fog.formationSightNodes",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "endocrinology",
+   "name": "Endocrinology",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 39780.0,
+   "prereq": "physiology AND chemistry_quantitative",
+   "dependents": [
+    "hormonal_contraception",
+    "ivf"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "physiology",
+     "verdict": "keep",
+     "why": "Glands as physiology."
+    },
+    {
+     "atom": "chemistry_quantitative",
+     "verdict": "keep",
+     "why": "Extraction and assay of hormones."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "physiology A7, chemistry_quantitative A8 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.01",
+    "institutions.universities.maxMortalityReduction +0.01"
+   ],
+   "effectRationale": "Insulin makes diabetes survivable; hormone replacement is managed in clinics.",
+   "costConcern": "39780 is 0.84x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    },
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "immunology",
+   "name": "Immunology",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 28130.0,
+   "prereq": "vaccine_lab",
+   "dependents": [
+    "blood_transfusion",
+    "monoclonal_antibodies"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "vaccine_lab",
+     "verdict": "keep",
+     "why": "Serum therapy came from the bacteriology laboratories."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "vaccine_lab A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.starvationChildMultiplier +0.02"
+   ],
+   "effectRationale": "Diphtheria and tetanus antitoxins saved children above all.",
+   "costConcern": "28130 is 0.59x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep in A9 (its prerequisite vaccine_lab is A9); its own dates (1890/1901) are A8, noted as a finding.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.starvationChildMultiplier",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "nuclear_medicine",
+   "name": "Nuclear medicine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 33450.0,
+   "prereq": "radioisotope_production",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "radioisotope_production",
+     "verdict": "keep",
+     "why": "Isotopes are its material."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "radioisotope_production A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.01",
+    "institutions.universities.maxResearchCostReduction +0.01"
+   ],
+   "effectRationale": "Tracer diagnosis and radioiodine therapy in hospitals; tracers are also research tools.",
+   "costConcern": "33450 is 0.71x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.01
+    },
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "radiation_protection",
+   "name": "Radiation protection",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 39780.0,
+   "prereq": "radiation_detection AND xray",
+   "dependents": [
+    "geological_disposal",
+    "radioisotope_production",
+    "reprocessing"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "radiation_detection",
+     "verdict": "keep",
+     "why": "Dosimetry."
+    },
+    {
+     "atom": "xray",
+     "verdict": "keep",
+     "why": "The first exposure problem was radiology."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "radiation_detection A9, xray A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "mobility.targetShareCap +0.01"
+   ],
+   "effectRationale": "Dose limits make radiological and nuclear work safe enough to employ at scale.",
+   "costConcern": "39780 is 0.84x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep; three dependents.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "radiotherapy",
+   "name": "Radiotherapy",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 47310.0,
+   "prereq": "radioactivity AND xray",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "radioactivity",
+     "verdict": "keep",
+     "why": "Radium."
+    },
+    {
+     "atom": "xray",
+     "verdict": "keep",
+     "why": "Beam therapy."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "radioactivity A9, xray A9 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "institutions.universities.maxMortalityReduction +0.02",
+    "institutions.universities.maturityTauYears +0.01"
+   ],
+   "effectRationale": "Cancer treatment through radium institutes attached to universities.",
+   "costConcern": "47310 is 1.00x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxMortalityReduction",
+     "delta": 0.02
+    },
+    {
+     "operand": "institutions.universities.maturityTauYears",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "sulfonamides",
+   "name": "Sulfonamides",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "cost": 47310.0,
+   "prereq": "germ_theory AND synthetic_dye",
+   "dependents": [
+    "chemotherapy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "germ_theory",
+     "verdict": "keep",
+     "why": "Bacterial targets."
+    },
+    {
+     "atom": "synthetic_dye",
+     "verdict": "keep",
+     "why": "Prontosil was a dye."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "germ_theory A8, synthetic_dye A8 -> node A9",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    "demographics.mortalityPerYear +0.01",
+    "demographics.starvationMortalityMaxPerYear +0.01"
+   ],
+   "effectRationale": "First systemic antibacterials: puerperal sepsis and pneumonia, and dysentery in hungry years.",
+   "costConcern": "47310 is 1.00x the technology A9 median (47310); within range.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Keep.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    },
+    {
+     "operand": "demographics.starvationMortalityMaxPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "herbal_remedies",
+   "name": "Herbal remedies",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "medicine",
+   "emerged": "~49 kya El Sidrón (Neanderthal dental calculus with poplar and chamomile, contested); ~3,300 BCE Ötzi's birch polypore",
+   "prereq": "fire_making",
+   "prereqRationale": "fire_making: infusions, decoctions and fumigation need fire; the hearth is where plant preparations are made. Dated far earlier than the node.",
+   "rationale": "fire_making: infusions, decoctions and fumigation need fire; the hearth is where plant preparations are made. Dated far earlier than the node.",
+   "desc": "Knowledge of plants that ease pain, purge worms and dress wounds, passed from healer to healer. The root of every later pharmacopoeia.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 0.0,
+    "material": 0.25,
+    "institutional": 0.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "effects": [
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Willow and poplar bark for pain, anthelmintic fungi and wound dressings slightly lower everyday mortality.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "pharmacology (A5) is a written, systematic catalogue; herbal remedies are oral lore, 45,000 years earlier, and the root medicine_recorded writes down."
+  },
+  {
+   "id": "signal_beacons",
+   "name": "Signal beacons",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "military",
+   "emerged": "~1,770 BCE Mari (fire signals reported to Zimri-Lim); beacon towers on Chinese frontiers by ~800 BCE",
+   "prereq": "fire_making AND stone_dry",
+   "prereqRationale": "fire_making: a beacon is a prepared fire. stone_dry: posts are towers and cairns on heights. Both far older than the node.",
+   "rationale": "fire_making: a beacon is a prepared fire. stone_dry: posts are towers and cairns on heights. Both far older than the node.",
+   "desc": "Chains of watch posts on high ground pass a pre-arranged fire or smoke signal from hilltop to hilltop: news of raiders reaches the capital in hours instead of days.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.0,
+    "material": 0.25,
+    "institutional": 0.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Warnings and simple orders cross a province in hours, so the centre can respond at distance: administrative reach extends.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "optical_telegraph (A7) sends arbitrary coded messages along a line; beacons carry one pre-agreed signal, 3,500 years earlier, for frontier warning."
+  },
+  {
+   "id": "antiscorbutics",
+   "name": "Antiscorbutics",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "medicine",
+   "emerged": "1747 CE (Lind's citrus trial aboard HMS Salisbury); 1795 CE (Royal Navy lemon-juice issue)",
+   "prereq": "medicine_hippocratic AND carrack",
+   "prereqRationale": "medicine_hippocratic: Lind's comparative trial is clinical observation. carrack: months-long ocean voyages created mass scurvy. Both centuries older.",
+   "rationale": "medicine_hippocratic: Lind's comparative trial is clinical observation. carrack: months-long ocean voyages created mass scurvy. Both centuries older.",
+   "desc": "Citrus juice and fresh food prevent scurvy, which killed more sailors on long voyages than storms or battle. Crews and emigrants arrive alive.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.25,
+    "institutional": 1.5,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "migration.dampingDecayCostUnits",
+     "delta": 0.04
+    },
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Crews and emigrants survive months at sea, so migrants travel further and voyages of exploration range wider.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "inoculation (A7) protects against one infection; antiscorbutics prevent a deficiency disease of long voyages, with a migration and exploration effect, not mortality."
+  },
+  {
+   "id": "quinine",
+   "name": "Quinine",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "medicine",
+   "emerged": "1820 CE (quinine isolated by Pelletier and Caventou, Paris); 1854 CE (prophylaxis on Baikie's Niger expedition); cinchona bark known from the seventeenth century",
+   "prereq": "pharmacology AND chemistry_quantitative",
+   "prereqRationale": "pharmacology: cinchona bark entered the pharmacopoeias first. chemistry_quantitative (1789): isolating the alkaloid is analytical chemistry. Both predate 1820.",
+   "rationale": "pharmacology: cinchona bark entered the pharmacopoeias first. chemistry_quantitative (1789): isolating the alkaloid is analytical chemistry. Both predate 1820.",
+   "desc": "The alkaloid of cinchona bark, isolated and dosed, prevents and treats malaria. Settlers and soldiers survive in malarial lands that had killed most newcomers.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.5,
+    "material": 0.5,
+    "institutional": 2.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "colonization.orderPartyFraction",
+     "delta": 0.03
+    },
+    {
+     "operand": "demographics.mortalityPerYear",
+     "delta": 0.01
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Founding parties survive malarial country (the West African 'white man's grave'), so larger parties can be sent; endemic malaria deaths fall slightly.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "pharmacology (A5) catalogues drugs; quinine is one purified, dosed alkaloid against the deadliest endemic disease, with a colonization effect."
+  },
+  {
+   "id": "aerial_reconnaissance",
+   "name": "Aerial reconnaissance",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "emerged": "1911 CE (Italian aircraft over Libya); 1914–1918 CE (photographic reconnaissance on the Western Front)",
+   "prereq": "aircraft AND photography",
+   "prereqRationale": "aircraft (1903 CE): the platform. photography (1839 CE): reconnaissance became systematic with aerial cameras and photo interpretation.",
+   "rationale": "aircraft (1903 CE): the platform. photography (1839 CE): reconnaissance became systematic with aerial cameras and photo interpretation.",
+   "desc": "Aircraft with cameras photograph the land beyond the front and far from home. Maps of unseen country are made from the air.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.5,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "effectRationale": "Aerial photography and survey reveal country far beyond ground parties' reach: exploration range grows.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Flight"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Flight"
+   },
+   "distinctFrom": "radar (A9) detects by radio at night and in cloud for air defence; aerial reconnaissance photographs terrain by daylight, decades earlier, and maps land rather than tracking targets."
+  }
+ ],
+ "newLanes": [],
+ "findings": [
+  "Dependency and Age changes proposed: 4. medicine_recorded adds the new herbal_remedies (early medical texts are herbal prescriptions). oral_rehydration adds physiology (ORT rests on 1960s sodium-glucose co-transport). missile_defence replaces guided_munitions with guided_missile AND computer (interceptors descend from guided missiles, not laser-guided bombs). xray moves A9 to A8 by its own 1895 date; its prerequisites are A7-A8 and its four dependents A9, so no edge or sweep is affected.",
+  "Gap fill: 5 new nodes. Medicine: herbal_remedies (A1; the lane had no A1 root), antiscorbutics (A7; scurvy, the killer of long voyages, uses the migration and exploration operands), quinine (A8; malaria had no node; colonization operand). Military: signal_beacons (A3; nothing before the A7 optical telegraph gave fast long-distance warning) and aerial_reconnaissance (A9; aircraft existed with no military reconnaissance role).",
+  "Structural: medicine is a deep, mostly linear lane (A2 trepanation is a dead end; A6 is empty because medieval medicine is covered by the hospital entity and the public_health_board civic). Military has 13 A9 nodes, most of them deliberate leaves.",
+  "Effects: units are not live, so 42 of 43 military nodes rely on registry spillovers (authority reach, tax extraction, unrest drag, exploration and sight, trade haulage, and the specialist-class operands). Only trace_italienne has a live unlock (building.bastion_fort). Modern weapons (fission, thermonuclear, ICBM, missiles) have no civil channel, so they carry small university or education spillovers. Recommend a combat operand family once M7/M8 combat is live, then re-point these nodes. Some A9 medicine nodes share an operand pair (penicillin, chemotherapy and endocrinology; imaging and nuclear medicine), but each pair covers a different clinical role, and no two nodes in a lane and Age share a single effect.",
+  "Operand pressure: demographics.mortalityPerYear is the medicine lane's natural operand. Other groups already sum to 0.37 against a cap of 0.7. This group adds 0.29 (medicine 0.29), giving about 0.66, so most medicine deltas here are 0.01-0.02 and only vaccination (0.05) and penicillin (0.04) are larger. Hospital and surgical nodes use institutions.universities.maxMortalityReduction (+0.35, cap 2.0), and child and famine nodes use the starvation operands. Further mortality from later groups will cross the cap, so the integrator should rescale.",
+  "Chronology data issues (not changed): vaccine_lab's emerged text ('1885 / 1955 CE') marks only 1955, so the validator dates it after its dependent immunology (1890 CE). blood_transfusion has the same pattern. immunology (1890/1901), endocrinology (1902/1922) and radiotherapy (1901/1951) carry A8 dates but sit in A9 behind A9 prerequisites.",
+  "Pacing: cost outliers are oral_rehydration (740 RP in A9, 0.016x the median), siege_tower vs siege_ram (880 vs 4,970 in A4), organ_transplant (8,360, 0.18x A9) and icbm (189,240, 4x A9). They are left to the per-(tree, Age) recalibration."
+ ]
+}

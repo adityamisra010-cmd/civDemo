@@ -1,0 +1,2339 @@
+{
+ "group": "T7-communication-environment",
+ "audit": [
+  {
+   "id": "token_counting",
+   "name": "Clay tokens",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "communication",
+   "cost": 620.0,
+   "prereq": "fire_making AND tally_notation",
+   "dependents": [
+    "hieroglyphic",
+    "proto_writing",
+    "standard_weights",
+    "taxation",
+    "temple_economy",
+    "trade"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "fire_making",
+     "verdict": "keep",
+     "why": "Most Near Eastern tokens are baked clay; firing makes the counters durable enough to be kept, stored and enclosed in bullae."
+    },
+    {
+     "atom": "tally_notation",
+     "verdict": "keep",
+     "why": "One-mark-one-unit counting (Lebombo, Ishango) is the abstraction a token generalises to commodity-specific counters."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites: fire_making A1, tally_notation A1.",
+   "crossTree": "none (cross-lane: energy, science)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "granaries.famineReductionMax",
+     "delta": 0.03,
+     "why": "Counted stores (tokens in bullae for grain, oil and livestock) can be rationed and redistributed in a lean year instead of being consumed blindly."
+    }
+   ],
+   "costConcern": "620 is the A2 floor; correct for a cheap enabling notation with six dependents.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Causal prerequisites correct (Schmandt-Besserat token thesis). The capability is stores accounting, so the effect sits on famine relief rather than on yield.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "granaries.famineReductionMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "stamp_seal",
+   "name": "Stamp seal",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "communication",
+   "cost": 880.0,
+   "prereq": "ground_stone_early AND pottery_open_fired",
+   "dependents": [
+    "census",
+    "coinage_electrum",
+    "royal_archives",
+    "taxation",
+    "woodblock_print"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "ground_stone_early",
+     "verdict": "keep",
+     "why": "Seals are carved and ground stone; the grinding and drilling repertoire of ground-edge tools is the working technique."
+    },
+    {
+     "atom": "pottery_open_fired",
+     "verdict": "keep",
+     "why": "Sealings are impressions in clay on jars, bales and storeroom doors; a clay-working tradition is the medium (Halaf sealings on vessel stoppers)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A2 node; prerequisites: ground_stone_early A1, pottery_open_fired A2.",
+   "crossTree": "none (cross-lane: materials)",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.03,
+     "why": "Sealed storerooms and jar stoppers (Arslantepe, Tepe Gawra door sealings) expose tampering, cutting the share of stored grain lost to pilfering and unrecorded drawdown."
+    }
+   ],
+   "costConcern": "880 suits an A2 two-prerequisite micro.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites correct. inst.archive is not live, so the node needs an operand effect; storeroom sealing reduces store losses.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "consumption.grainSpoilagePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "nonLiveEntities": [
+    "inst.archive"
+   ]
+  },
+  {
+   "id": "proto_writing",
+   "name": "Proto-cuneiform",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "cost": 1760.0,
+   "prereq": "token_counting",
+   "dependents": [
+    "cuneiform",
+    "standard_weights",
+    "taxation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "token_counting",
+     "verdict": "keep",
+     "why": "Proto-cuneiform signs for commodities and numbers derive from the token repertoire impressed on bullae (Uruk IV)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites: token_counting A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03,
+     "why": "Uruk ration lists and dues tablets let the temple-state record what each household owes and has paid, raising what a levy actually collects."
+    }
+   ],
+   "costConcern": "1,760 is right for a one-prerequisite A3 extension of an A2 notation.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Single causal prerequisite is the accepted derivation; effect is fiscal accounting, its documented use.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Writing"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Writing"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cuneiform",
+   "name": "Cuneiform (full writing)",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "cost": 3520.0,
+   "prereq": "proto_writing",
+   "dependents": [
+    "abjad",
+    "appointed_officials",
+    "calendar_civil",
+    "census",
+    "geometry_practical",
+    "law_code",
+    "medicine_recorded",
+    "numeral_sexagesimal",
+    "royal_envoys",
+    "scribal_schools",
+    "surveying"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "proto_writing",
+     "verdict": "keep",
+     "why": "Full cuneiform grew directly out of proto-cuneiform by phonetic (rebus) extension (~2,900 BCE)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites: proto_writing A3.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04,
+     "why": "Letters and written orders (Mari, Amarna archives) let a capital instruct governors far away, extending administrative reach."
+    }
+   ],
+   "costConcern": "3,520 equals the other primary scripts; under the Age sweep all four A3 scripts must be completed before A5, so the group spends ~14,080 on scripts (see findings).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct derivation. Library and school are live; the operand captures the specific use of cuneiform for long-distance correspondence.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Writing"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Writing"
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "building.library",
+    "building.school"
+   ],
+   "nonLiveEntities": [
+    "inst.archive",
+    "inst.historiography",
+    "inst.natural_philosophy",
+    "inst.scribal_school"
+   ]
+  },
+  {
+   "id": "hieroglyphic",
+   "name": "Egyptian hieroglyphic",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "cost": 3520.0,
+   "prereq": "token_counting",
+   "dependents": [
+    "abjad",
+    "appointed_officials",
+    "astronomy_records",
+    "calendar_civil",
+    "census",
+    "geometry_practical",
+    "law_code",
+    "medicine_recorded",
+    "royal_envoys",
+    "scribal_schools",
+    "standard_weights",
+    "surveying",
+    "taxation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "token_counting",
+     "verdict": "keep",
+     "why": "Egyptian writing begins as commodity labels and numerals (Abydos U-j tags); a record-of-quantity tradition is the shared precursor, whether independent or stimulus-diffused."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites: token_counting A2.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02,
+     "why": "The Egyptian state rested on an office-holding scribal class ('be a scribe', Satire of the Trades); a script with ~700 signs sustains a larger literate specialist stratum."
+    }
+   ],
+   "costConcern": "3,520, as the other primary scripts; see the sweep note on cuneiform.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite acceptable and does not force a Mesopotamian dependency for an Egyptian route. Effect differs from cuneiform (reach) by being the specialist-class capacity.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Writing"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Writing"
+   },
+   "effects": [
+    {
+     "operand": "mobility.targetShareCap",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "building.library",
+    "building.school"
+   ],
+   "nonLiveEntities": [
+    "inst.archive",
+    "inst.historiography",
+    "inst.natural_philosophy",
+    "inst.scribal_school"
+   ]
+  },
+  {
+   "id": "chinese_script",
+   "name": "Oracle bone script",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "cost": 3520.0,
+   "prereq": "tally_notation AND bone_tools",
+   "dependents": [
+    "abacus",
+    "abjad",
+    "alchemy",
+    "appointed_officials",
+    "astronomy_records",
+    "bill_of_exchange",
+    "calendar_civil",
+    "census",
+    "counting_rods",
+    "geometry_practical",
+    "law_code",
+    "medicine_recorded",
+    "philosophical_schools",
+    "royal_envoys",
+    "scribal_schools",
+    "scriptural_canon",
+    "standard_weights",
+    "state_gazette",
+    "surveying",
+    "taxation"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "tally_notation",
+     "verdict": "keep",
+     "why": "Numerals and count marks precede and survive into oracle-bone numerals; the generic notation precursor."
+    },
+    {
+     "atom": "bone_tools",
+     "verdict": "keep",
+     "why": "The medium is prepared scapulae and plastrons, drilled and inscribed; bone-working is the material technique."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites: tally_notation A1, bone_tools A1. Gap of two or more Ages on tally_notation, bone_tools: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none (cross-lane: materials, science)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02,
+     "why": "Divination records kept systematically (including dated eclipse and weather entries) begin the longest continuous written record of observation."
+    }
+   ],
+   "costConcern": "3,520 as the other primary scripts. Emergence ~1,250 BCE sits at the A3/A4 boundary; A3 is kept because the script presupposes a long unattested development.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Independent East Asian origin is correctly not routed through Mesopotamia. Effect is the observational record, distinct from the other scripts.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Writing"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Writing"
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "building.library",
+    "building.school"
+   ],
+   "nonLiveEntities": [
+    "inst.archive",
+    "inst.historiography",
+    "inst.natural_philosophy",
+    "inst.scribal_school"
+   ]
+  },
+  {
+   "id": "papyrus",
+   "name": "Papyrus",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "cost": 880.0,
+   "prereq": "basketry",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "basketry",
+     "verdict": "keep",
+     "why": "Papyrus sheets are laid, crossed pith strips pressed together; the plant-fibre laying and weaving craft is the technique."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites: basketry A1. Gap of two or more Ages on basketry: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none (cross-lane: industry)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [],
+   "costConcern": "880 is cheap for a writing surface, appropriate: it is a material, not a script.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "A genuine OR route to building.library (an alternative to the scripts and paper). Paper is independent of papyrus, so no dependent is missing.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Writing"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Writing"
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.library"
+   ]
+  },
+  {
+   "id": "abjad",
+   "name": "Consonantal alphabet",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "communication",
+   "cost": 3520.0,
+   "prereq": "(cuneiform OR hieroglyphic OR chinese_script)",
+   "dependents": [
+    "alphabet_vowels",
+    "bill_of_exchange",
+    "brahmi",
+    "philosophical_schools",
+    "scriptural_canon"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cuneiform",
+     "verdict": "keep",
+     "why": "The Ugaritic alphabet is written in cuneiform signs; Levantine scribes trained in cuneiform administered the alphabet's world."
+    },
+    {
+     "atom": "hieroglyphic",
+     "verdict": "keep",
+     "why": "Proto-Sinaitic signs are acrophonic adaptations of Egyptian hieroglyphs (Serabit el-Khadim, ~1,800 BCE)."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "remove",
+     "why": "No path from the Chinese logographic system to a consonantal alphabet exists; East Asia never produced an abjad from it. The OR branch is a gameplay shortcut, not a derivation."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A4 node; prerequisites: cuneiform A3, hieroglyphic A3, chinese_script A3.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03,
+     "why": "Twenty-odd signs learnable in weeks put writing within reach of merchants and artisans, so commoners rise into literate occupations faster."
+    }
+   ],
+   "costConcern": "3,520 is fair for the A4 landmark of cheap literacy.",
+   "action": "remove-prereq",
+   "newPrereq": "(cuneiform OR hieroglyphic)",
+   "newAge": null,
+   "rationale": "Drop chinese_script from the OR: the alphabet derives from Egyptian hieroglyphs via Proto-Sinaitic, with cuneiform as the parallel Levantine scribal tradition. A Chinese-script player loses nothing reachable: both remaining atoms are A3 and the A5 sweep requires them anyway.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Writing"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Literacy"
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.school"
+   ],
+   "nonLiveEntities": [
+    "inst.aramaic_admin"
+   ]
+  },
+  {
+   "id": "alphabet_vowels",
+   "name": "Alphabet with vowels",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "communication",
+   "cost": 2490.0,
+   "prereq": "abjad",
+   "dependents": [
+    "alchemy",
+    "philosophical_schools",
+    "public_theatre",
+    "scriptural_canon",
+    "state_gazette"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "abjad",
+     "verdict": "keep",
+     "why": "The Greek alphabet is the Phoenician abjad with consonant signs reassigned to vowels (~800 BCE)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A4 node; prerequisites: abjad A4.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.03,
+     "why": "Full phonemic writing of a vernacular carried Homer, drama, history and philosophy into a reading citizenry: civic thought is written down and argued over."
+    }
+   ],
+   "costConcern": "2,490 for a one-step extension is fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct derivation. Its dependents (philosophical_schools, public_theatre, state_gazette) are civic, so the effect is on Civics Points.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Drama Poetry"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Literacy"
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "brahmi",
+   "name": "Brahmi script",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "communication",
+   "cost": 880.0,
+   "prereq": "abjad",
+   "dependents": [
+    "hindu_arabic",
+    "philosophical_schools",
+    "public_theatre",
+    "scriptural_canon"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "abjad",
+     "verdict": "keep",
+     "why": "The majority view derives Brahmi from Aramaic (an abjad) with added vowel diacritics; the alternative independent origin is noted in desc."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A4 node; prerequisites: abjad A4.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02,
+     "why": "Ashoka's rock and pillar edicts proclaimed conciliation and dhamma to subjects in their own Prakrits after Kalinga; written public address calms grievance."
+    }
+   ],
+   "costConcern": "880 is cheap for an A4 node; acceptable because it is a derivative script, but it should not be cheaper than the A3 papyrus by rescaling.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite reflects the mainstream derivation. Effect captures its first and best-attested use: public edicts.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "building.school"
+   ]
+  },
+  {
+   "id": "hacksilver",
+   "name": "Weighed silver",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "cost": 2960.0,
+   "prereq": "standard_weights AND cupellation",
+   "dependents": [
+    "coinage_electrum"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "standard_weights",
+     "verdict": "keep",
+     "why": "Silver money is silver by weight; the shekel standard is the measure."
+    },
+    {
+     "atom": "cupellation",
+     "verdict": "keep",
+     "why": "Cupellation yields refined silver of reliable fineness, which is what makes cut silver acceptable by weight."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites: standard_weights A3, cupellation A3.",
+   "crossTree": "none (cross-lane: materials, science)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03,
+     "why": "A common, divisible measure of value lets traders settle any exchange without matching barter wants, so price gaps between settlements close faster (Old Assyrian silver accounts)."
+    }
+   ],
+   "costConcern": "2,960 is fair for A3 with two A3 prerequisites.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. Placed in the communication lane with money; effect is exchange efficiency.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Currency"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Currency"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "coinage_electrum",
+   "name": "Coinage",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "communication",
+   "cost": 11830.0,
+   "prereq": "hacksilver AND stamp_seal",
+   "dependents": [
+    "bill_of_exchange",
+    "coined_wage",
+    "paper_money",
+    "tax_farming"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "hacksilver",
+     "verdict": "keep",
+     "why": "Coins are weighed silver (or electrum) whose weight is guaranteed in advance; hacksilver is the money they replace."
+    },
+    {
+     "atom": "stamp_seal",
+     "verdict": "keep",
+     "why": "A coin is a metal blank struck with an authenticating stamp; the die is a seal."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A4 node; prerequisites: hacksilver A3, stamp_seal A2. Gap of two or more Ages on stamp_seal: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.05,
+     "why": "Taxes assessed and paid in coin instead of kind are cheaper to collect, move and audit (Persian and Greek tribute in coin)."
+    },
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03,
+     "why": "Counted coin of known fineness removes weighing and assay from every exchange, adding to the gap-closing that weighed silver began."
+    }
+   ],
+   "costConcern": "11,830 is the most expensive A4 communication node by far; justified as a landmark with a live building and two effects, but the calibration should check it against abjad (3,520).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. Mint is live; coin taxation and market exchange are its two documented consequences.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Currency"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Currency"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.05
+    },
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.mint"
+   ],
+   "nonLiveEntities": [
+    "inst.mint_institution"
+   ]
+  },
+  {
+   "id": "paper",
+   "name": "Paper",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "communication",
+   "cost": 11830.0,
+   "prereq": "cordage",
+   "dependents": [
+    "civil_service_examinations",
+    "double_entry",
+    "humanism",
+    "jacquard",
+    "printing_press",
+    "woodblock_print"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "cordage",
+     "verdict": "keep",
+     "why": "Paper is macerated plant fibre (hemp rag, bark, ramie); processing fibre into cordage and cloth supplies the raw material and the retting craft."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A5 node; prerequisites: cordage A1. Gap of two or more Ages on cordage: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none (cross-lane: industry)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04,
+     "why": "Cheap paper let the Han and later Tang bureaucracies keep registers, reports and correspondence at a scale no clay, silk or bamboo could, extending administrative reach."
+    }
+   ],
+   "costConcern": "11,830 is high for A5 but paper is a landmark with two live buildings.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisite is the causal material craft. Effect is administrative scale (its desc: bureaucratic scale).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "building.library",
+    "building.paper_mill"
+   ],
+   "nonLiveEntities": [
+    "inst.translation_movement"
+   ]
+  },
+  {
+   "id": "woodblock_print",
+   "name": "Woodblock printing",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "communication",
+   "cost": 14070.0,
+   "prereq": "paper AND stamp_seal",
+   "dependents": [
+    "movable_type_ceramic",
+    "paper_money"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "paper",
+     "verdict": "keep",
+     "why": "Block printing needs a cheap absorbent sheet; it took off only on paper."
+    },
+    {
+     "atom": "stamp_seal",
+     "verdict": "keep",
+     "why": "Carved relief impressed in ink is the seal principle at page scale; Chinese seals and rubbings are the direct precursor."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites: paper A5, stamp_seal A2. Gap of two or more Ages on stamp_seal: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.02,
+     "why": "Song printed agricultural manuals (Chen Fu's Nongshu, 1149) and state calendars spread better practice and timing to ordinary farmers."
+    }
+   ],
+   "costConcern": "14,070 is high relative to the later and more consequential types (3,520 and 2,490); acceptable as the A6 landmark that carries the printing house.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. Effect is the diffusion of farm technique by print, its best-documented economic use in Song China.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Printing"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "farming.outputPerFarmerPerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "building.printing_house"
+   ]
+  },
+  {
+   "id": "movable_type_ceramic",
+   "name": "Ceramic movable type",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "communication",
+   "cost": 3520.0,
+   "prereq": "woodblock_print AND kiln_updraft",
+   "dependents": [
+    "movable_type_metal"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "woodblock_print",
+     "verdict": "keep",
+     "why": "Bi Sheng's type is an extension of block printing: same paper, ink and rubbing, with the block split into reusable characters."
+    },
+    {
+     "atom": "kiln_updraft",
+     "verdict": "keep",
+     "why": "The type is baked clay; firing clay to hardness is the material step."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites: woodblock_print A6, kiln_updraft A2. Gap of two or more Ages on kiln_updraft: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none (cross-lane: materials)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02,
+     "why": "Reusable type made short runs of scholarly works economic (Shen Kuo records the method for this purpose), a modest gain to recorded learning."
+    }
+   ],
+   "costConcern": "3,520 for a niche technique is fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct derivation. Historically limited by character count, so its effect is small.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Printing"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "movable_type_metal",
+   "name": "Metal movable type",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "communication",
+   "cost": 2490.0,
+   "prereq": "movable_type_ceramic AND casting_closed",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "movable_type_ceramic",
+     "verdict": "keep",
+     "why": "Goryeo metal type extends the movable-type principle to cast bronze."
+    },
+    {
+     "atom": "casting_closed",
+     "verdict": "keep",
+     "why": "Type is cast in closed moulds (sand moulds in Korea); closed-mould casting is the metal technique."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites: movable_type_ceramic A6, casting_closed A3. Gap of two or more Ages on casting_closed: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none (cross-lane: materials)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02,
+     "why": "Goryeo and Joseon state presses printed the Confucian classics and examination texts in many copies, widening access to the study that led to office."
+    }
+   ],
+   "costConcern": "2,490 is fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. Deliberate leaf: European type founding was independent, so no edge to printing_press is justified.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Printing"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "mobility.promoteRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "paper_money",
+   "name": "Paper money",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "communication",
+   "cost": 4970.0,
+   "prereq": "woodblock_print AND coinage_electrum",
+   "dependents": [
+    "central_banking"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "woodblock_print",
+     "verdict": "keep",
+     "why": "Jiaozi and later notes were block-printed with multiple colour plates to resist forgery."
+    },
+    {
+     "atom": "coinage_electrum",
+     "verdict": "keep",
+     "why": "Notes began as receipts for deposited coin; a coin standard is what they promised."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites: woodblock_print A6, coinage_electrum A4. Gap of two or more Ages on coinage_electrum: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03,
+     "why": "Money not limited by metal supply relieved the Song coin shortage, so goods held for want of a medium of exchange reached the market faster."
+    }
+   ],
+   "costConcern": "4,970 fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. inst.central_bank is not live, so an operand carries it; the documented effect is monetary liquidity.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Banking"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "nonLiveEntities": [
+    "inst.central_bank"
+   ]
+  },
+  {
+   "id": "bill_of_exchange",
+   "name": "Bill of exchange",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "communication",
+   "cost": 3520.0,
+   "prereq": "coinage_electrum AND (abjad OR chinese_script)",
+   "dependents": [
+    "double_entry",
+    "joint_stock"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "coinage_electrum",
+     "verdict": "keep",
+     "why": "A bill promises payment in a named coin elsewhere; it presupposes coin standards to convert between."
+    },
+    {
+     "atom": "abjad",
+     "verdict": "keep",
+     "why": "Alphabetic commercial literacy (Arabic suftaja, Italian merchant hands) is the medium of the instrument."
+    },
+    {
+     "atom": "chinese_script",
+     "verdict": "keep",
+     "why": "The Tang 'flying money' (feiqian, ~800 CE) is the East Asian draft; the OR keeps that independent route."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A6 node; prerequisites: coinage_electrum A4, abjad A4, chinese_script A3. Gap of two or more Ages on coinage_electrum, abjad, chinese_script: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04,
+     "why": "Payment across distance without moving coin let merchant networks arbitrage distant markets with less risk and capital tied up (Champagne fairs, Italian banking houses)."
+    }
+   ],
+   "costConcern": "3,520 fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites correct; the OR on literacy preserves the Islamic/Italian and Chinese routes.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Banking"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Economics"
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "printing_press",
+   "name": "Printing press",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "communication",
+   "cost": 28130.0,
+   "prereq": "type_founding AND mechanics_archimedean AND paper",
+   "dependents": [
+    "anatomy_dissection",
+    "compulsory_education",
+    "copyright",
+    "mass_political_party",
+    "mass_press",
+    "military_academies",
+    "nationalism",
+    "patent",
+    "press_licensing",
+    "religious_reform",
+    "scientific_societies",
+    "social_contract",
+    "socialism",
+    "taxonomy"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "type_founding",
+     "verdict": "keep",
+     "why": "The adjustable hand mould and type-metal alloy are the core of Gutenberg's system."
+    },
+    {
+     "atom": "mechanics_archimedean",
+     "verdict": "keep",
+     "why": "The screw press (wine and oil presses) is the press mechanism."
+    },
+    {
+     "atom": "paper",
+     "verdict": "keep",
+     "why": "Cheap paper made press runs economic; vellum copies were the exception."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 node; prerequisites: type_founding A7, mechanics_archimedean A5, paper A5. Gap of two or more Ages on mechanics_archimedean, paper: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none (cross-lane: industry, science)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.05,
+     "why": "Identical, cheap, correctable texts let results accumulate and be checked across Europe (Eisenstein); a landmark gain to research."
+    },
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.03,
+     "why": "Pamphlets and vernacular books created the public sphere of the Reformation and after."
+    }
+   ],
+   "costConcern": "28,130 is the A7 communication landmark; fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "All three causal components are present. Landmark node with two moderated research effects (research-coefficient caps are tight, see findings).",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Printing"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.05
+    },
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [
+    "building.printing_house"
+   ],
+   "nonLiveEntities": [
+    "inst.mass_schooling",
+    "inst.newspaper",
+    "inst.scientific_society"
+   ]
+  },
+  {
+   "id": "telegraph",
+   "name": "Electric telegraph",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "cost": 66910.0,
+   "prereq": "electromagnetism AND wire_drawing",
+   "dependents": [
+    "central_planning",
+    "international_organizations",
+    "punched_card_tabulation",
+    "radio",
+    "submarine_cable",
+    "telephone"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electromagnetism",
+     "verdict": "keep",
+     "why": "Needle and Morse instruments are electromagnets driven by a battery current."
+    },
+    {
+     "atom": "wire_drawing",
+     "verdict": "keep",
+     "why": "Long lines need drawn iron and copper wire by the hundreds of kilometres."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites: electromagnetism A8, wire_drawing A6. Gap of two or more Ages on wire_drawing: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none (cross-lane: materials, science)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.06,
+     "why": "Prices known instantly across markets collapsed regional price gaps (US grain and cotton markets after the 1840s-60s telegraph)."
+    }
+   ],
+   "costConcern": "66,910 is high vs telephone (9,950) but the telegraph is the A8 landmark of the lane.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. Optical telegraph is not a prerequisite (electrical telegraphy did not derive from semaphore). Effect is the measured price-convergence consequence.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": [
+    "infra.telegraph_line"
+   ]
+  },
+  {
+   "id": "submarine_cable",
+   "name": "Submarine telegraph cable",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "cost": 23650.0,
+   "prereq": "telegraph AND steamboat",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "telegraph",
+     "verdict": "keep",
+     "why": "The cable carries telegraph signalling."
+    },
+    {
+     "atom": "steamboat",
+     "verdict": "keep",
+     "why": "Cable-laying needs powered ships able to hold course and pay out cable (Great Eastern, 1866)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites: telegraph A8, steamboat A8.",
+   "crossTree": "none (cross-lane: transport)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.06,
+     "why": "Cable links let a capital govern across oceans in hours rather than months (the imperial 'All-Red Line'), extending administrative reach."
+    }
+   ],
+   "costConcern": "23,650 fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites; gutta-percha insulation has no node and is subsumed. Deliberate leaf.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.06
+    }
+   ],
+   "liveUnlocks": [
+    "infra.submarine_cable"
+   ]
+  },
+  {
+   "id": "telephone",
+   "name": "Telephone",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "cost": 9950.0,
+   "prereq": "telegraph",
+   "dependents": [
+    "automatic_switching",
+    "internet"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "telegraph",
+     "verdict": "keep",
+     "why": "Bell worked on a harmonic telegraph; the telephone reuses telegraph lines, batteries and electromagnetic transducers."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites: telegraph A8.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [],
+   "costConcern": "9,950 is low for an A8 node with a live infrastructure; acceptable as an extension of the telegraph.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisite. The live telephone network is its effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Telecommunications"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "infra.telephone_network"
+   ]
+  },
+  {
+   "id": "satellite",
+   "name": "Artificial satellite",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "cost": 378470.0,
+   "prereq": "orbital_launch_vehicle AND computer AND transistor",
+   "dependents": [
+    "communications_satellite",
+    "crewed_spaceflight",
+    "earth_observation",
+    "gps",
+    "space_probe",
+    "space_telescope"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "orbital_launch_vehicle",
+     "verdict": "keep",
+     "why": "Reaching orbit is the defining step."
+    },
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Orbit determination, tracking and telemetry reduction ran on ground computers from 1957."
+    },
+    {
+     "atom": "transistor",
+     "verdict": "keep",
+     "why": "Sputnik 1 used valves, but practical satellites (Explorer 1, Vanguard 1) depended on transistor electronics for weight and power; dated 1947, it is no chronology problem."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites: orbital_launch_vehicle A9, computer A9, transistor A9.",
+   "crossTree": "none (cross-lane: engineering, transport)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.1,
+     "why": "Orbital reconnaissance lets an Explore order point at distant ground: a pointed observer extending range, not a map reveal (D-039 B3, D-040 B3)."
+    }
+   ],
+   "costConcern": "378,470 is the most expensive node in the group and has no live entity; the calibration should check it against communications_satellite (94,620) and the A9 scale.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites correct. Integer operand: the delta only bites with others; chosen because observation range is the satellite's direct capability.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Satellites"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Rocketry"
+   },
+   "effects": [
+    {
+     "operand": "fog.exploreMaxRadiusNodes",
+     "delta": 0.1
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "radio",
+   "name": "Wireless telegraphy (radio)",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "cost": 66900.0,
+   "prereq": "electromagnetic_field_theory AND telegraph",
+   "dependents": [
+    "radio_broadcasting",
+    "semiconductor_physics",
+    "vacuum_tube",
+    "weather_prediction"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "electromagnetic_field_theory",
+     "verdict": "keep",
+     "why": "Maxwell's waves, demonstrated by Hertz, are what Marconi transmitted."
+    },
+    {
+     "atom": "telegraph",
+     "verdict": "keep",
+     "why": "Wireless telegraphy kept telegraph code, keys and operators; it was conceived as telegraphy without wires."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites: electromagnetic_field_theory A8, telegraph A8.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [],
+   "costConcern": "66,900 equals telegraph; fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. The live transmitter building is its effect.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Radio"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Radio"
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "building.radio_transmitter"
+   ],
+   "nonLiveEntities": [
+    "inst.mass_media_broadcast"
+   ]
+  },
+  {
+   "id": "television",
+   "name": "Television",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "cost": 33450.0,
+   "prereq": "radio_broadcasting AND photography",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "radio_broadcasting",
+     "verdict": "keep",
+     "why": "Television is broadcast transmission carrying a picture signal; same transmitters and receivers lineage."
+    },
+    {
+     "atom": "photography",
+     "verdict": "keep",
+     "why": "Photosensitive surfaces and optics (camera tube) are the image-capture side."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites: radio_broadcasting A9, photography A8.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "deferred",
+   "effectsProposed": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03,
+     "why": "Home entertainment and a shared national picture of events absorbed leisure and discontent (a modern 'bread and circuses')."
+    }
+   ],
+   "costConcern": "33,450 fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. inst.mass_media_broadcast is not live; grievance relief is the operand it causally touches.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mass Media"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "nonLiveEntities": [
+    "inst.mass_media_broadcast"
+   ]
+  },
+  {
+   "id": "internet",
+   "name": "Internet",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "cost": 94620.0,
+   "prereq": "computer AND telephone AND integrated_circuit",
+   "dependents": [
+    "cloud_computing",
+    "cyber_warfare",
+    "internet_governance",
+    "large_language_models",
+    "smart_grid"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "computer",
+     "verdict": "keep",
+     "why": "Hosts and packet switches (IMPs) are computers."
+    },
+    {
+     "atom": "telephone",
+     "verdict": "keep",
+     "why": "ARPANET ran on leased telephone lines and modems."
+    },
+    {
+     "atom": "integrated_circuit",
+     "verdict": "keep",
+     "why": "IMPs (Honeywell DDP-516) and later routers were IC machines."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites: computer A9, telephone A8, integrated_circuit A9.",
+   "crossTree": "none (cross-lane: engineering)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.05,
+     "why": "Shared papers, data and remote computing among researchers worldwide raise research output per person."
+    }
+   ],
+   "costConcern": "94,620 fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. Live backbone plus a research effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Telecommunications"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": [
+    "infra.internet_backbone"
+   ]
+  },
+  {
+   "id": "mobile_phone",
+   "name": "Cellular telephony",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "cost": 33450.0,
+   "prereq": "radio_broadcasting AND microprocessor AND automatic_switching",
+   "dependents": [
+    "cellular_digital"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "radio_broadcasting",
+     "verdict": "keep",
+     "why": "Cellular handsets are two-way radio transceivers."
+    },
+    {
+     "atom": "microprocessor",
+     "verdict": "keep",
+     "why": "Handset and base-station control and handoff logic run on microprocessors."
+    },
+    {
+     "atom": "automatic_switching",
+     "verdict": "keep",
+     "why": "Cellular networks are switched telephone networks with automatic handoff."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites: radio_broadcasting A9, microprocessor A9, automatic_switching A8.",
+   "crossTree": "none (cross-lane: engineering)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04,
+     "why": "Phones in every hand narrow price dispersion between markets (Kerala fish markets, Jensen 2007)."
+    }
+   ],
+   "costConcern": "33,450 fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. Live network plus measured market-integration effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Telecommunications"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "trade.gapClosingFraction",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [
+    "infra.mobile_network"
+   ]
+  },
+  {
+   "id": "fibre_optics",
+   "name": "Optical fibre",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "cost": 33450.0,
+   "prereq": "laser AND glass_lead",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "laser",
+     "verdict": "keep",
+     "why": "Fibre links are driven by lasers (and LEDs); the laser is the coherent source."
+    },
+    {
+     "atom": "glass_lead",
+     "verdict": "keep",
+     "why": "No fused-silica node exists; lead crystal stands for the optical-glass lineage (flint glass, Guinand/Fraunhofer). Imperfect material proxy, flagged rather than changed."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites: laser A9, glass_lead A7. Gap of two or more Ages on glass_lead: a deep foundational input, not a reason to change the edge.",
+   "crossTree": "none (cross-lane: materials, science)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.03,
+     "why": "High-bandwidth research backbones (NSFNET, JANET) let universities share instruments, data and computing, lowering the cost of research they host."
+    }
+   ],
+   "costConcern": "33,450 fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Prerequisites acceptable. Missing bridge: fibre is the backbone of cloud_computing (2006) data centres; recommend the engineering-lane owner consider it (see findings). Internet cannot take it (1969 < 1970).",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Telecommunications"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "institutions.universities.maxResearchCostReduction",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "cellular_digital",
+   "name": "Digital cellular networks",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "cost": 8360.0,
+   "prereq": "mobile_phone AND cmos_vlsi",
+   "dependents": [
+    "smartphone"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "mobile_phone",
+     "verdict": "keep",
+     "why": "Digital generations replace analogue cellular on the same network model."
+    },
+    {
+     "atom": "cmos_vlsi",
+     "verdict": "keep",
+     "why": "Digital signal processing in handsets needs VLSI CMOS chips."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites: mobile_phone A9, cmos_vlsi A9.",
+   "crossTree": "none (cross-lane: engineering)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03,
+     "why": "Mobile data and money (M-Pesa) let households receive remittances within hours of a shock, absorbing shortfalls (Jack and Suri 2014)."
+    }
+   ],
+   "costConcern": "8,360 is very cheap for A9; acceptable as an extension.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. Effect is the measured risk-sharing consequence of mobile money.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Telecommunications"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "foodState.adaptationAbsorbableShortfall",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "frontier_climate",
+   "name": "Climate engineering",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "environment",
+   "cost": 23650.0,
+   "prereq": "carbon_capture",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "carbon_capture",
+     "verdict": "keep",
+     "why": "Atmospheric remediation scales out of industrial capture of CO2."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites: carbon_capture A9.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03,
+     "why": "Each level of remediation damps climate extremes, steadying harvests; as a repeatable this should be authored as a gapFraction on the same operand (contract §4)."
+    }
+   ],
+   "costConcern": "23,650 base with level growth per §4; fine.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Repeatable end-of-tree node; operand chosen as the farm-visible consequence of climate stabilisation.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Future Tech"
+   },
+   "effects": [
+    {
+     "operand": "harvestVariance.sigmaLogYield",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "trade",
+   "name": "Trade",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "cost": 880.0,
+   "prereq": "token_counting AND (donkey OR camel OR sail_square)",
+   "dependents": [
+    "commercial_law",
+    "customs_tolls",
+    "market_fairs",
+    "trade_treaties"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "token_counting",
+     "verdict": "keep",
+     "why": "Exchange at a counted standard needs a record of quantity."
+    },
+    {
+     "atom": "donkey",
+     "verdict": "keep",
+     "why": "Donkey caravans carried the Uruk and Old Assyrian trade."
+    },
+    {
+     "atom": "camel",
+     "verdict": "keep",
+     "why": "OR alternative carrier; its later date is harmless because the OR is not must-held."
+    },
+    {
+     "atom": "sail_square",
+     "verdict": "keep",
+     "why": "OR alternative: boat trade (Gulf, Nile)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites: token_counting A2, donkey A3, camel A3, sail_square A3.",
+   "crossTree": "none (cross-lane: agriculture, transport)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [],
+   "costConcern": "880 is cheap for the activity that opens inter-settlement trade; deliberate so trade is not delayed.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Causal prerequisites and the carrier OR are right. activity.trade is its live effect.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Foreign Trade"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Code of Laws"
+   },
+   "effects": [],
+   "liveUnlocks": [
+    "activity.trade"
+   ]
+  },
+  {
+   "id": "mesoamerican_script",
+   "name": "Mesoamerican writing",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "cost": 3520.0,
+   "prereq": "calendar_lunar",
+   "dependents": [
+    "astronomy_records",
+    "calendar_civil",
+    "geometry_practical",
+    "scribal_schools",
+    "surveying"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "calendar_lunar",
+     "verdict": "keep",
+     "why": "Mesoamerican writing emerges from calendar notation (day signs and bar-and-dot numerals)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A3 node; prerequisites: calendar_lunar A2.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "n/a",
+   "effectsNow": "implemented",
+   "effectsProposed": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02,
+     "why": "Dated dynastic stelae proclaimed the ruler's descent and calendrical legitimacy to the public plaza."
+    }
+   ],
+   "costConcern": "3,520 as the other primary scripts; emerged ~650 BCE is in A4's window although Aged A3 (see findings).",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisite. Age label A3 is earlier than its attested emergence (~650 BCE); left as is because it is a regional OR route to library and school and moving it would lengthen that route.",
+   "civ6": {
+    "relation": "direct",
+    "analog": "Writing"
+   },
+   "civ7": {
+    "relation": "direct",
+    "analog": "Writing"
+   },
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": [
+    "building.library",
+    "building.school"
+   ],
+   "nonLiveEntities": [
+    "inst.archive",
+    "inst.historiography",
+    "inst.natural_philosophy",
+    "inst.scribal_school"
+   ]
+  },
+  {
+   "id": "optical_telegraph",
+   "name": "Optical telegraph",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "communication",
+   "cost": 7030.0,
+   "prereq": "telescope",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "telescope",
+     "verdict": "keep",
+     "why": "Chappe operators read the next tower's arms through telescopes."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A7 node; prerequisites: telescope A7.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.05,
+     "why": "A state semaphore network put Paris within hours of its frontiers, extending the reach of central command."
+    }
+   ],
+   "costConcern": "7,030 fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisite. Deliberate leaf: electrical telegraphy did not derive from semaphore.",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.05
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "automatic_switching",
+   "name": "Automatic telephone switching",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "cost": 9950.0,
+   "prereq": "telephone",
+   "dependents": [
+    "mobile_phone",
+    "programmable_computer"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "telephone",
+     "verdict": "keep",
+     "why": "Strowger switching connects telephone subscribers."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites: telephone A8.",
+   "crossTree": "none",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.02,
+     "why": "Dial service made calling cheap and immediate at scale, so wholesalers and retailers order and clear stock without operator delay."
+    }
+   ],
+   "costConcern": "9,950 fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisite. Also a bridge to programmable_computer (relay logic).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "price.stockReleaseRatePerYear",
+     "delta": 0.02
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "punched_card_tabulation",
+   "name": "Punched-card tabulation",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "cost": 14060.0,
+   "prereq": "jacquard AND telegraph",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "jacquard",
+     "verdict": "keep",
+     "why": "Punched cards as machine-readable records come from the Jacquard loom."
+    },
+    {
+     "atom": "telegraph",
+     "verdict": "keep",
+     "why": "Hollerith's reader closed electrical circuits through the holes to drive electromagnetic counters: telegraph-era electrical engineering."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A8 node; prerequisites: jacquard A8, telegraph A8.",
+   "crossTree": "none (cross-lane: industry)",
+   "leafStatus": "missing-bridge",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.04,
+     "why": "Machine tabulation of census and property records (US 1890 census) gives complete, current registers on which assessments and collection rest."
+    }
+   ],
+   "costConcern": "14,060 fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. Missing bridge: punched-card input/output fed early programmable computers (Harvard Mark I, ENIAC); recommend programmable_computer accept it as an OR alternative (engineering-lane owner).",
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Computation"
+   },
+   "effects": [
+    {
+     "operand": "governance.taxExtractionResponseMax",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "communications_satellite",
+   "name": "Communications satellite",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "cost": 94620.0,
+   "prereq": "satellite AND solar_pv",
+   "dependents": [],
+   "prereqAssessment": [
+    {
+     "atom": "satellite",
+     "verdict": "keep",
+     "why": "A relay satellite is an orbital satellite."
+    },
+    {
+     "atom": "solar_pv",
+     "verdict": "keep",
+     "why": "Telstar and Syncom were solar powered."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites: satellite A9, solar_pv A9.",
+   "crossTree": "none (cross-lane: energy)",
+   "leafStatus": "deliberate-leaf",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03,
+     "why": "Satellite relay reached remote islands and interiors with no cable (Indonesia's Palapa, 1976, built for national integration)."
+    }
+   ],
+   "costConcern": "94,620 fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. Deliberate leaf.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Satellites"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  },
+  {
+   "id": "radio_broadcasting",
+   "name": "Voice radio and broadcasting",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "cost": 66900.0,
+   "prereq": "radio AND vacuum_tube",
+   "dependents": [
+    "mobile_phone",
+    "public_broadcasting",
+    "state_propaganda",
+    "television"
+   ],
+   "prereqAssessment": [
+    {
+     "atom": "radio",
+     "verdict": "keep",
+     "why": "Broadcasting is radio transmission to many receivers."
+    },
+    {
+     "atom": "vacuum_tube",
+     "verdict": "keep",
+     "why": "Voice modulation and amplification need valves (de Forest, Armstrong)."
+    }
+   ],
+   "andOr": "ok",
+   "ageGap": "A9 node; prerequisites: radio A8, vacuum_tube A9.",
+   "crossTree": "none (cross-lane: science)",
+   "leafStatus": "n/a",
+   "effectsNow": "none",
+   "effectsProposed": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03,
+     "why": "Governments could speak directly to every household in a crisis (fireside chats, emergency bulletins), shortening disorder and its cost to output."
+    }
+   ],
+   "costConcern": "66,900 equals radio; fair.",
+   "action": "keep",
+   "newPrereq": null,
+   "newAge": null,
+   "rationale": "Correct prerequisites. The broadcast institution is not live; the operand is unrest management, its documented political use.",
+   "civ6": {
+    "relation": "partial",
+    "analog": "Radio"
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Radio"
+   },
+   "effects": [
+    {
+     "operand": "society.unrestOutputDrag",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": []
+  }
+ ],
+ "newNodes": [
+  {
+   "id": "codex",
+   "name": "Parchment codex",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "communication",
+   "emerged": "~170 BCE Pergamon parchment (traditional); ~85 CE Roman pocket codices (Martial); codex dominant by ~400 CE",
+   "prereq": "hide_working AND abjad",
+   "prereqRationale": "Parchment is limed, scraped and stretched animal skin, a hide-working craft (hide_working, ~100 kya). The codex is the alphabetic literate world's book (abjad, ~1,800 BCE): Greek, Latin, Syriac and Hebrew scriptures and law. Both are older and from earlier Ages.",
+   "desc": "Pages of durable parchment bound between boards. A codex can be opened at any page, indexed and carried, so reference books, law codes and scripture survive and can be consulted quickly.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 1.25,
+    "material": 0.5,
+    "institutional": 1.0,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "research.researchPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "civ7": {
+    "relation": "partial",
+    "analog": "Writing"
+   },
+   "distinctFrom": "papyrus (A3) is the scroll writing surface and paper (A5) the cheap sheet material; this is the bound, page-addressable, long-lasting book format, so its effect is on accumulated knowledge, not on administrative scale."
+  },
+  {
+   "id": "sustained_yield_forestry",
+   "name": "Sustained-yield forestry",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "environment",
+   "emerged": "~1,669 CE Colbert's French forest ordinance; ~1,713 CE Carlowitz, Sylvicultura oeconomica (Saxony)",
+   "prereq": "forest_law AND surveying",
+   "prereqRationale": "Managed forests presuppose legal reserves and rights of cutting (forest_law, civic, ~1,079 CE). Cutting only the annual growth needs stands divided into measured compartments (surveying, ~2,500 BCE). Both are older and from earlier Ages.",
+   "desc": "Forests divided into measured plots, cut in rotation and replanted so that no more wood is taken each year than grows back. Timber and fuel stop running out.",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 2.0,
+    "material": 0.25,
+    "institutional": 1.75,
+    "breadth": 0.5,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "production.outputPerExtractorPerYear",
+     "delta": 0.04
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "partial",
+    "analog": "Conservation"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "forest_law (A6 civic) reserves forests by decree; this is the technical practice of rotation, measurement and replanting that raises the sustained timber harvest. It is the environment lane's first finite node."
+  },
+  {
+   "id": "steam_printing_press",
+   "name": "Steam-powered printing press",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "emerged": "1814 CE (Koenig's steam cylinder press prints The Times); 1843 CE Hoe rotary press",
+   "prereq": "printing_press AND steam_rotary",
+   "prereqRationale": "The machine mechanises Gutenberg's process (printing_press, ~1,450 CE). It is driven by rotary steam power (steam_rotary, 1781 CE). Both are older and from earlier Ages.",
+   "desc": "Cylinder and then rotary presses driven by steam print thousands of sheets an hour. Daily newspapers sell for a penny, and politics, prices and news reach every reader.",
+   "factors": {
+    "novelty": 0.5,
+    "difficulty": 2.5,
+    "material": 0.75,
+    "institutional": 1.75,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "delta": 0.03
+    }
+   ],
+   "liveUnlocks": [],
+   "civ6": {
+    "relation": "partial",
+    "analog": "Mass Media"
+   },
+   "civ7": {
+    "relation": "none-by-design",
+    "analog": null
+   },
+   "distinctFrom": "printing_press (A7) is the hand press of books and pamphlets; this is the mechanised mass-circulation press behind the penny press (mass_press civic). It has no live building of its own, only the civic-discourse effect."
+  }
+ ],
+ "newLanes": [],
+ "findings": [
+  "Age sweep vs regional scripts: cuneiform, hieroglyphic, chinese_script and mesoamerican_script are OR alternatives for library, school and abjad, but the sweep makes every A3 node mandatory before A5, so a polity pays ~14,080 for four scripts. Each now has a distinct small effect so the forced completions are not dead weight. Consider whether the pacing scale should treat same-function alternatives as one cohort slot.",
+  "Research-coefficient caps are tight: research.researchPointsCoefficient and research.civicsPointsCoefficient cap at 0.3 for the whole tree. This group uses RP 0.17 (chinese_script 0.02, movable_type_ceramic 0.02, codex 0.03, printing_press 0.05, internet 0.05) and CP 0.09 (alphabet_vowels, printing_press, steam_printing_press 0.03 each). The integrator should sum across groups before calibration, because the clamp will silently flatten late nodes.",
+  "Media nodes moved off the research coefficients onto social operands where a mechanism exists: brahmi and mesoamerican_script (public edicts and stelae, grievanceRelief), television (grievanceRelief), radio_broadcasting (unrestOutputDrag), cellular_digital (foodState shortfall absorption via mobile money).",
+  "Communication-lane operand mix: authorityDecayCostUnits carries the 'command at distance' thread (cuneiform 0.04, paper 0.04, optical_telegraph 0.05, submarine_cable 0.06, communications_satellite 0.03 = 0.22 of cap 3.0). trade.gapClosingFraction carries the 'price information' thread (hacksilver, coinage, bill_of_exchange, telegraph, mobile_phone = 0.20 of cap 1.5).",
+  "Missing bridges for other owners: punched_card_tabulation is a leaf but fed programmable computers (Harvard Mark I, ENIAC card I/O), so programmable_computer could take it as an OR alternative. fibre_optics is a leaf but is the backbone of cloud_computing. steam_printing_press (new) is the causal technology of the mass_press civic (C5), which could add it. None of these were applied, since the edges belong to other lanes.",
+  "Chronology label: mesoamerican_script is Aged A3 but its earliest attestation (~650 BCE) is in A4's window, and chinese_script (~1,250 BCE) sits on the A3/A4 boundary. Both are kept in A3 as OR routes to library and school; moving them would lengthen those regional routes and change the sweep cohort.",
+  "fibre_optics depends on glass_lead (lead crystal), a proxy because no fused-silica or float-glass node exists. Kept, but a materials owner may want a modern-glass node.",
+  "The environment lane had one node (frontier_climate, repeatable A9). sustained_yield_forestry (A7) adds its first finite node. Later environmental technologies (catalytic_converter, carbon_capture) sit in the science lane and were not moved.",
+  "Satellite (378,470) is the most expensive node in the group with no live entity; its effect is an integer fog operand (fog.exploreMaxRadiusNodes 0.1) that only bites when summed with others. Flag for calibration.",
+  "One dependency change is proposed: abjad drops chinese_script from its OR, because no historical derivation exists. It is reachability-neutral because cuneiform and hieroglyphic are A3 and required by the A5 sweep anyway."
+ ]
+}
