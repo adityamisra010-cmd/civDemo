@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import kr_lib as kr  # noqa: E402
 
 PARTS = kr.DATA / "proposal-parts"
+CIVIC_LANES = ("D12-civics", "D13-civics-expansion")
 U, K = 92.4, 2.0
 FACTORS = ["novelty", "difficulty", "material", "institutional", "breadth", "prereq_complexity"]
 BRANCH_ORDER = {b: i for i, b in enumerate(kr.BRANCHES)}
@@ -222,8 +223,11 @@ def main(argv):
         cat = (r.get("civic") or {}).get("category", "micro")
         return (AGE_ORDER.get(r.get("age"), 99), 0 if cat == "micro" else 1, r["id"])
 
-    tech_new = sorted([x for x in new_recs if x[0] != "D12-civics"], key=new_sort)
-    civ_new = sorted([x for x in new_recs if x[0] == "D12-civics"], key=civic_sort)
+    # Civics lanes: D12 first (keys 1008-1067, already in content), then later expansion lanes appended in lane order
+    # so an expansion never renumbers a key that content already carries (D13, 2026-10-24).
+    civic_lanes = [ln for ln in CIVIC_LANES if ln in parts]
+    tech_new = sorted([x for x in new_recs if x[0] not in CIVIC_LANES], key=new_sort)
+    civ_new = [x for ln in civic_lanes for x in sorted([y for y in new_recs if y[0] == ln], key=civic_sort)]
     for i, (lane, r) in enumerate(tech_new):
         key = TECH_KEY_START + i
         if key > TECH_KEY_MAX:

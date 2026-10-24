@@ -1,0 +1,1366 @@
+{
+ "status": "PROPOSED — design input for M8 adoption (D-D, D-062 R3); not ratified; values TUNE",
+ "direction": "Director 2026-10-24: switch government once its node is researched; advantages shown on the node; no policy cards — the Civ VI card slots are pre-chosen per government and built in.",
+ "law2": "Every built-in policy is a coefficient inside a named resolution equation; none is a free-floating buff.",
+ "civ6Source": "Civilization VI base ruleset Governments.xml (slot counts, bonus types)",
+ "switching": {
+  "eligibility": "The form's node is researched (which already requires every prerequisite). Research is permanent, so an eligible form stays eligible.",
+  "order": "AdoptGovernment(form) — one order, the same for player and AI (parity); validated at preview and delivery.",
+  "firstAdoption": "A polity starts under kin rule (no form). Its first adoption is immediate and costs nothing.",
+  "cost": "Each later switch costs Civics Points equal to 25 % of the new form's research cost (TUNE), paid on the turn the order is delivered; refused if the bank is short (nothing paid).",
+  "transition": "A transition of 2 sim-years plus 1 year for each class whose enfranchisement changes (TUNE): the old package is off, the new one not yet on, and tax extraction runs at half its rate. Integrated over dtYears, never counted in turns.",
+  "cooldown": "No new switch while a transition runs, and none within 10 sim-years of the last delivered switch (elapsed sim-time since the polity's own act — state, not a calendar gate).",
+  "exchange": "On the switch turn the RP<->CP exchange of cp-economy-proposal §3 may ride on the same order.",
+  "resistance": "Classes that lose enfranchisement gain grievance (NeedsGrievance, M9); until M9 this line is shown but has no effect.",
+  "milestone": "M8 (D-D, D-062 R3: adoption and active political effects are M8). Until then the node shows the package as 'available when government switching arrives'."
+ },
+ "forms": {
+  "absolute_monarchy": {
+   "powerBase": "The monarch and the court bureaucracy",
+   "legitimacy": "divine right and royal law",
+   "civ6": {
+    "analog": "Monarchy",
+    "slots": "2 Military · 1 Economic · 1 Diplomatic · 2 Wildcard"
+   },
+   "civ7": "Bureaucratic Monarchy",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Intendants enforce royal law in every province",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 35.0,
+     "why": "a centralized administration"
+    },
+    {
+     "category": "Economic",
+     "title": "Royal taxation without consent",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.38,
+     "why": "the fiscal-military state"
+    },
+    {
+     "category": "Military",
+     "title": "A standing army and a royal navy",
+     "operand": "Battle layer (M7)",
+     "live": false,
+     "why": "permanent forces"
+    },
+    {
+     "category": "Economic",
+     "title": "Mercantilist trade policy",
+     "operand": "Adoption (M8) — trade policy",
+     "live": false,
+     "why": "export promotion"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Nobles tied to court, not enterprise",
+     "operand": "mobility.promoteRatePerYear",
+     "operandLabel": "class promotion rate per year",
+     "live": true,
+     "from": 0.08,
+     "to": 0.06,
+     "why": "privilege by birth"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Heavy taxes stoke revolt",
+     "operand": "NeedsGrievance (M9)",
+     "live": false,
+     "why": "tax burden grievance"
+    }
+   ],
+   "modules": [
+    "civil_service_examinations",
+    "provincial_administration",
+    "standing_army"
+   ]
+  },
+  "assembly_democracy": {
+   "powerBase": "The assembly of all adult male citizens",
+   "legitimacy": "the citizens' vote",
+   "civ6": {
+    "analog": "Classical Republic",
+    "slots": "2 Economic · 1 Diplomatic · 1 Wildcard"
+   },
+   "civ7": "Classical Republic",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Citizens vote their own taxes and pay them",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.33,
+     "why": "consent raises compliance"
+    },
+    {
+     "category": "Society",
+     "title": "Open debate produces new ideas",
+     "operand": "Civics Points (M8) — enfranchised citizens weighted in CP generation",
+     "live": false,
+     "why": "public deliberation"
+    },
+    {
+     "category": "Military",
+     "title": "Citizen militia: all citizens serve, in short seasons",
+     "operand": "Battle layer (M7) — levy share",
+     "live": false,
+     "why": "hoplite service"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Direct democracy works only at city scale",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 20.0,
+     "why": "citizens must attend the assembly"
+    },
+    {
+     "category": "Trade-off",
+     "title": "War needs an assembly vote",
+     "operand": "Diplomacy (M8) — war declaration rule",
+     "live": false,
+     "why": "slow and volatile decisions"
+    }
+   ],
+   "modules": [
+    "citizen_assembly",
+    "law_code"
+   ]
+  },
+  "bureaucratic_empire": {
+   "powerBase": "The emperor and a salaried officialdom",
+   "legitimacy": "the throne's order and the officials' law",
+   "civ6": {
+    "analog": "Autocracy",
+    "slots": "1 Military · 1 Economic · 1 Diplomatic · 1 Wildcard"
+   },
+   "civ7": "Bureaucratic Monarchy",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Provinces run by appointed governors",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 35.0,
+     "why": "a hierarchy of offices"
+    },
+    {
+     "category": "Economic",
+     "title": "Regular assessment and collection",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.35,
+     "why": "census and land registers"
+    },
+    {
+     "category": "Society",
+     "title": "Careers open through office",
+     "operand": "mobility.promoteRatePerYear",
+     "operandLabel": "class promotion rate per year",
+     "live": true,
+     "from": 0.08,
+     "to": 0.1,
+     "why": "officials rise by service"
+    },
+    {
+     "category": "Military",
+     "title": "A standing army paid from the levy",
+     "operand": "Battle layer (M7) — upkeep",
+     "live": false,
+     "why": "professional garrisons"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Officials draw salaries in grain",
+     "operand": "Adoption (M8) — official upkeep via Ledger",
+     "live": false,
+     "why": "the state's own cost"
+    }
+   ],
+   "modules": [
+    "provincial_administration",
+    "standing_army"
+   ]
+  },
+  "chiefdom": {
+   "powerBase": "The chief and the elders of the leading lineage",
+   "legitimacy": "descent and generous redistribution",
+   "civ6": {
+    "analog": "Chiefdom",
+    "slots": "1 Military · 1 Economic"
+   },
+   "civ7": "Despotism",
+   "builtIn": [
+    {
+     "category": "Military",
+     "title": "Kin levy: every household sends its men for short raids",
+     "operand": "Battle layer (M7) — levy share and campaign length",
+     "live": false,
+     "why": "raiding parties, not standing forces"
+    },
+    {
+     "category": "Economic",
+     "title": "The chief's store feeds the hungry",
+     "operand": "granaries.famineReductionMax",
+     "operandLabel": "famine mortality relief from granaries",
+     "live": true,
+     "from": 0.25,
+     "to": 0.3,
+     "why": "redistribution from the chief's stores in dearth"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Rule fades quickly beyond the kin group",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 20.0,
+     "why": "authority is personal"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Tribute, not taxation",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.15,
+     "why": "no officials to assess and collect"
+    }
+   ],
+   "modules": [
+    "hereditary_rank"
+   ]
+  },
+  "city_state_oligarchy": {
+   "powerBase": "A council of wealthy notables",
+   "legitimacy": "the notables' law and property",
+   "civ6": {
+    "analog": "Oligarchy",
+    "slots": "2 Military · 1 Economic · 1 Wildcard"
+   },
+   "civ7": "Oligarchy",
+   "builtIn": [
+    {
+     "category": "Military",
+     "title": "Notables serve as officers and heavy troops",
+     "operand": "Battle layer (M7) — training and experience",
+     "live": false,
+     "why": "a trained officer class"
+    },
+    {
+     "category": "Economic",
+     "title": "Notables collect dues efficiently around the city",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.35,
+     "why": "local assessment by those who own the land"
+    },
+    {
+     "category": "Society",
+     "title": "The council funds public works",
+     "operand": "ConstructionSystem (M8 policy) — project priority",
+     "live": false,
+     "why": "building as a mark of status"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Rule is city-centred",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 22.0,
+     "why": "notables rule what they can reach"
+    },
+    {
+     "category": "Trade-off",
+     "title": "A closed elite",
+     "operand": "mobility.promoteRatePerYear",
+     "operandLabel": "class promotion rate per year",
+     "live": true,
+     "from": 0.08,
+     "to": 0.06,
+     "why": "newcomers rarely enter the council"
+    }
+   ],
+   "modules": [
+    "elite_council",
+    "law_code"
+   ]
+  },
+  "classical_republic": {
+   "powerBase": "Elected magistrates and a senate of the propertied",
+   "legitimacy": "law and annual election",
+   "civ6": {
+    "analog": "Classical Republic",
+    "slots": "2 Economic · 1 Diplomatic · 1 Wildcard"
+   },
+   "civ7": "Classical Republic",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Enforceable contracts lower the cost of trade",
+     "operand": "trade.costPerBulkCostUnit",
+     "operandLabel": "trade cost per unit of bulk haulage",
+     "live": true,
+     "from": 0.16,
+     "to": 0.15,
+     "why": "courts and written contract"
+    },
+    {
+     "category": "Society",
+     "title": "Wealth can buy entry to the elite",
+     "operand": "mobility.promoteRatePerYear",
+     "operandLabel": "class promotion rate per year",
+     "live": true,
+     "from": 0.08,
+     "to": 0.09,
+     "why": "census classes, not birth, decide rank"
+    },
+    {
+     "category": "Society",
+     "title": "Enfranchised citizens add to civic thought",
+     "operand": "Civics Points (M8) — enfranchised weight",
+     "live": false,
+     "why": "debate in the forum"
+    },
+    {
+     "category": "Military",
+     "title": "Citizen legions under annual commanders",
+     "operand": "Battle layer (M7)",
+     "live": false,
+     "why": "levy by census class"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Ambitious generals with large armies",
+     "operand": "Adoption/legitimacy (M8) — civil-war risk",
+     "live": false,
+     "why": "the republic's classic failure"
+    }
+   ],
+   "modules": [
+    "elected_magistracies",
+    "elite_council"
+   ]
+  },
+  "constitutional_monarchy": {
+   "powerBase": "The crown in parliament, elected by property holders",
+   "legitimacy": "the constitution and parliament's consent",
+   "civ6": {
+    "analog": "Monarchy / Democracy",
+    "slots": "2 Military · 1 Economic · 1 Diplomatic · 2 Wildcard"
+   },
+   "civ7": "Constitutional Monarchy",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Taxes voted by parliament are paid",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.36,
+     "why": "credible consent"
+    },
+    {
+     "category": "Economic",
+     "title": "Secure property lowers trade costs",
+     "operand": "trade.costPerBulkCostUnit",
+     "operandLabel": "trade cost per unit of bulk haulage",
+     "live": true,
+     "from": 0.16,
+     "to": 0.15,
+     "why": "courts and contracts"
+    },
+    {
+     "category": "Society",
+     "title": "Commoners can rise by wealth and merit",
+     "operand": "mobility.promoteRatePerYear",
+     "operandLabel": "class promotion rate per year",
+     "live": true,
+     "from": 0.08,
+     "to": 0.1,
+     "why": "open professions"
+    },
+    {
+     "category": "Diplomatic",
+     "title": "Alliances backed by parliament",
+     "operand": "Diplomacy (M8)",
+     "live": false,
+     "why": "durable commitments"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "War needs parliament's money",
+     "operand": "Diplomacy (M8) — war supply vote",
+     "live": false,
+     "why": "the crown cannot fight alone"
+    }
+   ],
+   "modules": [
+    "bill_of_rights",
+    "representative_assembly",
+    "succession_law",
+    "written_constitution"
+   ]
+  },
+  "elective_monarchy": {
+   "powerBase": "Electors from the great magnates",
+   "legitimacy": "election by the magnates and sworn charters",
+   "civ6": {
+    "analog": "Monarchy",
+    "slots": "2 Military · 1 Economic · 1 Diplomatic · 2 Wildcard"
+   },
+   "civ7": "—",
+   "builtIn": [
+    {
+     "category": "Society",
+     "title": "Orderly succession by election",
+     "operand": "Adoption/legitimacy (M8) — no succession crisis",
+     "live": false,
+     "why": "the electors choose"
+    },
+    {
+     "category": "Diplomatic",
+     "title": "Foreign princes may be elected",
+     "operand": "Diplomacy (M8) — dynastic unions",
+     "live": false,
+     "why": "crowns as diplomatic prizes"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Each election buys the magnates' votes with privileges",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.22,
+     "why": "tax exemptions"
+    },
+    {
+     "category": "Trade-off",
+     "title": "A weak centre",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 22.0,
+     "why": "magnates rule their lands"
+    }
+   ],
+   "modules": [
+    "elective_succession",
+    "service_tenure"
+   ]
+  },
+  "fascist_state": {
+   "powerBase": "The leader and the ultranationalist party",
+   "legitimacy": "the leader, the nation and mobilization",
+   "civ6": {
+    "analog": "Fascism",
+    "slots": "4 Military · 1 Economic · 1 Diplomatic · 2 Wildcard"
+   },
+   "civ7": "Fascism",
+   "builtIn": [
+    {
+     "category": "Military",
+     "title": "Industry geared to arms",
+     "operand": "Battle layer (M7) — war production priority",
+     "live": false,
+     "why": "rearmament"
+    },
+    {
+     "category": "Economic",
+     "title": "Corporatist control of labour and capital",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.4,
+     "why": "the state directs firms and unions"
+    },
+    {
+     "category": "Society",
+     "title": "Propaganda suppresses dissent for a time",
+     "operand": "NeedsGrievance (M9) — grievance damping",
+     "live": false,
+     "why": "mass rallies, censorship"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Autarky cuts trade",
+     "operand": "trade.gapClosingFraction",
+     "operandLabel": "how fast trade closes price gaps between settlements",
+     "live": true,
+     "from": 0.25,
+     "to": 0.18,
+     "why": "self-sufficiency drive"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Persecuted minorities and collapse on defeat",
+     "operand": "NeedsGrievance (M9) / legitimacy (M8)",
+     "live": false,
+     "why": "the regime cannot survive losing"
+    }
+   ],
+   "modules": [
+    "fascism",
+    "mass_political_party",
+    "state_propaganda"
+   ]
+  },
+  "federal_republic": {
+   "powerBase": "Member states and a federal government",
+   "legitimacy": "a written constitution dividing powers",
+   "civ6": {
+    "analog": "Democracy",
+    "slots": "1 Military · 3 Economic · 2 Diplomatic · 2 Wildcard"
+   },
+   "civ7": "Elective Republic",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Self-governing states extend the republic's reach",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 40.0,
+     "why": "provinces govern themselves"
+    },
+    {
+     "category": "Society",
+     "title": "Free movement across the union",
+     "operand": "migration.dampingDecayCostUnits",
+     "operandLabel": "how far migrants travel (e-fold of travel cost)",
+     "live": true,
+     "from": 25.0,
+     "to": 35.0,
+     "why": "no internal borders"
+    },
+    {
+     "category": "Military",
+     "title": "A federal army and state militias",
+     "operand": "Battle layer (M7)",
+     "live": false,
+     "why": "layered defence"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Revenue shared with the states",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.27,
+     "why": "federal and state taxes"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Secession risk",
+     "operand": "Adoption/legitimacy (M8)",
+     "live": false,
+     "why": "states can leave"
+    }
+   ],
+   "modules": [
+    "municipal_charter",
+    "provincial_administration",
+    "written_constitution"
+   ]
+  },
+  "feudal_monarchy": {
+   "powerBase": "The king and landed vassals",
+   "legitimacy": "oaths of fealty and inherited right",
+   "civ6": {
+    "analog": "Monarchy",
+    "slots": "2 Military · 1 Economic · 1 Diplomatic · 2 Wildcard"
+   },
+   "civ7": "Feudal Monarchy",
+   "builtIn": [
+    {
+     "category": "Military",
+     "title": "Vassals owe knights and castle guard",
+     "operand": "Battle layer (M7) — feudal levy",
+     "live": false,
+     "why": "service for land"
+    },
+    {
+     "category": "Economic",
+     "title": "Vassals govern their own fiefs",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 30.0,
+     "why": "reach through lords"
+    },
+    {
+     "category": "Society",
+     "title": "A fixed order of estates",
+     "operand": "ClassMobility (M9) — estate rules",
+     "live": false,
+     "why": "everyone knows their place"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Vassals keep most of the revenue",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.2,
+     "why": "dues stay in the manor"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Little social movement",
+     "operand": "mobility.promoteRatePerYear",
+     "operandLabel": "class promotion rate per year",
+     "live": true,
+     "from": 0.08,
+     "to": 0.04,
+     "why": "birth decides rank"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Overmighty vassals",
+     "operand": "Adoption/legitimacy (M8) — rebellion risk",
+     "live": false,
+     "why": "lords with their own armies"
+    }
+   ],
+   "modules": [
+    "sacral_kingship",
+    "service_tenure",
+    "succession_law"
+   ]
+  },
+  "marxist_leninist_state": {
+   "powerBase": "The ruling communist party",
+   "legitimacy": "the party's claim to lead the working class",
+   "civ6": {
+    "analog": "Communism",
+    "slots": "3 Military · 3 Economic · 1 Diplomatic · 1 Wildcard"
+   },
+   "civ7": "Communism",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "The plan reaches every district",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 40.0,
+     "why": "party and ministries everywhere"
+    },
+    {
+     "category": "Economic",
+     "title": "The state takes the surplus",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.45,
+     "why": "collectivized production"
+    },
+    {
+     "category": "Society",
+     "title": "Promotion through the party and schools",
+     "operand": "mobility.promoteRatePerYear",
+     "operandLabel": "class promotion rate per year",
+     "live": true,
+     "from": 0.08,
+     "to": 0.12,
+     "why": "class origin reversed"
+    },
+    {
+     "category": "Military",
+     "title": "Mass conscription",
+     "operand": "Battle layer (M7)",
+     "live": false,
+     "why": "a people's army"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Prices set by the plan, not the market",
+     "operand": "trade.gapClosingFraction",
+     "operandLabel": "how fast trade closes price gaps between settlements",
+     "live": true,
+     "from": 0.25,
+     "to": 0.15,
+     "why": "administered prices"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Movement controlled",
+     "operand": "migration.baseRatePerYear",
+     "operandLabel": "base migration rate per year",
+     "live": true,
+     "from": 0.03,
+     "to": 0.015,
+     "why": "internal passports"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Shortages of consumer goods",
+     "operand": "NeedsGrievance (M9)",
+     "live": false,
+     "why": "planning failures"
+    }
+   ],
+   "modules": [
+    "central_planning",
+    "mass_political_party"
+   ]
+  },
+  "merchant_republic": {
+   "powerBase": "Councils of merchant families",
+   "legitimacy": "commercial prosperity and the councils' law",
+   "civ6": {
+    "analog": "Merchant Republic",
+    "slots": "1 Military · 2 Economic · 2 Diplomatic · 1 Wildcard"
+   },
+   "civ7": "Plutocracy",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Trade policy set by traders",
+     "operand": "trade.gapClosingFraction",
+     "operandLabel": "how fast trade closes price gaps between settlements",
+     "live": true,
+     "from": 0.25,
+     "to": 0.35,
+     "why": "merchants run the state"
+    },
+    {
+     "category": "Economic",
+     "title": "Low-cost shipping and credit",
+     "operand": "trade.costPerBulkCostUnit",
+     "operandLabel": "trade cost per unit of bulk haulage",
+     "live": true,
+     "from": 0.16,
+     "to": 0.13,
+     "why": "state galleys, banking"
+    },
+    {
+     "category": "Economic",
+     "title": "Warehouses release stock quickly",
+     "operand": "price.stockReleaseRatePerYear",
+     "operandLabel": "how fast traders release stocks onto the market",
+     "live": true,
+     "from": 0.5,
+     "to": 0.6,
+     "why": "merchants sell into shortages"
+    },
+    {
+     "category": "Diplomatic",
+     "title": "Consuls and commercial treaties",
+     "operand": "Diplomacy (M8)",
+     "live": false,
+     "why": "trade diplomacy"
+    },
+    {
+     "category": "Military",
+     "title": "Hired fleets and mercenaries",
+     "operand": "Battle layer (M7) — mercenary contracts",
+     "live": false,
+     "why": "pay instead of levy"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Little interest in the hinterland",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 22.0,
+     "why": "rule follows the sea lanes"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Rural grievance",
+     "operand": "NeedsGrievance (M9)",
+     "live": false,
+     "why": "peasants unrepresented"
+    }
+   ],
+   "modules": [
+    "commercial_law",
+    "elected_magistracies",
+    "municipal_charter"
+   ]
+  },
+  "military_rule": {
+   "powerBase": "The officer corps",
+   "legitimacy": "force and the promise of order",
+   "civ6": {
+    "analog": "Fascism (partial)",
+    "slots": "4 Military · 1 Economic · 1 Diplomatic · 2 Wildcard"
+   },
+   "civ7": "Revolutionary Authoritarianism",
+   "builtIn": [
+    {
+     "category": "Military",
+     "title": "The army comes first in supply and pay",
+     "operand": "Battle layer (M7) — upkeep priority",
+     "live": false,
+     "why": "rule by soldiers"
+    },
+    {
+     "category": "Economic",
+     "title": "Requisitions near the garrisons",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.4,
+     "why": "collection at sword point"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Arbitrary rule raises the cost of trade",
+     "operand": "trade.costPerBulkCostUnit",
+     "operandLabel": "trade cost per unit of bulk haulage",
+     "live": true,
+     "from": 0.16,
+     "to": 0.18,
+     "why": "insecure property"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Legitimacy lasts only while it wins",
+     "operand": "Adoption/legitimacy (M8)",
+     "live": false,
+     "why": "coups and counter-coups"
+    }
+   ],
+   "modules": [
+    "service_tenure",
+    "standing_army"
+   ]
+  },
+  "one_party_state": {
+   "powerBase": "A single ruling party",
+   "legitimacy": "the party's monopoly and its performance",
+   "civ6": {
+    "analog": "Communism / Fascism",
+    "slots": "3 Military · 3 Economic · 1 Diplomatic · 1 Wildcard"
+   },
+   "civ7": "Authoritarianism",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Party cells extend the state's reach",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 35.0,
+     "why": "a parallel hierarchy"
+    },
+    {
+     "category": "Economic",
+     "title": "Firm collection",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.38,
+     "why": "no opposition to taxation"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Movement watched",
+     "operand": "migration.baseRatePerYear",
+     "operandLabel": "base migration rate per year",
+     "live": true,
+     "from": 0.03,
+     "to": 0.02,
+     "why": "registration and permits"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Legitimacy rests on results; succession is contested",
+     "operand": "Adoption/legitimacy (M8)",
+     "live": false,
+     "why": "no lawful opposition"
+    }
+   ],
+   "modules": [
+    "mass_political_party",
+    "standing_army",
+    "written_constitution"
+   ]
+  },
+  "parliamentary_government": {
+   "powerBase": "A cabinet responsible to an elected parliament",
+   "legitimacy": "a parliamentary majority",
+   "civ6": {
+    "analog": "Democracy",
+    "slots": "1 Military · 3 Economic · 2 Diplomatic · 2 Wildcard"
+   },
+   "civ7": "Elective Republic",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Broad-based taxation by consent",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.35,
+     "why": "the modern tax state"
+    },
+    {
+     "category": "Society",
+     "title": "Mass education and open careers",
+     "operand": "mobility.promoteRatePerYear",
+     "operandLabel": "class promotion rate per year",
+     "live": true,
+     "from": 0.08,
+     "to": 0.12,
+     "why": "meritocratic institutions"
+    },
+    {
+     "category": "Society",
+     "title": "Free press and parties feed civic thought",
+     "operand": "Civics Points (M8) — enfranchised weight",
+     "live": false,
+     "why": "public opinion"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "War weariness topples governments",
+     "operand": "Battle layer (M7) / NeedsGrievance (M9)",
+     "live": false,
+     "why": "voters end wars"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Coalitions fall",
+     "operand": "Adoption (M8) — cabinet instability",
+     "live": false,
+     "why": "policy reversals"
+    }
+   ],
+   "modules": [
+    "ministerial_responsibility"
+   ]
+  },
+  "presidential_republic": {
+   "powerBase": "An elected president and congress",
+   "legitimacy": "election and the separation of powers",
+   "civ6": {
+    "analog": "Democracy",
+    "slots": "1 Military · 3 Economic · 2 Diplomatic · 2 Wildcard"
+   },
+   "civ7": "Elective Republic",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Taxes voted by elected representatives",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.34,
+     "why": "consent"
+    },
+    {
+     "category": "Economic",
+     "title": "Contract and property law ease trade",
+     "operand": "trade.costPerBulkCostUnit",
+     "operandLabel": "trade cost per unit of bulk haulage",
+     "live": true,
+     "from": 0.16,
+     "to": 0.15,
+     "why": "courts"
+    },
+    {
+     "category": "Society",
+     "title": "Open careers",
+     "operand": "mobility.promoteRatePerYear",
+     "operandLabel": "class promotion rate per year",
+     "live": true,
+     "from": 0.08,
+     "to": 0.11,
+     "why": "no legal estates"
+    },
+    {
+     "category": "Diplomatic",
+     "title": "Treaties need ratification",
+     "operand": "Diplomacy (M8)",
+     "live": false,
+     "why": "credible but slow"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Gridlock between president and congress",
+     "operand": "Adoption (M8) — policy-change lag",
+     "live": false,
+     "why": "divided government"
+    }
+   ],
+   "modules": [
+    "elected_magistracies",
+    "separation_of_powers"
+   ]
+  },
+  "revolutionary_republic": {
+   "powerBase": "The nation in arms and its revolutionary committees",
+   "legitimacy": "popular sovereignty",
+   "civ6": {
+    "analog": "—",
+    "slots": ""
+   },
+   "civ7": "Revolutionary Republic",
+   "builtIn": [
+    {
+     "category": "Military",
+     "title": "Mass levy of the whole nation",
+     "operand": "Battle layer (M7) — levy share",
+     "live": false,
+     "why": "levée en masse"
+    },
+    {
+     "category": "Society",
+     "title": "Estates abolished; careers open to talent",
+     "operand": "mobility.promoteRatePerYear",
+     "operandLabel": "class promotion rate per year",
+     "live": true,
+     "from": 0.08,
+     "to": 0.14,
+     "why": "privilege abolished"
+    },
+    {
+     "category": "Economic",
+     "title": "Requisitions for the war effort",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.38,
+     "why": "emergency collection"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Blockade and disorder raise trade costs",
+     "operand": "trade.costPerBulkCostUnit",
+     "operandLabel": "trade cost per unit of bulk haulage",
+     "live": true,
+     "from": 0.16,
+     "to": 0.18,
+     "why": "foreign hostility"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Monarchies abroad turn hostile",
+     "operand": "Diplomacy (M8)",
+     "live": false,
+     "why": "ideological war"
+    }
+   ],
+   "modules": [
+    "citizen_militia",
+    "popular_sovereignty",
+    "written_constitution"
+   ]
+  },
+  "steppe_empire": {
+   "powerBase": "The khan and the clan nobility",
+   "legitimacy": "the khan's victories and clan oaths",
+   "civ6": {
+    "analog": "—",
+    "slots": ""
+   },
+   "civ7": "Mongolia (civ-unique)",
+   "builtIn": [
+    {
+     "category": "Military",
+     "title": "A decimal army of mounted archers",
+     "operand": "Battle layer (M7) — mounted levy share",
+     "live": false,
+     "why": "every herder is a horseman"
+    },
+    {
+     "category": "Economic",
+     "title": "Protected caravan roads",
+     "operand": "trade.gapClosingFraction",
+     "operandLabel": "how fast trade closes price gaps between settlements",
+     "live": true,
+     "from": 0.25,
+     "to": 0.32,
+     "why": "the khan polices the routes"
+    },
+    {
+     "category": "Economic",
+     "title": "Cheaper long-distance haulage",
+     "operand": "trade.costPerBulkCostUnit",
+     "operandLabel": "trade cost per unit of bulk haulage",
+     "live": true,
+     "from": 0.16,
+     "to": 0.14,
+     "why": "relay stations and safe passage"
+    },
+    {
+     "category": "Society",
+     "title": "A people on the move",
+     "operand": "migration.baseRatePerYear",
+     "operandLabel": "base migration rate per year",
+     "live": true,
+     "from": 0.03,
+     "to": 0.05,
+     "why": "pastoral mobility"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "The empire splits among heirs",
+     "operand": "Adoption/legitimacy (M8) — appanage division at succession",
+     "live": false,
+     "why": "every son gets a share"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Weak hold on farming districts",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.22,
+     "why": "tribute, not administration"
+    }
+   ],
+   "modules": [
+    "cavalry",
+    "oath_alliance",
+    "war_band"
+   ]
+  },
+  "territorial_kingship": {
+   "powerBase": "The king and his household officials",
+   "legitimacy": "dynasty and the gods' favour",
+   "civ6": {
+    "analog": "Monarchy",
+    "slots": "2 Military · 1 Economic · 1 Diplomatic · 2 Wildcard"
+   },
+   "civ7": "Despotism",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Officials govern distant districts by written order",
+     "operand": "governance.authorityDecayCostUnits",
+     "operandLabel": "administrative reach (e-fold of travel cost from the capital)",
+     "live": true,
+     "from": 25.0,
+     "to": 30.0,
+     "why": "appointed officials extend reach"
+    },
+    {
+     "category": "Military",
+     "title": "A royal levy and garrisons",
+     "operand": "Battle layer (M7) — levy and garrison upkeep",
+     "live": false,
+     "why": "the king's own forces"
+    },
+    {
+     "category": "Diplomatic",
+     "title": "Royal envoys to neighbouring courts",
+     "operand": "Diplomacy (M8) — contact range",
+     "live": false,
+     "why": "standing contact between kings"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Succession crises when the king dies",
+     "operand": "Adoption/legitimacy (M8)",
+     "live": false,
+     "why": "everything rests on one person"
+    }
+   ],
+   "modules": [
+    "appointed_officials",
+    "sacral_kingship",
+    "succession_law"
+   ]
+  },
+  "theocracy": {
+   "powerBase": "The priesthood",
+   "legitimacy": "divine law",
+   "civ6": {
+    "analog": "Theocracy",
+    "slots": "2 Military · 2 Economic · 1 Diplomatic · 1 Wildcard"
+   },
+   "civ7": "Theocracy",
+   "builtIn": [
+    {
+     "category": "Economic",
+     "title": "Temple stores relieve famine",
+     "operand": "granaries.famineReductionMax",
+     "operandLabel": "famine mortality relief from granaries",
+     "live": true,
+     "from": 0.25,
+     "to": 0.3,
+     "why": "temple granaries"
+    },
+    {
+     "category": "Society",
+     "title": "Shared faith binds the realm",
+     "operand": "NeedsGrievance (M9) — Faith need met for the state religion",
+     "live": false,
+     "why": "temples meet the need for belonging"
+    },
+    {
+     "category": "Military",
+     "title": "Holy war raises morale",
+     "operand": "Battle layer (M7) — morale",
+     "live": false,
+     "why": "war blessed by the clergy"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "Trade with unbelievers is restricted",
+     "operand": "trade.gapClosingFraction",
+     "operandLabel": "how fast trade closes price gaps between settlements",
+     "live": true,
+     "from": 0.25,
+     "to": 0.22,
+     "why": "religious law limits exchange"
+    },
+    {
+     "category": "Trade-off",
+     "title": "Religious minorities resent the regime",
+     "operand": "NeedsGrievance (M9)",
+     "live": false,
+     "why": "discrimination grievance"
+    }
+   ],
+   "modules": [
+    "law_code",
+    "organized_priesthood",
+    "sacral_kingship"
+   ]
+  },
+  "tribal_confederacy": {
+   "powerBase": "A council of clan chiefs under an elected war leader",
+   "legitimacy": "sworn oaths between clans",
+   "civ6": {
+    "analog": "Chiefdom",
+    "slots": "1 Military · 1 Economic"
+   },
+   "civ7": "—",
+   "builtIn": [
+    {
+     "category": "Diplomatic",
+     "title": "Sworn confederates defend each other",
+     "operand": "Diplomacy (M8) — shared-defence obligation",
+     "live": false,
+     "why": "member clans are bound by oath"
+    },
+    {
+     "category": "Military",
+     "title": "A combined war host gathers for great campaigns",
+     "operand": "Battle layer (M7) — allied mobilization",
+     "live": false,
+     "why": "bands march together under the war leader"
+    },
+    {
+     "category": "Economic",
+     "title": "Gift exchange between member clans",
+     "operand": "trade.gapClosingFraction",
+     "operandLabel": "how fast trade closes price gaps between settlements",
+     "live": true,
+     "from": 0.25,
+     "to": 0.3,
+     "why": "kin and oath ties ease exchange"
+    }
+   ],
+   "tradeOffs": [
+    {
+     "category": "Trade-off",
+     "title": "No central levy",
+     "operand": "governance.taxExtractionResponseMax",
+     "operandLabel": "tax extraction response (output multiplier at full rate)",
+     "live": true,
+     "from": 0.3,
+     "to": 0.15,
+     "why": "each clan keeps its own"
+    },
+    {
+     "category": "Trade-off",
+     "title": "War needs the council's consent",
+     "operand": "Adoption/Diplomacy (M8) — war declaration rule",
+     "live": false,
+     "why": "slow to act"
+    }
+   ],
+   "modules": [
+    "oath_alliance"
+   ]
+  }
+ }
+}

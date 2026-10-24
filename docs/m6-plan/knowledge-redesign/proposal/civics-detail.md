@@ -17,6 +17,58 @@ PROPOSED. Costs are stated in points of the civics pool: Civics Points if D-061 
 - **AI valuation:** Fallback only in M6 (its owner is M8): the AI never reads a deferred promise as a benefit; in M8 valued by the adoption logic from its own state. Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
 - **Rationale:** Kept small and cheap: pre-literate civic institutions are poorly datable, so the A1 layer is one node whose meaning is unambiguous.
 
+### 1068 · `gift_exchange` — Gift exchange networks
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A1 (A1 metadata; never an Age fact (I-6, V-08)) · **cost:** 260 (new)
+- **Prerequisites:** kin_council
+- **Concept:** Bands exchange gifts and partners over long distances, moving rare materials hand to hand.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** reciprocal exchange between groups (trade phase)
+- **Owner system · milestone:** Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1069 · `oral_tradition` — Oral tradition
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A1 (A1 metadata; never an Age fact (I-6, V-08)) · **cost:** 260 (new)
+- **Prerequisites:** —
+- **Concept:** Myths, genealogies and practical lore are memorized and retold in set forms.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** shared memory without writing (culture group identity anchor)
+- **Owner system · milestone:** NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1070 · `shamanic_ritual` — Ritual specialists
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A1 (A1 metadata; never an Age fact (I-6, V-08)) · **cost:** 260 (new)
+- **Prerequisites:** ochre_processing
+- **Concept:** Some members of the band are recognized as mediators with the spirit world and lead its rites.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a ritual office in the kin group: the first legitimacy source that is not kinship alone
+- **Owner system · milestone:** Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1071 · `war_band` — War bands
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A1 (A1 metadata; never an Age fact (I-6, V-08)) · **cost:** 370 (new)
+- **Prerequisites:** kin_council AND (bow_simple OR atlatl)
+- **Concept:** Kin groups raise armed parties for raids and feuds under a chosen leader.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** the first levy rule (Battle layer M7)
+- **Owner system · milestone:** Battle layer (M7); Adoption (M8) · M7
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M7 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
 ### 1009 · `hereditary_rank` — Hereditary rank
 
 - **Status / disposition:** new / new · **category:** micro · **Age relation:** A2 (A2 metadata (Neolithic / Agricultural); research never reads the Age and no Age entry grants it (I-6); not an Age fact; cost carries the A2 prior inside difficulty/institutional only (digest C-04).) · **cost:** 740 (new)
@@ -81,6 +133,32 @@ PROPOSED. Costs are stated in points of the civics pool: Civics Points if D-061 
 - **Technology links:** [] · **institution links:** []
 - **AI valuation:** M6: fallback only (no adoption exists, so a form has no M6 value to an AI). M8: valued by the AI's regime evaluation from the polity's own state (its realized modules, classes and reach) — never from another polity's civics state (metamorphic fence, I-9). · **required for progression:** False
 - **Rationale:** A regime form named in the brief (or, for tribal_confederacy and assembly_democracy, a distinct historical form the brief's list omits); a leaf: nothing requires it and it requires no other form.
+
+### 1072 · `ancestor_veneration` — Ancestor veneration
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A2 (A2 metadata; never an Age fact (I-6, V-08)) · **cost:** 620 (new)
+- **Prerequisites:** shamanic_ritual AND (cereal_cultivation OR sheep_goat)
+- **Concept:** Settled households keep their dead close and honour lineage ancestors, tying land claims to descent.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** lineage claims to land and office (inheritance predicate operand)
+- **Owner system · milestone:** Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1073 · `communal_feasts` — Communal feasts
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A2 (A2 metadata; never an Age fact (I-6, V-08)) · **cost:** 620 (new)
+- **Prerequisites:** oral_tradition AND (cereal_cultivation OR sheep_goat)
+- **Concept:** Groups gather for great feasts that bind households, display rank and mark the calendar.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** festivals meet the Belonging need from stored food (goods consumed via the ledger)
+- **Owner system · milestone:** NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
 
 ### 1001 · `law_code` — Written law
 
@@ -238,6 +316,149 @@ PROPOSED. Costs are stated in points of the civics pool: Civics Points if D-061 
 - **AI valuation:** M6: fallback only (no adoption exists, so a form has no M6 value to an AI). M8: valued by the AI's regime evaluation from the polity's own state (its realized modules, classes and reach) — never from another polity's civics state (metamorphic fence, I-9). · **required for progression:** False
 - **Rationale:** A regime form named in the brief (or, for tribal_confederacy and assembly_democracy, a distinct historical form the brief's list omits); a leaf: nothing requires it and it requires no other form.
 
+### 1074 · `court_patronage` — Court patronage
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A3 (A3 metadata; never an Age fact (I-6, V-08)) · **cost:** 1,240 (new)
+- **Prerequisites:** temple_economy OR sacral_kingship
+- **Concept:** Rulers and temples keep artists and craftsmen to make monuments, images and works of prestige.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** patronage of artisans (Artisan class operand, D-018)
+- **Owner system · milestone:** NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1075 · `customs_tolls` — Customs and tolls
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A3 (A3 metadata; never an Age fact (I-6, V-08)) · **cost:** 1,480 (new)
+- **Prerequisites:** taxation AND trade
+- **Concept:** The ruler levies duties on goods crossing borders, rivers and city gates.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a trade levy instrument (GovernanceSystem, taxation)
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1076 · `debt_remission` — Debt remission edicts
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A3 (A3 metadata; never an Age fact (I-6, V-08)) · **cost:** 1,480 (new)
+- **Prerequisites:** law_code AND sacral_kingship
+- **Concept:** The king cancels debts and frees debt-bondsmen at his accession or in crisis.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** debt-bondage release (ClassMobility M9)
+- **Owner system · milestone:** ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1077 · `dynastic_marriage` — Dynastic marriage
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A3 (A3 metadata; never an Age fact (I-6, V-08)) · **cost:** 1,480 (new)
+- **Prerequisites:** hereditary_rank AND oath_alliance
+- **Concept:** Royal houses marry to seal alliances and claims.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** alliance and claim creation (Diplomacy M8)
+- **Owner system · milestone:** Diplomacy (M8) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1078 · `family_law` — Family and inheritance law
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A3 (A3 metadata; never an Age fact (I-6, V-08)) · **cost:** 1,240 (new)
+- **Prerequisites:** law_code
+- **Concept:** Written law fixes marriage, divorce, adoption and the division of an estate.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** inheritance rule for households and land (Demographics/Society M9)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1079 · `planned_cities` — Planned towns
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A3 (A3 metadata; never an Age fact (I-6, V-08)) · **cost:** 1,480 (new)
+- **Prerequisites:** fired_brick AND appointed_officials
+- **Concept:** Streets, drains and plots are laid out to a plan before building.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** settlement layout rule (siting and construction)
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1080 · `royal_archives` — Royal archives
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A3 (A3 metadata; never an Age fact (I-6, V-08)) · **cost:** 1,480 (new)
+- **Prerequisites:** scribal_schools AND stamp_seal
+- **Concept:** The palace keeps and indexes its records, treaties and accounts for later reference.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** state memory: records retained across reigns; inst.archive re-point candidate (OD-11)
+- **Owner system · milestone:** Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1081 · `scribal_schools` — Scribal schools
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A3 (A3 metadata; never an Age fact (I-6, V-08)) · **cost:** 1,240 (new)
+- **Prerequisites:** cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script
+- **Concept:** Specialist schools train scribes in writing, accounting and the classic texts.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a trained literate class (Bureaucrats emergence operand, D-018); inst.scribal_school re-point candidate (OD-11)
+- **Owner system · milestone:** Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1082 · `temple_economy` — Temple households
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A3 (A3 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,090 (new)
+- **Prerequisites:** organized_priesthood AND token_counting
+- **Concept:** Temples hold land, herds and workers, store grain and redistribute it under priestly management.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a redistributive institution holding goods through Ledger.Transfer (temple stores)
+- **Owner system · milestone:** Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1083 · `trade_treaties` — Trade treaties
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A3 (A3 metadata; never an Age fact (I-6, V-08)) · **cost:** 1,480 (new)
+- **Prerequisites:** sworn_treaties AND trade
+- **Concept:** Rulers agree by oath on merchants' safety, tolls and courts.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a commercial treaty kind (Diplomacy M8)
+- **Owner system · milestone:** Diplomacy (M8) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1084 · `water_rights` — Water rights
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A3 (A3 metadata; never an Age fact (I-6, V-08)) · **cost:** 1,480 (new)
+- **Prerequisites:** law_code AND irrigation_canal
+- **Concept:** Law fixes who may draw canal water and who must maintain the banks.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** irrigation allocation rule (agriculture phase)
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
 ### 1002 · `legal_code_roman` — Systematic law
 
 - **Status / disposition:** existing / keep · **category:** micro · **Age relation:** A4 (A4 metadata; the A5 CORE milestone a5_systematic_law (micro civic, not a government form — consistent with 'no macro civic as an Age CORE fact')) · **cost:** 2,490
@@ -368,6 +589,97 @@ PROPOSED. Costs are stated in points of the civics pool: Civics Points if D-061 
 - **AI valuation:** M6: fallback only (no adoption exists, so a form has no M6 value to an AI). M8: valued by the AI's regime evaluation from the polity's own state (its realized modules, classes and reach) — never from another polity's civics state (metamorphic fence, I-9). · **required for progression:** False
 - **Rationale:** A regime form named in the brief (or, for tribal_confederacy and assembly_democracy, a distinct historical form the brief's list omits); a leaf: nothing requires it and it requires no other form.
 
+### 1085 · `citizen_militia` — Citizen militia
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A4 (A4 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,960 (new)
+- **Prerequisites:** war_band AND (citizen_assembly OR elite_council)
+- **Concept:** Citizens arm themselves and serve as heavy infantry in their city's army.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a recruitment policy tying service to citizenship (Battle layer M7)
+- **Owner system · milestone:** Battle layer (M7); Adoption (M8) · M7
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M7 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1086 · `daughter_colonies` — Daughter colonies
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A4 (A4 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,490 (new)
+- **Prerequisites:** sail_square AND oath_alliance
+- **Concept:** A city sends settlers overseas to found a new self-governing city linked by cult and kinship.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** colonization order variant: a founded settlement keeps ties without direct rule (ColonizationSystem)
+- **Owner system · milestone:** ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1087 · `mandate_doctrine` — Conditional mandate
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A4 (A4 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,090 (new)
+- **Prerequisites:** sacral_kingship AND law_code
+- **Concept:** Heaven grants rule to the virtuous and withdraws it from tyrants, justifying rebellion.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** legitimacy that falls with misrule (Adoption M8; rebellion operand)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1088 · `public_games` — Public games
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A4 (A4 metadata; never an Age fact (I-6, V-08)) · **cost:** 1,760 (new)
+- **Prerequisites:** communal_feasts AND organized_priesthood
+- **Concept:** Regular athletic and chariot contests draw crowds from many communities.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** recreation supply for the Belonging need
+- **Owner system · milestone:** NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1089 · `royal_post` — Royal post
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A4 (A4 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,960 (new)
+- **Prerequisites:** appointed_officials AND horse_domestication
+- **Concept:** Relays of riders and stations carry the ruler's orders and reports across the realm.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** message lag between seat and province (reach operand; infra.courier_relay)
+- **Owner system · milestone:** Society — opinion (M9); Adoption (M8) where a regime module · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1090 · `scriptural_canon` — Scriptural canon
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A4 (A4 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,490 (new)
+- **Prerequisites:** organized_priesthood AND (abjad OR alphabet_vowels OR brahmi OR chinese_script)
+- **Concept:** A fixed body of sacred texts defines belief and practice and is studied by a trained clergy.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** doctrine fixed in a canon (doctrine bundle anchor for the religion system)
+- **Owner system · milestone:** Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1091 · `state_navy` — State navy
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A4 (A4 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,960 (new)
+- **Prerequisites:** naval_ram AND taxation
+- **Concept:** The state builds, crews and pays a permanent war fleet.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a naval recruitment and upkeep rule (Battle layer M7)
+- **Owner system · milestone:** Battle layer (M7); Adoption (M8) · M7
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M7 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
 ### 1031 · `craft_guilds` — Craft guilds
 
 - **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata (Classical / Imperial); research never reads the Age and no Age entry grants it (I-6); not an Age fact; cost carries the A5 prior inside difficulty/institutional only (digest C-04).) · **cost:** 1,760 (new)
@@ -445,6 +757,227 @@ PROPOSED. Costs are stated in points of the civics pool: Civics Points if D-061 
 - **Technology links:** [] · **institution links:** []
 - **AI valuation:** M6: fallback only (no adoption exists, so a form has no M6 value to an AI). M8: valued by the AI's regime evaluation from the polity's own state (its realized modules, classes and reach) — never from another polity's civics state (metamorphic fence, I-9). · **required for progression:** False
 - **Rationale:** A regime form named in the brief (or, for tribal_confederacy and assembly_democracy, a distinct historical form the brief's list omits); a leaf: nothing requires it and it requires no other form.
+
+### 1092 · `building_regulation` — Building regulation
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,960 (new)
+- **Prerequisites:** planned_cities AND legal_code_roman
+- **Concept:** Law sets heights, materials and fire breaks for urban building.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** construction predicate (fire and collapse hazards, M8+)
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1093 · `jurists` — Legal profession
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,090 (new)
+- **Prerequisites:** legal_code_roman
+- **Concept:** Trained lawyers advise, plead and write commentaries that shape the law.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a professional class (Bureaucrats/Professionals operand, D-018)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1094 · `jury_courts` — Jury courts
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,960 (new)
+- **Prerequisites:** citizen_assembly AND law_code
+- **Concept:** Panels of citizens, not officials, decide guilt and liability.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a justice regime module
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1095 · `mercenary_contracts` — Mercenary contracts
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,090 (new)
+- **Prerequisites:** coined_wage
+- **Concept:** Rulers hire professional soldiers by contract for pay.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** hired formations paid in goods (Battle layer M7; Ledger)
+- **Owner system · milestone:** Battle layer (M7); Adoption (M8) · M7
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M7 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1096 · `missionary_religion` — Missionary religion
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** scriptural_canon AND royal_envoys
+- **Concept:** A faith sends preachers beyond its own people and admits converts.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** religious spread along contact channels (diffusion operand, M9)
+- **Owner system · milestone:** Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1097 · `monasticism` — Monastic orders
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,960 (new)
+- **Prerequisites:** scriptural_canon
+- **Concept:** Communities under a rule withdraw from ordinary life, hold land and copy and teach texts.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** monastic houses as land-holding, teaching institutions
+- **Owner system · milestone:** Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1098 · `philosophical_schools` — Philosophical schools
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** scribal_schools AND (abjad OR alphabet_vowels OR brahmi OR chinese_script)
+- **Concept:** Teachers and pupils form lasting schools that argue about nature, ethics and the good life.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** schools as institutions of argument; inst.natural_philosophy re-point candidate (OD-11)
+- **Owner system · milestone:** Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1099 · `political_philosophy` — Political philosophy
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** philosophical_schools AND law_code
+- **Concept:** Thinkers ask what makes rule just and compare constitutions.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** regime evaluation vocabulary for adoption (M8)
+- **Owner system · milestone:** Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1100 · `public_granaries` — Public granaries
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,180 (new)
+- **Prerequisites:** taxation AND appointed_officials
+- **Concept:** The state stores grain in good years and sells or issues it in dearth.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a grain-release policy on existing granary stocks (Consumption allocator; goods move by Ledger.Transfer)
+- **Owner system · milestone:** ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1101 · `public_theatre` — Public theatre
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,490 (new)
+- **Prerequisites:** public_games AND (alphabet_vowels OR brahmi)
+- **Concept:** Drama is performed in purpose-built theatres before the citizen body.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** recreation and opinion channel (Society M9)
+- **Owner system · milestone:** NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1102 · `state_academy` — State academy
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,180 (new)
+- **Prerequisites:** philosophical_schools AND royal_archives
+- **Concept:** The ruler funds scholars and a library and trains future officials in a state school.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** state-funded scholarship (operand of the CP generation catalogue, cp-economy-proposal — no fixed bonus)
+- **Owner system · milestone:** Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1103 · `state_gazette` — State gazette
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,490 (new)
+- **Prerequisites:** royal_post AND (alphabet_vowels OR chinese_script)
+- **Concept:** The government publishes official news and decrees for its officials and public.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** official news as an opinion channel
+- **Owner system · milestone:** Society — opinion (M9); Adoption (M8) where a regime module · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1104 · `state_monopolies` — State monopolies
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,960 (new)
+- **Prerequisites:** appointed_officials AND salt_extraction
+- **Concept:** The state alone may produce or sell a staple such as salt or iron.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** exclusive state production of a good (Production M10+)
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1105 · `state_religion` — State religion
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,180 (new)
+- **Prerequisites:** organized_priesthood AND appointed_officials
+- **Concept:** One faith is established by law, its clergy supported and its rivals disadvantaged.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** an established-religion regime module; religious minorities' grievance operand
+- **Owner system · milestone:** Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1106 · `statecraft_doctrine` — Statecraft doctrine
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,960 (new)
+- **Prerequisites:** political_philosophy AND appointed_officials
+- **Concept:** Manuals of government teach rulers to run officials, revenue, spies and war by rule.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** administrative doctrine as an Adoption (M8) module
+- **Owner system · milestone:** Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1107 · `tributary_relations` — Tributary relations
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,180 (new)
+- **Prerequisites:** royal_envoys AND appointed_officials
+- **Concept:** Lesser rulers send tribute and receive gifts and titles from a central court.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** suzerain–tributary relation (Diplomacy M8)
+- **Owner system · milestone:** Diplomacy (M8) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1108 · `steppe_empire` — Steppe empire
+
+- **Status / disposition:** new / new · **category:** macro · **Age relation:** A5 (A5 metadata; never an Age fact (I-6, V-08)) · **cost:** 7,030 (new)
+- **Prerequisites:** oath_alliance AND war_band AND cavalry
+- **Concept:** A confederation of nomad clans under one khan, organized as a decimal army with appanages for his kin.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** M8 adoption of the module set oath_alliance AND war_band (with cavalry)
+- **Owner system · milestone:** Adoption (M8) — regime module set and derived government label · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
 
 ### 1006 · `joint_stock` — Joint-stock company
 
@@ -536,6 +1069,136 @@ PROPOSED. Costs are stated in points of the civics pool: Civics Points if D-061 
 - **Technology links:** [] · **institution links:** []
 - **AI valuation:** M6: fallback only (no adoption exists, so a form has no M6 value to an AI). M8: valued by the AI's regime evaluation from the polity's own state (its realized modules, classes and reach) — never from another polity's civics state (metamorphic fence, I-9). · **required for progression:** False
 - **Rationale:** A regime form named in the brief (or, for tribal_confederacy and assembly_democracy, a distinct historical form the brief's list omits); a leaf: nothing requires it and it requires no other form.
+
+### 1109 · `canon_law` — Canon law
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A6 (A6 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** state_religion AND legal_code_roman
+- **Concept:** The church governs its clergy, marriage and oaths through its own courts and law.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** church courts as a jurisdiction beside the ruler's
+- **Owner system · milestone:** Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1110 · `common_law` — Common law
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A6 (A6 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** law_code AND appointed_officials
+- **Concept:** Royal judges build a law common to the realm from recorded precedent.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a precedent-based justice regime module
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1111 · `elective_succession` — Elective succession
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A6 (A6 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** succession_law AND elite_council
+- **Concept:** A college of magnates elects the next ruler.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** succession by election (Adoption M8)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1112 · `forest_law` — Forest law
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A6 (A6 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** land_registry AND service_tenure
+- **Concept:** Woods and game are reserved by law and their use licensed.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** logging allocation rule (timber stock regrowth)
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1113 · `legal_estates` — Legal estates
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A6 (A6 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,970 (new)
+- **Prerequisites:** hereditary_rank AND state_religion
+- **Concept:** Society is divided by law into orders — clergy, nobles, commoners — each with its own rights.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** status order as a mobility policy (ClassMobility M9)
+- **Owner system · milestone:** ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1114 · `manorialism` — Manorialism
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A6 (A6 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,970 (new)
+- **Prerequisites:** service_tenure AND heavy_plough
+- **Concept:** Peasants hold land from a lord in return for labour services and dues and may not leave.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** bound peasantry: mobility closed (ClassMobility M9)
+- **Owner system · milestone:** ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1115 · `market_fairs` — Market fairs
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A6 (A6 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** trade AND municipal_charter
+- **Concept:** Chartered periodic fairs bring distant merchants together under a special peace and court.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** periodic markets for trade arbitrage (M10+)
+- **Owner system · milestone:** Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1116 · `military_orders` — Military orders
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A6 (A6 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** monasticism AND service_tenure
+- **Concept:** Religious brotherhoods of knights hold castles and fight under a rule.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a religious military corporation (Battle layer M7; religion M9)
+- **Owner system · milestone:** Battle layer (M7); Adoption (M8) · M7
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M7 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1117 · `systematic_theology` — Systematic theology
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A6 (A6 metadata; never an Age fact (I-6, V-08)) · **cost:** 2,960 (new)
+- **Prerequisites:** scriptural_canon AND philosophical_schools
+- **Concept:** Scholars reason about doctrine with the tools of philosophy and teach it in schools.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** doctrine development by scholarly argument (doctrine bundle drift, M9)
+- **Owner system · milestone:** Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1118 · `elective_monarchy` — Elective monarchy
+
+- **Status / disposition:** new / new · **category:** macro · **Age relation:** A6 (A6 metadata; never an Age fact (I-6, V-08)) · **cost:** 5,910 (new)
+- **Prerequisites:** elective_succession AND service_tenure
+- **Concept:** A monarchy whose ruler is chosen by an electoral college of magnates bound by charters.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** M8 adoption of the module set elective_succession AND service_tenure
+- **Owner system · milestone:** Adoption (M8) — regime module set and derived government label · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
 
 ### 1005 · `patent` — Patent system
 
@@ -732,6 +1395,240 @@ PROPOSED. Costs are stated in points of the civics pool: Civics Points if D-061 
 - **AI valuation:** M6: fallback only (no adoption exists, so a form has no M6 value to an AI). M8: valued by the AI's regime evaluation from the polity's own state (its realized modules, classes and reach) — never from another polity's civics state (metamorphic fence, I-9). · **required for progression:** False
 - **Rationale:** A regime form named in the brief (or, for tribal_confederacy and assembly_democracy, a distinct historical form the brief's list omits); a leaf: nothing requires it and it requires no other form.
 
+### 1119 · `arts_academies` — Arts academies
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,970 (new)
+- **Prerequisites:** court_patronage AND humanism
+- **Concept:** Chartered academies train artists, fix standards of taste and run exhibitions.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a chartered body regulating artistic training
+- **Owner system · milestone:** NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1120 · `colonial_administration` — Colonial administration
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 7,030 (new)
+- **Prerequisites:** state_exploration AND provincial_administration
+- **Concept:** Distant territories are ruled by a home council, viceroys and colonial law.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** rule over non-contiguous settlements (reach operand)
+- **Owner system · milestone:** ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1121 · `copyright` — Copyright
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** printing_press AND legal_code_roman
+- **Concept:** Authors receive a time-limited exclusive right to print their works.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** an exclusive right on printed goods (market phase, M10+)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1122 · `divine_right` — Divine right of kings
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** sacral_kingship AND state_religion
+- **Concept:** The king answers to God alone; resistance is sin.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** legitimacy source: divine (Adoption M8)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1123 · `enlightenment` — Enlightenment
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 5,910 (new)
+- **Prerequisites:** scientific_societies AND political_philosophy
+- **Concept:** Reason and criticism are applied to religion, law and government in a public republic of letters.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** reform programmes as opinion currents (Society M9)
+- **Owner system · milestone:** Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1124 · `humanism` — Humanism
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 5,910 (new)
+- **Prerequisites:** philosophical_schools AND paper
+- **Concept:** Scholars recover classical texts and teach rhetoric, history and moral philosophy to lay elites.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** lay secular education of elites (class/opinion operand, M9)
+- **Owner system · milestone:** Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1125 · `mercantilism` — Mercantilism
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 7,030 (new)
+- **Prerequisites:** commercial_law AND customs_tolls
+- **Concept:** The state promotes exports, protects manufactures and hoards bullion through trade rules.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** trade policy setting (GovernanceSystem)
+- **Owner system · milestone:** Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1126 · `military_academies` — Military academies
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,970 (new)
+- **Prerequisites:** standing_army AND printing_press
+- **Concept:** Officers are trained in schools of tactics, engineering and gunnery.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** officer training rule (Battle layer M7)
+- **Owner system · milestone:** Battle layer (M7); Adoption (M8) · M7
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M7 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1127 · `poor_law` — Poor law
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,970 (new)
+- **Prerequisites:** taxation AND municipal_charter
+- **Concept:** Parishes levy a rate to relieve the destitute and set the able-bodied to work.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** relief in goods to the destitute (NeedsGrievance M9; no treasury — CR-008)
+- **Owner system · milestone:** ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1128 · `press_licensing` — Press licensing
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,970 (new)
+- **Prerequisites:** printing_press AND appointed_officials
+- **Concept:** Printers need a licence and books are checked before publication.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** censorship as an opinion policy (Society M9)
+- **Owner system · milestone:** Society — opinion (M9); Adoption (M8) where a regime module · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1129 · `public_museums` — Public museums
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,970 (new)
+- **Prerequisites:** arts_academies AND scientific_societies
+- **Concept:** Collections are opened to the public, catalogued and used for study.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** collections as public institutions
+- **Owner system · milestone:** NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1130 · `public_opera` — Public opera and concerts
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,180 (new)
+- **Prerequisites:** public_theatre AND court_patronage
+- **Concept:** Ticketed opera houses and concert halls open performance to a paying public.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** recreation as a market good
+- **Owner system · milestone:** NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1131 · `religious_reform` — Religious reform movements
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 5,910 (new)
+- **Prerequisites:** printing_press AND (canon_law OR scriptural_canon)
+- **Concept:** Lay readers and preachers challenge the established clergy and found new confessions.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** schism and confession formation (religion system, M9)
+- **Owner system · milestone:** Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1132 · `scientific_societies` — Scientific societies
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 7,030 (new)
+- **Prerequisites:** humanism AND printing_press
+- **Concept:** Learned societies meet, test claims by experiment and publish proceedings.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** chartered corporations of inquiry; inst.scientific_society re-point candidate (OD-11)
+- **Owner system · milestone:** Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1133 · `social_contract` — Social contract
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 5,910 (new)
+- **Prerequisites:** political_philosophy AND printing_press
+- **Concept:** Government is argued to rest on the consent of the governed.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** legitimacy source: consent (Adoption M8)
+- **Owner system · milestone:** Adoption (M8) — regime module; Society — opinion (M9) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1134 · `state_exploration` — State-sponsored exploration
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 7,030 (new)
+- **Prerequisites:** (caravel OR ocean_junk) AND appointed_officials
+- **Concept:** The crown funds and charters voyages of discovery and claims what they find.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** Explore order under state charter (discovery/fog)
+- **Owner system · milestone:** ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1135 · `stock_exchange` — Stock exchange
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 3,520 (new)
+- **Prerequisites:** joint_stock
+- **Concept:** Shares in companies are traded in a regulated market.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** tradeable company shares (markets M10+)
+- **Owner system · milestone:** Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1136 · `westphalian_sovereignty` — State sovereignty system
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A7 (A7 metadata; never an Age fact (I-6, V-08)) · **cost:** 7,030 (new)
+- **Prerequisites:** resident_embassies AND law_of_nations
+- **Concept:** States recognize each other as equal sovereigns with exclusive authority at home.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** recognition and non-interference norms (Diplomacy M8)
+- **Owner system · milestone:** Diplomacy (M8) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
 ### 1057 · `abolition` — Abolition of slavery and serfdom
 
 - **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata (Industrial); research never reads the Age and no Age entry grants it (I-6); not an Age fact; cost carries the A8 prior inside difficulty/institutional only (digest C-04).) · **cost:** 5,910 (new)
@@ -836,6 +1733,422 @@ PROPOSED. Costs are stated in points of the civics pool: Civics Points if D-061 
 - **AI valuation:** M6: fallback only (no adoption exists, so a form has no M6 value to an AI). M8: valued by the AI's regime evaluation from the polity's own state (its realized modules, classes and reach) — never from another polity's civics state (metamorphic fence, I-9). · **required for progression:** False
 - **Rationale:** A regime form named in the brief (or, for tribal_confederacy and assembly_democracy, a distinct historical form the brief's list omits); a leaf: nothing requires it and it requires no other form.
 
+### 1137 · `antitrust` — Antitrust law
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 9,950 (new)
+- **Prerequisites:** limited_liability AND representative_assembly
+- **Concept:** Law forbids cartels and breaks up monopolies.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** market concentration limit (markets M10+)
+- **Owner system · milestone:** Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1138 · `civil_code` — Civil code
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 14,060 (new)
+- **Prerequisites:** legal_code_roman AND written_constitution
+- **Concept:** One systematic code replaces local customs for persons, property and contract.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** uniform private law (reach operand)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1139 · `classical_liberalism` — Liberalism
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 11,830 (new)
+- **Prerequisites:** social_contract AND commercial_law
+- **Concept:** Individual rights, free markets and limited government are argued as one programme.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a policy current (Society opinion, M9)
+- **Owner system · milestone:** Adoption (M8) — regime module; Society — opinion (M9) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1140 · `conservatism` — Conservatism
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 5,910 (new)
+- **Prerequisites:** popular_sovereignty
+- **Concept:** Inherited institutions and gradual change are defended against revolution.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a policy current (Society opinion, M9)
+- **Owner system · milestone:** Adoption (M8) — regime module; Society — opinion (M9) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1141 · `cooperatives` — Cooperatives
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 8,360 (new)
+- **Prerequisites:** craft_guilds AND coined_wage
+- **Concept:** Members jointly own a shop, farm or bank and share its surplus.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** member-owned enterprise form (markets M10+)
+- **Owner system · milestone:** Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1142 · `customs_union` — Customs union
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 9,950 (new)
+- **Prerequisites:** customs_tolls AND sworn_treaties
+- **Concept:** Several states abolish internal tariffs and share a common external tariff.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a multilateral trade treaty kind (Diplomacy M8)
+- **Owner system · milestone:** Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1143 · `factory_inspection` — Factory inspection
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 9,950 (new)
+- **Prerequisites:** power_loom AND appointed_officials
+- **Concept:** Inspectors enforce limits on child labour and working hours.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** labour condition rule (Production/NeedsGrievance)
+- **Owner system · milestone:** ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1144 · `free_trade` — Free trade
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 14,060 (new)
+- **Prerequisites:** classical_liberalism AND customs_tolls
+- **Concept:** Tariffs are lowered and trade opened by treaty and statute.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** trade policy setting (GovernanceSystem)
+- **Owner system · milestone:** Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1145 · `great_power_congress` — Concert of powers
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 7,030 (new)
+- **Prerequisites:** westphalian_sovereignty
+- **Concept:** The great powers meet in congress to settle disputes and keep a balance.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** multilateral conference verb (Diplomacy M8)
+- **Owner system · milestone:** Diplomacy (M8) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1146 · `heritage_preservation` — Heritage preservation
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 9,950 (new)
+- **Prerequisites:** public_museums AND appointed_officials
+- **Concept:** The state lists and protects historic buildings and sites.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** listed sites protected from demolition (construction predicate)
+- **Owner system · milestone:** NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1147 · `income_tax` — Income tax
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 14,060 (new)
+- **Prerequisites:** taxation AND official_statistics
+- **Concept:** Each household is assessed on its declared income rather than on land or goods.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a tax instrument on incomes (GovernanceSystem)
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1148 · `indirect_rule` — Indirect rule
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 9,950 (new)
+- **Prerequisites:** colonial_administration AND sworn_treaties
+- **Concept:** A colonial power rules through local rulers bound by treaty and resident advisers.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** suzerain–vassal relation as a diplomacy state
+- **Owner system · milestone:** ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1149 · `international_organizations` — International organizations
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 14,060 (new)
+- **Prerequisites:** law_of_nations AND telegraph
+- **Concept:** States create permanent bodies with secretariats to run shared affairs.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** standing multilateral bodies (Diplomacy M8)
+- **Owner system · milestone:** Diplomacy (M8) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1150 · `judicial_review` — Judicial review
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 7,030 (new)
+- **Prerequisites:** separation_of_powers
+- **Concept:** Courts may strike down laws that conflict with the constitution.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a constitutional check (Adoption M8)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1151 · `labour_unions` — Trade unions
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 14,060 (new)
+- **Prerequisites:** coined_wage AND (power_loom OR spinning_mule)
+- **Concept:** Workers combine to bargain collectively and to strike.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** collective bargaining and strike verbs (ClassMobility/NeedsGrievance M9)
+- **Owner system · milestone:** ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1152 · `limited_liability` — Limited liability
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 7,030 (new)
+- **Prerequisites:** joint_stock AND commercial_law
+- **Concept:** Shareholders risk only their stake, not their whole fortune.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** company formation rule (markets M10+)
+- **Owner system · milestone:** Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1153 · `mass_press` — Mass press
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 11,830 (new)
+- **Prerequisites:** printing_press AND railway
+- **Concept:** Cheap daily papers sold in hundreds of thousands reach a mass readership.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** mass opinion formation (Society M9)
+- **Owner system · milestone:** Society — opinion (M9); Adoption (M8) where a regime module · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1154 · `merit_civil_service` — Merit civil service
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 7,030 (new)
+- **Prerequisites:** appointed_officials AND compulsory_education
+- **Concept:** Officials are recruited by open competitive examination and hold office during good behaviour.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** officialdom recruitment rule (ClassMobility M9)
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1155 · `nationalism` — Nationalism
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 11,830 (new)
+- **Prerequisites:** popular_sovereignty AND printing_press
+- **Concept:** The nation, defined by language and history, is held to be the proper unit of the state.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** culture–state alignment as a cohesion and grievance operand (Society M9)
+- **Owner system · milestone:** Adoption (M8) — regime module; Society — opinion (M9) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1156 · `nature_conservation` — Nature conservation
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 9,950 (new)
+- **Prerequisites:** forest_law AND taxonomy
+- **Concept:** Land is set aside to protect landscapes, species and their habitats.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** protected cells excluded from extraction
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1157 · `popular_sovereignty` — Popular sovereignty
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 14,060 (new)
+- **Prerequisites:** social_contract AND representative_assembly
+- **Concept:** Sovereignty is held to belong to the nation, exercised through its representatives.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** legitimacy source: the people (Adoption M8)
+- **Owner system · milestone:** Adoption (M8) — regime module; Society — opinion (M9) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1158 · `press_freedom` — Freedom of the press
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 14,060 (new)
+- **Prerequisites:** press_licensing AND (bill_of_rights OR written_constitution)
+- **Concept:** Prior censorship is abolished; printers answer only to the courts afterwards.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** an opinion regime module (Society M9)
+- **Owner system · milestone:** Society — opinion (M9); Adoption (M8) where a regime module · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1159 · `professional_sport` — Professional sport
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 8,360 (new)
+- **Prerequisites:** public_games AND railway
+- **Concept:** Paid teams play in national leagues followed by mass audiences.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** mass recreation for the Belonging need
+- **Owner system · milestone:** NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1160 · `public_postal_service` — Public postal service
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 9,950 (new)
+- **Prerequisites:** royal_post AND railway
+- **Concept:** The state carries anyone's letters at a uniform prepaid rate.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** private correspondence over the courier network
+- **Owner system · milestone:** Society — opinion (M9); Adoption (M8) where a regime module · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1161 · `referendum` — Referendum
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 9,950 (new)
+- **Prerequisites:** citizen_assembly AND written_constitution
+- **Concept:** Voters decide laws directly at the ballot box.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** direct legislation module (Adoption M8)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1162 · `research_university` — Research university
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 14,060 (new)
+- **Prerequisites:** scientific_societies AND state_academy
+- **Concept:** Universities pay professors to research as well as teach and train doctoral students.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** research as a university duty (input to the RP generation catalogue — mechanism, not a bonus)
+- **Owner system · milestone:** Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1163 · `secret_ballot` — Secret ballot
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,970 (new)
+- **Prerequisites:** mass_suffrage
+- **Concept:** Votes are cast in private on official ballots.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** election integrity rule (Adoption M8)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1164 · `secular_state` — Secular state
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 14,060 (new)
+- **Prerequisites:** religious_toleration AND written_constitution
+- **Concept:** The state recognizes no official church and treats every faith alike in law.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** disestablishment as a regime module (legitimacy source shifts away from the clergy)
+- **Owner system · milestone:** Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1165 · `settler_land_grants` — Settler land grants
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 9,950 (new)
+- **Prerequisites:** land_registry AND colonial_administration
+- **Concept:** Public land is surveyed and granted to settlers who farm it.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** colonization incentive through land title
+- **Owner system · milestone:** ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1166 · `socialism` — Socialism
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 11,830 (new)
+- **Prerequisites:** labour_unions AND printing_press
+- **Concept:** Workers' movements demand collective ownership and an end to class exploitation.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a class-based opinion current (ClassMobility M9)
+- **Owner system · milestone:** Adoption (M8) — regime module; Society — opinion (M9) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1167 · `womens_suffrage` — Women's suffrage
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 4,970 (new)
+- **Prerequisites:** mass_suffrage
+- **Concept:** Women gain the vote on the same terms as men.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** franchise extension (Adoption M8)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1168 · `revolutionary_republic` — Revolutionary republic
+
+- **Status / disposition:** new / new · **category:** macro · **Age relation:** A8 (A8 metadata; never an Age fact (I-6, V-08)) · **cost:** 23,650 (new)
+- **Prerequisites:** popular_sovereignty AND written_constitution AND citizen_militia
+- **Concept:** A republic founded by revolution in the name of the people, with a citizen army and emergency committees.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** M8 adoption of the module set popular_sovereignty AND written_constitution AND citizen_militia
+- **Owner system · milestone:** Adoption (M8) — regime module set and derived government label · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
 ### 1065 · `central_planning` — Central economic planning
 
 - **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata (Modern / Contemporary); research never reads the Age and no Age entry grants it (I-6); not an Age fact; cost carries the A9 prior inside difficulty/institutional only (digest C-04).) · **cost:** 23,650 (new)
@@ -874,4 +2187,264 @@ PROPOSED. Costs are stated in points of the civics pool: Civics Points if D-061 
 - **Technology links:** [] · **institution links:** []
 - **AI valuation:** M6: fallback only (no adoption exists, so a form has no M6 value to an AI). M8: valued by the AI's regime evaluation from the polity's own state (its realized modules, classes and reach) — never from another polity's civics state (metamorphic fence, I-9). · **required for progression:** False
 - **Rationale:** A regime form named in the brief (or, for tribal_confederacy and assembly_democracy, a distinct historical form the brief's list omits); a leaf: nothing requires it and it requires no other form.
+
+### 1169 · `arms_control` — Arms control
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 19,890 (new)
+- **Prerequisites:** collective_security AND fission_weapon
+- **Concept:** States cap and verify their weapons by treaty.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** weapon caps by treaty (Diplomacy M8; battle layer)
+- **Owner system · milestone:** Diplomacy (M8) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1170 · `civil_rights_law` — Civil rights law
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 28,130 (new)
+- **Prerequisites:** bill_of_rights AND mass_suffrage
+- **Concept:** Law forbids discrimination by race, religion or sex in public life and work.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** discrimination grievance removed (NeedsGrievance M9)
+- **Owner system · milestone:** ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1171 · `climate_accords` — Climate accords
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 39,780 (new)
+- **Prerequisites:** environmental_regulation AND international_organizations AND weather_prediction
+- **Concept:** States negotiate shared limits on greenhouse emissions.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a multilateral treaty kind (Diplomacy M8)
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1172 · `collective_security` — Collective security
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 28,130 (new)
+- **Prerequisites:** international_organizations AND laws_of_war
+- **Concept:** Members pledge to act together against an aggressor.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** collective defence obligation (Diplomacy M8)
+- **Owner system · milestone:** Diplomacy (M8) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1173 · `data_protection` — Data protection law
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 19,890 (new)
+- **Prerequisites:** computer AND bill_of_rights
+- **Concept:** Law limits how states and firms collect and use personal records.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** limits on the state's information reach
+- **Owner system · milestone:** Society — opinion (M9); Adoption (M8) where a regime module · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1174 · `decolonization` — Decolonization
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 28,130 (new)
+- **Prerequisites:** nationalism AND law_of_nations
+- **Concept:** Colonies win independence under a doctrine of self-determination of peoples.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** peaceful transfer of settlements between polities (Diplomacy M8)
+- **Owner system · milestone:** ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1175 · `environmental_regulation` — Environmental regulation
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 28,130 (new)
+- **Prerequisites:** nature_conservation AND public_health_board
+- **Concept:** Agencies limit pollution of air, water and soil by permit and standard.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** emission caps on production (environment phase)
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1176 · `fascism` — Fascism
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 23,650 (new)
+- **Prerequisites:** nationalism AND mass_political_party
+- **Concept:** An ultranationalist mass movement seeks a single-party state built on mobilization and violence.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a regime module of the fascist state (Adoption M8)
+- **Owner system · milestone:** Adoption (M8) — regime module; Society — opinion (M9) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1177 · `human_rights` — Human rights law
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 28,130 (new)
+- **Prerequisites:** bill_of_rights AND international_organizations
+- **Concept:** Rights are declared to belong to every person and are monitored internationally.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** rights as an international norm (Diplomacy M8; grievance operand M9)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1178 · `integrated_alliance_command` — Integrated alliance command
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 19,890 (new)
+- **Prerequisites:** collective_security AND general_staff
+- **Concept:** Allies place forces under a joint peacetime command.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** joint command of allied formations (Battle layer M7; Diplomacy M8)
+- **Owner system · milestone:** Battle layer (M7); Adoption (M8) · M7
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M7 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1179 · `international_tribunals` — International tribunals
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 19,890 (new)
+- **Prerequisites:** laws_of_war AND international_organizations
+- **Concept:** International courts try individuals for war crimes and crimes against humanity.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** war-conduct sanctions (Diplomacy M8)
+- **Owner system · milestone:** Adoption (M8) — regime module · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1180 · `internet_governance` — Internet governance
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 28,130 (new)
+- **Prerequisites:** internet AND international_organizations
+- **Concept:** Shared bodies and national regulators set rules for a global network.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** network regulation (opinion and diplomacy)
+- **Owner system · milestone:** Society — opinion (M9); Adoption (M8) where a regime module · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1181 · `multilateral_trade_rules` — Multilateral trade rules
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 28,130 (new)
+- **Prerequisites:** free_trade AND international_organizations
+- **Concept:** Many states bind their tariffs and settle trade disputes under shared rules.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** a multilateral trade treaty kind (Diplomacy M8)
+- **Owner system · milestone:** Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1182 · `nuclear_deterrence` — Nuclear deterrence doctrine
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 19,890 (new)
+- **Prerequisites:** fission_weapon AND general_staff
+- **Concept:** War is to be prevented by the threat of nuclear retaliation.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** deterrence verb (Diplomacy M8; battle layer)
+- **Owner system · milestone:** Battle layer (M7); Adoption (M8) · M7
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M7 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1183 · `public_broadcasting` — Public broadcasting
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 28,130 (new)
+- **Prerequisites:** radio_broadcasting AND appointed_officials
+- **Concept:** A licensed public body runs national radio and later television.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** broadcast opinion channel; inst.mass_media_broadcast re-point candidate (OD-11)
+- **Owner system · milestone:** Society — opinion (M9); Adoption (M8) where a regime module · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1184 · `science_policy` — Science policy
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 28,130 (new)
+- **Prerequisites:** research_university AND official_statistics
+- **Concept:** The state funds research through grant agencies and sets national research priorities.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** directed research funding as a governance policy
+- **Owner system · milestone:** Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1185 · `state_propaganda` — State propaganda
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 28,130 (new)
+- **Prerequisites:** mass_political_party AND (mass_press OR radio_broadcasting)
+- **Concept:** A government office shapes news, films and broadcasts to mobilize opinion.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** opinion steering as a regime module (Society M9)
+- **Owner system · milestone:** Society — opinion (M9); Adoption (M8) where a regime module · M9
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M9 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1186 · `total_mobilization` — Total mobilization
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 28,130 (new)
+- **Prerequisites:** universal_conscription AND official_statistics
+- **Concept:** The whole economy and manpower of the state are directed to war.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** war-economy allocation policy (Battle layer M7; production)
+- **Owner system · milestone:** Battle layer (M7); Adoption (M8) · M7
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M7 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1187 · `zoning` — Zoning
+
+- **Status / disposition:** new / new · **category:** micro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 19,890 (new)
+- **Prerequisites:** building_regulation AND skyscraper
+- **Concept:** Cities divide land into zones with permitted uses and building envelopes.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** land-use rule on construction
+- **Owner system · milestone:** GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
+
+### 1188 · `fascist_state` — Fascist state
+
+- **Status / disposition:** new / new · **category:** macro · **Age relation:** A9 (A9 metadata; never an Age fact (I-6, V-08)) · **cost:** 47,310 (new)
+- **Prerequisites:** fascism AND state_propaganda AND mass_political_party
+- **Concept:** A one-party state of an ultranationalist movement under a leader, mobilizing society through propaganda and corporations.
+- **Eligibility it creates:** —
+- **Current effect:** None today — PROPOSED node, not in content. Once added: the completion row only (I-1); its capability string appears as knowledge. · **deferred effect:** M8 adoption of the module set fascism AND state_propaganda AND mass_political_party
+- **Owner system · milestone:** Adoption (M8) — regime module set and derived government label · M8
+- **States:** —
+- **Technology links:** — · **institution links:** —
+- **AI valuation:** Fallback only before M8 (the AI never reads a deferred promise as a benefit). Composite key (EffectiveCost, key) in every argmin (I-11). · **required for progression:** False
+- **Rationale:** Coverage gap closed after the Civilization VI / VII cross-check (D13, 2026-10-24).
 

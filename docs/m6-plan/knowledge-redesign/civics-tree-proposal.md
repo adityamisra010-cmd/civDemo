@@ -8,7 +8,7 @@ Cost unit: **CP if D-061 is ratified, otherwise RP** — Costs are stated in poi
 
 ## 1. Summary
 
-- Existing civics: 7 (legacy keys 1001–1007, all kept; content fields changed: 0 — key, id, name, Age, prerequisite, factors and cost are unchanged; consumer re-points proposed under OD-05 for 3 (census, joint_stock, legal_code_roman); funding pool RP → CP for all 7 if D-061 is ratified — see §4a); new micro-civics 42; new macro-civics (regime forms) 18; total 67.
+- Existing civics: 7 (legacy keys 1001–1007, all kept; content fields changed: 0 — key, id, name, Age, prerequisite, factors and cost are unchanged; consumer re-points proposed under OD-05 for 3 (census, joint_stock, legal_code_roman); funding pool RP → CP for all 7 if D-061 is ratified — see §4a); new micro-civics 42; new macro-civics (regime forms) 18; total 188.
 - New civics total cost: 316,980 points.
 - By strand: law-justice 7, administration-fiscal 9, economy-commerce 6, society-welfare 4, diplomacy 6, military-institutions 4, legitimacy-succession 4, representation-local-government 9, regime-forms 18
 - By primary milestone: M8 44, M7 4, M6 2, M9 8, M10+ 2
@@ -172,16 +172,20 @@ Leaves (nothing requires a form; no form requires a form), never Age CORE facts,
 | 1034 | `assembly_democracy` | Assembly democracy | A5 | 4,180 (new) | citizen_assembly AND law_code | The citizen body governs directly: an assembly open to every citizen makes laws and decides war and peace by majority, most offices are filled by lot for short terms and officials are audited; citizenship, historically restricted to free adult men, defines who votes. |
 | 1035 | `bureaucratic_empire` | Bureaucratic empire | A5 | 4,970 (new) | provincial_administration AND standing_army | A large, multi-ethnic realm is ruled from a capital through salaried, ranked officials and appointed provincial governors, with registers, standardized taxes and a standing army; the dynasty heads the system but governs through it. |
 | 1036 | `classical_republic` | Mixed-constitution republic | A5 | 4,180 (new) | elected_magistracies AND elite_council | No monarch: annually elected, collegial magistrates hold executive power, a council of former magistrates guides policy and finance, and citizen assemblies elect officials and pass laws, so that power is balanced among the three. |
+| 1108 | `steppe_empire` | Steppe empire | A5 | 7,030 (new) | oath_alliance AND war_band AND cavalry | A confederation of nomad clans under one khan, organized as a decimal army with appanages for his kin. |
 | 1040 | `feudal_monarchy` | Feudal monarchy | A6 | 7,030 (new) | service_tenure AND (succession_law OR sacral_kingship) | A king grants land and jurisdiction to vassals in return for military service and counsel, and they do the same to their own vassals; public authority is divided along a hierarchy of hereditary fiefs, and the crown's direct reach is largely its own domain. 'Feudal' is a contested historians' generalization. |
 | 1041 | `merchant_republic` | Mercantile republic | A6 | 5,910 (new) | commercial_law AND (elected_magistracies OR municipal_charter) | A republic whose offices are held by a closed or semi-closed body of merchant families: a great council elects smaller councils and a head of state with narrowly limited powers, and policy serves long-distance trade. |
 | 1042 | `military_rule` | Military rule | A6 | 5,910 (new) | standing_army OR service_tenure | The armed forces, through their commanders or a council of officers, hold supreme power, govern by decree and subordinate or suspend civilian institutions; rulers come from and depend on the army. |
+| 1118 | `elective_monarchy` | Elective monarchy | A6 | 5,910 (new) | elective_succession AND service_tenure | A monarchy whose ruler is chosen by an electoral college of magnates bound by charters. |
 | 1053 | `absolute_monarchy` | Absolute monarchy | A7 | 7,030 (new) | standing_army AND (provincial_administration OR civil_service_examinations) | A hereditary monarch claims undivided sovereign authority not bound by representative assemblies or chartered privileges, ruling through a centralized officialdom and a standing army, legitimated by dynastic right and often divine-right doctrine. |
 | 1054 | `constitutional_monarchy` | Constitutional monarchy | A7 | 7,030 (new) | succession_law AND (written_constitution OR (bill_of_rights AND representative_assembly)) | A hereditary monarch remains head of state, but laws and taxes require the consent of a representative legislature and the monarch's powers are limited by a constitution — written, or fixed in statute and convention. |
 | 1055 | `federal_republic` | Federation | A7 | 7,030 (new) | written_constitution AND (municipal_charter OR provincial_administration) | Self-governing member states unite under a constitution that divides sovereignty between the federal government and the members, so that neither can unilaterally abolish the other's powers. |
 | 1056 | `presidential_republic` | Presidential republic | A7 | 7,030 (new) | separation_of_powers AND elected_magistracies | A republic whose head of state and of government is a president elected for a fixed term independently of the legislature, which cannot remove the president except by impeachment; powers are separated and mutually checked. |
 | 1064 | `parliamentary_government` | Parliamentary government | A8 | 11,830 (new) | ministerial_responsibility | The executive — a prime minister and cabinet — is drawn from and responsible to an elected legislature and must resign or seek new elections when it loses the legislature's confidence; the head of state, monarch or president, is largely ceremonial. |
+| 1168 | `revolutionary_republic` | Revolutionary republic | A8 | 23,650 (new) | popular_sovereignty AND written_constitution AND citizen_militia | A republic founded by revolution in the name of the people, with a citizen army and emergency committees. |
 | 1066 | `marxist_leninist_state` | Marxist–Leninist state | A9 | 33,450 (new) | mass_political_party AND central_planning | A one-party state led by a communist party that claims to rule on behalf of the working class under Marxist–Leninist doctrine, with state or collective ownership of the means of production and central economic planning. |
 | 1067 | `one_party_state` | One-party state | A9 | 28,130 (new) | mass_political_party AND (written_constitution OR standing_army) | A single political party holds a legal or effective monopoly on forming the government; other parties are banned or subordinated, and the party's organization parallels and directs the state's. Single-party states have been founded under differing ideologies. |
+| 1188 | `fascist_state` | Fascist state | A9 | 47,310 (new) | fascism AND state_propaganda AND mass_political_party | A one-party state of an ultranationalist movement under a leader, mobilizing society through propaganda and corporations. |
 
 ## 9. Micro-civics
 
@@ -236,6 +240,123 @@ Leaves (nothing requires a form; no form requires a form), never Age CORE facts,
 | 1046 | `compulsory_education` | Compulsory education | Society & welfare | A7 | 5,910 (new) | census AND printing_press | Society (M9); InstitutionsSystem if re-pointed · M9 |
 | 1049 | `public_health_board` | Boards of health | Society & welfare | A7 | 4,180 (new) | census AND medicine_hippocratic | Society (M9); InstitutionsSystem if re-pointed · M9 |
 | 1057 | `abolition` | Abolition of slavery and serfdom | Society & welfare | A8 | 5,910 (new) | legal_code_roman | ClassMobilitySystem (M9) · M9 |
+| 1068 | `gift_exchange` | Gift exchange networks | — | A1 | 260 (new) | kin_council | Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8 |
+| 1069 | `oral_tradition` | Oral tradition | — | A1 | 260 (new) | — | NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9 |
+| 1070 | `shamanic_ritual` | Ritual specialists | — | A1 | 260 (new) | ochre_processing | Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9 |
+| 1071 | `war_band` | War bands | — | A1 | 370 (new) | kin_council AND (bow_simple OR atlatl) | Battle layer (M7); Adoption (M8) · M7 |
+| 1072 | `ancestor_veneration` | Ancestor veneration | — | A2 | 620 (new) | shamanic_ritual AND (cereal_cultivation OR sheep_goat) | Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9 |
+| 1073 | `communal_feasts` | Communal feasts | — | A2 | 620 (new) | oral_tradition AND (cereal_cultivation OR sheep_goat) | NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9 |
+| 1074 | `court_patronage` | Court patronage | — | A3 | 1,240 (new) | temple_economy OR sacral_kingship | NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9 |
+| 1075 | `customs_tolls` | Customs and tolls | — | A3 | 1,480 (new) | taxation AND trade | GovernanceSystem (M8 policy adoption) · M8 |
+| 1076 | `debt_remission` | Debt remission edicts | — | A3 | 1,480 (new) | law_code AND sacral_kingship | ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9 |
+| 1077 | `dynastic_marriage` | Dynastic marriage | — | A3 | 1,480 (new) | hereditary_rank AND oath_alliance | Diplomacy (M8) · M8 |
+| 1078 | `family_law` | Family and inheritance law | — | A3 | 1,240 (new) | law_code | Adoption (M8) — regime module · M8 |
+| 1079 | `planned_cities` | Planned towns | — | A3 | 1,480 (new) | fired_brick AND appointed_officials | GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8 |
+| 1080 | `royal_archives` | Royal archives | — | A3 | 1,480 (new) | scribal_schools AND stamp_seal | Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9 |
+| 1081 | `scribal_schools` | Scribal schools | — | A3 | 1,240 (new) | cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script | Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9 |
+| 1082 | `temple_economy` | Temple households | — | A3 | 2,090 (new) | organized_priesthood AND token_counting | Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9 |
+| 1083 | `trade_treaties` | Trade treaties | — | A3 | 1,480 (new) | sworn_treaties AND trade | Diplomacy (M8) · M8 |
+| 1084 | `water_rights` | Water rights | — | A3 | 1,480 (new) | law_code AND irrigation_canal | GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8 |
+| 1085 | `citizen_militia` | Citizen militia | — | A4 | 2,960 (new) | war_band AND (citizen_assembly OR elite_council) | Battle layer (M7); Adoption (M8) · M7 |
+| 1086 | `daughter_colonies` | Daughter colonies | — | A4 | 2,490 (new) | sail_square AND oath_alliance | ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8 |
+| 1087 | `mandate_doctrine` | Conditional mandate | — | A4 | 2,090 (new) | sacral_kingship AND law_code | Adoption (M8) — regime module · M8 |
+| 1088 | `public_games` | Public games | — | A4 | 1,760 (new) | communal_feasts AND organized_priesthood | NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9 |
+| 1089 | `royal_post` | Royal post | — | A4 | 2,960 (new) | appointed_officials AND horse_domestication | Society — opinion (M9); Adoption (M8) where a regime module · M9 |
+| 1090 | `scriptural_canon` | Scriptural canon | — | A4 | 2,490 (new) | organized_priesthood AND (abjad OR alphabet_vowels OR brahmi OR chinese_script) | Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9 |
+| 1091 | `state_navy` | State navy | — | A4 | 2,960 (new) | naval_ram AND taxation | Battle layer (M7); Adoption (M8) · M7 |
+| 1092 | `building_regulation` | Building regulation | — | A5 | 2,960 (new) | planned_cities AND legal_code_roman | GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8 |
+| 1093 | `jurists` | Legal profession | — | A5 | 2,090 (new) | legal_code_roman | Adoption (M8) — regime module · M8 |
+| 1094 | `jury_courts` | Jury courts | — | A5 | 2,960 (new) | citizen_assembly AND law_code | Adoption (M8) — regime module · M8 |
+| 1095 | `mercenary_contracts` | Mercenary contracts | — | A5 | 2,090 (new) | coined_wage | Battle layer (M7); Adoption (M8) · M7 |
+| 1096 | `missionary_religion` | Missionary religion | — | A5 | 3,520 (new) | scriptural_canon AND royal_envoys | Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9 |
+| 1097 | `monasticism` | Monastic orders | — | A5 | 2,960 (new) | scriptural_canon | Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9 |
+| 1098 | `philosophical_schools` | Philosophical schools | — | A5 | 3,520 (new) | scribal_schools AND (abjad OR alphabet_vowels OR brahmi OR chinese_script) | Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9 |
+| 1099 | `political_philosophy` | Political philosophy | — | A5 | 3,520 (new) | philosophical_schools AND law_code | Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9 |
+| 1100 | `public_granaries` | Public granaries | — | A5 | 4,180 (new) | taxation AND appointed_officials | ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9 |
+| 1101 | `public_theatre` | Public theatre | — | A5 | 2,490 (new) | public_games AND (alphabet_vowels OR brahmi) | NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9 |
+| 1102 | `state_academy` | State academy | — | A5 | 4,180 (new) | philosophical_schools AND royal_archives | Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9 |
+| 1103 | `state_gazette` | State gazette | — | A5 | 2,490 (new) | royal_post AND (alphabet_vowels OR chinese_script) | Society — opinion (M9); Adoption (M8) where a regime module · M9 |
+| 1104 | `state_monopolies` | State monopolies | — | A5 | 2,960 (new) | appointed_officials AND salt_extraction | GovernanceSystem (M8 policy adoption) · M8 |
+| 1105 | `state_religion` | State religion | — | A5 | 4,180 (new) | organized_priesthood AND appointed_officials | Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9 |
+| 1106 | `statecraft_doctrine` | Statecraft doctrine | — | A5 | 2,960 (new) | political_philosophy AND appointed_officials | Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9 |
+| 1107 | `tributary_relations` | Tributary relations | — | A5 | 4,180 (new) | royal_envoys AND appointed_officials | Diplomacy (M8) · M8 |
+| 1109 | `canon_law` | Canon law | — | A6 | 3,520 (new) | state_religion AND legal_code_roman | Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9 |
+| 1110 | `common_law` | Common law | — | A6 | 3,520 (new) | law_code AND appointed_officials | Adoption (M8) — regime module · M8 |
+| 1111 | `elective_succession` | Elective succession | — | A6 | 3,520 (new) | succession_law AND elite_council | Adoption (M8) — regime module · M8 |
+| 1112 | `forest_law` | Forest law | — | A6 | 3,520 (new) | land_registry AND service_tenure | GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8 |
+| 1113 | `legal_estates` | Legal estates | — | A6 | 4,970 (new) | hereditary_rank AND state_religion | ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9 |
+| 1114 | `manorialism` | Manorialism | — | A6 | 4,970 (new) | service_tenure AND heavy_plough | ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9 |
+| 1115 | `market_fairs` | Market fairs | — | A6 | 3,520 (new) | trade AND municipal_charter | Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8 |
+| 1116 | `military_orders` | Military orders | — | A6 | 3,520 (new) | monasticism AND service_tenure | Battle layer (M7); Adoption (M8) · M7 |
+| 1117 | `systematic_theology` | Systematic theology | — | A6 | 2,960 (new) | scriptural_canon AND philosophical_schools | Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9 |
+| 1119 | `arts_academies` | Arts academies | — | A7 | 4,970 (new) | court_patronage AND humanism | NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9 |
+| 1120 | `colonial_administration` | Colonial administration | — | A7 | 7,030 (new) | state_exploration AND provincial_administration | ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8 |
+| 1121 | `copyright` | Copyright | — | A7 | 3,520 (new) | printing_press AND legal_code_roman | Adoption (M8) — regime module · M8 |
+| 1122 | `divine_right` | Divine right of kings | — | A7 | 3,520 (new) | sacral_kingship AND state_religion | Adoption (M8) — regime module · M8 |
+| 1123 | `enlightenment` | Enlightenment | — | A7 | 5,910 (new) | scientific_societies AND political_philosophy | Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9 |
+| 1124 | `humanism` | Humanism | — | A7 | 5,910 (new) | philosophical_schools AND paper | Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9 |
+| 1125 | `mercantilism` | Mercantilism | — | A7 | 7,030 (new) | commercial_law AND customs_tolls | Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8 |
+| 1126 | `military_academies` | Military academies | — | A7 | 4,970 (new) | standing_army AND printing_press | Battle layer (M7); Adoption (M8) · M7 |
+| 1127 | `poor_law` | Poor law | — | A7 | 4,970 (new) | taxation AND municipal_charter | ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9 |
+| 1128 | `press_licensing` | Press licensing | — | A7 | 4,970 (new) | printing_press AND appointed_officials | Society — opinion (M9); Adoption (M8) where a regime module · M9 |
+| 1129 | `public_museums` | Public museums | — | A7 | 4,970 (new) | arts_academies AND scientific_societies | NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9 |
+| 1130 | `public_opera` | Public opera and concerts | — | A7 | 4,180 (new) | public_theatre AND court_patronage | NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9 |
+| 1131 | `religious_reform` | Religious reform movements | — | A7 | 5,910 (new) | printing_press AND (canon_law OR scriptural_canon) | Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9 |
+| 1132 | `scientific_societies` | Scientific societies | — | A7 | 7,030 (new) | humanism AND printing_press | Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9 |
+| 1133 | `social_contract` | Social contract | — | A7 | 5,910 (new) | political_philosophy AND printing_press | Adoption (M8) — regime module; Society — opinion (M9) · M8 |
+| 1134 | `state_exploration` | State-sponsored exploration | — | A7 | 7,030 (new) | (caravel OR ocean_junk) AND appointed_officials | ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8 |
+| 1135 | `stock_exchange` | Stock exchange | — | A7 | 3,520 (new) | joint_stock | Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8 |
+| 1136 | `westphalian_sovereignty` | State sovereignty system | — | A7 | 7,030 (new) | resident_embassies AND law_of_nations | Diplomacy (M8) · M8 |
+| 1137 | `antitrust` | Antitrust law | — | A8 | 9,950 (new) | limited_liability AND representative_assembly | Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8 |
+| 1138 | `civil_code` | Civil code | — | A8 | 14,060 (new) | legal_code_roman AND written_constitution | Adoption (M8) — regime module · M8 |
+| 1139 | `classical_liberalism` | Liberalism | — | A8 | 11,830 (new) | social_contract AND commercial_law | Adoption (M8) — regime module; Society — opinion (M9) · M8 |
+| 1140 | `conservatism` | Conservatism | — | A8 | 5,910 (new) | popular_sovereignty | Adoption (M8) — regime module; Society — opinion (M9) · M8 |
+| 1141 | `cooperatives` | Cooperatives | — | A8 | 8,360 (new) | craft_guilds AND coined_wage | Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8 |
+| 1142 | `customs_union` | Customs union | — | A8 | 9,950 (new) | customs_tolls AND sworn_treaties | Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8 |
+| 1143 | `factory_inspection` | Factory inspection | — | A8 | 9,950 (new) | power_loom AND appointed_officials | ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9 |
+| 1144 | `free_trade` | Free trade | — | A8 | 14,060 (new) | classical_liberalism AND customs_tolls | Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8 |
+| 1145 | `great_power_congress` | Concert of powers | — | A8 | 7,030 (new) | westphalian_sovereignty | Diplomacy (M8) · M8 |
+| 1146 | `heritage_preservation` | Heritage preservation | — | A8 | 9,950 (new) | public_museums AND appointed_officials | NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9 |
+| 1147 | `income_tax` | Income tax | — | A8 | 14,060 (new) | taxation AND official_statistics | GovernanceSystem (M8 policy adoption) · M8 |
+| 1148 | `indirect_rule` | Indirect rule | — | A8 | 9,950 (new) | colonial_administration AND sworn_treaties | ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8 |
+| 1149 | `international_organizations` | International organizations | — | A8 | 14,060 (new) | law_of_nations AND telegraph | Diplomacy (M8) · M8 |
+| 1150 | `judicial_review` | Judicial review | — | A8 | 7,030 (new) | separation_of_powers | Adoption (M8) — regime module · M8 |
+| 1151 | `labour_unions` | Trade unions | — | A8 | 14,060 (new) | coined_wage AND (power_loom OR spinning_mule) | ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9 |
+| 1152 | `limited_liability` | Limited liability | — | A8 | 7,030 (new) | joint_stock AND commercial_law | Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8 |
+| 1153 | `mass_press` | Mass press | — | A8 | 11,830 (new) | printing_press AND railway | Society — opinion (M9); Adoption (M8) where a regime module · M9 |
+| 1154 | `merit_civil_service` | Merit civil service | — | A8 | 7,030 (new) | appointed_officials AND compulsory_education | GovernanceSystem (M8 policy adoption) · M8 |
+| 1155 | `nationalism` | Nationalism | — | A8 | 11,830 (new) | popular_sovereignty AND printing_press | Adoption (M8) — regime module; Society — opinion (M9) · M8 |
+| 1156 | `nature_conservation` | Nature conservation | — | A8 | 9,950 (new) | forest_law AND taxonomy | GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8 |
+| 1157 | `popular_sovereignty` | Popular sovereignty | — | A8 | 14,060 (new) | social_contract AND representative_assembly | Adoption (M8) — regime module; Society — opinion (M9) · M8 |
+| 1158 | `press_freedom` | Freedom of the press | — | A8 | 14,060 (new) | press_licensing AND (bill_of_rights OR written_constitution) | Society — opinion (M9); Adoption (M8) where a regime module · M9 |
+| 1159 | `professional_sport` | Professional sport | — | A8 | 8,360 (new) | public_games AND railway | NeedsGrievanceSystem (Belonging/Faith need, D-018) — Society (M9) · M9 |
+| 1160 | `public_postal_service` | Public postal service | — | A8 | 9,950 (new) | royal_post AND railway | Society — opinion (M9); Adoption (M8) where a regime module · M9 |
+| 1161 | `referendum` | Referendum | — | A8 | 9,950 (new) | citizen_assembly AND written_constitution | Adoption (M8) — regime module · M8 |
+| 1162 | `research_university` | Research university | — | A8 | 14,060 (new) | scientific_societies AND state_academy | Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9 |
+| 1163 | `secret_ballot` | Secret ballot | — | A8 | 4,970 (new) | mass_suffrage | Adoption (M8) — regime module · M8 |
+| 1164 | `secular_state` | Secular state | — | A8 | 14,060 (new) | religious_toleration AND written_constitution | Society — religion and culture (M9); NeedsGrievanceSystem (Belonging/Faith, D-018) · M9 |
+| 1165 | `settler_land_grants` | Settler land grants | — | A8 | 9,950 (new) | land_registry AND colonial_administration | ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8 |
+| 1166 | `socialism` | Socialism | — | A8 | 11,830 (new) | labour_unions AND printing_press | Adoption (M8) — regime module; Society — opinion (M9) · M8 |
+| 1167 | `womens_suffrage` | Women's suffrage | — | A8 | 4,970 (new) | mass_suffrage | Adoption (M8) — regime module · M8 |
+| 1169 | `arms_control` | Arms control | — | A9 | 19,890 (new) | collective_security AND fission_weapon | Diplomacy (M8) · M8 |
+| 1170 | `civil_rights_law` | Civil rights law | — | A9 | 28,130 (new) | bill_of_rights AND mass_suffrage | ClassMobilitySystem / NeedsGrievanceSystem — Society (M9) · M9 |
+| 1171 | `climate_accords` | Climate accords | — | A9 | 39,780 (new) | environmental_regulation AND international_organizations AND weather_prediction | GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8 |
+| 1172 | `collective_security` | Collective security | — | A9 | 28,130 (new) | international_organizations AND laws_of_war | Diplomacy (M8) · M8 |
+| 1173 | `data_protection` | Data protection law | — | A9 | 19,890 (new) | computer AND bill_of_rights | Society — opinion (M9); Adoption (M8) where a regime module · M9 |
+| 1174 | `decolonization` | Decolonization | — | A9 | 28,130 (new) | nationalism AND law_of_nations | ColonizationSystem + GovernanceSystem (M8 policy adoption) · M8 |
+| 1175 | `environmental_regulation` | Environmental regulation | — | A9 | 28,130 (new) | nature_conservation AND public_health_board | GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8 |
+| 1176 | `fascism` | Fascism | — | A9 | 23,650 (new) | nationalism AND mass_political_party | Adoption (M8) — regime module; Society — opinion (M9) · M8 |
+| 1177 | `human_rights` | Human rights law | — | A9 | 28,130 (new) | bill_of_rights AND international_organizations | Adoption (M8) — regime module · M8 |
+| 1178 | `integrated_alliance_command` | Integrated alliance command | — | A9 | 19,890 (new) | collective_security AND general_staff | Battle layer (M7); Adoption (M8) · M7 |
+| 1179 | `international_tribunals` | International tribunals | — | A9 | 19,890 (new) | laws_of_war AND international_organizations | Adoption (M8) — regime module · M8 |
+| 1180 | `internet_governance` | Internet governance | — | A9 | 28,130 (new) | internet AND international_organizations | Society — opinion (M9); Adoption (M8) where a regime module · M9 |
+| 1181 | `multilateral_trade_rules` | Multilateral trade rules | — | A9 | 28,130 (new) | free_trade AND international_organizations | Adoption (M8); TradeArbitrageSystem / market phase (M10+) · M8 |
+| 1182 | `nuclear_deterrence` | Nuclear deterrence doctrine | — | A9 | 19,890 (new) | fission_weapon AND general_staff | Battle layer (M7); Adoption (M8) · M7 |
+| 1183 | `public_broadcasting` | Public broadcasting | — | A9 | 28,130 (new) | radio_broadcasting AND appointed_officials | Society — opinion (M9); Adoption (M8) where a regime module · M9 |
+| 1184 | `science_policy` | Science policy | — | A9 | 28,130 (new) | research_university AND official_statistics | Society — culture and opinion (M9); InstitutionsSystem if an institution is re-pointed (OD-11) · M9 |
+| 1185 | `state_propaganda` | State propaganda | — | A9 | 28,130 (new) | mass_political_party AND (mass_press OR radio_broadcasting) | Society — opinion (M9); Adoption (M8) where a regime module · M9 |
+| 1186 | `total_mobilization` | Total mobilization | — | A9 | 28,130 (new) | universal_conscription AND official_statistics | Battle layer (M7); Adoption (M8) · M7 |
+| 1187 | `zoning` | Zoning | — | A9 | 19,890 (new) | building_regulation AND skyscraper | GovernanceSystem (M8 policy adoption); environment/upkeep phase · M8 |
 
 ## 10. AI valuation approach
 

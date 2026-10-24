@@ -15,7 +15,8 @@
    "D09-military",
    "D10-medicine",
    "D11-nuclear-geology",
-   "D12-civics"
+   "D12-civics",
+   "D13-civics-expansion"
   ]
  },
  "conventions": {
@@ -2650,7 +2651,9 @@
     "depthLongest": 2,
     "closureCount": 4,
     "closureCost": 2010.0,
-    "dependants": [],
+    "dependants": [
+     "war_band"
+    ],
     "optional": true
    }
   },
@@ -2757,7 +2760,8 @@
     "dependants": [
      "composite_bow",
      "crossbow",
-     "longbow"
+     "longbow",
+     "war_band"
     ],
     "optional": true
    }
@@ -3896,7 +3900,8 @@
     "closureCost": 630.0,
     "dependants": [
      "copper_smelting",
-     "dyeing"
+     "dyeing",
+     "shamanic_ritual"
     ],
     "optional": false
    }
@@ -4338,7 +4343,9 @@
     "closureCount": 2,
     "closureCost": 1250.0,
     "dependants": [
+     "ancestor_veneration",
      "cereal_domesticated",
+     "communal_feasts",
      "cotton_cultivation",
      "flax",
      "hereditary_rank",
@@ -5729,7 +5736,9 @@
     "closureCount": 2,
     "closureCost": 880.0,
     "dependants": [
+     "ancestor_veneration",
      "cattle",
+     "communal_feasts",
      "composite_bow",
      "hereditary_rank",
      "milking",
@@ -7711,7 +7720,8 @@
     "closureCount": 4,
     "closureCost": 4600.0,
     "dependants": [
-     "glass_glaze"
+     "glass_glaze",
+     "state_monopolies"
     ],
     "optional": false
    }
@@ -8988,7 +8998,8 @@
      "canal_lock",
      "drip_irrigation",
      "green_revolution",
-     "noria"
+     "noria",
+     "water_rights"
     ],
     "optional": true
    }
@@ -9781,6 +9792,7 @@
      "proto_writing",
      "standard_weights",
      "taxation",
+     "temple_economy",
      "trade"
     ],
     "optional": false
@@ -9893,6 +9905,7 @@
     "dependants": [
      "census",
      "coinage_electrum",
+     "royal_archives",
      "taxation",
      "woodblock_print"
     ],
@@ -11063,6 +11076,7 @@
      "medicine_recorded",
      "numeral_sexagesimal",
      "royal_envoys",
+     "scribal_schools",
      "surveying"
     ],
     "optional": false
@@ -11192,6 +11206,7 @@
      "law_code",
      "medicine_recorded",
      "royal_envoys",
+     "scribal_schools",
      "standard_weights",
      "surveying",
      "taxation"
@@ -11326,8 +11341,12 @@
      "geometry_practical",
      "law_code",
      "medicine_recorded",
+     "philosophical_schools",
      "royal_envoys",
+     "scribal_schools",
+     "scriptural_canon",
      "standard_weights",
+     "state_gazette",
      "surveying",
      "taxation"
     ],
@@ -11924,6 +11943,7 @@
     "closureCount": 11,
     "closureCost": 10520.0,
     "dependants": [
+     "daughter_colonies",
      "lateen",
      "monsoon_sailing",
      "trade",
@@ -12191,7 +12211,8 @@
      "cavalry",
      "chariot",
      "collar_harness",
-     "horseshoe"
+     "horseshoe",
+     "royal_post"
     ],
     "optional": true
    }
@@ -12910,6 +12931,7 @@
     "closureCount": 6,
     "closureCost": 13570.0,
     "dependants": [
+     "planned_cities",
      "sanitary_engineering",
      "vault_dome"
     ],
@@ -14604,7 +14626,9 @@
     "dependants": [
      "alphabet_vowels",
      "bill_of_exchange",
-     "brahmi"
+     "brahmi",
+     "philosophical_schools",
+     "scriptural_canon"
     ],
     "optional": false
    }
@@ -14705,7 +14729,11 @@
     "closureCount": 7,
     "closureCost": 10940.0,
     "dependants": [
-     "alchemy"
+     "alchemy",
+     "philosophical_schools",
+     "public_theatre",
+     "scriptural_canon",
+     "state_gazette"
     ],
     "optional": false
    }
@@ -14808,7 +14836,10 @@
     "closureCount": 7,
     "closureCost": 9330.0,
     "dependants": [
-     "hindu_arabic"
+     "hindu_arabic",
+     "philosophical_schools",
+     "public_theatre",
+     "scriptural_canon"
     ],
     "optional": false
    }
@@ -15170,7 +15201,8 @@
     "closureCount": 5,
     "closureCost": 4500.0,
     "dependants": [
-     "saddle"
+     "saddle",
+     "steppe_empire"
     ],
     "optional": true
    }
@@ -15866,7 +15898,9 @@
     "depthLongest": 8,
     "closureCount": 18,
     "closureCost": 35920.0,
-    "dependants": [],
+    "dependants": [
+     "state_navy"
+    ],
     "optional": true
    }
   },
@@ -19439,6 +19473,7 @@
     "dependants": [
      "civil_service_examinations",
      "double_entry",
+     "humanism",
      "jacquard",
      "printing_press",
      "woodblock_print"
@@ -21232,7 +21267,8 @@
     "closureCount": 21,
     "closureCost": 38240.0,
     "dependants": [
-     "farm_machinery"
+     "farm_machinery",
+     "manorialism"
     ],
     "optional": false
    }
@@ -25790,8 +25826,17 @@
     "dependants": [
      "anatomy_dissection",
      "compulsory_education",
+     "copyright",
      "mass_political_party",
+     "mass_press",
+     "military_academies",
+     "nationalism",
      "patent",
+     "press_licensing",
+     "religious_reform",
+     "scientific_societies",
+     "social_contract",
+     "socialism",
      "taxonomy"
     ],
     "optional": false
@@ -26024,7 +26069,9 @@
     "depthLongest": 8,
     "closureCount": 29,
     "closureCost": 67340.0,
-    "dependants": [],
+    "dependants": [
+     "state_exploration"
+    ],
     "optional": true
    }
   },
@@ -31092,7 +31139,9 @@
     "depthLongest": 8,
     "closureCount": 18,
     "closureCost": 51050.0,
-    "dependants": [],
+    "dependants": [
+     "labour_unions"
+    ],
     "optional": true
    }
   },
@@ -31208,7 +31257,10 @@
     "depthLongest": 17,
     "closureCount": 20,
     "closureCost": 49620.0,
-    "dependants": [],
+    "dependants": [
+     "factory_inspection",
+     "labour_unions"
+    ],
     "optional": true
    }
   },
@@ -31654,7 +31706,10 @@
     "closureCount": 62,
     "closureCost": 460880.0,
     "dependants": [
-     "electric_traction"
+     "electric_traction",
+     "mass_press",
+     "professional_sport",
+     "public_postal_service"
     ],
     "optional": true
    }
@@ -33549,6 +33604,7 @@
     "closureCost": 244330.0,
     "dependants": [
      "central_planning",
+     "international_organizations",
      "punched_card_tabulation",
      "radio",
      "submarine_cable",
@@ -37255,6 +37311,7 @@
     "closureCost": 1326080.0,
     "dependants": [
      "crewed_spaceflight",
+     "data_protection",
      "genome_sequencing",
      "guided_munitions",
      "icbm",
@@ -37714,6 +37771,7 @@
     "dependants": [
      "cloud_computing",
      "cyber_warfare",
+     "internet_governance",
      "large_language_models",
      "smart_grid"
     ],
@@ -40035,7 +40093,9 @@
     "depthLongest": 21,
     "closureCount": 70,
     "closureCost": 723820.0,
-    "dependants": [],
+    "dependants": [
+     "zoning"
+    ],
     "optional": true
    }
   },
@@ -46152,7 +46212,9 @@
     "depthLongest": 22,
     "closureCount": 74,
     "closureCost": 1337910.0,
-    "dependants": [],
+    "dependants": [
+     "climate_accords"
+    ],
     "optional": true
    }
   },
@@ -49758,7 +49820,10 @@
     "closureCount": 11,
     "closureCost": 6080.0,
     "dependants": [
-     "commercial_law"
+     "commercial_law",
+     "customs_tolls",
+     "market_fairs",
+     "trade_treaties"
     ],
     "optional": true
    }
@@ -50222,6 +50287,7 @@
      "astronomy_records",
      "calendar_civil",
      "geometry_practical",
+     "scribal_schools",
      "surveying"
     ],
     "optional": false
@@ -50732,7 +50798,9 @@
     "depthLongest": 11,
     "closureCount": 37,
     "closureCost": 63580.0,
-    "dependants": [],
+    "dependants": [
+     "state_exploration"
+    ],
     "optional": true
    }
   },
@@ -51457,7 +51525,8 @@
     "closureCount": 25,
     "closureCost": 99850.0,
     "dependants": [
-     "evolution"
+     "evolution",
+     "nature_conservation"
     ],
     "optional": true
    }
@@ -54047,6 +54116,8 @@
     "closureCount": 100,
     "closureCost": 1822910.0,
     "dependants": [
+     "arms_control",
+     "nuclear_deterrence",
      "thermonuclear"
     ],
     "optional": true
@@ -55779,6 +55850,8 @@
     "closureCost": 814190.0,
     "dependants": [
      "mobile_phone",
+     "public_broadcasting",
+     "state_propaganda",
      "television"
     ],
     "optional": true
