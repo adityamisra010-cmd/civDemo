@@ -49,7 +49,7 @@ public sealed record ResearchTuning(
     double EffectiveCostFloorFraction, double AccelerationCreditCeilingFraction, ResearchCostModel CostModel,
     double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null, bool AiCheapestOrRoute = false,
     bool AiSupportingMilestones = false, bool AgeSweep = false, bool DestinationRouting = false,
-    bool KnowledgeEffects = false)
+    bool KnowledgeEffects = false, PacingScale? Pacing = null)
 {
     /// <summary>ADR-043: whether the two-lane model is on — Research Points fund only the Technology target and Civics
     /// Points fund only the Civics target. Off (tuning.civicsPoints absent or enabled false) is the v34 one-pool model
@@ -71,6 +71,18 @@ public sealed record ResearchTuning(
     // KnowledgeEffects (ADR-047, tranche-2 contract §1): THE SWITCH of realized research effects — the owning systems
     // read their operands through State.KnowledgeEffects. false (tuning.knowledgeEffects absent) returns every operand's
     // base value exactly, byte for byte the pre-ADR-047 world (the attribution twin TestConfigs.PreKnowledgeEffects).
+}
+
+/// <summary>
+/// D-063 R6 (tranche-2 contract §5) — the per-(tree, Age) pacing scale: a node's BaseCost is its content cost
+/// (U × K^magnitude, the rubric) × the scale of its tree and content Age. One recorded number per (tree, Age), calibrated
+/// by tools/calibrate_pacing.py so both trees finish each Age in the same turns (the "pincer"); never a per-node knob.
+/// Absent (tuning.pacingScale) is scale 1 everywhere — BaseCost = content cost exactly, the attribution twin.
+/// </summary>
+public sealed record PacingScale(IReadOnlyList<double> Technology, IReadOnlyList<double> Civics)
+{
+    /// <summary>The scale of a node of <paramref name="tree"/> and content Age <paramref name="age"/> (1-based).</summary>
+    public double Of(ResearchTree tree, int age) => (tree == ResearchTree.Technology ? Technology : Civics)[age - 1];
 }
 
 /// <summary>
@@ -782,7 +794,7 @@ public static class ResearchContentLoader
                 Domain = j.Domain,
                 SecondaryDomains = j.SecondaryDomains,
                 Depth = depth[i],
-                BaseCost = j.Cost,
+                BaseCost = tuning.Pacing is { } pacing ? j.Cost * pacing.Of(tree, j.Age[1] - '0') : j.Cost,
                 CostRationale = rationales[i],
                 UniversityRelevance = relevance[i],
                 Prerequisite = prereq[i],
@@ -940,7 +952,23 @@ public static class ResearchContentLoader
         return new ResearchTuning(rp.Coefficient, rp.Exponent, anchors, t.EffectiveCostFloorFraction,
             t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics,
             t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false, t.AgeSweep ?? false, t.DestinationRouting ?? false,
-            t.KnowledgeEffects ?? false);
+            t.KnowledgeEffects ?? false, ValidatePacing(t.PacingScale));
+    }
+
+    /// <summary>tuning.pacingScale (D-063 R6): nine finite scales in (0, 4] per tree, one per content Age A1..A9.</summary>
+    private static PacingScale? ValidatePacing(PacingScaleJson? p)
+    {
+        if (p is null) return null;
+        static double[] Check(double[]? v, string tree)
+        {
+            if (v is null || v.Length != 9)
+                throw Fail($"tuning.pacingScale.{tree} must hold exactly 9 scales, one per content Age A1..A9.");
+            for (int a = 0; a < v.Length; a++)
+                if (!(double.IsFinite(v[a]) && v[a] > 0.0 && v[a] <= 4.0))
+                    throw Fail($"tuning.pacingScale.{tree}[{a}] {Inv(v[a])} must be finite and in (0, 4].");
+            return v;
+        }
+        return new PacingScale(Check(p.Technology, "technology"), Check(p.Civics, "civics"));
     }
 
     private static readonly (string Name, double Min, double Max)[] CostFactorRanges =
@@ -1542,7 +1570,12 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("aiSupportingMilestones")] bool? AiSupportingMilestones = null,
         [property: JsonPropertyName("ageSweep")] bool? AgeSweep = null,
         [property: JsonPropertyName("destinationRouting")] bool? DestinationRouting = null,
-        [property: JsonPropertyName("knowledgeEffects")] bool? KnowledgeEffects = null);
+        [property: JsonPropertyName("knowledgeEffects")] bool? KnowledgeEffects = null,
+        [property: JsonPropertyName("pacingScale")] PacingScaleJson? PacingScale = null);
+
+    private sealed record PacingScaleJson(
+        [property: JsonPropertyName("technology"), JsonRequired] double[] Technology,
+        [property: JsonPropertyName("civics"), JsonRequired] double[] Civics);
 
     private sealed record CivicsPointsJson(
         [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,

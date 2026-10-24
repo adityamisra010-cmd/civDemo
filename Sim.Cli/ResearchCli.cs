@@ -211,7 +211,8 @@ internal static class ResearchCli
         foreach (ResearchQuery.PrerequisiteAtom a in pre.Atoms)
             Console.WriteLine($"    {a.Id,-26} {(a.Completed ? "complete" : "missing")}");
         ResearchCostRationale cr = n.CostRationale;
-        Console.WriteLine($"  cost: base {F(cost.BaseCost)} RP = U x K^{F(cr.Magnitude)} (tier {cr.Tier}; novelty {F(cr.Novelty)}, difficulty {F(cr.Difficulty)}, " +
+        string pace = content.Tuning.Pacing is { } pc ? $" x pacing {F(pc.Of(n.Tree, n.AgeNumber))}" : "";
+        Console.WriteLine($"  cost: base {F(cost.BaseCost)} RP = U x K^{F(cr.Magnitude)}{pace} (tier {cr.Tier}; novelty {F(cr.Novelty)}, difficulty {F(cr.Difficulty)}, " +
                           $"material {F(cr.Material)}, institutional {F(cr.Institutional)}, breadth {F(cr.Breadth)}, prerequisites {F(cr.PrerequisiteComplexity)})" +
                           (cr.Note is null ? "" : $" — {cr.Note}"));
         Console.WriteLine($"  effective: max(floor {F(cost.Floor)}, modified {F(cost.Modified)}) = {F(cost.EffectiveCost)} RP{(cost.FloorBinds ? " (the floor binds)" : "")}; " +
