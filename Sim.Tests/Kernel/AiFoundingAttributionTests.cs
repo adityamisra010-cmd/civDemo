@@ -93,7 +93,17 @@ public class AiFoundingAttributionTests
     // 2e4759ac494d9461… -> b2201d255f74f477…. CAUSES (two, each alone moves it): the supporting-milestone goal (§6; with
     // build-first alone the hash is 3b29c636…) and the build-first priority (§7; with the supporting goal alone 3c6c35ff…).
     // CONTROL: AiWorldTurn300_BothBatch3SwitchesOff_IsTheE91d10bWorld — both twins off return 2e4759ac… byte for byte.
-    internal const string S1cTurn300 = "80ace28280e268fd827a83fc5804d9a15b47c5d2178f7f42e043cfd4f71582f1";
+    // D-063 RE-PIN (2026-10-24, tranche 2; VALUE, MEASURED on this tree by the agent writing this line, in-test harness):
+    // OLD 80ace28280e268fd… -> NEW d6b4a3cfddea59d0…. CAUSE: the tranche-2 research content (D-063: ~440 new nodes, realized
+    // knowledge effects, the Age sweep, destination routing, repeatable levels, the per-(tree, Age) pacing scale) — from
+    // turn 0 the AI targets cereal_cultivation and oral_tradition (were grinding_stone and kin_council) and its whole
+    // trajectory moves (AiEmpireIntegrationTests). No level row is written by turn 300 (ResearchLevels empty). CONTROL:
+    // AiWorldTurn300_WithTranche2Off_IsThePreTranche2World — TestConfigs.PreTranche2 returns OLD byte for byte.
+    internal const string S1cTurn300 = "d6b4a3cfddea59d0c86cbc603338b40537769c3a0d0501b0c3bd5b534a43d7d2";
+
+    /// <summary>D-063: the live AI world at turn 300 BEFORE tranche 2 (the S1cTurn300 value at 86800d9) — what the
+    /// pre-tranche-2 twin (TestConfigs.PreTranche2) must return.</summary>
+    internal const string PreTranche2Turn300 = "80ace28280e268fd827a83fc5804d9a15b47c5d2178f7f42e043cfd4f71582f1";
 
     /// <summary>The batch-2 (e91d10b) AI world at turn 300: the value both batch-3 twins off must return.</summary>
     internal const string E91d10bTurn300 = "2e4759ac494d946126624fec584e26fdce323a8018877987b26b2ecc08b98be8";
@@ -209,9 +219,27 @@ public class AiFoundingAttributionTests
     public void AiWorldTurn300_BothBatch3SwitchesOff_IsTheE91d10bWorld()
     {
         SimConfig full = TestConfigs.Sim();
-        Assert.Equal(E91d10bTurn300, WorldHash.ComputeHex(CivicsPointsAttributionTests.RunAiWorld(
+        // ADR-049 (ee6ea59, schema v36): E91d10bTurn300 is a v35 hash, so the twin world is compared through its v35
+        // projection (SchemaProjection.V35: section 67 ResearchLevels stripped, asserted EMPTY) — the layout move alone, as
+        // IntegratedPinAttributionTests' StripV36. MEASURED on this tree: both off -> 2e4759ac… through V35 (raw v36 810097…);
+        // the single twins likewise return their recorded v35 values (supporting off 3b29c636…, build-first off 3c6c35ff…).
+        Assert.Equal(E91d10bTurn300, SchemaProjection.V35(CivicsPointsAttributionTests.RunAiWorld(
             TestConfigs.PreAiSupporting(TestConfigs.PreAiBuildFirst(full)))));
         Assert.NotEqual(E91d10bTurn300, S1cTurn300);
+    }
+
+    /// <summary>D-063 (tranche 2) — THE ATTRIBUTION CONTROL of <see cref="S1cTurn300"/>'s tranche-2 re-pin: the live AI world
+    /// with the shipped research swapped for the pre-tranche-2 file (TestConfigs.PreTranche2) is the pre-tranche-2 world byte
+    /// for byte, so the research content is the whole move.</summary>
+    [Fact]
+    public void AiWorldTurn300_WithTranche2Off_IsThePreTranche2World()
+    {
+        SimConfig pre = TestConfigs.PreTranche2(TestConfigs.Sim());
+        Assert.NotSame(TestConfigs.Research(), pre.Research);
+        WorldState w = CivicsPointsAttributionTests.RunAiWorld(pre);
+        Assert.Equal(0, w.ResearchLevels.Count);
+        Assert.Equal(PreTranche2Turn300, WorldHash.ComputeHex(w));
+        Assert.NotEqual(PreTranche2Turn300, S1cTurn300);
     }
 
     [Fact]

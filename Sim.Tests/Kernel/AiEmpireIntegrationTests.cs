@@ -298,8 +298,14 @@ public class AiEmpireIntegrationTests
         // the supporting-off twin keeps 2, the build-first-off twin returns 3); advance 111/112 -> 88/89 (the
         // supporting-milestone goal alone — it pursues Age II's research supporting milestones; the build-first-off twin
         // keeps 88/89). CONTROL: OneAiEmpire_WithBothBatch3SwitchesOff_EveryPinReturnsItsE91d10bValue.
-        Assert.Equal(["grinding_stone", "kin_council"], p.FirstTargets!);
-        Assert.Equal((0L, 2L, 88L, 89L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        // D-063 RE-PIN (2026-10-24, tranche 2; MEASURED on this tree by the agent writing this line, in-test harness): the
+        // first two targets grinding_stone, kin_council -> cereal_cultivation, oral_tradition; advance 88/89 -> 65/66; first
+        // build 2 unchanged. CAUSE: the tranche-2 research content (D-063 — the new nodes, realized effects, the Age sweep,
+        // destination routing, repeatable levels, the per-(tree, Age) pacing scale): the AI's goal closures and costs change
+        // from turn 0. CONTROL: OneAiEmpire_WithTranche2Off_EveryPinReturnsItsPreTranche2Value (TestConfigs.PreTranche2)
+        // returns every OLD value.
+        Assert.Equal(["cereal_cultivation", "oral_tradition"], p.FirstTargets!);
+        Assert.Equal((0L, 2L, 65L, 66L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.
@@ -340,8 +346,10 @@ public class AiEmpireIntegrationTests
         // ADR-046 §6 RE-PIN (batch 3; MEASURED): road 166/167 -> 185/186, levy 407/408 -> 416/417, A3 407 -> 416 — the
         // supporting-milestone goal alone (research time on Age II's and Age IV's supporting milestones); build-first moves
         // none of them.
-        Assert.Equal((185L, 186L, 416L, 417L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
-        Assert.Equal(416L, p.A3At);                          // the AI entered A3 (ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422; CP: 422 -> 440; M6 merged: 440 -> 579; ADR-046: 579 -> 407)
+        // D-063 RE-PIN (2026-10-24, tranche 2; MEASURED, cause and control as above): road 185/186 -> 132/133, levy 416/417 ->
+        // 376/377, A3 416 -> 341 (the levy is no longer on the AI's first A3 turn: it reaches the tax gate 35 turns after A3).
+        Assert.Equal((132L, 133L, 376L, 377L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(341L, p.A3At);                          // the AI entered A3 (ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422; CP: 422 -> 440; M6 merged: 440 -> 579; ADR-046: 579 -> 407; §6: 407 -> 416; D-063: 416 -> 341)
 
         // S1c (ADR-036 §8): the AI EXPANDS through the player's Found Settlement order — one per 350 years at most, each
         // a colony it controls. MEASURED on this tree: eight orders by the first levy, the polity holding 6 + 8 = 14
@@ -354,6 +362,21 @@ public class AiEmpireIntegrationTests
         // finds none it explores (OrderKind 14) and founds a few turns later; the run ends at the first levy (579).
         // ADR-046 RE-PIN (2026-10-23; MEASURED): the run ends at the first levy (407), so the foundings stamped 438 and 509 no
         // longer stand before it: ten orders -> eight (the cadence unchanged), 16 settlements -> 14.
+        Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L], p.Founds);
+        Assert.Equal(14, p.Controlled);
+    }
+
+    /// <summary>D-063 (tranche 2, 2026-10-24) — THE ATTRIBUTION CONTROL of the tranche-2 re-pins above: the same run with the
+    /// shipped research swapped for the pre-tranche-2 file (TestConfigs.PreTranche2) returns every pre-tranche-2 value, so
+    /// the research content is the whole of their move.</summary>
+    [Fact]
+    public void OneAiEmpire_WithTranche2Off_EveryPinReturnsItsPreTranche2Value()
+    {
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.Worldgen(), TestConfigs.PreTranche2(Cfg));
+        Assert.Equal(["grinding_stone", "kin_council"], p.FirstTargets!);
+        Assert.Equal((0L, 2L, 88L, 89L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        Assert.Equal((185L, 186L, 416L, 417L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(416L, p.A3At);
         Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L], p.Founds);
         Assert.Equal(14, p.Controlled);
     }

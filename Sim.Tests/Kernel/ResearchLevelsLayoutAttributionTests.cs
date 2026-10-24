@@ -42,7 +42,10 @@ public class ResearchLevelsLayoutAttributionTests
     public void FoundedGoldenSeed42Turn300_MovedForTheV36LayoutAlone() =>
         Layout(SnapshotTests.RunFoundedGolden(), V35FoundedGolden, SnapshotTests.FoundedGoldenHash);
 
+    // D-063: tranche 2 moves the live AI world by VALUE (AiFoundingAttributionTests.S1cTurn300's re-pin), so the v36 layout
+    // link is asserted on the pre-tranche-2 world (TestConfigs.PreTranche2), whose raw hash is the v36 pin before tranche 2.
     [Fact]
     public void AiWorldSeed42Turn300_MovedForTheV36LayoutAlone() =>
-        Layout(CivicsPointsAttributionTests.RunAiWorld(TestConfigs.Sim()), V35AiTurn300, AiFoundingAttributionTests.S1cTurn300);
+        Layout(CivicsPointsAttributionTests.RunAiWorld(TestConfigs.PreTranche2(TestConfigs.Sim())), V35AiTurn300,
+            AiFoundingAttributionTests.PreTranche2Turn300);
 }
