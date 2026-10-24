@@ -428,7 +428,7 @@ public static class TestConfigs
     public static SimConfig PreAiSupporting(SimConfig cfg)
     {
         if (cfg.Research is not { Tuning.AiSupportingMilestones: true } r) return cfg;
-        if (!ReferenceEquals(r, CanonicalResearch.Value))
+        if (!ReferenceEquals(r, CanonicalResearch.Value) && !ReferenceEquals(r, PreTranche2Research.Value))
             throw new NotSupportedException("PreAiSupporting is defined on the shipped research content only");
         return cfg with { Research = NoAiSupporting.Value };
     }
@@ -447,7 +447,7 @@ public static class TestConfigs
     public static SimConfig PreAiRoutes(SimConfig cfg)
     {
         if (cfg.Research is not { Tuning.AiCheapestOrRoute: true } r) return cfg;
-        if (!ReferenceEquals(r, CanonicalResearch.Value))
+        if (!ReferenceEquals(r, CanonicalResearch.Value) && !ReferenceEquals(r, PreTranche2Research.Value))
             throw new NotSupportedException("PreAiRoutes is defined on the shipped research content only");
         return cfg with { Research = NoAiRoutes.Value };
     }
@@ -518,7 +518,8 @@ public static class TestConfigs
     {
         if (cfg.Research is not { } r) return cfg;
         cfg = NoAssay(cfg);   // ADR-046's assay names ore_prospecting, a tranche node: the R4 rule strips it with the tranche
-        if (ReferenceEquals(r, CanonicalResearch.Value)) return cfg with { Research = PreTrancheWithCp.Value };
+        if (ReferenceEquals(r, CanonicalResearch.Value) || ReferenceEquals(r, PreTranche2Research.Value))
+            return cfg with { Research = PreTrancheWithCp.Value };   // tranche 2 is newer: stripped with the ADR-045 tranche
         if (ReferenceEquals(r, NoCivicsPoints.Value)) return cfg with { Research = NoCivicsPointsPreTranche.Value };
         if (ReferenceEquals(r, OldStage.Value)) return cfg with { Research = OldStagePreTranche.Value };
         if (ReferenceEquals(r, V34Research.Value)) return cfg with { Research = PreAdr045.Value };

@@ -8286,19 +8286,7 @@
    "depth": 4,
    "cost": 11830.0,
    "prereq": "charcoal AND kiln_updraft",
-   "eurekas": [
-    {
-     "text": "Copper smelting is practised",
-     "when": "copper_smelting",
-     "kind": "precursor technology",
-     "justification": "Experience with furnaces and ores accelerates iron working. Not a prerequisite: African iron may be independent.",
-     "system": "research (knowledge state)",
-     "evaluable_now": true,
-     "weight": 0.4,
-     "source": "authored",
-     "class": "machine-evaluable"
-    }
-   ],
+   "eurekas": [],
    "unlocks": {
     "capabilities": [
      "iron tools and weapons",
@@ -11753,19 +11741,7 @@
    "depth": 1,
    "cost": 11830.0,
    "prereq": "cordage",
-   "eurekas": [
-    {
-     "text": "A full writing system is in use",
-     "when": "cuneiform OR hieroglyphic OR chinese_script",
-     "kind": "precursor demand",
-     "justification": "Paper spread where writing created demand for a cheap surface.",
-     "system": "research (knowledge state)",
-     "evaluable_now": true,
-     "weight": 0.4,
-     "source": "authored",
-     "class": "machine-evaluable"
-    }
-   ],
+   "eurekas": [],
    "unlocks": {
     "capabilities": [
      "cheap records",
@@ -17219,19 +17195,7 @@
    "depth": 13,
    "cost": 23650.0,
    "prereq": "barometer_vacuum AND cast_iron",
-   "eurekas": [
-    {
-     "text": "Deep mining is practised",
-     "when": "mining_shaft",
-     "kind": "precursor demand",
-     "justification": "Newcomen engines were built to drain flooded mines.",
-     "system": "research (knowledge state)",
-     "evaluable_now": true,
-     "weight": 0.4,
-     "source": "authored",
-     "class": "machine-evaluable"
-    }
-   ],
+   "eurekas": [],
    "unlocks": {
     "capabilities": [
      "mine drainage",
@@ -18659,9 +18623,9 @@
    "branch": "engineering",
    "domain": "industry",
    "secondaryDomains": [],
-   "depth": 19,
+   "depth": 18,
    "cost": 11830.0,
-   "prereq": "slide_rest_lathe AND milling_machine",
+   "prereq": "slide_rest_lathe",
    "eurekas": [
     {
      "text": "Sustained war (musket contracts)",
@@ -19325,19 +19289,7 @@
    "depth": 21,
    "cost": 23650.0,
    "prereq": "locomotive AND puddling AND surveying",
-   "eurekas": [
-    {
-     "text": "Joint-stock companies exist",
-     "when": "joint_stock",
-     "kind": "institutional precursor",
-     "justification": "Railway building was financed by joint-stock capital (the British railway mania).",
-     "system": "research (knowledge state)",
-     "evaluable_now": true,
-     "weight": 0.2,
-     "source": "authored",
-     "class": "machine-evaluable"
-    }
-   ],
+   "eurekas": [],
    "unlocks": {
     "capabilities": [
      "national markets",
@@ -19684,7 +19636,7 @@
    "secondaryDomains": [
     "industry"
    ],
-   "depth": 20,
+   "depth": 19,
    "cost": 9950.0,
    "prereq": "interchangeable_parts AND steel_carburized",
    "eurekas": [],
@@ -20341,19 +20293,7 @@
    "depth": 15,
    "cost": 23650.0,
    "prereq": "sulphuric_acid AND organic_chemistry",
-   "eurekas": [
-    {
-     "text": "Deep mining or tunnelling is practised",
-     "when": "mining_shaft",
-     "kind": "precursor demand",
-     "justification": "Nobel developed dynamite for mining and tunnel construction.",
-     "system": "research (knowledge state)",
-     "evaluable_now": true,
-     "weight": 0.4,
-     "source": "authored",
-     "class": "machine-evaluable"
-    }
-   ],
+   "eurekas": [],
    "unlocks": {
     "capabilities": [
      "hard-rock excavation at scale",
@@ -21114,19 +21054,7 @@
    "depth": 11,
    "cost": 11830.0,
    "prereq": "inoculation",
-   "eurekas": [
-    {
-     "text": "Dairy cattle are herded",
-     "when": "cattle",
-     "kind": "environmental exposure",
-     "justification": "Jenner worked from milkmaids\u2019 cowpox immunity; cowpox exposure requires dairy herding.",
-     "system": "research (knowledge state)",
-     "evaluable_now": true,
-     "weight": 0.4,
-     "source": "authored",
-     "class": "machine-evaluable"
-    }
-   ],
+   "eurekas": [],
    "unlocks": {
     "capabilities": [
      "smallpox control",
@@ -21262,19 +21190,7 @@
    "depth": 14,
    "cost": 47310.0,
    "prereq": "microscope",
-   "eurekas": [
-    {
-     "text": "Fermentation has been studied as a process",
-     "when": "fermentation_grain",
-     "kind": "precursor technology",
-     "justification": "Pasteur reached germ theory through his studies of fermentation and spoilage.",
-     "system": "research (knowledge state)",
-     "evaluable_now": true,
-     "weight": 0.4,
-     "source": "authored",
-     "class": "machine-evaluable"
-    }
-   ],
+   "eurekas": [],
    "unlocks": {
     "capabilities": [
      "antisepsis",
@@ -21420,19 +21336,7 @@
    "depth": 14,
    "cost": 33450.0,
    "prereq": "chemistry_quantitative AND glass_lead",
-   "eurekas": [
-    {
-     "text": "The camera obscura is known",
-     "when": "optics_ibn_haytham",
-     "kind": "precursor technology",
-     "justification": "Ibn al-Haytham described the camera obscura; photography fixed its image chemically.",
-     "system": "research (knowledge state)",
-     "evaluable_now": true,
-     "weight": 0.4,
-     "source": "authored",
-     "class": "machine-evaluable"
-    }
-   ],
+   "eurekas": [],
    "unlocks": {
     "capabilities": [
      "visual record",
@@ -31599,19 +31503,7 @@
    "depth": 5,
    "cost": 4970.0,
    "prereq": "iron_bloomery AND well",
-   "eurekas": [
-    {
-     "text": "Salt is made from brine drawn from springs or wells",
-     "when": "salt_extraction",
-     "kind": "precursor demand",
-     "justification": "Deep drilling was developed by the brine-salt producers of Sichuan, and Drake's well (1859) was drilled by salt-well drillers. The condition is a circumstance (salt_extraction is not on any path to this node), not an implied cost cut.",
-     "system": "research (knowledge state)",
-     "evaluable_now": true,
-     "weight": 0.4,
-     "source": "authored",
-     "class": "machine-evaluable"
-    }
-   ],
+   "eurekas": [],
    "unlocks": {
     "capabilities": [
      "cased boreholes hundreds of metres deep for brine and natural gas",
@@ -32093,7 +31985,7 @@
    "secondaryDomains": [
     "industry"
    ],
-   "depth": 20,
+   "depth": 19,
    "cost": 16730.0,
    "prereq": "rifling AND flintlock AND chemistry_quantitative AND interchangeable_parts",
    "eurekas": [
@@ -32175,7 +32067,7 @@
    "secondaryDomains": [
     "industry"
    ],
-   "depth": 21,
+   "depth": 20,
    "cost": 5910.0,
    "prereq": "breech_loading_rifle",
    "eurekas": [],
@@ -32811,19 +32703,7 @@
    "depth": 16,
    "cost": 14060.0,
    "prereq": "jacquard AND telegraph",
-   "eurekas": [
-    {
-     "text": "A national census is taken",
-     "when": "census",
-     "kind": "precursor demand",
-     "justification": "Hollerith's tabulator was built for the 1890 US census after the 1880 count took most of a decade to tabulate. census is a civic node id (a cross-tree Eureka condition, not a prerequisite); not implied by the prerequisites and not dead.",
-     "system": "research (knowledge state)",
-     "evaluable_now": true,
-     "weight": 0.4,
-     "source": "authored",
-     "class": "machine-evaluable"
-    }
-   ],
+   "eurekas": [],
    "unlocks": {
     "capabilities": [
      "mechanised tabulation of census and administrative records"
@@ -59107,7 +58987,7 @@
    "emerged": "~1,906 CE International Electrotechnical Commission; ~1,947 CE ISO; ~1,968 CE ISO container standard",
    "domain": "governance",
    "secondaryDomains": [],
-   "depth": 20,
+   "depth": 19,
    "cost": 19890.0,
    "prereq": "international_organizations AND interchangeable_parts",
    "eurekas": [],

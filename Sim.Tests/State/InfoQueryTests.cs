@@ -149,15 +149,22 @@ public class InfoQueryTests
     }
 
     [Fact]
-    public void PressureFlaking_IsKnowledgeOnly_AndTheCardSaysSo()
+    public void PressureFlaking_ItsRealizedEffects_AreOnTheCard()
     {
+        // Tranche 2 (D-063 R1): every node has a real effect. Pressure flaking — knowledge-only before — now carries realized
+        // operand effects; the card lists each (direction, size, meaning, reader) and says the simulation reads it.
         WorldState w = World();
         ResearchNode n = R.Nodes[Node("pressure_flaking")];
         InfoCard card = Card(w, InfoSubject.Node(n.Key));
-        Assert.Equal(InfoEffect.KnowledgeOnly, card.Effect);
-        Assert.Empty(card.Enables);
+        Assert.NotEmpty(n.RealizedEffects);
+        Assert.Equal(InfoEffect.Simulated, card.Effect);
+        foreach (RealizedEffect e in n.RealizedEffects)
+        {
+            KnowledgeOperandInfo op = KnowledgeOperands.All[(int)e.Operand];
+            Assert.Contains(card.Enables, l => l.Label.EndsWith(op.Meaning, StringComparison.Ordinal) && l.Note!.Contains(op.Id, StringComparison.Ordinal));
+        }
         Assert.Equal([.. n.Capabilities, .. n.Techniques, .. n.Applications], card.KnowledgeOnly.ToArray());
-        Assert.Contains("no simulated effect in this build", card.RealizedBy);
+        Assert.Contains("Read by the simulation", card.RealizedBy);
     }
 
     [Fact]
@@ -176,7 +183,9 @@ public class InfoQueryTests
             InfoCard card = Card(w, InfoSubject.Node(n.Key));
             bool realizedEntity = card.Enables.Any(l => l.Subject is { Kind: InfoKind.Entity } && l.Note is { } note
                 && !note.Contains("not built in this build", StringComparison.Ordinal) && !note.Contains("Battle Layer (M7)", StringComparison.Ordinal));
-            bool reads = realizedEntity || named || tax.AtomIds.Contains(i) || R.Stage.AtomIds.Contains(i);
+            // ADR-047 / ADR-049 (tranche 2): a realized operand effect or a level effect is read by its owning system.
+            bool effects = (KnowledgeEffects.IsOn(R) && n.RealizedEffects.Count > 0) || ResearchQuery.IsLevelled(R, i);
+            bool reads = realizedEntity || named || effects || tax.AtomIds.Contains(i) || R.Stage.AtomIds.Contains(i);
             InfoEffect expect = reads ? InfoEffect.Simulated : n.Dependents.Count > 0 ? InfoEffect.ResearchOnly : InfoEffect.KnowledgeOnly;
             Assert.True(expect == card.Effect, n.Id + ": expected " + expect + ", card says " + card.Effect);
         }
@@ -328,7 +337,9 @@ public class InfoQueryTests
                 bool available = ResearchQuery.IsAvailable(R, i, done, stage);
                 Assert.True(available == card.Status is InfoStatus.Researchable or InfoStatus.Researching, n.Id + " availability");
                 Assert.True(done[i] == (card.Status == InfoStatus.Known), n.Id + " completion");
-                Assert.True(available == (card.Action is not null), n.Id + " action");
+                // A target action while available; ADR-048 (routing on): a destination action for any other incomplete node.
+                bool admissible = R.Tuning.DestinationRouting && ResearchQuery.IsDestinationAdmissible(R, i, ResearchQuery.CompletedMask(w, R, Player));
+                Assert.True((available || admissible) == (card.Action is not null), n.Id + " action");
                 Assert.Equal(n.Key, card.ResearchNode);
 
                 var unmet = new List<InfoSubject>();
@@ -392,7 +403,7 @@ public class InfoQueryTests
         switch (a.Domain)
         {
             case ActionDomain.Labour: return [InfoSubject.Sector((int)a.Targets[1].Id, (int)a.Targets[0].Id)];
-            case ActionDomain.Research when a.Id == 1:
+            case ActionDomain.Research when a.Id is 1 or 4:   // a target (1) or, ADR-048, a destination (4): node cards
             {
                 var r = new List<InfoSubject>();
                 foreach (ActionTarget t in a.Targets) r.Add(InfoSubject.Node(new ResearchNodeId((int)t.Id)));

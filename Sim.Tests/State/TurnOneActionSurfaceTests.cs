@@ -95,9 +95,13 @@ public class TurnOneActionSurfaceTests
             Assert.Null(a.Blocker);
         }
 
-        // RESEARCH: set a target among the available nodes; there is no target to clear.
-        ActionDescriptor research = Assert.Single(Of(actions, ActionDomain.Research));
-        Assert.Equal("research.set-target", research.Key);
+        // RESEARCH: set a target among the available nodes; there is no target to clear. ADR-048 (routing on, tranche 2):
+        // every other node is offered as a DESTINATION (Id 4) — nothing is complete at turn one, so that is all of them.
+        ActionDescriptor[] researchActions = Of(actions, ActionDomain.Research).ToArray();
+        Assert.Equal(["research.set-target", "research.set-destination"], researchActions.Select(a => a.Key));
+        ActionDescriptor research = researchActions[0];
+        Assert.Equal(Research.Nodes.Count - research.Targets.Length, researchActions[1].Targets.Length);
+        Assert.Empty(researchActions[1].Targets.Select(t => t.Id).Intersect(research.Targets.Select(t => t.Id)));
         Assert.Equal(ResearchQuery.AvailableNodes(w, Research, Player).Select(k => (long)k.Value), research.Targets.Select(t => t.Id));
         Assert.All(research.Targets, t => Assert.False(t.Current));
 
@@ -163,7 +167,8 @@ public class TurnOneActionSurfaceTests
         Assert.Equal(12, surveys.Length);
         Assert.All(surveys, a => Assert.True(a.Blocker is null || a.Blocker.StartsWith("not enough in store (", StringComparison.Ordinal)
             && a.Blocker.Contains("stone", StringComparison.Ordinal) && !a.Blocker.Contains("grain", StringComparison.Ordinal), a.Blocker));
-        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 36, actions.Length);
+        // ADR-048 (tranche 2, routing on): + 1 — the research destination action beside the target action (132 -> 133).
+        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 36 + 1, actions.Length);
     }
 
     // ------------------------------------------------------------------ Farming replaces Gathering (step 7)

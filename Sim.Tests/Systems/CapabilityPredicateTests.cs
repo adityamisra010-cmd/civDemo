@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Sim.Core;
 using Sim.Core.Kernel;
 using Sim.Core.State;
@@ -89,6 +90,10 @@ public class CapabilityPredicateTests
     [Fact]
     public void SetResearchTarget_TheOrderBuilderAndTheSystemRefuseTheSameNodes()
     {
+        // The available-only target model (ADR-048's twin: routing off). With routing on the builder and the system both
+        // ACCEPT a locked node as a destination — see SetResearchTarget_WithRouting_TheBuilderAndTheSystemAcceptTheSameDestination.
+        SimConfig Cfg = CapabilityPredicateTests.Cfg with { Research = ResearchAgeSweepTests.ContentWith(sweep: true, routing: false) };
+        ResearchContent Research = Cfg.Research!;
         WorldState w = Solo();
         ResearchNodeId cereal = Research.Nodes[Research.IndexOfId("cereal_cultivation")].Key;     // locked: needs grinding_stone
         ResearchNodeId grinding = Research.Nodes[Research.IndexOfId("grinding_stone")].Key;       // available root
@@ -108,6 +113,24 @@ public class CapabilityPredicateTests
         WorldState set2 = Only(orders2, SystemCatalog.Research(Cfg)).Step(w);
         Assert.True(ResearchQuery.TryGetTarget(set2, Player, out ResearchNodeId target));
         Assert.Equal(grinding, target);
+    }
+
+    [Fact]
+    public void SetResearchTarget_WithRouting_TheBuilderAndTheSystemAcceptTheSameDestination()
+    {
+        // ADR-048 (shipped: routing on): a locked node is a DESTINATION — the builder issues the order, the action surface
+        // lists it under set-destination (not set-target), and the system stores it as the lane's destination.
+        Assert.True(Research.Tuning.DestinationRouting);
+        WorldState w = Solo();
+        ResearchNodeId cereal = Research.Nodes[Research.IndexOfId("cereal_cultivation")].Key;     // locked: needs grinding_stone
+        OrderRecord order = ResearchQuery.TargetOrder(w, Research, Player, cereal)!.Value;
+        ImmutableArray<ActionDescriptor> actions = AvailableActionsQuery.For(w, Cfg, Player);
+        Assert.DoesNotContain(actions.Single(a => a.Key == "research.set-target").Targets, t => t.Id == cereal.Value);
+        Assert.Contains(actions.Single(a => a.Key == "research.set-destination").Targets, t => t.Id == cereal.Value);
+        var orders = new OrderLog();
+        orders.Append(order);
+        WorldState next = Only(orders, SystemCatalog.Research(Cfg)).Step(w);
+        Assert.Contains(Enumerable.Range(0, next.ResearchTargets.Count), i => next.ResearchTargets[i].Node == cereal);
     }
 
     // ------------------------------------------------------------------ kind 7 — Age advance

@@ -107,6 +107,7 @@ Every proposed node was reviewed for duplication across lanes and against existi
 | petroleum_refining | integrator cross-lane edge | chemistry_quantitative  | chemistry_quantitative AND percussion_drilling  | T2: crude came from drilled wells (Drake 1859 used percussion drilling); percussion_drilling was a leaf |
 | mining_shaft | integrator cross-lane edge | stone_dry AND copper_smelting  | stone_dry AND copper_smelting AND lamp  | T4: underground galleries need portable light (Grimes Graves chalk lamps) |
 | coke | integrator cross-lane edge | blast_furnace_water  | blast_furnace_water AND coal_fuel  | T4: coking presupposes coal as a fuel (new coal_fuel node) |
+| interchangeable_parts | integrator cross-lane edge | slide_rest_lathe  | slide_rest_lathe  | Audit edge declined: milling_machine is generation 3 of the machine_tool family, the same generation as interchangeable_parts; D-044 R7 / D-047 forbid a same-family prerequisite of the same or a later generation. The historical point (Hall's milling) is kept in the audit record. |
 | marxist_leninist_state | add-prereq | mass_political_party AND central_planning A9 | mass_political_party AND central_planning AND socialism A9 | Missing bridge: socialism (A8 ideology) has no dependents, and central_planning requires only official_statistics and telegraph, so today a polity can found a Marxist-Leninist state without the socialist ideology it embodies. Adding socialism (dated 1825-1848, before 1922) closes the ideology-to-regime link, as fascism does for fascist_state. Note for the integrator: socialism is a D13 civic, so this edge lands only when D13 is imported. |
 | religious_reform | change-andor | printing_press AND (canon_law OR scriptural_canon) A7 | printing_press AND scriptural_canon A7 | The OR admitted a scripture-less route through canon_law alone, which contradicts the node's own capability (lay readers challenging clergy from the text). The new expression is the required core; no Age or tree crossing is involved. |
 | census | replace-prereq | (cuneiform OR hieroglyphic OR chinese_script) AND stamp_seal A4 | (cuneiform OR hieroglyphic OR chinese_script) AND appointed_officials A4 | Replace stamp_seal with appointed_officials (causal: the count is an official act). Age A4 kept. emerged is null: suggest '~3,000 BCE Egyptian biennial count; 2 CE Han census'. |
@@ -125,7 +126,6 @@ Every proposed node was reviewed for duplication across lanes and against existi
 | copper_smelting | add-prereq | kiln_updraft AND (copper_native OR ochre_processing) A2 | kiln_updraft AND charcoal AND (copper_native OR ochre_processing) A2 | Reduction smelting needs charcoal: its carbon monoxide is the reductant and a wood fire cannot reach or hold reducing conditions. The node's own description says 'in a charcoal fire'. charcoal (A2, ~5,500 BCE) predates smelting (~5,000 BCE); charcoal already feeds iron_bloomery on the same grounds. |
 | blast_furnace_water | replace-prereq | iron_bloomery AND crank_connecting_rod AND bellows A6 | iron_bloomery AND trip_hammer AND bellows A6 | Replace crank_connecting_rod with trip_hammer (A5, ~40 BCE; prereq water_mill): water power with cams is the mechanism the node is named for, and the crank (general ~1,400) postdates the node's earliest date (~1,150). |
 | loom_warp_weighted | remove-prereq | spinning_spindle AND timber_frame A2 | spinning_spindle A2 | Remove timber_frame: not causal, and dated 1,500 years after the node's own emerged date (contract §6 chronology). The textile workshop it requires (inst.textile_workshop) is not live, so the node gets a specialist-class effect. |
-| interchangeable_parts | add-prereq | slide_rest_lathe A8 | slide_rest_lathe AND milling_machine A8 | Add milling_machine: the Harpers Ferry and Springfield achievement (Hall 1820s, North) depended on milling, not only turning. Milling (~1,818) predates the node (~1,820). |
 | skyscraper | move-age | structural_iron AND bessemer AND electric_motor A9 | structural_iron AND bessemer AND electric_motor A8 | Move to A8: emerged 1885 sits inside the Industrial window (~1750-1914), the Chicago school is a pre-1914 phenomenon, and all three prerequisites are A8. A9 placement delays the unlock by an entire Age with no causal reason. |
 | bellows | move-age | hide_working AND kiln_updraft A4 | hide_working AND kiln_updraft A3 | Its own emerged date (~1,500 BCE, Rekhmire tomb) lies inside the A3 window (~3,500-1,200 BCE), so the A4 label contradicts the dating. Moving it fills the empty A3 energy cohort. Prerequisites (A1, A2) and dependents (cast_iron A5, blast_furnace_water A6) stay order-safe. |
 | windmill_post | add-prereq | water_mill AND sail_square A6 | water_mill AND sail_square AND gearing A6 | Add gearing: the post mill is defined by its right-angle drive, and water_mill does not imply gearing in this graph (its anchor is the gearless horizontal mill). gearing is A5 (~150 BCE), well before 1,180 CE. |
@@ -164,5 +164,15 @@ Every proposed node was reviewed for duplication across lanes and against existi
 
 ## Eurekas dropped because an audit edge made the precursor a hard prerequisite
 
+- iron_bloomery: `copper_smelting`
+- paper: `cuneiform OR hieroglyphic OR chinese_script`
 - windmill_post: `gearing`
+- steam_atmospheric: `mining_shaft`
+- railway: `joint_stock`
 - railway: `mining_shaft`
+- dynamite: `mining_shaft`
+- vaccination: `cattle`
+- germ_theory: `fermentation_grain`
+- photography: `optics_ibn_haytham`
+- percussion_drilling: `salt_extraction`
+- punched_card_tabulation: `census`

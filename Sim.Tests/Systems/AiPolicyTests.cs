@@ -20,8 +20,10 @@ namespace Sim.Tests.Systems;
 /// </summary>
 public class AiPolicyTests
 {
-    private static readonly SimConfig Cfg = TestConfigs.Sim();
-    private static readonly ResearchContent Research = TestConfigs.Research();
+    // D-063 (tranche 2): this class tests a mechanism measured on the pre-tranche-2 research content; it runs on that
+    // content (TestConfigs.PreTranche2) so its literals keep measuring the mechanism. Tranche 2 is covered by its own tests.
+    private static readonly SimConfig Cfg = TestConfigs.PreTranche2(TestConfigs.Sim());
+    private static readonly ResearchContent Research = Cfg.Research!;
     private static readonly PolityId Human = new(1);
     private static readonly PolityId Rival = new(2);
 

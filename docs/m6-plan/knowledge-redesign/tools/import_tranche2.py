@@ -225,10 +225,16 @@ def main(argv):
             report["saturation"][op] = {"sum": round(total, 4), "cap": cap, "scaledBy": round(f, 4)}
 
     # 5. Dependency / Age changes proposed by the audit, applied only where the integrator approved them
+    # (an integrator edit — decisions.extraEdits — supersedes the audit's edge on the same node, including a decline)
     approved = set(decisions.get("applyPrereq", [])) | ({"*"} if decisions.get("applyAllValid") else set())
+    integrator = {ed["id"] for ed in decisions.get("extraEdits", [])}
     for o in outs:
         for r in o.get("audit", []):
             if r.get("newPrereq") is None and r.get("newAge") is None:
+                continue
+            if r["id"] in integrator:
+                report["rejected"].append({"id": r["id"], "why": "superseded by an integrator edit (decisions.extraEdits)",
+                                           "action": r.get("action")})
                 continue
             if "*" not in approved and r["id"] not in approved:
                 report["rejected"].append({"id": r["id"], "why": "not approved by the integrator", "action": r.get("action")})
@@ -296,6 +302,7 @@ def main(argv):
             av["finite_nodes_to_exhaust"] = sum(1 for x in tech if x.get("branch") == av["subtree"]
                                                 and not isinstance(x.get("repeatable"), dict))
 
+    out_tuning = current.get("tuning", {})
     # 6b. Implied Eurekas (loader rule): a Eureka whose condition is guaranteed by the node's own prerequisites would fire
     # the moment the node became available. An audit edge that made the precursor a hard prerequisite turns its Eureka
     # into exactly that, so the Eureka is dropped (the knowledge is now required, not a circumstance).
@@ -320,6 +327,28 @@ def main(argv):
             return set()
         guaranteed[i] = g(ast[i])
         return guaranteed[i]
+    # The Age sweep (D-063 R2, tuning.ageSweep) guarantees more: a node of Age a >= 3 is available only when every finite
+    # node of Age a-2 is complete, each of which in turn guaranteed its own prerequisites and Age a-4, and so on.
+    sweep_on = bool(out_tuning.get("ageSweep"))
+    age_of = {n["id"]: int(n["age"][1]) for n in nodes}
+    cohort = {}
+    for n in nodes:
+        if not isinstance(n.get("repeatable"), dict):
+            cohort.setdefault(age_of[n["id"]], []).append(n["id"])
+    swept = {}
+
+    def sweep_guar(a):
+        if a < 3 or not sweep_on:
+            return set()
+        if a in swept:
+            return swept[a]
+        g = set()
+        for m in cohort.get(a - 2, []):
+            g.add(m)
+            g |= guar(m)
+        g |= sweep_guar(a - 2)
+        swept[a] = g
+        return g
     for n in nodes:
         kept = []
         for e in n.get("eurekas") or []:
@@ -328,7 +357,8 @@ def main(argv):
                 wa = kr.parse(w) if isinstance(w, str) else None
             except ValueError:
                 wa = None
-            if wa is not None and kr.atoms(wa) and all(a in by_id for a in kr.atoms(wa)) and kr.holds(wa, guar(n["id"])):
+            if wa is not None and kr.atoms(wa) and all(a in by_id for a in kr.atoms(wa)) \
+                    and kr.holds(wa, guar(n["id"]) | sweep_guar(age_of[n["id"]])):
                 report.setdefault("impliedEurekasDropped", []).append({"id": n["id"], "when": w})
                 continue
             kept.append(e)

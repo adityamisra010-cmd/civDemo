@@ -18,7 +18,7 @@ namespace Sim.Tests.Systems;
 /// </summary>
 public class InstitutionLifecycleTests
 {
-    private static readonly ResearchContent Research = TestConfigs.Research();
+    private static readonly ResearchContent Research = TestConfigs.PreTranche2(TestConfigs.Sim()).Research!;   // D-063: UniversityRigs.Cfg is pre-tranche-2
     private static readonly PolityId Player = new(1);
     private static readonly PolityId Rival = new(2);
 

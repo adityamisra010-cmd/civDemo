@@ -92,7 +92,23 @@ public class AiAgeAdvancementIntegrationTests
         // material re-score, KD-09) and the cultivation closure re-wired, so both polities know cultivation, and meet the
         // Neolithic's milestones, sooner. ATTRIBUTION: the same run on the pre-tranche content (TestConfigs.PreTreeTranche)
         // returns (421, 312) — FoundedAiEmpire_OnThePreTrancheContent_AdvancesAtTheBatch4Turns.
-        Assert.Equal((413L, 251L), (aiTurn, playerTurn));
+        // D-063 TRANCHE-2 RE-PIN (2026-10-24; VALUE, MEASURED on this tree by the agent writing this line): AI 413 -> 413,
+        // player 251 -> 227. Both still reach A2 through the same order shape, applied the next turn. CAUSE: the tranche-2
+        // research content — the realized knowledge effects (food, health and labour operands) and the Age pacing scale move
+        // the player's research-point curve and Neolithic milestones earlier; the AI's binding milestone is unchanged.
+        // CONTROL: the same run on the pre-tranche-2 research (TestConfigs.PreTranche2) returns (413, 251) —
+        // FoundedAiEmpire_OnThePreTranche2Content_AdvancesAtTheAdr045Turns.
+        Assert.Equal(Tranche2Advance, (aiTurn, playerTurn));
+    }
+
+    /// <summary>D-063 (tranche 2): the A2 advance turns on the shipped tranche-2 content (effects, sweep, routing, pacing).</summary>
+    private static readonly (long, long) Tranche2Advance = (413L, 227L);
+
+    /// <summary>D-063 ATTRIBUTION CONTROL: the tranche-2 research content off — the ADR-045 turns hold byte for byte.</summary>
+    [Fact]
+    public void FoundedAiEmpire_OnThePreTranche2Content_AdvancesAtTheAdr045Turns()
+    {
+        Assert.Equal((413L, 251L), AdvanceRun(TestConfigs.DevWorldgen(), TestConfigs.PreTranche2(TestConfigs.Sim())));
     }
 
     /// <summary>ADR-045 ATTRIBUTION CONTROL (2026-10-22, D-062): the research-content tranche switched off (the pre-tranche

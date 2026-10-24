@@ -18,8 +18,10 @@ namespace Sim.Tests.State;
 /// </summary>
 public class TradeResearchUnlockTests
 {
-    private static readonly SimConfig Cfg = TestConfigs.Sim();
-    private static readonly ResearchContent Research = TestConfigs.Research();
+    // D-063 (tranche 2): this class tests a mechanism measured on the pre-tranche-2 research content; it runs on that
+    // content (TestConfigs.PreTranche2) so its literals keep measuring the mechanism. Tranche 2 is covered by its own tests.
+    private static readonly SimConfig Cfg = TestConfigs.PreTranche2(TestConfigs.Sim());
+    private static readonly ResearchContent Research = Cfg.Research!;
     private static readonly PolityId Player = new(1);
 
     private static readonly Lazy<WorldState> DevSolo = new(() => WorldFounding.Found(TestConfigs.DevWorldgen(), Cfg, 42));
