@@ -2786,3 +2786,20 @@ Later changes to the sections above are recorded here, at the end of the file, a
 >   - `--smoke --ai-empires 1 --monkey 300`: 11 states, 3261 checks, 3029 pass, 232 not offered, 0 FAIL, 0 problems.
 >   - Both print SMOKE PASSED.
 
+
+> **DATED NOTE 2026-10-24 (D-063, tranche 2 — branch `t2-fix-ui`): destination routing on the research screen.** Tranche 2
+> ships `tuning.destinationRouting` on (ADR-048), so two research rows follow the engine:
+> - **`locked node (Technology)` / `locked node (Civics)`** (§3's row "Research: locked node"): the click still selects
+>   the node, and the detail panel still says why it is locked. With routing on, the click also orders the node as the
+>   lane's DESTINATION: exactly one SetResearchTarget order naming it, built by ResearchOrderFactory. With routing off the
+>   row expects NO order, as written above.
+> - **New rows `CANCEL DESTINATION (Technology)` / `CANCEL DESTINATION (Civics)`**, run after POLICY so that POLICY's
+>   Stop rows press their own controls first. The button is drawn in the ROUTE block while the lane holds its own
+>   destination. The row scrolls the panel until the button is in view, because the route's sweep lines can push it below
+>   the fold. One click leaves the lane's clear (−1 / −2) as its queued directive. At most one order is appended: none
+>   when Stop has already queued that clear. The button then gives way to "Cancel ordered - applies at End Turn". The row
+>   is not offered when routing is off, when the lane holds no destination, or when the cancel is already ordered. Before
+>   this row, the coverage check failed `hit:research.CancelDestination` in the "age advance" state.
+> - **MEASURED** (`dotnet Sim.Ui/bin/Release/net10.0/Sim.Ui.dll --smoke --monkey 200`, on the Release build of this
+>   change): 13 states, 3967 checks, 3666 pass, 301 not offered, 0 FAIL, 0 problems. The run printed SMOKE PASSED.
+> - §6 was not regenerated, so its table does not yet list the two new rows. The next integration regenerates it.
