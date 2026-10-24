@@ -27,6 +27,7 @@
          to the file at 06e0153). The tranche's attribution twin (TestConfigs.PreTreeTranche) loads it, and the converter
          docs/m6-plan/knowledge-redesign/tools/implement_tranche.py reads it as its base. -->
     <None Include="Fixtures\research-pre-adr045.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Fixtures\research-pre-tranche2.json" CopyToOutputDirectory="PreserveNewest" />
     <!-- D-054 / ADR-039: a REAL schema-v32 snapshot written by the batch-2 build, and the order log that made it
          (Fixtures/README-v32-fixture.md) — the explicit v32 -> v33 migration is tested against it. -->
     <None Include="Fixtures\v32-seed42-turn40.civsnap" CopyToOutputDirectory="PreserveNewest" />

@@ -325,7 +325,7 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
     }
 
     private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
@@ -414,7 +414,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
     }
 
     /// <summary>ADR-032: the two v29 transport tables, appended after UnitConversions. Every pin in
@@ -447,7 +447,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
     }
 
     /// <summary>ADR-033 D4: the one v30 governance table (TaxPolicies), appended after
@@ -496,7 +496,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
     }
 
     /// <summary>ADR-033 D6 + D10: the two v31 tables (Institutions, ConstructionLabor), appended after
@@ -538,7 +538,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
     }
 
     /// <summary>H2 (2026-10-05): the one v32 table (TaxGrievances — the levy's grievance per population segment),
@@ -569,7 +569,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
     }
 
     /// <summary>A pre-v32 pin's comparison form: the v31 stream of an UNTAXED run (no levy-grievance row to strip —
@@ -602,6 +602,9 @@ public class IntegratedPinAttributionTests
     {
         // ADR-043 (2026-10-22): a Civics Points account is BEHAVIOUR (the two-lane model on), never layout — a pre-v35 pin
         // is reached only from a world run with Track CP off (TestConfigs.PreTrackCp, or an older twin that strips it).
+        // ADR-049 (v36): a repeatable level row is behaviour too (tuning.repeatableLevels); section 67 is stripped with v35.
+        int levels = TestUtil.SchemaProjection.StripV36(stripped);
+        Assert.True(levels == 0, $"the v36 strip removed {levels} level row(s): a repeatable level is behaviour, not layout");
         int removed = TestUtil.SchemaProjection.StripV35(stripped);
         Assert.True(removed == 0,
             $"the v35 strip removed {removed} row(s): a Civics Points account is behaviour, not layout — a pre-v35 pin cannot be compared through it");
@@ -715,7 +718,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
     }
 
     /// <summary>
@@ -742,7 +745,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
     }
 
     /// <summary>

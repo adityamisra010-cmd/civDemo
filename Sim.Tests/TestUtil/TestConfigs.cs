@@ -372,6 +372,28 @@ public static class TestConfigs
         UndoKnowledgeEffects(doc);   // ADR-047 is newer: the R4 rule strips it with every older research twin
     }
 
+    /// <summary>D-063 (tranche 2, 2026-10-24) — the research.json the tranche-2 content was imported into: the three engine
+    /// tracks merged (ADR-047 effects on with no content effect, ADR-048 sweep and routing off, ADR-049 levels off), the
+    /// pre-tranche node arrays, no pacing scale. Fixtures/research-pre-tranche2.json is that file byte for byte (d22f936).
+    /// Every OLDER research twin is built from it (the R4 rule: an older layer twin strips every newer layer).</summary>
+    public static System.Text.Json.Nodes.JsonObject PreTranche2Doc() =>
+        System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures",
+            "research-pre-tranche2.json")))!.AsObject();
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> PreTranche2Research = new(() =>
+    {
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(PreTranche2Doc().ToJsonString(), GoodsConfigLoader.Load(goods));
+    });
+
+    /// <summary>D-063 — TRANCHE 2 STRIPPED: <paramref name="cfg"/> with the shipped research content replaced by the
+    /// pre-tranche-2 file (<see cref="PreTranche2Doc"/>): the 496 / 67 node arrays, no realized effects, no Age sweep, no
+    /// destination routing, no repeatable levels, no pacing scale. The attribution control of every pin tranche 2 moves: on
+    /// this twin the pre-tranche-2 pin holds. Only the SHIPPED research is swapped (a rig's own content or an older twin's
+    /// is returned unchanged).</summary>
+    public static SimConfig PreTranche2(SimConfig cfg) =>
+        cfg.Research is { } r && ReferenceEquals(r, CanonicalResearch.Value) ? cfg with { Research = PreTranche2Research.Value } : cfg;
+
     /// <summary>ADR-047: removes tuning.knowledgeEffects (every operand reads its base).</summary>
     public static void UndoKnowledgeEffects(System.Text.Json.Nodes.JsonObject doc)
     {
@@ -413,8 +435,7 @@ public static class TestConfigs
 
     private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> NoAiSupporting = new(() =>
     {
-        using var stream = global::Sim.Data.DataFiles.OpenResearch();
-        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        var doc = PreTranche2Doc();   // tranche 2 (D-063) is newer: the R4 rule strips it from this older twin
         UndoAiSupporting(doc);
         using var goods = global::Sim.Data.DataFiles.OpenGoods();
         return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
@@ -433,8 +454,7 @@ public static class TestConfigs
 
     private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> NoAiRoutes = new(() =>
     {
-        using var stream = global::Sim.Data.DataFiles.OpenResearch();
-        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        var doc = PreTranche2Doc();   // tranche 2 (D-063) is newer: the R4 rule strips it from this older twin
         UndoAiRoutes(doc);
         using var goods = global::Sim.Data.DataFiles.OpenGoods();
         return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
@@ -442,8 +462,7 @@ public static class TestConfigs
 
     private static global::Sim.Core.Systems.Research.ResearchContent LoadResearchVariant(bool civics, bool stage)
     {
-        using var stream = global::Sim.Data.DataFiles.OpenResearch();
-        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        var doc = PreTranche2Doc();   // tranche 2 (D-063) is newer: the R4 rule strips it from this older twin
         UndoTrackCp(doc, civics, stage);
         using var goods = global::Sim.Data.DataFiles.OpenGoods();
         return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
@@ -518,7 +537,7 @@ public static class TestConfigs
     {
         var doc = System.Text.Json.Nodes.JsonNode.Parse(PreTreeTrancheResearchJson())!.AsObject();
         System.Text.Json.Nodes.JsonObject shipped;
-        using (var stream = global::Sim.Data.DataFiles.OpenResearch()) shipped = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        shipped = PreTranche2Doc();   // the tuning and stage the older layers were pinned on: tranche 2 (D-063) stripped
         doc["tuning"] = shipped["tuning"]!.DeepClone();
         doc["researchStage"] = shipped["researchStage"]!.DeepClone();
         UndoAiRoutes(doc);   // ADR-046 is newer than the tranche (ADR-045): the R4 rule strips it from the older twin
