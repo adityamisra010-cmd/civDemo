@@ -53,6 +53,11 @@ public static class DataFiles
     /// SimConfig via the four-stream Load).</summary>
     public static Stream OpenResearch() => Open("Sim.Data.research.json");
 
+    /// <summary>D-063 (tranche 2): the research.json the tranche-2 content was imported into (d22f936) — the attribution
+    /// twin's content, read by Sim.Tests' TestConfigs.PreTranche2 and the CLI's `--without-tranche2`. Not shipped play
+    /// content: nothing loads it unless asked.</summary>
+    public static Stream OpenResearchPreTranche2() => Open("Sim.Data.research-pre-tranche2.json");
+
     /// <summary>ADR-031 (D-047): the nine Ages, milestone facts and Age-surge emphases —
     /// PROVISIONAL content; consumed by AgeContentLoader (attached to SimConfig via the
     /// six-stream Load).</summary>

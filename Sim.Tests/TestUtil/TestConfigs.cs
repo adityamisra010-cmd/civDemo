@@ -374,11 +374,14 @@ public static class TestConfigs
 
     /// <summary>D-063 (tranche 2, 2026-10-24) — the research.json the tranche-2 content was imported into: the three engine
     /// tracks merged (ADR-047 effects on with no content effect, ADR-048 sweep and routing off, ADR-049 levels off), the
-    /// pre-tranche node arrays, no pacing scale. Fixtures/research-pre-tranche2.json is that file byte for byte (d22f936).
+    /// pre-tranche node arrays, no pacing scale. Sim.Data content/research-pre-tranche2.json is that file byte for byte
+    /// (d22f936; DataFiles.OpenResearchPreTranche2, shared with the CLI's `--without-tranche2`).
     /// Every OLDER research twin is built from it (the R4 rule: an older layer twin strips every newer layer).</summary>
-    public static System.Text.Json.Nodes.JsonObject PreTranche2Doc() =>
-        System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures",
-            "research-pre-tranche2.json")))!.AsObject();
+    public static System.Text.Json.Nodes.JsonObject PreTranche2Doc()
+    {
+        using var s = global::Sim.Data.DataFiles.OpenResearchPreTranche2();
+        return System.Text.Json.Nodes.JsonNode.Parse(s)!.AsObject();
+    }
 
     private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> PreTranche2Research = new(() =>
     {

@@ -57,7 +57,8 @@ namespace Sim.Cli
                           [--report] [--save-at K --save PATH] [--orders PATH]
                           [--hash-log PATH] [--split-report PATH]
                   (run, replay and inspect take --without-discovery: sim.json discovery and fog off —
-                   the attribution twin of the M6 discovery layer, for legs measured before it; ADR-044)
+                   the attribution twin of the M6 discovery layer, for legs measured before it; ADR-044;
+                   and --without-tranche2: the pre-tranche-2 research content, the D-063 twin)
                   sim split-check REPORT [--control CONTROL] [--expect-hold-at K]
                                   [--twin TWIN --order-at T:B]
                   sim hash SAVEFILE [--size PX]
@@ -178,16 +179,38 @@ namespace Sim.Cli
         /// world those premises were measured on. A session emitted under it replays only under it.</summary>
         internal static bool DiscoveryOff { get; private set; }
 
-        /// <summary>Removes `--without-discovery` from <paramref name="args"/> and records it.</summary>
+        /// <summary>D-063 (tranche 2): `--without-tranche2` (run, replay, inspect) — the shipped rules with the research
+        /// content replaced by the pre-tranche-2 file (DataFiles.OpenResearchPreTranche2, the attribution twin
+        /// TestConfigs.PreTranche2's content), so a scripted leg whose premises predate tranche 2 (the D-055 allocation leg)
+        /// runs the world those premises were measured on. A session emitted under it replays only under it.</summary>
+        internal static bool Tranche2Off { get; private set; }
+
+        /// <summary>Removes `--without-discovery` and `--without-tranche2` from <paramref name="args"/> and records them.</summary>
         internal static string[] TakeDiscoverySwitch(string[] args)
         {
-            if (Array.IndexOf(args, "--without-discovery") < 0) return args;
-            DiscoveryOff = true;
-            return Array.FindAll(args, a => a != "--without-discovery");
+            if (Array.IndexOf(args, "--without-discovery") >= 0) DiscoveryOff = true;
+            if (Array.IndexOf(args, "--without-tranche2") >= 0) Tranche2Off = true;
+            return Array.FindAll(args, a => a != "--without-discovery" && a != "--without-tranche2");
         }
 
-        internal static Sim.Core.Systems.SimConfig SimCfg() =>
-            DiscoveryOff ? Sim.Core.State.DiscoveryQuery.WithoutDiscovery(ShippedSimCfg()) : ShippedSimCfg();
+        internal static Sim.Core.Systems.SimConfig SimCfg() => ApplyLayerSwitches(ShippedSimCfg());
+
+        /// <summary>The recorded layer switches applied to <paramref name="cfg"/>: tranche 2 first (content), then discovery.</summary>
+        internal static Sim.Core.Systems.SimConfig ApplyLayerSwitches(Sim.Core.Systems.SimConfig cfg)
+        {
+            if (Tranche2Off)
+            {
+                using var goods = Sim.Data.DataFiles.OpenGoods();
+                using var pre = Sim.Data.DataFiles.OpenResearchPreTranche2();
+                using var reader = new StreamReader(pre);
+                cfg = cfg with
+                {
+                    Research = Sim.Core.Systems.Research.ResearchContentLoader.Load(reader.ReadToEnd(),
+                        Sim.Core.Systems.GoodsConfigLoader.Load(goods)),
+                };
+            }
+            return DiscoveryOff ? Sim.Core.State.DiscoveryQuery.WithoutDiscovery(cfg) : cfg;
+        }
 
         private static Sim.Core.Systems.SimConfig ShippedSimCfg()
         {

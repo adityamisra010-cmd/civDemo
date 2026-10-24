@@ -1,6 +1,20 @@
 # CURRENT STATE — the routing document
 
-> **2026-10-21 (latest): M6.1 — the M6 spec and the T6.1 foundations audit are DRAFTED for the Director's review; NOT
+> **2026-10-24 (latest): M6 TRANCHE 2 (D-063) — research trees audited, expanded and rebalanced on branch
+> `claude/new-session-yavghm`; NOT merged, NOT tagged, NOT released; `main` = `m5-exit` = `6e51a3e` untouched.**
+> - **Ruling and records:** `docs/adr/cr-024-tranche2-vs-frozen-research-rules.md` (the conflict and the D-063 ruling),
+>   ADR-047 (knowledge effects), ADR-048 + its lane-assist amendment (Age sweep, destination research), ADR-049
+>   (repeatable levels), schema v36 (ResearchLevels table).
+> - **Content:** 515 finite technologies, 477 finite civics (92.6 %), 13 final-Age repeatables across both trees; every
+>   node carries a real effect (realized operand effect, live unlock, order gate or level effect). Reports:
+>   `docs/m6-plan/knowledge-redesign/tranche2-{change-report,effect-coverage,civ-comparison,balance-report}.md`.
+> - **Switches on in `research.json`:** `knowledgeEffects`, `ageSweep`, `destinationRouting`, `repeatableLevels`,
+>   `pacingScale`. Attribution control for every re-pin: `TestConfigs.PreTranche2` (the d22f936 research.json fixture).
+> - **Open for the Director:** the pincer residual (technology lags civics 46–59 turns in Ages 7 and 9 — one
+>   technology per turn, D-044) and the population/economy rise (40–70 M vs ~300 k pre-tranche), both in `docs/queue.md`.
+> - Verify against the tree (gov-4) before relying on this entry.
+
+> **2026-10-21: M6.1 — the M6 spec and the T6.1 foundations audit are DRAFTED for the Director's review; NOT
 > ratified; no M6 code.** Read in this order: `docs/m6-plan/m6.1-review-package.md` (the review package) →
 > `docs/m6-spec.md` → `docs/m6-foundations-audit.md` → `docs/d061-civics-points-supersession.md` + `docs/adr/cr-023-…md`
 > (the Civics Points conflict: the 2026-10-21 direction vs the 2026-10-20 D-I ruling; append-only, awaiting ruling).

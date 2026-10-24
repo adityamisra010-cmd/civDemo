@@ -35,7 +35,7 @@ public static class CliRecipes
         {
             cfg = Sim.Core.Systems.SimConfigLoader.Load(sim, needs, goods, research, ages, families);
         }
-        if (Cli.DiscoveryOff) cfg = Sim.Core.State.DiscoveryQuery.WithoutDiscovery(cfg);   // M6 EX: `--without-discovery`
+        cfg = Cli.ApplyLayerSwitches(cfg);   // M6 EX `--without-discovery`, D-063 `--without-tranche2`
         using var pipe = Sim.Data.DataFiles.OpenPipeline();
         return Sim.Core.Kernel.PipelineLoader.Load(
             pipe, Sim.Core.SystemCatalog.All(cfg, Worldgen()));

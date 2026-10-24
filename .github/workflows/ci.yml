@@ -379,6 +379,10 @@ jobs:
           # Re-checked 2026-10-23 with stone no longer concealed: under the shipped rules `split-check alloc-b.rep
           # --expect-hold-at 131` FAILS P5 and P7 (road works lend building work their share only at 128; competing heads only
           # at 117-119), so the switch stays; AllocationScenarioTests runs the same rules in process. OPEN: re-derive.
+          # D-063 (tranche 2, 2026-10-24): every run and replay also takes --without-tranche2 (the pre-tranche-2 research
+          # content, DataFiles.OpenResearchPreTranche2 — the TestConfigs.PreTranche2 twin). MEASURED in process on the
+          # shipped tranche-2 research: split-check FAILS P5 (no step where building work's claim above its share used road
+          # works' unused share). The premises are D-055's; re-derive them on the shipped content (docs/queue.md).
           python3 scripts/gen-sample-orders.py alloc.bin 140 --allocation
           python3 scripts/gen-sample-orders.py alloc-ctl.bin 140 --allocation --no-split
           python3 scripts/gen-sample-orders.py alloc-no13.bin 140 --allocation --drop 132:13
@@ -392,11 +396,11 @@ jobs:
           SHA
 
           # A0: founding -> the pre-split world P (one process).
-          $CLI run --without-discovery --founded --seed 42 --turns 116 --orders alloc.bin --hash-log alloc-a0.log --save-at 116 --save alloc-116.civsnap
+          $CLI run --without-discovery --without-tranche2 --founded --seed 42 --turns 116 --orders alloc.bin --hash-log alloc-a0.log --save-at 116 --save alloc-116.civsnap
           # A: P -> H in a NEW process from that save, with the split report; it writes save_K.
-          $CLI run --without-discovery --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a.log --split-report alloc-a.rep --save-at 130 --save alloc-130.civsnap
+          $CLI run --without-discovery --without-tranche2 --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a.log --split-report alloc-a.rep --save-at 130 --save alloc-130.civsnap
           # A': the same WITHOUT --split-report: the observer changes no hash and no save.
-          $CLI run --without-discovery --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a1.log --save-at 130 --save alloc-130-a1.civsnap
+          $CLI run --without-discovery --without-tranche2 --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a1.log --save-at 130 --save alloc-130-a1.civsnap
           if ! cmp alloc-a.log alloc-a1.log || ! cmp alloc-130.civsnap alloc-130-a1.civsnap; then
             echo "ALLOCATION: --split-report CHANGED A HASH OR THE SAVE"
             exit 1
@@ -404,16 +408,16 @@ jobs:
           cat alloc-a0.log alloc-a.log > alloc-full.log          # line n = world n, 1..140
           # B: K -> H from save_K in another process; it writes the save at kind 12's issue turn (136). Its hash log and
           # its split report must be A's tail (rows from step 130 -> 131: what B's own walk published from the loaded world).
-          $CLI run --without-discovery --from-save alloc-130.civsnap --turns 10 --orders alloc.bin --hash-log alloc-b.log --split-report alloc-b.rep --save-at 136 --save alloc-136.civsnap
+          $CLI run --without-discovery --without-tranche2 --from-save alloc-130.civsnap --turns 10 --orders alloc.bin --hash-log alloc-b.log --split-report alloc-b.rep --save-at 136 --save alloc-136.civsnap
           if ! diff alloc-b.log <(sed -n 131,140p alloc-full.log) > alloc-b.diff || ! diff alloc-b.rep <(tail -n 10 alloc-a.rep) >> alloc-b.diff; then
             echo "ALLOCATION: THE CONTINUATION FROM save_K IS NOT A's TAIL:"
             head -n 5 alloc-b.diff
             exit 1
           fi
           # The control: the b = 100 twin (no kind 12) branched from the SAME pre-split world.
-          $CLI run --without-discovery --from-save alloc-116.civsnap --turns 24 --orders alloc-ctl.bin --hash-log alloc-c.log --split-report alloc-c.rep
+          $CLI run --without-discovery --without-tranche2 --from-save alloc-116.civsnap --turns 24 --orders alloc-ctl.bin --hash-log alloc-c.log --split-report alloc-c.rep
           # sim replay of the generated log equals A0 + A (no AI polity by H, so no AI order is missing from the log).
-          $CLI replay --without-discovery --founded --seed 42 --turns 140 --orders alloc.bin --hash-log alloc-replayed.log
+          $CLI replay --without-discovery --without-tranche2 --founded --seed 42 --turns 140 --orders alloc.bin --hash-log alloc-replayed.log
           if ! diff alloc-full.log alloc-replayed.log > alloc-replay.diff; then
             echo "ALLOCATION REPLAY DIVERGENCE -- first divergent turn:"
             head -n 5 alloc-replay.diff
@@ -433,9 +437,9 @@ jobs:
           fi
           # Kinds 13 and 12, turn-exact: the save at each issue turn hashes to its line, and a twin run without the order
           # equals the run through that turn and differs at the next.
-          $CLI run --without-discovery --from-save alloc-130.civsnap --turns 2 --orders alloc.bin --hash-log alloc-v.log --save-at 132 --save alloc-132.civsnap
-          $CLI run --without-discovery --from-save alloc-130.civsnap --turns 3 --orders alloc-no13.bin --hash-log alloc-t13.log
-          $CLI run --without-discovery --from-save alloc-130.civsnap --turns 7 --orders alloc-no12.bin --hash-log alloc-t12.log --split-report alloc-t12.rep
+          $CLI run --without-discovery --without-tranche2 --from-save alloc-130.civsnap --turns 2 --orders alloc.bin --hash-log alloc-v.log --save-at 132 --save alloc-132.civsnap
+          $CLI run --without-discovery --without-tranche2 --from-save alloc-130.civsnap --turns 3 --orders alloc-no13.bin --hash-log alloc-t13.log
+          $CLI run --without-discovery --without-tranche2 --from-save alloc-130.civsnap --turns 7 --orders alloc-no12.bin --hash-log alloc-t12.log --split-report alloc-t12.rep
           if [ "$(cat alloc-v.log)" != "$(sed -n 131,132p alloc-full.log)" ] \
              || [ "$($CLI hash alloc-132.civsnap)" != "$(sed -n 132p alloc-full.log)" ] \
              || [ "$($CLI hash alloc-136.civsnap)" != "$(sed -n 136p alloc-full.log)" ]; then
