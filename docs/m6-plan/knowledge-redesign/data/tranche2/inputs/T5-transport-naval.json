@@ -1,0 +1,1529 @@
+{
+ "group": "T5-transport-naval",
+ "nodes": [
+  {
+   "id": "raft",
+   "key": 20,
+   "name": "Sea-crossing raft",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "transport",
+   "branch": null,
+   "emerged": "inferred ≥50 kya (Sahul crossing); Flores ~1 Mya (contested)",
+   "cost": 180.0,
+   "prereq": "cordage",
+   "inRuntime": true,
+   "desc": "Large lashed log or reed rafts with steering oars, built for open-water crossings beyond sight of land. Simple riverine and shore-hugging craft are baseline (D-047 ruling 7); research unlocks the class and builds no vessel.",
+   "capabilities": [
+    "open-water crossing beyond sight of land"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "sail_square"
+   ]
+  },
+  {
+   "id": "dugout",
+   "key": 21,
+   "name": "Load-carrying dugout",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "transport",
+   "branch": null,
+   "emerged": "~8,000 BCE Pesse (oldest preserved); older inferred",
+   "cost": 520.0,
+   "prereq": "fire_making AND ground_stone_early",
+   "inRuntime": true,
+   "desc": "Large log hollowed by fire and adze into a stable load-carrying hull. Simple log floats and small canoes for river crossing are baseline (D-047 ruling 7); research unlocks the class and builds no vessel.",
+   "capabilities": [
+    "lake and estuary freight by dugout",
+    "offshore fishing"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "plank_boat",
+    "polynesian_canoe",
+    "sail_square"
+   ]
+  },
+  {
+   "id": "sledge",
+   "key": 71,
+   "name": "Sledge",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "transport",
+   "branch": null,
+   "emerged": "~7,000 BCE Heinola (Finland)",
+   "cost": 520.0,
+   "prereq": "ground_stone_early",
+   "inRuntime": true,
+   "desc": "Runners for hauling loads over snow, mud, or grass — the vehicle before the wheel.",
+   "capabilities": [
+    "heavy haulage without wheels"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "wheel_solid",
+   "key": 72,
+   "name": "Solid wheel and axle",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "transport",
+   "branch": null,
+   "emerged": "~3,500 BCE (Bronocice, Ljubljana, Maykop, Uruk — near-simultaneous)",
+   "cost": 3520.0,
+   "prereq": "animal_traction AND ground_stone_early",
+   "inRuntime": true,
+   "desc": "Disc wheel on a fixed or rotating axle — from the potter's wheel principle to the vehicle.",
+   "capabilities": [
+    "cart",
+    "wagon"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cart",
+    "cotton_gin_roller",
+    "heavy_plough",
+    "noria",
+    "rotary_quern",
+    "siege_ram",
+    "spinning_wheel",
+    "wheel_spoked"
+   ]
+  },
+  {
+   "id": "cart",
+   "key": 73,
+   "name": "Ox cart",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "transport",
+   "branch": null,
+   "emerged": "~3,500 BCE",
+   "cost": 310.0,
+   "prereq": "wheel_solid",
+   "inRuntime": true,
+   "desc": "Two-wheeled cart drawn by oxen — bulk haulage overland.",
+   "capabilities": [
+    "bulk overland transport at cart range"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "track_road",
+   "key": 74,
+   "name": "Trackway",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "transport",
+   "branch": null,
+   "emerged": "~3,800 BCE Sweet Track (Somerset)",
+   "cost": 620.0,
+   "prereq": "timber_frame",
+   "inRuntime": true,
+   "desc": "Trackway — an IMPROVED PATH, not an engineered road: timber causeway and corduroy across marsh, cleared and stoned track (Sweet Track). An infrastructure-class unlock (path tier): road development builds the trackways, and basic dirt paths are baseline (D-047 ruling 8; ADR-032). The engineered built road additionally needs dry-stone construction (infra.road_built requires track_road AND stone_dry).",
+   "capabilities": [
+    "trackway infrastructure class (path tier: timber causeway and stoned track)",
+    "wetland causeway class"
+   ],
+   "entitiesRequiringIt": [
+    "infra.courier_relay",
+    "infra.road_built",
+    "infra.road_track"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "sail_square",
+   "key": 94,
+   "name": "Square sail",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "transport",
+   "branch": null,
+   "emerged": "~5,500–5,300 BCE As-Sabiyah (H3, Kuwait: seagoing reed-bundle boats, painted two-masted boat); ~3,500 BCE Naqada II depictions (Nile)",
+   "cost": 3520.0,
+   "prereq": "(dugout OR raft) AND loom_warp_weighted",
+   "inRuntime": true,
+   "desc": "Wind propulsion — first on the Nile. Unlocks the improved coastal and seagoing transport class (D-047 ruling 7); primitive river and shore-hugging craft are baseline, and the realizing systems build the vessels.",
+   "capabilities": [
+    "improved coastal and seagoing transport class (sail)",
+    "upriver travel under sail instead of rowing",
+    "river and coastal trade at scale under sail"
+   ],
+   "entitiesRequiringIt": [
+    "activity.coastal_shipping"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "daughter_colonies",
+    "lateen",
+    "monsoon_sailing",
+    "trade",
+    "windmill_post"
+   ]
+  },
+  {
+   "id": "plank_boat",
+   "key": 95,
+   "name": "Plank-built boat",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "transport",
+   "branch": null,
+   "emerged": "~2,500 BCE Khufu ship; ~2,000 BCE Ferriby",
+   "cost": 2960.0,
+   "prereq": "dugout AND copper_smelting",
+   "inRuntime": true,
+   "desc": "Hull from sewn or pegged planks — larger than a log allows.",
+   "capabilities": [
+    "cargo vessels",
+    "sea-going hulls"
+   ],
+   "entitiesRequiringIt": [
+    "building.harbour"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cog",
+    "mortise_hull",
+    "naval_ram",
+    "stern_rudder"
+   ]
+  },
+  {
+   "id": "wheel_spoked",
+   "key": 99,
+   "name": "Spoked wheel",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "transport",
+   "branch": null,
+   "emerged": "~2,000 BCE Sintashta",
+   "cost": 2090.0,
+   "prereq": "wheel_solid AND casting_closed",
+   "inRuntime": true,
+   "desc": "Light wheel with spokes — requires bent-wood or joined felloes, precise hub.",
+   "capabilities": [
+    "fast light vehicles"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "chariot"
+   ]
+  },
+  {
+   "id": "road_paved",
+   "key": 150,
+   "name": "Engineered paved road",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "transport",
+   "branch": null,
+   "emerged": "312 BCE Via Appia; Inca ~1,400 CE",
+   "cost": 5910.0,
+   "prereq": "surveying",
+   "inRuntime": true,
+   "desc": "Surveyed, layered, cambered, drained, paved — Via Appia. Inca qhapaq ñan independently (no wheels). An infrastructure-class unlock: construction systems build the roads (D-047 ruling 8).",
+   "capabilities": [
+    "engineered paved road class: all-weather bulk transport",
+    "engineered paved road class: military mobility"
+   ],
+   "entitiesRequiringIt": [
+    "infra.road_paved"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "macadam"
+   ]
+  },
+  {
+   "id": "collar_harness",
+   "key": 158,
+   "name": "Breast-strap harness",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "transport",
+   "branch": null,
+   "emerged": "~400–300 BCE China (Warring States; Chu lacquerware depiction); universal under the Han (202 BCE–220 CE)",
+   "cost": 2490.0,
+   "prereq": "horse_domestication AND sewing",
+   "inRuntime": true,
+   "desc": "A breast strap that bears on the horse's chest instead of its throat — far more pulling power for carts and chariots.",
+   "capabilities": [
+    "horse haulage"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "horse_collar"
+   ]
+  },
+  {
+   "id": "cartography",
+   "key": 165,
+   "name": "Mathematical cartography",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "naval",
+   "branch": null,
+   "emerged": "~150 CE",
+   "cost": 1760.0,
+   "prereq": "astronomy_geometric",
+   "inRuntime": true,
+   "desc": "Maps on a coordinate grid with projection — Ptolemy's Geography.",
+   "capabilities": [
+    "maps as knowledge",
+    "D-040 B1 computed extent made explicit"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "general_staff",
+    "mercator",
+    "portolan"
+   ]
+  },
+  {
+   "id": "latitude_sailing",
+   "key": 166,
+   "name": "Latitude by celestial observation",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "naval",
+   "branch": null,
+   "emerged": "~1,000 BCE Polynesia (stellar); Greek ~300 BCE",
+   "cost": 1240.0,
+   "prereq": "astronomy_records OR calendar_lunar",
+   "inRuntime": true,
+   "desc": "Determining position north-south from sun or pole star — Polynesian and Mediterranean.",
+   "capabilities": [
+    "open-sea voyaging by latitude"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "polynesian_canoe"
+   ]
+  },
+  {
+   "id": "monsoon_sailing",
+   "key": 167,
+   "name": "Monsoon navigation",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "naval",
+   "branch": null,
+   "emerged": "~100 BCE",
+   "cost": 1760.0,
+   "prereq": "sail_square AND astronomy_records",
+   "inRuntime": true,
+   "desc": "Using seasonal wind reversal for Indian Ocean crossings — Hippalus.",
+   "capabilities": [
+    "direct Arabia–India crossing",
+    "Indian Ocean trade"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "ocean_junk"
+   ]
+  },
+  {
+   "id": "lateen",
+   "key": 168,
+   "name": "Lateen sail",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "naval",
+   "branch": null,
+   "emerged": "~200 CE Mediterranean; Indian Ocean possibly earlier",
+   "cost": 1760.0,
+   "prereq": "sail_square",
+   "inRuntime": true,
+   "desc": "Triangular fore-and-aft sail — sailing closer to the wind.",
+   "capabilities": [
+    "windward sailing",
+    "coastal trade against wind"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "caravel",
+    "carrack"
+   ]
+  },
+  {
+   "id": "mortise_hull",
+   "key": 169,
+   "name": "Mortise-and-tenon hull",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "naval",
+   "branch": null,
+   "emerged": "~1,300 BCE Uluburun; Roman grain ships",
+   "cost": 1240.0,
+   "prereq": "plank_boat",
+   "inRuntime": true,
+   "desc": "Shell-first planking joined by mortises — rigid Mediterranean hulls carrying 400 tons.",
+   "capabilities": [
+    "large cargo ships",
+    "grain fleet (Rome fed by Egypt)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "steamboat",
+    "stern_rudder"
+   ]
+  },
+  {
+   "id": "horseshoe",
+   "key": 177,
+   "name": "Nailed horseshoe",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "~900 CE Europe",
+   "cost": 3520.0,
+   "prereq": "iron_bloomery AND horse_domestication",
+   "inRuntime": true,
+   "desc": "Iron shoe nailed to the hoof — horses on hard roads and wet ground.",
+   "capabilities": [
+    "sustained horse use on roads"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "compass_magnetic",
+   "key": 186,
+   "name": "Magnetic compass",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "~1,040 CE China (Shen Kuo); Europe ~1,190",
+   "cost": 4180.0,
+   "prereq": "iron_bloomery",
+   "inRuntime": true,
+   "desc": "Magnetised needle indicating north — navigation without sky.",
+   "capabilities": [
+    "navigation under cloud",
+    "dead reckoning"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "caravel",
+    "carrack",
+    "ocean_junk",
+    "portolan"
+   ]
+  },
+  {
+   "id": "stern_rudder",
+   "key": 187,
+   "name": "Stern-post rudder",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "~100 CE China; Europe ~1,180",
+   "cost": 2960.0,
+   "prereq": "mortise_hull OR plank_boat",
+   "inRuntime": true,
+   "desc": "Hinged rudder on the sternpost — large hulls become steerable.",
+   "capabilities": [
+    "larger ships",
+    "precise steering"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "caravel",
+    "cog",
+    "watertight_bulkhead"
+   ]
+  },
+  {
+   "id": "watertight_bulkhead",
+   "key": 188,
+   "name": "Watertight bulkheads",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "~500 CE China",
+   "cost": 1480.0,
+   "prereq": "stern_rudder",
+   "inRuntime": true,
+   "desc": "Compartmented hulls — a holed ship stays afloat. Chinese junks.",
+   "capabilities": [
+    "survivable ocean hulls"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "ocean_junk"
+   ]
+  },
+  {
+   "id": "portolan",
+   "key": 189,
+   "name": "Portolan chart",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "~1,270 CE (Carte Pisane)",
+   "cost": 2960.0,
+   "prereq": "compass_magnetic AND cartography",
+   "inRuntime": true,
+   "desc": "Compass-bearing coastal charts with rhumb lines — practical Mediterranean navigation.",
+   "capabilities": [
+    "coastal navigation by bearing and distance"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "mercator"
+   ]
+  },
+  {
+   "id": "cog",
+   "key": 191,
+   "name": "Cog",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "~1,000 CE Frisia; standard by 1,200",
+   "cost": 2960.0,
+   "prereq": "stern_rudder AND plank_boat",
+   "inRuntime": true,
+   "desc": "Flat-bottomed, clinker-built, single-masted cargo ship — the Hanseatic bulk carrier.",
+   "capabilities": [
+    "bulk grain and timber trade in the Baltic and North Sea"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "carrack"
+   ]
+  },
+  {
+   "id": "caravel",
+   "key": 217,
+   "name": "Caravel",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "~1,430 CE Portugal",
+   "cost": 16730.0,
+   "prereq": "lateen AND stern_rudder AND compass_magnetic",
+   "inRuntime": true,
+   "desc": "Lateen-rigged, shallow-draft, fast — the exploration ship of the Portuguese. Unlocks the oceanic transport class (D-047 ruling 7); research builds no vessel.",
+   "capabilities": [
+    "coastal exploration against wind",
+    "Atlantic islands",
+    "West Africa"
+   ],
+   "entitiesRequiringIt": [
+    "activity.ocean_shipping"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "state_exploration"
+   ]
+  },
+  {
+   "id": "carrack",
+   "key": 218,
+   "name": "Carrack and full-rigged ship",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "~1,300–1,350 CE Genoa (carraca: cog rig and rudder on a frame-first hull, lateen mizzen); ~1,450 CE three-masted full-rigged ship",
+   "cost": 5910.0,
+   "prereq": "cog AND lateen AND compass_magnetic",
+   "inRuntime": true,
+   "desc": "Three-masted, square and lateen, high-castled — the ocean cargo and warship. Unlocks the oceanic transport class (D-047 ruling 7); research builds no vessel.",
+   "capabilities": [
+    "transoceanic cargo",
+    "Columbus, da Gama"
+   ],
+   "entitiesRequiringIt": [
+    "activity.ocean_shipping",
+    "building.dry_dock"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "new_world_crops",
+    "ship_of_line"
+   ]
+  },
+  {
+   "id": "polynesian_canoe",
+   "key": 219,
+   "name": "Polynesian voyaging canoe",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "branch": null,
+   "emerged": "~1,000 CE (Hawaii, NZ reached); technology older",
+   "cost": 2960.0,
+   "prereq": "dugout AND latitude_sailing",
+   "inRuntime": true,
+   "desc": "Double-hulled, crab-claw sail, stellar navigation — Pacific colonisation without compass or writing. Unlocks the oceanic transport class (D-047 ruling 7); research builds no vessel.",
+   "capabilities": [
+    "open-ocean colonisation over 3,000 km"
+   ],
+   "entitiesRequiringIt": [
+    "activity.ocean_shipping"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "celestial_navigation",
+   "key": 220,
+   "name": "Celestial navigation with instruments",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "~1,480 CE Portugal",
+   "cost": 4180.0,
+   "prereq": "astrolabe AND trigonometry",
+   "inRuntime": true,
+   "desc": "Quadrant, cross-staff, declination tables — latitude at sea to a degree.",
+   "capabilities": [
+    "open-ocean position finding"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "longitude_problem"
+   ]
+  },
+  {
+   "id": "longitude_problem",
+   "key": 221,
+   "name": "Longitude by chronometer",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "1761 CE",
+   "cost": 7030.0,
+   "prereq": "celestial_navigation AND escapement_verge",
+   "inRuntime": true,
+   "desc": "Harrison's H4 — a clock accurate at sea; longitude by time difference.",
+   "capabilities": [
+    "east-west position at sea",
+    "safe ocean routing"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "mercator",
+   "key": 222,
+   "name": "Mercator projection",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "1569 CE",
+   "cost": 4180.0,
+   "prereq": "cartography AND portolan AND trigonometry",
+   "inRuntime": true,
+   "desc": "Conformal projection — rhumb lines as straight lines.",
+   "capabilities": [
+    "practical ocean charts"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "locomotive",
+   "key": 267,
+   "name": "Steam locomotive",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1804 / 1829 CE",
+   "cost": 16730.0,
+   "prereq": "steam_high_pressure",
+   "inRuntime": true,
+   "desc": "Trevithick 1804; Stephenson's Rocket 1829 — steam on rails.",
+   "capabilities": [
+    "overland speed",
+    "bulk overland transport"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "railway"
+   ]
+  },
+  {
+   "id": "railway",
+   "key": 268,
+   "name": "Railway network",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1830 CE",
+   "cost": 23650.0,
+   "prereq": "locomotive AND puddling AND surveying",
+   "inRuntime": true,
+   "desc": "Liverpool–Manchester 1830 — a public railway with timetables; national networks by 1850.",
+   "capabilities": [
+    "national markets",
+    "standard time",
+    "military mobilisation by rail"
+   ],
+   "entitiesRequiringIt": [
+    "infra.railway"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "electric_traction",
+    "mass_press",
+    "professional_sport",
+    "public_postal_service"
+   ]
+  },
+  {
+   "id": "steamboat",
+   "key": 269,
+   "name": "Steamboat",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1807 CE",
+   "cost": 23650.0,
+   "prereq": "steam_rotary AND mortise_hull",
+   "inRuntime": true,
+   "desc": "Fulton 1807 — rivers upstream by engine; ocean crossings by 1838.",
+   "capabilities": [
+    "river commerce against current",
+    "scheduled ocean crossing"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "iron_hull",
+    "screw_propeller",
+    "submarine_cable"
+   ]
+  },
+  {
+   "id": "screw_propeller",
+   "key": 270,
+   "name": "Screw propeller",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "1836 CE",
+   "cost": 14070.0,
+   "prereq": "steamboat AND water_screw",
+   "inRuntime": true,
+   "desc": "Smith/Ericsson 1836 — efficient, protected propulsion; Great Britain 1843 iron-hulled screw steamer.",
+   "capabilities": [
+    "ocean steamships",
+    "steam warships"
+   ],
+   "entitiesRequiringIt": [
+    "unit.ironclad"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "submarine"
+   ]
+  },
+  {
+   "id": "iron_hull",
+   "key": 271,
+   "name": "Iron hull",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "1821–1822 CE (Aaron Manby, first iron steamship at sea); 1843 CE (SS Great Britain, iron screw liner)",
+   "cost": 14070.0,
+   "prereq": "puddling AND steamboat",
+   "inRuntime": true,
+   "desc": "Wrought-iron shipbuilding — larger, lighter, fireproof; Great Britain 1843.",
+   "capabilities": [
+    "ships beyond timber limits",
+    "ironclads"
+   ],
+   "entitiesRequiringIt": [
+    "unit.ironclad"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "container_shipping",
+    "submarine"
+   ]
+  },
+  {
+   "id": "macadam",
+   "key": 272,
+   "name": "Macadam road",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "~1,820 CE",
+   "cost": 8360.0,
+   "prereq": "road_paved",
+   "inRuntime": true,
+   "desc": "McAdam 1820 — compacted graded stone; cheap all-weather roads. An infrastructure-class unlock: construction systems build the roads (D-047 ruling 8).",
+   "capabilities": [
+    "macadamised road class: compacted graded stone, all-weather coaching"
+   ],
+   "entitiesRequiringIt": [
+    "infra.road_macadam"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "bicycle",
+   "key": 273,
+   "name": "Safety bicycle",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1885 CE",
+   "cost": 9950.0,
+   "prereq": "interchangeable_parts AND steel_carburized",
+   "inRuntime": true,
+   "desc": "Chain drive, equal wheels, pneumatic tyre 1888 — personal mobility; the ball-bearing and tube industries.",
+   "capabilities": [
+    "personal transport",
+    "the precision-parts industry that built cars and aircraft"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "aircraft",
+   "key": 299,
+   "name": "Powered heavier-than-air flight",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1903 CE",
+   "cost": 66900.0,
+   "prereq": "internal_combustion AND glider",
+   "inRuntime": true,
+   "desc": "Wright 1903 — three-axis control. The reconnaissance revolution.",
+   "capabilities": [
+    "aerial reconnaissance (D-039 B: reconnaissance no longer walks)",
+    "bombing",
+    "air transport"
+   ],
+   "entitiesRequiringIt": [
+    "building.airfield",
+    "unit.aircraft_carrier",
+    "unit.military_aircraft"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "aircraft_metal",
+    "combat_drone",
+    "helicopter",
+    "stealth"
+   ]
+  },
+  {
+   "id": "aircraft_metal",
+   "key": 300,
+   "name": "All-metal monoplane",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1915 / 1935 CE",
+   "cost": 33450.0,
+   "prereq": "aircraft AND aluminium",
+   "inRuntime": true,
+   "desc": "Junkers 1915; DC-3 1935 — stressed-skin aluminium; commercial aviation.",
+   "capabilities": [
+    "airliners",
+    "strategic bombers"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "jet_airliner",
+    "jet_engine"
+   ]
+  },
+  {
+   "id": "automobile_mass",
+   "key": 303,
+   "name": "Mass-produced automobile",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1913 CE",
+   "cost": 16730.0,
+   "prereq": "internal_combustion AND interchangeable_parts AND petroleum_refining",
+   "inRuntime": true,
+   "desc": "Ford Model T 1908; moving assembly line 1913 — personal motor transport for the working class.",
+   "capabilities": [
+    "suburb",
+    "trucking",
+    "the road economy",
+    "moving assembly line (Ford, 1913)",
+    "mass production"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "catalytic_converter",
+    "electric_vehicle",
+    "motor_road"
+   ]
+  },
+  {
+   "id": "rocket",
+   "key": 308,
+   "name": "Liquid-fuel rocket",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1926 / 1944 CE",
+   "cost": 378470.0,
+   "prereq": "internal_combustion AND aluminium AND mechanics_newtonian",
+   "inRuntime": true,
+   "desc": "Goddard 1926; V-2 1944 — propulsion without air; ballistic missiles and spaceflight.",
+   "capabilities": [
+    "ballistic missile",
+    "satellite launch"
+   ],
+   "entitiesRequiringIt": [
+    "building.spaceport",
+    "project.orbital_launch",
+    "unit.missile"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "guided_missile",
+    "icbm",
+    "orbital_launch_vehicle"
+   ]
+  },
+  {
+   "id": "container_shipping",
+   "key": 310,
+   "name": "Container shipping",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1956 CE",
+   "cost": 16730.0,
+   "prereq": "iron_hull AND diesel",
+   "inRuntime": true,
+   "desc": "McLean 1956 — standard boxes; port handling cost cut 30×; globalised manufacturing.",
+   "capabilities": [
+    "near-zero bulk transport cost by sea"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "electric_traction",
+   "key": 338,
+   "name": "Electric railway and metro",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1890 CE",
+   "cost": 47310.0,
+   "prereq": "electric_motor AND railway",
+   "inRuntime": true,
+   "desc": "Electric trams 1881; London deep tube 1890 — urban mass transit.",
+   "capabilities": [
+    "city of 10M",
+    "commuting"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "high_speed_rail"
+   ]
+  },
+  {
+   "id": "gps",
+   "key": 344,
+   "name": "Satellite navigation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "1995 CE",
+   "cost": 189240.0,
+   "prereq": "satellite AND microprocessor AND atomic_clock AND relativity",
+   "inRuntime": true,
+   "desc": "GPS operational 1995 — position to metres, anywhere.",
+   "capabilities": [
+    "D-040 B1 extent: known everywhere",
+    "precision agriculture",
+    "guided munitions"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "combat_drone",
+    "precision_agriculture",
+    "reusable_launch"
+   ]
+  },
+  {
+   "id": "crewed_spaceflight",
+   "key": 373,
+   "name": "Crewed spaceflight",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1961",
+   "cost": 33450.0,
+   "prereq": "satellite AND computer",
+   "inRuntime": true,
+   "desc": "Humans launched to orbit and returned.",
+   "capabilities": [
+    "human operations in orbit"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "lunar_flight",
+    "space_station"
+   ]
+  },
+  {
+   "id": "lunar_flight",
+   "key": 374,
+   "name": "Crewed lunar flight",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1969",
+   "cost": 11830.0,
+   "prereq": "crewed_spaceflight AND integrated_circuit",
+   "inRuntime": true,
+   "desc": "Crewed flight to and landing on the Moon.",
+   "capabilities": [
+    "crewed deep-space operations"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "space_station",
+   "key": 375,
+   "name": "Space station",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1971 Salyut; 1998 ISS",
+   "cost": 11830.0,
+   "prereq": "crewed_spaceflight",
+   "inRuntime": true,
+   "desc": "Long-duration crewed habitat in orbit.",
+   "capabilities": [
+    "permanent orbital presence",
+    "microgravity research"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "reusable_launch",
+   "key": 377,
+   "name": "Reusable launch vehicle",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "2015",
+   "cost": 133810.0,
+   "prereq": "orbital_launch_vehicle AND gps AND composites",
+   "inRuntime": true,
+   "desc": "Rocket stages that land and fly again — launch cost per kilogram collapses.",
+   "capabilities": [
+    "cheap access to orbit"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "asteroid_mining",
+    "frontier_launch",
+    "space_solar"
+   ]
+  },
+  {
+   "id": "earth_observation",
+   "key": 379,
+   "name": "Earth observation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "1972 Landsat",
+   "cost": 23650.0,
+   "prereq": "satellite AND photography",
+   "inRuntime": true,
+   "desc": "Systematic imaging of the Earth from orbit.",
+   "capabilities": [
+    "global mapping",
+    "crop and resource monitoring"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "high_speed_rail",
+   "key": 397,
+   "name": "High-speed rail",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1964 Shinkansen",
+   "cost": 33450.0,
+   "prereq": "electric_traction AND reinforced_concrete",
+   "inRuntime": true,
+   "desc": "Dedicated electric lines above 200 km/h.",
+   "capabilities": [
+    "intercity travel faster than air over medium distance"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "jet_airliner",
+   "key": 398,
+   "name": "Jet airliner",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1952 Comet; 1958 707",
+   "cost": 66900.0,
+   "prereq": "jet_engine AND aircraft_metal AND superalloy",
+   "inRuntime": true,
+   "desc": "Pressurised jet passenger aircraft.",
+   "capabilities": [
+    "mass international travel"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "electric_vehicle",
+   "key": 399,
+   "name": "Modern electric vehicle",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "2008",
+   "cost": 66900.0,
+   "prereq": "lithium_battery AND electric_motor AND automobile_mass",
+   "inRuntime": true,
+   "desc": "Battery-electric road vehicles at mass scale.",
+   "capabilities": [
+    "road transport without oil"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "helicopter",
+   "key": 400,
+   "name": "Helicopter",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1935–1936 CE (Breguet-Dorand Gyroplane Laboratoire; Focke-Wulf Fw 61); 1939–1942 CE (Sikorsky VS-300, R-4)",
+   "cost": 11830.0,
+   "prereq": "aircraft",
+   "inRuntime": true,
+   "desc": "Rotary-wing vertical flight.",
+   "capabilities": [
+    "vertical lift",
+    "air mobility without runways"
+   ],
+   "entitiesRequiringIt": [
+    "unit.helicopter"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "fusion_propulsion",
+   "key": 414,
+   "name": "Fusion propulsion",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "speculative",
+   "cost": 189240.0,
+   "prereq": "fusion_power AND space_probe",
+   "inRuntime": true,
+   "desc": "Fusion-driven spacecraft for fast interplanetary and interstellar flight.",
+   "capabilities": [
+    "interstellar probe"
+   ],
+   "entitiesRequiringIt": [
+    "project.interstellar_probe"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "frontier_launch",
+   "key": 415,
+   "name": "Launch efficiency",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "repeatable",
+   "cost": 16730.0,
+   "prereq": "reusable_launch",
+   "inRuntime": true,
+   "desc": "Each level lowers the cost of placing mass in orbit.",
+   "capabilities": [
+    "cheaper space projects per level"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": true,
+   "dependents": []
+  },
+  {
+   "id": "frontier_propulsion",
+   "key": 416,
+   "name": "Propulsion",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "repeatable",
+   "cost": 33450.0,
+   "prereq": "space_probe",
+   "inRuntime": true,
+   "desc": "Each level raises the transit velocity of probes and expeditions — the research analogue of Civ 6's laser station, which is a project.",
+   "capabilities": [
+    "faster interplanetary and interstellar transit"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": true,
+   "dependents": []
+  },
+  {
+   "id": "motor_road",
+   "key": 425,
+   "name": "Motor road (highway)",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1924 CE Milano–Laghi autostrada; 1932 CE Cologne–Bonn",
+   "cost": 33450.0,
+   "prereq": "automobile_mass AND reinforced_concrete AND petroleum_refining",
+   "inRuntime": true,
+   "desc": "Graded, surfaced, grade-separated road for motor traffic — Milano–Laghi autostrada 1924, Cologne–Bonn 1932, Reichsautobahn and US Interstate. An infrastructure-class unlock (highway tier): road development builds the highways as new alignments beside the older roads (ADR-032).",
+   "capabilities": [
+    "highway infrastructure class: motor road, the bulk road-freight corridor"
+   ],
+   "entitiesRequiringIt": [
+    "infra.road_highway"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "ocean_junk",
+   "key": 435,
+   "name": "Ocean-going junk",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "~1,100 CE Song China (compass navigation at sea recorded 1111–1117 CE); Quanzhou wreck ~1,275 CE (13 compartments); Zheng He's fleets 1405–1433 CE",
+   "cost": 4180.0,
+   "prereq": "watertight_bulkhead AND compass_magnetic AND monsoon_sailing",
+   "inRuntime": true,
+   "desc": "Compartmented ocean-going hulls navigated by compass and the monsoon winds.",
+   "capabilities": [
+    "oceanic transport class (junk)",
+    "Indian Ocean crossings by compass and monsoon"
+   ],
+   "entitiesRequiringIt": [
+    "activity.ocean_shipping"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "state_exploration"
+   ]
+  },
+  {
+   "id": "balloon",
+   "key": 449,
+   "name": "Balloon flight",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1783 CE (Montgolfier hot-air and Charles hydrogen balloons; crewed flights 21 November and 1 December); 1794 CE first military observation balloon (Fleurus)",
+   "cost": 19890.0,
+   "prereq": "barometer_vacuum",
+   "inRuntime": true,
+   "desc": "Lighter-than-air flight with hot air or hydrogen.",
+   "capabilities": [
+    "lighter-than-air flight"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "glider",
+   "key": 451,
+   "name": "Gliding flight",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1853 CE (Cayley's crewed glider, Brompton Dale); 1891–1896 CE (Lilienthal, about 2,000 glides); 1900–1902 CE (Wright gliders)",
+   "cost": 9950.0,
+   "prereq": "mechanics_newtonian",
+   "inRuntime": true,
+   "desc": "Flight on fixed wings, held up by aerodynamic lift and controlled in three axes.",
+   "capabilities": [
+    "gliding flight",
+    "aerodynamic lift data and three-axis control"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "aircraft"
+   ]
+  },
+  {
+   "id": "submarine",
+   "key": 469,
+   "name": "Submarine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "naval",
+   "branch": "military",
+   "emerged": "1900 CE (USS Holland: petrol engine on the surface, battery-electric drive submerged); 1914–1918 CE U-boat campaigns",
+   "cost": 39780.0,
+   "prereq": "screw_propeller AND iron_hull AND electric_motor AND internal_combustion",
+   "inRuntime": true,
+   "desc": "A warship that dives, running on batteries underwater and on engines at the surface.",
+   "capabilities": [
+    "submerged operation",
+    "undersea warfare"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "nuclear_submarine"
+   ]
+  },
+  {
+   "id": "orbital_launch_vehicle",
+   "key": 482,
+   "name": "Orbital launch vehicle",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "transport",
+   "branch": "engineering",
+   "emerged": "1957 CE (R-7: first full-range flight in August; Sputnik 1 launched 4 October)",
+   "cost": 189240.0,
+   "prereq": "rocket",
+   "inRuntime": true,
+   "desc": "A rocket powerful enough to place a payload in orbit.",
+   "capabilities": [
+    "orbital-class rocket (payloads placed in orbit)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "reusable_launch",
+    "satellite"
+   ]
+  }
+ ]
+}

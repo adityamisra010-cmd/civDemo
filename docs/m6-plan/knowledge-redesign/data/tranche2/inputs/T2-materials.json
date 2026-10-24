@@ -1,0 +1,1701 @@
+{
+ "group": "T2-materials",
+ "nodes": [
+  {
+   "id": "knapping_oldowan",
+   "key": 2,
+   "name": "Oldowan flaking",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~2.6 Mya (Gona); Lomekwi ~3.3 Mya",
+   "cost": 520.0,
+   "prereq": null,
+   "inRuntime": true,
+   "desc": "Simple hard-hammer percussion producing choppers and sharp flakes.",
+   "capabilities": [
+    "cutting edges",
+    "butchery",
+    "bone-breaking for marrow"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "ground_stone_early"
+   ]
+  },
+  {
+   "id": "knapping_levallois",
+   "key": 3,
+   "name": "Prepared-core (Levallois)",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~300 kya",
+   "cost": 520.0,
+   "prereq": null,
+   "inRuntime": true,
+   "desc": "Shaping a core so a flake of predetermined form detaches — standardised points.",
+   "capabilities": [
+    "standardised points for hafting"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "heat_treatment_stone",
+    "hide_working",
+    "knapping_blade"
+   ]
+  },
+  {
+   "id": "knapping_blade",
+   "key": 4,
+   "name": "Blade production",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~40 kya Upper Palaeolithic; earlier in Africa (~70 kya)",
+   "cost": 260.0,
+   "prereq": "knapping_levallois",
+   "inRuntime": true,
+   "desc": "Long parallel-sided blades struck from prismatic cores — efficient use of raw material, many tool forms from one core.",
+   "capabilities": [
+    "burins",
+    "endscrapers",
+    "backed blades",
+    "microliths"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "bone_tools",
+    "microlith",
+    "trepanation"
+   ]
+  },
+  {
+   "id": "pressure_flaking",
+   "key": 5,
+   "name": "Pressure flaking",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~75 kya Blombos (heat-treated silcrete); widespread ~20 kya",
+   "cost": 260.0,
+   "prereq": null,
+   "inRuntime": true,
+   "desc": "Removing flakes by pressing rather than striking — fine, thin, symmetrical points.",
+   "capabilities": [
+    "Solutrean laurel leaves",
+    "Clovis points"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "heat_treatment_stone",
+   "key": 6,
+   "name": "Heat treatment of stone",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~164 kya Pinnacle Point",
+   "cost": 260.0,
+   "prereq": "fire_making AND knapping_levallois",
+   "inRuntime": true,
+   "desc": "Heating silcrete or chert to improve flaking — the first pyrotechnology applied to a material property.",
+   "capabilities": [
+    "workable stone from poor raw material"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "microlith",
+   "key": 7,
+   "name": "Microliths and composite tools",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~65 kya Howiesons Poort; Mesolithic Europe",
+   "cost": 370.0,
+   "prereq": "hafting AND knapping_blade",
+   "inRuntime": true,
+   "desc": "Small geometric blade segments set in series into wood or bone — replaceable cutting edges, barbed points.",
+   "capabilities": [
+    "barbed arrows",
+    "sickles (later)",
+    "composite knives"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "sickle"
+   ]
+  },
+  {
+   "id": "ground_stone_early",
+   "key": 8,
+   "name": "Ground-edge axe",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~35 kya Japan, ~44 kya Australia",
+   "cost": 520.0,
+   "prereq": "knapping_oldowan",
+   "inRuntime": true,
+   "desc": "Axes shaped by grinding rather than flaking — durable, resharpenable. Japan and Australia 25,000 years before the Neolithic.",
+   "capabilities": [
+    "resharpenable ground-edge felling axe",
+    "efficient heavy woodworking"
+   ],
+   "entitiesRequiringIt": [
+    "activity.logging"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "charcoal",
+    "copper_native",
+    "digging_stick_hoe",
+    "dugout",
+    "sledge",
+    "stamp_seal",
+    "stone_dry",
+    "timber_frame",
+    "wheel_solid"
+   ]
+  },
+  {
+   "id": "adhesive_natural",
+   "key": 9,
+   "name": "Compound adhesives",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~200 kya (bitumen, Umm el Tlel)",
+   "cost": 260.0,
+   "prereq": null,
+   "inRuntime": true,
+   "desc": "Engineered binders — resin loaded with ochre or beeswax, heat-processed bitumen — for load-bearing composite hafting. Simple gum, resin and sinew binding is baseline (D-047 ruling 3).",
+   "capabilities": [
+    "load-bearing compound adhesive for composite hafting"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "birch_tar",
+    "hafting",
+    "lacquer"
+   ]
+  },
+  {
+   "id": "birch_tar",
+   "key": 10,
+   "name": "Birch-bark tar",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~200 kya Campitello (Neanderthal); ~50 kya widespread",
+   "cost": 370.0,
+   "prereq": "fire_making AND adhesive_natural",
+   "inRuntime": true,
+   "desc": "Dry distillation of birch bark to produce tar — a manufactured adhesive requiring controlled heating without oxygen.",
+   "capabilities": [
+    "reliable hafting adhesive",
+    "waterproofing"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "charcoal"
+   ]
+  },
+  {
+   "id": "hafting",
+   "key": 11,
+   "name": "Composite hafting",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~500 kya Kathu Pan (contested); secure ~200 kya",
+   "cost": 520.0,
+   "prereq": "cordage AND adhesive_natural",
+   "inRuntime": true,
+   "desc": "Precision-fitted composite tools — shaped tang, socket or split haft bound with sinew and compound adhesive — that survive repeated impact. Simple hafted tools are baseline (D-047 ruling 3).",
+   "capabilities": [
+    "durable composite thrusting spear",
+    "socketed composite axe and adze"
+   ],
+   "entitiesRequiringIt": [
+    "unit.spearmen"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "atlatl",
+    "digging_stick_hoe",
+    "microlith"
+   ]
+  },
+  {
+   "id": "ochre_processing",
+   "key": 25,
+   "name": "Pigment processing",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~100 kya Blombos",
+   "cost": 260.0,
+   "prereq": "grinding_stone",
+   "inRuntime": true,
+   "desc": "Grinding and mixing ochre for marking, adhesive additive, hide preservation.",
+   "capabilities": [
+    "symbolic marking",
+    "hide treatment"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "copper_smelting",
+    "dyeing",
+    "shamanic_ritual"
+   ]
+  },
+  {
+   "id": "bone_tools",
+   "key": 26,
+   "name": "Bone and antler tools",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~90 kya Katanda harpoons; ~40 kya widespread",
+   "cost": 260.0,
+   "prereq": "knapping_blade",
+   "inRuntime": true,
+   "desc": "Carved bone, antler, ivory — awls, points, harpoons, needles. Requires groove-and-splinter technique.",
+   "capabilities": [
+    "harpoons",
+    "awls",
+    "needles",
+    "points"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "chinese_script",
+    "tally_notation"
+   ]
+  },
+  {
+   "id": "pottery_open_fired",
+   "key": 47,
+   "name": "Open-fired pottery",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~18,000 BCE Xianrendong; ~14,000 BCE Jomon; ~9,000 BCE Near East; ~9,400 BCE Mali",
+   "cost": 2490.0,
+   "prereq": "basketry",
+   "inRuntime": true,
+   "desc": "Coil-built vessels fired in a bonfire — low temperature, porous, but a container that boils.",
+   "capabilities": [
+    "boiling",
+    "storage",
+    "fermentation vessel"
+   ],
+   "entitiesRequiringIt": [
+    "recipe.pottery_firing"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "beekeeping",
+    "fermentation_fruit",
+    "fermentation_grain",
+    "kiln_updraft",
+    "milking",
+    "nixtamalization",
+    "potters_wheel_fast",
+    "salt_extraction",
+    "stamp_seal",
+    "sugar_refining",
+    "water_clock"
+   ]
+  },
+  {
+   "id": "kiln_updraft",
+   "key": 48,
+   "name": "Updraft kiln",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~6,000 BCE Yarim Tepe (Halaf)",
+   "cost": 4180.0,
+   "prereq": "pottery_open_fired AND mudbrick",
+   "inRuntime": true,
+   "desc": "Enclosed firing chamber with a firebox below — >900°C, controlled atmosphere. The thermal precondition for smelting.",
+   "capabilities": [
+    "high-fired ceramics",
+    "reducing atmosphere",
+    "glaze (later)"
+   ],
+   "entitiesRequiringIt": [
+    "building.kiln"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "bellows",
+    "copper_smelting",
+    "fired_brick",
+    "glass_glaze",
+    "iron_bloomery",
+    "movable_type_ceramic",
+    "portland_cement",
+    "wootz"
+   ]
+  },
+  {
+   "id": "potters_wheel_fast",
+   "key": 49,
+   "name": "Fast wheel (throwing)",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~3,500 BCE Uruk",
+   "cost": 440.0,
+   "prereq": "pottery_open_fired",
+   "inRuntime": true,
+   "desc": "Flywheel-momentum wheel permitting thrown pottery — mass production, a specialist craft.",
+   "capabilities": [
+    "pottery at scale",
+    "standardised wares (bevel-rim bowls)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "copper_native",
+   "key": 63,
+   "name": "Native copper working",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~8,700 BCE Çayönü; ~4,000 BCE Great Lakes",
+   "cost": 880.0,
+   "prereq": "ground_stone_early AND fire_making",
+   "inRuntime": true,
+   "desc": "Cold-hammering and annealing metallic copper nuggets — beads, awls. Not smelting.",
+   "capabilities": [
+    "metal ornament",
+    "small copper tools"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "copper_smelting",
+    "gold_silver_native"
+   ]
+  },
+  {
+   "id": "copper_smelting",
+   "key": 64,
+   "name": "Copper smelting",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~5,000 BCE Belovode (Serbia) and Anatolia",
+   "cost": 4180.0,
+   "prereq": "kiln_updraft AND (copper_native OR ochre_processing)",
+   "inRuntime": true,
+   "desc": "Reducing malachite/azurite to metal in a charcoal fire — the first extractive metallurgy.",
+   "capabilities": [
+    "cast copper tools",
+    "copper as trade good"
+   ],
+   "entitiesRequiringIt": [
+    "building.smithy"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "alchemy",
+    "arsenical_bronze",
+    "ashlar_masonry",
+    "brass_calamine",
+    "casting_open",
+    "cupellation",
+    "mining_shaft",
+    "ore_prospecting",
+    "plank_boat"
+   ]
+  },
+  {
+   "id": "casting_open",
+   "key": 66,
+   "name": "Open-mould casting",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~5,000 BCE",
+   "cost": 740.0,
+   "prereq": "copper_smelting",
+   "inRuntime": true,
+   "desc": "Pouring molten copper into a one-piece stone mould — axes, blades.",
+   "capabilities": [
+    "cast copper axes"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cast_iron",
+    "casting_closed",
+    "lost_wax"
+   ]
+  },
+  {
+   "id": "gold_silver_native",
+   "key": 67,
+   "name": "Native gold and silver",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~4,500 BCE Varna",
+   "cost": 440.0,
+   "prereq": "copper_native",
+   "inRuntime": true,
+   "desc": "Working native gold and silver — ornament, then value store.",
+   "capabilities": [
+    "prestige goods",
+    "proto-currency"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cupellation"
+   ]
+  },
+  {
+   "id": "arsenical_bronze",
+   "key": 80,
+   "name": "Arsenical bronze",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~4,000 BCE Caucasus, Anatolia, Iran",
+   "cost": 1050.0,
+   "prereq": "copper_smelting",
+   "inRuntime": true,
+   "desc": "Copper smelted from arsenic-bearing ores — harder than copper, castable, and NEEDS NO TIN. Most early \"bronze\" was this.",
+   "capabilities": [
+    "harder tools and weapons without tin trade",
+    "arsenic poisoning of smiths"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "tin_bronze",
+   "key": 81,
+   "name": "Tin bronze",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~3,300 BCE Mesopotamia/Anatolia; Vinča possibly ~4,650 BCE",
+   "cost": 7030.0,
+   "prereq": "ore_prospecting",
+   "inRuntime": true,
+   "desc": "Copper alloyed with ~10% tin — superior, reproducible, but tin sources are rare and distant.",
+   "capabilities": [
+    "standardised alloy",
+    "long-distance tin trade dependency",
+    "Bronze weapons",
+    "Bronze armour"
+   ],
+   "entitiesRequiringIt": [
+    "recipe.bronze_casting"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "casting_closed",
+    "sheet_metal"
+   ]
+  },
+  {
+   "id": "casting_closed",
+   "key": 82,
+   "name": "Two-piece and closed-mould casting",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~3,000 BCE",
+   "cost": 4180.0,
+   "prereq": "casting_open AND tin_bronze",
+   "inRuntime": true,
+   "desc": "Bivalve moulds for symmetrical objects — socketed axes, spearheads.",
+   "capabilities": [
+    "socketed tools",
+    "complex shapes"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cannon_cast_bronze",
+    "cannon_early",
+    "crossbow",
+    "gearing",
+    "movable_type_metal",
+    "naval_ram",
+    "surgery_instruments",
+    "type_founding",
+    "wheel_spoked"
+   ]
+  },
+  {
+   "id": "lost_wax",
+   "key": 83,
+   "name": "Lost-wax casting",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~4,000 BCE Mehrgarh (unalloyed copper amulet); ~3,700 BCE Nahal Mishmar; Indus ~2,500 BCE",
+   "cost": 1480.0,
+   "prereq": "casting_open",
+   "inRuntime": true,
+   "desc": "Wax model, clay investment, wax melted out, metal poured — any shape, one use.",
+   "capabilities": [
+    "statuary",
+    "complex vessels",
+    "fine ornament"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "sheet_metal",
+   "key": 84,
+   "name": "Sheet metalwork",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~2,500 BCE",
+   "cost": 1480.0,
+   "prereq": "tin_bronze",
+   "inRuntime": true,
+   "desc": "Hammering bronze into sheet — vessels, helmets, armour by raising and chasing.",
+   "capabilities": [
+    "bronze vessels",
+    "sheet armour"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "canning",
+    "distillation",
+    "plate_armour"
+   ]
+  },
+  {
+   "id": "mining_shaft",
+   "key": 85,
+   "name": "Shaft mining",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~4,000 BCE flint (Spiennes); ~2,000 BCE copper (Great Orme)",
+   "cost": 2960.0,
+   "prereq": "stone_dry AND copper_smelting",
+   "inRuntime": true,
+   "desc": "Vertical shafts and galleries following ore — Grimes Graves flint, Timna copper, Great Orme.",
+   "capabilities": [
+    "ore from depth",
+    "sustained metal supply"
+   ],
+   "entitiesRequiringIt": [
+    "activity.mining"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "aqueduct_tunnel",
+    "qanat"
+   ]
+  },
+  {
+   "id": "fired_brick",
+   "key": 102,
+   "name": "Fired brick",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~2,900 BCE Indus (Kot Diji); Mesopotamia ~2,500",
+   "cost": 4180.0,
+   "prereq": "kiln_updraft AND mudbrick",
+   "inRuntime": true,
+   "desc": "Kiln-fired bricks — waterproof, durable, standardised.",
+   "capabilities": [
+    "foundations",
+    "drains",
+    "baths",
+    "monumental work"
+   ],
+   "entitiesRequiringIt": [
+    "infra.sewer",
+    "infra.urban_drainage"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "planned_cities",
+    "sanitary_engineering",
+    "vault_dome"
+   ]
+  },
+  {
+   "id": "glass_glaze",
+   "key": 103,
+   "name": "Glaze and faience",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~4,000 BCE Egypt (faience); glaze ~3,500",
+   "cost": 2960.0,
+   "prereq": "kiln_updraft AND salt_extraction",
+   "inRuntime": true,
+   "desc": "Vitreous coatings and quartz-paste objects — the road to glass.",
+   "capabilities": [
+    "glazed ware",
+    "faience beads"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "glass_core"
+   ]
+  },
+  {
+   "id": "glass_core",
+   "key": 104,
+   "name": "Core-formed glass",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~1,600 BCE Mesopotamia, Egypt",
+   "cost": 1480.0,
+   "prereq": "glass_glaze",
+   "inRuntime": true,
+   "desc": "Glass vessels formed around a removable core — the first glassware.",
+   "capabilities": [
+    "glass vessels",
+    "luxury export"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "glass_blown_precursor"
+   ]
+  },
+  {
+   "id": "iron_bloomery",
+   "key": 110,
+   "name": "Bloomery iron",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~1,800 BCE Anatolia; ~1,200 BCE widespread; ~1,000 BCE Sub-Saharan; ~1,200 BCE India",
+   "cost": 11830.0,
+   "prereq": "charcoal AND kiln_updraft",
+   "inRuntime": true,
+   "desc": "Reducing iron ore to a spongy bloom below melting point, then consolidating by hammering. Ore is everywhere; tin is not.",
+   "capabilities": [
+    "iron tools and weapons",
+    "metal without long-distance trade",
+    "Iron agricultural tools",
+    "Iron fastenings"
+   ],
+   "entitiesRequiringIt": [
+    "building.smithy"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "blast_furnace_water",
+    "cannon_early",
+    "cast_iron",
+    "compass_magnetic",
+    "glass_blowing",
+    "heavy_plough",
+    "horseshoe",
+    "percussion_drilling",
+    "steel_carburized",
+    "stirrup",
+    "wire_drawing"
+   ]
+  },
+  {
+   "id": "steel_carburized",
+   "key": 112,
+   "name": "Carburized steel",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~1,200 BCE Cyprus, Anatolia",
+   "cost": 4970.0,
+   "prereq": "iron_bloomery",
+   "inRuntime": true,
+   "desc": "Prolonged heating of wrought iron in charcoal, absorbing carbon — hardened edges.",
+   "capabilities": [
+    "hard edges",
+    "blades better than bronze"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "bicycle",
+    "pattern_welding",
+    "quenching",
+    "wootz"
+   ]
+  },
+  {
+   "id": "quenching",
+   "key": 113,
+   "name": "Quench hardening",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~1,100 BCE Cyprus (Idalion knife)",
+   "cost": 2490.0,
+   "prereq": "steel_carburized",
+   "inRuntime": true,
+   "desc": "Rapid cooling of carburized steel — martensite. Brittle unless tempered.",
+   "capabilities": [
+    "very hard edges"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "tempering"
+   ]
+  },
+  {
+   "id": "tempering",
+   "key": 114,
+   "name": "Tempering",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~500 BCE Noricum, La Tène",
+   "cost": 2490.0,
+   "prereq": "quenching",
+   "inRuntime": true,
+   "desc": "Reheating quenched steel to reduce brittleness — the full heat-treatment cycle.",
+   "capabilities": [
+    "tough AND hard blades",
+    "Noric steel"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "plate_armour"
+   ]
+  },
+  {
+   "id": "wootz",
+   "key": 115,
+   "name": "Wootz crucible steel",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~300 BCE South India and Sri Lanka (Kodumanal, Mel-siruvalur, Tissamaharama); 8th-12th c. CE Central Asia (Merv, Akhsiket)",
+   "cost": 2490.0,
+   "prereq": "steel_carburized AND kiln_updraft",
+   "inRuntime": true,
+   "desc": "Iron and carbon fused in a sealed crucible — homogeneous high-carbon steel. India, ~500 BCE. The Damascus blade source.",
+   "capabilities": [
+    "superior blades",
+    "Damascus steel (via export)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "pattern_welding",
+   "key": 116,
+   "name": "Pattern welding",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~300 BCE La Tène",
+   "cost": 2490.0,
+   "prereq": "steel_carburized",
+   "inRuntime": true,
+   "desc": "Forge-welding strips of iron and steel — combining toughness and hardness in one blade.",
+   "capabilities": [
+    "composite blades"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "glass_blown_precursor",
+   "key": 137,
+   "name": "Cast and mosaic glass",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~700 BCE Assyria, Phoenicia",
+   "cost": 2090.0,
+   "prereq": "glass_core",
+   "inRuntime": true,
+   "desc": "Glass cast in moulds; millefiori — luxury vessels before blowing.",
+   "capabilities": [
+    "cast bowls",
+    "mosaic glass"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "glass_blowing"
+   ]
+  },
+  {
+   "id": "concrete_pozzolan",
+   "key": 148,
+   "name": "Hydraulic concrete",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~300 BCE Campania",
+   "cost": 8360.0,
+   "prereq": "lime_plaster",
+   "inRuntime": true,
+   "desc": "Lime + volcanic ash + aggregate — sets underwater, strengthens with age. Opus caementicium.",
+   "capabilities": [
+    "domes",
+    "harbour moles",
+    "vaults at scale"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "bridge_stone",
+    "portland_cement",
+    "vault_dome"
+   ]
+  },
+  {
+   "id": "glass_blowing",
+   "key": 153,
+   "name": "Glassblowing",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~50 BCE Syro-Palestine",
+   "cost": 8360.0,
+   "prereq": "glass_blown_precursor AND iron_bloomery",
+   "inRuntime": true,
+   "desc": "Inflating molten glass on a blowpipe — cheap glass vessels for everyone.",
+   "capabilities": [
+    "mass glassware",
+    "window glass (later)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "barometer_vacuum",
+    "canning",
+    "distillation",
+    "glass_lead",
+    "optics_ibn_haytham",
+    "window_glass"
+   ]
+  },
+  {
+   "id": "window_glass",
+   "key": 154,
+   "name": "Window glass",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~100 CE Rome (Pompeii)",
+   "cost": 2960.0,
+   "prereq": "glass_blowing",
+   "inRuntime": true,
+   "desc": "Cast glass panes — light without cold.",
+   "capabilities": [
+    "glazed windows",
+    "baths, villas"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "spectacles"
+   ]
+  },
+  {
+   "id": "cast_iron",
+   "key": 155,
+   "name": "Cast iron",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~500 BCE China",
+   "cost": 16730.0,
+   "prereq": "iron_bloomery AND bellows AND casting_open",
+   "inRuntime": true,
+   "desc": "Iron fully melted and poured — needs >1,150°C. China 1,500 years before Europe.",
+   "capabilities": [
+    "mass-cast tools",
+    "cast cookware",
+    "cast ploughshares"
+   ],
+   "entitiesRequiringIt": [
+    "building.blast_furnace"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "iron_mouldboard",
+    "seed_drill",
+    "steam_atmospheric"
+   ]
+  },
+  {
+   "id": "lacquer",
+   "key": 163,
+   "name": "Lacquerware",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~5,000 BCE China (earliest); industry by Han",
+   "cost": 310.0,
+   "prereq": "adhesive_natural",
+   "inRuntime": true,
+   "desc": "Tree-sap coating, layered and cured — waterproof, durable, decorative.",
+   "capabilities": [
+    "waterproof vessels",
+    "luxury goods"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "spectacles",
+   "key": 207,
+   "name": "Spectacles",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "~1,286 CE Pisa",
+   "cost": 4970.0,
+   "prereq": "optics_ibn_haytham AND window_glass",
+   "inRuntime": true,
+   "desc": "Ground lenses correcting vision — extends the working life of every literate craftsman.",
+   "capabilities": [
+    "corrected vision",
+    "telescope (later)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "microscope",
+    "telescope"
+   ]
+  },
+  {
+   "id": "blast_furnace_water",
+   "key": 210,
+   "name": "Water-powered blast furnace",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "~1,150 CE Lapphyttan; widespread 1,400",
+   "cost": 7030.0,
+   "prereq": "iron_bloomery AND crank_connecting_rod AND bellows",
+   "inRuntime": true,
+   "desc": "Waterwheel bellows raising furnace to cast-iron temperature — Europe's belated cast iron.",
+   "capabilities": [
+    "cast iron in Europe",
+    "cannon casting"
+   ],
+   "entitiesRequiringIt": [
+    "building.blast_furnace"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cannon_cast_iron",
+    "coke"
+   ]
+  },
+  {
+   "id": "wire_drawing",
+   "key": 211,
+   "name": "Wire drawing",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "~1,000 CE (water-powered ~1,350)",
+   "cost": 8360.0,
+   "prereq": "iron_bloomery AND crank_connecting_rod",
+   "inRuntime": true,
+   "desc": "Pulling metal through dies — uniform wire for mail, needles, later everything electrical.",
+   "capabilities": [
+    "mail armour",
+    "pins",
+    "cards for wool"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cotton_gin_saw",
+    "telegraph"
+   ]
+  },
+  {
+   "id": "coke",
+   "key": 238,
+   "name": "Coke smelting",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1709 CE Coalbrookdale",
+   "cost": 14070.0,
+   "prereq": "blast_furnace_water",
+   "inRuntime": true,
+   "desc": "Coal coked to replace charcoal in the blast furnace — iron freed from forests. Darby 1709.",
+   "capabilities": [
+    "iron at industrial scale",
+    "cheap cast iron"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "hot_blast",
+    "puddling",
+    "structural_iron",
+    "synthetic_dye"
+   ]
+  },
+  {
+   "id": "brass_calamine",
+   "key": 239,
+   "name": "Brass by cementation",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1st c. BCE (Roman cementation brass); industrial ~1550 CE",
+   "cost": 3520.0,
+   "prereq": "copper_smelting",
+   "inRuntime": true,
+   "desc": "Copper heated with zinc ore — brass for instruments, wire, gun fittings.",
+   "capabilities": [
+    "scientific instruments",
+    "precision parts"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "glass_lead",
+   "key": 246,
+   "name": "Lead crystal",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1674 CE",
+   "cost": 7030.0,
+   "prereq": "glass_blowing",
+   "inRuntime": true,
+   "desc": "Ravenscroft 1674 — clear, workable, refractive glass for optics and tableware.",
+   "capabilities": [
+    "optical glass",
+    "fine tableware"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fibre_optics",
+    "photography"
+   ]
+  },
+  {
+   "id": "puddling",
+   "key": 252,
+   "name": "Puddling and rolling",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1784 CE",
+   "cost": 14070.0,
+   "prereq": "coke AND steam_rotary",
+   "inRuntime": true,
+   "desc": "Cort 1784 — cast iron to wrought in a reverberatory furnace with coal; rolled to bar. Malleable iron at scale.",
+   "capabilities": [
+    "wrought iron ×15 cheaper",
+    "rails",
+    "structural iron"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "bessemer",
+    "iron_hull",
+    "railway",
+    "rifled_artillery",
+    "steam_high_pressure"
+   ]
+  },
+  {
+   "id": "hot_blast",
+   "key": 253,
+   "name": "Hot blast",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1828 CE",
+   "cost": 9950.0,
+   "prereq": "coke",
+   "inRuntime": true,
+   "desc": "Neilson 1828 — preheating furnace air; fuel per ton of iron cut by two-thirds.",
+   "capabilities": [
+    "iron on poor coal"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "open_hearth"
+   ]
+  },
+  {
+   "id": "bessemer",
+   "key": 254,
+   "name": "Bessemer converter",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1856 CE",
+   "cost": 47310.0,
+   "prereq": "puddling",
+   "inRuntime": true,
+   "desc": "Air blown through molten pig — steel in tons, 20 minutes.",
+   "capabilities": [
+    "steel rails",
+    "structural steel",
+    "steel ships"
+   ],
+   "entitiesRequiringIt": [
+    "building.steelworks"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "basic_process",
+    "open_hearth",
+    "reinforced_concrete",
+    "skyscraper"
+   ]
+  },
+  {
+   "id": "open_hearth",
+   "key": 255,
+   "name": "Open-hearth steel",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1865 CE",
+   "cost": 23650.0,
+   "prereq": "bessemer AND hot_blast",
+   "inRuntime": true,
+   "desc": "Siemens-Martin 1865 — regenerative furnace, scrap and pig, controllable quality.",
+   "capabilities": [
+    "quality steel",
+    "scrap recycling"
+   ],
+   "entitiesRequiringIt": [
+    "building.steelworks"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "diesel",
+    "haber_bosch",
+    "steam_turbine",
+    "superalloy"
+   ]
+  },
+  {
+   "id": "basic_process",
+   "key": 256,
+   "name": "Basic (Gilchrist-Thomas) process",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1878 CE",
+   "cost": 11830.0,
+   "prereq": "bessemer",
+   "inRuntime": true,
+   "desc": "Lime-lined converter removing phosphorus — steel from the high-phosphorus ores of Lorraine and Ruhr.",
+   "capabilities": [
+    "steel from any ore",
+    "German industrial rise"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "tank"
+   ]
+  },
+  {
+   "id": "portland_cement",
+   "key": 279,
+   "name": "Portland cement",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1824 / 1845 CE",
+   "cost": 33450.0,
+   "prereq": "concrete_pozzolan AND kiln_updraft AND chemistry_quantitative",
+   "inRuntime": true,
+   "desc": "Aspdin 1824; Johnson 1845 — calcined limestone and clay; concrete without pozzolan, anywhere.",
+   "capabilities": [
+    "concrete everywhere"
+   ],
+   "entitiesRequiringIt": [
+    "building.cement_works"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "reinforced_concrete"
+   ]
+  },
+  {
+   "id": "aluminium",
+   "key": 306,
+   "name": "Aluminium by electrolysis",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1886 CE",
+   "cost": 47310.0,
+   "prereq": "electricity_generation AND soda_leblanc",
+   "inRuntime": true,
+   "desc": "Hall-Héroult 1886 — independently; a precious metal becomes a commodity via cheap electricity.",
+   "capabilities": [
+    "light structural metal",
+    "aircraft"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "aircraft_metal",
+    "graphite_reactor",
+    "rocket"
+   ]
+  },
+  {
+   "id": "superalloy",
+   "key": 307,
+   "name": "Superalloys",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "~1,940 CE",
+   "cost": 66910.0,
+   "prereq": "open_hearth AND metallography",
+   "inRuntime": true,
+   "desc": "Nickel-chromium alloys retaining strength at red heat — turbine blades.",
+   "capabilities": [
+    "jet engines",
+    "gas turbines"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "gas_turbine_power",
+    "jet_airliner"
+   ]
+  },
+  {
+   "id": "composites",
+   "key": 353,
+   "name": "Composite materials",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1930s fibreglass; 1960s carbon fibre",
+   "cost": 66910.0,
+   "prereq": "plastics",
+   "inRuntime": true,
+   "desc": "Fibre-reinforced polymers — strength and stiffness at low weight.",
+   "capabilities": [
+    "light strong structures",
+    "turbine blades",
+    "airframes"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "reusable_launch",
+    "stealth",
+    "wind_turbine_modern"
+   ]
+  },
+  {
+   "id": "nanotechnology",
+   "key": 408,
+   "name": "Nanoscale engineering",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1980s–2000s",
+   "cost": 66910.0,
+   "prereq": "cmos_vlsi AND quantum_mechanics",
+   "inRuntime": true,
+   "desc": "Engineering materials and devices at the scale of molecules.",
+   "capabilities": [
+    "nanomaterials",
+    "sub-100 nm fabrication"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "frontier_materials"
+   ]
+  },
+  {
+   "id": "asteroid_mining",
+   "key": 413,
+   "name": "Asteroid mining",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "speculative",
+   "cost": 39780.0,
+   "prereq": "reusable_launch AND space_probe",
+   "inRuntime": true,
+   "desc": "Extracting metals and water from near-Earth asteroids.",
+   "capabilities": [
+    "off-world resources"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "frontier_materials",
+   "key": 417,
+   "name": "Materials science",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "repeatable",
+   "cost": 8360.0,
+   "prereq": "nanotechnology",
+   "inRuntime": true,
+   "desc": "Each level lowers material inputs per unit of construction.",
+   "capabilities": [
+    "lighter, cheaper structures"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": true,
+   "dependents": []
+  },
+  {
+   "id": "cupellation",
+   "key": 429,
+   "name": "Silver refining by cupellation",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~3,600 BCE Tepe Sialk (Iran); ~3,300 BCE Habuba Kabira (Syria) and Fatmali-Kalecik (Anatolia) - litharge from cupellation",
+   "cost": 2090.0,
+   "prereq": "copper_smelting AND gold_silver_native",
+   "inRuntime": true,
+   "desc": "Separating silver from lead by burning the lead away in a hot hearth; the same fire assay tests gold and silver.",
+   "capabilities": [
+    "silver separated from argentiferous lead by oxidizing the lead to litharge",
+    "fire assay of gold and silver (cupellation at small scale)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "hacksilver"
+   ]
+  },
+  {
+   "id": "ore_prospecting",
+   "key": 431,
+   "name": "Ore prospecting",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "materials",
+   "branch": null,
+   "emerged": "~5,000 BCE (copper-ore veins located and worked at Rudna Glava, Vinca culture); ~3,000 BCE (cassiterite worked at Kestel-Goltepe, Taurus; debated)",
+   "cost": 1240.0,
+   "prereq": "copper_smelting",
+   "inRuntime": true,
+   "desc": "Reading the land for ore: coloured stains, weathered outcrops and stream placers that betray copper and tin.",
+   "capabilities": [
+    "surface indications of ore (colour stains, gossans) and placer working"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "mineralogy",
+    "tin_bronze"
+   ]
+  },
+  {
+   "id": "percussion_drilling",
+   "key": 436,
+   "name": "Deep percussion drilling",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "Song dynasty, 960-1279 CE (percussion-drilled brine and gas wells, Sichuan); 1835 CE Shenhai well, 1,001 m; 1859 CE Drake well (cable tool, Pennsylvania)",
+   "cost": 4970.0,
+   "prereq": "iron_bloomery AND well",
+   "inRuntime": true,
+   "desc": "Cased boreholes hammered hundreds of metres deep to reach brine and natural gas.",
+   "capabilities": [
+    "cased boreholes hundreds of metres deep for brine and natural gas",
+    "drilled wells reach fluids no shaft can (later petroleum)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "metallography",
+   "key": 452,
+   "name": "Metallography",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1863-1865 CE Sheffield (Sorby: etched steel under reflected-light microscopy); 1877-1900 CE Martens, Osmond, Le Chatelier, Roberts-Austen (iron-carbon diagram)",
+   "cost": 14060.0,
+   "prereq": "microscope AND chemistry_quantitative",
+   "inRuntime": true,
+   "desc": "Reading the structure of metals under the microscope to explain hardening, tempering and alloys.",
+   "capabilities": [
+    "microstructure of metals read from polished and etched sections",
+    "iron-carbon constitution explains hardening, tempering and alloying"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "superalloy"
+   ]
+  },
+  {
+   "id": "uranium_milling",
+   "key": 487,
+   "name": "Radioactive ore processing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "materials",
+   "branch": "engineering",
+   "emerged": "1898-1902 CE (radium separated from Joachimsthal pitchblende residues); 1909-1913 CE (Joachimsthal radium works)",
+   "cost": 39780.0,
+   "prereq": "radioactivity AND sulphuric_acid",
+   "inRuntime": true,
+   "desc": "Processing radioactive ores — first for radium, then into uranium concentrate.",
+   "capabilities": [
+    "radium recovery from uranium ores",
+    "uranium milling to concentrate (yellowcake), and in-situ leaching of suitable sandstone ores"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "uranium_enrichment"
+   ]
+  }
+ ]
+}

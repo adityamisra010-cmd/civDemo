@@ -1,0 +1,1689 @@
+{
+ "group": "T4-engineering-energy",
+ "nodes": [
+  {
+   "id": "fire_making",
+   "key": 1,
+   "name": "Controlled-fire pyrotechnology",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "energy",
+   "branch": null,
+   "emerged": "~164 kya heat-treated silcrete (Pinnacle Point); routine by ~70 kya",
+   "cost": 1050.0,
+   "prereq": null,
+   "inRuntime": true,
+   "desc": "Advanced, deliberate use of controlled fire — sustained managed hearths and earth ovens, heat treatment of stone, planned landscape burning. Fire itself (making, keeping, cooking) is baseline and needs no research (D-047 ruling 2).",
+   "capabilities": [
+    "sustained high-temperature managed hearths",
+    "heat treatment of stone and wood"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "birch_tar",
+    "copper_native",
+    "dugout",
+    "heat_treatment_stone",
+    "lamp",
+    "lime_plaster",
+    "token_counting"
+   ]
+  },
+  {
+   "id": "lamp",
+   "key": 27,
+   "name": "Oil lamp",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "energy",
+   "branch": null,
+   "emerged": "~17 kya Lascaux",
+   "cost": 180.0,
+   "prereq": "fire_making",
+   "inRuntime": true,
+   "desc": "Stone lamp burning animal fat with a moss wick — light in caves.",
+   "capabilities": [
+    "deep cave use",
+    "night work"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "charcoal",
+   "key": 65,
+   "name": "Charcoal making",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "energy",
+   "branch": null,
+   "emerged": "~5,500 BCE with smelting",
+   "cost": 1050.0,
+   "prereq": "birch_tar AND ground_stone_early",
+   "inRuntime": true,
+   "desc": "Pyrolysing wood in a covered pile — a fuel hot enough for metallurgy.",
+   "capabilities": [
+    "smelting fuel",
+    "higher kiln temperatures"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "iron_bloomery"
+   ]
+  },
+  {
+   "id": "bellows",
+   "key": 111,
+   "name": "Bellows",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "energy",
+   "branch": null,
+   "emerged": "~1,500 BCE (depicted in Egyptian tombs)",
+   "cost": 2960.0,
+   "prereq": "hide_working AND kiln_updraft",
+   "inRuntime": true,
+   "desc": "Forced draught — leather bag or piston — raising furnace temperature.",
+   "capabilities": [
+    "hotter furnaces",
+    "iron smelting feasible"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "blast_furnace_water",
+    "cast_iron"
+   ]
+  },
+  {
+   "id": "water_mill",
+   "key": 145,
+   "name": "Water mill",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "energy",
+   "branch": null,
+   "emerged": "~300 BCE Perachora (Greece); Roman ~100 BCE; China ~100 CE independently",
+   "cost": 11830.0,
+   "prereq": "rotary_quern",
+   "inRuntime": true,
+   "desc": "Flowing water turning a millstone — the first non-muscle prime mover.",
+   "capabilities": [
+    "milling without human labour",
+    "the energy resource type of ADR-019 §5"
+   ],
+   "entitiesRequiringIt": [
+    "building.paper_mill",
+    "building.water_mill"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "crank_connecting_rod",
+    "cylinder_boring",
+    "power_loom",
+    "trip_hammer",
+    "water_frame",
+    "water_turbine",
+    "windmill_post",
+    "windmill_vertical"
+   ]
+  },
+  {
+   "id": "trip_hammer",
+   "key": 146,
+   "name": "Water-powered trip hammer",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "energy",
+   "branch": null,
+   "emerged": "~40 BCE China (Han)",
+   "cost": 1760.0,
+   "prereq": "water_mill",
+   "inRuntime": true,
+   "desc": "Cam-driven hammer for hulling rice, crushing ore, fulling — China first.",
+   "capabilities": [
+    "mechanised processing",
+    "ore crushing"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fulling_mill"
+   ]
+  },
+  {
+   "id": "windmill_vertical",
+   "key": 180,
+   "name": "Vertical-axis windmill",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "energy",
+   "branch": null,
+   "emerged": "~700 CE Sistan",
+   "cost": 2090.0,
+   "prereq": "water_mill",
+   "inRuntime": true,
+   "desc": "Persian panemone — wind power for grain and water.",
+   "capabilities": [
+    "milling in windy arid land"
+   ],
+   "entitiesRequiringIt": [
+    "building.windmill"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "windmill_post",
+   "key": 181,
+   "name": "Post mill",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "energy",
+   "branch": null,
+   "emerged": "~1,180 CE England, Flanders",
+   "cost": 4970.0,
+   "prereq": "water_mill AND sail_square",
+   "inRuntime": true,
+   "desc": "Horizontal-axis European mill turning to face the wind — independent of the Persian type.",
+   "capabilities": [
+    "power without river head",
+    "drainage (Netherlands)"
+   ],
+   "entitiesRequiringIt": [
+    "building.windmill"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "steam_atmospheric",
+   "key": 237,
+   "name": "Atmospheric steam engine",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1712 CE",
+   "cost": 23650.0,
+   "prereq": "barometer_vacuum AND cast_iron",
+   "inRuntime": true,
+   "desc": "Newcomen 1712 — steam condensed to make a vacuum, atmosphere pushes the piston. Mine drainage.",
+   "capabilities": [
+    "mine drainage",
+    "coal mining at depth"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "steam_separate_condenser"
+   ]
+  },
+  {
+   "id": "steam_separate_condenser",
+   "key": 248,
+   "name": "Separate condenser",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1769 CE",
+   "cost": 5910.0,
+   "prereq": "steam_atmospheric AND barometer_vacuum",
+   "inRuntime": true,
+   "desc": "Watt 1769 — condensing outside the cylinder, quadrupling fuel efficiency.",
+   "capabilities": [
+    "economic steam power away from coalfields"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "steam_rotary",
+    "thermodynamics"
+   ]
+  },
+  {
+   "id": "steam_rotary",
+   "key": 250,
+   "name": "Rotary steam engine",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1781 CE",
+   "cost": 133810.0,
+   "prereq": "steam_separate_condenser AND cylinder_boring AND crank_connecting_rod",
+   "inRuntime": true,
+   "desc": "Sun-and-planet gear, double-acting — a general prime mover for factories.",
+   "capabilities": [
+    "factory power anywhere",
+    "mills off the rivers"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "dynamo",
+    "gas_engine",
+    "power_loom",
+    "puddling",
+    "refrigeration",
+    "sanitary_engineering",
+    "steam_high_pressure",
+    "steamboat"
+   ]
+  },
+  {
+   "id": "steam_high_pressure",
+   "key": 251,
+   "name": "High-pressure steam",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1804 CE",
+   "cost": 5910.0,
+   "prereq": "steam_rotary AND puddling",
+   "inRuntime": true,
+   "desc": "Trevithick 1804 — compact, powerful, portable. Locomotion becomes possible.",
+   "capabilities": [
+    "locomotive",
+    "steamboat",
+    "portable engine"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "heavy_water_reactor",
+    "light_water_reactor",
+    "locomotive",
+    "steam_turbine"
+   ]
+  },
+  {
+   "id": "dynamo",
+   "key": 286,
+   "name": "Dynamo",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1867 CE",
+   "cost": 16730.0,
+   "prereq": "electromagnetism AND steam_rotary",
+   "inRuntime": true,
+   "desc": "Self-excited generator — Siemens, Wheatstone 1867; Gramme 1871 practical.",
+   "capabilities": [
+    "electricity as a produced CAPACITY"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "electric_light",
+    "electricity_generation"
+   ]
+  },
+  {
+   "id": "electric_light",
+   "key": 287,
+   "name": "Incandescent lamp",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1879 CE",
+   "cost": 8360.0,
+   "prereq": "dynamo AND barometer_vacuum",
+   "inRuntime": true,
+   "desc": "Swan/Edison 1879 — practical indoor light; the demand that built the grid.",
+   "capabilities": [
+    "night work",
+    "urban lighting demand"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "electricity_generation",
+    "vacuum_tube"
+   ]
+  },
+  {
+   "id": "electricity_generation",
+   "key": 288,
+   "name": "Central power station and grid",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1882 CE",
+   "cost": 47310.0,
+   "prereq": "dynamo AND electric_light AND electromagnetism",
+   "inRuntime": true,
+   "desc": "Pearl Street 1882 (DC); AC transmission 1886-96 (Tesla, Westinghouse) — power at a distance.",
+   "capabilities": [
+    "electricity as CAPACITY (ADR-019 §5)",
+    "electric motors",
+    "all of the 20th century"
+   ],
+   "entitiesRequiringIt": [
+    "building.power_station",
+    "infra.power_grid"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "ac_transmission",
+    "aluminium",
+    "desalination",
+    "electric_motor",
+    "gas_turbine_power",
+    "nuclear_power"
+   ]
+  },
+  {
+   "id": "electric_motor",
+   "key": 289,
+   "name": "Electric motor",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "~1,885 CE",
+   "cost": 23650.0,
+   "prereq": "electricity_generation",
+   "inRuntime": true,
+   "desc": "Practical motors 1880s — power distributed to each machine; the factory rearranged.",
+   "capabilities": [
+    "unit drive",
+    "electric traction"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "electric_traction",
+    "electric_vehicle",
+    "skyscraper",
+    "submarine"
+   ]
+  },
+  {
+   "id": "internal_combustion",
+   "key": 291,
+   "name": "High-speed petrol engine",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1883-1886 CE (Daimler and Maybach, Cannstatt; Benz, Mannheim - independently)",
+   "cost": 47310.0,
+   "prereq": "gas_engine AND petroleum_refining",
+   "inRuntime": true,
+   "desc": "Daimler and Benz 1885-86 — a light, fast-running petrol engine: portable power for vehicles.",
+   "capabilities": [
+    "motor vehicle",
+    "aircraft (next)",
+    "tank (next)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "aircraft",
+    "automobile_mass",
+    "mechanised_agriculture",
+    "rocket",
+    "submarine",
+    "tank"
+   ]
+  },
+  {
+   "id": "jet_engine",
+   "key": 301,
+   "name": "Turbojet",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1939 CE",
+   "cost": 11830.0,
+   "prereq": "aircraft_metal AND steam_turbine",
+   "inRuntime": true,
+   "desc": "Whittle 1937 / von Ohain 1939 — independently. Speed beyond propellers.",
+   "capabilities": [
+    "jet aircraft",
+    "global air travel"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "gas_turbine_power",
+    "jet_airliner"
+   ]
+  },
+  {
+   "id": "steam_turbine",
+   "key": 302,
+   "name": "Steam turbine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1884 CE",
+   "cost": 66900.0,
+   "prereq": "steam_high_pressure AND open_hearth AND thermodynamics",
+   "inRuntime": true,
+   "desc": "Parsons 1884 — rotary steam at high speed; power stations and warships.",
+   "capabilities": [
+    "efficient generation",
+    "Dreadnought speed"
+   ],
+   "entitiesRequiringIt": [
+    "unit.aircraft_carrier"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "jet_engine",
+    "nuclear_power"
+   ]
+  },
+  {
+   "id": "diesel",
+   "key": 305,
+   "name": "Diesel engine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1897 CE",
+   "cost": 47310.0,
+   "prereq": "gas_engine AND open_hearth AND thermodynamics",
+   "inRuntime": true,
+   "desc": "Diesel 1897 — compression ignition; efficient heavy power for ships, trucks, locomotives.",
+   "capabilities": [
+    "heavy transport",
+    "submarines",
+    "generators"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "container_shipping"
+   ]
+  },
+  {
+   "id": "computer",
+   "key": 315,
+   "name": "Stored-program computer",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1948 CE (Manchester Baby); 1949 CE (EDSAC, Cambridge)",
+   "cost": 267620.0,
+   "prereq": "programmable_computer AND radar",
+   "inRuntime": true,
+   "desc": "ENIAC 1945 (tube), EDSAC 1949 (stored program) — general-purpose calculation. Predates the transistor.",
+   "capabilities": [
+    "programmable computation",
+    "ballistics, codebreaking, then everything"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "crewed_spaceflight",
+    "data_protection",
+    "genome_sequencing",
+    "guided_munitions",
+    "icbm",
+    "internet",
+    "medical_imaging",
+    "microprocessor",
+    "numerical_control",
+    "programming_languages",
+    "satellite",
+    "space_probe",
+    "stealth",
+    "weather_prediction"
+   ]
+  },
+  {
+   "id": "transistor",
+   "key": 316,
+   "name": "Transistor",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1947 CE",
+   "cost": 133810.0,
+   "prereq": "vacuum_tube AND semiconductor_physics",
+   "inRuntime": true,
+   "desc": "Bell Labs 1947 — solid-state switch; replaces the tube.",
+   "capabilities": [
+    "reliable small electronics"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "integrated_circuit",
+    "satellite",
+    "solar_pv"
+   ]
+  },
+  {
+   "id": "integrated_circuit",
+   "key": 317,
+   "name": "Integrated circuit",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1959 CE",
+   "cost": 267620.0,
+   "prereq": "transistor AND photography",
+   "inRuntime": true,
+   "desc": "Kilby 1958, Noyce 1959 — independently; many transistors on one die. Moore's law.",
+   "capabilities": [
+    "cheap computation",
+    "the microprocessor"
+   ],
+   "entitiesRequiringIt": [
+    "building.semiconductor_fab"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "internet",
+    "lunar_flight",
+    "microprocessor"
+   ]
+  },
+  {
+   "id": "microprocessor",
+   "key": 318,
+   "name": "Microprocessor",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1971 CE",
+   "cost": 133810.0,
+   "prereq": "integrated_circuit AND computer",
+   "inRuntime": true,
+   "desc": "Intel 4004 1971 — a CPU on one chip; the personal computer.",
+   "capabilities": [
+    "personal computing",
+    "embedded control everywhere"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cmos_vlsi",
+    "combat_drone",
+    "gps",
+    "mobile_phone"
+   ]
+  },
+  {
+   "id": "nuclear_power",
+   "key": 322,
+   "name": "Nuclear power-plant engineering",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1954 CE",
+   "cost": 66900.0,
+   "prereq": "(graphite_reactor OR heavy_water_reactor OR light_water_reactor OR fast_breeder_reactor) AND steam_turbine AND electricity_generation",
+   "inRuntime": true,
+   "desc": "Obninsk 1954, Calder Hall 1956 — engineering a reactor's heat into steam and electricity for the grid.",
+   "capabilities": [
+    "baseload electricity without fuel imports"
+   ],
+   "entitiesRequiringIt": [
+    "building.nuclear_power_station"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "hydroelectric",
+   "key": 340,
+   "name": "Hydroelectric dam",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1895 CE",
+   "cost": 23650.0,
+   "prereq": "ac_transmission AND reinforced_concrete AND water_turbine",
+   "inRuntime": true,
+   "desc": "Niagara 1895; Hoover 1936 — river head as grid capacity.",
+   "capabilities": [
+    "cheap electricity",
+    "aluminium (energy-gated)"
+   ],
+   "entitiesRequiringIt": [
+    "building.hydroelectric_dam"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "grid_storage"
+   ]
+  },
+  {
+   "id": "solar_pv",
+   "key": 346,
+   "name": "Photovoltaic cell",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1954 CE",
+   "cost": 94620.0,
+   "prereq": "semiconductor_physics AND transistor",
+   "inRuntime": true,
+   "desc": "Bell Labs 1954 — electricity from light; grid-competitive ~2015.",
+   "capabilities": [
+    "distributed generation",
+    "energy without fuel or river"
+   ],
+   "entitiesRequiringIt": [
+    "building.solar_farm"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "communications_satellite",
+    "frontier_energy",
+    "space_solar"
+   ]
+  },
+  {
+   "id": "lithium_battery",
+   "key": 347,
+   "name": "Lithium-ion battery",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1991 CE",
+   "cost": 94620.0,
+   "prereq": "chemistry_quantitative AND quantum_mechanics",
+   "inRuntime": true,
+   "desc": "Goodenough, Yoshino 1980s; commercial 1991 — portable and storable electricity.",
+   "capabilities": [
+    "portable electronics",
+    "electric vehicles",
+    "grid storage"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "electric_vehicle",
+    "grid_storage",
+    "smartphone"
+   ]
+  },
+  {
+   "id": "cmos_vlsi",
+   "key": 351,
+   "name": "Very-large-scale integration",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1970s–1980s",
+   "cost": 66910.0,
+   "prereq": "microprocessor",
+   "inRuntime": true,
+   "desc": "Hundreds of thousands, then billions, of transistors per chip — CMOS and VLSI design methods.",
+   "capabilities": [
+    "cheap abundant computation",
+    "embedded control everywhere"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cellular_digital",
+    "frontier_computation",
+    "gpu_parallel",
+    "nanotechnology",
+    "personal_computer",
+    "quantum_computing"
+   ]
+  },
+  {
+   "id": "gas_turbine_power",
+   "key": 354,
+   "name": "Combined-cycle gas turbine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1950s; combined cycle 1970s",
+   "cost": 66900.0,
+   "prereq": "jet_engine AND electricity_generation AND superalloy",
+   "inRuntime": true,
+   "desc": "Gas turbine generation with waste heat driving a steam cycle — highest thermal efficiency of fuel plants.",
+   "capabilities": [
+    "efficient dispatchable generation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "carbon_capture",
+    "frontier_energy"
+   ]
+  },
+  {
+   "id": "wind_turbine_modern",
+   "key": 355,
+   "name": "Modern wind turbine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1980s Denmark",
+   "cost": 47310.0,
+   "prereq": "composites AND ac_transmission",
+   "inRuntime": true,
+   "desc": "Three-bladed composite rotors feeding the grid.",
+   "capabilities": [
+    "generation capacity from wind"
+   ],
+   "entitiesRequiringIt": [
+    "building.wind_farm"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "grid_storage",
+   "key": 357,
+   "name": "Grid-scale energy storage",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1880s-1900s pumped storage (Switzerland, Italy); 2010s battery installations",
+   "cost": 33450.0,
+   "prereq": "ac_transmission AND (lithium_battery OR hydroelectric)",
+   "inRuntime": true,
+   "desc": "Large battery installations buffering generation against demand.",
+   "capabilities": [
+    "time-shifting generation",
+    "stability with intermittent sources"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "smart_grid",
+   "key": 358,
+   "name": "Smart grid",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "2000s",
+   "cost": 11830.0,
+   "prereq": "internet AND ac_transmission",
+   "inRuntime": true,
+   "desc": "Networked sensing and control of generation, transmission and demand.",
+   "capabilities": [
+    "demand response",
+    "distributed generation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "programming_languages",
+   "key": 359,
+   "name": "High-level programming languages",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1957 FORTRAN",
+   "cost": 11830.0,
+   "prereq": "computer",
+   "inRuntime": true,
+   "desc": "Compilers translating human-readable code — programs no longer written in machine code.",
+   "capabilities": [
+    "software at scale"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "machine_learning",
+    "operating_system",
+    "public_key_crypto",
+    "relational_database"
+   ]
+  },
+  {
+   "id": "operating_system",
+   "key": 360,
+   "name": "Operating system",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1960s–1970s",
+   "cost": 8360.0,
+   "prereq": "programming_languages",
+   "inRuntime": true,
+   "desc": "Software managing hardware and running many programs — Multics, Unix.",
+   "capabilities": [
+    "multi-user computing",
+    "software portability"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "personal_computer"
+   ]
+  },
+  {
+   "id": "relational_database",
+   "key": 361,
+   "name": "Relational database",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1970",
+   "cost": 11830.0,
+   "prereq": "programming_languages",
+   "inRuntime": true,
+   "desc": "Codd's relational model — structured query of large data.",
+   "capabilities": [
+    "administration at national scale",
+    "transaction systems"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cloud_computing"
+   ]
+  },
+  {
+   "id": "personal_computer",
+   "key": 362,
+   "name": "Personal computer",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1977",
+   "cost": 23650.0,
+   "prereq": "cmos_vlsi AND operating_system",
+   "inRuntime": true,
+   "desc": "General-purpose computer owned by individuals.",
+   "capabilities": [
+    "individual computing",
+    "office automation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "smartphone"
+   ]
+  },
+  {
+   "id": "public_key_crypto",
+   "key": 363,
+   "name": "Public-key cryptography",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1976",
+   "cost": 16730.0,
+   "prereq": "programming_languages",
+   "inRuntime": true,
+   "desc": "Asymmetric encryption — secure communication without a shared secret.",
+   "capabilities": [
+    "secure networks",
+    "digital signatures",
+    "e-commerce"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cyber_warfare"
+   ]
+  },
+  {
+   "id": "gpu_parallel",
+   "key": 364,
+   "name": "Parallel processors",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1999 GPU; 2007 general-purpose",
+   "cost": 8360.0,
+   "prereq": "cmos_vlsi",
+   "inRuntime": true,
+   "desc": "Massively parallel processors — graphics, then general computation.",
+   "capabilities": [
+    "large-scale numerical computation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "deep_learning"
+   ]
+  },
+  {
+   "id": "machine_learning",
+   "key": 365,
+   "name": "Machine learning",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1980s backpropagation",
+   "cost": 47310.0,
+   "prereq": "programming_languages AND probability_statistics",
+   "inRuntime": true,
+   "desc": "Models that learn from data — neural networks trained by backpropagation, statistical learning.",
+   "capabilities": [
+    "pattern recognition",
+    "prediction from data"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "deep_learning"
+   ]
+  },
+  {
+   "id": "deep_learning",
+   "key": 366,
+   "name": "Deep learning",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "2012",
+   "cost": 11830.0,
+   "prereq": "machine_learning AND gpu_parallel",
+   "inRuntime": true,
+   "desc": "Many-layered networks trained on GPUs — vision and speech at human level.",
+   "capabilities": [
+    "machine perception",
+    "automated translation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "large_language_models"
+   ]
+  },
+  {
+   "id": "large_language_models",
+   "key": 367,
+   "name": "Large language models",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "2017 transformer; 2020 scale",
+   "cost": 47310.0,
+   "prereq": "deep_learning AND internet",
+   "inRuntime": true,
+   "desc": "Transformer models trained on text at scale — general language capability.",
+   "capabilities": [
+    "machine-generated text and code",
+    "knowledge assistance"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "general_ai"
+   ]
+  },
+  {
+   "id": "cloud_computing",
+   "key": 368,
+   "name": "Cloud computing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "2006",
+   "cost": 16730.0,
+   "prereq": "internet AND relational_database",
+   "inRuntime": true,
+   "desc": "Computation and storage rented from networked data centres.",
+   "capabilities": [
+    "elastic computation",
+    "global services"
+   ],
+   "entitiesRequiringIt": [
+    "building.data_centre"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "smartphone",
+   "key": 369,
+   "name": "Smartphone",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "2007",
+   "cost": 23650.0,
+   "prereq": "cellular_digital AND personal_computer AND lithium_battery",
+   "inRuntime": true,
+   "desc": "A networked computer in every pocket.",
+   "capabilities": [
+    "ubiquitous computing",
+    "mobile internet"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "cyber_warfare",
+   "key": 370,
+   "name": "Cyber operations",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "2010 Stuxnet",
+   "cost": 16730.0,
+   "prereq": "internet AND public_key_crypto",
+   "inRuntime": true,
+   "desc": "Attack and defence of networked systems as a domain of conflict.",
+   "capabilities": [
+    "network attack and defence",
+    "infrastructure sabotage"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "frontier_cyber"
+   ]
+  },
+  {
+   "id": "quantum_computing",
+   "key": 371,
+   "name": "Quantum computing (early)",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "2019 demonstration",
+   "cost": 33450.0,
+   "prereq": "quantum_mechanics AND cmos_vlsi AND superconductivity_applied",
+   "inRuntime": true,
+   "desc": "Noisy intermediate-scale quantum processors — useful fault-tolerant machines not yet built.",
+   "capabilities": [
+    "quantum simulation (limited)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fault_tolerant_quantum"
+   ]
+  },
+  {
+   "id": "weather_prediction",
+   "key": 395,
+   "name": "Numerical weather prediction",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1950",
+   "cost": 11830.0,
+   "prereq": "computer AND radio",
+   "inRuntime": true,
+   "desc": "Forecasting weather by computing atmospheric equations.",
+   "capabilities": [
+    "harvest and disaster forecasting"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "climate_accords"
+   ]
+  },
+  {
+   "id": "fusion_power",
+   "key": 409,
+   "name": "Fusion power",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "speculative",
+   "cost": 94620.0,
+   "prereq": "nuclear_fusion_research",
+   "inRuntime": true,
+   "desc": "Net-energy commercial fusion generation.",
+   "capabilities": [
+    "baseload generation without fission fuel"
+   ],
+   "entitiesRequiringIt": [
+    "building.fusion_plant"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fusion_propulsion"
+   ]
+  },
+  {
+   "id": "fault_tolerant_quantum",
+   "key": 410,
+   "name": "Fault-tolerant quantum computing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "speculative",
+   "cost": 133810.0,
+   "prereq": "quantum_computing",
+   "inRuntime": true,
+   "desc": "Error-corrected quantum computers at useful scale.",
+   "capabilities": [
+    "quantum simulation of chemistry and materials"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "general_ai",
+   "key": 411,
+   "name": "General machine intelligence",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "speculative",
+   "cost": 133810.0,
+   "prereq": "large_language_models",
+   "inRuntime": true,
+   "desc": "Machine intelligence at or beyond human breadth.",
+   "capabilities": [
+    "automation of cognitive work"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "space_solar",
+   "key": 412,
+   "name": "Space-based solar power",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "speculative",
+   "cost": 66910.0,
+   "prereq": "solar_pv AND reusable_launch",
+   "inRuntime": true,
+   "desc": "Orbital solar collectors beaming power to the ground.",
+   "capabilities": [
+    "generation without land or night"
+   ],
+   "entitiesRequiringIt": [
+    "project.probe_acceleration"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "frontier_energy",
+   "key": 418,
+   "name": "Energy conversion",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "repeatable",
+   "cost": 23650.0,
+   "prereq": "solar_pv OR gas_turbine_power",
+   "inRuntime": true,
+   "desc": "Each level raises the efficiency of converting primary energy to electricity.",
+   "capabilities": [
+    "more generation per unit of fuel or sunlight"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": true,
+   "dependents": []
+  },
+  {
+   "id": "frontier_computation",
+   "key": 421,
+   "name": "Computation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "repeatable",
+   "cost": 11830.0,
+   "prereq": "cmos_vlsi",
+   "inRuntime": true,
+   "desc": "Each level raises computation per unit of energy — applied to automation and administration.",
+   "capabilities": [
+    "administration and automation efficiency"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": true,
+   "dependents": []
+  },
+  {
+   "id": "frontier_cyber",
+   "key": 423,
+   "name": "Cyber research",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "repeatable",
+   "cost": 8360.0,
+   "prereq": "cyber_warfare",
+   "inRuntime": true,
+   "desc": "Each level raises network offence and defence. RELATIVE, like military research.",
+   "capabilities": [
+    "information offence and defence relative to rivals"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": true,
+   "dependents": []
+  },
+  {
+   "id": "ac_transmission",
+   "key": 447,
+   "name": "AC power transmission",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1884-1885 CE closed-core transformer (Zipernowsky, Bláthy, Déri, Ganz works, Budapest); 1891 CE Lauffen-Frankfurt three-phase line; 1895-1896 CE Niagara-Buffalo",
+   "cost": 23650.0,
+   "prereq": "electricity_generation",
+   "inRuntime": true,
+   "desc": "Transformers and alternating current carry electric power over long high-voltage lines.",
+   "capabilities": [
+    "transformers and polyphase AC",
+    "high-voltage transmission over long distances"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "grid_storage",
+    "hydroelectric",
+    "smart_grid",
+    "wind_turbine_modern"
+   ]
+  },
+  {
+   "id": "gas_engine",
+   "key": 450,
+   "name": "Stationary gas engine",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1860 CE Lenoir gas engine (Paris); 1876 CE Otto four-stroke compression engine (Deutz)",
+   "cost": 56260.0,
+   "prereq": "steam_rotary AND chemistry_quantitative AND milling_machine",
+   "inRuntime": true,
+   "desc": "A stationary engine burning gas inside its cylinder — compact power for workshops without a boiler.",
+   "capabilities": [
+    "boiler-less stationary power for workshops (gas engines on town gas)",
+    "the four-stroke compression cycle"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "diesel",
+    "internal_combustion"
+   ]
+  },
+  {
+   "id": "water_turbine",
+   "key": 456,
+   "name": "Water turbine",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1827 CE Fourneyron (France); 1849 CE Francis (Lowell, Massachusetts); 1879 CE Pelton (California)",
+   "cost": 14060.0,
+   "prereq": "water_mill AND mechanics_newtonian",
+   "inRuntime": true,
+   "desc": "An efficient enclosed water wheel for high heads, later the driver of hydroelectric stations.",
+   "capabilities": [
+    "efficient water power at high heads (turbine-driven mills)",
+    "the prime mover of hydroelectric stations"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "hydroelectric"
+   ]
+  },
+  {
+   "id": "fast_breeder_reactor",
+   "key": 477,
+   "name": "Fast breeder reactors",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1951 CE (EBR-I, first usable nuclear electricity); 1980 CE (BN-600 on the grid)",
+   "cost": 94620.0,
+   "prereq": "reprocessing",
+   "inRuntime": true,
+   "desc": "Fast reactors that make more nuclear fuel than they burn. Knowledge only.",
+   "capabilities": [
+    "sodium-cooled fast reactors that breed more fissile material than they consume (closed fuel cycle)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "nuclear_power"
+   ]
+  },
+  {
+   "id": "geological_disposal",
+   "key": 478,
+   "name": "Geological waste disposal",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1957 CE (US National Academy of Sciences report recommends disposal in salt); 1999 CE (WIPP receives waste)",
+   "cost": 94620.0,
+   "prereq": "stratigraphy AND radiation_protection AND nuclear_fission",
+   "inRuntime": true,
+   "desc": "Isolating long-lived radioactive waste deep in stable rock. Knowledge only.",
+   "capabilities": [
+    "waste classes and long-term isolation in deep geological repositories"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "graphite_reactor",
+   "key": 479,
+   "name": "Graphite-moderated reactors",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1943 CE (X-10, Oak Ridge); 1944 CE (Hanford B); 1956 CE (Calder Hall, Magnox)",
+   "cost": 133810.0,
+   "prereq": "nuclear_fission AND aluminium",
+   "inRuntime": true,
+   "desc": "Reactors moderated by graphite and fuelled with natural uranium. Knowledge only.",
+   "capabilities": [
+    "graphite-moderated natural-uranium reactors - production piles (plutonium, isotopes) and power variants (Magnox; AGR with enriched fuel; RBMK-type)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "nuclear_power"
+   ]
+  },
+  {
+   "id": "heavy_water_reactor",
+   "key": 480,
+   "name": "Heavy-water reactors",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1945 CE (ZEEP, Chalk River); 1962 CE (NPD, the CANDU prototype)",
+   "cost": 94620.0,
+   "prereq": "nuclear_fission AND steam_high_pressure",
+   "inRuntime": true,
+   "desc": "Reactors moderated by heavy water and fuelled with natural uranium. Knowledge only.",
+   "capabilities": [
+    "heavy-water-moderated natural-uranium reactors refuelled on power (PHWR/CANDU) and heavy-water production"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "nuclear_power"
+   ]
+  },
+  {
+   "id": "light_water_reactor",
+   "key": 481,
+   "name": "Light-water reactors",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1953 CE (naval pressurised-water prototype and BORAX-I, Idaho); 1957 CE (Shippingport)",
+   "cost": 189240.0,
+   "prereq": "nuclear_fission AND uranium_enrichment AND steam_high_pressure",
+   "inRuntime": true,
+   "desc": "Pressurised- and boiling-water reactors running on enriched uranium. Knowledge only.",
+   "capabilities": [
+    "light-water reactors - pressurised (including compact naval cores) and boiling-water variants"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "nuclear_power",
+    "nuclear_submarine"
+   ]
+  },
+  {
+   "id": "programmable_computer",
+   "key": 483,
+   "name": "Programmable digital computer",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "engineering",
+   "branch": "engineering",
+   "emerged": "1941 CE Zuse Z3 (telephone relays, Berlin); 1943-1944 CE Colossus (valves, Post Office Dollis Hill and Bletchley Park); 1945 CE ENIAC (valves, Philadelphia)",
+   "cost": 267620.0,
+   "prereq": "(vacuum_tube OR automatic_switching) AND calculus",
+   "inRuntime": true,
+   "desc": "Machines that calculate automatically from a program set by switches, plugboards or tape.",
+   "capabilities": [
+    "automatic digital calculation (ballistic tables, codebreaking)",
+    "programs set by plugboards, switches or punched tape"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "computer"
+   ]
+  },
+  {
+   "id": "reprocessing",
+   "key": 485,
+   "name": "Spent-fuel reprocessing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1944 CE (plutonium separation at Hanford's T Plant, chemistry developed at X-10); 1956 CE (PUREX at Hanford)",
+   "cost": 133810.0,
+   "prereq": "nuclear_fission AND radiation_protection",
+   "inRuntime": true,
+   "desc": "Chemically recovering uranium and plutonium from spent reactor fuel. Knowledge only.",
+   "capabilities": [
+    "recovery of uranium and plutonium from spent fuel by solvent extraction (PUREX); MOX fuel - a proliferation-sensitive step"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fast_breeder_reactor",
+    "fission_weapon"
+   ]
+  },
+  {
+   "id": "uranium_enrichment",
+   "key": 486,
+   "name": "Uranium enrichment",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "energy",
+   "branch": "engineering",
+   "emerged": "1940 CE (separated U-235 sample, Nier); 1943-1945 CE (Y-12 electromagnetic and K-25 gaseous-diffusion plants)",
+   "cost": 189240.0,
+   "prereq": "nuclear_physics AND uranium_milling",
+   "inRuntime": true,
+   "desc": "Raising the share of fissile uranium-235 in uranium. Knowledge only.",
+   "capabilities": [
+    "conversion to UF6 and isotope enrichment (electromagnetic, gaseous diffusion; centrifuge as a later variant) - a proliferation-sensitive step"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fission_weapon",
+    "light_water_reactor"
+   ]
+  }
+ ]
+}

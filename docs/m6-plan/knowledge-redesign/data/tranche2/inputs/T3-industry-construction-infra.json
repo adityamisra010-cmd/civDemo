@@ -1,0 +1,1544 @@
+{
+ "group": "T3-industry-construction-infra",
+ "nodes": [
+  {
+   "id": "cordage",
+   "key": 12,
+   "name": "Cordage",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~50 kya Abri du Maras (direct); older inferred",
+   "cost": 1050.0,
+   "prereq": null,
+   "inRuntime": true,
+   "desc": "Twisting plant or animal fibre into string and rope.",
+   "capabilities": [
+    "binding",
+    "snares",
+    "nets",
+    "carrying"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "basketry",
+    "bow_simple",
+    "fishing_hook",
+    "hafting",
+    "paper",
+    "raft",
+    "sewing",
+    "shelter_hut",
+    "sling",
+    "spinning_spindle",
+    "wool"
+   ]
+  },
+  {
+   "id": "basketry",
+   "key": 13,
+   "name": "Basketry",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~27 kya Pavlov impressions; ~10 kya Guitarrero Cave",
+   "cost": 620.0,
+   "prereq": "cordage",
+   "inRuntime": true,
+   "desc": "Woven or coiled containers from plant material — the container before pottery.",
+   "capabilities": [
+    "carrying",
+    "storage",
+    "sieving",
+    "fish traps"
+   ],
+   "entitiesRequiringIt": [
+    "infra.fish_weir"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "papyrus",
+    "pottery_open_fired"
+   ]
+  },
+  {
+   "id": "shelter_hut",
+   "key": 17,
+   "name": "Framed hut",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "construction",
+   "branch": null,
+   "emerged": "~25 kya Mezhirich, Dolní Věstonice",
+   "cost": 260.0,
+   "prereq": "cordage",
+   "inRuntime": true,
+   "desc": "Durable dwelling on a frame — mammoth-bone, timber post, or turf — for seasonal occupation.",
+   "capabilities": [
+    "multi-season occupation",
+    "storage inside"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "timber_frame"
+   ]
+  },
+  {
+   "id": "hide_working",
+   "key": 18,
+   "name": "Hide working",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~100 kya (scrapers, ochre)",
+   "cost": 620.0,
+   "prereq": "knapping_levallois",
+   "inRuntime": true,
+   "desc": "Scraping, stretching, and softening animal skins into usable leather and fur.",
+   "capabilities": [
+    "clothing",
+    "containers",
+    "shelter covering"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "bellows",
+    "composite_bow",
+    "sewing",
+    "siege_ram"
+   ]
+  },
+  {
+   "id": "sewing",
+   "key": 19,
+   "name": "Eyed needle and sewing",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~50 kya Denisova; ~30 kya widespread",
+   "cost": 260.0,
+   "prereq": "hide_working AND cordage",
+   "inRuntime": true,
+   "desc": "Bone needles for fitted, sewn garments — cold-climate expansion enabler.",
+   "capabilities": [
+    "fitted clothing",
+    "tents",
+    "bags"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "collar_harness",
+    "saddle"
+   ]
+  },
+  {
+   "id": "wool",
+   "key": 45,
+   "name": "Wool sheep and fleece",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~4,000 BCE Near East",
+   "cost": 620.0,
+   "prereq": "sheep_goat AND cordage",
+   "inRuntime": true,
+   "desc": "Selection for fleece-bearing sheep — wool as a fibre.",
+   "capabilities": [
+    "wool fibre",
+    "textile without a fibre crop"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "spinning_spindle"
+   ]
+  },
+  {
+   "id": "mudbrick",
+   "key": 50,
+   "name": "Mudbrick",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "construction",
+   "branch": null,
+   "emerged": "~9,000 BCE Jericho; ~7,500 BCE Çatalhöyük",
+   "cost": 1050.0,
+   "prereq": null,
+   "inRuntime": true,
+   "desc": "Sun-dried clay bricks — modular, repairable, multi-storey.",
+   "capabilities": [
+    "permanent multi-room house",
+    "storehouse",
+    "wall"
+   ],
+   "entitiesRequiringIt": [
+    "building.city_wall"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "arch",
+    "fired_brick",
+    "kiln_updraft"
+   ]
+  },
+  {
+   "id": "lime_plaster",
+   "key": 51,
+   "name": "Lime plaster",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "construction",
+   "branch": null,
+   "emerged": "~10,000 BCE late Natufian Levant (Nahal Ein Gev II burial plaster); ~8,000 BCE PPNB floors and statues (Ain Ghazal, Yiftahel)",
+   "cost": 1240.0,
+   "prereq": "fire_making",
+   "inRuntime": true,
+   "desc": "Burning limestone to quicklime, slaking, applying — floors, walls, and the first chemically transformed building material.",
+   "capabilities": [
+    "waterproof floors",
+    "plastered walls",
+    "plaster statuary"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "concrete_pozzolan"
+   ]
+  },
+  {
+   "id": "timber_frame",
+   "key": 52,
+   "name": "Timber-frame construction",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "construction",
+   "branch": null,
+   "emerged": "~5,500 BCE LBK longhouses",
+   "cost": 880.0,
+   "prereq": "ground_stone_early AND shelter_hut",
+   "inRuntime": true,
+   "desc": "Post-and-beam structures — longhouses of the LBK, pile dwellings.",
+   "capabilities": [
+    "large roofed spaces",
+    "multi-family dwellings"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "canal_lock",
+    "loom_warp_weighted",
+    "track_road",
+    "traction_trebuchet",
+    "well"
+   ]
+  },
+  {
+   "id": "stone_dry",
+   "key": 53,
+   "name": "Dry-stone construction",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "construction",
+   "branch": null,
+   "emerged": "~10,000 BCE Göbekli Tepe; ~3,000 BCE Skara Brae",
+   "cost": 880.0,
+   "prereq": "ground_stone_early",
+   "inRuntime": true,
+   "desc": "Walls and structures of fitted unmortared stone.",
+   "capabilities": [
+    "durable walls",
+    "megaliths",
+    "terracing"
+   ],
+   "entitiesRequiringIt": [
+    "building.city_wall",
+    "building.harbour",
+    "infra.road_built"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "aqueduct_channel",
+    "ashlar_masonry",
+    "mining_shaft",
+    "oil_press",
+    "olive_press_beam",
+    "terrace",
+    "well"
+   ]
+  },
+  {
+   "id": "well",
+   "key": 54,
+   "name": "Dug well",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "infrastructure",
+   "branch": null,
+   "emerged": "~8,000 BCE Atlit-Yam (stone-lined); ~5,200 BCE LBK oak-lined wells (Saxony)",
+   "cost": 440.0,
+   "prereq": "stone_dry OR timber_frame",
+   "inRuntime": true,
+   "desc": "Excavated shaft to groundwater — settlement independent of surface water.",
+   "capabilities": [
+    "settlement away from rivers",
+    "reliable water in drought"
+   ],
+   "entitiesRequiringIt": [
+    "infra.well"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "percussion_drilling",
+    "qanat"
+   ]
+  },
+  {
+   "id": "spinning_spindle",
+   "key": 60,
+   "name": "Spindle spinning",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~6,000 BCE (spindle whorls)",
+   "cost": 620.0,
+   "prereq": "cordage AND (flax OR wool OR cotton_cultivation)",
+   "inRuntime": true,
+   "desc": "Drop spindle with whorl — continuous thread from fibre.",
+   "capabilities": [
+    "thread at volume"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "dyeing",
+    "loom_warp_weighted",
+    "spinning_wheel"
+   ]
+  },
+  {
+   "id": "loom_warp_weighted",
+   "key": 61,
+   "name": "Warp-weighted loom",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~7,000 BCE Çatalhöyük (textiles); loom weights ~5,500 BCE",
+   "cost": 2090.0,
+   "prereq": "spinning_spindle AND timber_frame",
+   "inRuntime": true,
+   "desc": "Vertical loom with weighted warps — wide cloth, complex weaves.",
+   "capabilities": [
+    "cloth",
+    "sailcloth (later)"
+   ],
+   "entitiesRequiringIt": [
+    "inst.textile_workshop"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fulling_mill",
+    "horizontal_loom",
+    "sail_square",
+    "silk"
+   ]
+  },
+  {
+   "id": "dyeing",
+   "key": 62,
+   "name": "Dyeing",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~4,000 BCE (dyed textiles); indigo ~4,000 BCE Peru",
+   "cost": 1240.0,
+   "prereq": "spinning_spindle AND ochre_processing",
+   "inRuntime": true,
+   "desc": "Colouring fibre with plant and mineral dyes — madder, woad, indigo, with mordants.",
+   "capabilities": [
+    "coloured cloth",
+    "status signalling",
+    "dye as trade good"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "synthetic_dye"
+   ]
+  },
+  {
+   "id": "irrigation_basin",
+   "key": 68,
+   "name": "Basin irrigation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "infrastructure",
+   "branch": null,
+   "emerged": "~5,000 BCE Egypt",
+   "cost": 440.0,
+   "prereq": "cereal_cultivation OR root_crop",
+   "inRuntime": true,
+   "desc": "Trapping floodwater in bunded basins — Nile and Indus mode.",
+   "capabilities": [
+    "cultivation on floodplain",
+    "predictable harvest from flood"
+   ],
+   "entitiesRequiringIt": [
+    "infra.basin_irrigation"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "drip_irrigation"
+   ]
+  },
+  {
+   "id": "irrigation_canal",
+   "key": 69,
+   "name": "Canal irrigation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "infrastructure",
+   "branch": null,
+   "emerged": "~6,000 BCE Samarra (Choga Mami)",
+   "cost": 1760.0,
+   "prereq": "cereal_cultivation OR root_crop",
+   "inRuntime": true,
+   "desc": "Diverting river water through dug channels — Mesopotamian mode. Requires levelling and maintenance.",
+   "capabilities": [
+    "cultivation beyond rainfall",
+    "arable extension",
+    "salinisation (long-run consequence)"
+   ],
+   "entitiesRequiringIt": [
+    "infra.canal_irrigation"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "canal_lock",
+    "drip_irrigation",
+    "green_revolution",
+    "noria",
+    "water_rights"
+   ]
+  },
+  {
+   "id": "stone_fortification",
+   "key": 126,
+   "name": "Ashlar fortification",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "construction",
+   "branch": null,
+   "emerged": "~1,300 BCE Hittite, Mycenaean; ~700 BCE widespread",
+   "cost": 2490.0,
+   "prereq": "ashlar_masonry AND surveying",
+   "inRuntime": true,
+   "desc": "Cut-stone walls with towers and gates — the answer to the ram.",
+   "capabilities": [
+    "walls resisting rams",
+    "gate defence"
+   ],
+   "entitiesRequiringIt": [
+    "building.castle",
+    "building.lighthouse"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "trace_italienne"
+   ]
+  },
+  {
+   "id": "qanat",
+   "key": 129,
+   "name": "Qanat",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "infrastructure",
+   "branch": null,
+   "emerged": "~800 BCE Persia",
+   "cost": 2490.0,
+   "prereq": "well AND surveying AND mining_shaft",
+   "inRuntime": true,
+   "desc": "Gently sloped underground channel tapping an aquifer — water from hills to arid plains with no evaporation.",
+   "capabilities": [
+    "settlement in arid zones",
+    "irrigation without river"
+   ],
+   "entitiesRequiringIt": [
+    "infra.qanat"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "aqueduct_tunnel",
+   "key": 130,
+   "name": "Rock-cut water tunnel",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "infrastructure",
+   "branch": null,
+   "emerged": "~700 BCE Siloam; ~550 BCE Samos",
+   "cost": 1760.0,
+   "prereq": "mining_shaft AND surveying",
+   "inRuntime": true,
+   "desc": "Tunnels bringing water into cities — Siloam (Jerusalem), Eupalinos (Samos).",
+   "capabilities": [
+    "urban water supply under siege",
+    "settlement beyond local water"
+   ],
+   "entitiesRequiringIt": [
+    "infra.aqueduct"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "aqueduct_channel",
+   "key": 131,
+   "name": "Aqueduct channel",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "infrastructure",
+   "branch": null,
+   "emerged": "~690 BCE Assyria",
+   "cost": 2490.0,
+   "prereq": "surveying AND stone_dry",
+   "inRuntime": true,
+   "desc": "Above-ground gravity channel over distance — Sennacherib's Jerwan aqueduct.",
+   "capabilities": [
+    "long-distance urban water"
+   ],
+   "entitiesRequiringIt": [
+    "infra.aqueduct"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "aqueduct_arcade"
+   ]
+  },
+  {
+   "id": "arch",
+   "key": 132,
+   "name": "True arch",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "construction",
+   "branch": null,
+   "emerged": "~2,000 BCE mudbrick (Ur); stone ~400 BCE Etruria",
+   "cost": 1760.0,
+   "prereq": "mudbrick AND surveying",
+   "inRuntime": true,
+   "desc": "Voussoir arch — spanning openings in compression. Mesopotamian in mudbrick; monumental in stone later.",
+   "capabilities": [
+    "spans without lintels",
+    "gates, bridges, vaults"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "aqueduct_arcade",
+    "bridge_stone",
+    "vault_dome"
+   ]
+  },
+  {
+   "id": "olive_press_beam",
+   "key": 139,
+   "name": "Beam press",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~800 BCE Levant (Tel Miqne-Ekron: 115 presses)",
+   "cost": 1240.0,
+   "prereq": "oil_press AND stone_dry",
+   "inRuntime": true,
+   "desc": "Lever-and-weight press for olives and grapes — industrial oil production.",
+   "capabilities": [
+    "oil at export scale"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "water_screw",
+   "key": 143,
+   "name": "Water screw",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "infrastructure",
+   "branch": null,
+   "emerged": "~250 BCE Egypt/Syracuse",
+   "cost": 1760.0,
+   "prereq": "mechanics_archimedean",
+   "inRuntime": true,
+   "desc": "Archimedes screw — lifting water for irrigation and mine drainage.",
+   "capabilities": [
+    "lift irrigation",
+    "mine drainage"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "screw_propeller"
+   ]
+  },
+  {
+   "id": "noria",
+   "key": 144,
+   "name": "Water-lifting wheel",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "infrastructure",
+   "branch": null,
+   "emerged": "~300 BCE Egypt (saqiya); stream-driven ~100 CE",
+   "cost": 2960.0,
+   "prereq": "wheel_solid AND irrigation_canal",
+   "inRuntime": true,
+   "desc": "Wheel with buckets, driven by the stream or by animals — lift irrigation at scale.",
+   "capabilities": [
+    "irrigation above river level",
+    "arable extension"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "gearing",
+   "key": 147,
+   "name": "Gear trains",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~150 BCE Antikythera mechanism",
+   "cost": 5910.0,
+   "prereq": "mechanics_archimedean AND casting_closed",
+   "inRuntime": true,
+   "desc": "Meshing toothed wheels transmitting and transforming rotation — Antikythera.",
+   "capabilities": [
+    "astronomical calculators",
+    "mill gearing",
+    "clocks (later)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "crank_connecting_rod",
+    "escapement_verge"
+   ]
+  },
+  {
+   "id": "vault_dome",
+   "key": 149,
+   "name": "Vault and dome",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "construction",
+   "branch": null,
+   "emerged": "~100 BCE Rome (concrete; Pantheon 126 CE); 537 CE Constantinople (brick dome of Hagia Sophia); medieval stone rib vaults",
+   "cost": 3520.0,
+   "prereq": "arch AND (concrete_pozzolan OR fired_brick OR ashlar_masonry)",
+   "inRuntime": true,
+   "desc": "Barrel vault, groin vault, dome — roofing large spans in compression. Pantheon 43 m.",
+   "capabilities": [
+    "baths",
+    "basilicas",
+    "large public interiors"
+   ],
+   "entitiesRequiringIt": [
+    "building.bathhouse",
+    "building.castle",
+    "infra.sewer"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "bridge_stone",
+   "key": 151,
+   "name": "Stone arch bridge",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "construction",
+   "branch": null,
+   "emerged": "~62 BCE Rome (Pons Fabricius); 605 CE China (Zhaozhou open-spandrel segmental arch)",
+   "cost": 2490.0,
+   "prereq": "arch AND (concrete_pozzolan OR ashlar_masonry)",
+   "inRuntime": true,
+   "desc": "Multi-span masonry bridges over major rivers — Pons Fabricius, Alcántara.",
+   "capabilities": [
+    "permanent river crossing",
+    "road network integrity"
+   ],
+   "entitiesRequiringIt": [
+    "infra.bridge"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "aqueduct_arcade",
+   "key": 152,
+   "name": "Arcaded aqueduct",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "infrastructure",
+   "branch": null,
+   "emerged": "~312 BCE Aqua Appia; arcades ~144 BCE",
+   "cost": 3520.0,
+   "prereq": "aqueduct_channel AND arch",
+   "inRuntime": true,
+   "desc": "Elevated channels on arches carrying water across valleys — Pont du Gard.",
+   "capabilities": [
+    "city of a million",
+    "baths",
+    "fountains"
+   ],
+   "entitiesRequiringIt": [
+    "building.bathhouse",
+    "infra.aqueduct"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "silk",
+   "key": 162,
+   "name": "Sericulture",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~3,500 BCE China (silk); industry by Han",
+   "cost": 620.0,
+   "prereq": "loom_warp_weighted AND orchard",
+   "inRuntime": true,
+   "desc": "Domesticated silkworm, mulberry cultivation, reeling — a monopolised luxury fibre.",
+   "capabilities": [
+    "silk cloth",
+    "the Silk Road export"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "drawloom"
+   ]
+  },
+  {
+   "id": "fulling_mill",
+   "key": 182,
+   "name": "Fulling mill",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~1,000 CE Europe",
+   "cost": 4970.0,
+   "prereq": "trip_hammer AND loom_warp_weighted",
+   "inRuntime": true,
+   "desc": "Water-powered hammers felting cloth — the first industrial textile process.",
+   "capabilities": [
+    "cloth finishing at scale",
+    "relocation of textile industry to rivers"
+   ],
+   "entitiesRequiringIt": [
+    "building.fulling_mill"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "spinning_wheel",
+   "key": 183,
+   "name": "Spinning wheel",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~1,000 CE India or China; Europe ~1,280",
+   "cost": 4970.0,
+   "prereq": "spinning_spindle AND wheel_solid",
+   "inRuntime": true,
+   "desc": "Wheel-driven spindle — thread ×3 faster than drop spindle.",
+   "capabilities": [
+    "thread supply keeping pace with looms"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "spinning_jenny",
+    "water_frame"
+   ]
+  },
+  {
+   "id": "horizontal_loom",
+   "key": 184,
+   "name": "Horizontal treadle loom",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~150 BCE China (Han treadle pattern looms, Laoguanshan, Chengdu); ~1,000 CE Islamic world and Europe (11th-century loom parts at Haithabu, Gdansk, Novgorod)",
+   "cost": 2960.0,
+   "prereq": "loom_warp_weighted",
+   "inRuntime": true,
+   "desc": "Foot-operated heddles freeing both hands — faster, wider cloth.",
+   "capabilities": [
+    "professional weaving",
+    "guild cloth industry"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "drawloom",
+    "flying_shuttle"
+   ]
+  },
+  {
+   "id": "cotton_gin_roller",
+   "key": 185,
+   "name": "Roller cotton gin",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~500 CE India",
+   "cost": 2960.0,
+   "prereq": "wheel_solid AND cotton_cultivation",
+   "inRuntime": true,
+   "desc": "Rollers separating cotton fibre from seed — India.",
+   "capabilities": [
+    "cotton as a mass fibre"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cotton_gin_saw"
+   ]
+  },
+  {
+   "id": "crank_connecting_rod",
+   "key": 208,
+   "name": "Crank and connecting rod",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~300 CE Hierapolis sawmill; general ~1,400",
+   "cost": 4180.0,
+   "prereq": "gearing AND water_mill",
+   "inRuntime": true,
+   "desc": "Converting rotary to reciprocating motion — Roman sawmill precedent, medieval general use.",
+   "capabilities": [
+    "sawmills",
+    "pumps",
+    "bellows"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "blast_furnace_water",
+    "farm_machinery",
+    "steam_rotary",
+    "wire_drawing"
+   ]
+  },
+  {
+   "id": "escapement_verge",
+   "key": 209,
+   "name": "Verge escapement",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~1,280 CE Europe; Su Song water escapement 1092 (dead end)",
+   "cost": 7030.0,
+   "prereq": "gearing AND water_clock",
+   "inRuntime": true,
+   "desc": "Mechanical regulator — the weight-driven clock.",
+   "capabilities": [
+    "uniform hours",
+    "the precision-mechanism craft tradition"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "longitude_problem",
+    "slide_rest_lathe",
+    "wheellock"
+   ]
+  },
+  {
+   "id": "canal_lock",
+   "key": 212,
+   "name": "Pound lock",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "infrastructure",
+   "branch": null,
+   "emerged": "984 CE China; ~1,400 Europe",
+   "cost": 4180.0,
+   "prereq": "irrigation_canal AND timber_frame",
+   "inRuntime": true,
+   "desc": "Chamber with gates at both ends — canals across gradients. Song China 984; Europe ~1,400.",
+   "capabilities": [
+    "navigable canals over hills",
+    "Grand Canal at full function"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "canal_navigation"
+   ]
+  },
+  {
+   "id": "type_founding",
+   "key": 216,
+   "name": "Type founding",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~1,440-1,450 CE Strasbourg and Mainz (Gutenberg's adjustable hand mould and type metal)",
+   "cost": 8360.0,
+   "prereq": "casting_closed",
+   "inRuntime": true,
+   "desc": "Hand mould casting identical type from a matrix — the first interchangeable-parts manufacture.",
+   "capabilities": [
+    "standardised parts at scale"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "printing_press"
+   ]
+  },
+  {
+   "id": "canal_navigation",
+   "key": 247,
+   "name": "Navigation canal",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "infrastructure",
+   "branch": "engineering",
+   "emerged": "1681 CE France; 1761 England",
+   "cost": 5910.0,
+   "prereq": "canal_lock AND surveying",
+   "inRuntime": true,
+   "desc": "Purpose-built freight canals with locks — Canal du Midi 1681, Bridgewater 1761.",
+   "capabilities": [
+    "bulk inland transport at 1/4 road cost",
+    "coal to cities"
+   ],
+   "entitiesRequiringIt": [
+    "infra.navigation_canal"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "cylinder_boring",
+   "key": 249,
+   "name": "Precision cylinder boring",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "1774 CE",
+   "cost": 33450.0,
+   "prereq": "cannon_cast_iron AND water_mill",
+   "inRuntime": true,
+   "desc": "Wilkinson 1774 — cannon-boring machine adapted to engine cylinders; tolerance of a shilling's thickness.",
+   "capabilities": [
+    "steam cylinders that seal",
+    "the machine-tool tradition"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "slide_rest_lathe",
+    "steam_rotary"
+   ]
+  },
+  {
+   "id": "slide_rest_lathe",
+   "key": 257,
+   "name": "Slide-rest screw-cutting lathe",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "~1,800 CE",
+   "cost": 33450.0,
+   "prereq": "cylinder_boring AND escapement_verge",
+   "inRuntime": true,
+   "desc": "Maudslay ~1800 — tool held mechanically, lead screw for threads. Precision made repeatable.",
+   "capabilities": [
+    "precise screws",
+    "standard threads",
+    "every later machine"
+   ],
+   "entitiesRequiringIt": [
+    "inst.standard_threads"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "interchangeable_parts",
+    "milling_machine",
+    "rifled_artillery"
+   ]
+  },
+  {
+   "id": "interchangeable_parts",
+   "key": 258,
+   "name": "Interchangeable parts",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "~1,820 CE Springfield",
+   "cost": 11830.0,
+   "prereq": "slide_rest_lathe",
+   "inRuntime": true,
+   "desc": "Gauged, jig-made components — Blanc (France), Whitney (claim), Springfield Armory (achievement).",
+   "capabilities": [
+    "gauge-and-jig manufacture of identical parts",
+    "field repair",
+    "the American system of manufactures"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "automobile_mass",
+    "bicycle",
+    "breech_loading_rifle"
+   ]
+  },
+  {
+   "id": "milling_machine",
+   "key": 259,
+   "name": "Milling machine",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "~1,818 CE (Whitney/North)",
+   "cost": 5910.0,
+   "prereq": "slide_rest_lathe",
+   "inRuntime": true,
+   "desc": "Rotating multi-tooth cutter — complex shapes without filing.",
+   "capabilities": [
+    "gun parts",
+    "gears at scale"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "gas_engine",
+    "numerical_control"
+   ]
+  },
+  {
+   "id": "flying_shuttle",
+   "key": 260,
+   "name": "Flying shuttle",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "1733 CE",
+   "cost": 5910.0,
+   "prereq": "horizontal_loom",
+   "inRuntime": true,
+   "desc": "Kay 1733 — one weaver works a broadloom; doubles weaving speed. Creates the thread bottleneck.",
+   "capabilities": [
+    "faster weaving",
+    "demand pressure on spinning"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "power_loom"
+   ]
+  },
+  {
+   "id": "spinning_jenny",
+   "key": 261,
+   "name": "Spinning jenny",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "1764 CE",
+   "cost": 5910.0,
+   "prereq": "spinning_wheel",
+   "inRuntime": true,
+   "desc": "Hargreaves 1764 — one spinner, eight spindles.",
+   "capabilities": [
+    "thread ×8 per worker"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "spinning_mule"
+   ]
+  },
+  {
+   "id": "water_frame",
+   "key": 262,
+   "name": "Water frame",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "1769 CE Cromford",
+   "cost": 8360.0,
+   "prereq": "spinning_wheel AND water_mill",
+   "inRuntime": true,
+   "desc": "Arkwright 1769 — roller spinning, water-powered, strong warp thread. The factory.",
+   "capabilities": [
+    "cotton thread at industrial scale",
+    "the factory system"
+   ],
+   "entitiesRequiringIt": [
+    "building.textile_mill"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "spinning_mule"
+   ]
+  },
+  {
+   "id": "spinning_mule",
+   "key": 263,
+   "name": "Spinning mule",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "1779 CE",
+   "cost": 8360.0,
+   "prereq": "spinning_jenny AND water_frame",
+   "inRuntime": true,
+   "desc": "Crompton 1779 — jenny + frame; fine strong thread; 1,000 spindles per machine by 1800.",
+   "capabilities": [
+    "fine cotton competitive with India"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "labour_unions"
+   ]
+  },
+  {
+   "id": "power_loom",
+   "key": 264,
+   "name": "Power loom",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "1785 / 1820 CE",
+   "cost": 14070.0,
+   "prereq": "flying_shuttle AND (water_mill OR steam_rotary)",
+   "inRuntime": true,
+   "desc": "Cartwright 1785; practical ~1,820 — weaving mechanised; handloom weavers destroyed.",
+   "capabilities": [
+    "cloth at industrial scale"
+   ],
+   "entitiesRequiringIt": [
+    "building.textile_mill"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "factory_inspection",
+    "labour_unions"
+   ]
+  },
+  {
+   "id": "cotton_gin_saw",
+   "key": 265,
+   "name": "Saw gin",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "1793 CE",
+   "cost": 5910.0,
+   "prereq": "cotton_gin_roller AND wire_drawing",
+   "inRuntime": true,
+   "desc": "Whitney 1793 — upland cotton cleaned 50× faster; American cotton and slavery expand.",
+   "capabilities": [
+    "short-staple cotton economic"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "jacquard",
+   "key": 266,
+   "name": "Jacquard loom",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "1804 CE Lyon",
+   "cost": 9950.0,
+   "prereq": "drawloom AND paper",
+   "inRuntime": true,
+   "desc": "Punched cards controlling warp lift — programmable pattern. Babbage's inspiration.",
+   "capabilities": [
+    "complex patterns without a drawboy",
+    "stored program (concept)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "punched_card_tabulation"
+   ]
+  },
+  {
+   "id": "reinforced_concrete",
+   "key": 280,
+   "name": "Reinforced concrete",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "construction",
+   "branch": "engineering",
+   "emerged": "1867 CE",
+   "cost": 33450.0,
+   "prereq": "portland_cement AND bessemer",
+   "inRuntime": true,
+   "desc": "Steel bars in concrete — tension and compression; Monier 1867, Hennebique 1892.",
+   "capabilities": [
+    "frames, bridges, high-rise"
+   ],
+   "entitiesRequiringIt": [
+    "infra.sewerage_system"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "high_speed_rail",
+    "hydroelectric",
+    "motor_road"
+   ]
+  },
+  {
+   "id": "skyscraper",
+   "key": 339,
+   "name": "Steel-frame skyscraper",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "construction",
+   "branch": "engineering",
+   "emerged": "1885 CE",
+   "cost": 66910.0,
+   "prereq": "structural_iron AND bessemer AND electric_motor",
+   "inRuntime": true,
+   "desc": "Home Insurance 1885; elevator (Otis 1853) — vertical cities.",
+   "capabilities": [
+    "density without sprawl"
+   ],
+   "entitiesRequiringIt": [
+    "building.skyscraper"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "zoning"
+   ]
+  },
+  {
+   "id": "numerical_control",
+   "key": 342,
+   "name": "Numerical control and robotics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "1952 CE",
+   "cost": 47310.0,
+   "prereq": "computer AND milling_machine",
+   "inRuntime": true,
+   "desc": "NC machine tools 1952; industrial robot 1961 — manufacturing programmed.",
+   "capabilities": [
+    "flexible automation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "additive_manufacturing"
+   ]
+  },
+  {
+   "id": "desalination",
+   "key": 393,
+   "name": "Desalination",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "infrastructure",
+   "branch": "engineering",
+   "emerged": "1950s flash; 1960s reverse osmosis",
+   "cost": 16730.0,
+   "prereq": "electricity_generation AND (distillation OR plastics)",
+   "inRuntime": true,
+   "desc": "Fresh water from seawater.",
+   "capabilities": [
+    "water supply independent of rivers and rain"
+   ],
+   "entitiesRequiringIt": [
+    "building.desalination_plant"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "additive_manufacturing",
+   "key": 407,
+   "name": "Additive manufacturing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "industry",
+   "branch": "engineering",
+   "emerged": "1986",
+   "cost": 11830.0,
+   "prereq": "numerical_control AND plastics",
+   "inRuntime": true,
+   "desc": "Building objects layer by layer from a digital model.",
+   "capabilities": [
+    "complex parts without tooling"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "ashlar_masonry",
+   "key": 428,
+   "name": "Ashlar (dressed-stone) masonry",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "construction",
+   "branch": null,
+   "emerged": "~2,650 BCE Egypt (Djoser's step pyramid, Saqqara); ~600 BCE Greek temples; ~1,450 CE Inca Andes (independent)",
+   "cost": 2960.0,
+   "prereq": "stone_dry AND copper_smelting",
+   "inRuntime": true,
+   "desc": "Cutting and dressing stone blocks to fit tightly — the masonry of pyramids, temples, towers and stone arches.",
+   "capabilities": [
+    "dressed-stone walls, temples and towers",
+    "stone voussoirs for arches, bridges and vaults"
+   ],
+   "entitiesRequiringIt": [
+    "building.lighthouse"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "bridge_stone",
+    "stone_fortification",
+    "vault_dome"
+   ]
+  },
+  {
+   "id": "drawloom",
+   "key": 433,
+   "name": "Pattern loom (drawloom)",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "industry",
+   "branch": null,
+   "emerged": "~150 BCE China (Laoguanshan pattern-loom models, Chengdu, for jin silk); drawloom with a figure harness perfected by ~700 CE (Tang China); later Byzantine, Islamic and Italian figured silks",
+   "cost": 2960.0,
+   "prereq": "silk AND horizontal_loom",
+   "inRuntime": true,
+   "desc": "A loom whose harness stores a pattern, weaving figured silks and damasks.",
+   "capabilities": [
+    "figured (pattern-woven) silk and damask",
+    "a loom that stores a pattern in its harness"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "jacquard"
+   ]
+  },
+  {
+   "id": "sanitary_engineering",
+   "key": 454,
+   "name": "Sanitary engineering",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "infrastructure",
+   "branch": "engineering",
+   "emerged": "1829 CE London (Chelsea slow-sand filter, James Simpson); from 1843 CE Hamburg (William Lindley's sewers after the 1842 fire); 1859-1875 CE London (Bazalgette's main drainage)",
+   "cost": 19890.0,
+   "prereq": "steam_rotary AND fired_brick",
+   "inRuntime": true,
+   "desc": "Sewers that carry waste away in water, and filtered, piped water supplies for towns.",
+   "capabilities": [
+    "water-carriage sewerage and storm drainage",
+    "filtered, pressurised municipal water supply"
+   ],
+   "entitiesRequiringIt": [
+    "infra.sewerage_system"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "structural_iron",
+   "key": 455,
+   "name": "Structural iron",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "construction",
+   "branch": "engineering",
+   "emerged": "1779 CE Coalbrookdale (the Iron Bridge); 1797 CE Shrewsbury (Ditherington flax mill, the first iron-framed building); 1851 CE London (Crystal Palace)",
+   "cost": 23650.0,
+   "prereq": "coke",
+   "inRuntime": true,
+   "desc": "Iron frames and girders for bridges, mills and great halls of iron and glass.",
+   "capabilities": [
+    "iron bridges",
+    "fire-resistant iron-framed mills and halls",
+    "prefabricated iron-and-glass buildings"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "skyscraper"
+   ]
+  }
+ ]
+}

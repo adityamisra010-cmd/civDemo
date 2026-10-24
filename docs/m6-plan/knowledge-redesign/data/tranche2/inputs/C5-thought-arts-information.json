@@ -1,0 +1,921 @@
+{
+ "group": "C5-thought-arts-information",
+ "nodes": [
+  {
+   "id": "oral_tradition",
+   "key": 1069,
+   "name": "Oral tradition",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "arts-culture",
+   "branch": "trunk",
+   "emerged": "~40 kya figurative art and ornaments (inferred storytelling)",
+   "cost": 260.0,
+   "prereq": null,
+   "inRuntime": false,
+   "desc": "Myths, genealogies and practical lore are memorized and retold in set forms.",
+   "capabilities": [
+    "myths, genealogies and practical lore are memorized and retold in set forms"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "Drama and Poetry"
+    ],
+    "civ7": [
+     "Chiefdom"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "communal_feasts"
+   ]
+  },
+  {
+   "id": "communal_feasts",
+   "key": 1073,
+   "name": "Communal feasts",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "arts-culture",
+   "branch": "trunk",
+   "emerged": "~10,000 BCE Hilazon Tachtit feast; ~9,500 BCE Göbekli Tepe",
+   "cost": 620.0,
+   "prereq": "oral_tradition AND (cereal_cultivation OR sheep_goat)",
+   "inRuntime": false,
+   "desc": "Groups gather for great feasts that bind households, display rank and mark the calendar.",
+   "capabilities": [
+    "groups gather for great feasts that bind households, display rank and mark the calendar"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Games and Recreation"
+    ],
+    "civ7": [
+     "Public Life"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "public_games"
+   ]
+  },
+  {
+   "id": "court_patronage",
+   "key": 1074,
+   "name": "Court patronage",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "arts-culture",
+   "branch": "trunk",
+   "emerged": "~2,600 BCE Old Kingdom royal workshops",
+   "cost": 1240.0,
+   "prereq": "temple_economy OR sacral_kingship",
+   "inRuntime": false,
+   "desc": "Rulers and temples keep artists and craftsmen to make monuments, images and works of prestige.",
+   "capabilities": [
+    "rulers and temples keep artists and craftsmen to make monuments, images and works of prestige"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Inspiration"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "arts_academies",
+    "public_opera"
+   ]
+  },
+  {
+   "id": "royal_archives",
+   "key": 1080,
+   "name": "Royal archives",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "thought-learning",
+   "branch": "trunk",
+   "emerged": "~2,400 BCE Ebla tablet archive",
+   "cost": 1480.0,
+   "prereq": "scribal_schools AND stamp_seal",
+   "inRuntime": false,
+   "desc": "The palace keeps and indexes its records, treaties and accounts for later reference.",
+   "capabilities": [
+    "the palace keeps and indexes its records, treaties and accounts for later reference"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Recorded History"
+    ],
+    "civ7": [
+     "Literacy"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "state_academy"
+   ]
+  },
+  {
+   "id": "scribal_schools",
+   "key": 1081,
+   "name": "Scribal schools",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "thought-learning",
+   "branch": "trunk",
+   "emerged": "~2,500 BCE Shuruppak school tablets; ~2,000 BCE Sumerian edubba",
+   "cost": 1240.0,
+   "prereq": "cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script",
+   "inRuntime": false,
+   "desc": "Specialist schools train scribes in writing, accounting and the classic texts.",
+   "capabilities": [
+    "specialist schools train scribes in writing, accounting and the classic texts"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "Recorded History"
+    ],
+    "civ7": [
+     "Literacy"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "philosophical_schools",
+    "royal_archives"
+   ]
+  },
+  {
+   "id": "public_games",
+   "key": 1088,
+   "name": "Public games",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "arts-culture",
+   "branch": "trunk",
+   "emerged": "~776 BCE Olympia",
+   "cost": 1760.0,
+   "prereq": "communal_feasts AND organized_priesthood",
+   "inRuntime": false,
+   "desc": "Regular athletic and chariot contests draw crowds from many communities.",
+   "capabilities": [
+    "regular athletic and chariot contests draw crowds from many communities"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Games and Recreation"
+    ],
+    "civ7": [
+     "Entertainment"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "professional_sport",
+    "public_theatre"
+   ]
+  },
+  {
+   "id": "royal_post",
+   "key": 1089,
+   "name": "Royal post",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "information-media",
+   "branch": "trunk",
+   "emerged": "~700 BCE Assyrian royal road relay; ~550 BCE Achaemenid angarium",
+   "cost": 2960.0,
+   "prereq": "appointed_officials AND horse_domestication",
+   "inRuntime": false,
+   "desc": "Relays of riders and stations carry the ruler's orders and reports across the realm.",
+   "capabilities": [
+    "relays of riders and stations carry the ruler's orders and reports across the realm"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "Foreign Trade"
+    ],
+    "civ7": [
+     "Bureaucracy"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "public_postal_service",
+    "state_gazette"
+   ]
+  },
+  {
+   "id": "philosophical_schools",
+   "key": 1098,
+   "name": "Philosophical schools",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "thought-learning",
+   "branch": "trunk",
+   "emerged": "~500 BCE Confucius' disciples; ~387 BCE Plato's Academy",
+   "cost": 3520.0,
+   "prereq": "scribal_schools AND (abjad OR alphabet_vowels OR brahmi OR chinese_script)",
+   "inRuntime": false,
+   "desc": "Teachers and pupils form lasting schools that argue about nature, ethics and the good life.",
+   "capabilities": [
+    "teachers and pupils form lasting schools that argue about nature, ethics and the good life"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "Political Philosophy"
+    ],
+    "civ7": [
+     "Philosophy"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "humanism",
+    "political_philosophy",
+    "state_academy",
+    "systematic_theology"
+   ]
+  },
+  {
+   "id": "political_philosophy",
+   "key": 1099,
+   "name": "Political philosophy",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "thought-learning",
+   "branch": "trunk",
+   "emerged": "~380 BCE Plato's Republic; ~300 BCE Mencius",
+   "cost": 3520.0,
+   "prereq": "philosophical_schools AND law_code",
+   "inRuntime": false,
+   "desc": "Thinkers ask what makes rule just and compare constitutions.",
+   "capabilities": [
+    "thinkers ask what makes rule just and compare constitutions"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Political Philosophy"
+    ],
+    "civ7": [
+     "Philosophy",
+     "Political Theory"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "enlightenment",
+    "social_contract",
+    "statecraft_doctrine"
+   ]
+  },
+  {
+   "id": "public_theatre",
+   "key": 1101,
+   "name": "Public theatre",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "arts-culture",
+   "branch": "trunk",
+   "emerged": "~534 BCE Thespis at Athens; ~200 BCE Natyashastra",
+   "cost": 2490.0,
+   "prereq": "public_games AND (alphabet_vowels OR brahmi)",
+   "inRuntime": false,
+   "desc": "Drama is performed in purpose-built theatres before the citizen body.",
+   "capabilities": [
+    "drama is performed in purpose-built theatres before the citizen body"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Drama and Poetry"
+    ],
+    "civ7": [
+     "Entertainment"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "public_opera"
+   ]
+  },
+  {
+   "id": "state_academy",
+   "key": 1102,
+   "name": "State academy",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "thought-learning",
+   "branch": "trunk",
+   "emerged": "~290 BCE Alexandrian Mouseion; ~124 BCE Han Imperial Academy",
+   "cost": 4180.0,
+   "prereq": "philosophical_schools AND royal_archives",
+   "inRuntime": false,
+   "desc": "The ruler funds scholars and a library and trains future officials in a state school.",
+   "capabilities": [
+    "the ruler funds scholars and a library and trains future officials in a state school"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Recorded History"
+    ],
+    "civ7": [
+     "Literacy"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "research_university"
+   ]
+  },
+  {
+   "id": "state_gazette",
+   "key": 1103,
+   "name": "State gazette",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "information-media",
+   "branch": "trunk",
+   "emerged": "~59 BCE Acta Diurna, Rome",
+   "cost": 2490.0,
+   "prereq": "royal_post AND (alphabet_vowels OR chinese_script)",
+   "inRuntime": false,
+   "desc": "The government publishes official news and decrees for its officials and public.",
+   "capabilities": [
+    "the government publishes official news and decrees for its officials and public"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "statecraft_doctrine",
+   "key": 1106,
+   "name": "Statecraft doctrine",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "thought-learning",
+   "branch": "trunk",
+   "emerged": "~300 BCE Arthashastra; ~240 BCE Han Feizi",
+   "cost": 2960.0,
+   "prereq": "political_philosophy AND appointed_officials",
+   "inRuntime": false,
+   "desc": "Manuals of government teach rulers to run officials, revenue, spies and war by rule.",
+   "capabilities": [
+    "manuals of government teach rulers to run officials, revenue, spies and war by rule"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Authority"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "arts_academies",
+   "key": 1119,
+   "name": "Arts academies",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "arts-culture",
+   "branch": "trunk",
+   "emerged": "~1,563 CE Florentine Accademia del Disegno; ~1,648 CE Paris Académie royale",
+   "cost": 4970.0,
+   "prereq": "court_patronage AND humanism",
+   "inRuntime": false,
+   "desc": "Chartered academies train artists, fix standards of taste and run exhibitions.",
+   "capabilities": [
+    "chartered academies train artists, fix standards of taste and run exhibitions"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Inspiration"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "public_museums"
+   ]
+  },
+  {
+   "id": "enlightenment",
+   "key": 1123,
+   "name": "Enlightenment",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "thought-learning",
+   "branch": "trunk",
+   "emerged": "~1,687 CE Principia; ~1,751 CE Encyclopédie",
+   "cost": 5910.0,
+   "prereq": "scientific_societies AND political_philosophy",
+   "inRuntime": false,
+   "desc": "Reason and criticism are applied to religion, law and government in a public republic of letters.",
+   "capabilities": [
+    "reason and criticism are applied to religion, law and government in a public republic of letters"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "The Enlightenment"
+    ],
+    "civ7": [
+     "Modernity"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "humanism",
+   "key": 1124,
+   "name": "Humanism",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "thought-learning",
+   "branch": "trunk",
+   "emerged": "~1,350 CE Petrarch; ~1,450 CE Florentine humanists",
+   "cost": 5910.0,
+   "prereq": "philosophical_schools AND paper",
+   "inRuntime": false,
+   "desc": "Scholars recover classical texts and teach rhetoric, history and moral philosophy to lay elites.",
+   "capabilities": [
+    "scholars recover classical texts and teach rhetoric, history and moral philosophy to lay elites"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Humanism"
+    ],
+    "civ7": [
+     "Inspiration"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "arts_academies",
+    "scientific_societies"
+   ]
+  },
+  {
+   "id": "press_licensing",
+   "key": 1128,
+   "name": "Press licensing",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "information-media",
+   "branch": "trunk",
+   "emerged": "~1,538 CE English licensing proclamation; ~1,559 CE Index of Prohibited Books",
+   "cost": 4970.0,
+   "prereq": "printing_press AND appointed_officials",
+   "inRuntime": false,
+   "desc": "Printers need a licence and books are checked before publication.",
+   "capabilities": [
+    "printers need a licence and books are checked before publication"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "press_freedom"
+   ]
+  },
+  {
+   "id": "public_museums",
+   "key": 1129,
+   "name": "Public museums",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "arts-culture",
+   "branch": "trunk",
+   "emerged": "~1,683 CE Ashmolean Museum; ~1,753 CE British Museum",
+   "cost": 4970.0,
+   "prereq": "arts_academies AND scientific_societies",
+   "inRuntime": false,
+   "desc": "Collections are opened to the public, catalogued and used for study.",
+   "capabilities": [
+    "collections are opened to the public, catalogued and used for study"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Natural History"
+    ],
+    "civ7": [
+     "Natural History"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "heritage_preservation"
+   ]
+  },
+  {
+   "id": "public_opera",
+   "key": 1130,
+   "name": "Public opera and concerts",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "arts-culture",
+   "branch": "trunk",
+   "emerged": "~1,637 CE Teatro San Cassiano, Venice",
+   "cost": 4180.0,
+   "prereq": "public_theatre AND court_patronage",
+   "inRuntime": false,
+   "desc": "Ticketed opera houses and concert halls open performance to a paying public.",
+   "capabilities": [
+    "ticketed opera houses and concert halls open performance to a paying public"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Opera and Ballet"
+    ],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "scientific_societies",
+   "key": 1132,
+   "name": "Scientific societies",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "thought-learning",
+   "branch": "trunk",
+   "emerged": "~1,603 CE Accademia dei Lincei; ~1,660 CE Royal Society",
+   "cost": 7030.0,
+   "prereq": "humanism AND printing_press",
+   "inRuntime": false,
+   "desc": "Learned societies meet, test claims by experiment and publish proceedings.",
+   "capabilities": [
+    "learned societies meet, test claims by experiment and publish proceedings"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "The Enlightenment"
+    ],
+    "civ7": [
+     "Natural History"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "enlightenment",
+    "public_museums",
+    "research_university"
+   ]
+  },
+  {
+   "id": "heritage_preservation",
+   "key": 1146,
+   "name": "Heritage preservation",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "arts-culture",
+   "branch": "trunk",
+   "emerged": "~1,830 CE French Inspector of Historic Monuments; ~1,972 CE World Heritage Convention",
+   "cost": 9950.0,
+   "prereq": "public_museums AND appointed_officials",
+   "inRuntime": false,
+   "desc": "The state lists and protects historic buildings and sites.",
+   "capabilities": [
+    "the state lists and protects historic buildings and sites"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Cultural Heritage"
+    ],
+    "civ7": [
+     "Natural History"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "mass_press",
+   "key": 1153,
+   "name": "Mass press",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "information-media",
+   "branch": "trunk",
+   "emerged": "~1,833 CE New York penny press",
+   "cost": 11830.0,
+   "prereq": "printing_press AND railway",
+   "inRuntime": false,
+   "desc": "Cheap daily papers sold in hundreds of thousands reach a mass readership.",
+   "capabilities": [
+    "cheap daily papers sold in hundreds of thousands reach a mass readership"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Mass Media"
+    ],
+    "civ7": [
+     "Modernity"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "state_propaganda"
+   ]
+  },
+  {
+   "id": "press_freedom",
+   "key": 1158,
+   "name": "Freedom of the press",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "information-media",
+   "branch": "trunk",
+   "emerged": "~1,766 CE Swedish Freedom of the Press Act",
+   "cost": 14060.0,
+   "prereq": "press_licensing AND (bill_of_rights OR written_constitution)",
+   "inRuntime": false,
+   "desc": "Prior censorship is abolished; printers answer only to the courts afterwards.",
+   "capabilities": [
+    "prior censorship is abolished; printers answer only to the courts afterwards"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Liberalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "professional_sport",
+   "key": 1159,
+   "name": "Professional sport",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "arts-culture",
+   "branch": "trunk",
+   "emerged": "~1,876 CE baseball's National League; ~1,888 CE Football League",
+   "cost": 8360.0,
+   "prereq": "public_games AND railway",
+   "inRuntime": false,
+   "desc": "Paid teams play in national leagues followed by mass audiences.",
+   "capabilities": [
+    "paid teams play in national leagues followed by mass audiences"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Professional Sports"
+    ],
+    "civ7": [
+     "Entertainment"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "public_postal_service",
+   "key": 1160,
+   "name": "Public postal service",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "information-media",
+   "branch": "trunk",
+   "emerged": "~1,840 CE Penny Post",
+   "cost": 9950.0,
+   "prereq": "royal_post AND railway",
+   "inRuntime": false,
+   "desc": "The state carries anyone's letters at a uniform prepaid rate.",
+   "capabilities": [
+    "the state carries anyone's letters at a uniform prepaid rate"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "research_university",
+   "key": 1162,
+   "name": "Research university",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "thought-learning",
+   "branch": "trunk",
+   "emerged": "~1,810 CE University of Berlin",
+   "cost": 14060.0,
+   "prereq": "scientific_societies AND state_academy",
+   "inRuntime": false,
+   "desc": "Universities pay professors to research as well as teach and train doctoral students.",
+   "capabilities": [
+    "universities pay professors to research as well as teach and train doctoral students"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Modernity"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "science_policy"
+   ]
+  },
+  {
+   "id": "data_protection",
+   "key": 1173,
+   "name": "Data protection law",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "branch": "trunk",
+   "emerged": "~1,970 CE Hesse data protection act",
+   "cost": 19890.0,
+   "prereq": "computer AND bill_of_rights",
+   "inRuntime": false,
+   "desc": "Law limits how states and firms collect and use personal records.",
+   "capabilities": [
+    "law limits how states and firms collect and use personal records"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "internet_governance",
+   "key": 1180,
+   "name": "Internet governance",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "branch": "trunk",
+   "emerged": "~1,998 CE ICANN",
+   "cost": 28130.0,
+   "prereq": "internet AND international_organizations",
+   "inRuntime": false,
+   "desc": "Shared bodies and national regulators set rules for a global network.",
+   "capabilities": [
+    "shared bodies and national regulators set rules for a global network"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Social Media"
+    ],
+    "civ7": [
+     "Globalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "public_broadcasting",
+   "key": 1183,
+   "name": "Public broadcasting",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "branch": "trunk",
+   "emerged": "~1,927 CE British Broadcasting Corporation charter",
+   "cost": 28130.0,
+   "prereq": "radio_broadcasting AND appointed_officials",
+   "inRuntime": false,
+   "desc": "A licensed public body runs national radio and later television.",
+   "capabilities": [
+    "a licensed public body runs national radio and later television"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Mass Media"
+    ],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "science_policy",
+   "key": 1184,
+   "name": "Science policy",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "thought-learning",
+   "branch": "trunk",
+   "emerged": "~1,945 CE Science, the Endless Frontier; ~1,950 CE US National Science Foundation",
+   "cost": 28130.0,
+   "prereq": "research_university AND official_statistics",
+   "inRuntime": false,
+   "desc": "The state funds research through grant agencies and sets national research priorities.",
+   "capabilities": [
+    "the state funds research through grant agencies and sets national research priorities"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "state_propaganda",
+   "key": 1185,
+   "name": "State propaganda",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "information-media",
+   "branch": "trunk",
+   "emerged": "~1,917 CE US Committee on Public Information; ~1,933 CE German propaganda ministry",
+   "cost": 28130.0,
+   "prereq": "mass_political_party AND (mass_press OR radio_broadcasting)",
+   "inRuntime": false,
+   "desc": "A government office shapes news, films and broadcasts to mobilize opinion.",
+   "capabilities": [
+    "a government office shapes news, films and broadcasts to mobilize opinion"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Totalitarianism"
+    ],
+    "civ7": [
+     "Radicalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fascist_state"
+   ]
+  }
+ ]
+}

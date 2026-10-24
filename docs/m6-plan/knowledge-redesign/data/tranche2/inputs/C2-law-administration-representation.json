@@ -1,0 +1,1167 @@
+{
+ "group": "C2-law-administration-representation",
+ "nodes": [
+  {
+   "id": "law_code",
+   "key": 1001,
+   "name": "Written law",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "law-justice",
+   "branch": null,
+   "emerged": null,
+   "cost": 1240.0,
+   "prereq": "(cuneiform OR hieroglyphic OR chinese_script)",
+   "inRuntime": true,
+   "desc": "Written law: the civic knowledge of this form of organization. Reclassified from registry institution inst.law_code (architecture §5.7); the institution itself is established by its owning system once this civic is complete.",
+   "capabilities": [],
+   "entitiesRequiringIt": [
+    "inst.law_code"
+   ],
+   "civRole": "gate",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "assembly_democracy",
+    "city_state_oligarchy",
+    "civil_police",
+    "common_law",
+    "debt_remission",
+    "family_law",
+    "jury_courts",
+    "land_registry",
+    "legal_code_roman",
+    "mandate_doctrine",
+    "municipal_charter",
+    "political_philosophy",
+    "service_tenure",
+    "succession_law",
+    "theocracy",
+    "water_rights"
+   ]
+  },
+  {
+   "id": "legal_code_roman",
+   "key": 1002,
+   "name": "Systematic law",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "law-justice",
+   "branch": null,
+   "emerged": null,
+   "cost": 2490.0,
+   "prereq": "law_code",
+   "inRuntime": true,
+   "desc": "Systematic law: the civic knowledge of this form of organization. Reclassified from registry institution inst.legal_code_roman (architecture §5.7); the institution itself is established by its owning system once this civic is complete.",
+   "capabilities": [],
+   "entitiesRequiringIt": [
+    "inst.guild",
+    "inst.legal_code_roman",
+    "inst.university"
+   ],
+   "civRole": "gate",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "abolition",
+    "bill_of_rights",
+    "building_regulation",
+    "canon_law",
+    "civil_code",
+    "commercial_law",
+    "copyright",
+    "craft_guilds",
+    "joint_stock",
+    "jurists",
+    "law_of_nations",
+    "patent",
+    "religious_toleration",
+    "written_constitution"
+   ]
+  },
+  {
+   "id": "census",
+   "key": 1003,
+   "name": "Census",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "administration-fiscal",
+   "branch": null,
+   "emerged": null,
+   "cost": 4970.0,
+   "prereq": "(cuneiform OR hieroglyphic OR chinese_script) AND stamp_seal",
+   "inRuntime": true,
+   "desc": "Census: the civic knowledge of this form of organization. Reclassified from registry institution inst.census (architecture §5.7); the institution itself is established by its owning system once this civic is complete.",
+   "capabilities": [],
+   "entitiesRequiringIt": [
+    "inst.census",
+    "inst.mass_schooling",
+    "inst.military_medicine",
+    "inst.mint_institution",
+    "inst.quarantine",
+    "inst.statistics_vital"
+   ],
+   "civRole": "age-supporting",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "compulsory_education",
+    "mass_suffrage",
+    "official_statistics",
+    "provincial_administration",
+    "public_health_board",
+    "universal_conscription"
+   ]
+  },
+  {
+   "id": "patent",
+   "key": 1005,
+   "name": "Patent system",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "branch": null,
+   "emerged": null,
+   "cost": 4180.0,
+   "prereq": "legal_code_roman AND printing_press",
+   "inRuntime": true,
+   "desc": "Patent system: the civic knowledge of this form of organization. Reclassified from registry institution inst.patent (architecture §5.7); the institution itself is established by its owning system once this civic is complete.",
+   "capabilities": [],
+   "entitiesRequiringIt": [
+    "inst.patent"
+   ],
+   "civRole": "age-supporting",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "taxation",
+   "key": 1007,
+   "name": "Taxation",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "administration-fiscal",
+   "branch": null,
+   "emerged": "~3,300 BCE Uruk temple levy and grain-receipt accounting; ~3,000 BCE Egyptian harvest assessment",
+   "cost": 1050.0,
+   "prereq": "token_counting AND stamp_seal AND (proto_writing OR hieroglyphic OR chinese_script)",
+   "inRuntime": true,
+   "desc": "Taxation: the levy of tribute in kind — a counted share of the harvest, herd or craft output owed to the ruler or temple, assessed against the harvest and delivered into sealed stores. Its evidence is the Uruk and Ur III grain-receipt tablets, the sealed storerooms of the Ubaid and Uruk temples, and the Egyptian harvest assessment recorded beside the Nile gauge. A community without a record of what is owed has gifts and feasting, not a levy, so no Stone Age society taxes. Researching it gives the polity the knowledge of the tax edict (SetTaxRate); the edict is operational only once the polity has entered Age III, the Bronze Age (sim.json governance.taxationMinAge). Related refinements, which no longer gate the edict: tax assessment by computation (arithmetic_babylonian), taxation by area (surveying), by weight (standard_weights) and in coin (coinage_electrum). Placement: Civ VI has no tax technology — governments and their policies come through civics, starting with the first civic, Code of Laws (Chiefdom); here the causal prerequisites are counted obligations (clay tokens), sealed stores under administrative control (stamp seal) and an administrative record beyond memory (proto-cuneiform, hieroglyphic or Chinese script).",
+   "capabilities": [
+    "the tax edict: a declared levy on the realm's production",
+    "tribute in kind assessed on the harvest",
+    "obligations recorded and owed to the state"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "gate",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "appointed_officials",
+    "corvee_labour",
+    "customs_tolls",
+    "income_tax",
+    "poor_law",
+    "public_granaries",
+    "representative_assembly",
+    "service_tenure",
+    "state_navy",
+    "tax_farming"
+   ]
+  },
+  {
+   "id": "kin_council",
+   "key": 1008,
+   "name": "Council of elders",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "representation-local-government",
+   "branch": null,
+   "emerged": "~10 kya and earlier: councils of household heads in forager and early farming societies (ethnographic inference; no direct date)",
+   "cost": 310.0,
+   "prereq": null,
+   "inRuntime": true,
+   "desc": "Heads of households meet to decide common matters and settle disputes through the mediation of elders. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a council of household heads deciding common matters by consensus",
+    "disputes settled by the mediation of elders"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "citizen_assembly",
+    "elite_council",
+    "gift_exchange",
+    "oath_alliance",
+    "war_band"
+   ]
+  },
+  {
+   "id": "appointed_officials",
+   "key": 1014,
+   "name": "Appointed officials",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "administration-fiscal",
+   "branch": null,
+   "emerged": "~2,600 BCE Old Kingdom Egypt (royal officials); ~2,100 BCE Ur III provincial governors",
+   "cost": 2090.0,
+   "prereq": "taxation AND (cuneiform OR hieroglyphic OR chinese_script)",
+   "inRuntime": true,
+   "desc": "Officials appointed and dismissed by the ruler govern by written order. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "officials appointed and removed by the ruler, acting on written orders"
+   ],
+   "entitiesRequiringIt": [
+    "inst.mint_institution"
+   ],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "civil_police",
+    "civil_service_examinations",
+    "common_law",
+    "factory_inspection",
+    "heritage_preservation",
+    "merit_civil_service",
+    "ministerial_responsibility",
+    "planned_cities",
+    "press_licensing",
+    "provincial_administration",
+    "public_broadcasting",
+    "public_granaries",
+    "resident_embassies",
+    "royal_post",
+    "standing_army",
+    "state_exploration",
+    "state_monopolies",
+    "state_religion",
+    "statecraft_doctrine",
+    "territorial_kingship",
+    "tributary_relations"
+   ]
+  },
+  {
+   "id": "corvee_labour",
+   "key": 1015,
+   "name": "Corvée labour",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "administration-fiscal",
+   "branch": null,
+   "emerged": "~2,600 BCE Old Kingdom Egypt (rotating labour crews on royal works)",
+   "cost": 880.0,
+   "prereq": "taxation",
+   "inRuntime": true,
+   "desc": "Subjects owe the state labour service, worked in rotating gangs. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "labour service owed to the state, worked in rotating gangs"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "elite_council",
+   "key": 1016,
+   "name": "Council of notables",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "representation-local-government",
+   "branch": null,
+   "emerged": "~700 BCE Spartan council of elders; Roman senate by ~500 BCE",
+   "cost": 1240.0,
+   "prereq": "kin_council AND hereditary_rank",
+   "inRuntime": true,
+   "desc": "A council of the leading families deliberates on war, law and finance. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a council of leading families deliberating on war, law and finance"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "bill_of_rights",
+    "citizen_militia",
+    "city_state_oligarchy",
+    "classical_republic",
+    "elective_succession",
+    "municipal_charter"
+   ]
+  },
+  {
+   "id": "citizen_assembly",
+   "key": 1024,
+   "name": "Popular assembly",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "representation-local-government",
+   "branch": null,
+   "emerged": "~700 BCE assemblies of Greek communities; assemblies of free men among Iron Age European peoples (Roman-era accounts)",
+   "cost": 1760.0,
+   "prereq": "kin_council",
+   "inRuntime": true,
+   "desc": "An assembly of free members decides by vote. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "an assembly of free members deciding by vote"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "assembly_democracy",
+    "citizen_militia",
+    "elected_magistracies",
+    "jury_courts",
+    "municipal_charter",
+    "referendum"
+   ]
+  },
+  {
+   "id": "elected_magistracies",
+   "key": 1025,
+   "name": "Elected magistracies",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "representation-local-government",
+   "branch": null,
+   "emerged": "~683 BCE annual archons at Athens; 509 BCE Roman consuls",
+   "cost": 1240.0,
+   "prereq": "citizen_assembly",
+   "inRuntime": true,
+   "desc": "Executive offices are filled by election for fixed terms. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "executive offices filled by election for fixed terms"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "classical_republic",
+    "merchant_republic",
+    "presidential_republic"
+   ]
+  },
+  {
+   "id": "land_registry",
+   "key": 1026,
+   "name": "Land registry",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "administration-fiscal",
+   "branch": null,
+   "emerged": "~2,500 BCE Egyptian field surveys for assessment; 1086 CE Domesday survey; 1858 CE Torrens registration of title",
+   "cost": 1760.0,
+   "prereq": "surveying AND law_code",
+   "inRuntime": true,
+   "desc": "A public register records land, its holders and the dues owed on it. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a public register of land, holders and dues"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "forest_law",
+    "settler_land_grants"
+   ]
+  },
+  {
+   "id": "provincial_administration",
+   "key": 1027,
+   "name": "Provincial governors",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "administration-fiscal",
+   "branch": null,
+   "emerged": "~2,300 BCE Akkad (governors over conquered cities); ~740 BCE Assyrian provinces; ~520 BCE Achaemenid satrapies",
+   "cost": 3520.0,
+   "prereq": "appointed_officials AND census",
+   "inRuntime": true,
+   "desc": "Provinces are governed by appointed governors who answer to the capital. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "provinces under appointed governors answering to the capital"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "absolute_monarchy",
+    "bureaucratic_empire",
+    "colonial_administration",
+    "federal_republic"
+   ]
+  },
+  {
+   "id": "tax_farming",
+   "key": 1029,
+   "name": "Tax farming",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "administration-fiscal",
+   "branch": null,
+   "emerged": "~400 BCE Athenian tax contracts; ~200 BCE Roman publicani; 1681 CE French General Farm",
+   "cost": 1050.0,
+   "prereq": "taxation AND coinage_electrum",
+   "inRuntime": true,
+   "desc": "The right to collect taxes is contracted to private tax farmers. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "collection of taxes contracted to private tax farmers"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "municipal_charter",
+   "key": 1032,
+   "name": "Municipal charters",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "representation-local-government",
+   "branch": null,
+   "emerged": "~90 CE Flavian municipal law (Lex Irnitana); ~1100 CE European town charters",
+   "cost": 3520.0,
+   "prereq": "law_code AND (elite_council OR citizen_assembly)",
+   "inRuntime": true,
+   "desc": "A written charter grants a town self-government. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "town self-government under a written charter"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "craft_guilds",
+    "federal_republic",
+    "market_fairs",
+    "merchant_republic",
+    "poor_law",
+    "representative_assembly"
+   ]
+  },
+  {
+   "id": "civil_service_examinations",
+   "key": 1037,
+   "name": "Civil service examinations",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "administration-fiscal",
+   "branch": null,
+   "emerged": "605 CE Sui imperial examinations; 958 CE Korean state examination; 1855 CE British civil service examinations",
+   "cost": 5910.0,
+   "prereq": "appointed_officials AND paper",
+   "inRuntime": true,
+   "desc": "Officials are recruited by competitive written examination. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "recruitment of officials by competitive written examination"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "absolute_monarchy"
+   ]
+  },
+  {
+   "id": "representative_assembly",
+   "key": 1039,
+   "name": "Representative assembly",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "representation-local-government",
+   "branch": null,
+   "emerged": "1188 CE Cortes of León; 1265 CE English parliament with town representatives",
+   "cost": 4970.0,
+   "prereq": "taxation AND (municipal_charter OR service_tenure)",
+   "inRuntime": true,
+   "desc": "Representatives of estates and towns meet to consent to taxation. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "representatives of estates and towns consenting to taxation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "antitrust",
+    "bill_of_rights",
+    "constitutional_monarchy",
+    "mass_suffrage",
+    "ministerial_responsibility",
+    "popular_sovereignty",
+    "written_constitution"
+   ]
+  },
+  {
+   "id": "bill_of_rights",
+   "key": 1043,
+   "name": "Bill of rights",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "branch": null,
+   "emerged": "1215 CE Magna Carta (a precursor); 1689 CE English Bill of Rights; 1791 CE United States Bill of Rights",
+   "cost": 4970.0,
+   "prereq": "legal_code_roman AND (representative_assembly OR elite_council)",
+   "inRuntime": true,
+   "desc": "Rights are guaranteed by law against the ruler and enforceable in court. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "rights guaranteed by law against the ruler, enforceable in court"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "civil_rights_law",
+    "constitutional_monarchy",
+    "data_protection",
+    "human_rights",
+    "press_freedom"
+   ]
+  },
+  {
+   "id": "civil_police",
+   "key": 1045,
+   "name": "Professional police",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "branch": null,
+   "emerged": "1667 CE Paris lieutenant-general of police; 1829 CE London Metropolitan Police",
+   "cost": 4180.0,
+   "prereq": "appointed_officials AND law_code",
+   "inRuntime": true,
+   "desc": "A salaried police force keeps order under public authority. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a salaried civil police force under public authority"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "official_statistics",
+   "key": 1048,
+   "name": "Statistical office",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "administration-fiscal",
+   "branch": null,
+   "emerged": "1749 CE Swedish population tables (Tabellverket); 1801 CE first British census",
+   "cost": 5910.0,
+   "prereq": "census AND (hindu_arabic OR counting_rods)",
+   "inRuntime": true,
+   "desc": "A statistical office publishes regular tables of population, births and deaths. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "regular official tables of population, births and deaths"
+   ],
+   "entitiesRequiringIt": [
+    "inst.statistics_vital"
+   ],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "central_planning",
+    "income_tax",
+    "science_policy",
+    "total_mobilization"
+   ]
+  },
+  {
+   "id": "separation_of_powers",
+   "key": 1051,
+   "name": "Separation of powers",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "branch": null,
+   "emerged": "1748 CE Montesquieu's The Spirit of the Laws; 1787 CE United States Constitution",
+   "cost": 2960.0,
+   "prereq": "written_constitution",
+   "inRuntime": true,
+   "desc": "Legislative, executive and judicial powers are held by separate bodies. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "legislative, executive and judicial powers held by separate bodies"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "judicial_review",
+    "presidential_republic"
+   ]
+  },
+  {
+   "id": "written_constitution",
+   "key": 1052,
+   "name": "Written constitution",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "branch": null,
+   "emerged": "1653 CE Instrument of Government (England); 1787 CE United States Constitution",
+   "cost": 5910.0,
+   "prereq": "legal_code_roman AND representative_assembly",
+   "inRuntime": true,
+   "desc": "A fundamental written law establishes and limits the organs of government. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a fundamental written law establishing and limiting the organs of government"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "civil_code",
+    "constitutional_monarchy",
+    "federal_republic",
+    "one_party_state",
+    "press_freedom",
+    "referendum",
+    "revolutionary_republic",
+    "secular_state",
+    "separation_of_powers"
+   ]
+  },
+  {
+   "id": "mass_political_party",
+   "key": 1060,
+   "name": "Mass political parties",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "branch": null,
+   "emerged": "1830 CE organized national parties in the United States; 1875 CE German Social Democratic Party",
+   "cost": 9950.0,
+   "prereq": "mass_suffrage AND printing_press",
+   "inRuntime": true,
+   "desc": "Permanent membership parties compete in elections. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "permanent membership parties competing in elections"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fascism",
+    "fascist_state",
+    "marxist_leninist_state",
+    "one_party_state",
+    "state_propaganda"
+   ]
+  },
+  {
+   "id": "mass_suffrage",
+   "key": 1061,
+   "name": "Mass suffrage",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "branch": null,
+   "emerged": "1820–1830 CE broad white male suffrage in most US states; 1848 CE universal male suffrage in France; 1893 CE women's suffrage in New Zealand",
+   "cost": 11830.0,
+   "prereq": "representative_assembly AND census",
+   "inRuntime": true,
+   "desc": "All adults vote by secret ballot from a public register. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "the vote for all adults by secret ballot from a public register"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "civil_rights_law",
+    "mass_political_party",
+    "secret_ballot",
+    "womens_suffrage"
+   ]
+  },
+  {
+   "id": "ministerial_responsibility",
+   "key": 1062,
+   "name": "Responsible ministers",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "branch": null,
+   "emerged": "1782 CE resignation of Lord North's ministry (Britain); 1848 CE responsible government in Nova Scotia",
+   "cost": 7030.0,
+   "prereq": "representative_assembly AND appointed_officials",
+   "inRuntime": true,
+   "desc": "Ministers hold office only while they keep the confidence of the elected chamber. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "ministers holding office only with the confidence of the elected chamber"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "parliamentary_government"
+   ]
+  },
+  {
+   "id": "customs_tolls",
+   "key": 1075,
+   "name": "Customs and tolls",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "administration-fiscal",
+   "branch": "trunk",
+   "emerged": "~1,900 BCE Old Assyrian caravan tolls",
+   "cost": 1480.0,
+   "prereq": "taxation AND trade",
+   "inRuntime": false,
+   "desc": "The ruler levies duties on goods crossing borders, rivers and city gates.",
+   "capabilities": [
+    "the ruler levies duties on goods crossing borders, rivers and city gates"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Foreign Trade"
+    ],
+    "civ7": [
+     "Commerce"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "customs_union",
+    "free_trade",
+    "mercantilism"
+   ]
+  },
+  {
+   "id": "family_law",
+   "key": 1078,
+   "name": "Family and inheritance law",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "law-justice",
+   "branch": "trunk",
+   "emerged": "~2,100 BCE Ur-Nammu; ~1,754 BCE Hammurabi",
+   "cost": 1240.0,
+   "prereq": "law_code",
+   "inRuntime": false,
+   "desc": "Written law fixes marriage, divorce, adoption and the division of an estate.",
+   "capabilities": [
+    "written law fixes marriage, divorce, adoption and the division of an estate"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Code of Laws"
+    ],
+    "civ7": [
+     "Code of Laws"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "jurists",
+   "key": 1093,
+   "name": "Legal profession",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "law-justice",
+   "branch": "trunk",
+   "emerged": "~100 BCE Roman jurists; ~160 CE Gaius' Institutes",
+   "cost": 2090.0,
+   "prereq": "legal_code_roman",
+   "inRuntime": false,
+   "desc": "Trained lawyers advise, plead and write commentaries that shape the law.",
+   "capabilities": [
+    "trained lawyers advise, plead and write commentaries that shape the law"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "jury_courts",
+   "key": 1094,
+   "name": "Jury courts",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "law-justice",
+   "branch": "trunk",
+   "emerged": "~462 BCE Athenian dikasteria; ~1,166 CE Assize of Clarendon",
+   "cost": 2960.0,
+   "prereq": "citizen_assembly AND law_code",
+   "inRuntime": false,
+   "desc": "Panels of citizens, not officials, decide guilt and liability.",
+   "capabilities": [
+    "panels of citizens, not officials, decide guilt and liability"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Citizenship"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "state_monopolies",
+   "key": 1104,
+   "name": "State monopolies",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "administration-fiscal",
+   "branch": "trunk",
+   "emerged": "~117 BCE Han salt and iron monopoly",
+   "cost": 2960.0,
+   "prereq": "appointed_officials AND salt_extraction",
+   "inRuntime": false,
+   "desc": "The state alone may produce or sell a staple such as salt or iron.",
+   "capabilities": [
+    "the state alone may produce or sell a staple such as salt or iron"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Centralism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "common_law",
+   "key": 1110,
+   "name": "Common law",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "law-justice",
+   "branch": "trunk",
+   "emerged": "~1,166 CE Assize of Clarendon; ~1,188 CE Glanvill's treatise",
+   "cost": 3520.0,
+   "prereq": "law_code AND appointed_officials",
+   "inRuntime": false,
+   "desc": "Royal judges build a law common to the realm from recorded precedent.",
+   "capabilities": [
+    "royal judges build a law common to the realm from recorded precedent"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Sovereignty"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "copyright",
+   "key": 1121,
+   "name": "Copyright",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "law-justice",
+   "branch": "trunk",
+   "emerged": "~1,710 CE Statute of Anne",
+   "cost": 3520.0,
+   "prereq": "printing_press AND legal_code_roman",
+   "inRuntime": false,
+   "desc": "Authors receive a time-limited exclusive right to print their works.",
+   "capabilities": [
+    "authors receive a time-limited exclusive right to print their works"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "civil_code",
+   "key": 1138,
+   "name": "Civil code",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "law-justice",
+   "branch": "trunk",
+   "emerged": "~1,804 CE Code civil des Français",
+   "cost": 14060.0,
+   "prereq": "legal_code_roman AND written_constitution",
+   "inRuntime": false,
+   "desc": "One systematic code replaces local customs for persons, property and contract.",
+   "capabilities": [
+    "one systematic code replaces local customs for persons, property and contract"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Code Civil (France)"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "income_tax",
+   "key": 1147,
+   "name": "Income tax",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "administration-fiscal",
+   "branch": "trunk",
+   "emerged": "~1,799 CE British income tax",
+   "cost": 14060.0,
+   "prereq": "taxation AND official_statistics",
+   "inRuntime": false,
+   "desc": "Each household is assessed on its declared income rather than on land or goods.",
+   "capabilities": [
+    "each household is assessed on its declared income rather than on land or goods"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Capitalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "judicial_review",
+   "key": 1150,
+   "name": "Judicial review",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "law-justice",
+   "branch": "trunk",
+   "emerged": "~1,803 CE Marbury v. Madison",
+   "cost": 7030.0,
+   "prereq": "separation_of_powers",
+   "inRuntime": false,
+   "desc": "Courts may strike down laws that conflict with the constitution.",
+   "capabilities": [
+    "courts may strike down laws that conflict with the constitution"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "merit_civil_service",
+   "key": 1154,
+   "name": "Merit civil service",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "administration-fiscal",
+   "branch": "trunk",
+   "emerged": "~1,854 CE Northcote–Trevelyan report; ~1,883 CE Pendleton Act",
+   "cost": 7030.0,
+   "prereq": "appointed_officials AND compulsory_education",
+   "inRuntime": false,
+   "desc": "Officials are recruited by open competitive examination and hold office during good behaviour.",
+   "capabilities": [
+    "officials are recruited by open competitive examination and hold office during good behaviour"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Civil Service"
+    ],
+    "civ7": [
+     "Bureaucracy"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "referendum",
+   "key": 1161,
+   "name": "Referendum",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "branch": "trunk",
+   "emerged": "~1,874 CE Swiss optional referendum",
+   "cost": 9950.0,
+   "prereq": "citizen_assembly AND written_constitution",
+   "inRuntime": false,
+   "desc": "Voters decide laws directly at the ballot box.",
+   "capabilities": [
+    "voters decide laws directly at the ballot box"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Digital Democracy"
+    ],
+    "civ7": [
+     "Democracy"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "secret_ballot",
+   "key": 1163,
+   "name": "Secret ballot",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "branch": "trunk",
+   "emerged": "~1,856 CE Victoria (Australia)",
+   "cost": 4970.0,
+   "prereq": "mass_suffrage",
+   "inRuntime": false,
+   "desc": "Votes are cast in private on official ballots.",
+   "capabilities": [
+    "votes are cast in private on official ballots"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Suffrage"
+    ],
+    "civ7": [
+     "Democracy"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "womens_suffrage",
+   "key": 1167,
+   "name": "Women's suffrage",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "representation-local-government",
+   "branch": "trunk",
+   "emerged": "~1,893 CE New Zealand",
+   "cost": 4970.0,
+   "prereq": "mass_suffrage",
+   "inRuntime": false,
+   "desc": "Women gain the vote on the same terms as men.",
+   "capabilities": [
+    "women gain the vote on the same terms as men"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Suffrage"
+    ],
+    "civ7": [
+     "Progressivism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "human_rights",
+   "key": 1177,
+   "name": "Human rights law",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "branch": "trunk",
+   "emerged": "~1,948 CE Universal Declaration of Human Rights",
+   "cost": 28130.0,
+   "prereq": "bill_of_rights AND international_organizations",
+   "inRuntime": false,
+   "desc": "Rights are declared to belong to every person and are monitored internationally.",
+   "capabilities": [
+    "rights are declared to belong to every person and are monitored internationally"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Progressivism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "international_tribunals",
+   "key": 1179,
+   "name": "International tribunals",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "law-justice",
+   "branch": "trunk",
+   "emerged": "~1,945 CE Nuremberg tribunal; ~2,002 CE International Criminal Court",
+   "cost": 19890.0,
+   "prereq": "laws_of_war AND international_organizations",
+   "inRuntime": false,
+   "desc": "International courts try individuals for war crimes and crimes against humanity.",
+   "capabilities": [
+    "international courts try individuals for war crimes and crimes against humanity"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  }
+ ]
+}

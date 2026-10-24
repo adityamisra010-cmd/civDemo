@@ -1,0 +1,2209 @@
+{
+ "group": "T6-science",
+ "nodes": [
+  {
+   "id": "tally_notation",
+   "key": 28,
+   "name": "Tally marks",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~44 kya Lebombo; ~20 kya Ishango",
+   "cost": 370.0,
+   "prereq": "bone_tools",
+   "inRuntime": true,
+   "desc": "Incised counting marks on bone — Ishango, Lebombo.",
+   "capabilities": [
+    "counting beyond memory",
+    "lunar reckoning (disputed)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "calendar_lunar",
+    "chinese_script",
+    "token_counting"
+   ]
+  },
+  {
+   "id": "calendar_lunar",
+   "key": 78,
+   "name": "Lunar calendar",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~8,000 BCE Warren Field (Scotland, pit alignment)",
+   "cost": 620.0,
+   "prereq": "tally_notation",
+   "inRuntime": true,
+   "desc": "Tracking months by moon phases — sowing and festival timing.",
+   "capabilities": [
+    "seasonal timing",
+    "ritual calendar"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "astronomy_records",
+    "calendar_civil",
+    "latitude_sailing",
+    "mesoamerican_script",
+    "organized_priesthood"
+   ]
+  },
+  {
+   "id": "numeral_sexagesimal",
+   "key": 91,
+   "name": "Sexagesimal place-value",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~2,100 BCE Ur III",
+   "cost": 1760.0,
+   "prereq": "cuneiform",
+   "inRuntime": true,
+   "desc": "Base-60 positional notation — the first place-value system.",
+   "capabilities": [
+    "multiplication",
+    "division",
+    "fractions",
+    "tables"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "arithmetic_babylonian",
+    "trigonometry"
+   ]
+  },
+  {
+   "id": "arithmetic_babylonian",
+   "key": 92,
+   "name": "Babylonian arithmetic",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~1,800 BCE Old Babylonian",
+   "cost": 880.0,
+   "prereq": "numeral_sexagesimal",
+   "inRuntime": true,
+   "desc": "Reciprocal tables, squares, quadratic problems — computational mathematics.",
+   "capabilities": [
+    "land measurement",
+    "tax assessment",
+    "construction calculation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "abacus",
+    "astronomy_records"
+   ]
+  },
+  {
+   "id": "surveying",
+   "key": 93,
+   "name": "Land surveying",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~2,500 BCE Egypt, Mesopotamia",
+   "cost": 2490.0,
+   "prereq": "cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script",
+   "inRuntime": true,
+   "desc": "Measuring and recording field boundaries — rope-stretchers, the 3-4-5 triangle.",
+   "capabilities": [
+    "land register",
+    "taxation by area",
+    "construction layout"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "aqueduct_channel",
+    "aqueduct_tunnel",
+    "arch",
+    "canal_navigation",
+    "geometry_practical",
+    "land_registry",
+    "qanat",
+    "railway",
+    "road_paved",
+    "stone_fortification",
+    "stratigraphy"
+   ]
+  },
+  {
+   "id": "standard_weights",
+   "key": 105,
+   "name": "Standardised weights",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~2,600 BCE Indus; ~2,500 Mesopotamia",
+   "cost": 1760.0,
+   "prereq": "token_counting AND (proto_writing OR hieroglyphic OR chinese_script)",
+   "inRuntime": true,
+   "desc": "State-issued weight standards — Indus cubical weights, Mesopotamian mina/shekel.",
+   "capabilities": [
+    "fair exchange",
+    "taxation by weight",
+    "silver by weight (proto-money)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "hacksilver"
+   ]
+  },
+  {
+   "id": "calendar_civil",
+   "key": 106,
+   "name": "Civil solar calendar",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~2,800 BCE Egypt",
+   "cost": 1760.0,
+   "prereq": "calendar_lunar AND (cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script)",
+   "inRuntime": true,
+   "desc": "365-day administrative year decoupled from lunar months — Egypt.",
+   "capabilities": [
+    "administrative dating",
+    "Nile flood prediction (Sothic rising)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "water_clock"
+   ]
+  },
+  {
+   "id": "water_clock",
+   "key": 107,
+   "name": "Water clock",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~1,500 BCE Egypt (Karnak)",
+   "cost": 1480.0,
+   "prereq": "pottery_open_fired AND calendar_civil",
+   "inRuntime": true,
+   "desc": "Clepsydra — measuring time by regulated flow.",
+   "capabilities": [
+    "night hours",
+    "temple timing"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "escapement_verge"
+   ]
+  },
+  {
+   "id": "astronomy_records",
+   "key": 133,
+   "name": "Systematic astronomical records",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~750 BCE Babylon",
+   "cost": 1760.0,
+   "prereq": "arithmetic_babylonian OR ((hieroglyphic OR chinese_script OR mesoamerican_script) AND calendar_lunar)",
+   "inRuntime": true,
+   "desc": "Babylonian Astronomical Diaries — nightly observations for 700 years.",
+   "capabilities": [
+    "eclipse prediction (Saros)",
+    "planetary periods",
+    "the empirical base for Greek astronomy"
+   ],
+   "entitiesRequiringIt": [
+    "inst.natural_philosophy"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "calendar_lunisolar",
+    "latitude_sailing",
+    "monsoon_sailing"
+   ]
+  },
+  {
+   "id": "calendar_lunisolar",
+   "key": 134,
+   "name": "Intercalated calendar",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~500 BCE Babylon; Meton 432 BCE",
+   "cost": 1240.0,
+   "prereq": "astronomy_records",
+   "inRuntime": true,
+   "desc": "Lunar months with inserted leap months to track the solar year — 19-year Metonic cycle.",
+   "capabilities": [
+    "reliable religious and agricultural calendar"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "astronomy_geometric"
+   ]
+  },
+  {
+   "id": "geometry_practical",
+   "key": 135,
+   "name": "Practical geometry",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~1,850 BCE Egypt (Moscow papyrus; Rhind ~1,550 BCE); ~1,800 BCE Old Babylonian Mesopotamia; later the Sulba Sutras (India) and Han Chinese classics",
+   "cost": 1760.0,
+   "prereq": "surveying AND (cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script)",
+   "inRuntime": true,
+   "desc": "Area, volume, similar triangles — Thales measuring pyramids by shadow.",
+   "capabilities": [
+    "construction calculation",
+    "navigation by geometry"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "algebra",
+    "geometry_axiomatic"
+   ]
+  },
+  {
+   "id": "geometry_axiomatic",
+   "key": 140,
+   "name": "Axiomatic geometry",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~300 BCE Alexandria",
+   "cost": 7030.0,
+   "prereq": "geometry_practical",
+   "inRuntime": true,
+   "desc": "Proof from stated axioms — Euclid. Knowledge that can be VERIFIED from the text alone.",
+   "capabilities": [
+    "proof",
+    "rigorous engineering calculation",
+    "transmissible without a teacher"
+   ],
+   "entitiesRequiringIt": [
+    "building.university"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "astronomy_geometric",
+    "calculus",
+    "mechanics_archimedean",
+    "optics_ibn_haytham",
+    "trace_italienne"
+   ]
+  },
+  {
+   "id": "mechanics_archimedean",
+   "key": 141,
+   "name": "Statics and simple machines",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~250 BCE Syracuse",
+   "cost": 4970.0,
+   "prereq": "geometry_axiomatic",
+   "inRuntime": true,
+   "desc": "Lever law, centre of gravity, buoyancy, screw — designed rather than trial-and-error machines.",
+   "capabilities": [
+    "compound pulley",
+    "screw press",
+    "water screw",
+    "calculated siege engines"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "barometer_vacuum",
+    "gearing",
+    "printing_press",
+    "water_screw"
+   ]
+  },
+  {
+   "id": "astronomy_geometric",
+   "key": 164,
+   "name": "Geometric astronomy",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~150 BCE Hipparchus (Rhodes); ~150 CE Ptolemy (Alexandria, Almagest)",
+   "cost": 3520.0,
+   "prereq": "geometry_axiomatic AND calendar_lunisolar",
+   "inRuntime": true,
+   "desc": "Epicycles, the Almagest — predictive planetary models from geometry.",
+   "capabilities": [
+    "planetary prediction",
+    "star catalogue",
+    "the base for all astronomy until Kepler"
+   ],
+   "entitiesRequiringIt": [
+    "building.observatory"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "astrolabe",
+    "cartography",
+    "heliocentrism",
+    "trigonometry"
+   ]
+  },
+  {
+   "id": "abacus",
+   "key": 172,
+   "name": "Abacus",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~300 BCE Greece (Salamis counting board); Roman hand abacus; Chinese suanpan first illustrated 1436 CE (an earlier text attributed to ~190 CE is disputed)",
+   "cost": 880.0,
+   "prereq": "arithmetic_babylonian OR chinese_script",
+   "inRuntime": true,
+   "desc": "Counting board and bead frame — calculation without writing.",
+   "capabilities": [
+    "commercial arithmetic without literacy"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "alchemy",
+   "key": 173,
+   "name": "Alchemy",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~100 CE Alexandria; ~200 BCE China",
+   "cost": 7030.0,
+   "prereq": "copper_smelting AND (chinese_script OR alphabet_vowels)",
+   "inRuntime": true,
+   "desc": "Systematic transformation of substances with theory — Hellenistic Egypt, Han China. Distillation, sublimation.",
+   "capabilities": [
+    "distillation",
+    "mineral acids (later)",
+    "gunpowder (China, later)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "distillation",
+    "gunpowder"
+   ]
+  },
+  {
+   "id": "distillation",
+   "key": 174,
+   "name": "Distillation",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~100 CE Alexandria (Maria the Jewess)",
+   "cost": 3520.0,
+   "prereq": "alchemy AND (glass_blowing OR sheet_metal)",
+   "inRuntime": true,
+   "desc": "Separating liquids by boiling and condensing — the alembic.",
+   "capabilities": [
+    "essential oils",
+    "rose water",
+    "alcohol (Islamic, ~800 CE)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "chemistry_quantitative",
+    "desalination",
+    "greek_fire",
+    "mineralogy",
+    "sulphuric_acid"
+   ]
+  },
+  {
+   "id": "astrolabe",
+   "key": 190,
+   "name": "Astrolabe",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "~150 CE (theory); ~800 CE Islamic (instrument)",
+   "cost": 2960.0,
+   "prereq": "astronomy_geometric",
+   "inRuntime": true,
+   "desc": "Analogue computer of the celestial sphere — time, latitude, star positions.",
+   "capabilities": [
+    "latitude",
+    "prayer times",
+    "surveying"
+   ],
+   "entitiesRequiringIt": [
+    "building.observatory"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "celestial_navigation"
+   ]
+  },
+  {
+   "id": "gunpowder",
+   "key": 192,
+   "name": "Gunpowder",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "~850 CE China; formula 1044",
+   "cost": 4180.0,
+   "prereq": "alchemy",
+   "inRuntime": true,
+   "desc": "Saltpetre-sulphur-charcoal — incendiary, then propellant.",
+   "capabilities": [
+    "incendiaries",
+    "fire lances",
+    "bombs"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "saltpetre_refining"
+   ]
+  },
+  {
+   "id": "saltpetre_refining",
+   "key": 193,
+   "name": "Saltpetre refining",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "~1,000 CE China",
+   "cost": 4180.0,
+   "prereq": "gunpowder",
+   "inRuntime": true,
+   "desc": "Leaching and recrystallising potassium nitrate — the bottleneck input.",
+   "capabilities": [
+    "reliable high-nitrate powder"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cannon_early",
+    "corned_powder",
+    "sulphuric_acid"
+   ]
+  },
+  {
+   "id": "hindu_arabic",
+   "key": 203,
+   "name": "Hindu-Arabic numerals",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~500 CE India; Baghdad ~825; Europe ~1,200 (Fibonacci)",
+   "cost": 5910.0,
+   "prereq": "brahmi",
+   "inRuntime": true,
+   "desc": "Decimal place-value with zero — India ~500 CE, transmitted via al-Khwarizmi.",
+   "capabilities": [
+    "written arithmetic",
+    "algebra",
+    "commercial calculation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "algebra",
+    "double_entry",
+    "official_statistics",
+    "trigonometry"
+   ]
+  },
+  {
+   "id": "algebra",
+   "key": 204,
+   "name": "Algebra",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "branch": null,
+   "emerged": "628 CE India (Brahmagupta); ~820 CE Baghdad (al-Khwarizmi); 1247–1303 CE China (Qin Jiushao, Li Ye, Zhu Shijie)",
+   "cost": 8360.0,
+   "prereq": "(hindu_arabic OR counting_rods) AND geometry_practical",
+   "inRuntime": true,
+   "desc": "Systematic solution of equations — al-Khwarizmi.",
+   "capabilities": [
+    "inheritance calculation",
+    "engineering",
+    "later: all quantitative science"
+   ],
+   "entitiesRequiringIt": [
+    "building.university"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "calculus",
+    "mechanics_newtonian",
+    "probability_statistics"
+   ]
+  },
+  {
+   "id": "trigonometry",
+   "key": 205,
+   "name": "Trigonometry",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "~500 CE India (sine); ~900 Islamic (tangent, spherical)",
+   "cost": 4180.0,
+   "prereq": "astronomy_geometric AND (hindu_arabic OR numeral_sexagesimal)",
+   "inRuntime": true,
+   "desc": "Sine, tangent, spherical trig — for astronomy and qibla.",
+   "capabilities": [
+    "astronomical tables",
+    "navigation (later)",
+    "surveying"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "celestial_navigation",
+    "heliocentrism",
+    "mercator"
+   ]
+  },
+  {
+   "id": "optics_ibn_haytham",
+   "key": 206,
+   "name": "Experimental optics",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "~1,020 CE Cairo",
+   "cost": 2960.0,
+   "prereq": "geometry_axiomatic AND glass_blowing",
+   "inRuntime": true,
+   "desc": "Ibn al-Haytham — vision by reflected light, camera obscura, experimental method.",
+   "capabilities": [
+    "theory of vision",
+    "experimental method as a stated procedure"
+   ],
+   "entitiesRequiringIt": [
+    "inst.scientific_society"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "spectacles"
+   ]
+  },
+  {
+   "id": "double_entry",
+   "key": 213,
+   "name": "Double-entry bookkeeping",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~1,300 CE Genoa, Florence",
+   "cost": 4180.0,
+   "prereq": "hindu_arabic AND paper AND bill_of_exchange",
+   "inRuntime": true,
+   "desc": "Every transaction as equal debit and credit — auditable capital.",
+   "capabilities": [
+    "auditable accounts",
+    "capital as a measured quantity",
+    "banking (next)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "corned_powder",
+   "key": 223,
+   "name": "Corned gunpowder",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "~1,420 CE",
+   "cost": 2090.0,
+   "prereq": "saltpetre_refining",
+   "inRuntime": true,
+   "desc": "Granulated powder — consistent burn, stronger, storable.",
+   "capabilities": [
+    "reliable cannon",
+    "handguns"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "matchlock"
+   ]
+  },
+  {
+   "id": "heliocentrism",
+   "key": 231,
+   "name": "Heliocentric model",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1543 / 1609 CE",
+   "cost": 8360.0,
+   "prereq": "astronomy_geometric AND trigonometry",
+   "inRuntime": true,
+   "desc": "Copernicus; Kepler's ellipses — predictive and simpler.",
+   "capabilities": [
+    "accurate planetary prediction"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "mechanics_newtonian"
+   ]
+  },
+  {
+   "id": "telescope",
+   "key": 232,
+   "name": "Telescope",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1608 CE",
+   "cost": 9950.0,
+   "prereq": "spectacles",
+   "inRuntime": true,
+   "desc": "Two-lens refractor — Lippershey 1608, Galileo 1609.",
+   "capabilities": [
+    "Jupiter's moons",
+    "naval reconnaissance (D-039 B)"
+   ],
+   "entitiesRequiringIt": [
+    "building.observatory"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "optical_telegraph",
+    "space_telescope",
+    "spectroscopy"
+   ]
+  },
+  {
+   "id": "microscope",
+   "key": 233,
+   "name": "Microscope",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "~1,620 CE; Leeuwenhoek 1670s",
+   "cost": 9950.0,
+   "prereq": "spectacles",
+   "inRuntime": true,
+   "desc": "Compound (Hooke) and single-lens (Leeuwenhoek) — microorganisms seen.",
+   "capabilities": [
+    "cells",
+    "microorganisms"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cell_theory",
+    "germ_theory",
+    "metallography"
+   ]
+  },
+  {
+   "id": "mechanics_newtonian",
+   "key": 234,
+   "name": "Classical mechanics",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1687 CE",
+   "cost": 16730.0,
+   "prereq": "heliocentrism AND algebra AND calculus",
+   "inRuntime": true,
+   "desc": "Laws of motion and gravitation — Principia 1687. Prediction from equations.",
+   "capabilities": [
+    "engineering from first principles",
+    "ballistics",
+    "celestial mechanics"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "glider",
+    "relativity",
+    "rocket",
+    "water_turbine"
+   ]
+  },
+  {
+   "id": "calculus",
+   "key": 235,
+   "name": "Calculus",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "~1,670 CE",
+   "cost": 23650.0,
+   "prereq": "algebra AND geometry_axiomatic",
+   "inRuntime": true,
+   "desc": "Newton and Leibniz independently — rates and accumulation.",
+   "capabilities": [
+    "physics",
+    "engineering",
+    "economics (later)"
+   ],
+   "entitiesRequiringIt": [
+    "inst.statistics_vital"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "electromagnetism",
+    "mechanics_newtonian",
+    "programmable_computer",
+    "thermodynamics"
+   ]
+  },
+  {
+   "id": "barometer_vacuum",
+   "key": 236,
+   "name": "Barometer and air pump",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1643 CE",
+   "cost": 16730.0,
+   "prereq": "glass_blowing AND mechanics_archimedean",
+   "inRuntime": true,
+   "desc": "Torricelli 1643; Boyle's pump 1659 — air has weight, vacuum exists, the atmosphere pushes.",
+   "capabilities": [
+    "weather prediction",
+    "the concept behind the atmospheric engine"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "balloon",
+    "chemistry_quantitative",
+    "electric_light",
+    "steam_atmospheric",
+    "steam_separate_condenser",
+    "xray"
+   ]
+  },
+  {
+   "id": "chemistry_quantitative",
+   "key": 274,
+   "name": "Quantitative chemistry",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1789 CE",
+   "cost": 56260.0,
+   "prereq": "distillation AND barometer_vacuum",
+   "inRuntime": true,
+   "desc": "Lavoisier 1789 — conservation of mass, oxygen, elements. Chemistry as a science.",
+   "capabilities": [
+    "predictable chemical process",
+    "all later industrial chemistry"
+   ],
+   "entitiesRequiringIt": [
+    "building.research_laboratory"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "agricultural_chemistry",
+    "anaesthesia",
+    "antiviral_drugs",
+    "breech_loading_rifle",
+    "carbon_capture",
+    "catalytic_converter",
+    "endocrinology",
+    "gas_engine",
+    "haber_bosch",
+    "lithium_battery",
+    "metallography",
+    "oral_rehydration",
+    "organic_chemistry",
+    "periodic_system",
+    "petroleum_refining",
+    "photography",
+    "plastics",
+    "portland_cement",
+    "refrigeration",
+    "soda_leblanc",
+    "spectroscopy"
+   ]
+  },
+  {
+   "id": "sulphuric_acid",
+   "key": 275,
+   "name": "Industrial sulphuric acid",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1746 CE",
+   "cost": 33450.0,
+   "prereq": "distillation AND saltpetre_refining",
+   "inRuntime": true,
+   "desc": "Lead-chamber process 1746 — the workhorse acid; \"a nation's industry measured by its sulphuric acid\".",
+   "capabilities": [
+    "bleaching",
+    "soda",
+    "fertiliser",
+    "explosives"
+   ],
+   "entitiesRequiringIt": [
+    "building.chemical_works"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "bleach_chlorine",
+    "chemical_fertilizer",
+    "dynamite",
+    "soda_leblanc",
+    "uranium_milling"
+   ]
+  },
+  {
+   "id": "soda_leblanc",
+   "key": 276,
+   "name": "Synthetic soda",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1791 CE",
+   "cost": 11830.0,
+   "prereq": "sulphuric_acid AND chemistry_quantitative",
+   "inRuntime": true,
+   "desc": "Leblanc 1791; Solvay 1861 — alkali for glass, soap, textiles without plant ash.",
+   "capabilities": [
+    "glass and soap at scale",
+    "pollution (the Alkali Act 1863)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "aluminium"
+   ]
+  },
+  {
+   "id": "bleach_chlorine",
+   "key": 277,
+   "name": "Chlorine bleaching",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1785 CE",
+   "cost": 4180.0,
+   "prereq": "sulphuric_acid",
+   "inRuntime": true,
+   "desc": "Bleaching in hours instead of months in the sun — Berthollet 1785, Tennant 1799.",
+   "capabilities": [
+    "cotton finishing at industrial pace"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "synthetic_dye",
+   "key": 278,
+   "name": "Synthetic dye",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1856 CE",
+   "cost": 33450.0,
+   "prereq": "organic_chemistry AND coke AND dyeing",
+   "inRuntime": true,
+   "desc": "Perkin's mauve 1856 — coal tar to colour; the German chemical industry.",
+   "capabilities": [
+    "cheap colour",
+    "the corporate research laboratory"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "hormonal_contraception",
+    "plastics",
+    "sulfonamides"
+   ]
+  },
+  {
+   "id": "haber_bosch",
+   "key": 281,
+   "name": "Synthetic ammonia",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1913 CE",
+   "cost": 66910.0,
+   "prereq": "chemistry_quantitative AND open_hearth AND thermodynamics",
+   "inRuntime": true,
+   "desc": "Nitrogen from air, 1909-13 — fertiliser without guano; feeds half of humanity; explosives for the wars.",
+   "capabilities": [
+    "yield ceiling raised ~2×",
+    "population beyond organic limit"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "green_revolution"
+   ]
+  },
+  {
+   "id": "dynamite",
+   "key": 282,
+   "name": "Dynamite",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1867 CE",
+   "cost": 23650.0,
+   "prereq": "sulphuric_acid AND organic_chemistry",
+   "inRuntime": true,
+   "desc": "Nobel 1867 — nitroglycerine stabilised; tunnels, mines, canals blasted.",
+   "capabilities": [
+    "hard-rock excavation at scale",
+    "Alpine tunnels"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "electromagnetism",
+   "key": 283,
+   "name": "Electromagnetism",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1800-1831 CE (Volta's battery 1800; Oersted 1820; Ampère; Faraday's induction 1831)",
+   "cost": 39780.0,
+   "prereq": "calculus",
+   "inRuntime": true,
+   "desc": "Oersted 1820, Faraday 1831 — current makes magnetic fields and moving fields make current: the motor and the generator.",
+   "capabilities": [
+    "motor",
+    "generator",
+    "telegraph"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "dynamo",
+    "electricity_generation",
+    "electromagnetic_field_theory",
+    "geophysical_prospecting",
+    "radioactivity",
+    "telegraph",
+    "xray"
+   ]
+  },
+  {
+   "id": "petroleum_refining",
+   "key": 292,
+   "name": "Petroleum refining",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1853-1859 CE (Łukasiewicz's kerosene 1853 and refinery 1856; Drake's well 1859)",
+   "cost": 23650.0,
+   "prereq": "chemistry_quantitative",
+   "inRuntime": true,
+   "desc": "Drake 1859; fractional distillation — kerosene, then gasoline.",
+   "capabilities": [
+    "lamp oil",
+    "fuel for ICE"
+   ],
+   "entitiesRequiringIt": [
+    "building.refinery"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "automobile_mass",
+    "internal_combustion",
+    "motor_road",
+    "plastics"
+   ]
+  },
+  {
+   "id": "photography",
+   "key": 297,
+   "name": "Photography",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1839 CE",
+   "cost": 33450.0,
+   "prereq": "chemistry_quantitative AND glass_lead",
+   "inRuntime": true,
+   "desc": "Daguerre 1839; negative process 1841 — mechanical image record.",
+   "capabilities": [
+    "visual record",
+    "D-039 reconnaissance by camera (later)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "earth_observation",
+    "integrated_circuit",
+    "radioactivity",
+    "television",
+    "xray"
+   ]
+  },
+  {
+   "id": "evolution",
+   "key": 298,
+   "name": "Theory of evolution",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1858 CE",
+   "cost": 33450.0,
+   "prereq": "selective_breeding AND taxonomy AND stratigraphy",
+   "inRuntime": true,
+   "desc": "Darwin-Wallace 1858 — natural selection. Two independent discoverers.",
+   "capabilities": [
+    "biology as a science",
+    "breeding theory"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "antibiotic_resistance"
+   ]
+  },
+  {
+   "id": "vacuum_tube",
+   "key": 312,
+   "name": "Vacuum tube",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1906 CE",
+   "cost": 94620.0,
+   "prereq": "electric_light AND radio",
+   "inRuntime": true,
+   "desc": "Fleming diode 1904, de Forest triode 1906 — amplification and switching; electronics begins.",
+   "capabilities": [
+    "voice radio",
+    "long-distance telephone",
+    "first computers"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "atomic_clock",
+    "laser",
+    "programmable_computer",
+    "radar",
+    "radiation_detection",
+    "radio_broadcasting",
+    "transistor"
+   ]
+  },
+  {
+   "id": "quantum_mechanics",
+   "key": 320,
+   "name": "Quantum mechanics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1925 CE",
+   "cost": 133810.0,
+   "prereq": "electromagnetic_field_theory AND thermodynamics AND spectroscopy AND periodic_system AND radioactivity",
+   "inRuntime": true,
+   "desc": "1900-1927 — Planck, Bohr, Heisenberg, Schrödinger. Matter at atomic scale; the theory behind electronics and nuclear.",
+   "capabilities": [
+    "semiconductors",
+    "nuclear physics",
+    "chemistry explained"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "atomic_clock",
+    "dna_structure",
+    "laser",
+    "lithium_battery",
+    "nanotechnology",
+    "nuclear_physics",
+    "quantum_computing",
+    "semiconductor_physics",
+    "superconductivity_applied"
+   ]
+  },
+  {
+   "id": "nuclear_fission",
+   "key": 321,
+   "name": "Controlled nuclear fission",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1942 CE",
+   "cost": 267620.0,
+   "prereq": "nuclear_physics",
+   "inRuntime": true,
+   "desc": "Discovery 1938; Chicago Pile 1942 — the controlled, self-sustaining chain reaction.",
+   "capabilities": [
+    "controlled self-sustaining chain reaction",
+    "critical assembly (research pile)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "geological_disposal",
+    "graphite_reactor",
+    "heavy_water_reactor",
+    "light_water_reactor",
+    "reprocessing"
+   ]
+  },
+  {
+   "id": "genetics_mendel",
+   "key": 332,
+   "name": "Genetics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1900 CE",
+   "cost": 33450.0,
+   "prereq": "cell_theory AND probability_statistics",
+   "inRuntime": true,
+   "desc": "Mendel 1866 (ignored); rediscovered 1900; chromosome theory 1915.",
+   "capabilities": [
+    "scientific breeding",
+    "molecular biology (next)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "dna_structure",
+    "scientific_plant_breeding"
+   ]
+  },
+  {
+   "id": "dna_structure",
+   "key": 333,
+   "name": "DNA structure and molecular biology",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1953 CE",
+   "cost": 133810.0,
+   "prereq": "genetics_mendel AND quantum_mechanics AND xray",
+   "inRuntime": true,
+   "desc": "Watson-Crick-Franklin 1953 — the code; sequencing 1977; PCR 1983.",
+   "capabilities": [
+    "genetic engineering",
+    "forensics",
+    "medicine by genome"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "antiviral_drugs",
+    "dna_sequencing",
+    "genetic_engineering",
+    "monoclonal_antibodies"
+   ]
+  },
+  {
+   "id": "genetic_engineering",
+   "key": 334,
+   "name": "Recombinant DNA",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1973 CE",
+   "cost": 133810.0,
+   "prereq": "dna_structure AND antibiotic_broad",
+   "inRuntime": true,
+   "desc": "Cohen-Boyer 1973 — genes moved between organisms; insulin 1982; GM crops 1996.",
+   "capabilities": [
+    "synthetic insulin",
+    "GM crops",
+    "vaccines by design"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "crispr",
+    "mrna_vaccines"
+   ]
+  },
+  {
+   "id": "plastics",
+   "key": 337,
+   "name": "Synthetic polymers",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1907 CE",
+   "cost": 94620.0,
+   "prereq": "petroleum_refining AND chemistry_quantitative AND synthetic_dye",
+   "inRuntime": true,
+   "desc": "Bakelite 1907; nylon 1935; polyethylene 1933 — materials designed from petroleum.",
+   "capabilities": [
+    "cheap durable materials",
+    "textiles without fibre crops"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "additive_manufacturing",
+    "composites",
+    "desalination",
+    "drip_irrigation"
+   ]
+  },
+  {
+   "id": "atomic_clock",
+   "key": 345,
+   "name": "Atomic clock",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1955 CE",
+   "cost": 28130.0,
+   "prereq": "quantum_mechanics AND vacuum_tube",
+   "inRuntime": true,
+   "desc": "Caesium 1955 — time to a billionth of a second; the basis of GPS.",
+   "capabilities": [
+    "navigation",
+    "network synchronisation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "gps"
+   ]
+  },
+  {
+   "id": "relativity",
+   "key": 348,
+   "name": "Relativity",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1905 / 1915",
+   "cost": 33450.0,
+   "prereq": "electromagnetic_field_theory AND mechanics_newtonian",
+   "inRuntime": true,
+   "desc": "Special and general relativity — mass-energy equivalence, gravitation as spacetime curvature.",
+   "capabilities": [
+    "mass-energy equivalence",
+    "orbital timing corrections (GPS)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "gps",
+    "nuclear_physics"
+   ]
+  },
+  {
+   "id": "laser",
+   "key": 349,
+   "name": "Laser",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1960",
+   "cost": 189240.0,
+   "prereq": "quantum_mechanics AND vacuum_tube",
+   "inRuntime": true,
+   "desc": "Coherent light by stimulated emission — maser 1954, ruby laser 1960.",
+   "capabilities": [
+    "coherent light",
+    "precision cutting",
+    "optical communication"
+   ],
+   "entitiesRequiringIt": [
+    "project.probe_acceleration"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fibre_optics",
+    "guided_munitions",
+    "nuclear_fusion_research"
+   ]
+  },
+  {
+   "id": "superconductivity_applied",
+   "key": 352,
+   "name": "Applied superconductivity",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1911 discovery; magnets 1960s",
+   "cost": 66910.0,
+   "prereq": "quantum_mechanics AND refrigeration",
+   "inRuntime": true,
+   "desc": "Zero-resistance conductors at cryogenic temperature — high-field magnets.",
+   "capabilities": [
+    "high-field magnets",
+    "MRI",
+    "particle accelerators",
+    "fusion confinement"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "nuclear_fusion_research",
+    "quantum_computing"
+   ]
+  },
+  {
+   "id": "nuclear_fusion_research",
+   "key": 356,
+   "name": "Controlled fusion research",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1958 tokamak",
+   "cost": 66910.0,
+   "prereq": "nuclear_physics AND (superconductivity_applied OR (thermonuclear AND laser))",
+   "inRuntime": true,
+   "desc": "Magnetic and inertial confinement of fusion plasma — net energy not yet commercial.",
+   "capabilities": [
+    "plasma confinement",
+    "fusion science"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fusion_power"
+   ]
+  },
+  {
+   "id": "space_probe",
+   "key": 376,
+   "name": "Interplanetary probe",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1962 Mariner 2",
+   "cost": 23650.0,
+   "prereq": "satellite AND computer",
+   "inRuntime": true,
+   "desc": "Uncrewed spacecraft sent to other planets.",
+   "capabilities": [
+    "exploration of other worlds"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "asteroid_mining",
+    "frontier_propulsion",
+    "fusion_propulsion"
+   ]
+  },
+  {
+   "id": "space_telescope",
+   "key": 378,
+   "name": "Space telescope",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1990 Hubble",
+   "cost": 11830.0,
+   "prereq": "satellite AND telescope",
+   "inRuntime": true,
+   "desc": "Observatories above the atmosphere.",
+   "capabilities": [
+    "observation across the spectrum",
+    "exoplanet detection"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "pcr",
+   "key": 385,
+   "name": "Polymerase chain reaction",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1983",
+   "cost": 47310.0,
+   "prereq": "dna_sequencing",
+   "inRuntime": true,
+   "desc": "Amplifying DNA a billionfold.",
+   "capabilities": [
+    "genetic testing",
+    "forensics"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "genome_sequencing"
+   ]
+  },
+  {
+   "id": "genome_sequencing",
+   "key": 386,
+   "name": "Genome sequencing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1986 automated sequencer; 1995 first bacterial genome; 2001-2003 human genome",
+   "cost": 133810.0,
+   "prereq": "pcr AND computer",
+   "inRuntime": true,
+   "desc": "Reading complete DNA sequences.",
+   "capabilities": [
+    "genetic medicine",
+    "breeding by genome"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "crispr",
+    "frontier_medicine",
+    "mrna_vaccines"
+   ]
+  },
+  {
+   "id": "crispr",
+   "key": 388,
+   "name": "Gene editing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "2012",
+   "cost": 133810.0,
+   "prereq": "genome_sequencing AND genetic_engineering",
+   "inRuntime": true,
+   "desc": "Programmable editing of DNA with CRISPR-Cas9.",
+   "capabilities": [
+    "precise genetic modification"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "frontier_crops"
+   ]
+  },
+  {
+   "id": "catalytic_converter",
+   "key": 394,
+   "name": "Catalytic converter",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1975",
+   "cost": 11830.0,
+   "prereq": "chemistry_quantitative AND automobile_mass",
+   "inRuntime": true,
+   "desc": "Exhaust catalysts removing pollutants.",
+   "capabilities": [
+    "vehicle emission control"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "carbon_capture",
+   "key": 396,
+   "name": "Carbon capture",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1970s industrial; scale speculative",
+   "cost": 16730.0,
+   "prereq": "chemistry_quantitative AND gas_turbine_power",
+   "inRuntime": true,
+   "desc": "Separating CO₂ from emissions and storing it.",
+   "capabilities": [
+    "emission removal (limited scale)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "frontier_climate"
+   ]
+  },
+  {
+   "id": "counting_rods",
+   "key": 432,
+   "name": "Counting-rod arithmetic",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "science",
+   "branch": null,
+   "emerged": "~400 BCE China (Warring States counting rods from a Chu tomb at Changsha); ~305 BCE Tsinghua bamboo-slip decimal multiplication table; Nine Chapters methods compiled in Han times",
+   "cost": 3520.0,
+   "prereq": "chinese_script",
+   "inRuntime": true,
+   "desc": "Decimal place-value arithmetic with rods laid on a counting board, including negative numbers and systems of equations.",
+   "capabilities": [
+    "decimal place-value calculation on a counting board (rod numerals, blank for zero)",
+    "signed (red/black) numbers in calculation",
+    "root extraction and elimination for simultaneous linear problems (Nine Chapters methods)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "algebra",
+    "official_statistics"
+   ]
+  },
+  {
+   "id": "mineralogy",
+   "key": 440,
+   "name": "Systematic mineralogy",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1546 CE (Agricola, De natura fossilium); 1758 CE (Cronstedt's blowpipe mineral analysis)",
+   "cost": 9950.0,
+   "prereq": "ore_prospecting AND distillation",
+   "inRuntime": true,
+   "desc": "Identifying minerals by their physical properties and by blowpipe and chemical tests.",
+   "capabilities": [
+    "typing of unfamiliar mineral occurrences in observed land (physical properties, blowpipe and wet tests)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "stratigraphy"
+   ]
+  },
+  {
+   "id": "probability_statistics",
+   "key": 441,
+   "name": "Probability and statistics",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1654-1812 CE (Pascal and Fermat 1654; Bernoulli's law of large numbers 1713; Laplace 1812)",
+   "cost": 8360.0,
+   "prereq": "algebra",
+   "inRuntime": true,
+   "desc": "The mathematics of chance, and of drawing conclusions from counts and measurements.",
+   "capabilities": [
+    "mathematics of chance and inference",
+    "statistical analysis of counts and errors"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "epidemiology",
+    "genetics_mendel",
+    "machine_learning"
+   ]
+  },
+  {
+   "id": "taxonomy",
+   "key": 442,
+   "name": "Biological classification",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1735 CE (Linnaeus, Systema Naturae); binomial names 1753",
+   "cost": 2960.0,
+   "prereq": "printing_press",
+   "inRuntime": true,
+   "desc": "Naming and classifying living species in one orderly system.",
+   "capabilities": [
+    "systematic naming and classification of species"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "evolution",
+    "nature_conservation"
+   ]
+  },
+  {
+   "id": "cell_theory",
+   "key": 457,
+   "name": "Cell theory",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1838-1858 CE (Schleiden 1838; Schwann 1839; Virchow 1855-58)",
+   "cost": 16730.0,
+   "prereq": "microscope",
+   "inRuntime": true,
+   "desc": "All living things are made of cells, and disease begins in cells.",
+   "capabilities": [
+    "cells as the units of life",
+    "cellular pathology"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "genetics_mendel"
+   ]
+  },
+  {
+   "id": "electromagnetic_field_theory",
+   "key": 458,
+   "name": "Electromagnetic field theory",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1865-1888 CE (Maxwell 1865; Hertz's waves 1887-88)",
+   "cost": 23650.0,
+   "prereq": "electromagnetism",
+   "inRuntime": true,
+   "desc": "Electric and magnetic fields as one theory: light is an electromagnetic wave, and such waves can be made — the theory behind radio.",
+   "capabilities": [
+    "radio (theory)",
+    "light as an electromagnetic wave"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "quantum_mechanics",
+    "radar",
+    "radio",
+    "relativity"
+   ]
+  },
+  {
+   "id": "organic_chemistry",
+   "key": 459,
+   "name": "Organic chemistry",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1828-1865 CE (Wöhler's urea 1828; Liebig's analysis 1830s; Kekulé's structural theory 1858-65)",
+   "cost": 14060.0,
+   "prereq": "chemistry_quantitative",
+   "inRuntime": true,
+   "desc": "The chemistry of carbon compounds — analysing, synthesising and drawing their structures.",
+   "capabilities": [
+    "carbon compounds analysed, synthesised and drawn as structures"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "dynamite",
+    "synthetic_dye"
+   ]
+  },
+  {
+   "id": "periodic_system",
+   "key": 460,
+   "name": "Periodic system of the elements",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1869 CE (Mendeleev; Lothar Meyer 1870)",
+   "cost": 11830.0,
+   "prereq": "chemistry_quantitative",
+   "inRuntime": true,
+   "desc": "Ordering the chemical elements by their properties, so that the gaps predict elements not yet found.",
+   "capabilities": [
+    "predictive ordering of the elements"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "quantum_mechanics"
+   ]
+  },
+  {
+   "id": "spectroscopy",
+   "key": 461,
+   "name": "Spectroscopy",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1814-1860 CE (Fraunhofer's solar lines 1814; Kirchhoff and Bunsen's spectral analysis 1859-60)",
+   "cost": 19890.0,
+   "prereq": "telescope AND chemistry_quantitative",
+   "inRuntime": true,
+   "desc": "Identifying substances by the lines in their light — even the composition of the stars.",
+   "capabilities": [
+    "chemical analysis by spectral lines",
+    "composition of the stars"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "quantum_mechanics"
+   ]
+  },
+  {
+   "id": "stratigraphy",
+   "key": 462,
+   "name": "Stratigraphy and geological mapping",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1669 CE (Steno: superposition and original horizontality); 1815 CE (William Smith's geological map of England and Wales)",
+   "cost": 23650.0,
+   "prereq": "mineralogy AND surveying",
+   "inRuntime": true,
+   "desc": "Reading rock layers in order and mapping them, to tell which formations may hold coal, ore or oil.",
+   "capabilities": [
+    "geological maps and the prospectivity of host formations"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "evolution",
+    "geological_disposal",
+    "geophysical_prospecting",
+    "radiometric_prospecting"
+   ]
+  },
+  {
+   "id": "thermodynamics",
+   "key": 463,
+   "name": "Thermodynamics",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1824-1877 CE (Carnot 1824; Joule 1840s; Clausius and Kelvin 1850-51; Boltzmann 1877)",
+   "cost": 47310.0,
+   "prereq": "steam_separate_condenser AND calculus",
+   "inRuntime": true,
+   "desc": "The laws of energy and entropy, which set the limits of every heat engine.",
+   "capabilities": [
+    "laws of energy and entropy",
+    "efficiency limits of heat engines",
+    "chemical equilibrium"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "diesel",
+    "haber_bosch",
+    "quantum_mechanics",
+    "refrigeration",
+    "steam_turbine"
+   ]
+  },
+  {
+   "id": "dna_sequencing",
+   "key": 488,
+   "name": "DNA sequencing",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1975-1977 CE (Sanger; Maxam and Gilbert)",
+   "cost": 94620.0,
+   "prereq": "dna_structure",
+   "inRuntime": true,
+   "desc": "Reading the order of the bases in a DNA molecule.",
+   "capabilities": [
+    "reading DNA base sequences"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "pcr"
+   ]
+  },
+  {
+   "id": "geophysical_prospecting",
+   "key": 489,
+   "name": "Geophysical prospecting",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1879 CE (Thalen's magnetic survey method for Swedish iron ore); 1912 CE (Schlumberger's electrical prospecting); 1915 CE (torsion-balance oil survey, Egbell); 1921 CE (first reflection-seismic field test, Oklahoma)",
+   "cost": 66900.0,
+   "prereq": "stratigraphy AND electromagnetism",
+   "inRuntime": true,
+   "desc": "Magnetic, electrical, gravity and seismic surveys that reveal structures hidden underground.",
+   "capabilities": [
+    "magnetic, electrical, gravity and seismic surveys of concealed structures"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "nuclear_physics",
+   "key": 490,
+   "name": "Nuclear physics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1932 CE (neutron; first artificial disintegration; D-D fusion 1934); 1938-1939 CE (fission discovered and explained)",
+   "cost": 159130.0,
+   "prereq": "radiation_detection AND quantum_mechanics AND relativity",
+   "inRuntime": true,
+   "desc": "The structure of the atomic nucleus: isotopes, the neutron and the splitting of uranium.",
+   "capabilities": [
+    "nuclear structure, isotopes (including deuterium), the neutron, artificial radioactivity, slow neutrons",
+    "fission of uranium and the role of U-235; fusion reactions of light nuclei"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "nuclear_fission",
+    "nuclear_fusion_research",
+    "radioisotope_production",
+    "uranium_enrichment"
+   ]
+  },
+  {
+   "id": "radiation_detection",
+   "key": 491,
+   "name": "Radiation detection and counting",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1908-1911 CE (Geiger's counter); 1911 CE (Wilson's cloud chamber); 1928 CE (Geiger-Muller tube); 1948 CE (NaI(Tl) scintillator)",
+   "cost": 66900.0,
+   "prereq": "radioactivity AND vacuum_tube",
+   "inRuntime": true,
+   "desc": "Counters, cloud chambers and film badges that detect and measure radiation.",
+   "capabilities": [
+    "counters, cloud chambers, film badges and scintillators"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "nuclear_physics",
+    "radiation_protection",
+    "radiometric_prospecting"
+   ]
+  },
+  {
+   "id": "radioactivity",
+   "key": 492,
+   "name": "Radioactivity and radiochemistry",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1896 CE (Becquerel: rays from uranium salts); 1898 CE (polonium and radium, the Curies)",
+   "cost": 79560.0,
+   "prereq": "photography AND electromagnetism",
+   "inRuntime": true,
+   "desc": "Some elements give off rays as they change into others — radium and polonium are found.",
+   "capabilities": [
+    "radioactivity - radium and polonium, alpha, beta and gamma rays, transmutation (Rutherford and Soddy)",
+    "radiation exposure harms living tissue (recognised from 1901 burns)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "quantum_mechanics",
+    "radiation_detection",
+    "radiotherapy",
+    "uranium_milling"
+   ]
+  },
+  {
+   "id": "radioisotope_production",
+   "key": 493,
+   "name": "Radioisotope production",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1934 CE (artificial radioactivity; cyclotron-made isotopes); 1946 CE (first reactor-made isotope shipment, Oak Ridge)",
+   "cost": 94620.0,
+   "prereq": "nuclear_physics AND radiation_protection",
+   "inRuntime": true,
+   "desc": "Making radioactive isotopes in accelerators and reactors for tracing, testing and sterilising.",
+   "capabilities": [
+    "making radioisotopes by cyclotron or reactor irradiation (tracers, Co-60, Ir-192, Mo-99/Tc-99m)",
+    "industrial radiography, sterilisation and tracer methods"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "nuclear_medicine"
+   ]
+  },
+  {
+   "id": "radiometric_prospecting",
+   "key": 494,
+   "name": "Radiometric prospecting",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "before 1949 CE (car-mounted Geiger-Muller surveys by the USGS for the AEC); 1958 CE (airborne radioactivity surveys established)",
+   "cost": 47310.0,
+   "prereq": "radiation_detection AND stratigraphy",
+   "inRuntime": true,
+   "desc": "Surveying the ground, on foot, by car or from the air, for the gamma rays of uranium and thorium.",
+   "capabilities": [
+    "gamma-ray surveying - ground, car-borne and airborne mapping of uranium, thorium and potassium"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "semiconductor_physics",
+   "key": 495,
+   "name": "Semiconductor physics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "science",
+   "branch": "natural_science",
+   "emerged": "1931 CE band theory of semiconductors (A. H. Wilson, Cambridge); 1938-1939 CE rectifier theory (Schottky, Mott); 1940 CE p-n junction and silicon photovoltaic effect (Ohl, Bell Labs)",
+   "cost": 79560.0,
+   "prereq": "quantum_mechanics AND radio",
+   "inRuntime": true,
+   "desc": "The band theory of solids and the junction between differently treated semiconductors.",
+   "capabilities": [
+    "band theory of solids and the p-n junction",
+    "semiconductor rectifiers and photodiodes"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "solar_pv",
+    "transistor"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1251 @@
+{
+ "group": "C1-legitimacy-belief-regimes-ideology",
+ "nodes": [
+  {
+   "id": "hereditary_rank",
+   "key": 1009,
+   "name": "Hereditary rank",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "legitimacy-succession",
+   "branch": null,
+   "emerged": "~4,500 BCE Varna (Copper Age status burials; interpretation as inherited rank is an archaeological inference)",
+   "cost": 740.0,
+   "prereq": "cereal_cultivation OR sheep_goat",
+   "inRuntime": true,
+   "desc": "Rank and office pass down within leading families. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "rank and office inherited within leading lineages"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "chiefdom",
+    "dynastic_marriage",
+    "elite_council",
+    "legal_estates",
+    "sacral_kingship",
+    "succession_law"
+   ]
+  },
+  {
+   "id": "organized_priesthood",
+   "key": 1011,
+   "name": "Organized priesthood",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "legitimacy-succession",
+   "branch": null,
+   "emerged": "~5,000 BCE Eridu temple sequence; ~3,500 BCE Uruk temple households",
+   "cost": 1050.0,
+   "prereq": "calendar_lunar AND (cereal_cultivation OR sheep_goat)",
+   "inRuntime": true,
+   "desc": "A temple priesthood keeps the ritual calendar and manages temple estates. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a temple priesthood keeping the ritual calendar",
+    "temple estates managed by priests"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "public_games",
+    "religious_toleration",
+    "sacral_kingship",
+    "scriptural_canon",
+    "state_religion",
+    "temple_economy",
+    "theocracy"
+   ]
+  },
+  {
+   "id": "chiefdom",
+   "key": 1012,
+   "name": "Chiefdom",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "~4,500 BCE ranked Copper Age societies (their reading as chiefdoms is an archaeological inference); ethnographic chiefdoms of Polynesia",
+   "cost": 1050.0,
+   "prereq": "hereditary_rank",
+   "inRuntime": true,
+   "desc": "Many villages answer to a paramount chief. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a regional chiefdom under a paramount chief"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "tribal_confederacy",
+   "key": 1013,
+   "name": "Tribal confederacy",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "~209 BCE Xiongnu confederation; ~1450 CE Haudenosaunee Confederacy (founding date debated)",
+   "cost": 1050.0,
+   "prereq": "oath_alliance",
+   "inRuntime": true,
+   "desc": "Autonomous tribes swear themselves into a league. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a sworn league of autonomous tribes"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "sacral_kingship",
+   "key": 1018,
+   "name": "Sacred kingship",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "legitimacy-succession",
+   "branch": null,
+   "emerged": "~3,100 BCE Egypt (divine kingship of the first dynasties)",
+   "cost": 1760.0,
+   "prereq": "hereditary_rank AND organized_priesthood",
+   "inRuntime": true,
+   "desc": "Kingship sanctioned by the gods and upheld by temple ritual. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "kingship sanctioned by the gods and upheld by temple ritual"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "court_patronage",
+    "debt_remission",
+    "divine_right",
+    "feudal_monarchy",
+    "mandate_doctrine",
+    "territorial_kingship",
+    "theocracy"
+   ]
+  },
+  {
+   "id": "succession_law",
+   "key": 1020,
+   "name": "Rules of succession",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "legitimacy-succession",
+   "branch": null,
+   "emerged": "~1,500 BCE Hittite Proclamation of Telipinu (order of royal succession)",
+   "cost": 1240.0,
+   "prereq": "hereditary_rank AND law_code",
+   "inRuntime": true,
+   "desc": "A fixed rule names the ruler's heir. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a fixed rule naming the ruler's heir"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "constitutional_monarchy",
+    "elective_succession",
+    "feudal_monarchy",
+    "territorial_kingship"
+   ]
+  },
+  {
+   "id": "city_state_oligarchy",
+   "key": 1022,
+   "name": "Oligarchic city-state",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "~700 BCE Greek oligarchic poleis; ~1100 CE Italian communes",
+   "cost": 2090.0,
+   "prereq": "elite_council AND law_code",
+   "inRuntime": true,
+   "desc": "A city governed by a council of its leading families. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a city governed by a council of leading families"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "territorial_kingship",
+   "key": 1023,
+   "name": "Territorial kingship",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "~3,100 BCE unified Egypt; ~2,300 BCE Akkad; ~1,600 BCE Shang China",
+   "cost": 2490.0,
+   "prereq": "(sacral_kingship OR succession_law) AND appointed_officials",
+   "inRuntime": true,
+   "desc": "A hereditary king rules a realm of many settlements. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a realm of many settlements under a hereditary king"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "theocracy",
+   "key": 1030,
+   "name": "Theocratic rule",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "~1,070 BCE rule of the high priests of Amun at Thebes; 756 CE Papal States; 1642 CE Ganden Phodrang government of Tibet",
+   "cost": 2960.0,
+   "prereq": "organized_priesthood AND (law_code OR sacral_kingship)",
+   "inRuntime": true,
+   "desc": "Religious office holds the government, under religious law. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "government by religious office under religious law"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "assembly_democracy",
+   "key": 1034,
+   "name": "Assembly democracy",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "508 BCE reforms of Cleisthenes at Athens",
+   "cost": 4180.0,
+   "prereq": "citizen_assembly AND law_code",
+   "inRuntime": true,
+   "desc": "All citizens govern together in an assembly. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "government by an assembly of all citizens"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "bureaucratic_empire",
+   "key": 1035,
+   "name": "Bureaucratic empire",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "~520 BCE Achaemenid Persia; 221 BCE Qin unification of China; 27 BCE Roman principate",
+   "cost": 4970.0,
+   "prereq": "provincial_administration AND standing_army",
+   "inRuntime": true,
+   "desc": "An empire is governed through salaried officials and provinces. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "an empire governed through salaried officials and provinces"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "classical_republic",
+   "key": 1036,
+   "name": "Mixed-constitution republic",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "509 BCE traditional founding of the Roman Republic",
+   "cost": 4180.0,
+   "prereq": "elected_magistracies AND elite_council",
+   "inRuntime": true,
+   "desc": "A republic of elected magistrates, a senate and popular assemblies. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a republic of elected magistrates, senate and assemblies"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "feudal_monarchy",
+   "key": 1040,
+   "name": "Feudal monarchy",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "~900 CE post-Carolingian West Francia; 1066 CE Norman England",
+   "cost": 7030.0,
+   "prereq": "service_tenure AND (succession_law OR sacral_kingship)",
+   "inRuntime": true,
+   "desc": "A monarchy of vassals who hold their fiefs in return for service. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a monarchy of vassals holding fiefs for service"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "merchant_republic",
+   "key": 1041,
+   "name": "Mercantile republic",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "~1100 CE Venice and Genoa; 1297 CE closing of Venice's Great Council; ~1350 CE Hanseatic city republics",
+   "cost": 5910.0,
+   "prereq": "commercial_law AND (elected_magistracies OR municipal_charter)",
+   "inRuntime": true,
+   "desc": "A republic governed by councils of merchants. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a republic governed by merchant councils"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "military_rule",
+   "key": 1042,
+   "name": "Military rule",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "1192 CE Kamakura shogunate; 1250 CE Mamluk Sultanate; numerous twentieth-century juntas",
+   "cost": 5910.0,
+   "prereq": "standing_army OR service_tenure",
+   "inRuntime": true,
+   "desc": "The armed forces hold the government. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "government by the armed forces"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "absolute_monarchy",
+   "key": 1053,
+   "name": "Absolute monarchy",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "1643–1715 CE Louis XIV of France; 1682–1725 CE Peter I of Russia",
+   "cost": 7030.0,
+   "prereq": "standing_army AND (provincial_administration OR civil_service_examinations)",
+   "inRuntime": true,
+   "desc": "A monarch rules without the consent of the estates. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a monarchy ruling without consent of estates"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "constitutional_monarchy",
+   "key": 1054,
+   "name": "Constitutional monarchy",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "1689 CE English Bill of Rights settlement",
+   "cost": 7030.0,
+   "prereq": "succession_law AND (written_constitution OR (bill_of_rights AND representative_assembly))",
+   "inRuntime": true,
+   "desc": "A monarchy is bound by a constitution and a legislature. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a monarchy bound by a constitution and a legislature"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "federal_republic",
+   "key": 1055,
+   "name": "Federation",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "1787 CE United States Constitution; 1848 CE Swiss federal constitution",
+   "cost": 7030.0,
+   "prereq": "written_constitution AND (municipal_charter OR provincial_administration)",
+   "inRuntime": true,
+   "desc": "Sovereignty is divided between a union and its member states. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a federation dividing sovereignty between union and members"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "presidential_republic",
+   "key": 1056,
+   "name": "Presidential republic",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "1787 CE United States Constitution",
+   "cost": 7030.0,
+   "prereq": "separation_of_powers AND elected_magistracies",
+   "inRuntime": true,
+   "desc": "A republic with a separately elected president. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a republic with a separately elected president"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "parliamentary_government",
+   "key": 1064,
+   "name": "Parliamentary government",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "1830–1870 CE consolidation of cabinet government in Britain",
+   "cost": 11830.0,
+   "prereq": "ministerial_responsibility",
+   "inRuntime": true,
+   "desc": "A cabinet responsible to parliament governs. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "government by a cabinet responsible to parliament"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "marxist_leninist_state",
+   "key": 1066,
+   "name": "Marxist–Leninist state",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "1922 CE founding of the USSR; 1928 CE first Five-Year Plan; 1949 CE People's Republic of China",
+   "cost": 33450.0,
+   "prereq": "mass_political_party AND central_planning",
+   "inRuntime": true,
+   "desc": "A communist party-state runs a planned economy. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a communist party-state with a planned economy"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "one_party_state",
+   "key": 1067,
+   "name": "One-party state",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "regime-forms",
+   "branch": null,
+   "emerged": "1922 CE founding of the USSR; 1925–1945 CE single-party rule in Turkey",
+   "cost": 28130.0,
+   "prereq": "mass_political_party AND (written_constitution OR standing_army)",
+   "inRuntime": true,
+   "desc": "A single legal party holds the government. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "government by a single legal party"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "shamanic_ritual",
+   "key": 1070,
+   "name": "Ritual specialists",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "belief-religion",
+   "branch": "trunk",
+   "emerged": "~35 kya Hohle Fels figurines; ~12 kya Hilazon Tachtit shaman burial",
+   "cost": 260.0,
+   "prereq": "ochre_processing",
+   "inRuntime": false,
+   "desc": "Some members of the band are recognized as mediators with the spirit world and lead its rites.",
+   "capabilities": [
+    "some members of the band are recognized as mediators with the spirit world and lead its rites"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "Mysticism"
+    ],
+    "civ7": [
+     "Mysticism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "ancestor_veneration"
+   ]
+  },
+  {
+   "id": "ancestor_veneration",
+   "key": 1072,
+   "name": "Ancestor veneration",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "belief-religion",
+   "branch": "trunk",
+   "emerged": "~9,000 BCE plastered skulls at Jericho; ~7,000 BCE Çatalhöyük house burials",
+   "cost": 620.0,
+   "prereq": "shamanic_ritual AND (cereal_cultivation OR sheep_goat)",
+   "inRuntime": false,
+   "desc": "Settled households keep their dead close and honour lineage ancestors, tying land claims to descent.",
+   "capabilities": [
+    "settled households keep their dead close and honour lineage ancestors, tying land claims to descent"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Mysticism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "temple_economy",
+   "key": 1082,
+   "name": "Temple households",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "belief-religion",
+   "branch": "trunk",
+   "emerged": "~3,200 BCE Uruk Eanna temple accounts",
+   "cost": 2090.0,
+   "prereq": "organized_priesthood AND token_counting",
+   "inRuntime": false,
+   "desc": "Temples hold land, herds and workers, store grain and redistribute it under priestly management.",
+   "capabilities": [
+    "temples hold land, herds and workers, store grain and redistribute it under priestly management"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Mysticism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "court_patronage"
+   ]
+  },
+  {
+   "id": "mandate_doctrine",
+   "key": 1087,
+   "name": "Conditional mandate",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "legitimacy-succession",
+   "branch": "trunk",
+   "emerged": "~1,046 BCE Zhou Mandate of Heaven",
+   "cost": 2090.0,
+   "prereq": "sacral_kingship AND law_code",
+   "inRuntime": false,
+   "desc": "Heaven grants rule to the virtuous and withdraws it from tyrants, justifying rebellion.",
+   "capabilities": [
+    "heaven grants rule to the virtuous and withdraws it from tyrants, justifying rebellion"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Ren / Yi / Li (Han)"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "scriptural_canon",
+   "key": 1090,
+   "name": "Scriptural canon",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "belief-religion",
+   "branch": "trunk",
+   "emerged": "~1,200 BCE Rigveda compiled (oral); ~600 BCE Torah redaction",
+   "cost": 2490.0,
+   "prereq": "organized_priesthood AND (abjad OR alphabet_vowels OR brahmi OR chinese_script)",
+   "inRuntime": false,
+   "desc": "A fixed body of sacred texts defines belief and practice and is studied by a trained clergy.",
+   "capabilities": [
+    "a fixed body of sacred texts defines belief and practice and is studied by a trained clergy"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "Theology"
+    ],
+    "civ7": [
+     "Piety"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "missionary_religion",
+    "monasticism",
+    "religious_reform",
+    "systematic_theology"
+   ]
+  },
+  {
+   "id": "missionary_religion",
+   "key": 1096,
+   "name": "Missionary religion",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "belief-religion",
+   "branch": "trunk",
+   "emerged": "~250 BCE Ashokan missions; ~50 CE Pauline missions",
+   "cost": 3520.0,
+   "prereq": "scriptural_canon AND royal_envoys",
+   "inRuntime": false,
+   "desc": "A faith sends preachers beyond its own people and admits converts.",
+   "capabilities": [
+    "a faith sends preachers beyond its own people and admits converts"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Theology"
+    ],
+    "civ7": [
+     "Piety"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "monasticism",
+   "key": 1097,
+   "name": "Monastic orders",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "belief-religion",
+   "branch": "trunk",
+   "emerged": "~450 BCE Buddhist sangha; ~320 CE Pachomian monasteries",
+   "cost": 2960.0,
+   "prereq": "scriptural_canon",
+   "inRuntime": false,
+   "desc": "Communities under a rule withdraw from ordinary life, hold land and copy and teach texts.",
+   "capabilities": [
+    "communities under a rule withdraw from ordinary life, hold land and copy and teach texts"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Theology"
+    ],
+    "civ7": [
+     "Theology"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "military_orders"
+   ]
+  },
+  {
+   "id": "state_religion",
+   "key": 1105,
+   "name": "State religion",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "belief-religion",
+   "branch": "trunk",
+   "emerged": "~301 CE Armenia; ~380 CE Edict of Thessalonica",
+   "cost": 4180.0,
+   "prereq": "organized_priesthood AND appointed_officials",
+   "inRuntime": false,
+   "desc": "One faith is established by law, its clergy supported and its rivals disadvantaged.",
+   "capabilities": [
+    "one faith is established by law, its clergy supported and its rivals disadvantaged"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "Theology"
+    ],
+    "civ7": [
+     "Piety"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "canon_law",
+    "divine_right",
+    "legal_estates"
+   ]
+  },
+  {
+   "id": "steppe_empire",
+   "key": 1108,
+   "name": "Steppe empire",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "regime-forms",
+   "branch": "trunk",
+   "emerged": "~209 BCE Xiongnu under Modu; ~1,206 CE Mongol Empire",
+   "cost": 7030.0,
+   "prereq": "oath_alliance AND war_band AND cavalry",
+   "inRuntime": false,
+   "desc": "A confederation of nomad clans under one khan, organized as a decimal army with appanages for his kin.",
+   "capabilities": [
+    "a confederation of nomad clans under one khan, organized as a decimal army with appanages for his kin"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Mongolia (Exploration)"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "canon_law",
+   "key": 1109,
+   "name": "Canon law",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "belief-religion",
+   "branch": "trunk",
+   "emerged": "~1,140 CE Gratian's Decretum",
+   "cost": 3520.0,
+   "prereq": "state_religion AND legal_code_roman",
+   "inRuntime": false,
+   "desc": "The church governs its clergy, marriage and oaths through its own courts and law.",
+   "capabilities": [
+    "the church governs its clergy, marriage and oaths through its own courts and law"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Theology"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "religious_reform"
+   ]
+  },
+  {
+   "id": "elective_succession",
+   "key": 1111,
+   "name": "Elective succession",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "legitimacy-succession",
+   "branch": "trunk",
+   "emerged": "~911 CE East Frankish election; ~1,356 CE Golden Bull",
+   "cost": 3520.0,
+   "prereq": "succession_law AND elite_council",
+   "inRuntime": false,
+   "desc": "A college of magnates elects the next ruler.",
+   "capabilities": [
+    "a college of magnates elects the next ruler"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "elective_monarchy"
+   ]
+  },
+  {
+   "id": "systematic_theology",
+   "key": 1117,
+   "name": "Systematic theology",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "belief-religion",
+   "branch": "trunk",
+   "emerged": "~400 CE Augustine; ~1,270 CE Aquinas",
+   "cost": 2960.0,
+   "prereq": "scriptural_canon AND philosophical_schools",
+   "inRuntime": false,
+   "desc": "Scholars reason about doctrine with the tools of philosophy and teach it in schools.",
+   "capabilities": [
+    "scholars reason about doctrine with the tools of philosophy and teach it in schools"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Theology"
+    ],
+    "civ7": [
+     "Theology"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "elective_monarchy",
+   "key": 1118,
+   "name": "Elective monarchy",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "regime-forms",
+   "branch": "trunk",
+   "emerged": "~1,356 CE Holy Roman Empire; ~1,573 CE Polish–Lithuanian election",
+   "cost": 5910.0,
+   "prereq": "elective_succession AND service_tenure",
+   "inRuntime": false,
+   "desc": "A monarchy whose ruler is chosen by an electoral college of magnates bound by charters.",
+   "capabilities": [
+    "a monarchy whose ruler is chosen by an electoral college of magnates bound by charters"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "divine_right",
+   "key": 1122,
+   "name": "Divine right of kings",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "legitimacy-succession",
+   "branch": "trunk",
+   "emerged": "~1,598 CE The Trew Law of Free Monarchies",
+   "cost": 3520.0,
+   "prereq": "sacral_kingship AND state_religion",
+   "inRuntime": false,
+   "desc": "The king answers to God alone; resistance is sin.",
+   "capabilities": [
+    "the king answers to god alone; resistance is sin"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Divine Right"
+    ],
+    "civ7": [
+     "Authority"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "religious_reform",
+   "key": 1131,
+   "name": "Religious reform movements",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "belief-religion",
+   "branch": "trunk",
+   "emerged": "~1,517 CE Wittenberg theses",
+   "cost": 5910.0,
+   "prereq": "printing_press AND (canon_law OR scriptural_canon)",
+   "inRuntime": false,
+   "desc": "Lay readers and preachers challenge the established clergy and found new confessions.",
+   "capabilities": [
+    "lay readers and preachers challenge the established clergy and found new confessions"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Reformed Church"
+    ],
+    "civ7": [
+     "Reformation"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "social_contract",
+   "key": 1133,
+   "name": "Social contract",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "ideology",
+   "branch": "trunk",
+   "emerged": "~1,651 CE Leviathan; ~1,689 CE Two Treatises",
+   "cost": 5910.0,
+   "prereq": "political_philosophy AND printing_press",
+   "inRuntime": false,
+   "desc": "Government is argued to rest on the consent of the governed.",
+   "capabilities": [
+    "government is argued to rest on the consent of the governed"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Political Philosophy"
+    ],
+    "civ7": [
+     "Political Theory"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "classical_liberalism",
+    "popular_sovereignty"
+   ]
+  },
+  {
+   "id": "classical_liberalism",
+   "key": 1139,
+   "name": "Liberalism",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "branch": "trunk",
+   "emerged": "~1,776 CE Wealth of Nations; ~1,859 CE On Liberty",
+   "cost": 11830.0,
+   "prereq": "social_contract AND commercial_law",
+   "inRuntime": false,
+   "desc": "Individual rights, free markets and limited government are argued as one programme.",
+   "capabilities": [
+    "individual rights, free markets and limited government are argued as one programme"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Capitalism"
+    ],
+    "civ7": [
+     "Liberalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "free_trade"
+   ]
+  },
+  {
+   "id": "conservatism",
+   "key": 1140,
+   "name": "Conservatism",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "branch": "trunk",
+   "emerged": "~1,790 CE Reflections on the Revolution in France",
+   "cost": 5910.0,
+   "prereq": "popular_sovereignty",
+   "inRuntime": false,
+   "desc": "Inherited institutions and gradual change are defended against revolution.",
+   "capabilities": [
+    "inherited institutions and gradual change are defended against revolution"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Absolutism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "nationalism",
+   "key": 1155,
+   "name": "Nationalism",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "branch": "trunk",
+   "emerged": "~1,789 CE French nation in arms; ~1,807 CE Addresses to the German Nation",
+   "cost": 11830.0,
+   "prereq": "popular_sovereignty AND printing_press",
+   "inRuntime": false,
+   "desc": "The nation, defined by language and history, is held to be the proper unit of the state.",
+   "capabilities": [
+    "the nation, defined by language and history, is held to be the proper unit of the state"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Nationalism"
+    ],
+    "civ7": [
+     "Nationalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "decolonization",
+    "fascism"
+   ]
+  },
+  {
+   "id": "popular_sovereignty",
+   "key": 1157,
+   "name": "Popular sovereignty",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "branch": "trunk",
+   "emerged": "~1,776 CE Declaration of Independence; ~1,789 CE Declaration of the Rights of Man",
+   "cost": 14060.0,
+   "prereq": "social_contract AND representative_assembly",
+   "inRuntime": false,
+   "desc": "Sovereignty is held to belong to the nation, exercised through its representatives.",
+   "capabilities": [
+    "sovereignty is held to belong to the nation, exercised through its representatives"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "Suffrage"
+    ],
+    "civ7": [
+     "Democracy"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "conservatism",
+    "nationalism",
+    "revolutionary_republic"
+   ]
+  },
+  {
+   "id": "secular_state",
+   "key": 1164,
+   "name": "Secular state",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "belief-religion",
+   "branch": "trunk",
+   "emerged": "~1,791 CE First Amendment; ~1,905 CE French separation law",
+   "cost": 14060.0,
+   "prereq": "religious_toleration AND written_constitution",
+   "inRuntime": false,
+   "desc": "The state recognizes no official church and treats every faith alike in law.",
+   "capabilities": [
+    "the state recognizes no official church and treats every faith alike in law"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "socialism",
+   "key": 1166,
+   "name": "Socialism",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "ideology",
+   "branch": "trunk",
+   "emerged": "~1,825 CE Owenite communities; ~1,848 CE Communist Manifesto",
+   "cost": 11830.0,
+   "prereq": "labour_unions AND printing_press",
+   "inRuntime": false,
+   "desc": "Workers' movements demand collective ownership and an end to class exploitation.",
+   "capabilities": [
+    "workers' movements demand collective ownership and an end to class exploitation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Class Struggle"
+    ],
+    "civ7": [
+     "Socialism",
+     "Communism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "revolutionary_republic",
+   "key": 1168,
+   "name": "Revolutionary republic",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "regime-forms",
+   "branch": "trunk",
+   "emerged": "~1,792 CE French First Republic",
+   "cost": 23650.0,
+   "prereq": "popular_sovereignty AND written_constitution AND citizen_militia",
+   "inRuntime": false,
+   "desc": "A republic founded by revolution in the name of the people, with a citizen army and emergency committees.",
+   "capabilities": [
+    "a republic founded by revolution in the name of the people, with a citizen army and emergency committees"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Revolutionary Republic"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "fascism",
+   "key": 1176,
+   "name": "Fascism",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "ideology",
+   "branch": "trunk",
+   "emerged": "~1,919 CE Fasci di Combattimento",
+   "cost": 23650.0,
+   "prereq": "nationalism AND mass_political_party",
+   "inRuntime": false,
+   "desc": "An ultranationalist mass movement seeks a single-party state built on mobilization and violence.",
+   "capabilities": [
+    "an ultranationalist mass movement seeks a single-party state built on mobilization and violence"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Totalitarianism"
+    ],
+    "civ7": [
+     "Fascism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fascist_state"
+   ]
+  },
+  {
+   "id": "fascist_state",
+   "key": 1188,
+   "name": "Fascist state",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "regime-forms",
+   "branch": "trunk",
+   "emerged": "~1,922 CE Italy; ~1,933 CE Germany",
+   "cost": 47310.0,
+   "prereq": "fascism AND state_propaganda AND mass_political_party",
+   "inRuntime": false,
+   "desc": "A one-party state of an ultranationalist movement under a leader, mobilizing society through propaganda and corporations.",
+   "capabilities": [
+    "a one-party state of an ultranationalist movement under a leader, mobilizing society through propaganda and corporations"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "regime-form",
+   "civAnalogsD13": {
+    "civ6": [
+     "Fascism"
+    ],
+    "civ7": [
+     "Fascism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  }
+ ]
+}

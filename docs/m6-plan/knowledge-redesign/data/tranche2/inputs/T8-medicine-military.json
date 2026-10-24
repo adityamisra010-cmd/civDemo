@@ -1,0 +1,1946 @@
+{
+ "group": "T8-medicine-military",
+ "nodes": [
+  {
+   "id": "atlatl",
+   "key": 14,
+   "name": "Spear-thrower",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~30 kya Upper Palaeolithic Europe",
+   "cost": 180.0,
+   "prereq": "hafting",
+   "inRuntime": true,
+   "desc": "Lever that extends the throwing arm — darts at higher velocity and range.",
+   "capabilities": [
+    "ranged hunting of large game"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "war_band"
+   ]
+  },
+  {
+   "id": "bow_simple",
+   "key": 15,
+   "name": "Simple bow",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~64 kya Sibudu (inferred); ~10 kya Stellmoor (preserved)",
+   "cost": 370.0,
+   "prereq": "cordage",
+   "inRuntime": true,
+   "desc": "Self bow of a single stave with a fibre string — stored-energy projectile.",
+   "capabilities": [
+    "ranged hunting",
+    "ranged combat"
+   ],
+   "entitiesRequiringIt": [
+    "unit.archers"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "composite_bow",
+    "crossbow",
+    "longbow",
+    "war_band"
+   ]
+  },
+  {
+   "id": "sling",
+   "key": 16,
+   "name": "Sling",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~10 kya inferred; preserved ~2,500 BCE",
+   "cost": 260.0,
+   "prereq": "cordage",
+   "inRuntime": true,
+   "desc": "Cord pouch launching stones — cheap, deadly, a shepherd's weapon.",
+   "capabilities": [
+    "ranged combat",
+    "herd protection"
+   ],
+   "entitiesRequiringIt": [
+    "unit.slingers"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "traction_trebuchet"
+   ]
+  },
+  {
+   "id": "trepanation",
+   "key": 79,
+   "name": "Trepanation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "medicine",
+   "branch": null,
+   "emerged": "~5,000 BCE Ensisheim (Alsace); argued earlier ~7,300–6,200 BCE Vasilyevka II (Ukraine); widespread Neolithic",
+   "cost": 310.0,
+   "prereq": "knapping_blade",
+   "inRuntime": true,
+   "desc": "Surgical opening of the skull — with survival rates over 50%.",
+   "capabilities": [
+    "cranial surgery"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "chariot",
+   "key": 100,
+   "name": "Chariot",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~2,000 BCE Sintashta",
+   "cost": 2090.0,
+   "prereq": "wheel_spoked AND horse_domestication",
+   "inRuntime": true,
+   "desc": "Light two-wheeled horse-drawn vehicle — the dominant military platform of the Late Bronze Age.",
+   "capabilities": [
+    "mobile archery platform",
+    "elite warfare"
+   ],
+   "entitiesRequiringIt": [
+    "unit.chariot"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "composite_bow",
+   "key": 101,
+   "name": "Composite bow",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~2,000 BCE steppe",
+   "cost": 1760.0,
+   "prereq": "bow_simple AND sheep_goat AND hide_working",
+   "inRuntime": true,
+   "desc": "Laminated horn, wood, sinew — short, powerful, suited to horseback.",
+   "capabilities": [
+    "mounted archery",
+    "chariot archery"
+   ],
+   "entitiesRequiringIt": [
+    "unit.horse_archers"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "medicine_recorded",
+   "key": 108,
+   "name": "Medical texts",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "medicine",
+   "branch": null,
+   "emerged": "~2,100 BCE Sumerian; ~1,600 BCE Edwin Smith",
+   "cost": 880.0,
+   "prereq": "(cuneiform OR hieroglyphic OR chinese_script)",
+   "inRuntime": true,
+   "desc": "Written prescriptions and case descriptions — Edwin Smith papyrus, Sumerian pharmacopoeia.",
+   "capabilities": [
+    "transmissible treatment",
+    "surgical procedure record"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "medicine_hippocratic"
+   ]
+  },
+  {
+   "id": "cavalry",
+   "key": 122,
+   "name": "Cavalry",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~900 BCE steppe; Assyrian cavalry ~850 BCE",
+   "cost": 1240.0,
+   "prereq": "horse_domestication",
+   "inRuntime": true,
+   "desc": "Fighting from horseback — replaces the chariot everywhere within 300 years.",
+   "capabilities": [
+    "horse archery",
+    "mobile warfare",
+    "steppe raiding"
+   ],
+   "entitiesRequiringIt": [
+    "unit.horse_archers"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "saddle",
+    "steppe_empire"
+   ]
+  },
+  {
+   "id": "saddle",
+   "key": 123,
+   "name": "Saddle",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~700 BCE Scythian; framed saddle ~200 BCE",
+   "cost": 1760.0,
+   "prereq": "cavalry AND sewing",
+   "inRuntime": true,
+   "desc": "Padded seat — rider stability before the stirrup.",
+   "capabilities": [
+    "long-distance riding",
+    "lance use (with stirrup)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "stirrup"
+   ]
+  },
+  {
+   "id": "siege_ram",
+   "key": 124,
+   "name": "Battering ram",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~900 BCE Assyria",
+   "cost": 4970.0,
+   "prereq": "wheel_solid AND hide_working",
+   "inRuntime": true,
+   "desc": "Wheeled, roofed ram against mudbrick and stone walls — Assyrian.",
+   "capabilities": [
+    "breach walls"
+   ],
+   "entitiesRequiringIt": [
+    "unit.siege_engine"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "siege_tower"
+   ]
+  },
+  {
+   "id": "siege_tower",
+   "key": 125,
+   "name": "Siege tower and ramp",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~700 BCE Assyria",
+   "cost": 880.0,
+   "prereq": "siege_ram",
+   "inRuntime": true,
+   "desc": "Mobile tower and earthen assault ramp — Lachish ramp survives.",
+   "capabilities": [
+    "assault over walls"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "crossbow",
+   "key": 127,
+   "name": "Crossbow",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~600 BCE China; ~400 BCE Syracuse",
+   "cost": 4180.0,
+   "prereq": "bow_simple AND casting_closed",
+   "inRuntime": true,
+   "desc": "Bow on a stock with trigger — less training, more power. Chinese bronze trigger; Greek gastraphetes independently.",
+   "capabilities": [
+    "mass conscript archery"
+   ],
+   "entitiesRequiringIt": [
+    "unit.crossbowmen"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "crossbow_repeating",
+    "torsion_artillery"
+   ]
+  },
+  {
+   "id": "naval_ram",
+   "key": 128,
+   "name": "Ramming warship",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~700 BCE Phoenicia/Greece; trireme ~550 BCE",
+   "cost": 2960.0,
+   "prereq": "plank_boat AND casting_closed",
+   "inRuntime": true,
+   "desc": "Bronze-beaked galley designed to sink by ramming — the trireme.",
+   "capabilities": [
+    "naval battle",
+    "sea control"
+   ],
+   "entitiesRequiringIt": [
+    "unit.war_galley"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "state_navy"
+   ]
+  },
+  {
+   "id": "medicine_hippocratic",
+   "key": 136,
+   "name": "Clinical medicine",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "medicine",
+   "branch": null,
+   "emerged": "~500 BCE Greece; ~600 BCE India; ~200 BCE China",
+   "cost": 1760.0,
+   "prereq": "medicine_recorded",
+   "inRuntime": true,
+   "desc": "Observation, prognosis, case records, natural causation — Hippocratic corpus; Ayurveda (Sushruta, surgery); Chinese (Neijing).",
+   "capabilities": [
+    "trained physicians",
+    "surgery (Sushruta)",
+    "pharmacopoeia"
+   ],
+   "entitiesRequiringIt": [
+    "building.hospital",
+    "building.university",
+    "inst.hospital"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "anatomy_dissection",
+    "epidemiology",
+    "inoculation",
+    "pharmacology",
+    "public_health_board",
+    "surgery_instruments"
+   ]
+  },
+  {
+   "id": "torsion_artillery",
+   "key": 142,
+   "name": "Torsion catapult",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~340 BCE Macedon; formula ~250 BCE",
+   "cost": 4970.0,
+   "prereq": "crossbow",
+   "inRuntime": true,
+   "desc": "Sinew-spring engines — the first artillery calculated from a formula (Philo's calibration).",
+   "capabilities": [
+    "long-range bombardment",
+    "siege by machine"
+   ],
+   "entitiesRequiringIt": [
+    "unit.siege_engine"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "crossbow_repeating",
+   "key": 160,
+   "name": "Repeating crossbow",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~400 BCE China",
+   "cost": 1240.0,
+   "prereq": "crossbow",
+   "inRuntime": true,
+   "desc": "Magazine-fed crossbow — volume of fire.",
+   "capabilities": [
+    "rapid fire at short range"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "stirrup",
+   "key": 161,
+   "name": "Stirrup",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~300 CE China; Avars to Europe ~600",
+   "cost": 2490.0,
+   "prereq": "saddle AND iron_bloomery",
+   "inRuntime": true,
+   "desc": "Paired foot supports — shock cavalry and stable mounted archery.",
+   "capabilities": [
+    "lance charge",
+    "heavy cavalry"
+   ],
+   "entitiesRequiringIt": [
+    "unit.heavy_cavalry"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "pharmacology",
+   "key": 170,
+   "name": "Pharmacopoeia",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "medicine",
+   "branch": null,
+   "emerged": "~60 CE Dioscorides; ~200 CE Shennong",
+   "cost": 1760.0,
+   "prereq": "medicine_hippocratic",
+   "inRuntime": true,
+   "desc": "Systematic catalogue of drugs and effects — Dioscorides; Shennong Bencao.",
+   "capabilities": [
+    "transmissible drug knowledge",
+    "herbal trade"
+   ],
+   "entitiesRequiringIt": [
+    "building.hospital",
+    "inst.hospital"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "surgery_instruments",
+   "key": 171,
+   "name": "Surgical instrument set",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "medicine",
+   "branch": null,
+   "emerged": "~100 CE Rome (Pompeii, Bingen)",
+   "cost": 4180.0,
+   "prereq": "medicine_hippocratic AND casting_closed",
+   "inRuntime": true,
+   "desc": "Standardised bronze and iron instruments — scalpels, forceps, probes, catheters.",
+   "capabilities": [
+    "cataract surgery",
+    "trauma surgery",
+    "military medicine"
+   ],
+   "entitiesRequiringIt": [
+    "inst.military_medicine"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "cannon_early",
+   "key": 194,
+   "name": "Early cannon",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~1,280 CE China; Europe 1326",
+   "cost": 7030.0,
+   "prereq": "saltpetre_refining AND (casting_closed OR iron_bloomery)",
+   "inRuntime": true,
+   "desc": "Metal-barrelled gunpowder projectile weapon — Xanadu gun 1298.",
+   "capabilities": [
+    "projectile artillery (weak at first)"
+   ],
+   "entitiesRequiringIt": [
+    "unit.artillery"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cannon_cast_bronze",
+    "matchlock"
+   ]
+  },
+  {
+   "id": "trebuchet",
+   "key": 195,
+   "name": "Counterweight trebuchet",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~1,100 CE Byzantium/Islamic world",
+   "cost": 5910.0,
+   "prereq": "traction_trebuchet",
+   "inRuntime": true,
+   "desc": "Gravity-powered siege engine — 100 kg stones at 300 m.",
+   "capabilities": [
+    "reduction of stone castles"
+   ],
+   "entitiesRequiringIt": [
+    "unit.siege_engine"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "longbow",
+   "key": 196,
+   "name": "Longbow",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~1,200 CE Wales; English armies 1300s",
+   "cost": 2090.0,
+   "prereq": "bow_simple",
+   "inRuntime": true,
+   "desc": "Two-metre yew self bow, 100+ lb draw — mass archery.",
+   "capabilities": [
+    "massed infantry archery"
+   ],
+   "entitiesRequiringIt": [
+    "unit.longbowmen"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "plate_armour",
+   "key": 197,
+   "name": "Plate armour",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~1,350 CE",
+   "cost": 5910.0,
+   "prereq": "tempering AND sheet_metal",
+   "inRuntime": true,
+   "desc": "Articulated steel plates — the culmination of pre-gunpowder armour.",
+   "capabilities": [
+    "near-immunity to arrows and blades"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "greek_fire",
+   "key": 198,
+   "name": "Greek fire",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~672 CE Constantinople",
+   "cost": 2090.0,
+   "prereq": "distillation",
+   "inRuntime": true,
+   "desc": "Byzantine incendiary projected from siphons — a state secret, now lost.",
+   "capabilities": [
+    "naval incendiary"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "cannon_cast_bronze",
+   "key": 224,
+   "name": "Cast bronze cannon",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~1,400 CE",
+   "cost": 7030.0,
+   "prereq": "cannon_early AND casting_closed",
+   "inRuntime": true,
+   "desc": "Large bronze guns cast in one piece — the Ottoman bombards, Constantinople 1453.",
+   "capabilities": [
+    "breaching stone walls",
+    "end of the castle"
+   ],
+   "entitiesRequiringIt": [
+    "unit.artillery"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cannon_cast_iron",
+    "trace_italienne"
+   ]
+  },
+  {
+   "id": "cannon_cast_iron",
+   "key": 225,
+   "name": "Cast iron cannon",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1543 CE",
+   "cost": 7030.0,
+   "prereq": "cannon_cast_bronze AND blast_furnace_water",
+   "inRuntime": true,
+   "desc": "Iron guns at a quarter the cost of bronze — English Weald 1543. Naval artillery for everyone.",
+   "capabilities": [
+    "cheap naval and siege guns"
+   ],
+   "entitiesRequiringIt": [
+    "unit.artillery"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cylinder_boring",
+    "ship_of_line"
+   ]
+  },
+  {
+   "id": "matchlock",
+   "key": 226,
+   "name": "Matchlock arquebus",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~1,475 CE",
+   "cost": 4180.0,
+   "prereq": "cannon_early AND corned_powder",
+   "inRuntime": true,
+   "desc": "Trigger-operated match — infantry firearm needing weeks of training.",
+   "capabilities": [
+    "massed infantry fire"
+   ],
+   "entitiesRequiringIt": [
+    "unit.musketeers"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "rifling",
+    "wheellock"
+   ]
+  },
+  {
+   "id": "wheellock",
+   "key": 227,
+   "name": "Wheellock",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~1,500 CE Germany",
+   "cost": 2960.0,
+   "prereq": "matchlock AND escapement_verge",
+   "inRuntime": true,
+   "desc": "Self-igniting mechanism — pistols, cavalry firearms.",
+   "capabilities": [
+    "pistol",
+    "mounted firearms"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "flintlock"
+   ]
+  },
+  {
+   "id": "flintlock",
+   "key": 228,
+   "name": "Flintlock",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~1,610 CE France",
+   "cost": 2960.0,
+   "prereq": "wheellock",
+   "inRuntime": true,
+   "desc": "Cheap, reliable ignition — the standard musket for 200 years.",
+   "capabilities": [
+    "universal infantry musket",
+    "bayonet infantry (with next)"
+   ],
+   "entitiesRequiringIt": [
+    "unit.musketeers"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "breech_loading_rifle"
+   ]
+  },
+  {
+   "id": "trace_italienne",
+   "key": 229,
+   "name": "Bastion fort",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~1,500 CE Italy",
+   "cost": 5910.0,
+   "prereq": "cannon_cast_bronze AND geometry_axiomatic AND stone_fortification",
+   "inRuntime": true,
+   "desc": "Low thick angled earthworks — the answer to cannon. Sieges lengthen again.",
+   "capabilities": [
+    "cannon-resistant fortification"
+   ],
+   "entitiesRequiringIt": [
+    "building.bastion_fort"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "ship_of_line",
+   "key": 230,
+   "name": "Ship of the line",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~1,650 CE",
+   "cost": 4180.0,
+   "prereq": "carrack AND cannon_cast_iron",
+   "inRuntime": true,
+   "desc": "Broadside sailing warship — gun decks, line-ahead tactics.",
+   "capabilities": [
+    "sea control",
+    "naval blockade"
+   ],
+   "entitiesRequiringIt": [
+    "unit.ship_of_the_line"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "inoculation",
+   "key": 240,
+   "name": "Variolation",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "~1,500 CE China (possibly earlier)",
+   "cost": 2960.0,
+   "prereq": "medicine_hippocratic",
+   "inRuntime": true,
+   "desc": "Deliberate mild smallpox infection — China, Ottoman, to Europe 1721.",
+   "capabilities": [
+    "immunisation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "vaccination"
+   ]
+  },
+  {
+   "id": "anatomy_dissection",
+   "key": 241,
+   "name": "Systematic anatomy",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1543 CE",
+   "cost": 2960.0,
+   "prereq": "medicine_hippocratic AND printing_press",
+   "inRuntime": true,
+   "desc": "Vesalius 1543 — dissection-based, illustrated, printed. Galen corrected.",
+   "capabilities": [
+    "accurate surgery"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "anaesthesia",
+    "physiology"
+   ]
+  },
+  {
+   "id": "vaccination",
+   "key": 293,
+   "name": "Vaccination",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1796 CE",
+   "cost": 11830.0,
+   "prereq": "inoculation",
+   "inRuntime": true,
+   "desc": "Jenner 1796 — cowpox for smallpox; safe immunisation.",
+   "capabilities": [
+    "smallpox control",
+    "eradication (1980)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "vaccine_lab"
+   ]
+  },
+  {
+   "id": "anaesthesia",
+   "key": 294,
+   "name": "Surgical anaesthesia",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1846 CE",
+   "cost": 5910.0,
+   "prereq": "chemistry_quantitative AND anatomy_dissection",
+   "inRuntime": true,
+   "desc": "Ether 1846, chloroform 1847 — surgery without pain; operations become possible.",
+   "capabilities": [
+    "long, deliberate surgery"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "antisepsis"
+   ]
+  },
+  {
+   "id": "germ_theory",
+   "key": 295,
+   "name": "Germ theory",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1860-1880 CE",
+   "cost": 47310.0,
+   "prereq": "microscope",
+   "inRuntime": true,
+   "desc": "Pasteur, Koch 1860s-80s — specific microbes, specific diseases.",
+   "capabilities": [
+    "antisepsis",
+    "targeted vaccines",
+    "public health engineering"
+   ],
+   "entitiesRequiringIt": [
+    "infra.sewerage_system"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "antibiotic_penicillin",
+    "antisepsis",
+    "oral_rehydration",
+    "sulfonamides",
+    "vaccine_lab"
+   ]
+  },
+  {
+   "id": "antisepsis",
+   "key": 296,
+   "name": "Antiseptic and aseptic surgery",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1867 CE",
+   "cost": 5910.0,
+   "prereq": "germ_theory AND anaesthesia",
+   "inRuntime": true,
+   "desc": "Lister 1867 — carbolic; then sterile technique. Surgical mortality collapses.",
+   "capabilities": [
+    "abdominal surgery",
+    "survival of wounds"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "organ_transplant"
+   ]
+  },
+  {
+   "id": "tank",
+   "key": 304,
+   "name": "Tank",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1916 CE",
+   "cost": 23650.0,
+   "prereq": "internal_combustion AND basic_process AND rifled_artillery AND machine_gun AND mechanised_agriculture",
+   "inRuntime": true,
+   "desc": "1916 — armoured, tracked, gun-armed; trench deadlock broken.",
+   "capabilities": [
+    "mobile armoured warfare"
+   ],
+   "entitiesRequiringIt": [
+    "unit.tank"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "radar",
+   "key": 313,
+   "name": "Radar",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1938 CE",
+   "cost": 23650.0,
+   "prereq": "vacuum_tube AND electromagnetic_field_theory",
+   "inRuntime": true,
+   "desc": "Chain Home 1938; cavity magnetron 1940 — detection beyond sight.",
+   "capabilities": [
+    "air defence",
+    "navigation",
+    "D-039 B reconnaissance at radio range"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "computer",
+    "guided_missile",
+    "missile_defence",
+    "stealth"
+   ]
+  },
+  {
+   "id": "thermonuclear",
+   "key": 323,
+   "name": "Thermonuclear weapon",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1952 CE",
+   "cost": 47310.0,
+   "prereq": "fission_weapon",
+   "inRuntime": true,
+   "desc": "Ivy Mike 1952 — fusion-boosted; megaton yields.",
+   "capabilities": [
+    "mutual assured destruction"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "icbm",
+    "nuclear_fusion_research"
+   ]
+  },
+  {
+   "id": "antibiotic_penicillin",
+   "key": 324,
+   "name": "Penicillin",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1943 CE",
+   "cost": 94620.0,
+   "prereq": "germ_theory AND fermentation_grain",
+   "inRuntime": true,
+   "desc": "Fleming 1928; Florey & Chain 1940; mass production 1943 — bacterial infection cured.",
+   "capabilities": [
+    "wound survival",
+    "maternal mortality collapse"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "antibiotic_broad"
+   ]
+  },
+  {
+   "id": "antibiotic_broad",
+   "key": 325,
+   "name": "Broad-spectrum antibiotics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1943-1950 CE",
+   "cost": 23650.0,
+   "prereq": "antibiotic_penicillin",
+   "inRuntime": true,
+   "desc": "Streptomycin 1943 (TB), tetracyclines 1948 — the antibiotic era.",
+   "capabilities": [
+    "tuberculosis curable",
+    "routine surgery"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "antibiotic_resistance",
+    "genetic_engineering"
+   ]
+  },
+  {
+   "id": "antibiotic_resistance",
+   "key": 326,
+   "name": "Antibiotic resistance management",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "~1,960 CE",
+   "cost": 33450.0,
+   "prereq": "antibiotic_broad AND evolution AND epidemiology",
+   "inRuntime": true,
+   "desc": "Resistance recognised 1940s; stewardship as practice — a capability that decays with overuse.",
+   "capabilities": [
+    "sustaining antibiotic efficacy"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "vaccine_lab",
+   "key": 327,
+   "name": "Laboratory vaccines",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1885 / 1955 CE",
+   "cost": 33450.0,
+   "prereq": "germ_theory AND vaccination",
+   "inRuntime": true,
+   "desc": "Rabies 1885, diphtheria antitoxin 1890, polio 1955 — vaccines designed from the pathogen.",
+   "capabilities": [
+    "childhood mortality collapse"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "immunology",
+    "mrna_vaccines"
+   ]
+  },
+  {
+   "id": "blood_transfusion",
+   "key": 328,
+   "name": "Blood transfusion",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1901 / 1937 CE",
+   "cost": 16730.0,
+   "prereq": "immunology AND physiology",
+   "inRuntime": true,
+   "desc": "ABO groups 1901; citrate storage 1914; blood banks 1937.",
+   "capabilities": [
+    "surgical and trauma survival"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "organ_transplant"
+   ]
+  },
+  {
+   "id": "hormonal_contraception",
+   "key": 335,
+   "name": "Oral contraceptive",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1960 CE",
+   "cost": 47310.0,
+   "prereq": "endocrinology AND synthetic_dye",
+   "inRuntime": true,
+   "desc": "1960 — fertility control by choice; demographic transition completed.",
+   "capabilities": [
+    "fertility as a chosen variable"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "xray",
+   "key": 336,
+   "name": "X-ray imaging",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1895 CE",
+   "cost": 66910.0,
+   "prereq": "electromagnetism AND barometer_vacuum AND photography",
+   "inRuntime": true,
+   "desc": "Röntgen 1895 — seeing inside the body without cutting.",
+   "capabilities": [
+    "diagnosis",
+    "crystallography (DNA)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "dna_structure",
+    "medical_imaging",
+    "radiation_protection",
+    "radiotherapy"
+   ]
+  },
+  {
+   "id": "organ_transplant",
+   "key": 380,
+   "name": "Organ transplantation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1954 kidney; 1980s immunosuppression",
+   "cost": 8360.0,
+   "prereq": "antisepsis AND blood_transfusion",
+   "inRuntime": true,
+   "desc": "Replacing failed organs from donors.",
+   "capabilities": [
+    "organ failure survivable"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "chemotherapy",
+   "key": 381,
+   "name": "Chemotherapy",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1940s",
+   "cost": 16730.0,
+   "prereq": "sulfonamides",
+   "inRuntime": true,
+   "desc": "Drug treatment of cancer.",
+   "capabilities": [
+    "cancer treatment"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "medical_imaging",
+   "key": 382,
+   "name": "Cross-sectional imaging",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1971 CT; 1977 MRI",
+   "cost": 23650.0,
+   "prereq": "xray AND computer",
+   "inRuntime": true,
+   "desc": "Computed tomography and magnetic resonance — seeing inside the body in slices.",
+   "capabilities": [
+    "non-invasive diagnosis"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "antiviral_drugs",
+   "key": 383,
+   "name": "Antiviral drugs",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1974 acyclovir; 1996 HIV therapy",
+   "cost": 23650.0,
+   "prereq": "dna_structure AND chemistry_quantitative",
+   "inRuntime": true,
+   "desc": "Drugs targeting viral replication.",
+   "capabilities": [
+    "viral disease treatable"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "monoclonal_antibodies",
+   "key": 384,
+   "name": "Monoclonal antibodies",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1975",
+   "cost": 47310.0,
+   "prereq": "dna_structure AND immunology",
+   "inRuntime": true,
+   "desc": "Identical antibodies produced in quantity — diagnostics and targeted therapy.",
+   "capabilities": [
+    "targeted therapy",
+    "precise diagnostics"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "ivf",
+   "key": 387,
+   "name": "In-vitro fertilisation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1978",
+   "cost": 16730.0,
+   "prereq": "endocrinology",
+   "inRuntime": true,
+   "desc": "Fertilisation outside the body.",
+   "capabilities": [
+    "assisted reproduction"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "mrna_vaccines",
+   "key": 389,
+   "name": "mRNA vaccines",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "2020",
+   "cost": 47310.0,
+   "prereq": "genetic_engineering AND vaccine_lab AND genome_sequencing",
+   "inRuntime": true,
+   "desc": "Vaccines encoding antigens as messenger RNA — designed in days.",
+   "capabilities": [
+    "rapid vaccine design"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "oral_rehydration",
+   "key": 390,
+   "name": "Oral rehydration therapy",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1960s",
+   "cost": 740.0,
+   "prereq": "germ_theory AND chemistry_quantitative",
+   "inRuntime": true,
+   "desc": "Sugar-salt solution preventing death from diarrhoeal dehydration — cheap and transformative.",
+   "capabilities": [
+    "child mortality from diarrhoea collapses"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "icbm",
+   "key": 401,
+   "name": "Intercontinental ballistic missile",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1957",
+   "cost": 189240.0,
+   "prereq": "rocket AND thermonuclear AND computer",
+   "inRuntime": true,
+   "desc": "Nuclear warheads delivered across continents in minutes.",
+   "capabilities": [
+    "intercontinental strike"
+   ],
+   "entitiesRequiringIt": [
+    "unit.icbm"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "nuclear_submarine",
+   "key": 402,
+   "name": "Nuclear submarine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1954",
+   "cost": 133810.0,
+   "prereq": "light_water_reactor AND submarine",
+   "inRuntime": true,
+   "desc": "Submarines powered by reactors — submerged indefinitely.",
+   "capabilities": [
+    "undersea deterrence",
+    "sea denial"
+   ],
+   "entitiesRequiringIt": [
+    "unit.nuclear_submarine"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "guided_munitions",
+   "key": 403,
+   "name": "Precision-guided munitions",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1972 laser-guided bombs",
+   "cost": 94620.0,
+   "prereq": "laser AND computer AND guided_missile",
+   "inRuntime": true,
+   "desc": "Weapons steered to a target by laser, radar or satellite.",
+   "capabilities": [
+    "precision strike"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "frontier_military",
+    "missile_defence"
+   ]
+  },
+  {
+   "id": "stealth",
+   "key": 404,
+   "name": "Stealth",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1981 F-117",
+   "cost": 133810.0,
+   "prereq": "composites AND radar AND computer AND aircraft",
+   "inRuntime": true,
+   "desc": "Shaping and materials reducing radar signature.",
+   "capabilities": [
+    "penetration of air defences"
+   ],
+   "entitiesRequiringIt": [
+    "unit.stealth_aircraft"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "combat_drone",
+   "key": 405,
+   "name": "Remotely piloted aircraft",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1990s–2000s",
+   "cost": 23650.0,
+   "prereq": "gps AND microprocessor AND aircraft",
+   "inRuntime": true,
+   "desc": "Uncrewed aircraft for surveillance and strike.",
+   "capabilities": [
+    "persistent surveillance",
+    "strike without aircrew"
+   ],
+   "entitiesRequiringIt": [
+    "unit.combat_drone"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "missile_defence",
+   "key": 406,
+   "name": "Missile defence",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1980s–2000s",
+   "cost": 16730.0,
+   "prereq": "radar AND guided_munitions",
+   "inRuntime": true,
+   "desc": "Interception of incoming missiles.",
+   "capabilities": [
+    "defence against ballistic and cruise missiles"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "frontier_medicine",
+   "key": 420,
+   "name": "Biomedical research",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "repeatable",
+   "cost": 8360.0,
+   "prereq": "genome_sequencing",
+   "inRuntime": true,
+   "desc": "Each level lowers age-specific mortality.",
+   "capabilities": [
+    "longer lives per level"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": true,
+   "dependents": []
+  },
+  {
+   "id": "frontier_military",
+   "key": 422,
+   "name": "Military research",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "repeatable",
+   "cost": 8360.0,
+   "prereq": "guided_munitions",
+   "inRuntime": true,
+   "desc": "Each level raises weapon-system effectiveness in combat resolution. RELATIVE: a level matters only against rivals' levels, so the arms race never ends.",
+   "capabilities": [
+    "combat effectiveness relative to rivals"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": true,
+   "dependents": []
+  },
+  {
+   "id": "traction_trebuchet",
+   "key": 434,
+   "name": "Traction trebuchet",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "military",
+   "branch": null,
+   "emerged": "~350 BCE China (Mohist texts, 4th century BCE); Mediterranean by ~600 CE (Avars, Byzantines)",
+   "cost": 2490.0,
+   "prereq": "sling AND timber_frame",
+   "inRuntime": true,
+   "desc": "A lever-and-sling stone thrower powered by a crew hauling on ropes.",
+   "capabilities": [
+    "stone-throwing artillery by lever and sling (crew-hauled)"
+   ],
+   "entitiesRequiringIt": [
+    "unit.siege_engine"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "trebuchet"
+   ]
+  },
+  {
+   "id": "rifling",
+   "key": 437,
+   "name": "Rifled barrel",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "~1500 CE Vienna and Nuremberg (spiral grooves; Kollner 1498 and Kotter c. 1520 are named, attribution disputed); general military issue only from the early 1800s",
+   "cost": 4180.0,
+   "prereq": "matchlock",
+   "inRuntime": true,
+   "desc": "Spiral grooves in the barrel spin the bullet for accurate aimed fire at long range.",
+   "capabilities": [
+    "accurate aimed fire at long range (rifles)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "breech_loading_rifle",
+    "rifled_artillery"
+   ]
+  },
+  {
+   "id": "physiology",
+   "key": 438,
+   "name": "Physiology",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1628 CE (Harvey, De motu cordis); pulmonary transit described earlier by Ibn al-Nafis in thirteenth-century Cairo",
+   "cost": 8360.0,
+   "prereq": "anatomy_dissection",
+   "inRuntime": true,
+   "desc": "How the living body works, studied by experiment — beginning with the circulation of the blood.",
+   "capabilities": [
+    "circulation of the blood (Harvey 1628)",
+    "experimental physiology"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "blood_transfusion",
+    "endocrinology"
+   ]
+  },
+  {
+   "id": "breech_loading_rifle",
+   "key": 443,
+   "name": "Breech-loading rifle",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1841 CE Dreyse needle gun (Prussia); metallic-cartridge and bolt-action rifles from the 1860s",
+   "cost": 16730.0,
+   "prereq": "rifling AND flintlock AND chemistry_quantitative AND interchangeable_parts",
+   "inRuntime": true,
+   "desc": "Rifles loaded at the breech with cartridges, so soldiers can fire rapidly from cover.",
+   "capabilities": [
+    "rapid aimed fire from cover (breech-loading)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "machine_gun"
+   ]
+  },
+  {
+   "id": "machine_gun",
+   "key": 444,
+   "name": "Machine gun",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1862 CE Gatling (hand-cranked, multi-barrel); 1884 CE Maxim (recoil-operated, belt-fed)",
+   "cost": 5910.0,
+   "prereq": "breech_loading_rifle",
+   "inRuntime": true,
+   "desc": "Weapons that keep firing while the trigger is held.",
+   "capabilities": [
+    "sustained automatic fire"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "tank"
+   ]
+  },
+  {
+   "id": "rifled_artillery",
+   "key": 445,
+   "name": "Rifled breech-loading artillery",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1855 CE Armstrong (wrought-iron built-up breech-loader, Elswick); Krupp cast-steel breech-loaders, 1860s (Prussia the first army to adopt steel guns)",
+   "cost": 19890.0,
+   "prereq": "rifling AND puddling AND slide_rest_lathe",
+   "inRuntime": true,
+   "desc": "Breech-loading rifled guns firing explosive shells accurately at long range.",
+   "capabilities": [
+    "accurate long-range guns firing explosive shells"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "tank"
+   ]
+  },
+  {
+   "id": "epidemiology",
+   "key": 446,
+   "name": "Epidemiology",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1662 CE London (Graunt, bills of mortality); 1854 CE London (Snow, cholera)",
+   "cost": 11830.0,
+   "prereq": "medicine_hippocratic AND probability_statistics",
+   "inRuntime": true,
+   "desc": "Studying disease through its rates in a population to find how it spreads.",
+   "capabilities": [
+    "disease measured by rates in populations (surveillance)",
+    "transmission routes identified by comparison",
+    "controlled clinical trials (method)"
+   ],
+   "entitiesRequiringIt": [
+    "inst.statistics_vital"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "antibiotic_resistance"
+   ]
+  },
+  {
+   "id": "fission_weapon",
+   "key": 467,
+   "name": "Fission weapon",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1945 CE (first test on 16 July; used in August)",
+   "cost": 94620.0,
+   "prereq": "uranium_enrichment OR reprocessing",
+   "inRuntime": true,
+   "desc": "A weapon releasing the energy of an uncontrolled chain reaction. Knowledge only: no mechanic uses it.",
+   "capabilities": [
+    "nuclear weapon (D-011 deterrence abstraction; knowledge only, no mechanic)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "arms_control",
+    "nuclear_deterrence",
+    "thermonuclear"
+   ]
+  },
+  {
+   "id": "guided_missile",
+   "key": 468,
+   "name": "Guided missile",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "military",
+   "branch": "military",
+   "emerged": "1943 CE Henschel Hs 293 (rocket-boosted, radio-guided anti-ship missile); radar- and infrared-homing surface-to-air and air-to-air missiles in the 1950s",
+   "cost": 94620.0,
+   "prereq": "rocket AND radar",
+   "inRuntime": true,
+   "desc": "Rocket weapons steered to their target by radio, radar or heat-seeking guidance.",
+   "capabilities": [
+    "surface-to-air, air-to-air and anti-ship missiles"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "guided_munitions"
+   ]
+  },
+  {
+   "id": "endocrinology",
+   "key": 470,
+   "name": "Endocrinology",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1902 CE London (Bayliss and Starling, secretin); 1922 CE Toronto (insulin)",
+   "cost": 39780.0,
+   "prereq": "physiology AND chemistry_quantitative",
+   "inRuntime": true,
+   "desc": "Hormones and the glands that make them — insulin for diabetes and hormone replacement.",
+   "capabilities": [
+    "insulin therapy (diabetes survivable)",
+    "hormone replacement (thyroid, cortisone)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "hormonal_contraception",
+    "ivf"
+   ]
+  },
+  {
+   "id": "immunology",
+   "key": 471,
+   "name": "Immunology",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1890 CE Berlin (Behring and Kitasato, antitoxin serum); 1901 CE Vienna (Landsteiner, blood groups)",
+   "cost": 28130.0,
+   "prereq": "vaccine_lab",
+   "inRuntime": true,
+   "desc": "How the body defends itself with antibodies — serum therapy, blood groups and antibody tests.",
+   "capabilities": [
+    "serum therapy (diphtheria and tetanus antitoxins)",
+    "blood-group serology",
+    "antibody-based diagnosis"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "blood_transfusion",
+    "monoclonal_antibodies"
+   ]
+  },
+  {
+   "id": "nuclear_medicine",
+   "key": 472,
+   "name": "Nuclear medicine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1941 CE (first radioiodine therapy, Boston); 1961 CE (first hospital order of a technetium-99m generator)",
+   "cost": 33450.0,
+   "prereq": "radioisotope_production",
+   "inRuntime": true,
+   "desc": "Radioactive tracers to see inside the body, and radioactive drugs to treat disease.",
+   "capabilities": [
+    "radiotracer diagnosis, scintigraphy and radionuclide therapy"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "radiation_protection",
+   "key": 473,
+   "name": "Radiation protection",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1928 CE (international X-ray and radium protection committee; the roentgen unit); 1942 CE (health physics named at the Chicago Metallurgical Laboratory)",
+   "cost": 39780.0,
+   "prereq": "radiation_detection AND xray",
+   "inRuntime": true,
+   "desc": "Measuring radiation doses and limiting them by time, distance and shielding.",
+   "capabilities": [
+    "dose limits, dosimetry, time-distance-shielding-containment, ALARA"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "geological_disposal",
+    "radioisotope_production",
+    "reprocessing"
+   ]
+  },
+  {
+   "id": "radiotherapy",
+   "key": 474,
+   "name": "Radiotherapy",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1901 CE (first radium treatment of a skin lesion, Paris); 1951 CE (cobalt-60 teletherapy, Canada)",
+   "cost": 47310.0,
+   "prereq": "radioactivity AND xray",
+   "inRuntime": true,
+   "desc": "Treating cancer with radium sources and beams of radiation.",
+   "capabilities": [
+    "cancer treatment with sealed radium sources and teletherapy beams"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "sulfonamides",
+   "key": 475,
+   "name": "Sulfonamides",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "medicine",
+   "branch": "medicine",
+   "emerged": "1932–1935 CE Elberfeld, Germany (Prontosil; Domagk)",
+   "cost": 47310.0,
+   "prereq": "germ_theory AND synthetic_dye",
+   "inRuntime": true,
+   "desc": "The first drugs to cure bacterial infections from within the body.",
+   "capabilities": [
+    "systemic antibacterial therapy (streptococcal and pneumococcal infection)",
+    "puerperal sepsis treatable"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "chemotherapy"
+   ]
+  }
+ ]
+}

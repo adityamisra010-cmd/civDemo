@@ -1,0 +1,986 @@
+{
+ "group": "C3-economy-society-environment",
+ "nodes": [
+  {
+   "id": "coined_wage",
+   "key": 1004,
+   "name": "Wage labour in coin",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "economy-commerce",
+   "branch": null,
+   "emerged": null,
+   "cost": 1240.0,
+   "prereq": "coinage_electrum",
+   "inRuntime": true,
+   "desc": "Wage labour in coin: the civic knowledge of this form of organization. Reclassified from registry institution inst.coined_wage (architecture §5.7); the institution itself is established by its owning system once this civic is complete.",
+   "capabilities": [],
+   "entitiesRequiringIt": [
+    "inst.coined_wage"
+   ],
+   "civRole": "age-supporting",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cooperatives",
+    "labour_unions",
+    "mercenary_contracts"
+   ]
+  },
+  {
+   "id": "joint_stock",
+   "key": 1006,
+   "name": "Joint-stock company",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "economy-commerce",
+   "branch": null,
+   "emerged": null,
+   "cost": 2960.0,
+   "prereq": "bill_of_exchange AND legal_code_roman",
+   "inRuntime": true,
+   "desc": "Joint-stock company: the civic knowledge of this form of organization. Reclassified from registry institution inst.joint_stock (architecture §5.7); the institution itself is established by its owning system once this civic is complete.",
+   "capabilities": [],
+   "entitiesRequiringIt": [
+    "inst.central_bank",
+    "inst.joint_stock"
+   ],
+   "civRole": "age-supporting",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "central_banking",
+    "limited_liability",
+    "stock_exchange"
+   ]
+  },
+  {
+   "id": "craft_guilds",
+   "key": 1031,
+   "name": "Craft guilds",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "economy-commerce",
+   "branch": null,
+   "emerged": "~100 BCE Roman craft collegia; ~1100 CE European craft guilds",
+   "cost": 1760.0,
+   "prereq": "legal_code_roman OR municipal_charter",
+   "inRuntime": true,
+   "desc": "Chartered associations of master craftsmen control admission to and training in their trade. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "chartered associations of master craftsmen controlling admission and training"
+   ],
+   "entitiesRequiringIt": [
+    "inst.guild"
+   ],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cooperatives"
+   ]
+  },
+  {
+   "id": "religious_toleration",
+   "key": 1033,
+   "name": "Religious toleration",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "society-welfare",
+   "branch": null,
+   "emerged": "~260 BCE edicts of Ashoka; 313 CE Edict of Milan; 1598 CE Edict of Nantes",
+   "cost": 2960.0,
+   "prereq": "organized_priesthood AND legal_code_roman",
+   "inRuntime": true,
+   "desc": "The law tolerates more than one faith. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "legal toleration of more than one faith"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "secular_state"
+   ]
+  },
+  {
+   "id": "commercial_law",
+   "key": 1038,
+   "name": "Merchant law",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "economy-commerce",
+   "branch": null,
+   "emerged": "~800 CE Islamic commercial law; ~1100 CE European law merchant and fair courts",
+   "cost": 2960.0,
+   "prereq": "legal_code_roman AND trade",
+   "inRuntime": true,
+   "desc": "Merchant courts enforce contracts between strangers. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "merchant courts enforcing contracts between strangers"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "classical_liberalism",
+    "limited_liability",
+    "mercantilism",
+    "merchant_republic"
+   ]
+  },
+  {
+   "id": "central_banking",
+   "key": 1044,
+   "name": "Central banking",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "economy-commerce",
+   "branch": null,
+   "emerged": "1668 CE Sveriges Riksbank; 1694 CE Bank of England",
+   "cost": 4970.0,
+   "prereq": "joint_stock AND paper_money",
+   "inRuntime": true,
+   "desc": "A public bank holds the state's accounts and issues notes. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a public bank holding state accounts and issuing notes"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "compulsory_education",
+   "key": 1046,
+   "name": "Compulsory education",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "society-welfare",
+   "branch": null,
+   "emerged": "1717 CE Prussian school decree; 1763 CE Prussian General School Regulation; 1852 CE Massachusetts compulsory attendance law",
+   "cost": 5910.0,
+   "prereq": "census AND printing_press",
+   "inRuntime": true,
+   "desc": "The law requires children to attend school. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a legal duty of school attendance for children"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "merit_civil_service"
+   ]
+  },
+  {
+   "id": "public_health_board",
+   "key": 1049,
+   "name": "Boards of health",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "society-welfare",
+   "branch": null,
+   "emerged": "1377 CE Ragusa quarantine ordinance; 1486 CE permanent health magistracy of Venice; 1848 CE English General Board of Health",
+   "cost": 4180.0,
+   "prereq": "census AND medicine_hippocratic",
+   "inRuntime": true,
+   "desc": "A public authority holds powers of quarantine and sanitation. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a public health authority with powers of quarantine and sanitation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "environmental_regulation"
+   ]
+  },
+  {
+   "id": "abolition",
+   "key": 1057,
+   "name": "Abolition of slavery and serfdom",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "society-welfare",
+   "branch": null,
+   "emerged": "~594 BCE Solon's cancellation of debt bondage at Athens; 1833 CE British Slavery Abolition Act; 1861 CE emancipation of the Russian serfs",
+   "cost": 5910.0,
+   "prereq": "legal_code_roman",
+   "inRuntime": true,
+   "desc": "Slavery and hereditary bondage are abolished by law. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "the legal abolition of slavery and hereditary bondage"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "central_planning",
+   "key": 1065,
+   "name": "Central economic planning",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "economy-commerce",
+   "branch": null,
+   "emerged": "1921 CE Gosplan; 1928 CE first Soviet Five-Year Plan",
+   "cost": 23650.0,
+   "prereq": "official_statistics AND telegraph",
+   "inRuntime": true,
+   "desc": "The state plans output and allocation for the whole economy. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "state planning of output and allocation for the whole economy"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "marxist_leninist_state"
+   ]
+  },
+  {
+   "id": "gift_exchange",
+   "key": 1068,
+   "name": "Gift exchange networks",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "economy-commerce",
+   "branch": "trunk",
+   "emerged": "~40 kya shell-bead exchange; ~10 kya obsidian networks",
+   "cost": 260.0,
+   "prereq": "kin_council",
+   "inRuntime": false,
+   "desc": "Bands exchange gifts and partners over long distances, moving rare materials hand to hand.",
+   "capabilities": [
+    "bands exchange gifts and partners over long distances, moving rare materials hand to hand"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Foreign Trade"
+    ],
+    "civ7": [
+     "Commerce"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "debt_remission",
+   "key": 1076,
+   "name": "Debt remission edicts",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "society-welfare",
+   "branch": "trunk",
+   "emerged": "~2,400 BCE Urukagina's reforms; ~1,750 BCE Old Babylonian misharum edicts",
+   "cost": 1480.0,
+   "prereq": "law_code AND sacral_kingship",
+   "inRuntime": false,
+   "desc": "The king cancels debts and frees debt-bondsmen at his accession or in crisis.",
+   "capabilities": [
+    "the king cancels debts and frees debt-bondsmen at his accession or in crisis"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "planned_cities",
+   "key": 1079,
+   "name": "Planned towns",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "environment-urban",
+   "branch": "trunk",
+   "emerged": "~2,600 BCE Mohenjo-daro grid",
+   "cost": 1480.0,
+   "prereq": "fired_brick AND appointed_officials",
+   "inRuntime": false,
+   "desc": "Streets, drains and plots are laid out to a plan before building.",
+   "capabilities": [
+    "streets, drains and plots are laid out to a plan before building"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Early Empire"
+    ],
+    "civ7": [
+     "Public Life"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "building_regulation"
+   ]
+  },
+  {
+   "id": "water_rights",
+   "key": 1084,
+   "name": "Water rights",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "environment-urban",
+   "branch": "trunk",
+   "emerged": "~1,754 BCE Hammurabi's canal-maintenance laws",
+   "cost": 1480.0,
+   "prereq": "law_code AND irrigation_canal",
+   "inRuntime": false,
+   "desc": "Law fixes who may draw canal water and who must maintain the banks.",
+   "capabilities": [
+    "law fixes who may draw canal water and who must maintain the banks"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "building_regulation",
+   "key": 1092,
+   "name": "Building regulation",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "environment-urban",
+   "branch": "trunk",
+   "emerged": "~10 BCE Augustan height limit; ~64 CE Neronian rebuilding rules",
+   "cost": 2960.0,
+   "prereq": "planned_cities AND legal_code_roman",
+   "inRuntime": false,
+   "desc": "Law sets heights, materials and fire breaks for urban building.",
+   "capabilities": [
+    "law sets heights, materials and fire breaks for urban building"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Civil Engineering"
+    ],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "zoning"
+   ]
+  },
+  {
+   "id": "public_granaries",
+   "key": 1100,
+   "name": "Public granaries",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "society-welfare",
+   "branch": "trunk",
+   "emerged": "~123 BCE Roman grain law; ~54 BCE Han ever-normal granaries",
+   "cost": 4180.0,
+   "prereq": "taxation AND appointed_officials",
+   "inRuntime": false,
+   "desc": "The state stores grain in good years and sells or issues it in dearth.",
+   "capabilities": [
+    "the state stores grain in good years and sells or issues it in dearth"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Annona (policy)"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "forest_law",
+   "key": 1112,
+   "name": "Forest law",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "environment-urban",
+   "branch": "trunk",
+   "emerged": "~1,079 CE New Forest; ~1,217 CE Charter of the Forest",
+   "cost": 3520.0,
+   "prereq": "land_registry AND service_tenure",
+   "inRuntime": false,
+   "desc": "Woods and game are reserved by law and their use licensed.",
+   "capabilities": [
+    "woods and game are reserved by law and their use licensed"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Conservation"
+    ],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "nature_conservation"
+   ]
+  },
+  {
+   "id": "legal_estates",
+   "key": 1113,
+   "name": "Legal estates",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "society-welfare",
+   "branch": "trunk",
+   "emerged": "~1,000 CE three orders; ~1,302 CE Estates General",
+   "cost": 4970.0,
+   "prereq": "hereditary_rank AND state_religion",
+   "inRuntime": false,
+   "desc": "Society is divided by law into orders — clergy, nobles, commoners — each with its own rights.",
+   "capabilities": [
+    "society is divided by law into orders — clergy, nobles, commoners — each with its own rights"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Social Class"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "manorialism",
+   "key": 1114,
+   "name": "Manorialism",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "society-welfare",
+   "branch": "trunk",
+   "emerged": "~800 CE Carolingian polyptychs",
+   "cost": 4970.0,
+   "prereq": "service_tenure AND heavy_plough",
+   "inRuntime": false,
+   "desc": "Peasants hold land from a lord in return for labour services and dues and may not leave.",
+   "capabilities": [
+    "peasants hold land from a lord in return for labour services and dues and may not leave"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Feudalism"
+    ],
+    "civ7": [
+     "Social Class",
+     "Serfdom (Russia)"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "market_fairs",
+   "key": 1115,
+   "name": "Market fairs",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "economy-commerce",
+   "branch": "trunk",
+   "emerged": "~1,150 CE Champagne fairs",
+   "cost": 3520.0,
+   "prereq": "trade AND municipal_charter",
+   "inRuntime": false,
+   "desc": "Chartered periodic fairs bring distant merchants together under a special peace and court.",
+   "capabilities": [
+    "chartered periodic fairs bring distant merchants together under a special peace and court"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Medieval Faires"
+    ],
+    "civ7": [
+     "Economics"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "mercantilism",
+   "key": 1125,
+   "name": "Mercantilism",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "economy-commerce",
+   "branch": "trunk",
+   "emerged": "~1,621 CE Thomas Mun; ~1,664 CE Colbert's tariff",
+   "cost": 7030.0,
+   "prereq": "commercial_law AND customs_tolls",
+   "inRuntime": false,
+   "desc": "The state promotes exports, protects manufactures and hoards bullion through trade rules.",
+   "capabilities": [
+    "the state promotes exports, protects manufactures and hoards bullion through trade rules"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Mercantilism"
+    ],
+    "civ7": [
+     "Mercantilism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "poor_law",
+   "key": 1127,
+   "name": "Poor law",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "society-welfare",
+   "branch": "trunk",
+   "emerged": "~1,601 CE Elizabethan Poor Law",
+   "cost": 4970.0,
+   "prereq": "taxation AND municipal_charter",
+   "inRuntime": false,
+   "desc": "Parishes levy a rate to relieve the destitute and set the able-bodied to work.",
+   "capabilities": [
+    "parishes levy a rate to relieve the destitute and set the able-bodied to work"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Social Question"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "stock_exchange",
+   "key": 1135,
+   "name": "Stock exchange",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "economy-commerce",
+   "branch": "trunk",
+   "emerged": "~1,531 CE Antwerp bourse; ~1,602 CE Amsterdam exchange",
+   "cost": 3520.0,
+   "prereq": "joint_stock",
+   "inRuntime": false,
+   "desc": "Shares in companies are traded in a regulated market.",
+   "capabilities": [
+    "shares in companies are traded in a regulated market"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Capitalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "antitrust",
+   "key": 1137,
+   "name": "Antitrust law",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "economy-commerce",
+   "branch": "trunk",
+   "emerged": "~1,890 CE Sherman Act",
+   "cost": 9950.0,
+   "prereq": "limited_liability AND representative_assembly",
+   "inRuntime": false,
+   "desc": "Law forbids cartels and breaks up monopolies.",
+   "capabilities": [
+    "law forbids cartels and breaks up monopolies"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Progressivism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "cooperatives",
+   "key": 1141,
+   "name": "Cooperatives",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "economy-commerce",
+   "branch": "trunk",
+   "emerged": "~1,844 CE Rochdale Pioneers",
+   "cost": 8360.0,
+   "prereq": "craft_guilds AND coined_wage",
+   "inRuntime": false,
+   "desc": "Members jointly own a shop, farm or bank and share its surplus.",
+   "capabilities": [
+    "members jointly own a shop, farm or bank and share its surplus"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Social Question"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "customs_union",
+   "key": 1142,
+   "name": "Customs union",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "economy-commerce",
+   "branch": "trunk",
+   "emerged": "~1,834 CE Zollverein",
+   "cost": 9950.0,
+   "prereq": "customs_tolls AND sworn_treaties",
+   "inRuntime": false,
+   "desc": "Several states abolish internal tariffs and share a common external tariff.",
+   "capabilities": [
+    "several states abolish internal tariffs and share a common external tariff"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Zollverein (Prussia)"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "factory_inspection",
+   "key": 1143,
+   "name": "Factory inspection",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "society-welfare",
+   "branch": "trunk",
+   "emerged": "~1,833 CE Factory Act",
+   "cost": 9950.0,
+   "prereq": "power_loom AND appointed_officials",
+   "inRuntime": false,
+   "desc": "Inspectors enforce limits on child labour and working hours.",
+   "capabilities": [
+    "inspectors enforce limits on child labour and working hours"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Progressivism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "free_trade",
+   "key": 1144,
+   "name": "Free trade",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "economy-commerce",
+   "branch": "trunk",
+   "emerged": "~1,846 CE repeal of the Corn Laws",
+   "cost": 14060.0,
+   "prereq": "classical_liberalism AND customs_tolls",
+   "inRuntime": false,
+   "desc": "Tariffs are lowered and trade opened by treaty and statute.",
+   "capabilities": [
+    "tariffs are lowered and trade opened by treaty and statute"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Capitalism"
+    ],
+    "civ7": [
+     "Capitalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "multilateral_trade_rules"
+   ]
+  },
+  {
+   "id": "labour_unions",
+   "key": 1151,
+   "name": "Trade unions",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "society-welfare",
+   "branch": "trunk",
+   "emerged": "~1,824 CE repeal of the Combination Acts",
+   "cost": 14060.0,
+   "prereq": "coined_wage AND (power_loom OR spinning_mule)",
+   "inRuntime": false,
+   "desc": "Workers combine to bargain collectively and to strike.",
+   "capabilities": [
+    "workers combine to bargain collectively and to strike"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Class Struggle"
+    ],
+    "civ7": [
+     "Social Question"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "socialism"
+   ]
+  },
+  {
+   "id": "limited_liability",
+   "key": 1152,
+   "name": "Limited liability",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "economy-commerce",
+   "branch": "trunk",
+   "emerged": "~1,855 CE Limited Liability Act",
+   "cost": 7030.0,
+   "prereq": "joint_stock AND commercial_law",
+   "inRuntime": false,
+   "desc": "Shareholders risk only their stake, not their whole fortune.",
+   "capabilities": [
+    "shareholders risk only their stake, not their whole fortune"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Capitalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "antitrust"
+   ]
+  },
+  {
+   "id": "nature_conservation",
+   "key": 1156,
+   "name": "Nature conservation",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "environment-urban",
+   "branch": "trunk",
+   "emerged": "~1,872 CE Yellowstone National Park",
+   "cost": 9950.0,
+   "prereq": "forest_law AND taxonomy",
+   "inRuntime": false,
+   "desc": "Land is set aside to protect landscapes, species and their habitats.",
+   "capabilities": [
+    "land is set aside to protect landscapes, species and their habitats"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Conservation"
+    ],
+    "civ7": [
+     "Natural History"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "environmental_regulation"
+   ]
+  },
+  {
+   "id": "civil_rights_law",
+   "key": 1170,
+   "name": "Civil rights law",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "society-welfare",
+   "branch": "trunk",
+   "emerged": "~1,964 CE Civil Rights Act",
+   "cost": 28130.0,
+   "prereq": "bill_of_rights AND mass_suffrage",
+   "inRuntime": false,
+   "desc": "Law forbids discrimination by race, religion or sex in public life and work.",
+   "capabilities": [
+    "law forbids discrimination by race, religion or sex in public life and work"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Progressivism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "climate_accords",
+   "key": 1171,
+   "name": "Climate accords",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "branch": "trunk",
+   "emerged": "~1,992 CE UN Framework Convention on Climate Change",
+   "cost": 39780.0,
+   "prereq": "environmental_regulation AND international_organizations AND weather_prediction",
+   "inRuntime": false,
+   "desc": "States negotiate shared limits on greenhouse emissions.",
+   "capabilities": [
+    "states negotiate shared limits on greenhouse emissions"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Environmentalism"
+    ],
+    "civ7": [
+     "Globalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "environmental_regulation",
+   "key": 1175,
+   "name": "Environmental regulation",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "branch": "trunk",
+   "emerged": "~1,970 CE US Environmental Protection Agency",
+   "cost": 28130.0,
+   "prereq": "nature_conservation AND public_health_board",
+   "inRuntime": false,
+   "desc": "Agencies limit pollution of air, water and soil by permit and standard.",
+   "capabilities": [
+    "agencies limit pollution of air, water and soil by permit and standard"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Environmentalism"
+    ],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "climate_accords"
+   ]
+  },
+  {
+   "id": "multilateral_trade_rules",
+   "key": 1181,
+   "name": "Multilateral trade rules",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "economy-commerce",
+   "branch": "trunk",
+   "emerged": "~1,947 CE General Agreement on Tariffs and Trade",
+   "cost": 28130.0,
+   "prereq": "free_trade AND international_organizations",
+   "inRuntime": false,
+   "desc": "Many states bind their tariffs and settle trade disputes under shared rules.",
+   "capabilities": [
+    "many states bind their tariffs and settle trade disputes under shared rules"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Globalization"
+    ],
+    "civ7": [
+     "Globalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "zoning",
+   "key": 1187,
+   "name": "Zoning",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "environment-urban",
+   "branch": "trunk",
+   "emerged": "~1,916 CE New York zoning resolution",
+   "cost": 19890.0,
+   "prereq": "building_regulation AND skyscraper",
+   "inRuntime": false,
+   "desc": "Cities divide land into zones with permitted uses and building envelopes.",
+   "capabilities": [
+    "cities divide land into zones with permitted uses and building envelopes"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Urbanization"
+    ],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  }
+ ]
+}

@@ -1,0 +1,1403 @@
+{
+ "group": "T1-food-agriculture",
+ "nodes": [
+  {
+   "id": "fishing_hook",
+   "key": 22,
+   "name": "Line and pelagic fishing",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~42 kya Jerimalai (Timor)",
+   "cost": 260.0,
+   "prereq": "cordage",
+   "inRuntime": true,
+   "desc": "Specialised hook-and-line gear — shell or bone hooks, weighted lines, lures — for deep-water and pelagic species. Basic fishing is baseline and needs no hook or node (D-047 rulings 4 and 6).",
+   "capabilities": [
+    "pelagic fishing",
+    "deep-water line fishing"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "grinding_stone",
+   "key": 23,
+   "name": "Grinding stone",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~30 kya Bilancino; routine in Natufian ~12 kya",
+   "cost": 370.0,
+   "prereq": null,
+   "inRuntime": true,
+   "desc": "Quern and handstone for processing seeds, tubers, pigment.",
+   "capabilities": [
+    "flour from wild grain",
+    "processed tubers"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cereal_cultivation",
+    "ochre_processing",
+    "rotary_quern"
+   ]
+  },
+  {
+   "id": "dog_domestication",
+   "key": 24,
+   "name": "Dog domestication",
+   "tree": "technology",
+   "age": "A1",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~15–30 kya",
+   "cost": 260.0,
+   "prereq": null,
+   "inRuntime": true,
+   "desc": "First domesticate, from wolf, well before agriculture.",
+   "capabilities": [
+    "hunting assistance",
+    "guarding",
+    "later herding, traction, sled"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "pig",
+    "sheep_goat"
+   ]
+  },
+  {
+   "id": "cereal_cultivation",
+   "key": 29,
+   "name": "Cereal cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~11,500 BCE Levant (PPNA); independently by ~8,000 BCE in northern China (millet) and by ~7,000 BCE on the Yangtze (rice) and in Mesoamerica (maize)",
+   "cost": 880.0,
+   "prereq": "grinding_stone",
+   "inRuntime": true,
+   "desc": "Deliberate sowing of wild-type cereal — tending before genetic domestication. Pre-domestication cultivation lasted ~1,000 years.",
+   "capabilities": [
+    "predictable harvest location",
+    "larger stands"
+   ],
+   "entitiesRequiringIt": [
+    "activity.farming"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "ancestor_veneration",
+    "cereal_domesticated",
+    "communal_feasts",
+    "cotton_cultivation",
+    "flax",
+    "hereditary_rank",
+    "irrigation_basin",
+    "irrigation_canal",
+    "legume",
+    "maize",
+    "millet",
+    "orchard",
+    "organized_priesthood",
+    "rice_wet",
+    "sorghum_pearl_millet",
+    "terrace"
+   ]
+  },
+  {
+   "id": "cereal_domesticated",
+   "key": 30,
+   "name": "Wheat and barley domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~9,500 BCE Levant (einkorn, emmer, barley)",
+   "cost": 880.0,
+   "prereq": "cereal_cultivation",
+   "inRuntime": true,
+   "desc": "Non-shattering rachis, larger grain — the genetic result of ~1,000 years of harvesting with sickles.",
+   "capabilities": [
+    "reliable yield",
+    "storable surplus"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "crop_rotation_norfolk",
+    "fermentation_grain"
+   ]
+  },
+  {
+   "id": "rice_wet",
+   "key": 31,
+   "name": "Wet rice cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~7,000 BCE Yangtze (Kuahuqiao); domesticated ~6,000 BCE",
+   "cost": 620.0,
+   "prereq": "cereal_cultivation",
+   "inRuntime": true,
+   "desc": "Paddy cultivation of domesticated rice — flooded fields, transplanting.",
+   "capabilities": [
+    "highest yield per area of any pre-modern cereal",
+    "dense population"
+   ],
+   "entitiesRequiringIt": [
+    "activity.farming"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fermentation_grain",
+    "rice_champa"
+   ]
+  },
+  {
+   "id": "millet",
+   "key": 32,
+   "name": "Millet cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~8,000 BCE Cishan",
+   "cost": 440.0,
+   "prereq": "cereal_cultivation",
+   "inRuntime": true,
+   "desc": "Broomcorn and foxtail millet — dry-farming cereal of the Yellow River.",
+   "capabilities": [
+    "dryland agriculture without irrigation"
+   ],
+   "entitiesRequiringIt": [
+    "activity.farming"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fermentation_grain"
+   ]
+  },
+  {
+   "id": "maize",
+   "key": 33,
+   "name": "Maize domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~7,000 BCE Balsas; staple by ~2,000 BCE",
+   "cost": 1240.0,
+   "prereq": "cereal_cultivation",
+   "inRuntime": true,
+   "desc": "From teosinte — the most genetically transformed of all crops; took millennia to become a staple.",
+   "capabilities": [
+    "New World staple",
+    "nixtamalization required for nutrition (separate node)"
+   ],
+   "entitiesRequiringIt": [
+    "activity.farming"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fermentation_grain",
+    "new_world_crops",
+    "nixtamalization"
+   ]
+  },
+  {
+   "id": "sorghum_pearl_millet",
+   "key": 34,
+   "name": "African cereal domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~3,000 BCE Sahel (later than others)",
+   "cost": 310.0,
+   "prereq": "cereal_cultivation",
+   "inRuntime": true,
+   "desc": "Sorghum and pearl millet — Sahel domesticates adapted to drought.",
+   "capabilities": [
+    "drought-tolerant staple"
+   ],
+   "entitiesRequiringIt": [
+    "activity.farming"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "fermentation_grain"
+   ]
+  },
+  {
+   "id": "root_crop",
+   "key": 35,
+   "name": "Root and tuber cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~7,000 BCE Kuk Swamp (taro); ~8,000 BCE Andes (potato)",
+   "cost": 440.0,
+   "prereq": null,
+   "inRuntime": true,
+   "desc": "Vegetative propagation — taro, yam, potato, manioc, sweet potato. Different from seed agriculture: clonal, no seed to store.",
+   "capabilities": [
+    "staple without cereal",
+    "no granary needed — stored in ground"
+   ],
+   "entitiesRequiringIt": [
+    "activity.farming"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cotton_cultivation",
+    "irrigation_basin",
+    "irrigation_canal",
+    "new_world_crops",
+    "orchard",
+    "sugar_refining",
+    "terrace"
+   ]
+  },
+  {
+   "id": "legume",
+   "key": 36,
+   "name": "Legume cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~9,500 BCE Levant; beans ~7,000 BCE Andes/Mesoamerica",
+   "cost": 310.0,
+   "prereq": "cereal_cultivation",
+   "inRuntime": true,
+   "desc": "Lentil, pea, chickpea, bean — protein and nitrogen fixation. Co-domesticated with cereals in every centre.",
+   "capabilities": [
+    "dietary protein without meat",
+    "soil fertility (rotation, later)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "crop_rotation_norfolk"
+   ]
+  },
+  {
+   "id": "orchard",
+   "key": 37,
+   "name": "Fruit tree cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~4,000 BCE Levant (olive); fig possibly ~9,000 BCE",
+   "cost": 440.0,
+   "prereq": "cereal_cultivation OR root_crop",
+   "inRuntime": true,
+   "desc": "Olive, fig, date, grape — long-lived perennials requiring multi-decade investment and sedentism.",
+   "capabilities": [
+    "oil",
+    "wine (with fermentation)",
+    "dried fruit"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "oil_press",
+    "silk"
+   ]
+  },
+  {
+   "id": "sickle",
+   "key": 38,
+   "name": "Sickle",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~12,500 BCE Natufian",
+   "cost": 520.0,
+   "prereq": "microlith",
+   "inRuntime": true,
+   "desc": "Curved harvesting blade — first microlith-set, then flint, then metal.",
+   "capabilities": [
+    "efficient cereal harvest"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "digging_stick_hoe",
+   "key": 39,
+   "name": "Hoe",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~8,000 BCE (stone hoes, China and Levant)",
+   "cost": 620.0,
+   "prereq": "hafting AND ground_stone_early",
+   "inRuntime": true,
+   "desc": "Hafted blade for tillage — the cultivation tool before the plough. Digging-stick cultivation is baseline (D-047).",
+   "capabilities": [
+    "hafted-blade tillage of heavier soils",
+    "faster weeding and planting"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "plough_ard"
+   ]
+  },
+  {
+   "id": "nixtamalization",
+   "key": 40,
+   "name": "Nixtamalization",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "food",
+   "branch": null,
+   "emerged": "~1,500 BCE Guatemala",
+   "cost": 880.0,
+   "prereq": "maize AND pottery_open_fired",
+   "inRuntime": true,
+   "desc": "Cooking maize in alkaline solution — releases niacin, prevents pellagra. Maize as a staple depends on it.",
+   "capabilities": [
+    "maize as sole staple without deficiency"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "sheep_goat",
+   "key": 41,
+   "name": "Sheep and goat domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~10,500 BCE Zagros/Taurus",
+   "cost": 620.0,
+   "prereq": "dog_domestication",
+   "inRuntime": true,
+   "desc": "First herd animals — meat, later milk and wool.",
+   "capabilities": [
+    "meat on the hoof",
+    "selective flock breeding"
+   ],
+   "entitiesRequiringIt": [
+    "activity.herding"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "ancestor_veneration",
+    "cattle",
+    "communal_feasts",
+    "composite_bow",
+    "hereditary_rank",
+    "milking",
+    "organized_priesthood",
+    "selective_breeding",
+    "wool"
+   ]
+  },
+  {
+   "id": "cattle",
+   "key": 42,
+   "name": "Cattle domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~8,500 BCE Near East; ~7,000 BCE Indus; possibly Sahara",
+   "cost": 620.0,
+   "prereq": "sheep_goat",
+   "inRuntime": true,
+   "desc": "Taurine (Near East) and zebu (Indus) — independently. Meat, then milk, traction, dung.",
+   "capabilities": [
+    "large-animal traction (with yoke)",
+    "dairy",
+    "dung fuel"
+   ],
+   "entitiesRequiringIt": [
+    "activity.herding"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "animal_traction",
+    "camel",
+    "donkey",
+    "horse_domestication",
+    "milking",
+    "selective_breeding"
+   ]
+  },
+  {
+   "id": "pig",
+   "key": 43,
+   "name": "Pig domestication",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~8,500 BCE Anatolia; ~6,000 BCE China",
+   "cost": 220.0,
+   "prereq": "dog_domestication",
+   "inRuntime": true,
+   "desc": "From wild boar — independently in Near East and China. Omnivore; village scavenger.",
+   "capabilities": [
+    "meat without pasture"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "milking",
+   "key": 44,
+   "name": "Milking and dairying",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~7,000 BCE Anatolia (lipid residues)",
+   "cost": 440.0,
+   "prereq": "(sheep_goat OR cattle) AND pottery_open_fired",
+   "inRuntime": true,
+   "desc": "Exploiting living animals for milk — requires either lactase persistence or processing into cheese/yogurt.",
+   "capabilities": [
+    "dairy food",
+    "sustained yield without slaughter"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "animal_traction",
+   "key": 46,
+   "name": "Animal traction",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~4,000 BCE (plough marks, Uruk pictographs)",
+   "cost": 880.0,
+   "prereq": "cattle",
+   "inRuntime": true,
+   "desc": "Yoking cattle to pull — the prerequisite for plough and cart.",
+   "capabilities": [
+    "ploughing",
+    "cart haulage",
+    "threshing by treading"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "plough_ard",
+    "wheel_solid"
+   ]
+  },
+  {
+   "id": "fermentation_grain",
+   "key": 55,
+   "name": "Grain fermentation (beer)",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "food",
+   "branch": null,
+   "emerged": "~11,000 BCE Raqefet (contested); ~3,500 BCE Godin Tepe (secure)",
+   "cost": 620.0,
+   "prereq": "(cereal_domesticated OR rice_wet OR millet OR maize OR sorghum_pearl_millet) AND pottery_open_fired",
+   "inRuntime": true,
+   "desc": "Malting and brewing — grain into a storable, nutritious, safe drink.",
+   "capabilities": [
+    "beer",
+    "grain preserved as drink",
+    "bread yeast"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "antibiotic_penicillin"
+   ]
+  },
+  {
+   "id": "fermentation_fruit",
+   "key": 56,
+   "name": "Wine and fruit fermentation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "food",
+   "branch": null,
+   "emerged": "~7,000 BCE Jiahu; ~6,000 BCE Georgia (grape)",
+   "cost": 440.0,
+   "prereq": "pottery_open_fired",
+   "inRuntime": true,
+   "desc": "Fermenting grape, honey, fruit.",
+   "capabilities": [
+    "wine",
+    "mead"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "oil_press",
+   "key": 57,
+   "name": "Oil pressing",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "food",
+   "branch": null,
+   "emerged": "~4,500 BCE Levant (olive)",
+   "cost": 620.0,
+   "prereq": "orchard AND stone_dry",
+   "inRuntime": true,
+   "desc": "Extracting olive, sesame, flax oil by crushing and pressing.",
+   "capabilities": [
+    "cooking oil",
+    "lamp fuel",
+    "storable calories"
+   ],
+   "entitiesRequiringIt": [
+    "building.oil_press"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "olive_press_beam"
+   ]
+  },
+  {
+   "id": "salt_extraction",
+   "key": 58,
+   "name": "Salt production",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "food",
+   "branch": null,
+   "emerged": "~6,000 BCE Poiana Slatinei (Romania); ~4,500 BCE Hallstatt",
+   "cost": 440.0,
+   "prereq": "pottery_open_fired",
+   "inRuntime": true,
+   "desc": "Evaporating brine or mining rock salt — the preservative and the trade good.",
+   "capabilities": [
+    "salting meat and fish",
+    "salt as a trade good"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "glass_glaze",
+    "state_monopolies"
+   ]
+  },
+  {
+   "id": "flax",
+   "key": 59,
+   "name": "Flax cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~8,000 BCE Levant (wild flax use ~30 kya Dzudzuana)",
+   "cost": 440.0,
+   "prereq": "cereal_cultivation",
+   "inRuntime": true,
+   "desc": "Growing flax for linen fibre and oil.",
+   "capabilities": [
+    "linen fibre"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "spinning_spindle"
+   ]
+  },
+  {
+   "id": "terrace",
+   "key": 70,
+   "name": "Agricultural terracing",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~4,000 BCE Yemen; Andes ~2,000 BCE; widespread",
+   "cost": 620.0,
+   "prereq": "stone_dry AND (cereal_cultivation OR root_crop)",
+   "inRuntime": true,
+   "desc": "Stepped fields on slopes — soil retention, water control, arable from hillside.",
+   "capabilities": [
+    "hillside cultivation",
+    "erosion control"
+   ],
+   "entitiesRequiringIt": [
+    "infra.terraces"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "plough_ard",
+   "key": 75,
+   "name": "Ard plough",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~4,000 BCE (plough marks under barrows; Uruk pictograph)",
+   "cost": 1240.0,
+   "prereq": "animal_traction AND digging_stick_hoe",
+   "inRuntime": true,
+   "desc": "Animal-drawn scratch plough — multiplies cultivable area per farmer.",
+   "capabilities": [
+    "extensive cultivation",
+    "labour productivity ×2-3"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "heavy_plough",
+    "iron_mouldboard",
+    "seed_drill",
+    "seed_drill_tull"
+   ]
+  },
+  {
+   "id": "horse_domestication",
+   "key": 96,
+   "name": "Horse domestication",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~3,500 BCE Botai; DOM2 ~2,200 BCE",
+   "cost": 1760.0,
+   "prereq": "cattle",
+   "inRuntime": true,
+   "desc": "On the Pontic-Caspian steppe; DOM2 lineage spreads ~2,200 BCE.",
+   "capabilities": [
+    "riding",
+    "fast overland movement",
+    "horse traction"
+   ],
+   "entitiesRequiringIt": [
+    "infra.courier_relay"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cavalry",
+    "chariot",
+    "collar_harness",
+    "horseshoe",
+    "royal_post"
+   ]
+  },
+  {
+   "id": "donkey",
+   "key": 97,
+   "name": "Donkey domestication",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~5,000 BCE Africa (genomic: one domestication, probably East Africa); ~3,000 BCE Abydos pack donkeys (Egypt)",
+   "cost": 620.0,
+   "prereq": "cattle",
+   "inRuntime": true,
+   "desc": "From African wild ass — the pack animal of the ancient Near East and Africa.",
+   "capabilities": [
+    "pack transport",
+    "caravan trade"
+   ],
+   "entitiesRequiringIt": [
+    "activity.caravans"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "trade"
+   ]
+  },
+  {
+   "id": "camel",
+   "key": 98,
+   "name": "Camel domestication",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~1,000 BCE dromedary; ~2,500 BCE Bactrian",
+   "cost": 620.0,
+   "prereq": "cattle",
+   "inRuntime": true,
+   "desc": "Dromedary (Arabia) and Bactrian (Central Asia) — desert and steppe transport.",
+   "capabilities": [
+    "desert crossing",
+    "long-distance caravan"
+   ],
+   "entitiesRequiringIt": [
+    "activity.caravans"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "trade"
+   ]
+  },
+  {
+   "id": "beekeeping",
+   "key": 109,
+   "name": "Beekeeping",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~2,400 BCE Egypt; ~900 BCE Tel Rehov apiary",
+   "cost": 740.0,
+   "prereq": "pottery_open_fired",
+   "inRuntime": true,
+   "desc": "Managed hives — honey (the only concentrated sweetener) and wax (for lost-wax casting).",
+   "capabilities": [
+    "honey",
+    "beeswax for casting and sealing"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "rotary_quern",
+   "key": 138,
+   "name": "Rotary quern",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~500 BCE Spain, Celtic Europe",
+   "cost": 1760.0,
+   "prereq": "grinding_stone AND wheel_solid",
+   "inRuntime": true,
+   "desc": "Rotating upper stone on a fixed lower — continuous grinding, one-handed.",
+   "capabilities": [
+    "milling productivity ×3"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "water_mill"
+   ]
+  },
+  {
+   "id": "iron_mouldboard",
+   "key": 156,
+   "name": "Iron mouldboard plough",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~100 BCE Han",
+   "cost": 4180.0,
+   "prereq": "cast_iron AND plough_ard",
+   "inRuntime": true,
+   "desc": "Cast-iron share and mouldboard that turns the soil — Han China.",
+   "capabilities": [
+    "heavy soil cultivation",
+    "weed burial"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "farm_machinery"
+   ]
+  },
+  {
+   "id": "seed_drill",
+   "key": 157,
+   "name": "Seed drill",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~200 BCE Han",
+   "cost": 2490.0,
+   "prereq": "plough_ard AND cast_iron",
+   "inRuntime": true,
+   "desc": "Multi-tube drill sowing seed in rows at depth — Chinese, 1,800 years before Tull.",
+   "capabilities": [
+    "seed economy",
+    "row cultivation",
+    "weeding between rows"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "seed_drill_tull"
+   ]
+  },
+  {
+   "id": "heavy_plough",
+   "key": 175,
+   "name": "Heavy wheeled plough",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~500 CE Slavic/Germanic Europe",
+   "cost": 4970.0,
+   "prereq": "plough_ard AND iron_bloomery AND wheel_solid",
+   "inRuntime": true,
+   "desc": "Wheeled plough with iron coulter and mouldboard — opens the clay lowlands of northern Europe.",
+   "capabilities": [
+    "cultivation of heavy soils",
+    "urbanisation of the north"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "farm_machinery",
+    "manorialism"
+   ]
+  },
+  {
+   "id": "horse_collar",
+   "key": 176,
+   "name": "Padded horse collar",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~500 CE China; Europe ~900",
+   "cost": 2090.0,
+   "prereq": "collar_harness",
+   "inRuntime": true,
+   "desc": "Rigid padded collar — horses plough and haul without choking.",
+   "capabilities": [
+    "horse-drawn plough",
+    "horse haulage at oxen load, twice the speed"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "farm_machinery",
+    "seed_drill_tull"
+   ]
+  },
+  {
+   "id": "rice_champa",
+   "key": 178,
+   "name": "Early-ripening rice",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "1012 CE Song",
+   "cost": 1480.0,
+   "prereq": "rice_wet",
+   "inRuntime": true,
+   "desc": "Champa rice — double-cropping, drought-tolerant. Song China's population doubling.",
+   "capabilities": [
+    "two harvests per year",
+    "population from 60M to 120M"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "sugar_refining",
+   "key": 179,
+   "name": "Sugar crystallisation",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "food",
+   "branch": null,
+   "emerged": "~350 CE India; Islamic ~700",
+   "cost": 2090.0,
+   "prereq": "root_crop AND pottery_open_fired",
+   "inRuntime": true,
+   "desc": "Boiling cane juice to crystal — India, then Islamic world.",
+   "capabilities": [
+    "storable sweetener",
+    "plantation economy (later)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "crop_rotation_norfolk",
+   "key": 242,
+   "name": "Four-course rotation",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "~1,650 CE Flanders, Norfolk",
+   "cost": 4180.0,
+   "prereq": "legume AND cereal_domesticated",
+   "inRuntime": true,
+   "desc": "Wheat/turnips/barley/clover — no fallow, winter fodder, livestock manure. The agricultural revolution.",
+   "capabilities": [
+    "yield +50%",
+    "livestock doubled",
+    "labour freed for industry"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "selective_breeding"
+   ]
+  },
+  {
+   "id": "seed_drill_tull",
+   "key": 243,
+   "name": "Horse-drawn seed drill (Europe)",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "1701 CE",
+   "cost": 2960.0,
+   "prereq": "seed_drill OR (plough_ard AND horse_collar)",
+   "inRuntime": true,
+   "desc": "Tull 1701 — row sowing, 1,900 years after China.",
+   "capabilities": [
+    "seed economy",
+    "horse-hoeing"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "mechanised_agriculture"
+   ]
+  },
+  {
+   "id": "selective_breeding",
+   "key": 244,
+   "name": "Systematic livestock breeding",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "~1,760 CE",
+   "cost": 4180.0,
+   "prereq": "crop_rotation_norfolk AND (sheep_goat OR cattle)",
+   "inRuntime": true,
+   "desc": "Bakewell — controlled breeding for meat and wool. Sheep weight doubled in a century.",
+   "capabilities": [
+    "larger animals",
+    "faster maturation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "evolution"
+   ]
+  },
+  {
+   "id": "new_world_crops",
+   "key": 245,
+   "name": "Columbian crop exchange",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "~1,500-1,700 CE",
+   "cost": 2960.0,
+   "prereq": "carrack AND (maize OR root_crop)",
+   "inRuntime": true,
+   "desc": "Potato, maize, cassava, tomato to the Old World; wheat, rice, sugar to the New.",
+   "capabilities": [
+    "European population doubling (potato)",
+    "Chinese highland farming (maize, sweet potato)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "refrigeration",
+   "key": 329,
+   "name": "Mechanical refrigeration",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "food",
+   "branch": "agriculture",
+   "emerged": "1876 CE (Linde)",
+   "cost": 33450.0,
+   "prereq": "chemistry_quantitative AND steam_rotary AND thermodynamics",
+   "inRuntime": true,
+   "desc": "Compression cycle 1834; commercial 1870s; domestic 1920s — cold chain.",
+   "capabilities": [
+    "meat by sea from Argentina",
+    "spoilage rate near zero"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "superconductivity_applied"
+   ]
+  },
+  {
+   "id": "canning",
+   "key": 330,
+   "name": "Canning",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "food",
+   "branch": "agriculture",
+   "emerged": "1810 CE",
+   "cost": 16730.0,
+   "prereq": "glass_blowing AND sheet_metal",
+   "inRuntime": true,
+   "desc": "Appert 1810; tin cans 1810; Pasteur explains why 1860s — food preserved for years.",
+   "capabilities": [
+    "army and navy provisions",
+    "spoilage to near zero"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "green_revolution",
+   "key": 331,
+   "name": "High-yield dwarf cereals",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "1966 CE",
+   "cost": 16730.0,
+   "prereq": "scientific_plant_breeding AND chemical_fertilizer AND haber_bosch AND irrigation_canal",
+   "inRuntime": true,
+   "desc": "Borlaug's wheat 1950s; IR8 rice 1966 — bred for fertiliser response; Asian yields ×3.",
+   "capabilities": [
+    "famine ended in Asia"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "mechanised_agriculture",
+   "key": 341,
+   "name": "Tractor and combine",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "1892 CE petrol tractor (Froelich); 1904 CE track-type tractor (Holt, steam; petrol 1908); mass-produced tractors from 1917 CE; combines common by the 1930s",
+   "cost": 23650.0,
+   "prereq": "internal_combustion AND seed_drill_tull AND farm_machinery",
+   "inRuntime": true,
+   "desc": "Tractor 1910s; combine harvester 1930s — one farmer feeds a hundred.",
+   "capabilities": [
+    "farm labour share to <5%"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "precision_agriculture",
+    "tank"
+   ]
+  },
+  {
+   "id": "drip_irrigation",
+   "key": 391,
+   "name": "Drip irrigation",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "1960s",
+   "cost": 33450.0,
+   "prereq": "plastics AND (irrigation_basin OR irrigation_canal)",
+   "inRuntime": true,
+   "desc": "Water delivered to roots through plastic emitters.",
+   "capabilities": [
+    "crops on arid land with little water"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "precision_agriculture",
+   "key": 392,
+   "name": "Precision agriculture",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "1990s",
+   "cost": 94620.0,
+   "prereq": "gps AND mechanised_agriculture",
+   "inRuntime": true,
+   "desc": "Field inputs varied by location from satellite position and sensors.",
+   "capabilities": [
+    "input efficiency per field"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "frontier_crops",
+   "key": 419,
+   "name": "Crop genomics",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "repeatable",
+   "cost": 8360.0,
+   "prereq": "crispr",
+   "inRuntime": true,
+   "desc": "Each level raises yield per unit of arable land.",
+   "capabilities": [
+    "higher yield per km²"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": true,
+   "dependents": []
+  },
+  {
+   "id": "cotton_cultivation",
+   "key": 427,
+   "name": "Cotton cultivation",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "agriculture",
+   "branch": null,
+   "emerged": "~5,500 BCE Mehrgarh (Indus, cotton fibres); ~4,000 BCE coastal Peru (Huaca Prieta textiles); four species domesticated independently",
+   "cost": 440.0,
+   "prereq": "cereal_cultivation OR root_crop",
+   "inRuntime": true,
+   "desc": "Growing cotton as a fibre crop, domesticated independently in South Asia, Africa and the Americas — a second great plant fibre beside flax and wool.",
+   "capabilities": [
+    "cotton fibre crop",
+    "cotton textiles (spinning, with spinning_spindle)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cotton_gin_roller",
+    "spinning_spindle"
+   ]
+  },
+  {
+   "id": "agricultural_chemistry",
+   "key": 464,
+   "name": "Agricultural chemistry",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "1813 CE Davy, Elements of Agricultural Chemistry; 1840 CE Liebig; 1843 CE Rothamsted field experiments",
+   "cost": 5910.0,
+   "prereq": "chemistry_quantitative",
+   "inRuntime": true,
+   "desc": "What plants take from the soil — nitrogen, phosphorus and potash — tested in field experiments.",
+   "capabilities": [
+    "mineral theory of plant nutrition (N, P, K; law of the minimum)",
+    "soil and manure analysis",
+    "replicated field experiments"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "chemical_fertilizer"
+   ]
+  },
+  {
+   "id": "chemical_fertilizer",
+   "key": 465,
+   "name": "Chemical fertilizer",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "1842 CE superphosphate patent (Lawes, England); guano and Chilean nitrate traded from the 1840s",
+   "cost": 23650.0,
+   "prereq": "agricultural_chemistry AND sulphuric_acid",
+   "inRuntime": true,
+   "desc": "Manufactured superphosphate and potash fertilizers spread on the fields.",
+   "capabilities": [
+    "superphosphate and potash manufacture",
+    "mineral fertilizer application"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "green_revolution"
+   ]
+  },
+  {
+   "id": "farm_machinery",
+   "key": 466,
+   "name": "Horse-drawn farm machinery",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "1786 CE threshing machine (Meikle, Scotland; patented 1788); 1828-1834 CE reapers (Bell, McCormick, Hussey); 1837 CE steel plough (Deere)",
+   "cost": 19890.0,
+   "prereq": "(heavy_plough OR iron_mouldboard) AND horse_collar AND crank_connecting_rod",
+   "inRuntime": true,
+   "desc": "Horse-drawn reapers, threshing machines and factory-made iron ploughs.",
+   "capabilities": [
+    "mechanical reaper and threshing machine",
+    "factory-made iron and steel ploughs"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "mechanised_agriculture"
+   ]
+  },
+  {
+   "id": "scientific_plant_breeding",
+   "key": 496,
+   "name": "Scientific plant breeding",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "agriculture",
+   "branch": "agriculture",
+   "emerged": "1905 CE Mendelian wheat breeding (Biffen, Cambridge); 1908 CE inbred-hybrid maize method (Shull); hybrid seed sold from 1926 CE",
+   "cost": 11830.0,
+   "prereq": "genetics_mendel",
+   "inRuntime": true,
+   "desc": "Planned crosses and selection on Mendelian lines, including hybrid seed.",
+   "capabilities": [
+    "planned crosses and selection on Mendelian lines",
+    "hybrid seed (heterosis)",
+    "replicated variety trials"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "green_revolution"
+   ]
+  }
+ ]
+}

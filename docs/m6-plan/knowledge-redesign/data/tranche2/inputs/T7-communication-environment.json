@@ -1,0 +1,1097 @@
+{
+ "group": "T7-communication-environment",
+ "nodes": [
+  {
+   "id": "token_counting",
+   "key": 76,
+   "name": "Clay tokens",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~8,000 BCE",
+   "cost": 620.0,
+   "prereq": "fire_making AND tally_notation",
+   "inRuntime": true,
+   "desc": "Geometric clay counters for commodities — one token per unit.",
+   "capabilities": [
+    "record of quantity without memory"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "hieroglyphic",
+    "proto_writing",
+    "standard_weights",
+    "taxation",
+    "temple_economy",
+    "trade"
+   ]
+  },
+  {
+   "id": "stamp_seal",
+   "key": 77,
+   "name": "Stamp seal",
+   "tree": "technology",
+   "age": "A2",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~6,000 BCE Halaf",
+   "cost": 880.0,
+   "prereq": "ground_stone_early AND pottery_open_fired",
+   "inRuntime": true,
+   "desc": "Carved stone impressed in clay — ownership, authentication.",
+   "capabilities": [
+    "marking ownership",
+    "sealing stores",
+    "administrative control"
+   ],
+   "entitiesRequiringIt": [
+    "inst.archive"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "census",
+    "coinage_electrum",
+    "royal_archives",
+    "taxation",
+    "woodblock_print"
+   ]
+  },
+  {
+   "id": "proto_writing",
+   "key": 86,
+   "name": "Proto-cuneiform",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~3,300 BCE Uruk IV",
+   "cost": 1760.0,
+   "prereq": "token_counting",
+   "inRuntime": true,
+   "desc": "Pictographic accounting tablets — commodity + number, no syntax.",
+   "capabilities": [
+    "administrative records beyond memory"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cuneiform",
+    "standard_weights",
+    "taxation"
+   ]
+  },
+  {
+   "id": "cuneiform",
+   "key": 87,
+   "name": "Cuneiform (full writing)",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~2,900 BCE",
+   "cost": 3520.0,
+   "prereq": "proto_writing",
+   "inRuntime": true,
+   "desc": "Phonetic signs, syntax — language on clay. Sumerian, then Akkadian, Hittite, Elamite.",
+   "capabilities": [
+    "law",
+    "literature",
+    "letters",
+    "history"
+   ],
+   "entitiesRequiringIt": [
+    "building.library",
+    "building.school",
+    "inst.archive",
+    "inst.historiography",
+    "inst.natural_philosophy",
+    "inst.scribal_school"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "abjad",
+    "appointed_officials",
+    "calendar_civil",
+    "census",
+    "geometry_practical",
+    "law_code",
+    "medicine_recorded",
+    "numeral_sexagesimal",
+    "royal_envoys",
+    "scribal_schools",
+    "surveying"
+   ]
+  },
+  {
+   "id": "hieroglyphic",
+   "key": 88,
+   "name": "Egyptian hieroglyphic",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~3,250 BCE Abydos",
+   "cost": 3520.0,
+   "prereq": "token_counting",
+   "inRuntime": true,
+   "desc": "Logo-consonantal script — independent or stimulus-diffused from Mesopotamia (debated).",
+   "capabilities": [
+    "monumental inscription",
+    "administration"
+   ],
+   "entitiesRequiringIt": [
+    "building.library",
+    "building.school",
+    "inst.archive",
+    "inst.historiography",
+    "inst.natural_philosophy",
+    "inst.scribal_school"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "abjad",
+    "appointed_officials",
+    "astronomy_records",
+    "calendar_civil",
+    "census",
+    "geometry_practical",
+    "law_code",
+    "medicine_recorded",
+    "royal_envoys",
+    "scribal_schools",
+    "standard_weights",
+    "surveying",
+    "taxation"
+   ]
+  },
+  {
+   "id": "chinese_script",
+   "key": 89,
+   "name": "Oracle bone script",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~1,250 BCE Anyang",
+   "cost": 3520.0,
+   "prereq": "tally_notation AND bone_tools",
+   "inRuntime": true,
+   "desc": "Earliest Chinese writing — divination records, ancestor of all later Chinese script.",
+   "capabilities": [
+    "royal divination record",
+    "continuous script tradition to today"
+   ],
+   "entitiesRequiringIt": [
+    "building.library",
+    "building.school",
+    "inst.archive",
+    "inst.historiography",
+    "inst.natural_philosophy",
+    "inst.scribal_school"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "abacus",
+    "abjad",
+    "alchemy",
+    "appointed_officials",
+    "astronomy_records",
+    "bill_of_exchange",
+    "calendar_civil",
+    "census",
+    "counting_rods",
+    "geometry_practical",
+    "law_code",
+    "medicine_recorded",
+    "philosophical_schools",
+    "royal_envoys",
+    "scribal_schools",
+    "scriptural_canon",
+    "standard_weights",
+    "state_gazette",
+    "surveying",
+    "taxation"
+   ]
+  },
+  {
+   "id": "papyrus",
+   "key": 90,
+   "name": "Papyrus",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~3,000 BCE Egypt",
+   "cost": 880.0,
+   "prereq": "basketry",
+   "inRuntime": true,
+   "desc": "Writing surface from pith strips — light, portable, and the first document technology.",
+   "capabilities": [
+    "portable documents",
+    "archives",
+    "Egyptian export monopoly"
+   ],
+   "entitiesRequiringIt": [
+    "building.library"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "abjad",
+   "key": 117,
+   "name": "Consonantal alphabet",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~1,800 BCE Sinai; ~1,050 BCE Phoenician",
+   "cost": 3520.0,
+   "prereq": "(cuneiform OR hieroglyphic OR chinese_script)",
+   "inRuntime": true,
+   "desc": "~22 signs, one per consonant — Proto-Sinaitic to Phoenician. Learnable in weeks.",
+   "capabilities": [
+    "cheap literacy",
+    "commercial records without a scribal class"
+   ],
+   "entitiesRequiringIt": [
+    "building.school",
+    "inst.aramaic_admin"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "alphabet_vowels",
+    "bill_of_exchange",
+    "brahmi",
+    "philosophical_schools",
+    "scriptural_canon"
+   ]
+  },
+  {
+   "id": "alphabet_vowels",
+   "key": 118,
+   "name": "Alphabet with vowels",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~800 BCE Greece",
+   "cost": 2490.0,
+   "prereq": "abjad",
+   "inRuntime": true,
+   "desc": "Greek addition of vowel signs — full phonemic writing.",
+   "capabilities": [
+    "unambiguous phonetic record",
+    "literature in vernacular"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "alchemy",
+    "philosophical_schools",
+    "public_theatre",
+    "scriptural_canon",
+    "state_gazette"
+   ]
+  },
+  {
+   "id": "brahmi",
+   "key": 119,
+   "name": "Brahmi script",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~300 BCE (Ashokan edicts); possibly ~500 BCE",
+   "cost": 880.0,
+   "prereq": "abjad",
+   "inRuntime": true,
+   "desc": "Indian alphasyllabary — ancestor of all Indic scripts. Independent or Aramaic-derived (debated).",
+   "capabilities": [
+    "Indian literate tradition"
+   ],
+   "entitiesRequiringIt": [
+    "building.school"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "hindu_arabic",
+    "philosophical_schools",
+    "public_theatre",
+    "scriptural_canon"
+   ]
+  },
+  {
+   "id": "hacksilver",
+   "key": 120,
+   "name": "Weighed silver",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~2,000 BCE Mesopotamia; hoards ~1,200 BCE Levant",
+   "cost": 2960.0,
+   "prereq": "standard_weights AND cupellation",
+   "inRuntime": true,
+   "desc": "Silver by weight as medium of exchange — cut pieces, standard weights. Money before coins.",
+   "capabilities": [
+    "exchange without barter",
+    "value store",
+    "price in shekels"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "coinage_electrum"
+   ]
+  },
+  {
+   "id": "coinage_electrum",
+   "key": 121,
+   "name": "Coinage",
+   "tree": "technology",
+   "age": "A4",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~630 BCE Lydia; ~600 BCE China; ~400 BCE India",
+   "cost": 11830.0,
+   "prereq": "hacksilver AND stamp_seal",
+   "inRuntime": true,
+   "desc": "State-stamped metal of guaranteed weight and purity — Lydia, then Greece. China and India independently.",
+   "capabilities": [
+    "state-guaranteed money",
+    "mercenary pay",
+    "market exchange at volume",
+    "taxation in coin"
+   ],
+   "entitiesRequiringIt": [
+    "building.mint",
+    "inst.mint_institution"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "bill_of_exchange",
+    "coined_wage",
+    "paper_money",
+    "tax_farming"
+   ]
+  },
+  {
+   "id": "paper",
+   "key": 159,
+   "name": "Paper",
+   "tree": "technology",
+   "age": "A5",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~100 BCE China (Fangmatan); standardised 105 CE",
+   "cost": 11830.0,
+   "prereq": "cordage",
+   "inRuntime": true,
+   "desc": "Sheet from macerated fibre — cheap, light, abundant writing surface.",
+   "capabilities": [
+    "cheap records",
+    "books",
+    "bureaucratic scale"
+   ],
+   "entitiesRequiringIt": [
+    "building.library",
+    "building.paper_mill",
+    "inst.translation_movement"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "civil_service_examinations",
+    "double_entry",
+    "humanism",
+    "jacquard",
+    "printing_press",
+    "woodblock_print"
+   ]
+  },
+  {
+   "id": "woodblock_print",
+   "key": 199,
+   "name": "Woodblock printing",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~700 CE China/Korea; Diamond Sutra 868",
+   "cost": 14070.0,
+   "prereq": "paper AND stamp_seal",
+   "inRuntime": true,
+   "desc": "Carved block, inked, pressed — identical copies at scale.",
+   "capabilities": [
+    "mass religious texts",
+    "paper money (Song)",
+    "printed calendars"
+   ],
+   "entitiesRequiringIt": [
+    "building.printing_house"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "movable_type_ceramic",
+    "paper_money"
+   ]
+  },
+  {
+   "id": "movable_type_ceramic",
+   "key": 200,
+   "name": "Ceramic movable type",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "1040 CE China",
+   "cost": 3520.0,
+   "prereq": "woodblock_print AND kiln_updraft",
+   "inRuntime": true,
+   "desc": "Bi Sheng's baked-clay characters set in a frame.",
+   "capabilities": [
+    "reusable type (limited by character count)"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "movable_type_metal"
+   ]
+  },
+  {
+   "id": "movable_type_metal",
+   "key": 201,
+   "name": "Metal movable type",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "1234 CE Goryeo",
+   "cost": 2490.0,
+   "prereq": "movable_type_ceramic AND casting_closed",
+   "inRuntime": true,
+   "desc": "Cast bronze type — Korea 1234, Jikji 1377.",
+   "capabilities": [
+    "durable reusable type"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "paper_money",
+   "key": 202,
+   "name": "Paper money",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~1,020 CE Song",
+   "cost": 4970.0,
+   "prereq": "woodblock_print AND coinage_electrum",
+   "inRuntime": true,
+   "desc": "State-issued printed notes — Song jiaozi, Yuan chao.",
+   "capabilities": [
+    "money not limited by metal",
+    "inflation (Yuan)"
+   ],
+   "entitiesRequiringIt": [
+    "inst.central_bank"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "central_banking"
+   ]
+  },
+  {
+   "id": "bill_of_exchange",
+   "key": 214,
+   "name": "Bill of exchange",
+   "tree": "technology",
+   "age": "A6",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~1,150 CE Italy",
+   "cost": 3520.0,
+   "prereq": "coinage_electrum AND (abjad OR chinese_script)",
+   "inRuntime": true,
+   "desc": "Paper instrument transferring money across distance without moving coin.",
+   "capabilities": [
+    "long-distance payment",
+    "credit",
+    "the merchant network as infrastructure"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "double_entry",
+    "joint_stock"
+   ]
+  },
+  {
+   "id": "printing_press",
+   "key": 215,
+   "name": "Printing press",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~1,450 CE Mainz",
+   "cost": 28130.0,
+   "prereq": "type_founding AND mechanics_archimedean AND paper",
+   "inRuntime": true,
+   "desc": "Screw press + lead-tin-antimony type + oil ink — Gutenberg. The alphabet made it economic where Chinese type was not.",
+   "capabilities": [
+    "books at 1/100 the cost",
+    "the public sphere"
+   ],
+   "entitiesRequiringIt": [
+    "building.printing_house",
+    "inst.mass_schooling",
+    "inst.newspaper",
+    "inst.scientific_society"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "anatomy_dissection",
+    "compulsory_education",
+    "copyright",
+    "mass_political_party",
+    "mass_press",
+    "military_academies",
+    "nationalism",
+    "patent",
+    "press_licensing",
+    "religious_reform",
+    "scientific_societies",
+    "social_contract",
+    "socialism",
+    "taxonomy"
+   ]
+  },
+  {
+   "id": "telegraph",
+   "key": 284,
+   "name": "Electric telegraph",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1837 CE",
+   "cost": 66910.0,
+   "prereq": "electromagnetism AND wire_drawing",
+   "inRuntime": true,
+   "desc": "Cooke-Wheatstone 1837, Morse 1844 — information faster than any vehicle.",
+   "capabilities": [
+    "near-instant long-distance messages",
+    "D-039 A3 order latency collapse"
+   ],
+   "entitiesRequiringIt": [
+    "infra.telegraph_line"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "central_planning",
+    "international_organizations",
+    "punched_card_tabulation",
+    "radio",
+    "submarine_cable",
+    "telephone"
+   ]
+  },
+  {
+   "id": "submarine_cable",
+   "key": 285,
+   "name": "Submarine telegraph cable",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1866 CE",
+   "cost": 23650.0,
+   "prereq": "telegraph AND steamboat",
+   "inRuntime": true,
+   "desc": "Transatlantic cable 1866 — continents connected in minutes.",
+   "capabilities": [
+    "global information network"
+   ],
+   "entitiesRequiringIt": [
+    "infra.submarine_cable"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "telephone",
+   "key": 290,
+   "name": "Telephone",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1876 CE",
+   "cost": 9950.0,
+   "prereq": "telegraph",
+   "inRuntime": true,
+   "desc": "Bell 1876 — voice by wire.",
+   "capabilities": [
+    "real-time conversation at distance"
+   ],
+   "entitiesRequiringIt": [
+    "infra.telephone_network"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "automatic_switching",
+    "internet"
+   ]
+  },
+  {
+   "id": "satellite",
+   "key": 309,
+   "name": "Artificial satellite",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1957 CE",
+   "cost": 378470.0,
+   "prereq": "orbital_launch_vehicle AND computer AND transistor",
+   "inRuntime": true,
+   "desc": "Sputnik 1957 — orbit; reconnaissance, communication, navigation from space.",
+   "capabilities": [
+    "orbital observation (a pointed observer, never a map reveal — D-039 B3, D-040 B3)",
+    "orbit insertion, tracking and telemetry"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "communications_satellite",
+    "crewed_spaceflight",
+    "earth_observation",
+    "gps",
+    "space_probe",
+    "space_telescope"
+   ]
+  },
+  {
+   "id": "radio",
+   "key": 311,
+   "name": "Wireless telegraphy (radio)",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1895 CE (Marconi); transatlantic signal 1901 CE",
+   "cost": 66900.0,
+   "prereq": "electromagnetic_field_theory AND telegraph",
+   "inRuntime": true,
+   "desc": "Marconi 1895 — wireless telegraphy: coded messages without wires, between shore and ship and across oceans.",
+   "capabilities": [
+    "wireless command (D-039 A)",
+    "ship-to-shore wireless",
+    "broadcast media (D-041 C1)"
+   ],
+   "entitiesRequiringIt": [
+    "building.radio_transmitter",
+    "inst.mass_media_broadcast"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "radio_broadcasting",
+    "semiconductor_physics",
+    "vacuum_tube",
+    "weather_prediction"
+   ]
+  },
+  {
+   "id": "television",
+   "key": 314,
+   "name": "Television",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1936 CE",
+   "cost": 33450.0,
+   "prereq": "radio_broadcasting AND photography",
+   "inRuntime": true,
+   "desc": "Electronic television 1927-36 — broadcast moving image.",
+   "capabilities": [
+    "mass visual media (D-041 C1)"
+   ],
+   "entitiesRequiringIt": [
+    "inst.mass_media_broadcast"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "internet",
+   "key": 319,
+   "name": "Internet",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1969 / 1983 / 1991 CE",
+   "cost": 94620.0,
+   "prereq": "computer AND telephone AND integrated_circuit",
+   "inRuntime": true,
+   "desc": "ARPANET 1969, TCP/IP 1983, Web 1991 — packet network of networks.",
+   "capabilities": [
+    "global instant information",
+    "D-039 A2 lag collapse",
+    "D-041 media at global scale"
+   ],
+   "entitiesRequiringIt": [
+    "infra.internet_backbone"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cloud_computing",
+    "cyber_warfare",
+    "internet_governance",
+    "large_language_models",
+    "smart_grid"
+   ]
+  },
+  {
+   "id": "mobile_phone",
+   "key": 343,
+   "name": "Cellular telephony",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1979 CE",
+   "cost": 33450.0,
+   "prereq": "radio_broadcasting AND microprocessor AND automatic_switching",
+   "inRuntime": true,
+   "desc": "1973 demo; 1G 1979; GSM 1991 — a phone per person.",
+   "capabilities": [
+    "ubiquitous communication"
+   ],
+   "entitiesRequiringIt": [
+    "infra.mobile_network"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "cellular_digital"
+   ]
+  },
+  {
+   "id": "fibre_optics",
+   "key": 350,
+   "name": "Optical fibre",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1970",
+   "cost": 33450.0,
+   "prereq": "laser AND glass_lead",
+   "inRuntime": true,
+   "desc": "Low-loss glass fibre carrying light signals — Kao 1966, Corning 1970.",
+   "capabilities": [
+    "high-bandwidth long-distance communication"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "cellular_digital",
+   "key": 372,
+   "name": "Digital cellular networks",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1991 GSM; 4G 2009",
+   "cost": 8360.0,
+   "prereq": "mobile_phone AND cmos_vlsi",
+   "inRuntime": true,
+   "desc": "Digital cellular generations carrying data as well as voice.",
+   "capabilities": [
+    "mobile data"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "smartphone"
+   ]
+  },
+  {
+   "id": "frontier_climate",
+   "key": 424,
+   "name": "Climate engineering",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "environment",
+   "branch": "natural_science",
+   "emerged": "repeatable",
+   "cost": 23650.0,
+   "prereq": "carbon_capture",
+   "inRuntime": true,
+   "desc": "Each level raises atmospheric remediation capacity.",
+   "capabilities": [
+    "environmental remediation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": true,
+   "dependents": []
+  },
+  {
+   "id": "trade",
+   "key": 426,
+   "name": "Trade",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~3,500 BCE Uruk-expansion exchange network; ~1,900 BCE Old Assyrian donkey-caravan trade (Kanesh)",
+   "cost": 880.0,
+   "prereq": "token_counting AND (donkey OR camel OR sail_square)",
+   "inRuntime": true,
+   "desc": "Formal exchange between communities: goods valued against a counted standard and carried by pack animal or boat to partners beyond the settlement — the caravan and boat trade of the Uruk expansion and the Old Assyrian merchants of Kanesh. Within-settlement sharing and exchange need no research; trade BETWEEN settlements (domestic or foreign) does. Placement: Civ VI unlocks trade routes and the Trader with the Ancient-Era Foreign Trade civic (after Code of Laws); here the causal prerequisites are a record of quantity (clay tokens) and a carrier for goods over distance (donkey, camel or the square sail).",
+   "capabilities": [
+    "formal exchange between settlements",
+    "commercial arbitrage along connected routes",
+    "foreign trade across polity boundaries"
+   ],
+   "entitiesRequiringIt": [
+    "activity.trade"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "commercial_law",
+    "customs_tolls",
+    "market_fairs",
+    "trade_treaties"
+   ]
+  },
+  {
+   "id": "mesoamerican_script",
+   "key": 430,
+   "name": "Mesoamerican writing",
+   "tree": "technology",
+   "age": "A3",
+   "lane": "communication",
+   "branch": null,
+   "emerged": "~650 BCE calendar notation (San Andres, Tabasco); ~600-500 BCE Zapotec (San Jose Mogote); ~300 BCE Maya (San Bartolo)",
+   "cost": 3520.0,
+   "prereq": "calendar_lunar",
+   "inRuntime": true,
+   "desc": "Full writing grown out of calendar notation — the dated monuments and bark-paper books of the Zapotec and Maya.",
+   "capabilities": [
+    "full writing grown from calendrical notation",
+    "dated dynastic monuments",
+    "bark-paper books"
+   ],
+   "entitiesRequiringIt": [
+    "building.library",
+    "building.school",
+    "inst.archive",
+    "inst.historiography",
+    "inst.natural_philosophy",
+    "inst.scribal_school"
+   ],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "astronomy_records",
+    "calendar_civil",
+    "geometry_practical",
+    "scribal_schools",
+    "surveying"
+   ]
+  },
+  {
+   "id": "optical_telegraph",
+   "key": 439,
+   "name": "Optical telegraph",
+   "tree": "technology",
+   "age": "A7",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1794 CE (Chappe line Paris-Lille)",
+   "cost": 7030.0,
+   "prereq": "telescope",
+   "inRuntime": true,
+   "desc": "Chains of semaphore towers relaying coded signals across a country within hours.",
+   "capabilities": [
+    "state semaphore signal network",
+    "strategic signalling over hundreds of kilometres in hours"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "automatic_switching",
+   "key": 448,
+   "name": "Automatic telephone switching",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1891 CE (Strowger patent); 1892 CE first automatic exchange (La Porte, Indiana)",
+   "cost": 9950.0,
+   "prereq": "telephone",
+   "inRuntime": true,
+   "desc": "Telephone exchanges that connect calls automatically by relays, without an operator.",
+   "capabilities": [
+    "automatic telephone exchanges (dial service)",
+    "electromechanical relay switching logic"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "mobile_phone",
+    "programmable_computer"
+   ]
+  },
+  {
+   "id": "punched_card_tabulation",
+   "key": 453,
+   "name": "Punched-card tabulation",
+   "tree": "technology",
+   "age": "A8",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1889 CE (Hollerith patent); 1890 CE US census",
+   "cost": 14060.0,
+   "prereq": "jacquard AND telegraph",
+   "inRuntime": true,
+   "desc": "Machines that count and sort records punched on cards, first built for a census.",
+   "capabilities": [
+    "mechanised tabulation of census and administrative records"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "communications_satellite",
+   "key": 476,
+   "name": "Communications satellite",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1962 CE (Telstar 1); 1964 CE (Syncom 3, geostationary); 1965 CE (Intelsat I)",
+   "cost": 94620.0,
+   "prereq": "satellite AND solar_pv",
+   "inRuntime": true,
+   "desc": "Satellites relaying telephone calls, television and data between continents.",
+   "capabilities": [
+    "intercontinental telephone, television and data relay",
+    "satellite communication"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "radio_broadcasting",
+   "key": 484,
+   "name": "Voice radio and broadcasting",
+   "tree": "technology",
+   "age": "A9",
+   "lane": "communication",
+   "branch": "engineering",
+   "emerged": "1920 CE (KDKA, Pittsburgh: scheduled broadcasting); earlier experimental voice transmission",
+   "cost": 66900.0,
+   "prereq": "radio AND vacuum_tube",
+   "inRuntime": true,
+   "desc": "Voice transmission and scheduled broadcasts to anyone with a receiver.",
+   "capabilities": [
+    "voice radio and broadcast transmission"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": null,
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "mobile_phone",
+    "public_broadcasting",
+    "state_propaganda",
+    "television"
+   ]
+  }
+ ]
+}

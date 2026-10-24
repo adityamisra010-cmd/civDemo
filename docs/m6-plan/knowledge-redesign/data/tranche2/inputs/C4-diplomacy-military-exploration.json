@@ -1,0 +1,937 @@
+{
+ "group": "C4-diplomacy-military-exploration",
+ "nodes": [
+  {
+   "id": "oath_alliance",
+   "key": 1010,
+   "name": "Oath alliances",
+   "tree": "civics",
+   "age": "A2",
+   "lane": "diplomacy",
+   "branch": null,
+   "emerged": "undated pre-literate practice (ethnographic analogy); first written attestation ~2,400 BCE in the oaths of the Ebla treaty",
+   "cost": 440.0,
+   "prereq": "kin_council",
+   "inRuntime": true,
+   "desc": "Communities bind themselves in alliance by oath, gifts and marriage. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "alliances between communities sealed by oath, gifts and intermarriage"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "daughter_colonies",
+    "dynastic_marriage",
+    "steppe_empire",
+    "sworn_treaties",
+    "tribal_confederacy"
+   ]
+  },
+  {
+   "id": "royal_envoys",
+   "key": 1017,
+   "name": "Envoys and diplomatic letters",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "diplomacy",
+   "branch": null,
+   "emerged": "~2,400 BCE Ebla (royal letter to Hamazi); ~1,350 BCE Amarna correspondence",
+   "cost": 620.0,
+   "prereq": "cuneiform OR hieroglyphic OR chinese_script",
+   "inRuntime": true,
+   "desc": "Accredited envoys carry sealed letters between rulers. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "accredited envoys carrying sealed letters between rulers"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "missionary_religion",
+    "sworn_treaties",
+    "tributary_relations"
+   ]
+  },
+  {
+   "id": "service_tenure",
+   "key": 1019,
+   "name": "Land held for service",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "military-institutions",
+   "branch": null,
+   "emerged": "~1,750 BCE Babylon (ilku service-land in Hammurabi's laws); later fiefs and Ottoman timars",
+   "cost": 2090.0,
+   "prereq": "taxation AND law_code",
+   "inRuntime": true,
+   "desc": "Land is granted in return for military service. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "land grants held in return for military service"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "elective_monarchy",
+    "feudal_monarchy",
+    "forest_law",
+    "manorialism",
+    "military_orders",
+    "military_rule",
+    "representative_assembly"
+   ]
+  },
+  {
+   "id": "sworn_treaties",
+   "key": 1021,
+   "name": "Sworn treaties",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "diplomacy",
+   "branch": null,
+   "emerged": "~2,400 BCE Ebla–Abarsal treaty; ~1,259 BCE Egyptian–Hittite treaty",
+   "cost": 1240.0,
+   "prereq": "royal_envoys AND oath_alliance",
+   "inRuntime": true,
+   "desc": "Written treaties, sworn before the gods, bind both parties. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "written treaties sworn before the gods and kept by both parties"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "customs_union",
+    "indirect_rule",
+    "law_of_nations",
+    "resident_embassies",
+    "trade_treaties"
+   ]
+  },
+  {
+   "id": "standing_army",
+   "key": 1028,
+   "name": "Standing army",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "military-institutions",
+   "branch": null,
+   "emerged": "~2,300 BCE Akkad (permanent royal troops); ~740 BCE Assyria (Tiglath-Pileser III)",
+   "cost": 2090.0,
+   "prereq": "appointed_officials",
+   "inRuntime": true,
+   "desc": "A permanent army is paid and supplied by the state. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a permanent army paid and supplied by the state"
+   ],
+   "entitiesRequiringIt": [
+    "inst.military_medicine"
+   ],
+   "civRole": "module",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "absolute_monarchy",
+    "bureaucratic_empire",
+    "general_staff",
+    "military_academies",
+    "military_rule",
+    "one_party_state",
+    "universal_conscription"
+   ]
+  },
+  {
+   "id": "law_of_nations",
+   "key": 1047,
+   "name": "Law of nations",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "diplomacy",
+   "branch": null,
+   "emerged": "1625 CE Grotius, On the Law of War and Peace; 1648 CE Peace of Westphalia",
+   "cost": 2960.0,
+   "prereq": "sworn_treaties AND legal_code_roman",
+   "inRuntime": true,
+   "desc": "A law among sovereign states governs envoys, treaties, neutrality and war. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a law among sovereign states on envoys, treaties, neutrality and war"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "decolonization",
+    "international_organizations",
+    "laws_of_war",
+    "westphalian_sovereignty"
+   ]
+  },
+  {
+   "id": "resident_embassies",
+   "key": 1050,
+   "name": "Resident embassies",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "diplomacy",
+   "branch": null,
+   "emerged": "~1450 CE resident ambassadors among the Italian states",
+   "cost": 2960.0,
+   "prereq": "sworn_treaties AND appointed_officials",
+   "inRuntime": true,
+   "desc": "Ambassadors reside permanently at foreign courts. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "permanent ambassadors resident at foreign courts"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "westphalian_sovereignty"
+   ]
+  },
+  {
+   "id": "general_staff",
+   "key": 1058,
+   "name": "General staff",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "military-institutions",
+   "branch": null,
+   "emerged": "1806–1814 CE Prussian staff reforms; 1810 CE Prussian war academy",
+   "cost": 8360.0,
+   "prereq": "standing_army AND cartography",
+   "inRuntime": true,
+   "desc": "A permanent staff of officers plans mobilization and operations. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "a permanent staff of officers planning mobilization and operations"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "integrated_alliance_command",
+    "nuclear_deterrence"
+   ]
+  },
+  {
+   "id": "laws_of_war",
+   "key": 1059,
+   "name": "Laws of war conventions",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "diplomacy",
+   "branch": null,
+   "emerged": "1863 CE Lieber Code; 1864 CE first Geneva Convention; 1899 CE Hague Convention",
+   "cost": 2960.0,
+   "prereq": "law_of_nations",
+   "inRuntime": true,
+   "desc": "International conventions protect the wounded, prisoners and civilians in war. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "multilateral conventions protecting the wounded, prisoners and civilians"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "collective_security",
+    "international_tribunals"
+   ]
+  },
+  {
+   "id": "universal_conscription",
+   "key": 1063,
+   "name": "Universal conscription",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "military-institutions",
+   "branch": null,
+   "emerged": "1793 CE French levée en masse; 1798 CE Jourdan Law",
+   "cost": 11830.0,
+   "prereq": "standing_army AND census",
+   "inRuntime": true,
+   "desc": "Young men are registered and called up for military service. Knowledge only for now: adopting a form of government arrives with the government layer (M8).",
+   "capabilities": [
+    "compulsory military service by registration and annual call-up"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": null,
+   "repeatableDescriptor": false,
+   "dependents": [
+    "total_mobilization"
+   ]
+  },
+  {
+   "id": "war_band",
+   "key": 1071,
+   "name": "War bands",
+   "tree": "civics",
+   "age": "A1",
+   "lane": "military-institutions",
+   "branch": "trunk",
+   "emerged": "~13 kya Jebel Sahaba",
+   "cost": 370.0,
+   "prereq": "kin_council AND (bow_simple OR atlatl)",
+   "inRuntime": false,
+   "desc": "Kin groups raise armed parties for raids and feuds under a chosen leader.",
+   "capabilities": [
+    "kin groups raise armed parties for raids and feuds under a chosen leader"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "Military Tradition"
+    ],
+    "civ7": [
+     "Discipline"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "citizen_militia",
+    "steppe_empire"
+   ]
+  },
+  {
+   "id": "dynastic_marriage",
+   "key": 1077,
+   "name": "Dynastic marriage",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "diplomacy",
+   "branch": "trunk",
+   "emerged": "~1,350 BCE Amarna letters",
+   "cost": 1480.0,
+   "prereq": "hereditary_rank AND oath_alliance",
+   "inRuntime": false,
+   "desc": "Royal houses marry to seal alliances and claims.",
+   "capabilities": [
+    "royal houses marry to seal alliances and claims"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "trade_treaties",
+   "key": 1083,
+   "name": "Trade treaties",
+   "tree": "civics",
+   "age": "A3",
+   "lane": "diplomacy",
+   "branch": "trunk",
+   "emerged": "~2,300 BCE Ebla–Abarsal treaty; ~1,900 BCE Assur–Kanesh agreements",
+   "cost": 1480.0,
+   "prereq": "sworn_treaties AND trade",
+   "inRuntime": false,
+   "desc": "Rulers agree by oath on merchants' safety, tolls and courts.",
+   "capabilities": [
+    "rulers agree by oath on merchants' safety, tolls and courts"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Foreign Trade"
+    ],
+    "civ7": [
+     "Commerce"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "citizen_militia",
+   "key": 1085,
+   "name": "Citizen militia",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "military-institutions",
+   "branch": "trunk",
+   "emerged": "~650 BCE hoplite phalanx",
+   "cost": 2960.0,
+   "prereq": "war_band AND (citizen_assembly OR elite_council)",
+   "inRuntime": false,
+   "desc": "Citizens arm themselves and serve as heavy infantry in their city's army.",
+   "capabilities": [
+    "citizens arm themselves and serve as heavy infantry in their city's army"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "Military Training"
+    ],
+    "civ7": [
+     "Citizenship",
+     "Agoge (Greece)"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "revolutionary_republic"
+   ]
+  },
+  {
+   "id": "daughter_colonies",
+   "key": 1086,
+   "name": "Daughter colonies",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "exploration-empire",
+   "branch": "trunk",
+   "emerged": "~814 BCE Carthage; ~750 BCE Greek apoikiai",
+   "cost": 2490.0,
+   "prereq": "sail_square AND oath_alliance",
+   "inRuntime": false,
+   "desc": "A city sends settlers overseas to found a new self-governing city linked by cult and kinship.",
+   "capabilities": [
+    "a city sends settlers overseas to found a new self-governing city linked by cult and kinship"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Discipline"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "state_navy",
+   "key": 1091,
+   "name": "State navy",
+   "tree": "civics",
+   "age": "A4",
+   "lane": "military-institutions",
+   "branch": "trunk",
+   "emerged": "~700 BCE Phoenician royal fleets; ~483 BCE Athenian naval programme",
+   "cost": 2960.0,
+   "prereq": "naval_ram AND taxation",
+   "inRuntime": false,
+   "desc": "The state builds, crews and pays a permanent war fleet.",
+   "capabilities": [
+    "the state builds, crews and pays a permanent war fleet"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Naval Tradition"
+    ],
+    "civ7": [
+     "Organized Military"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "mercenary_contracts",
+   "key": 1095,
+   "name": "Mercenary contracts",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "military-institutions",
+   "branch": "trunk",
+   "emerged": "~401 BCE the Ten Thousand; ~1,350 CE condottieri",
+   "cost": 2090.0,
+   "prereq": "coined_wage",
+   "inRuntime": false,
+   "desc": "Rulers hire professional soldiers by contract for pay.",
+   "capabilities": [
+    "rulers hire professional soldiers by contract for pay"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Mercenaries"
+    ],
+    "civ7": [
+     "Tactics"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "tributary_relations",
+   "key": 1107,
+   "name": "Tributary relations",
+   "tree": "civics",
+   "age": "A5",
+   "lane": "diplomacy",
+   "branch": "trunk",
+   "emerged": "~198 BCE Han–Xiongnu heqin; ~50 BCE Han tributary missions",
+   "cost": 4180.0,
+   "prereq": "royal_envoys AND appointed_officials",
+   "inRuntime": false,
+   "desc": "Lesser rulers send tribute and receive gifts and titles from a central court.",
+   "capabilities": [
+    "lesser rulers send tribute and receive gifts and titles from a central court"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Diplomatic Service"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "military_orders",
+   "key": 1116,
+   "name": "Military orders",
+   "tree": "civics",
+   "age": "A6",
+   "lane": "military-institutions",
+   "branch": "trunk",
+   "emerged": "~1,119 CE Knights Templar",
+   "cost": 3520.0,
+   "prereq": "monasticism AND service_tenure",
+   "inRuntime": false,
+   "desc": "Religious brotherhoods of knights hold castles and fight under a rule.",
+   "capabilities": [
+    "religious brotherhoods of knights hold castles and fight under a rule"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "colonial_administration",
+   "key": 1120,
+   "name": "Colonial administration",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "exploration-empire",
+   "branch": "trunk",
+   "emerged": "~1,524 CE Council of the Indies",
+   "cost": 7030.0,
+   "prereq": "state_exploration AND provincial_administration",
+   "inRuntime": false,
+   "desc": "Distant territories are ruled by a home council, viceroys and colonial law.",
+   "capabilities": [
+    "distant territories are ruled by a home council, viceroys and colonial law"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "module",
+   "civAnalogsD13": {
+    "civ6": [
+     "Colonialism"
+    ],
+    "civ7": [
+     "Colonialism",
+     "Imperialism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "indirect_rule",
+    "settler_land_grants"
+   ]
+  },
+  {
+   "id": "military_academies",
+   "key": 1126,
+   "name": "Military academies",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "military-institutions",
+   "branch": "trunk",
+   "emerged": "~1,741 CE Royal Military Academy, Woolwich",
+   "cost": 4970.0,
+   "prereq": "standing_army AND printing_press",
+   "inRuntime": false,
+   "desc": "Officers are trained in schools of tactics, engineering and gunnery.",
+   "capabilities": [
+    "officers are trained in schools of tactics, engineering and gunnery"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Military Training"
+    ],
+    "civ7": [
+     "Militarism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "state_exploration",
+   "key": 1134,
+   "name": "State-sponsored exploration",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "exploration-empire",
+   "branch": "trunk",
+   "emerged": "~1,405 CE Zheng He's fleets; ~1,415 CE Portuguese voyages",
+   "cost": 7030.0,
+   "prereq": "(caravel OR ocean_junk) AND appointed_officials",
+   "inRuntime": false,
+   "desc": "The crown funds and charters voyages of discovery and claims what they find.",
+   "capabilities": [
+    "the crown funds and charters voyages of discovery and claims what they find"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Exploration"
+    ],
+    "civ7": [
+     "Colonialism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "colonial_administration"
+   ]
+  },
+  {
+   "id": "westphalian_sovereignty",
+   "key": 1136,
+   "name": "State sovereignty system",
+   "tree": "civics",
+   "age": "A7",
+   "lane": "diplomacy",
+   "branch": "trunk",
+   "emerged": "~1,648 CE Peace of Westphalia",
+   "cost": 7030.0,
+   "prereq": "resident_embassies AND law_of_nations",
+   "inRuntime": false,
+   "desc": "States recognize each other as equal sovereigns with exclusive authority at home.",
+   "capabilities": [
+    "states recognize each other as equal sovereigns with exclusive authority at home"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Diplomatic Service"
+    ],
+    "civ7": [
+     "Sovereignty"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "great_power_congress"
+   ]
+  },
+  {
+   "id": "great_power_congress",
+   "key": 1145,
+   "name": "Concert of powers",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "diplomacy",
+   "branch": "trunk",
+   "emerged": "~1,815 CE Congress of Vienna",
+   "cost": 7030.0,
+   "prereq": "westphalian_sovereignty",
+   "inRuntime": false,
+   "desc": "The great powers meet in congress to settle disputes and keep a balance.",
+   "capabilities": [
+    "the great powers meet in congress to settle disputes and keep a balance"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Hegemony"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "indirect_rule",
+   "key": 1148,
+   "name": "Indirect rule",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "exploration-empire",
+   "branch": "trunk",
+   "emerged": "~1,858 CE Indian princely states; ~1,900 CE Northern Nigeria",
+   "cost": 9950.0,
+   "prereq": "colonial_administration AND sworn_treaties",
+   "inRuntime": false,
+   "desc": "A colonial power rules through local rulers bound by treaty and resident advisers.",
+   "capabilities": [
+    "a colonial power rules through local rulers bound by treaty and resident advisers"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Imperialism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "international_organizations",
+   "key": 1149,
+   "name": "International organizations",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "diplomacy",
+   "branch": "trunk",
+   "emerged": "~1,865 CE International Telegraph Union; ~1,874 CE Universal Postal Union",
+   "cost": 14060.0,
+   "prereq": "law_of_nations AND telegraph",
+   "inRuntime": false,
+   "desc": "States create permanent bodies with secretariats to run shared affairs.",
+   "capabilities": [
+    "states create permanent bodies with secretariats to run shared affairs"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Globalization"
+    ],
+    "civ7": [
+     "Globalism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "climate_accords",
+    "collective_security",
+    "human_rights",
+    "international_tribunals",
+    "internet_governance",
+    "multilateral_trade_rules"
+   ]
+  },
+  {
+   "id": "settler_land_grants",
+   "key": 1165,
+   "name": "Settler land grants",
+   "tree": "civics",
+   "age": "A8",
+   "lane": "exploration-empire",
+   "branch": "trunk",
+   "emerged": "~1,862 CE Homestead Act",
+   "cost": 9950.0,
+   "prereq": "land_registry AND colonial_administration",
+   "inRuntime": false,
+   "desc": "Public land is surveyed and granted to settlers who farm it.",
+   "capabilities": [
+    "public land is surveyed and granted to settlers who farm it"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "arms_control",
+   "key": 1169,
+   "name": "Arms control",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "branch": "trunk",
+   "emerged": "~1,968 CE Non-Proliferation Treaty; ~1,972 CE SALT I",
+   "cost": 19890.0,
+   "prereq": "collective_security AND fission_weapon",
+   "inRuntime": false,
+   "desc": "States cap and verify their weapons by treaty.",
+   "capabilities": [
+    "states cap and verify their weapons by treaty"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Cold War"
+    ],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "collective_security",
+   "key": 1172,
+   "name": "Collective security",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "diplomacy",
+   "branch": "trunk",
+   "emerged": "~1,919 CE League of Nations; ~1,945 CE UN Charter",
+   "cost": 28130.0,
+   "prereq": "international_organizations AND laws_of_war",
+   "inRuntime": false,
+   "desc": "Members pledge to act together against an aggressor.",
+   "capabilities": [
+    "members pledge to act together against an aggressor"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Hegemony"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": [
+    "arms_control",
+    "integrated_alliance_command"
+   ]
+  },
+  {
+   "id": "decolonization",
+   "key": 1174,
+   "name": "Decolonization",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "exploration-empire",
+   "branch": "trunk",
+   "emerged": "~1,947 CE Indian independence; ~1,960 CE UN Resolution 1514",
+   "cost": 28130.0,
+   "prereq": "nationalism AND law_of_nations",
+   "inRuntime": false,
+   "desc": "Colonies win independence under a doctrine of self-determination of peoples.",
+   "capabilities": [
+    "colonies win independence under a doctrine of self-determination of peoples"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [],
+    "civ7": [
+     "Hegemony"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "integrated_alliance_command",
+   "key": 1178,
+   "name": "Integrated alliance command",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "branch": "trunk",
+   "emerged": "~1,949 CE North Atlantic Treaty; ~1,951 CE SHAPE",
+   "cost": 19890.0,
+   "prereq": "collective_security AND general_staff",
+   "inRuntime": false,
+   "desc": "Allies place forces under a joint peacetime command.",
+   "capabilities": [
+    "allies place forces under a joint peacetime command"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Rapid Deployment"
+    ],
+    "civ7": [
+     "Hegemony"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "nuclear_deterrence",
+   "key": 1182,
+   "name": "Nuclear deterrence doctrine",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "branch": "trunk",
+   "emerged": "~1,954 CE massive retaliation doctrine",
+   "cost": 19890.0,
+   "prereq": "fission_weapon AND general_staff",
+   "inRuntime": false,
+   "desc": "War is to be prevented by the threat of nuclear retaliation.",
+   "capabilities": [
+    "war is to be prevented by the threat of nuclear retaliation"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Cold War"
+    ],
+    "civ7": []
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  },
+  {
+   "id": "total_mobilization",
+   "key": 1186,
+   "name": "Total mobilization",
+   "tree": "civics",
+   "age": "A9",
+   "lane": "military-institutions",
+   "branch": "trunk",
+   "emerged": "~1,914 CE general mobilization",
+   "cost": 28130.0,
+   "prereq": "universal_conscription AND official_statistics",
+   "inRuntime": false,
+   "desc": "The whole economy and manpower of the state are directed to war.",
+   "capabilities": [
+    "the whole economy and manpower of the state are directed to war"
+   ],
+   "entitiesRequiringIt": [],
+   "civRole": "optional",
+   "civAnalogsD13": {
+    "civ6": [
+     "Mobilization"
+    ],
+    "civ7": [
+     "Militarism"
+    ]
+   },
+   "repeatableDescriptor": false,
+   "dependents": []
+  }
+ ]
+}
