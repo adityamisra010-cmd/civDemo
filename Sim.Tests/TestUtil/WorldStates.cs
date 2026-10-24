@@ -105,6 +105,7 @@ public static class WorldStates
         if (!TableEquals(a.Explorations, b.Explorations)) return false;                   // v35 (M6 EX)
         if (!TableEquals(a.SettlementSightings, b.SettlementSightings)) return false;     // v35 (M6 EX)
         if (!TableEquals(a.SettlementSurveys, b.SettlementSurveys)) return false;         // v35 (M6 EX)
+        if (!TableEquals(a.ResearchLevels, b.ResearchLevels)) return false;               // v36 (ADR-049)
         return true;
     }
 

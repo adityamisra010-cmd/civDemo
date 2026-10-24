@@ -29,7 +29,7 @@ public class KnowledgeTextsTests
     {
         UiSession s = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
         ResearchContent r = s.Config.Research!;
-        Assert.Equal(561, KnowledgeTexts.Count);
+        Assert.Equal(564, KnowledgeTexts.Count);   // ADR-049: + the three civics repeatables
         int withText = 0;
         foreach (ResearchNode n in r.Nodes)
         {
@@ -43,7 +43,7 @@ public class KnowledgeTextsTests
             Assert.InRange(text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length, 40, 70);
             foreach (string bad in Forbidden) Assert.DoesNotContain(bad, text, StringComparison.OrdinalIgnoreCase);
         }
-        Assert.Equal(561, withText);
+        Assert.Equal(564, withText);
     }
 
     [Fact]

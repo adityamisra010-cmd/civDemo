@@ -58,8 +58,10 @@ public class Batch2SessionResumeTests
         using var buffer = new MemoryStream();
         using (var writer = new BinaryWriter(buffer, System.Text.Encoding.UTF8, leaveOpen: true)) CanonicalSchema.Write(c, writer);
         byte[] full = buffer.ToArray();
-        for (int i = full.Length - 32; i < full.Length; i++) Assert.Equal(0, full[i]);
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 32)));
+        // ADR-049 (v36): section 67 (ResearchLevels) follows, asserted empty — 36 bytes of empty prefixes in all.
+        Assert.Equal(0, c.ResearchLevels.Count);
+        for (int i = full.Length - 36; i < full.Length; i++) Assert.Equal(0, full[i]);
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 36)));
     }
 
     [Fact]

@@ -187,7 +187,7 @@ public class EmpireFoundationTests
         world.Structures.Add(new StructureRow(new SettlementId(1), 1, 3));
         world.Structures.Add(new StructureRow(new SettlementId(2), 7, 1));
 
-        Assert.Equal(35, CanonicalSchema.Version);   // v26: ADR-029 appended the research tables after Disasters (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone)
+        Assert.Equal(36, CanonicalSchema.Version);   // v26: ADR-029 appended the research tables after Disasters (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone)
 
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))
@@ -223,7 +223,7 @@ public class EmpireFoundationTests
         world.Capitals.Add(new CapitalRow(new PolityId(0), new SettlementId(0)));
 
         // v23, not v22: T4.4's BucketRow widening owns v22 (director-ruled).
-        Assert.Equal(35, CanonicalSchema.Version);   // v26: ADR-029 appended the research tables after Disasters (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone)
+        Assert.Equal(36, CanonicalSchema.Version);   // v26: ADR-029 appended the research tables after Disasters (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone)
 
         using var ms = new MemoryStream();
         using (var writer = new BinaryWriter(ms, System.Text.Encoding.UTF8, leaveOpen: true))

@@ -39,7 +39,7 @@ public class FirstReignTests
     // TREE (ADR-045) — MEASURED to move nothing here (TestConfigs.PreTreeTranche returns the same hash). CONTROLS:
     // CivicsPointsAttributionTests.FirstReignTurn40_… and DiscoveryLayoutAttributionTests.FirstReignTurn40_…
     // (TestConfigs.PreM6 returns f7ca60a5… through SchemaProjection.V34).
-    internal const string PostR1Golden = "e3a86ce6d3ed537161cdf842574ea49e99529be2bf6561229163c018c72ac273";
+    internal const string PostR1Golden = "f4073f424ddb853bd7997f528705e66be0eea50b667e6aadf4e09502c8e88f13";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — <see cref="PostR1Golden"/>'s world
     /// through the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the turn-40
@@ -581,7 +581,7 @@ public class FirstReignTests
         // ADR-043 RE-PIN (2026-10-22, D-062 Track CP; MEASURED on this tree by the agent writing this line).
         //   OLD  f7ca60a52362a7da30c73be82ad8ecd56aeeb68f932b2ad98d8d3e76e3219057
         //   NEW  3fee0f31c0c270e50917b6c4e2e252d1cef678a7d20113ac628d2c2057e2a6bc
-        //   M6 RE-PIN NEW  e3a86ce6d3ed537161cdf842574ea49e99529be2bf6561229163c018c72ac273 (causes CP, EX and TREE on PostR1Golden)
+        //   M6 RE-PIN NEW  f4073f424ddb853bd7997f528705e66be0eea50b667e6aadf4e09502c8e88f13 (causes CP, EX and TREE on PostR1Golden)
         //   CAUSE schema v35 appends CivicsPoints and the player Empire accrues Civics Points every step (one account row).
         //   CONTROL CivicsPointsAttributionTests.FirstReignTurn40_MovedForCivicsPointsAlone (Track CP off and CP off alone
         //         return OLD through SchemaProjection.V34). The SHAPE asserts below are unchanged.

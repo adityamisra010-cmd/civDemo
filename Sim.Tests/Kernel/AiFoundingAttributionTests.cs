@@ -93,7 +93,7 @@ public class AiFoundingAttributionTests
     // 2e4759ac494d9461… -> b2201d255f74f477…. CAUSES (two, each alone moves it): the supporting-milestone goal (§6; with
     // build-first alone the hash is 3b29c636…) and the build-first priority (§7; with the supporting goal alone 3c6c35ff…).
     // CONTROL: AiWorldTurn300_BothBatch3SwitchesOff_IsTheE91d10bWorld — both twins off return 2e4759ac… byte for byte.
-    internal const string S1cTurn300 = "b2201d255f74f4778af17bafe413345d186fca43f4360ba9fc43fea5c74d56e7";
+    internal const string S1cTurn300 = "80ace28280e268fd827a83fc5804d9a15b47c5d2178f7f42e043cfd4f71582f1";
 
     /// <summary>The batch-2 (e91d10b) AI world at turn 300: the value both batch-3 twins off must return.</summary>
     internal const string E91d10bTurn300 = "2e4759ac494d946126624fec584e26fdce323a8018877987b26b2ecc08b98be8";

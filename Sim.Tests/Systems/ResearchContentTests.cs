@@ -66,7 +66,8 @@ public class ResearchContentTests
         // R5 (Director 2026-10-04) appended the authored Taxation civic, key 1007 (no renumbering).
         // ADR-045 (D-062) appended the 60 proposal civics, keys 1008..1067, as KNOWLEDGE-ONLY civics: capability
         // strings and no entity unlock (no regime or policy entity kind exists; adoption is M8).
-        Assert.Equal(67, Canonical.CivicsCount);
+        // ADR-049 appended the three civics repeatables, keys 1990–1992, at the END (1068–1989 reserved for the civics expansion).
+        Assert.Equal(70, Canonical.CivicsCount);
         for (int i = 7; i < 67; i++)
         {
             ResearchNode n = Canonical.Nodes[Canonical.TechnologyCount + i];
@@ -186,7 +187,7 @@ public class ResearchContentTests
             Assert.True(i >= 0, $"key {n.Key.Value} ({n.Id}) was retired");
             Assert.Equal(n.Id, Canonical.Nodes[i].Id);
         }
-        Assert.Equal(pre.Nodes.Count + 130, Canonical.Nodes.Count);
+        Assert.Equal(pre.Nodes.Count + 133, Canonical.Nodes.Count);   // ADR-045's 130 + ADR-049's three civics repeatables
     }
 
     [Fact]
@@ -380,11 +381,20 @@ public class ResearchContentTests
         int recursive = 0, speculative = 0, finite = 0;
         foreach (ResearchNode n in Canonical.Nodes)
         {
-            if (n.IsRecursive) { recursive++; Assert.True(n.HasRepeatableDescriptor); Assert.True(n.Frontier); Assert.True(n.Branch >= 0); }
+            // ADR-049: the ten frontier technologies wait on their subtrees; the three civics repeatables (keys 1990–1992)
+            // wait on every finite A9 civic. Every one is levelled (costGrowth 1.2, gapFraction 0.1).
+            if (n.IsRecursive)
+            {
+                recursive++;
+                Assert.True(n.HasRepeatableDescriptor);
+                Assert.True(n.Tree == ResearchTree.Civics ? n.Age == "A9" : n.Frontier && n.Branch >= 0);
+                Assert.Equal(1.2, n.Levels!.CostGrowth);
+                Assert.Equal(0.1, Assert.Single(n.Levels.Effects).GapFraction);
+            }
             else finite++;
             if (n.IsSpeculative) speculative++;
         }
-        Assert.Equal(10, recursive);
+        Assert.Equal(13, recursive);
         Assert.Equal(6, speculative);
         // ADR-032: + motor_road; R2a: + trade; R5: + taxation (civic); ADR-045: + 70 technologies + 60 civics.
         Assert.Equal(553, finite);
@@ -577,7 +587,8 @@ public class ResearchContentTests
         Assert.Empty(violations);
         // The marker-free texts are not tested: 83 before ADR-045; the tranche's emerged edits and its 130 new nodes
         // (a few undated civics, e.g. oath_alliance) leave 82.
-        Assert.Equal(Canonical.Nodes.Count - 82, dated);
+        // ADR-049: the three civics repeatables (emerged "repeatable", no date) leave 85.
+        Assert.Equal(Canonical.Nodes.Count - 85, dated);
         Assert.True(edges > 300, $"only {edges} dated edges checked");
         // The two Director examples, explicitly.
         Assert.DoesNotContain(Canonical.IndexOfId("vacuum_tube"), MustClosure(Canonical.IndexOfId("xray")));
@@ -907,7 +918,12 @@ public class ResearchContentTests
         Spec trunk = Standard();
         trunk.Technologies.Add(new Node(12, "loop", "a"));
         trunk.Recursive.Add("loop");
-        Rejects(trunk, "a recursive node must belong to a subtree");
+        // ADR-049 (D-063 R4): a TRUNK repeatable is now legal (own prerequisites only); a civics one must be of the final Age.
+        Assert.True(trunk.Load().Nodes[11].IsRecursive);
+        Spec civic = Standard();
+        civic.Civics.Add(new Node(1003, "reform", "law"));
+        civic.Recursive.Add("reform");
+        Rejects(civic, "a civics repeatable belongs to the final Age");
     }
 
     [Fact]

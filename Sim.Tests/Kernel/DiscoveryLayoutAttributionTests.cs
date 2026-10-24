@@ -24,8 +24,8 @@ namespace Sim.Tests.Kernel;
 public class DiscoveryLayoutAttributionTests
 {
     // The worlds under TestConfigs.PreM6, RAW (the v34 stream plus the five empty v35 count prefixes, sections 62–66).
-    internal const string PreM6FoundedGolden = "555238a9b2a07bff75133e7cb3ab032b5c8b331ed89ecb9b48e994b3e06462ea";
-    internal const string PreM6AiTurn300 = "d67da0a7ccdf33730de433403ef3c4c125cd4fc0a0ebc33dc1049e1e8ba78278";
+    internal const string PreM6FoundedGolden = "b84449737c9fd9099c300b0b8405a8fc4df532ba7a5c2d9e897e39a04e9d7804";
+    internal const string PreM6AiTurn300 = "994e3d1022d608b2e348da34c8771e0fb31535cd8fd28fae96a3ae3d8a55c48e";
 
     private static SimConfig Off() => TestConfigs.PreM6(TestConfigs.Sim());
     private static SimConfig ExAlone() => TestConfigs.PreTrackCp(TestConfigs.PreTreeTranche(TestConfigs.Sim()));

@@ -12,7 +12,8 @@ public sealed record ResearchTables(
     Table<ResearchCompletedRow> Completed,
     Table<ResearchEurekaRow> Eurekas,
     Table<ResearchCreditRow> Credits,
-    Table<CivicsPointsRow> CivicsPoints);
+    Table<CivicsPointsRow> CivicsPoints,
+    Table<ResearchLevelRow> Levels);
 
 /// <summary>
 /// ADR-029 — THE RESEARCH ENGINE (D-044; addendum A; ADR-030; ADR-043).
@@ -56,6 +57,19 @@ public sealed record ResearchTables(
 ///   node is never available again, so it is never added twice. The node's dependents
 ///   become available from the NEXT step, because availability is always read from PREV.</item>
 /// </list>
+///
+/// ADR-049 (D-063 R4, CR-024) — REPEATABLE LEVELS. With research.json tuning.repeatableLevels on, a node whose repeatable
+/// descriptor carries <c>"levels": true</c> (<see cref="ResearchQuery.IsLevelled"/>) is completed REPEATEDLY: completing it
+/// raises the holder's level in ResearchLevels (the row is appended at level 1 and replaced in place after), and the node
+/// stays AVAILABLE (until <see cref="ResearchQuery.MaxRepeatableLevel"/>). Only the FIRST level appends the
+/// ResearchCompleted row — so prerequisites, the stage and every other completed-knowledge reader see the node once, and a
+/// later level appends nothing and re-grants nothing (a levelled node unlocks no entity; its benefit is its operand
+/// effects, read through <see cref="ResearchQuery.LevelContribution"/>). Each level is a completion like any other: its
+/// progress row is removed (progress restarts at 0 for the next level) and it stops being the target. Level n is priced
+/// from BaseCost × g^(n−1) (<see cref="ResearchQuery.EffectiveCost"/>). Eurekas and foreign exposure stay ONCE PER NODE:
+/// each Eureka fires once and the one pool (ceiling × BaseCost, BaseCost of level 1) is shared across all levels, landing
+/// on whichever level is in progress when a credit is paid — a later level is paid in RP/CP. With the switch off no level
+/// row is ever written and a repeatable completes once (D-044 R11), byte for byte.
 ///
 /// R2a CITY STATES (docs/city-state-progression.md): after the roster polities, every settlement no Empire
 /// controls is a knowledge holder under its reserved local key (SettlementKnowledge.LocalHolder) and runs the
@@ -111,7 +125,7 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
             bool local = SettlementKnowledge.IsLocalHolder(polity);
 
             bool[] completed = ResearchQuery.CompletedMask(prev, content, polity);
-            bool[] available = ResearchQuery.AvailableMask(content, completed);
+            bool[] available = ResearchQuery.AvailableMask(content, completed, ResearchQuery.LevelMask(prev, content, polity, completed));
 
             // 1. The directive — one target slot per LANE (ADR-043): slot 0 is the Technology lane, funded by RP;
             //    slot 1 the Civics lane, funded by CP. In the one-pool model (TwoLanes off — the v34 behaviour exactly)
@@ -259,12 +273,19 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                 }
             }
 
-            // 4. Completion — immediate, idempotent, in index order.
+            // 4. Completion — immediate, idempotent, in index order. ADR-049: a levelled repeatable gains a level; only its
+            //    first level appends the completed row.
             for (int i = 0; i < n; i++)
             {
                 if (rowOf[i] < 0 || !available[i]) continue;
                 if (owned.Progress[rowOf[i]].Progress < ResearchQuery.EffectiveCost(prev, content, polity, i)) continue;
-                owned.Completed.Add(new ResearchCompletedRow(polity, content.Nodes[i].Key));
+                ResearchNodeId key = content.Nodes[i].Key;
+                if (ResearchQuery.IsLevelled(content, i))
+                {
+                    if (!completed[i]) owned.Completed.Add(new ResearchCompletedRow(polity, key));
+                    SetLevel(owned.Levels, new ResearchLevelRow(polity, key, ResearchQuery.Level(prev, polity, key) + 1));
+                }
+                else owned.Completed.Add(new ResearchCompletedRow(polity, key));
                 progressRemovals.Add(rowOf[i]);
                 if (i == target[0]) target[0] = -1;
                 if (i == target[1]) target[1] = -1;
@@ -315,6 +336,19 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
         if (r >= 0) owned.Progress[r] = row;
         else rowOf[node.Index] = owned.Progress.Add(row);
         return next - have;
+    }
+
+    /// <summary>ADR-049: writes a holder's new level of a node — replacing its row in place, or appending the first one, so
+    /// the table's order depends only on the order of first completions.</summary>
+    private static void SetLevel(Table<ResearchLevelRow> levels, ResearchLevelRow row)
+    {
+        for (int r = 0; r < levels.Count; r++)
+        {
+            if (levels[r].Polity.Value != row.Polity.Value || levels[r].Node.Value != row.Node.Value) continue;
+            levels[r] = row;
+            return;
+        }
+        levels.Add(row);
     }
 
     /// <summary>ADR-043: the lane slot of a node — 1 (Civics, CP-funded) for a civic in the two-lane model, else 0.</summary>

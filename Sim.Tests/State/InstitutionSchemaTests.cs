@@ -31,7 +31,7 @@ public class InstitutionSchemaTests
     [Fact]
     public void SchemaV31_PopulatedInstitutionTables_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(35, CanonicalSchema.Version);   // v32: H2 TaxGrievances (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone)
+        Assert.Equal(36, CanonicalSchema.Version);   // v32: H2 TaxGrievances (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -96,7 +96,8 @@ public class InstitutionSchemaTests
         byte[] bytes = ms.ToArray();
         // ADR-043 + ADR-044 (v35, 2026-10-22) CAUSE BLOCK: CivicsPoints and the four discovery tables follow, EMPTY here —
         // 9 × 4 in all (was 4 × 4). The layout alone.
-        const int v32Trailer = 9 * 4;
+        // ADR-049 (v36) CAUSE BLOCK: ResearchLevels follows, EMPTY — 10 × 4. The layout alone.
+        const int v32Trailer = 10 * 4;
         Assert.All(bytes[^v32Trailer..], x => Assert.Equal(0, x));
         int end = bytes.Length - v32Trailer;
         Assert.Equal(BitConverter.DoubleToInt64Bits(-0.0), BitConverter.ToInt64(bytes, end - 8));

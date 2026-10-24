@@ -54,6 +54,8 @@
   },
   "aiCheapestOrRoute": true,
   "aiSupportingMilestones": true,
+  "repeatableLevels": false,
+  "_repeatableLevels": "ADR-049 (D-063 R4, CR-024; tranche-2 contract \u00a74): repeatable research LEVELS. true: a node whose repeatable descriptor carries \"levels\": true completes repeatedly \u2014 each completion raises its level (ResearchLevels, schema v36), keeps it available, appends the completed row only at level 1 and re-grants nothing; level n costs BaseCost \u00d7 costGrowth^(n\u22121). false (or absent) is the complete-once engine exactly (D-044 R11) \u2014 no level row is ever written: the attribution switch. Shipped false on the t2-levels branch so no golden moves; the tranche merge decides when it turns on.",
   "_aiSupportingMilestones": "ADR-046 \u00a76 (M6 review batch 3, 2026-10-23): besides its next Age's unmet CORE research milestones, the AI pursues the cheapest unmet RESEARCH SUPPORTING milestones that its next Age still needs to meet supportingRequired and minCategories (uncovered categories first; each costed by its cheapest remaining route; ties to the milestone listed first). Measured cause: the cheapest-route closure stopped researching redundant scripts, which had met Age IV's Alphabetic script by accident, so seed 1 no longer reached Age IV within 900 turns. Acts only with aiCheapestOrRoute. false (or absent) restores the core-and-capability goals exactly - the attribution switch (TestConfigs.PreAiSupporting); never a gameplay setting.",
   "_aiCheapestOrRoute": "ADR-046 (M6 review, 2026-10-23): the AI research policy's goal closures follow the CHEAPEST remaining route through each OR in a requirement (one alternative, chosen by the remaining EffectiveCost of its own route, ties to the alternative written first) instead of the union of every alternative, and a requirement already satisfied adds nothing. Measured cause (docs/m6-plan/knowledge-redesign/audit/taxation-gate-trace.md): the union kept the AI researching scripts an OR no longer needed and diverted the Technology lane from bronze. false (or absent) restores the ADR-033 B union-over-OR closure exactly - the attribution switch (TestConfigs.PreAiRoutes); never a gameplay setting.",
   "_civicsPoints": "ADR-043 (D-062, the Director's 2026-10-22 ruling): Civics Points fund ONLY the Civics target; Research Points fund ONLY the Technology target. CP is banked without cap or loss (Balance = Generated - Spent). Population is the same input RP reads; the PROPOSED coefficient 0.008/yr equals RP's 0.08/turn at a 10-year turn. enabled false restores the v34 one-pool model (civics funded by RP, one target) \u2014 the attribution switch. Other CP sources (institutions, specialists, embassies, spies, artists, scholars) and the RP<->CP exchange are DEFERRED."
@@ -27118,6 +27120,15 @@
    },
    "repeatable": {
     "repeatable": true,
+    "levels": true,
+    "costGrowth": 1.2,
+    "effects": [
+     {
+      "operand": "trade.costPerBulkCostUnit",
+      "gapFraction": 0.1
+     }
+    ],
+    "_effects": "ADR-049 operand choice: PROXY: no space programme is simulated; cheaper lift is modelled as cheaper bulk haulage (the nearest live transport-cost operand).",
     "cost": "rises each level; growth constant derived by the consuming packet",
     "effect": {
      "system": "space program projects",
@@ -27128,7 +27139,7 @@
     "relative": false,
     "law2": "coefficient inside a named resolution equation, not a free-floating buff",
     "status": "DOCUMENTED \u2014 no consuming mechanism exists yet",
-    "engine": "NOT IMPLEMENTED \u2014 completes once (D-044 R11 idempotent completion); levels are an open question (D-044 Part D T6)",
+    "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level, the node stays available, level n costs BaseCost \u00d7 costGrowth^(n\u22121) and adds cap \u00d7 gapFraction \u00d7 (1\u2212gapFraction)^(n\u22121) to its operand",
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
@@ -27214,6 +27225,15 @@
    },
    "repeatable": {
     "repeatable": true,
+    "levels": true,
+    "costGrowth": 1.2,
+    "effects": [
+     {
+      "operand": "fog.exploreMaxRadiusNodes",
+      "gapFraction": 0.1
+     }
+    ],
+    "_effects": "ADR-049 operand choice: PROXY: no interplanetary transit is simulated; faster probes and expeditions are modelled as a longer exploration reach.",
     "cost": "rises each level; growth constant derived by the consuming packet",
     "effect": {
      "system": "space program transit",
@@ -27224,7 +27244,7 @@
     "relative": false,
     "law2": "coefficient inside a named resolution equation, not a free-floating buff",
     "status": "DOCUMENTED \u2014 no consuming mechanism exists yet",
-    "engine": "NOT IMPLEMENTED \u2014 completes once (D-044 R11 idempotent completion); levels are an open question (D-044 Part D T6)",
+    "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level, the node stays available, level n costs BaseCost \u00d7 costGrowth^(n\u22121) and adds cap \u00d7 gapFraction \u00d7 (1\u2212gapFraction)^(n\u22121) to its operand",
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
@@ -27308,6 +27328,15 @@
    },
    "repeatable": {
     "repeatable": true,
+    "levels": true,
+    "costGrowth": 1.2,
+    "effects": [
+     {
+      "operand": "housing.buildTimberPerDwelling",
+      "gapFraction": 0.1
+     }
+    ],
+    "_effects": "ADR-049 operand choice: lighter, cheaper structures need less timber per dwelling.",
     "cost": "rises each level; growth constant derived by the consuming packet",
     "effect": {
      "system": "construction",
@@ -27318,7 +27347,7 @@
     "relative": false,
     "law2": "coefficient inside a named resolution equation, not a free-floating buff",
     "status": "DOCUMENTED \u2014 no consuming mechanism exists yet",
-    "engine": "NOT IMPLEMENTED \u2014 completes once (D-044 R11 idempotent completion); levels are an open question (D-044 Part D T6)",
+    "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level, the node stays available, level n costs BaseCost \u00d7 costGrowth^(n\u22121) and adds cap \u00d7 gapFraction \u00d7 (1\u2212gapFraction)^(n\u22121) to its operand",
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
@@ -27399,6 +27428,15 @@
    },
    "repeatable": {
     "repeatable": true,
+    "levels": true,
+    "costGrowth": 1.2,
+    "effects": [
+     {
+      "operand": "production.outputPerExtractorPerYear",
+      "gapFraction": 0.1
+     }
+    ],
+    "_effects": "ADR-049 operand choice: more generation per unit of fuel: extraction yields more.",
     "cost": "rises each level; growth constant derived by the consuming packet",
     "effect": {
      "system": "energy",
@@ -27409,7 +27447,7 @@
     "relative": false,
     "law2": "coefficient inside a named resolution equation, not a free-floating buff",
     "status": "DOCUMENTED \u2014 no consuming mechanism exists yet",
-    "engine": "NOT IMPLEMENTED \u2014 completes once (D-044 R11 idempotent completion); levels are an open question (D-044 Part D T6)",
+    "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level, the node stays available, level n costs BaseCost \u00d7 costGrowth^(n\u22121) and adds cap \u00d7 gapFraction \u00d7 (1\u2212gapFraction)^(n\u22121) to its operand",
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
@@ -27495,6 +27533,15 @@
    },
    "repeatable": {
     "repeatable": true,
+    "levels": true,
+    "costGrowth": 1.2,
+    "effects": [
+     {
+      "operand": "farming.yieldPerArableKm2PerYear",
+      "gapFraction": 0.1
+     }
+    ],
+    "_effects": "ADR-049 operand choice: higher yield per km2 of arable land.",
     "cost": "rises each level; growth constant derived by the consuming packet",
     "effect": {
      "system": "production (agriculture)",
@@ -27505,7 +27552,7 @@
     "relative": false,
     "law2": "coefficient inside a named resolution equation, not a free-floating buff",
     "status": "DOCUMENTED \u2014 no consuming mechanism exists yet",
-    "engine": "NOT IMPLEMENTED \u2014 completes once (D-044 R11 idempotent completion); levels are an open question (D-044 Part D T6)",
+    "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level, the node stays available, level n costs BaseCost \u00d7 costGrowth^(n\u22121) and adds cap \u00d7 gapFraction \u00d7 (1\u2212gapFraction)^(n\u22121) to its operand",
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "agriculture",
@@ -27584,6 +27631,15 @@
    },
    "repeatable": {
     "repeatable": true,
+    "levels": true,
+    "costGrowth": 1.2,
+    "effects": [
+     {
+      "operand": "demographics.mortalityPerYear",
+      "gapFraction": 0.1
+     }
+    ],
+    "_effects": "ADR-049 operand choice: longer lives: lower baseline mortality.",
     "cost": "rises each level; growth constant derived by the consuming packet",
     "effect": {
      "system": "demographics",
@@ -27594,7 +27650,7 @@
     "relative": false,
     "law2": "coefficient inside a named resolution equation, not a free-floating buff",
     "status": "DOCUMENTED \u2014 no consuming mechanism exists yet",
-    "engine": "NOT IMPLEMENTED \u2014 completes once (D-044 R11 idempotent completion); levels are an open question (D-044 Part D T6)",
+    "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level, the node stays available, level n costs BaseCost \u00d7 costGrowth^(n\u22121) and adds cap \u00d7 gapFraction \u00d7 (1\u2212gapFraction)^(n\u22121) to its operand",
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "medicine",
@@ -27671,6 +27727,15 @@
    },
    "repeatable": {
     "repeatable": true,
+    "levels": true,
+    "costGrowth": 1.2,
+    "effects": [
+     {
+      "operand": "research.researchPointsCoefficient",
+      "gapFraction": 0.1
+     }
+    ],
+    "_effects": "ADR-049 operand choice: administration and automation efficiency: more Research Points per person.",
     "cost": "rises each level; growth constant derived by the consuming packet",
     "effect": {
      "system": "administration and production",
@@ -27681,7 +27746,7 @@
     "relative": false,
     "law2": "coefficient inside a named resolution equation, not a free-floating buff",
     "status": "DOCUMENTED \u2014 no consuming mechanism exists yet",
-    "engine": "NOT IMPLEMENTED \u2014 completes once (D-044 R11 idempotent completion); levels are an open question (D-044 Part D T6)",
+    "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level, the node stays available, level n costs BaseCost \u00d7 costGrowth^(n\u22121) and adds cap \u00d7 gapFraction \u00d7 (1\u2212gapFraction)^(n\u22121) to its operand",
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
@@ -27760,6 +27825,15 @@
    },
    "repeatable": {
     "repeatable": true,
+    "levels": true,
+    "costGrowth": 1.2,
+    "effects": [
+     {
+      "operand": "fog.formationSightNodes",
+      "gapFraction": 0.1
+     }
+    ],
+    "_effects": "ADR-049 operand choice: PROXY: no combat is simulated before M7; better sensing is modelled as formation sight range.",
     "cost": "rises each level; growth constant derived by the consuming packet",
     "effect": {
      "system": "conflict (AutoResolver)",
@@ -27770,7 +27844,7 @@
     "relative": true,
     "law2": "coefficient inside a named resolution equation, not a free-floating buff",
     "status": "DOCUMENTED \u2014 no consuming mechanism exists yet",
-    "engine": "NOT IMPLEMENTED \u2014 completes once (D-044 R11 idempotent completion); levels are an open question (D-044 Part D T6)",
+    "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level, the node stays available, level n costs BaseCost \u00d7 costGrowth^(n\u22121) and adds cap \u00d7 gapFraction \u00d7 (1\u2212gapFraction)^(n\u22121) to its operand",
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "military",
@@ -27844,6 +27918,15 @@
    },
    "repeatable": {
     "repeatable": true,
+    "levels": true,
+    "costGrowth": 1.2,
+    "effects": [
+     {
+      "operand": "society.unrestOutputDrag",
+      "gapFraction": 0.1
+     }
+    ],
+    "_effects": "ADR-049 operand choice: information defence keeps unrest from costing output.",
     "cost": "rises each level; growth constant derived by the consuming packet",
     "effect": {
      "system": "information (D-039 quantities)",
@@ -27854,7 +27937,7 @@
     "relative": true,
     "law2": "coefficient inside a named resolution equation, not a free-floating buff",
     "status": "DOCUMENTED \u2014 no consuming mechanism exists yet",
-    "engine": "NOT IMPLEMENTED \u2014 completes once (D-044 R11 idempotent completion); levels are an open question (D-044 Part D T6)",
+    "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level, the node stays available, level n costs BaseCost \u00d7 costGrowth^(n\u22121) and adds cap \u00d7 gapFraction \u00d7 (1\u2212gapFraction)^(n\u22121) to its operand",
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "engineering",
@@ -27940,6 +28023,15 @@
    },
    "repeatable": {
     "repeatable": true,
+    "levels": true,
+    "costGrowth": 1.2,
+    "effects": [
+     {
+      "operand": "harvestVariance.sigmaLogYield",
+      "gapFraction": 0.1
+     }
+    ],
+    "_effects": "ADR-049 operand choice: environmental remediation steadies harvests.",
     "cost": "rises each level; growth constant derived by the consuming packet",
     "effect": {
      "system": "environment",
@@ -27950,7 +28042,7 @@
     "relative": false,
     "law2": "coefficient inside a named resolution equation, not a free-floating buff",
     "status": "BLOCKED \u2014 ADR-008: terrain and environment layers are immutable",
-    "engine": "NOT IMPLEMENTED \u2014 completes once (D-044 R11 idempotent completion); levels are an open question (D-044 Part D T6)",
+    "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level, the node stays available, level n costs BaseCost \u00d7 costGrowth^(n\u22121) and adds cap \u00d7 gapFraction \u00d7 (1\u2212gapFraction)^(n\u22121) to its operand",
     "availability": {
      "rule": "own prerequisites satisfied AND every finite node of its own subtree complete (ruling 3: per-subtree exhaustion)",
      "subtree": "natural_science",
@@ -36093,7 +36185,235 @@
     "calibration_adjustment": 0,
     "note": "ADR-045 (D-062) new node: novelty 1 \u2014 a distinct social arrangement, not an incremental refinement | difficulty 3 \u2014 A9 modal prior (3) | material 0 \u2014 no material input (civics never score material) | institutional 2.75 \u2014 A9 prior 2.5 + 0.25: a party organization paralleling the state | breadth 1 \u2014 a regime form reorganizes several domains at once (participation, administration, legitimacy) | prereq_complexity 0.5 \u2014 2 top-level requirement(s); an OR group counts once (ledger convention, digest C-10). Magnitude 8.25 \u2192 28,130 points (U\u00b7K^m, rounded to 10). Analog: atomic_clock (A9, magnitude 8.25, 28,130)."
    }
+  },
+ {
+  "key": 1990,
+  "id": "institutional_reform",
+  "name": "Institutional reform",
+  "desc": "Repeated, evidence-led reform of the administrative machinery: audits, reorganizations and the retirement of offices that no longer serve. Each level extends how far the centre's authority reaches before it decays. A repeatable civic: available only once every finite civic of the final Age is researched (the end-of-tree safety valve).",
+  "age": "A9",
+  "frontier": false,
+  "emerged": "repeatable",
+  "domain": "governance",
+  "secondaryDomains": [],
+  "depth": 16,
+  "cost": 33450.0,
+  "prereq": "parliamentary_government AND central_planning",
+  "eurekas": [],
+  "unlocks": {
+   "capabilities": [
+    "administrative reach extends further per level"
+   ],
+   "units": [],
+   "buildings": [],
+   "institutions": [],
+   "infrastructure": [],
+   "activities": [],
+   "projects": [],
+   "techniques": [],
+   "applications": []
+  },
+  "family": null,
+  "generation": null,
+  "effects": {
+   "immediate": []
+  },
+  "repeatable": {
+   "repeatable": true,
+   "levels": true,
+   "costGrowth": 1.2,
+   "effects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "gapFraction": 0.1
+    }
+   ],
+   "cost": "level n costs BaseCost \u00d7 costGrowth^(n\u22121)",
+   "effect": {
+    "system": "administration",
+    "coefficient": "authority decay distance",
+    "form": "each level closes a fixed fraction of the remaining gap to the operand's cap \u2014 diminishing, never reaching it (DD-14)",
+    "limit": "the reach of a perfectly efficient administration"
+   },
+   "relative": false,
+   "law2": "coefficient inside a named resolution equation, not a free-floating buff",
+   "status": "DOCUMENTED \u2014 the operand is read once the tranche-2 effects engine lands (KnowledgeEffects, LevelContribution seam)",
+   "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level and the node stays available",
+   "availability": {
+    "rule": "own prerequisites satisfied AND every finite civic of Age A9 complete (ADR-049; tranche-2 contract \u00a74: the end-of-tree safety valve)"
+   },
+   "benefit_rule": "each level closes a fixed fraction k of the remaining gap to the cap: level n adds cap \u00d7 k(1\u2212k)^(n\u22121)",
+   "ui": "researched N\u00d7, next level cost, per-level and cumulative effect; never marked complete"
+  },
+  "universityRelevance": [],
+  "costRationale": {
+   "tier": "TR",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 3.0,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.5,
+   "content_cost": 33450,
+   "calibration_adjustment": 0,
+   "note": "repeatable (ADR-049): priced as level 1 on the A9 civic scale; each later level costs \u00d7costGrowth"
   }
+ },
+ {
+  "key": 1991,
+  "id": "social_policy_research",
+  "name": "Social policy research",
+  "desc": "Systematic study of what relieves social distress \u2014 surveys, pilot programmes and their evaluation \u2014 turned into policy. Each level slows how fast grievance builds. A repeatable civic: available only once every finite civic of the final Age is researched.",
+  "age": "A9",
+  "frontier": false,
+  "emerged": "repeatable",
+  "domain": "governance",
+  "secondaryDomains": [],
+  "depth": 13,
+  "cost": 16730.0,
+  "prereq": "mass_political_party",
+  "eurekas": [],
+  "unlocks": {
+   "capabilities": [
+    "grievance builds more slowly per level"
+   ],
+   "units": [],
+   "buildings": [],
+   "institutions": [],
+   "infrastructure": [],
+   "activities": [],
+   "projects": [],
+   "techniques": [],
+   "applications": []
+  },
+  "family": null,
+  "generation": null,
+  "effects": {
+   "immediate": []
+  },
+  "repeatable": {
+   "repeatable": true,
+   "levels": true,
+   "costGrowth": 1.2,
+   "effects": [
+    {
+     "operand": "society.grievanceRelief",
+     "gapFraction": 0.1
+    }
+   ],
+   "cost": "level n costs BaseCost \u00d7 costGrowth^(n\u22121)",
+   "effect": {
+    "system": "needs and grievance",
+    "coefficient": "grievance accumulation",
+    "form": "each level closes a fixed fraction of the remaining gap to the operand's cap \u2014 diminishing, never reaching it (DD-14)",
+    "limit": "a society whose grievances are fully addressed"
+   },
+   "relative": false,
+   "law2": "coefficient inside a named resolution equation, not a free-floating buff",
+   "status": "DOCUMENTED \u2014 the operand is read once the tranche-2 effects engine lands (KnowledgeEffects, LevelContribution seam)",
+   "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level and the node stays available",
+   "availability": {
+    "rule": "own prerequisites satisfied AND every finite civic of Age A9 complete (ADR-049; tranche-2 contract \u00a74: the end-of-tree safety valve)"
+   },
+   "benefit_rule": "each level closes a fixed fraction k of the remaining gap to the cap: level n adds cap \u00d7 k(1\u2212k)^(n\u22121)",
+   "ui": "researched N\u00d7, next level cost, per-level and cumulative effect; never marked complete"
+  },
+  "universityRelevance": [],
+  "costRationale": {
+   "tier": "TR",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.0
+   },
+   "magnitude": 7.5,
+   "content_cost": 16730,
+   "calibration_adjustment": 0,
+   "note": "repeatable (ADR-049): priced as level 1 on the A9 civic scale; each later level costs \u00d7costGrowth"
+  }
+ },
+ {
+  "key": 1992,
+  "id": "civic_participation",
+  "name": "Civic participation",
+  "desc": "Deepening participation in public life \u2014 associations, consultations, public education in civic affairs. Each level raises the Civics Points a population generates. A repeatable civic: available only once every finite civic of the final Age is researched.",
+  "age": "A9",
+  "frontier": false,
+  "emerged": "repeatable",
+  "domain": "governance",
+  "secondaryDomains": [],
+  "depth": 12,
+  "cost": 23650.0,
+  "prereq": "mass_suffrage AND parliamentary_government",
+  "eurekas": [],
+  "unlocks": {
+   "capabilities": [
+    "more Civics Points per person per level"
+   ],
+   "units": [],
+   "buildings": [],
+   "institutions": [],
+   "infrastructure": [],
+   "activities": [],
+   "projects": [],
+   "techniques": [],
+   "applications": []
+  },
+  "family": null,
+  "generation": null,
+  "effects": {
+   "immediate": []
+  },
+  "repeatable": {
+   "repeatable": true,
+   "levels": true,
+   "costGrowth": 1.2,
+   "effects": [
+    {
+     "operand": "research.civicsPointsCoefficient",
+     "gapFraction": 0.1
+    }
+   ],
+   "cost": "level n costs BaseCost \u00d7 costGrowth^(n\u22121)",
+   "effect": {
+    "system": "civics",
+    "coefficient": "Civics Points per person",
+    "form": "each level closes a fixed fraction of the remaining gap to the operand's cap \u2014 diminishing, never reaching it (DD-14)",
+    "limit": "full participation of the population"
+   },
+   "relative": false,
+   "law2": "coefficient inside a named resolution equation, not a free-floating buff",
+   "status": "DOCUMENTED \u2014 the operand is read once the tranche-2 effects engine lands (KnowledgeEffects, LevelContribution seam)",
+   "engine": "LEVELS (ADR-049; D-063 R4) behind tuning.repeatableLevels \u2014 off: completes once (D-044 R11); on: each completion raises the level and the node stays available",
+   "availability": {
+    "rule": "own prerequisites satisfied AND every finite civic of Age A9 complete (ADR-049; tranche-2 contract \u00a74: the end-of-tree safety valve)"
+   },
+   "benefit_rule": "each level closes a fixed fraction k of the remaining gap to the cap: level n adds cap \u00d7 k(1\u2212k)^(n\u22121)",
+   "ui": "researched N\u00d7, next level cost, per-level and cumulative effect; never marked complete"
+  },
+  "universityRelevance": [],
+  "costRationale": {
+   "tier": "TR",
+   "factors": {
+    "novelty": 1.0,
+    "difficulty": 3.0,
+    "material": 0.0,
+    "institutional": 2.5,
+    "breadth": 1.0,
+    "prereq_complexity": 0.5
+   },
+   "magnitude": 8.0,
+   "content_cost": 23650,
+   "calibration_adjustment": 0,
+   "note": "repeatable (ADR-049): priced as level 1 on the A9 civic scale; each later level costs \u00d7costGrowth"
+  }
+ }
  ],
  "entities": [
   {
@@ -37054,7 +37374,10 @@
    "frontier_computation",
    "frontier_military",
    "frontier_cyber",
-   "frontier_climate"
+   "frontier_climate",
+   "institutional_reform",
+   "social_policy_research",
+   "civic_participation"
   ],
   "speculative_finite": [
    "fusion_power",

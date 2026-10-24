@@ -227,20 +227,32 @@ def build():
     w("")
 
     # ---------------------------------------------------------------- repeatables
-    w("## 5. Repeatables — recursive research (mechanics DEFERRED)")
+    w("## 5. Repeatables — recursive research (levels: ADR-049, behind `tuning.repeatableLevels`)")
     w("")
-    w("Each is available only when its own prerequisites hold AND every finite node of its own subtree is")
-    w("complete (the per-subtree rule, encoded as data in `repeatable.availability`). Repeat levels are NOT")
-    w("implemented: the engine completes a repeatable once (D-044 R11), and the level mechanics are deferred")
-    w("(D-044 Part D T6; gate ruling 4).")
+    w("A technology repeatable is available only when its own prerequisites hold AND every finite node of its own")
+    w("subtree is complete (the per-subtree rule, encoded as data in `repeatable.availability`); a civics repeatable")
+    w("when its own prerequisites hold AND every finite civic of Age A9 is complete (ADR-049; tranche-2 contract §4).")
+    w("With `tuning.repeatableLevels` on, a node whose descriptor carries `\"levels\": true` completes repeatedly: level n")
+    w("costs BaseCost × costGrowth^(n−1) and adds cap × k(1−k)^(n−1) to its operand; off, it completes once (D-044 R11).")
+    w(f"`tuning.repeatableLevels` is **{str(content['tuning'].get('repeatableLevels', False)).lower()}**.")
     w("")
-    w("| node | subtree | finite nodes to exhaust (data) | counted | first-level cost | prerequisite |")
-    w("|---|---|---|---|---|---|")
+    w("| node | tree / subtree | finite nodes to exhaust (data) | counted | first-level cost | cost growth | operand effects | prerequisite |")
+    w("|---|---|---|---|---|---|---|---|")
+    final_civics = [f for f in finite if f in content["civics"] and f["age"] == "A9"]
     for rid in content["researchSets"]["recursive"]:
         n = g.by_id[rid]
-        av = n["repeatable"]["availability"]
-        counted = sum(1 for f in finite if f.get("branch") == n.get("branch"))
-        w(f"| `{rid}` | {av['subtree']} | {av['finite_nodes_to_exhaust']} | {counted} | {rl.fmt_int(n['cost'])} | "
+        rep = n["repeatable"]
+        av = rep.get("availability") or {}
+        civic = n in content["civics"]
+        if civic:
+            where, stated, counted = "civics (final Age)", "—", len(final_civics)
+        else:
+            where = av.get("subtree", "trunk")
+            stated = av.get("finite_nodes_to_exhaust", "—")
+            counted = sum(1 for f in finite if f.get("branch") == n.get("branch"))
+        effects = ", ".join(f"`{e['operand']}` k={e['gapFraction']}" for e in rep.get("effects", [])) or "—"
+        growth = rep.get("costGrowth", "—") if rep.get("levels") else "— (completes once)"
+        w(f"| `{rid}` | {where} | {stated} | {counted} | {rl.fmt_int(n['cost'])} | {growth} | {effects} | "
           f"`{n.get('prereq')}` |")
     w("")
 

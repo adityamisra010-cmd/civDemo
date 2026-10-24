@@ -96,15 +96,37 @@ public static class ResearchQuery
     public static bool PrerequisitesMet(ResearchContent content, int node, bool[] completed) =>
         content.Nodes[node].Prerequisite is not { } p || p.Evaluate(null, a => completed[a], null);
 
-    /// <summary>AVAILABLE = not completed, its subtree open, its prerequisite expression
-    /// (AND / OR / nested) satisfied by completed knowledge (D-044 R8), and — for a RECURSIVE
-    /// node only — every finite node of its own subtree complete (finalization ruling 4:
-    /// per-subtree exhaustion; repeat mechanics are deferred, so it still completes once).</summary>
+    /// <summary>AVAILABLE = not completed (a LEVELLED repeatable stays available after it completes, ADR-049), its subtree
+    /// open, its prerequisite expression (AND / OR / nested) satisfied by completed knowledge (D-044 R8), and — for a
+    /// RECURSIVE node only — its exhaustion rule: a subtree technology waits for every finite node of its own subtree
+    /// (finalization ruling 4: per-subtree exhaustion), a trunk technology for nothing more, and a civic for every finite
+    /// civic of Age A9 (ADR-049; contract §4). The level cap (<see cref="MaxRepeatableLevel"/>) is the overload taking the
+    /// node's level.</summary>
     public static bool IsAvailable(ResearchContent content, int node, bool[] completed, bool stageReached)
     {
         ResearchNode n = content.Nodes[node];
-        if (completed[node] || (n.Branch >= 0 && !stageReached) || !PrerequisitesMet(content, node, completed)) return false;
-        return !n.IsRecursive || SubtreeExhausted(content, n.Branch, completed);
+        if ((completed[node] && !IsLevelled(content, node)) || (n.Branch >= 0 && !stageReached) || !PrerequisitesMet(content, node, completed)) return false;
+        return !n.IsRecursive || RepeatableOpen(content, n, completed);
+    }
+
+    /// <summary>ADR-049: <see cref="IsAvailable(ResearchContent, int, bool[], bool)"/> with the level cap — a levelled
+    /// repeatable at <see cref="MaxRepeatableLevel"/> (<paramref name="level"/> = its <see cref="Level"/>) is no longer
+    /// available. The form ResearchSystem, the AI and the order constructor use.</summary>
+    public static bool IsAvailable(ResearchContent content, int node, bool[] completed, bool stageReached, int level) =>
+        level < MaxRepeatableLevel && IsAvailable(content, node, completed, stageReached);
+
+    /// <summary>The exhaustion rule of a RECURSIVE node (see <see cref="IsAvailable(ResearchContent, int, bool[], bool)"/>).</summary>
+    private static bool RepeatableOpen(ResearchContent content, ResearchNode n, bool[] completed)
+    {
+        if (n.Tree == ResearchTree.Civics) return FinalAgeCivicsExhausted(content, completed);
+        return n.Branch < 0 || SubtreeExhausted(content, n.Branch, completed);
+    }
+
+    /// <summary>ADR-049: whether every FINITE civic of Age A9 is complete — what a civics repeatable waits for.</summary>
+    public static bool FinalAgeCivicsExhausted(ResearchContent content, bool[] completed)
+    {
+        foreach (int i in content.FiniteFinalAgeCivics) if (!completed[i]) return false;
+        return true;
     }
 
     /// <summary>Whether every FINITE node of the subtree is complete — what a recursive node
@@ -123,13 +145,156 @@ public static class ResearchQuery
         return mask;
     }
 
+    /// <summary>ADR-049: <see cref="AvailableMask(ResearchContent, bool[])"/> with the level cap applied from
+    /// <paramref name="levels"/> (<see cref="LevelMask"/>).</summary>
+    public static bool[] AvailableMask(ResearchContent content, bool[] completed, int[] levels)
+    {
+        bool[] mask = AvailableMask(content, completed);
+        for (int i = 0; i < mask.Length; i++) if (levels[i] >= MaxRepeatableLevel) mask[i] = false;
+        return mask;
+    }
+
+    /// <summary>ADR-049: the holder's availability from the world — completed knowledge AND repeatable levels.</summary>
+    public static bool[] AvailableMask(IReadOnlyWorldState world, ResearchContent content, PolityId polity)
+    {
+        bool[] completed = CompletedMask(world, content, polity);
+        return AvailableMask(content, completed, LevelMask(world, content, polity, completed));
+    }
+
+    // ------------------------------------------------------------------ repeatable levels (ADR-049)
+
+    /// <summary>
+    /// ADR-049 — THE LEVEL CAP: a levelled repeatable stops being available at this level. 1,000 keeps every level cost
+    /// finite (BaseCost × g^(n−1) with g ≤ 1.30: 1.30^999 ≈ 2.6 × 10^113, far below double's 1.8 × 10^308 — 10,000 would
+    /// overflow to +∞ from about level 2,700) and is unreachable in play (the cost of level 100 is already g^99 ≥ 1.3 × 10^4
+    /// times level 1's). The level is an int, so it never overflows either.
+    /// </summary>
+    public const int MaxRepeatableLevel = 1000;
+
+    /// <summary>ADR-049: whether the node completes in LEVELS — research.json tuning.repeatableLevels is on and its
+    /// repeatable descriptor carries <c>"levels": true</c>. False for every node with the switch off (complete once).</summary>
+    public static bool IsLevelled(ResearchContent content, int node) =>
+        content.Tuning.RepeatableLevels && content.Nodes[node].Levels is not null;
+
+    /// <summary>
+    /// ADR-049 — THE NUMBER OF TIMES the holder has completed <paramref name="node"/>: its ResearchLevels row's level; else 1
+    /// when the node is completed (a node completed once, or a repeatable completed before levels existed — a v35 save, or
+    /// the switch off), else 0. Never reads content, so it answers for any node.
+    /// </summary>
+    public static int Level(IReadOnlyWorldState world, PolityId polity, ResearchNodeId node)
+    {
+        for (int i = 0; i < world.ResearchLevels.Count; i++)
+        {
+            ResearchLevelRow row = world.ResearchLevels[i];
+            if (row.Polity.Value == polity.Value && row.Node.Value == node.Value) return row.Level;
+        }
+        return IsCompleted(world, polity, node) ? 1 : 0;
+    }
+
+    /// <summary>ADR-049: <see cref="Level"/> of every LEVELLED node as a mask over node indices (0 for every other node — a
+    /// complete-once node is gated by completion, never by the cap). <paramref name="completed"/> is the holder's
+    /// <see cref="CompletedMask"/>.</summary>
+    public static int[] LevelMask(IReadOnlyWorldState world, ResearchContent content, PolityId polity, bool[] completed)
+    {
+        var levels = new int[content.Nodes.Count];
+        if (!content.Tuning.RepeatableLevels) return levels;
+        for (int i = 0; i < levels.Length; i++)
+            if (completed[i] && content.Nodes[i].Levels is not null) levels[i] = 1;
+        for (int r = 0; r < world.ResearchLevels.Count; r++)
+        {
+            ResearchLevelRow row = world.ResearchLevels[r];
+            if (row.Polity.Value != polity.Value) continue;
+            int index = content.IndexOf(row.Node);
+            if (index >= 0 && IsLevelled(content, index)) levels[index] = row.Level;
+        }
+        return levels;
+    }
+
+    /// <summary>
+    /// ADR-049 — THE BASE COST OF LEVEL <paramref name="level"/> (≥ 1) of a levelled node: BaseCost × g^(level−1), g its
+    /// costGrowth (contract §4). Level 1 is BaseCost exactly. The modifier stack and the floor of
+    /// <see cref="EffectiveCost"/> apply to this base as they do to BaseCost.
+    /// </summary>
+    public static double LevelBaseCost(ResearchContent content, int node, int level)
+    {
+        ResearchNode n = content.Nodes[node];
+        if (n.Levels is not { } rule) throw new ArgumentException($"'{n.Id}' has no level rule", nameof(node));
+        if (level < 1) throw new ArgumentOutOfRangeException(nameof(level), level, "levels start at 1");
+        return level == 1 ? n.BaseCost : n.BaseCost * Math.Pow(rule.CostGrowth, level - 1);
+    }
+
+    /// <summary>The base cost the holder's NEXT completion of <paramref name="node"/> is priced from: BaseCost for any node
+    /// that is not levelled; for a levelled one, <see cref="LevelBaseCost"/> of level <see cref="Level"/> + 1.</summary>
+    private static double NextBaseCost(IReadOnlyWorldState world, ResearchContent content, PolityId polity, int node)
+    {
+        if (!IsLevelled(content, node)) return content.Nodes[node].BaseCost;
+        int level = Level(world, polity, content.Nodes[node].Key);
+        return LevelBaseCost(content, node, Math.Min(level, MaxRepeatableLevel - 1) + 1);
+    }
+
+    /// <summary>
+    /// ADR-049 — THE CUMULATIVE CONTRIBUTION of <paramref name="levels"/> completed levels of one operand effect to Σ of its
+    /// operand: cap × (1 − (1 − k)^n), which is exactly cap × Σ_{i=1..n} k(1 − k)^(i−1) (a geometric sum) — level i adds
+    /// cap × k × (1 − k)^(i−1), each level closing the fraction k of the gap still left to the cap. 0 for n ≤ 0; never above
+    /// cap (0 &lt; k ≤ 0.5): in exact arithmetic strictly below it for every finite n, in double precision equal to it once
+    /// (1 − k)^n falls below half an ulp of 1 (n ≈ 350 for k = 0.1), so levels can never run away (DD-14). Pure. The effects
+    /// engine adds it to the operand's Σ before the clamp to [0, cap] (contract §1, step 1).
+    /// </summary>
+    public static double RepeatableContribution(int levels, double gapFraction, double cap) =>
+        levels <= 0 ? 0.0 : cap * (1.0 - Math.Pow(1.0 - gapFraction, levels));
+
+    /// <summary>ADR-049: what level <paramref name="level"/> (≥ 1) alone adds: cap × k × (1 − k)^(level−1).</summary>
+    public static double RepeatableLevelBenefit(int level, double gapFraction, double cap) =>
+        level <= 0 ? 0.0 : cap * gapFraction * Math.Pow(1.0 - gapFraction, level - 1);
+
+    /// <summary>
+    /// ADR-049 — THE LEVEL SEAM for the effects engine: Σ over the holder's levelled repeatables (index order) that name
+    /// <paramref name="operand"/> of <see cref="RepeatableContribution"/>(level, k, cap). 0 with the switch off. The caller
+    /// passes the operand's registry cap and clamps the total Σ itself.
+    /// </summary>
+    public static double LevelContribution(IReadOnlyWorldState world, ResearchContent content, PolityId polity, string operand, double cap)
+    {
+        if (!content.Tuning.RepeatableLevels) return 0.0;
+        double sum = 0.0;
+        for (int i = 0; i < content.Nodes.Count; i++)
+        {
+            if (content.Nodes[i].Levels is not { } rule) continue;
+            foreach (RepeatableLevelEffect e in rule.Effects)
+            {
+                if (!string.Equals(e.Operand, operand, StringComparison.Ordinal)) continue;
+                int level = Level(world, polity, content.Nodes[i].Key);
+                if (level > 0) sum += RepeatableContribution(level, e.GapFraction, cap);
+            }
+        }
+        return sum;
+    }
+
+    /// <summary>ADR-049: a ResearchLevels table no rule could have written, described — a level outside
+    /// [1, <see cref="MaxRepeatableLevel"/>] or a (Polity, Node) pair twice — or null when it is well formed.</summary>
+    public static string? LevelsInvariantViolation(IReadOnlyTable<ResearchLevelRow> rows)
+    {
+        for (int i = 0; i < rows.Count; i++)
+        {
+            ResearchLevelRow row = rows[i];
+            string at = "ResearchLevels[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]";
+            if (row.Level < 1 || row.Level > MaxRepeatableLevel)
+                return at + ": level " + row.Level.ToString(System.Globalization.CultureInfo.InvariantCulture) + " is outside [1, " +
+                       MaxRepeatableLevel.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]";
+            for (int j = 0; j < i; j++)
+                if (rows[j].Polity.Value == row.Polity.Value && rows[j].Node.Value == row.Node.Value)
+                    return at + ": a second row for polity " + row.Polity.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                           + ", node " + row.Node.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+        return null;
+    }
+
     /// <summary>Available nodes, key-ascending. <paramref name="tree"/> filters by tree;
     /// <paramref name="branch"/> filters to one subtree (-1 = the Main Technology Tree).</summary>
     public static ResearchNodeId[] AvailableNodes(
         IReadOnlyWorldState world, ResearchContent content, PolityId polity,
         ResearchTree? tree = null, int? branch = null)
     {
-        bool[] available = AvailableMask(content, CompletedMask(world, content, polity));
+        bool[] available = AvailableMask(world, content, polity);
         var result = new List<ResearchNodeId>();
         for (int i = 0; i < available.Length; i++)
         {
@@ -154,7 +319,7 @@ public static class ResearchQuery
     public static ResearchNodeId? CheapestAvailable(
         IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchTree? tree = null)
     {
-        bool[] available = AvailableMask(content, CompletedMask(world, content, polity));
+        bool[] available = AvailableMask(world, content, polity);
         int best = -1;
         double bestCost = 0.0;
         for (int i = 0; i < available.Length; i++)
@@ -188,7 +353,8 @@ public static class ResearchQuery
         }
         return new PrerequisiteState(
             n.Prerequisite?.Source, atoms, PrerequisitesMet(content, index, completed),
-            n.Branch < 0 || stage, completed[index], IsAvailable(content, index, completed, stage));
+            n.Branch < 0 || stage, completed[index],
+            IsAvailable(content, index, completed, stage, LevelMask(world, content, polity, completed)[index]));
     }
 
     // ------------------------------------------------------------------ target and progress
@@ -207,7 +373,7 @@ public static class ResearchQuery
         int index = content.IndexOf(node);
         if (index < 0) return null;
         bool[] completed = CompletedMask(world, content, issuer);
-        if (!IsAvailable(content, index, completed, StageReached(content, completed))) return null;
+        if (!IsAvailable(content, index, completed, StageReached(content, completed), LevelMask(world, content, issuer, completed)[index])) return null;
         return Kernel.OrderRecord.From(world.Clock.Turn, issuer, Kernel.OrderKind.SetResearchTarget, node.Value, 0.0);
     }
 
@@ -295,7 +461,8 @@ public static class ResearchQuery
     public readonly record struct CostTerm(int ModifierRow, int UniversityType, string UniversityId, int Branch, double Factor);
 
     /// <summary>BaseCost → relevant modifiers → EffectiveCost (D-044 R5), decomposed. <paramref name="Modified"/>
-    /// is BaseCost × Π Factor; <paramref name="Floor"/> the effective-cost floor; EffectiveCost the larger.</summary>
+    /// is BaseCost × Π Factor; <paramref name="Floor"/> the effective-cost floor; EffectiveCost the larger. ADR-049: for a
+    /// levelled repeatable <paramref name="BaseCost"/> is the NEXT level's base, BaseCost × g^level.</summary>
     public sealed record CostBreakdown(
         ResearchNodeId Node, double BaseCost, CostTerm[] Terms, double Modified, double Floor, double EffectiveCost)
     {
@@ -314,17 +481,24 @@ public static class ResearchQuery
     /// — an unknown type, or a Factor outside (0, 1] — breaks the input contract and
     /// throws.
     /// </summary>
-    public static double EffectiveCost(IReadOnlyWorldState world, ResearchContent content, PolityId polity, int node) =>
-        Math.Max(content.Tuning.EffectiveCostFloorFraction * content.Nodes[node].BaseCost, Modified(world, content, polity, node, null));
+    ///
+    /// ADR-049: for a LEVELLED repeatable the cost is that of the holder's NEXT level — BaseCost is replaced by
+    /// BaseCost × g^level (<see cref="LevelBaseCost"/> of level <see cref="Level"/> + 1), under the same modifiers and floor.
+    public static double EffectiveCost(IReadOnlyWorldState world, ResearchContent content, PolityId polity, int node)
+    {
+        double baseCost = NextBaseCost(world, content, polity, node);
+        return Math.Max(content.Tuning.EffectiveCostFloorFraction * baseCost, Modified(world, content, polity, node, baseCost, null));
+    }
 
     public static CostBreakdown EffectiveCostBreakdown(
         IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchNodeId node)
     {
         int index = RequireIndex(content, node);
         var terms = new List<CostTerm>();
-        double modified = Modified(world, content, polity, index, terms);
-        double floor = content.Tuning.EffectiveCostFloorFraction * content.Nodes[index].BaseCost;
-        return new CostBreakdown(node, content.Nodes[index].BaseCost, [.. terms], modified, floor, Math.Max(floor, modified));
+        double baseCost = NextBaseCost(world, content, polity, index);   // ADR-049: the next level's base for a levelled node
+        double modified = Modified(world, content, polity, index, baseCost, terms);
+        double floor = content.Tuning.EffectiveCostFloorFraction * baseCost;
+        return new CostBreakdown(node, baseCost, [.. terms], modified, floor, Math.Max(floor, modified));
     }
 
     /// <summary>The polity's specialized-university modifiers, table order — every
@@ -342,10 +516,10 @@ public static class ResearchQuery
         return [.. terms];
     }
 
-    private static double Modified(IReadOnlyWorldState world, ResearchContent content, PolityId polity, int node, List<CostTerm>? terms)
+    private static double Modified(IReadOnlyWorldState world, ResearchContent content, PolityId polity, int node, double baseCost, List<CostTerm>? terms)
     {
         ResearchNode n = content.Nodes[node];
-        double cost = n.BaseCost;
+        double cost = baseCost;
         for (int i = 0; i < world.ResearchCostModifiers.Count; i++)
         {
             ResearchCostModifierRow row = world.ResearchCostModifiers[i];

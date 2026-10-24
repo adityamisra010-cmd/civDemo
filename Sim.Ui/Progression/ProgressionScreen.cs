@@ -1047,16 +1047,29 @@ public sealed partial class ProgressionScreen
             foreach (string part in parts) if (part.Length > 0) kept.Add(part);
             return string.Join(" · ", kept);
         }
+        // ADR-049: a levelled repeatable says how often it has been researched and which level is next — never "Known".
+        string levelled = v.Repeat is { } r
+            ? (r.Level > 0 ? r.LevelText + " · " : "") + "level " + (r.Level + 1).ToString(CultureInfo.InvariantCulture) : "";
         switch (v.State)
         {
             case NodeState.Completed: return "Known";
-            case NodeState.CurrentTarget: return Join("Researching", Pct(v.Fraction), Turns(v.EffectiveCost - v.Progress));
+            case NodeState.CurrentTarget: return Join("Researching", levelled, Pct(v.Fraction), Turns(v.EffectiveCost - v.Progress));
             case NodeState.Available:
-                return PendingTarget == contentIndex ? "Ordered - applies at End Turn" : Join("Available", Turns(v.EffectiveCost - v.Progress));
+                return PendingTarget == contentIndex ? "Ordered - applies at End Turn" : Join("Available", levelled, Turns(v.EffectiveCost - v.Progress));
         }
         string why = LockLine(contentIndex);
         return v.State == NodeState.Partial ? Join(Pct(v.Fraction) + " kept", why) : why;
     }
+
+    /// <summary>ADR-049: one operand effect of a levelled repeatable in words — the operand's meaning, the next level's
+    /// benefit and the cumulative benefit of <paramref name="level"/> researched levels, as percentages of the operand's
+    /// improvement (Σ, capped).</summary>
+    public static string LevelEffectText(RepeatEffectView e, int level) =>
+        char.ToUpperInvariant(e.Meaning[0]) + e.Meaning[1..] + ": next level +" + PctOf(e.NextLevelBenefit) + "; "
+        + (level > 0 ? "all " + level.ToString(CultureInfo.InvariantCulture) + " levels +" + PctOf(e.Cumulative) : "none yet")
+        + " (cap +" + PctOf(e.Cap) + ")";
+
+    private static string PctOf(double fraction) => (fraction * 100.0).ToString("0.##", CultureInfo.InvariantCulture) + "%";
 
     /// <summary>Why a node is locked, in a few words: the first missing prerequisite (and where it lives, when it is
     /// in another lane or the other tree), the research stage, or the subtree a recursive node waits for.</summary>
@@ -1088,6 +1101,8 @@ public sealed partial class ProgressionScreen
         }
         if (v.Lock.HasFlag(LockReason.ResearchStage)) return "Needs university";
         if (v.Lock.HasFlag(LockReason.SubtreeNotExhausted)) return "Waits for its whole subtree";
+        if (v.Lock.HasFlag(LockReason.FinalAgeCivicsNotExhausted)) return "Waits for every final-Age civic";
+        if (v.Lock.HasFlag(LockReason.MaxLevel)) return v.Repeat is { } top ? top.LevelText + " · the last level" : "The last level";
         return "Locked";
     }
 
@@ -1506,6 +1521,23 @@ public sealed partial class ProgressionScreen
         y += Sp(8);
         y = PaintAction(d, m, n, node, x, w, y, view) + Sp(14);
 
+        // ADR-049 — LEVELS: a levelled repeatable's count, its next level's cost and, per operand, what the next level adds
+        // and what the researched levels add together (never "complete").
+        if (n.Repeat is { } rep)
+        {
+            y = Heading(d, m, x, w, y, "LEVELS", 6);
+            y = Stat(d, m, x, w, y, rep.LevelText, "next: level " + (rep.Level + 1).ToString(CultureInfo.InvariantCulture), t.Ink.Text);
+            y = Stat(d, m, x, w, y, "Next level cost", Num(rep.NextLevelCost) + " " + unit, t.Ink.Text);
+            y = Stat(d, m, x, w, y, "Cost growth per level", "× " + rep.CostGrowth.ToString("0.00", CultureInfo.InvariantCulture), t.Ink.TextSoft);
+            foreach (RepeatEffectView e in rep.Effects)
+            {
+                foreach (string line in FlowText.Wrap(m, LevelEffectText(e, rep.Level), TypeRole.Body, _scale, w))
+                { d.Write(t, x, y, line, body, t.Ink.Text); y += FlowText.Slot(TypeRole.Body, _scale); }
+                y += Sp(4);
+            }
+            y += Sp(8);
+        }
+
         // ENABLES: what completing it gives — the capabilities, techniques and applications the content declares, the
         // entities it unlocks — and the nodes it leads to (all read from the content, nothing invented).
         y = Heading(d, m, x, w, y, "ENABLES", 5);
@@ -1575,6 +1607,9 @@ public sealed partial class ProgressionScreen
             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
         if (n.Lock.HasFlag(LockReason.SubtreeNotExhausted))
             foreach (string line in FlowText.Wrap(m, "Recursive: waits for every finite node of its subtree.", TypeRole.Body, _scale, w))
+            { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
+        if (n.Lock.HasFlag(LockReason.FinalAgeCivicsNotExhausted))
+            foreach (string line in FlowText.Wrap(m, "Recursive: waits for every finite civic of the final Age.", TypeRole.Body, _scale, w))
             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
         y += Sp(8);
 

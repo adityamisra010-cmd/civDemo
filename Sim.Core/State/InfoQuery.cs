@@ -351,7 +351,9 @@ public static class InfoQuery
         b.What = n.Description;
         b.TreeNode = i;
 
-        bool done = c.Done[i], available = c.Available(i);
+        // ADR-049: a levelled repeatable is never "known" — it stays open for its next level.
+        bool levelled = ResearchQuery.IsLevelled(r, i);
+        bool done = c.Done[i] && !levelled, available = c.Available(i);
         bool target = IsTarget(c, n);
         double cost = ResearchQuery.EffectiveCost(c.W, r, c.P, i);
         // ADR-043: a civic is paid in Civics Points in the two-lane model (CP a turn = the accrual of a step of this length).
@@ -370,6 +372,8 @@ public static class InfoQuery
             b.StatusLine = "Open to research now: " + N0(cost) + points + (rp > 0 ? " (about " + Inv((long)Math.Ceiling(Math.Max(0.0, cost - ResearchQuery.Progress(c.W, c.P, n.Key)) / rp)) + " turns at the current rate)." : ".");
         }
         else { b.Status = InfoStatus.Locked; b.StatusLine = "Locked: " + N0(cost) + points + " once it opens."; }
+        if (levelled && c.Done[i])
+            b.StatusLine = "Researched " + Inv(ResearchQuery.Level(c.W, c.P, n.Key)) + "x; next level: " + b.StatusLine;
 
         // ENABLED BY: its prerequisites (each with its completion), the expression verbatim.
         IReadOnlyList<int> must = n.Prerequisite?.MustHoldAtoms() ?? [];
@@ -387,6 +391,8 @@ public static class InfoQuery
                 b.WhyLocked.Add(new InfoLink("Its subtree is closed until the research stage is reached (" + r.Stage.Source.Replace('_', ' ') + ")", null, false));
             if (n.IsRecursive && n.Branch >= 0 && !ResearchQuery.SubtreeExhausted(r, n.Branch, c.Done))
                 b.WhyLocked.Add(new InfoLink("Recursive: it waits for every finite node of its subtree", null, false));
+            if (n.IsRecursive && n.Tree == ResearchTree.Civics && !ResearchQuery.FinalAgeCivicsExhausted(r, c.Done))
+                b.WhyLocked.Add(new InfoLink("Recursive: it waits for every finite civic of the final Age", null, false));   // ADR-049
         }
 
         // WHAT IT ENABLES: entities (each with what realizes it), dependents, Age milestones, the tax edict, the stage.

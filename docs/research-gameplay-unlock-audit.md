@@ -1,6 +1,6 @@
 # Research → gameplay unlock audit
 
-**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `a8b455eaa1891cb1…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
+**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `a8994a2044a24152…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
 
 ## 1. How a node's consequence is realized (per consumer type)
 
@@ -31,10 +31,10 @@ Each node is counted once, under its primary class (precedence H, B, E, D, G, F,
 | E | Infrastructure prerequisite | gates a road class RoadDevelopmentSystem builds | 4 |
 | F | Military / unit unlock | gates a unit entity (load-validated; recruitment is M7 Battle Layer) | 31 |
 | G | Application / realization | gates a building a construction project builds | 0 |
-| H | Repeatable | a repeatable node (D-044 T6 / D-046 G4) | 10 |
+| H | Repeatable | a repeatable node (D-044 T6 / D-046 G4) | 13 |
 | I | Content-only / descriptive | no capability string, no effect, no entity | 0 |
 | J | Explicitly deferred | every consequence is an entity no system of this milestone realizes | 78 |
-| | **nodes** | Technology 496 + Civics 67 | **563** |
+| | **nodes** | Technology 496 + Civics 70 | **566** |
 
 Node→consequence links by consumer type: activity 10, age 41, building 15, deferred 245, institution 50, recipe 2, road 6, stage 4, tax 1, trade 1.
 
@@ -762,3 +762,6 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `central_planning` | civics | A9 | C | official_statistics AND telegraph | state planning of output and allocation for the whole economy | — | — | n/a | — |
 | `marxist_leninist_state` | civics | A9 | C | mass_political_party AND central_planning | a communist party-state with a planned economy | — | — | n/a | — |
 | `one_party_state` | civics | A9 | C | mass_political_party AND (written_constitution OR standing_army) | government by a single legal party | — | — | n/a | — |
+| `institutional_reform` | civics | A9 | H | parliamentary_government AND central_planning | administrative reach extends further per level | — | — | n/a | — |
+| `social_policy_research` | civics | A9 | H | mass_political_party | grievance builds more slowly per level | — | — | n/a | — |
+| `civic_participation` | civics | A9 | H | mass_suffrage AND parliamentary_government | more Civics Points per person per level | — | — | n/a | — |

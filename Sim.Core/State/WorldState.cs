@@ -863,6 +863,17 @@ public record struct SettlementSightingRow(PolityId Polity, SettlementId Settlem
 public record struct SettlementSurveyRow(PolityId Polity, SettlementId Settlement, long Turn);
 
 /// <summary>
+/// ADR-049 (schema v36 section 67; D-063 R4, CR-024) — ONE REPEATABLE RESEARCH NODE'S LEVEL for one knowledge holder: how
+/// many times the holder has completed the node (<c>Level</c> ≥ 1; absence = 0, or 1 for a node completed before levels
+/// existed — ResearchQuery.Level). Written only by ResearchSystem, and only with research.json
+/// <c>tuning.repeatableLevels</c> on, for a node whose repeatable descriptor carries <c>"levels": true</c>. A row is
+/// appended at the holder's FIRST level of the node and replaced IN PLACE on every later level, so the table's order depends
+/// only on the order of first completions (the ResearchCompleted precedent). At most one row per (holder, node);
+/// 1 ≤ Level ≤ ResearchQuery.MaxRepeatableLevel. Not a conserved stock — knowledge; int is exact for the bounded level.
+/// </summary>
+public record struct ResearchLevelRow(PolityId Polity, ResearchNodeId Node, int Level);
+
+/// <summary>
 /// M4-D — a completed structure, counted per (settlement, project).
 ///
 /// NOT a Conserved stock, and that is a considered choice rather than an
@@ -1323,6 +1334,9 @@ public interface IReadOnlyWorldState
 
     /// <summary>M6 EX (v35 §66): settlements a polity has prospected — owned by DiscoverySystem.</summary>
     IReadOnlyTable<SettlementSurveyRow> SettlementSurveys { get; }
+
+    /// <summary>ADR-049 (v36 §67): each knowledge holder's repeatable research levels — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchLevelRow> ResearchLevels { get; }
 }
 
 /// <summary>
@@ -1543,6 +1557,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>M6 EX (v35 §66): settlements a polity has prospected — owned by DiscoverySystem.</summary>
     public Table<SettlementSurveyRow> SettlementSurveys { get; }
 
+    /// <summary>ADR-049 (v36 §67): each knowledge holder's repeatable research levels — owned by ResearchSystem.</summary>
+    public Table<ResearchLevelRow> ResearchLevels { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1609,6 +1626,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<ExplorationRow> IReadOnlyWorldState.Explorations => Explorations;
     IReadOnlyTable<SettlementSightingRow> IReadOnlyWorldState.SettlementSightings => SettlementSightings;
     IReadOnlyTable<SettlementSurveyRow> IReadOnlyWorldState.SettlementSurveys => SettlementSurveys;
+    IReadOnlyTable<ResearchLevelRow> IReadOnlyWorldState.ResearchLevels => ResearchLevels;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1679,6 +1697,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Explorations = new Table<ExplorationRow>();
         SettlementSightings = new Table<SettlementSightingRow>();
         SettlementSurveys = new Table<SettlementSurveyRow>();
+        ResearchLevels = new Table<ResearchLevelRow>();
     }
 
     private WorldState(
@@ -1716,7 +1735,8 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<ConstructionProgressRow> constructionProgress, Table<ResourceAllocationRow> resourceAllocations,
         Table<ConstructionHoldRow> constructionHolds, Table<CivicsPointsRow> civicsPoints,
         Table<KnownExtentRow> knownExtents, Table<ExplorationRow> explorations,
-        Table<SettlementSightingRow> settlementSightings, Table<SettlementSurveyRow> settlementSurveys)
+        Table<SettlementSightingRow> settlementSightings, Table<SettlementSurveyRow> settlementSurveys,
+        Table<ResearchLevelRow> researchLevels)
     {
         Seed = seed;
         Clock = clock;
@@ -1786,6 +1806,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Explorations = explorations;
         SettlementSightings = settlementSightings;
         SettlementSurveys = settlementSurveys;
+        ResearchLevels = researchLevels;
     }
 
     /// <summary>
@@ -1813,7 +1834,8 @@ public sealed class WorldState : IReadOnlyWorldState
             TaxPolicies.Clone(), Institutions.Clone(), ConstructionLabor.Clone(), TaxGrievances.Clone(),
             ConstructionProgress.Clone(), ResourceAllocations.Clone(), ConstructionHolds.Clone(),
             CivicsPoints.Clone(),
-            KnownExtents.Clone(), Explorations.Clone(), SettlementSightings.Clone(), SettlementSurveys.Clone())
+            KnownExtents.Clone(), Explorations.Clone(), SettlementSightings.Clone(), SettlementSurveys.Clone(),
+            ResearchLevels.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };
