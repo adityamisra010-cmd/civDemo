@@ -134,3 +134,26 @@ otherLane, the AI's goal destination and planner, UI = engine.
 - The action-surface "Learning" card still shows the lane's target row (the destination) and its progress; the route
   detail lives on the research screen.
 - Repeatable levels (contract §4) are another track; the sweep already excludes repeatable-descriptor nodes.
+
+## Amendment (2026-10-24, tranche-2 integration): a lane with nothing fundable assists
+
+**Finding.** The 4-seed measurement on the integrated content (switches on) stalled every seed in Age 3 from turn ~550.
+The Technology destination waited on Age-3 civics (its Age-5 sweep cohort). The Civics destination waited on Age-2
+technologies. Each lane may fund only its own tree, and a lane assisted only when it had NO destination, so neither lane
+funded anything for the remaining ~1,000 turns.
+
+**Rule now** (`ResearchRoutePlanner.Fund`). A lane assists the other lane's route whenever its own funding pick is empty.
+That covers a lane with no destination, as before, and also a lane whose route's eligible nodes all belong to the other
+tree. It then funds its own tree's eligible node on that route, with the same (remaining cost, key) pick.
+
+**Reporting.** `ResearchRoute.Assisting` is true and `AssistedDestination` names the other lane's destination, while
+`Destination` stays the lane's own. The UI says "Destination: X - meanwhile assisting Y".
+
+**Unchanged.** A lane whose own route has an eligible node of its tree never assists. A lane with nothing on either route
+waits, as `OtherLaneBusy_ItsNodeIsAnOtherLaneBlocker_AndThisLaneWaits` pins.
+
+**Test.** `CrossedDestinations_EachLaneAssistsTheOther_AndBothComplete`: before the fix both lanes funded nothing.
+
+**Also.** ADR-049 levelled repeatables are admissible destinations (`ResearchQuery.IsOpenTarget`). The planner's
+exhaustion component follows ADR-049: a civics repeatable waits for every finite A9 civic, and a trunk repeatable waits
+for nothing more.
