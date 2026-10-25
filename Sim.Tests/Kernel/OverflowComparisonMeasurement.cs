@@ -48,19 +48,57 @@ public class OverflowComparisonMeasurement(ITestOutputHelper output)
         foreach (string l in lines) output.WriteLine(l);
     }
 
-    internal static SimConfig WithOverflow(SimConfig cfg, bool on, bool lane = false)
+    /// <summary>D-064 early-game PROPOSAL (decision-table.md, EARLY-ENABLER): the shipped content with these six nodes'
+    /// breadth factor lowered by 0.5 (magnitude −0.5, cost = U × 2^magnitude rounded to tens — ×0.71), overflow OFF, 700
+    /// turns. Nothing else differs; research.json is not changed.</summary>
+    internal static readonly string[] EarlyProposal =
+        ["cereal_cultivation", "fire_making", "cordage", "ground_stone_early", "pottery_open_fired", "kin_council"];
+
+    [Fact(Skip = "measurement — run explicitly; results in research-cost-pass/early-game-trial.md")]
+    public void EarlyGameProposal_FourSeeds()
+    {
+        ulong[] seeds = [1, 2, 42, 7];
+        string[] lines = new string[seeds.Length];
+        string[] baseline = new string[seeds.Length];
+        System.Threading.Tasks.Parallel.For(0, seeds.Length * 2, new System.Threading.Tasks.ParallelOptions { MaxDegreeOfParallelism = 4 },
+            j =>
+            {
+                if (j % 2 == 0) baseline[j / 2] = Run(seeds[j / 2], false, early: false, turns: 700);
+                else lines[j / 2] = Run(seeds[j / 2], false, early: true, turns: 700);
+            });
+        for (int i = 0; i < seeds.Length; i++) { output.WriteLine(baseline[i]); output.WriteLine(lines[i]); }
+    }
+
+    internal static SimConfig WithOverflow(SimConfig cfg, bool on, bool lane = false, bool early = false)
     {
         System.Text.Json.Nodes.JsonObject doc;
         using (var s = Sim.Data.DataFiles.OpenResearch()) doc = System.Text.Json.Nodes.JsonNode.Parse(s)!.AsObject();
         doc["tuning"]!.AsObject()["researchOverflow"] = on;
         if (lane) doc["tuning"]!.AsObject()["researchOverflowLane"] = true;
+        if (early)
+            foreach (string tree in new[] { "technologies", "civics" })
+                foreach (System.Text.Json.Nodes.JsonNode? node in doc[tree]!.AsArray())
+                {
+                    if (Array.IndexOf(EarlyProposal, (string)node!["id"]!) < 0) continue;
+                    var cr = node["costRationale"]!.AsObject();
+                    var f = cr["factors"]!.AsObject();
+                    double breadth = (double)f["breadth"]!;
+                    double step = Math.Min(0.5, breadth);   // breadth first, the rest from novelty (min 0.5)
+                    f["breadth"] = breadth - step;
+                    if (step < 0.5) f["novelty"] = (double)f["novelty"]! - (0.5 - step);
+                    double magnitude = (double)cr["magnitude"]! - 0.5;
+                    cr["magnitude"] = magnitude;
+                    double cost = Math.Round(92.4 * Math.Pow(2.0, magnitude) / 10.0, MidpointRounding.AwayFromZero) * 10.0;
+                    cr["content_cost"] = cost;
+                    node["cost"] = cost;
+                }
         using var goods = Sim.Data.DataFiles.OpenGoods();
         return cfg with { Research = ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods)) };
     }
 
-    private static string Run(ulong seed, bool on, bool lane = false)
+    private static string Run(ulong seed, bool on, bool lane = false, bool early = false, int turns = 1630)
     {
-        SimConfig cfg = WithOverflow(TestConfigs.Sim(), on, lane);
+        SimConfig cfg = WithOverflow(TestConfigs.Sim(), on, lane, early);
         WorldgenConfig shipped = TestConfigs.Worldgen();
         var log = new OrderLog();
         TurnExecutor exec;
@@ -71,17 +109,18 @@ public class OverflowComparisonMeasurement(ITestOutputHelper output)
         ResearchContent research = cfg.Research!;
         int n = research.Nodes.Count;
         var sb = new StringBuilder();
-        sb.AppendLine(Inv, $"seed {seed} overflow {(on ? (lane ? "ON-LANE" : "ON") : "OFF")}");
+        sb.AppendLine(Inv, $"seed {seed} overflow {(on ? (lane ? "ON-LANE" : "ON") : "OFF")}{(early ? " EARLY-PROPOSAL" : "")}");
         var doneTurn = new long[2, 10];
         var finite = new int[2, 10];
         for (int a = 0; a < 10; a++) { doneTurn[0, a] = -1; doneTurn[1, a] = -1; }
         foreach (ResearchNode node in research.Nodes)
             if (!node.HasRepeatableDescriptor) finite[node.Tree == ResearchTree.Technology ? 0 : 1, node.AgeNumber]++;
         var first = new List<string>[] { new(), new() };
+        var doneAt = new long[n];
         var rpGen = new double[10];
         var rpSpent = new double[10];
         var turnsAt = new int[10];
-        for (int t = 0; t < 1630; t++)
+        for (int t = 0; t < turns; t++)
         {
             AiOrders.Append(log, w, cfg, shipped);
             WorldState prev = w;
@@ -113,7 +152,8 @@ public class OverflowComparisonMeasurement(ITestOutputHelper output)
                 if (!after[i] || research.Nodes[i].HasRepeatableDescriptor) continue;
                 int tr = research.Nodes[i].Tree == ResearchTree.Technology ? 0 : 1;
                 count[tr, research.Nodes[i].AgeNumber]++;
-                if (!before[i] && first[tr].Count < 10) first[tr].Add(string.Create(Inv, $"{research.Nodes[i].Id}@{w.Clock.Turn}"));
+                if (!before[i]) doneAt[i] = w.Clock.Turn;
+                if (!before[i] && first[tr].Count < 20) first[tr].Add(string.Create(Inv, $"{research.Nodes[i].Id}@{w.Clock.Turn}"));
             }
             for (int tr = 0; tr < 2; tr++)
                 for (int a = 1; a < 10; a++)
@@ -128,6 +168,13 @@ public class OverflowComparisonMeasurement(ITestOutputHelper output)
         sb.AppendLine();
         sb.Append("  Age complete (turn) civics:    ");
         for (int a = 1; a < 10; a++) sb.Append(Inv, $" A{a}={doneTurn[1, a]}");
+        sb.AppendLine();
+        sb.Append("  proposal nodes completed (turn):");
+        foreach (string id in EarlyProposal)
+        {
+            int k = research.IndexOfId(id);
+            sb.Append(Inv, $" {id}@{(k >= 0 && doneAt[k] > 0 ? doneAt[k] : -1)}");
+        }
         sb.AppendLine();
         sb.AppendLine("  first technologies: " + string.Join(" ", first[0]));
         sb.AppendLine("  first civics:       " + string.Join(" ", first[1]));

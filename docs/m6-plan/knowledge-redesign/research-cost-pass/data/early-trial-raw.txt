@@ -1,0 +1,56 @@
+seed 1 overflow OFF
+Age entered (effective turn): A2=67 A3=339 A4=683
+Age complete (turn) technology: A1=263 A2=476 A3=651 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+Age complete (turn) civics:     A1=265 A2=464 A3=639 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+proposal nodes completed (turn): cereal_cultivation@41 fire_making@173 cordage@95 ground_stone_early@81 pottery_open_fired@219 kin_council@19
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@81 cordage@95 shelter_hut@99 timber_frame@119 track_road@132 stone_dry@149 knapping_levallois@154 knapping_blade@157 bone_tools@160 tally_notation@164 fire_making@173 token_counting@183 basketry@188 pottery_open_fired@219 stamp_seal@229
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@34 guest_right@43 wayfinding_lore@51 band_territories@59 customary_sanctions@66 prestige_leadership@76 seasonal_aggregation@86 oath_alliance@99 seasonal_round@104 communal_feasts@121 barter_exchange@137 transhumance@151 clearance_usufruct@164 sodalities@177 landscape_burning@180 food_sharing_norms@183 bridewealth@194
+seed 1 overflow OFF EARLY-PROPOSAL
+Age entered (effective turn): A2=59 A3=325 A4=672
+Age complete (turn) technology: A1=249 A2=464 A3=640 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+Age complete (turn) civics:     A1=248 A2=456 A3=629 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+proposal nodes completed (turn): cereal_cultivation@32 fire_making@162 cordage@82 ground_stone_early@72 pottery_open_fired@201 kin_council@8
+first technologies: grinding_stone@8 cereal_cultivation@32 dog_domestication@37 sheep_goat@58 knapping_oldowan@66 ground_stone_early@72 cordage@82 shelter_hut@86 timber_frame@108 track_road@122 stone_dry@140 knapping_levallois@145 knapping_blade@148 bone_tools@151 tally_notation@155 fire_making@162 token_counting@172 basketry@177 pottery_open_fired@201 stamp_seal@212
+first civics:       kin_council@8 gift_exchange@16 oral_tradition@24 marriage_exchange@32 guest_right@40 wayfinding_lore@48 band_territories@56 customary_sanctions@64 prestige_leadership@74 seasonal_aggregation@84 oath_alliance@97 seasonal_round@103 communal_feasts@120 barter_exchange@135 transhumance@150 clearance_usufruct@163 landscape_burning@166 food_sharing_norms@170 sodalities@182 bridewealth@192
+seed 2 overflow OFF
+Age entered (effective turn): A2=67 A3=355
+Age complete (turn) technology: A1=273 A2=501 A3=688 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+Age complete (turn) civics:     A1=287 A2=494 A3=683 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+proposal nodes completed (turn): cereal_cultivation@41 fire_making@179 cordage@97 ground_stone_early@82 pottery_open_fired@227 kin_council@19
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@82 cordage@97 shelter_hut@101 timber_frame@123 track_road@137 stone_dry@155 knapping_levallois@160 knapping_blade@163 bone_tools@166 tally_notation@170 fire_making@179 token_counting@189 basketry@194 pottery_open_fired@227 stamp_seal@238
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@34 guest_right@43 wayfinding_lore@51 band_territories@59 customary_sanctions@67 prestige_leadership@77 seasonal_aggregation@87 oath_alliance@102 seasonal_round@107 communal_feasts@125 barter_exchange@142 transhumance@157 clearance_usufruct@171 sodalities@183 landscape_burning@187 food_sharing_norms@190 bridewealth@202
+seed 2 overflow OFF EARLY-PROPOSAL
+Age entered (effective turn): A2=59 A3=342
+Age complete (turn) technology: A1=258 A2=490 A3=678 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+Age complete (turn) civics:     A1=267 A2=487 A3=667 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+proposal nodes completed (turn): cereal_cultivation@32 fire_making@167 cordage@83 ground_stone_early@72 pottery_open_fired@209 kin_council@8
+first technologies: grinding_stone@8 cereal_cultivation@32 dog_domestication@37 sheep_goat@58 knapping_oldowan@66 ground_stone_early@72 cordage@83 shelter_hut@87 timber_frame@110 track_road@125 stone_dry@144 knapping_levallois@150 knapping_blade@153 bone_tools@156 tally_notation@160 fire_making@167 token_counting@178 basketry@183 pottery_open_fired@209 stamp_seal@221
+first civics:       kin_council@8 gift_exchange@16 oral_tradition@24 marriage_exchange@32 guest_right@40 wayfinding_lore@49 band_territories@57 customary_sanctions@65 prestige_leadership@75 seasonal_aggregation@85 oath_alliance@100 seasonal_round@105 communal_feasts@123 barter_exchange@140 transhumance@155 clearance_usufruct@169 landscape_burning@173 food_sharing_norms@177 sodalities@189 bridewealth@200
+seed 42 overflow OFF
+Age entered (effective turn): A2=66 A3=341 A4=693
+Age complete (turn) technology: A1=265 A2=480 A3=659 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+Age complete (turn) civics:     A1=269 A2=470 A3=647 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+proposal nodes completed (turn): cereal_cultivation@41 fire_making@174 cordage@94 ground_stone_early@80 pottery_open_fired@221 kin_council@18
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@65 knapping_oldowan@73 ground_stone_early@80 cordage@94 shelter_hut@98 timber_frame@119 track_road@132 stone_dry@150 knapping_levallois@155 knapping_blade@158 bone_tools@161 tally_notation@165 fire_making@174 token_counting@184 basketry@189 pottery_open_fired@221 stamp_seal@231
+first civics:       oral_tradition@9 kin_council@18 gift_exchange@26 marriage_exchange@34 guest_right@42 wayfinding_lore@50 band_territories@58 customary_sanctions@65 prestige_leadership@75 seasonal_aggregation@85 oath_alliance@98 seasonal_round@103 communal_feasts@121 barter_exchange@137 transhumance@151 clearance_usufruct@165 sodalities@177 landscape_burning@180 food_sharing_norms@184 bridewealth@195
+seed 42 overflow OFF EARLY-PROPOSAL
+Age entered (effective turn): A2=58 A3=327 A4=680
+Age complete (turn) technology: A1=250 A2=468 A3=648 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+Age complete (turn) civics:     A1=250 A2=461 A3=637 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+proposal nodes completed (turn): cereal_cultivation@32 fire_making@161 cordage@81 ground_stone_early@71 pottery_open_fired@202 kin_council@7
+first technologies: grinding_stone@8 cereal_cultivation@32 dog_domestication@37 sheep_goat@57 knapping_oldowan@65 ground_stone_early@71 cordage@81 shelter_hut@85 timber_frame@107 track_road@121 stone_dry@139 knapping_levallois@144 knapping_blade@147 bone_tools@150 tally_notation@154 fire_making@161 token_counting@172 basketry@177 pottery_open_fired@202 stamp_seal@213
+first civics:       kin_council@7 gift_exchange@16 oral_tradition@23 marriage_exchange@31 guest_right@40 wayfinding_lore@48 band_territories@56 customary_sanctions@63 prestige_leadership@73 seasonal_aggregation@83 oath_alliance@97 seasonal_round@102 communal_feasts@119 barter_exchange@135 transhumance@150 clearance_usufruct@163 landscape_burning@167 food_sharing_norms@171 sodalities@182 bridewealth@193
+seed 7 overflow OFF
+Age entered (effective turn): A2=67 A3=342 A4=692
+Age complete (turn) technology: A1=266 A2=481 A3=658 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+Age complete (turn) civics:     A1=271 A2=471 A3=646 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+proposal nodes completed (turn): cereal_cultivation@41 fire_making@175 cordage@96 ground_stone_early@82 pottery_open_fired@222 kin_council@19
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@82 cordage@96 shelter_hut@100 timber_frame@121 track_road@134 stone_dry@151 knapping_levallois@156 knapping_blade@159 bone_tools@162 tally_notation@166 fire_making@175 token_counting@185 basketry@190 pottery_open_fired@222 stamp_seal@232
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@34 guest_right@43 wayfinding_lore@51 band_territories@59 customary_sanctions@66 prestige_leadership@77 seasonal_aggregation@86 oath_alliance@100 seasonal_round@105 communal_feasts@122 barter_exchange@138 transhumance@152 clearance_usufruct@166 sodalities@178 landscape_burning@181 food_sharing_norms@185 bridewealth@196
+seed 7 overflow OFF EARLY-PROPOSAL
+Age entered (effective turn): A2=59 A3=329 A4=680
+Age complete (turn) technology: A1=251 A2=469 A3=648 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+Age complete (turn) civics:     A1=251 A2=462 A3=636 A4=-1 A5=-1 A6=-1 A7=-1 A8=-1 A9=-1
+proposal nodes completed (turn): cereal_cultivation@32 fire_making@163 cordage@83 ground_stone_early@72 pottery_open_fired@203 kin_council@8
+first technologies: grinding_stone@8 cereal_cultivation@32 dog_domestication@37 sheep_goat@58 knapping_oldowan@66 ground_stone_early@72 cordage@83 shelter_hut@87 timber_frame@109 track_road@123 stone_dry@141 knapping_levallois@146 knapping_blade@149 bone_tools@152 tally_notation@156 fire_making@163 token_counting@173 basketry@178 pottery_open_fired@203 stamp_seal@214
+first civics:       kin_council@8 gift_exchange@16 oral_tradition@24 marriage_exchange@32 guest_right@41 wayfinding_lore@49 band_territories@57 customary_sanctions@64 prestige_leadership@75 seasonal_aggregation@84 oath_alliance@98 seasonal_round@103 communal_feasts@121 barter_exchange@137 transhumance@151 clearance_usufruct@164 landscape_burning@168 food_sharing_norms@172 sodalities@183 bridewealth@194
