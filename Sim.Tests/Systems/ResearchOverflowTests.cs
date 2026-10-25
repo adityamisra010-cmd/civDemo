@@ -133,4 +133,58 @@ public class ResearchOverflowTests
         WorldState next = Executor(c).Step(Toward(c, "x"));
         Assert.Equal(1, ResearchQuery.Level(next, P, c.Nodes[0].Key));
     }
+
+    [Fact]
+    public void Overflow_TwoCheapRepeatables_EachGainOneLevel_AndTheStepTerminates()
+    {
+        // 0.1 R per level: a looping engine would buy several levels of each. Each node is paid at most once per step: one level each,
+        // the rest of the step's RP is lost (nothing else fundable) — and the step returns.
+        double r = Rp.Value;
+        var s = new Spec { Stage = "x", DestinationRouting = true, ResearchOverflow = true, RepeatableLevels = true };
+        s.Civics.Add(Filler);
+        var rule = new LevelRule(1.2, [("research.researchPointsCoefficient", 0.1)]);
+        s.Technologies.AddRange([new Node(1, "x", Cost: 0.1 * r, Age: "A9", Levels: rule),
+            new Node(2, "y", Cost: 0.1 * r, Age: "A9", Levels: rule), new Node(3, "d", "x AND y", Cost: r, Age: "A9")]);
+        ResearchContent c = s.Load();
+        WorldState next = Executor(c).Step(Toward(c, "d"));
+        Assert.Equal((1, 1), (ResearchQuery.Level(next, P, c.Nodes[0].Key), ResearchQuery.Level(next, P, c.Nodes[1].Key)));
+        Assert.Equal(0.0, Progress(next, 3));   // d needs x AND y complete on PREV
+    }
+
+    [Fact]
+    public void Overflow_ADependentUnlockedThisStep_IsNotPaidUntilTheNextStep()
+    {
+        // a (0.1 R) → b (0.1 R), destination b. Step 1 pays a; b is not available on PREV, so the 0.9 R left is lost, not
+        // spent on b. Step 2 pays b. The prerequisite semantics (availability read from PREV) are unchanged by overflow.
+        double r = Rp.Value;
+        var s = new Spec { Stage = "a", DestinationRouting = true, ResearchOverflow = true };
+        s.Civics.Add(Filler);
+        s.Technologies.AddRange([new Node(1, "a", Cost: 0.1 * r), new Node(2, "b", "a", Cost: 0.1 * r)]);
+        ResearchContent c = s.Load();
+        WorldState w = Toward(c, "b");
+        WorldState one = Executor(c).Step(w);
+        Assert.True(Done(one, 1));
+        Assert.False(Done(one, 2));
+        Assert.Equal(0.0, Progress(one, 2));
+        Assert.True(Done(Executor(c).Step(one), 2));
+    }
+
+    [Fact]
+    public void Overflow_KeepsTheBanksSeparate_RpNeverPaysACivic_AndCivicProgressIsExactlyTheCpSpent()
+    {
+        // The technology destination td needs tech x (0.1 R) AND civic cv (huge). The tech lane overflows past x but may
+        // fund only technologies: RP lands on nothing else. The civics lane (no destination) assists td's route: cv is paid
+        // from the CP bank only, so cv's progress equals the CP spent, to the milli-CP.
+        double r = Rp.Value;
+        var s = new Spec { Stage = "x", DestinationRouting = true, ResearchOverflow = true, CivicsPoints = (true, 1.0, 0.5) };
+        s.Technologies.AddRange([new Node(1, "x", Cost: 0.1 * r), new Node(3, "td", "x AND cv", Cost: r)]);
+        s.Civics.Add(new Node(1001, "cv", Cost: 400_000.0));
+        ResearchContent c = s.Load();
+        WorldState next = Executor(c).Step(Toward(c, "td"));
+        Assert.True(Done(next, 1));
+        Assert.Equal(0.0, Progress(next, 3));
+        CivicsPointsRow account = next.CivicsPoints[0];
+        Assert.Equal(account.SpentMilli / 1000.0, Progress(next, 1001));
+        Assert.Equal(account.GeneratedMilli - account.SpentMilli, account.BalanceMilli);
+    }
 }
