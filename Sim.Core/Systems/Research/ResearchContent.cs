@@ -49,8 +49,14 @@ public sealed record ResearchTuning(
     double EffectiveCostFloorFraction, double AccelerationCreditCeilingFraction, ResearchCostModel CostModel,
     double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null, bool AiCheapestOrRoute = false,
     bool AiSupportingMilestones = false, bool AgeSweep = false, bool DestinationRouting = false,
-    bool KnowledgeEffects = false, PacingScale? Pacing = null, bool RepeatableLevels = false, bool ResearchOverflow = false)
+    bool KnowledgeEffects = false, PacingScale? Pacing = null, bool RepeatableLevels = false, bool ResearchOverflow = false,
+    bool ResearchOverflowLane = false)
 {
+    // ResearchOverflowLane (ADR-050 variant, evidence for D-064): research.json tuning.researchOverflowLane. With
+    // ResearchOverflow on, once the destination's route and the free-lane assist have nothing left to pay, the remainder
+    // also funds the CHEAPEST available node of the lane's own tree (a levelled repeatable included; composite key
+    // (EffectiveCost, key)), repeatedly. Under the Age sweep every finite node is eventually required, so this spends
+    // points the route rule discards without skipping a choice. Off (absent or false): route-only overflow.
     // ResearchOverflow (ADR-050; D-064): research.json tuning.researchOverflow. On, the points a lane holds in a step are not
     // capped at its funded node: once that node is fully paid, the remainder funds the lane's NEXT fundable node (the
     // destination's route, then the free-lane assist — the same rule, read from PREV), repeatedly, each node at most once
@@ -988,7 +994,8 @@ public static class ResearchContentLoader
         return new ResearchTuning(rp.Coefficient, rp.Exponent, anchors, t.EffectiveCostFloorFraction,
             t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics,
             t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false, t.AgeSweep ?? false, t.DestinationRouting ?? false,
-            t.KnowledgeEffects ?? false, ValidatePacing(t.PacingScale), t.RepeatableLevels ?? false, t.ResearchOverflow ?? false);
+            t.KnowledgeEffects ?? false, ValidatePacing(t.PacingScale), t.RepeatableLevels ?? false, t.ResearchOverflow ?? false,
+            t.ResearchOverflowLane ?? false);
     }
 
     /// <summary>tuning.pacingScale (D-063 R6): nine finite scales in (0, 16] per tree, one per content Age A1..A9.</summary>
@@ -1669,7 +1676,8 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("knowledgeEffects")] bool? KnowledgeEffects = null,
         [property: JsonPropertyName("pacingScale")] PacingScaleJson? PacingScale = null,
         [property: JsonPropertyName("repeatableLevels")] bool? RepeatableLevels = null,
-        [property: JsonPropertyName("researchOverflow")] bool? ResearchOverflow = null);
+        [property: JsonPropertyName("researchOverflow")] bool? ResearchOverflow = null,
+        [property: JsonPropertyName("researchOverflowLane")] bool? ResearchOverflowLane = null);
 
     private sealed record PacingScaleJson(
         [property: JsonPropertyName("technology"), JsonRequired] double[] Technology,

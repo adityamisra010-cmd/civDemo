@@ -82,6 +82,8 @@ internal static class ResearchRigs
         public bool KnowledgeEffects { get; set; }
         /// <summary>ADR-050: tuning.researchOverflow (null = absent).</summary>
         public bool ResearchOverflow { get; set; }
+        /// <summary>ADR-050 lane variant: tuning.researchOverflowLane (null = absent).</summary>
+        public bool ResearchOverflowLane { get; set; }
 
         public string Json()
         {
@@ -248,6 +250,7 @@ internal static class ResearchRigs
                     ["repeatableLevels"] = RepeatableLevels,
                     ["knowledgeEffects"] = KnowledgeEffects ? true : null,
                     ["researchOverflow"] = ResearchOverflow ? true : null,
+                    ["researchOverflowLane"] = ResearchOverflowLane ? true : null,
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject

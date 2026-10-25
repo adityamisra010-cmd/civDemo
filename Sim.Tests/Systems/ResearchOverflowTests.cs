@@ -187,4 +187,26 @@ public class ResearchOverflowTests
         Assert.Equal(account.SpentMilli / 1000.0, Progress(next, 1001));
         Assert.Equal(account.GeneratedMilli - account.SpentMilli, account.BalanceMilli);
     }
+
+    [Fact]
+    public void LaneVariant_AfterTheRouteIsExhausted_PaysTheCheapestAvailableNodeOfTheLane_RouteOnlyDoesNot()
+    {
+        // Destination d needs x (0.3 R); an off-route root o (0.3 R) is also available. Route-only overflow pays x and
+        // stops (0.7 R lost); the lane variant then pays o, the cheapest available technology (0.4 R lost).
+        double r = Rp.Value;
+        ResearchContent Load(bool lane)
+        {
+            var s = new Spec { Stage = "x", DestinationRouting = true, ResearchOverflow = true, ResearchOverflowLane = lane };
+            s.Civics.Add(Filler);
+            s.Technologies.AddRange([new Node(1, "x", Cost: 0.3 * r), new Node(2, "o", Cost: 0.3 * r), new Node(3, "d", "x", Cost: r)]);
+            return s.Load();
+        }
+        ResearchContent route = Load(lane: false), lane = Load(lane: true);
+        WorldState a = Executor(route).Step(Toward(route, "d"));
+        WorldState b = Executor(lane).Step(Toward(lane, "d"));
+        Assert.True(Done(a, 1) && Done(b, 1));
+        Assert.False(Done(a, 2));
+        Assert.True(Done(b, 2));
+        Assert.Equal(0.0, Progress(b, 3));   // d is still next-step only
+    }
 }

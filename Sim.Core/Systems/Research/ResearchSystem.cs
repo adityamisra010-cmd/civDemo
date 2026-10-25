@@ -374,7 +374,8 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
     /// marked in <paramref name="paidOff"/> are fully paid — ResearchRoutePlanner.Fund's rule replayed on the step's own plans
     /// (no re-planning: availability stays PREV's, less the paid nodes): the lane's destination if available, else its
     /// route's current node, else (two lanes) the free-lane assist on the other lane's route; a city state takes the
-    /// cheapest available node of its lane. -1 when nothing more is fundable (routing off: never more than the target).</summary>
+    /// cheapest available node of its lane; with tuning.researchOverflowLane an Empire's lane, its route exhausted, does too.
+    /// -1 when nothing more is fundable (routing off: never more than the target).</summary>
     private static int NextFunded(IReadOnlyWorldState prev, ResearchContent content, PolityId polity, bool local, bool twoLanes,
         LaneFunding[]? lanes, int[] target, int lane, bool[] available, bool[] paidOff, double[]? remaining)
     {
@@ -391,6 +392,9 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
             next = ResearchRoutePlanner.PickCurrent(content, own.Route, open, remaining, lane, twoLanes, -1);
         if (next < 0 && twoLanes && lanes[1 - lane].Plan is { } other)
             next = ResearchRoutePlanner.PickCurrent(content, other.Route, open, remaining, lane, twoLanes, -1);
+        if (next < 0 && content.Tuning.ResearchOverflowLane)   // the lane variant: the cheapest available node of the lane
+            next = AiResearchPolicy.Cheapest(prev, content, polity, open,
+                twoLanes ? TreeMask(content, lane == 0 ? ResearchTree.Technology : ResearchTree.Civics) : null);
         return next;
     }
 
