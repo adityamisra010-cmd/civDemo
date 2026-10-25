@@ -152,3 +152,14 @@ or `building.` unlock as live, including placeholders. The live map
 
 Option 1. Until the ruling: the operand stays declared and the 17 declarations are frozen. The coverage report carries
 a dated correction (2026-10-25 note in `tranche2-effect-coverage.md`).
+
+## 6. Interim display correction (2026-10-25, commit 1ad60d3)
+
+The misleading player-facing claim is corrected without touching content, as the Director's instruction allows:
+- The operand registry now carries `NotConsumed` for `roads.baselineKmPerDay`, so `ConsumedInPlay` is false.
+- The research card lists the effect as "(not simulated yet)", gives this CR as the reason, and no longer counts it as a
+  simulated effect.
+- The 14 nodes whose only effect it is now read research-only or knowledge-only, which is the truth today.
+
+Content, loader, caps and every system are unchanged. The per-node disposition in §2.2 and the R1 question still await
+the ruling.

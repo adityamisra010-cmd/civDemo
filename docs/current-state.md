@@ -1,6 +1,14 @@
 # CURRENT STATE — the routing document
 
-> **2026-10-25 (latest): RESEARCH COST PASS (D-064 review package) — evidence and proposals only, on branch
+> **2026-10-25, later (latest): RESEARCH DEFECTS FIXED, OVERFLOW TRIALLED, EMPTY-LANE RULE PROPOSED** on
+> `claude/new-session-yavghm`. Not merged; `research.json` unchanged; `main` = `m5-exit` untouched.
+> - **Display fixes k2–k5:** `9204de7`.
+> - **CR-025** (the speed operand has no consumer): raised, awaiting ruling. Interim display fix `1ad60d3`.
+> - **Overflow trial:** `research-cost-pass/overflow-trial.md`. Overflow stays OFF.
+> - **Empty-lane reserve:** `research-cost-pass/empty-lane-reserve-proposal.md`, not implemented.
+> - **Costs and final-Age repeatables:** deferred until those rulings and a refreshed pacing baseline.
+>
+> **2026-10-25: RESEARCH COST PASS (D-064 review package) — evidence and proposals only, on branch
 > `claude/new-session-yavghm`; NOTHING APPLIED to `research.json`; `main` = `m5-exit` = `6e51a3e` untouched.**
 > - **Index:** `docs/m6-plan/knowledge-redesign/research-cost-pass/README.md` (lifecycle of RP/CP loss, overflow
 >   comparison, live-versus-placeholder map, decision table, early-game trial, repeatables proposal, cited research).

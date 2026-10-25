@@ -19,6 +19,9 @@ and 7, the canonical world, one AI Empire).
 | 5 | `early-game-trial.md` | Does pricing six opening enablers ×0.71 speed the opening, alone (overflow off)? |
 | 6 | `online-research.md` | How shipped games price repeatable and late-game research (cited) |
 | 7 | `repeatables-proposal.md` | Final-Age repeatables for both trees: set, operands, pricing, and its tie to pacing |
+| 8 | `overflow-trial.md` (2026-10-25) | Route overflow against the post-fix baseline: RP by Age, Age and milestone turns, completion order, CP, repeatable levels, replay |
+| 9 | `empty-lane-reserve-proposal.md` (2026-10-25) | The empty-lane RP rule: reserve caps compared against an uncapped reserve, a human proxy, bursts and pacing, a UI spec |
+| — | `../../../adr/cr-025-unconsumed-overland-speed-operand.md` | The 17 nodes whose speed effect no system consumes: evidence, options, the interim display fix |
 
 ## Findings in one screen
 
@@ -57,15 +60,36 @@ and 7, the canonical world, one AI Empire).
 | `Sim.Tests/Systems/ResearchPointLifecycleTests.cs` (19, one a skipped measurement) | today's OFF behaviour, case by case |
 | `Sim.Ui.Tests/ResearchPointDisplayTests.cs` (4) | the research screen's numbers against `ResearchQuery` and the next step |
 | `Sim.Tests/Kernel/OverflowComparisonMeasurement.cs` (skipped) | the OFF / ON / ON-LANE and early-trial measurements |
+| `Sim.Tests/Kernel/ResearchPacingRunner.cs`, `ResearchEconomyMeasurement.cs` (`SIM_MEASURE=1`) | the overflow trial and the reserve study: per-step funding reconstruction, a human proxy, a reserve model outside the engine, replay and save/load |
+| `tools/research_economy_report.py` | regenerate the trial and reserve tables from the run CSVs (`data/trial`, `data/reserve`) |
 | `tools/cost_audit.py`, `tools/decision_table.py`, `tools/overflow_report.py` | regenerate `baseline-screen.csv`, the decision table and the comparison tables |
+
+## 2026-10-25 sequence (Director instruction): status
+
+1. **Defects. Fixed.**
+   - Research screen k2–k5: `9d4788b`, merged in `9204de7`. The screens name the funded node, the assisting and waiting
+     lanes, and the next step's CP a turn.
+   - The speed operand: CR-025 raised (`63bdf7c`, merged in `cce5d72`). No supported system consumes travel time, and
+     the honest content fix conflicts with D-063 R1, so it waits on the ruling. Interim display correction `1ad60d3`: the
+     card says "not simulated yet". No cost was lowered.
+2. **Route-overflow trial. Done.** It stays OFF. See `overflow-trial.md`: waste falls only from 54.5 % to 50.8 %, Age 9
+   arrives 44–65 turns sooner, completion order holds and replay is exact. It also creates sweep waits.
+3. **Empty-lane rule. Proposed, not implemented.** `empty-lane-reserve-proposal.md`: cap 3 turns, draw at most 1 turn,
+   and drawn RP spent by the same rules. EXACT draws were found to reward idling.
+4. **Costs. Unchanged and deferred** until the RP policy is ruled and the pacing baseline is refreshed. The six early
+   cuts get reassessed then.
+   - FUTURE-DEPENDENT and EFFECT-DEFECT rows stay on hold.
+   - Placeholder civics get no blanket reductions.
+5. **Final-Age repeatables. Deferred** on the same condition. Military waits on M7.
 
 ## Decisions waiting on the Director
 
-1. Adopt route overflow (ADR-050)? If yes, re-measure the pacing scales in the same change.
-2. Adopt a rule for empty-lane steps, such as a default cheapest fund or a destination that persists through repeatable
-   levels? This is separate from overflow, and it is where a player's remaining RP is lost.
+1. Adopt route overflow (ADR-050) together with the empty-lane reserve (`empty-lane-reserve-proposal.md` §4), then
+   refresh the pacing baseline once with both on.
+2. The sweep wait that overflow creates: accept it, let the waiting technology lane assist the blocking civics cohort,
+   or give sweep waits a larger reserve cap.
 3. Apply the six early-enabler cuts?
 4. Apply the screen's increases and reductions? Each would be a separate, row-by-row change.
 5. Approve the repeatables set and growth 1.05? If yes, set the level-1 magnitudes together with the pacing
    recalibration.
-6. Fix the display discrepancies k2–k5 and the unread `roads.baselineKmPerDay` operand. These are defects, not balance.
+6. CR-025: rule on the per-node disposition of the 17 speed-operand nodes, and on D-063 R1.

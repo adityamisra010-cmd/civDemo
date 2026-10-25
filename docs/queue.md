@@ -1619,3 +1619,15 @@
 - 2026-10-24 (D-063): the D-055 allocation leg (ci.yml, AllocationScenarioTests) runs `--without-tranche2` / TestConfigs.PreTranche2 — on the shipped tranche-2 research split-check fails P5 (measured in process). Re-derive the scenario's premises (P, X, W, K, V) on the shipped content and drop the switch.
 - 2026-10-24 (D-063, UI): with the Age sweep on, the progression screen's route block lists every outstanding sweep node above CANCEL DESTINATION, so at 1600×1000 the button sits below the fold (the gate rows scroll to it). Layout call — e.g. collapse the sweep list or pin the button — for the UI owner.
 - 2026-10-25 (CR-025, raised; awaiting ruling): `roads.baselineKmPerDay` has no consuming system (`TransportQuery.EstimateFreight` has no caller; ADR-032 §7), yet 17 nodes declare it and 14 have no other effect. Under D-063 R1, "every node a real effect", an honest fix cannot leave 6 of them (wheel_spoked, saddle, aluminium, integrated_alliance_command, pilgrimage, road_traffic_regulation) without a live effect, and no live operand fits their meaning. Options and per-node dispositions are in CR-025. The 17 declarations are frozen by `Tranche2ContentTests.NoNewNode_DeclaresTheUnconsumedSpeedOperand` until the ruling. Related gap: `EveryNode_HasARealEffect` counts placeholder `infra.`/`building.` unlocks as live (about 16 nodes, live map).
+
+- 2026-10-25 (D-064 review): research display defects k2–k5 FIXED (9d4788b): the funded node, assisting and waiting lanes,
+  and next-step CP a turn. Route-overflow trial done (`research-cost-pass/overflow-trial.md`); overflow stays OFF pending
+  the empty-lane rule. Empty-lane RP reserve proposed and measured, not implemented
+  (`research-cost-pass/empty-lane-reserve-proposal.md`: cap 3 turns, draw at most 1 turn, drawn RP spent by the same
+  rules). Open for the Director:
+  (a) adopt overflow together with the reserve and refresh the pacing baseline once;
+  (b) the sweep wait that overflow creates (a technology lane waiting on the civics cohort for about 20 turns);
+  (c) the CR-025 ruling on the 17 speed-operand nodes.
+  Cost revisions (six early cuts, cost batches) and the final-Age repeatables proposal stay DEFERRED until (a) is ruled
+  and the pacing baseline is refreshed. FUTURE-DEPENDENT (22) and EFFECT-DEFECT (6) rows stay on hold, and placeholder
+  civics get no blanket reductions.
