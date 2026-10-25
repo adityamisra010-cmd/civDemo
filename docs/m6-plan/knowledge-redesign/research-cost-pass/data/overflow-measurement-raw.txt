@@ -1,0 +1,120 @@
+seed 1 overflow OFF
+Age entered (effective turn): A2=67 A3=339 A4=683 A5=717 A6=783 A7=939 A8=1074 A9=1204
+Age complete (turn) technology: A1=263 A2=476 A3=651 A4=770 A5=898 A6=1039 A7=1184 A8=1342 A9=1483
+Age complete (turn) civics:     A1=265 A2=464 A3=639 A4=769 A5=911 A6=1033 A7=1129 A8=1336 A9=1430
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@81 cordage@95 shelter_hut@99 timber_frame@119 track_road@132
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@34 guest_right@43 wayfinding_lore@51 band_territories@59 customary_sanctions@66 prestige_leadership@76 seasonal_aggregation@86
+RP by polity Age (turns, generated, spent, lost %): A1[67t 1548 1482 4.2%] A2[272t 19753 18088 8.4%] A3[344t 261979 231147 11.8%] A4[34t 99612 90675 9.0%] A5[66t 325472 278611 14.4%] A6[156t 1302686 1013498 22.2%] A7[135t 1374973 1058958 23.0%] A8[130t 1546449 1175864 24.0%] A9[426t 7987204 2124914 73.4%]
+CP generated 1637806 spent 1637806 banked 0
+end: Age 9 tech 525 civics 480 levels 301 population 47018057 settlements 20
+infrastructure: structures 55 road developments 671 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+seed 1 overflow ON
+Age entered (effective turn): A2=67 A3=329 A4=664 A5=697 A6=767 A7=904 A8=1036 A9=1139
+Age complete (turn) technology: A1=255 A2=455 A3=629 A4=746 A5=866 A6=982 A7=1120 A8=1277 A9=1422
+Age complete (turn) civics:     A1=265 A2=461 A3=625 A4=753 A5=877 A6=1003 A7=1074 A8=1272 A9=1364
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@81 cordage@94 shelter_hut@98 timber_frame@119 track_road@132
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@34 guest_right@43 wayfinding_lore@51 band_territories@59 customary_sanctions@66 prestige_leadership@76 seasonal_aggregation@86
+RP by polity Age (turns, generated, spent, lost %): A1[67t 1548 1482 4.2%] A2[262t 18430 18082 1.9%] A3[335t 234465 231026 1.5%] A4[33t 91864 86576 5.8%] A5[70t 336316 282838 15.9%] A6[137t 1133057 1009166 10.9%] A7[132t 1345817 1069188 20.6%] A8[103t 1246982 1158649 7.1%] A9[491t 9619073 3193547 66.8%]
+CP generated 1761463 spent 1761463 banked 0
+end: Age 9 tech 525 civics 480 levels 339 population 48516116 settlements 20
+infrastructure: structures 55 road developments 654 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+seed 2 overflow OFF
+Age entered (effective turn): A2=67 A3=355 A4=728 A5=768 A6=847 A7=1005 A8=1156 A9=1290
+Age complete (turn) technology: A1=273 A2=501 A3=688 A4=829 A5=963 A6=1109 A7=1270 A8=1429 A9=1574
+Age complete (turn) civics:     A1=287 A2=494 A3=683 A4=834 A5=988 A6=1121 A7=1211 A8=1423 A9=1515
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@82 cordage@97 shelter_hut@101 timber_frame@123 track_road@137
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@34 guest_right@43 wayfinding_lore@51 band_territories@59 customary_sanctions@67 prestige_leadership@77 seasonal_aggregation@87
+RP by polity Age (turns, generated, spent, lost %): A1[67t 1520 1481 2.6%] A2[288t 19438 18078 7.0%] A3[373t 254882 230725 9.5%] A4[40t 97819 91109 6.9%] A5[79t 367738 278611 24.2%] A6[158t 1325705 929587 29.9%] A7[151t 1537316 1093743 28.9%] A8[134t 1559676 1226080 21.4%] A9[340t 5684025 1247533 78.1%]
+CP generated 1349247 spent 1349247 banked 0
+end: Age 9 tech 525 civics 480 levels 205 population 42008153 settlements 21
+infrastructure: structures 57 road developments 907 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+seed 2 overflow ON
+Age entered (effective turn): A2=67 A3=348 A4=713 A5=753 A6=832 A7=962 A8=1134 A9=1246
+Age complete (turn) technology: A1=265 A2=483 A3=669 A4=807 A5=932 A6=1042 A7=1226 A8=1385 A9=1530
+Age complete (turn) civics:     A1=287 A2=492 A3=673 A4=818 A5=945 A6=1101 A7=1174 A8=1379 A9=1471
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@82 cordage@96 shelter_hut@100 timber_frame@122 track_road@136
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@34 guest_right@43 wayfinding_lore@51 band_territories@59 customary_sanctions@67 prestige_leadership@77 seasonal_aggregation@87
+RP by polity Age (turns, generated, spent, lost %): A1[67t 1520 1481 2.6%] A2[281t 18617 18074 2.9%] A3[365t 240206 230664 4.0%] A4[40t 95841 89738 6.4%] A5[79t 355077 280047 21.1%] A6[130t 1057256 928925 12.1%] A7[172t 1775206 1088659 38.7%] A8[112t 1318433 1225588 7.0%] A9[384t 6659651 1496964 77.5%]
+CP generated 1421952 spent 1421952 banked 0
+end: Age 9 tech 525 civics 480 levels 252 population 44286927 settlements 21
+infrastructure: structures 57 road developments 903 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+seed 42 overflow OFF
+Age entered (effective turn): A2=66 A3=341 A4=693 A5=727 A6=793 A7=924 A8=1030 A9=1143
+Age complete (turn) technology: A1=265 A2=480 A3=659 A4=781 A5=890 A6=1001 A7=1123 A8=1273 A9=1414
+Age complete (turn) civics:     A1=269 A2=470 A3=647 A4=781 A5=901 A6=997 A7=1074 A8=1276 A9=1361
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@65 knapping_oldowan@73 ground_stone_early@80 cordage@94 shelter_hut@98 timber_frame@119 track_road@132
+first civics:       oral_tradition@9 kin_council@18 gift_exchange@26 marriage_exchange@34 guest_right@42 wayfinding_lore@50 band_territories@58 customary_sanctions@65 prestige_leadership@75 seasonal_aggregation@85
+RP by polity Age (turns, generated, spent, lost %): A1[66t 1541 1483 3.8%] A2[275t 19542 18085 7.5%] A3[352t 262623 231088 12.0%] A4[34t 95701 89757 6.2%] A5[66t 337406 279591 17.1%] A6[131t 1302675 1008406 22.6%] A7[106t 1302575 1058010 18.8%] A8[113t 1621057 1163332 28.2%] A9[487t 12128845 3619799 70.2%]
+CP generated 2015978 spent 2015978 banked 0
+end: Age 9 tech 525 civics 480 levels 353 population 69210515 settlements 21
+infrastructure: structures 57 road developments 736 institutions 15; discovery: surveys 21 explorations 19 known cells 1232
+seed 42 overflow ON
+Age entered (effective turn): A2=66 A3=333 A4=673 A5=707 A6=774 A7=882 A8=992 A9=1081
+Age complete (turn) technology: A1=256 A2=460 A3=637 A4=757 A5=859 A6=947 A7=1063 A8=1211 A9=1356
+Age complete (turn) civics:     A1=269 A2=467 A3=633 A4=761 A5=852 A6=964 A7=1026 A8=1216 A9=1299
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@65 knapping_oldowan@73 ground_stone_early@80 cordage@93 shelter_hut@97 timber_frame@118 track_road@132
+first civics:       oral_tradition@9 kin_council@18 gift_exchange@26 marriage_exchange@34 guest_right@42 wayfinding_lore@50 band_territories@58 customary_sanctions@65 prestige_leadership@75 seasonal_aggregation@85
+RP by polity Age (turns, generated, spent, lost %): A1[66t 1541 1483 3.8%] A2[267t 18529 18081 2.4%] A3[340t 233872 230948 1.3%] A4[34t 90671 85490 5.7%] A5[67t 323433 284003 12.2%] A6[108t 1044492 1006670 3.6%] A7[110t 1343119 1069415 20.4%] A8[89t 1277135 1153206 9.7%] A9[549t 14181079 5244354 63.0%]
+CP generated 2194376 spent 2194376 banked 0
+end: Age 9 tech 525 civics 480 levels 381 population 69951973 settlements 21
+infrastructure: structures 57 road developments 735 institutions 15; discovery: surveys 21 explorations 19 known cells 1232
+seed 7 overflow OFF
+Age entered (effective turn): A2=67 A3=342 A4=692 A5=728 A6=793 A7=919 A8=1037 A9=1158
+Age complete (turn) technology: A1=266 A2=481 A3=658 A4=780 A5=894 A6=1008 A7=1138 A8=1288 A9=1433
+Age complete (turn) civics:     A1=271 A2=471 A3=646 A4=777 A5=902 A6=1004 A7=1090 A8=1291 A9=1375
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@82 cordage@96 shelter_hut@100 timber_frame@121 track_road@134
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@34 guest_right@43 wayfinding_lore@51 band_territories@59 customary_sanctions@66 prestige_leadership@77 seasonal_aggregation@86
+RP by polity Age (turns, generated, spent, lost %): A1[67t 1534 1482 3.4%] A2[275t 19481 18085 7.2%] A3[350t 265871 231136 13.1%] A4[36t 105206 94137 10.5%] A5[65t 345534 275165 20.4%] A6[126t 1197466 942228 21.3%] A7[118t 1375727 1123636 18.3%] A8[121t 1655641 1164616 29.7%] A9[472t 10255534 3069324 70.1%]
+CP generated 1872365 spent 1872365 banked 0
+end: Age 9 tech 525 civics 480 levels 338 population 56179099 settlements 20
+infrastructure: structures 55 road developments 827 institutions 15; discovery: surveys 20 explorations 15 known cells 1195
+seed 7 overflow ON
+Age entered (effective turn): A2=67 A3=334 A4=672 A5=708 A6=769 A7=874 A8=997 A9=1094
+Age complete (turn) technology: A1=256 A2=461 A3=636 A4=754 A5=858 A6=945 A7=1075 A8=1224 A9=1369
+Age complete (turn) civics:     A1=271 A2=468 A3=632 A4=756 A5=849 A6=968 A7=1029 A8=1228 A9=1310
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@82 cordage@95 shelter_hut@99 timber_frame@120 track_road@133
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@34 guest_right@43 wayfinding_lore@51 band_territories@59 customary_sanctions@66 prestige_leadership@77 seasonal_aggregation@86
+RP by polity Age (turns, generated, spent, lost %): A1[67t 1534 1482 3.4%] A2[267t 18504 18081 2.3%] A3[338t 236560 231012 2.3%] A4[36t 100365 90818 9.5%] A5[61t 308083 278611 9.6%] A6[105t 962245 928733 3.5%] A7[123t 1435826 1095719 23.7%] A8[97t 1341025 1220163 9.0%] A9[536t 12182303 4482630 63.2%]
+CP generated 2039368 spent 2039368 banked 0
+end: Age 9 tech 525 civics 480 levels 368 population 57661133 settlements 20
+infrastructure: structures 55 road developments 826 institutions 15; discovery: surveys 20 explorations 15 known cells 1195
+seed 1 overflow ON-LANE
+Age entered (effective turn): A2=67 A3=325 A4=660 A5=694 A6=758 A7=898 A8=1026 A9=1127
+Age complete (turn) technology: A1=251 A2=451 A3=625 A4=740 A5=857 A6=972 A7=1108 A8=1166 A9=1184
+Age complete (turn) civics:     A1=250 A2=459 A3=622 A4=744 A5=871 A6=993 A7=1063 A8=1139 A9=1183
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@81 cordage@94 shelter_hut@98 timber_frame@119 raft@132
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@35 guest_right@43 wayfinding_lore@51 band_territories@59 customary_sanctions@66 prestige_leadership@76 seasonal_aggregation@86
+RP by polity Age (turns, generated, spent, lost %): A1[67t 1548 1548 0.0%] A2[258t 18074 18074 0.0%] A3[335t 235617 235617 0.0%] A4[34t 97173 97173 0.0%] A5[64t 308412 285931 7.3%] A6[140t 1154207 1031599 10.6%] A7[128t 1315850 1093683 16.9%] A8[101t 1257447 1257447 0.0%] A9[503t 11752767 11689654 0.5%]
+CP generated 1931006 spent 1931006 banked 0
+end: Age 9 tech 525 civics 480 levels 429 population 51283375 settlements 20
+infrastructure: structures 55 road developments 651 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+seed 2 overflow ON-LANE
+Age entered (effective turn): A2=67 A3=344 A4=708 A5=747 A6=825 A7=937 A8=1112 A9=1220
+Age complete (turn) technology: A1=261 A2=478 A3=665 A4=799 A5=920 A6=1014 A7=1201 A8=1263 A9=1282
+Age complete (turn) civics:     A1=270 A2=490 A3=668 A4=811 A5=916 A6=1080 A7=1152 A8=1235 A9=1281
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@82 cordage@96 shelter_hut@100 timber_frame@122 track_road@136
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@35 guest_right@44 wayfinding_lore@51 band_territories@59 customary_sanctions@67 prestige_leadership@77 seasonal_aggregation@87
+RP by polity Age (turns, generated, spent, lost %): A1[67t 1520 1520 0.0%] A2[277t 18249 18249 0.0%] A3[364t 239551 234693 2.0%] A4[39t 94147 94147 0.0%] A5[78t 360295 293114 18.6%] A6[112t 934580 934580 0.0%] A7[175t 1828441 1121784 38.6%] A8[108t 1295668 1295628 0.0%] A9[410t 8755924 8709588 0.5%]
+CP generated 1565488 spent 1565488 banked 0
+end: Age 9 tech 525 civics 480 levels 404 population 48288336 settlements 21
+infrastructure: structures 57 road developments 881 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+seed 42 overflow ON-LANE
+Age entered (effective turn): A2=66 A3=329 A4=669 A5=705 A6=770 A7=881 A8=978 A9=1063
+Age complete (turn) technology: A1=252 A2=456 A3=633 A4=751 A5=852 A6=941 A7=1046 A8=1095 A9=1110
+Age complete (turn) civics:     A1=253 A2=464 A3=630 A4=757 A5=859 A6=950 A7=1008 A8=1072 A9=1109
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@65 knapping_oldowan@73 ground_stone_early@80 cordage@93 shelter_hut@97 timber_frame@118 raft@132
+first civics:       oral_tradition@9 kin_council@18 gift_exchange@26 marriage_exchange@34 guest_right@42 wayfinding_lore@50 band_territories@58 customary_sanctions@65 prestige_leadership@75 seasonal_aggregation@85
+RP by polity Age (turns, generated, spent, lost %): A1[66t 1541 1541 0.0%] A2[263t 18182 18182 0.0%] A3[340t 234926 234926 0.0%] A4[36t 98949 98949 0.0%] A5[65t 324873 288751 11.1%] A6[111t 1118454 1042710 6.8%] A7[97t 1211184 1092391 9.8%] A8[85t 1255275 1255275 0.0%] A9[567t 17532345 17394876 0.8%]
+CP generated 2543400 spent 2543400 banked 0
+end: Age 9 tech 525 civics 480 levels 460 population 73645216 settlements 21
+infrastructure: structures 57 road developments 731 institutions 15; discovery: surveys 21 explorations 19 known cells 1232
+seed 7 overflow ON-LANE
+Age entered (effective turn): A2=67 A3=331 A4=667 A5=702 A6=764 A7=869 A8=989 A9=1084
+Age complete (turn) technology: A1=253 A2=457 A3=632 A4=747 A5=853 A6=934 A7=1066 A8=1119 A9=1135
+Age complete (turn) civics:     A1=255 A2=465 A3=628 A4=751 A5=844 A6=960 A7=1022 A8=1095 A9=1134
+first technologies: grinding_stone@8 cereal_cultivation@41 dog_domestication@46 sheep_goat@66 knapping_oldowan@74 ground_stone_early@82 cordage@95 shelter_hut@99 timber_frame@120 track_road@133
+first civics:       oral_tradition@9 kin_council@19 gift_exchange@27 marriage_exchange@35 guest_right@44 wayfinding_lore@51 band_territories@59 customary_sanctions@66 prestige_leadership@77 seasonal_aggregation@86
+RP by polity Age (turns, generated, spent, lost %): A1[67t 1534 1534 0.0%] A2[264t 18271 18271 0.0%] A3[336t 233630 233630 0.0%] A4[35t 97265 97265 0.0%] A5[62t 311615 287287 7.8%] A6[105t 959162 959162 0.0%] A7[120t 1415387 1095347 22.6%] A8[95t 1328994 1328992 0.0%] A9[546t 14541615 14436911 0.7%]
+CP generated 2257067 spent 2257067 banked 0
+end: Age 9 tech 525 civics 480 levels 446 population 60257952 settlements 20
+infrastructure: structures 55 road developments 804 institutions 15; discovery: surveys 20 explorations 15 known cells 1195
