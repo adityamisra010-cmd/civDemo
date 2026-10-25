@@ -129,26 +129,37 @@ public class ResearchOverflowTests
         s.Civics.Add(Filler);
         s.Technologies.Add(new Node(1, "x", Cost: 0.1 * r, Age: "A9",
             Levels: new LevelRule(1.2, [("research.researchPointsCoefficient", 0.1)])));
+        s.Recursive.Add("x");   // a levelled repeatable (ADR-049), not a complete-once node
         ResearchContent c = s.Load();
+        Assert.True(c.Nodes[0].Levels is not null);
+        // 0.1 R per level and R RP: a looping engine would buy several levels in this step. Each node is paid at most once.
         WorldState next = Executor(c).Step(Toward(c, "x"));
         Assert.Equal(1, ResearchQuery.Level(next, P, c.Nodes[0].Key));
+        // The node really is levelled: aimed at again, the next step buys level 2 (complete-once would stay at 1).
+        next.ResearchTargets.Add(new ResearchTargetRow(P, c.Nodes[0].Key));
+        Assert.Equal(2, ResearchQuery.Level(Executor(c).Step(next), P, c.Nodes[0].Key));
     }
 
     [Fact]
     public void Overflow_TwoCheapRepeatables_EachGainOneLevel_AndTheStepTerminates()
     {
-        // 0.1 R per level: a looping engine would buy several levels of each. Each node is paid at most once per step: one level each,
-        // the rest of the step's RP is lost (nothing else fundable) — and the step returns.
+        // The lane variant is where a loop could live: after the destination x its fallback takes the lane's cheapest available
+        // node, and a just-paid repeatable is available again at its next level. 0.1 R per level and R RP: a looping engine would
+        // buy several levels of each. Each node is paid at most once per step: x then y, one level each, the rest of the step's
+        // RP is lost (nothing else fundable) — and the step returns.
         double r = Rp.Value;
-        var s = new Spec { Stage = "x", DestinationRouting = true, ResearchOverflow = true, RepeatableLevels = true };
+        var s = new Spec { Stage = "x", DestinationRouting = true, ResearchOverflow = true, ResearchOverflowLane = true, RepeatableLevels = true };
         s.Civics.Add(Filler);
         var rule = new LevelRule(1.2, [("research.researchPointsCoefficient", 0.1)]);
         s.Technologies.AddRange([new Node(1, "x", Cost: 0.1 * r, Age: "A9", Levels: rule),
-            new Node(2, "y", Cost: 0.1 * r, Age: "A9", Levels: rule), new Node(3, "d", "x AND y", Cost: r, Age: "A9")]);
+            new Node(2, "y", Cost: 0.1 * r, Age: "A9", Levels: rule)]);
+        s.Recursive.AddRange(["x", "y"]);
         ResearchContent c = s.Load();
-        WorldState next = Executor(c).Step(Toward(c, "d"));
+        Assert.True(c.Nodes[0].Levels is not null && c.Nodes[1].Levels is not null);
+        WorldState next = Executor(c).Step(Toward(c, "x"));
         Assert.Equal((1, 1), (ResearchQuery.Level(next, P, c.Nodes[0].Key), ResearchQuery.Level(next, P, c.Nodes[1].Key)));
-        Assert.Equal(0.0, Progress(next, 3));   // d needs x AND y complete on PREV
+        Assert.Equal(0.0, Progress(next, 1));   // no progress carried into x's level 2 within the step
+        Assert.Equal(0.0, Progress(next, 2));
     }
 
     [Fact]

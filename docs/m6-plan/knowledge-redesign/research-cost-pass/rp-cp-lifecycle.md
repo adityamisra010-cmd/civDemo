@@ -6,7 +6,7 @@ Overflow itself is measured in `overflow-comparison.md` and is not repeated here
 
 **Tests (all pin the CURRENT behaviour, not a desired one):**
 
-- `Sim.Tests/Systems/ResearchPointLifecycleTests.cs` — 19 facts, cases (a)–(l). Rig: one player polity, 10 000 people,
+- `Sim.Tests/Systems/ResearchPointLifecycleTests.cs` — 19 facts, cases (a)–(l); (l) is a skipped measurement (about 3.5 minutes; run it explicitly). Rig: one player polity, 10 000 people,
   R = `ResearchQuery.ResearchPointPool` = 1 000 RP a step, G = `ResearchQuery.CivicsPointsMilli` = 1 000 000 milli-CP
   (1 000 CP) a dt-10 step; two lanes, destination routing, overflow off (the shipped switches). "RP lost" in a step =
   R − Σ technology progress added (a node completed or levelled in the step counts its EffectiveCost on PREV).
@@ -106,7 +106,10 @@ orders applied as `ResearchSystem` applies them, `ResearchRoutePlanner.Fund`) an
      first turn of each era band (shown 2× the real accrual at −1500). Six turns per campaign; it also skews the
      civics "~N turns" estimates on those turns.
    No surface shows an RP-lost figure: surplus past completion (a, h) is invisible everywhere.
-5. **Secondary observation (not changed):** in `ResearchOverflowTests`, `Overflow_ARepeatableGainsAtMostOneLevelPerStep`
+5. **Secondary observation — FIXED after this report:** both tests now add their nodes to `Spec.Recursive`, assert the
+   nodes are levelled, and the single-node test also checks that a second step buys level 2. The two-node test moved to
+   the lane variant, because a finite destination may not require a repeatable (loader refusal). What this report found
+   was: in `ResearchOverflowTests`, `Overflow_ARepeatableGainsAtMostOneLevelPerStep`
    and `Overflow_TwoCheapRepeatables_…` give their nodes a `LevelRule` but do not add them to `Spec.Recursive`, and the rig
    writes `levels` only inside the repeatable descriptor of a recursive node — so those nodes are complete-once, not
    levelled, and `Level == 1` holds trivially. The lifecycle tests (G2, H, J) add the node to `Recursive` and assert

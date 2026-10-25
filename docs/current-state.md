@@ -1,6 +1,13 @@
 # CURRENT STATE — the routing document
 
-> **2026-10-24 (latest): M6 TRANCHE 2 (D-063) — research trees audited, expanded and rebalanced on branch
+> **2026-10-25 (latest): RESEARCH COST PASS (D-064 review package) — evidence and proposals only, on branch
+> `claude/new-session-yavghm`; NOTHING APPLIED to `research.json`; `main` = `m5-exit` = `6e51a3e` untouched.**
+> - **Index:** `docs/m6-plan/knowledge-redesign/research-cost-pass/README.md` (lifecycle of RP/CP loss, overflow
+>   comparison, live-versus-placeholder map, decision table, early-game trial, repeatables proposal, cited research).
+> - **Engine:** in-step overflow behind `tuning.researchOverflow` / `tuning.researchOverflowLane`, both absent (off):
+>   ADR-050, PROPOSED, awaiting the Director's ruling D-064.
+>
+> **2026-10-24: M6 TRANCHE 2 (D-063) — research trees audited, expanded and rebalanced on branch
 > `claude/new-session-yavghm`; NOT merged, NOT tagged, NOT released; `main` = `m5-exit` = `6e51a3e` untouched.**
 > - **Ruling and records:** `docs/adr/cr-024-tranche2-vs-frozen-research-rules.md` (the conflict and the D-063 ruling),
 >   ADR-047 (knowledge effects), ADR-048 + its lane-assist amendment (Age sweep, destination research), ADR-049

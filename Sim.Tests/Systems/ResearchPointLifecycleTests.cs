@@ -555,7 +555,7 @@ public class ResearchPointLifecycleTests(ITestOutputHelper output)
     /// fundable node, no assist), ASSISTING, or FUNDED; RP lost (pool − RP added to technology progress, credits excluded) is
     /// summed per class. CP is never lost; its idle steps are counted and the milli-CP rounding of completions measured.
     /// </summary>
-    [Fact]
+    [Fact(Skip = "measurement — run explicitly (about 3.5 minutes); results in research-cost-pass/rp-cp-lifecycle.md (l)")]
     public void L_Ai_CanonicalWorld_Seed42_400Turns_NeverIdlesALane_AllRpLostIsSurplusPastCompletion()
     {
         SimConfig cfg = TestConfigs.Sim();
