@@ -556,7 +556,7 @@ public class ResearchPointLifecycleTests(ITestOutputHelper output)
     /// summed per class. CP is never lost; its idle steps are counted and the milli-CP rounding of completions measured.
     /// </summary>
     [Fact]
-    public void L_Ai_CanonicalWorld_Seed42_400Turns_NeverIdlesALaneWithFundableNodes()
+    public void L_Ai_CanonicalWorld_Seed42_400Turns_NeverIdlesALane_AllRpLostIsSurplusPastCompletion()
     {
         SimConfig cfg = TestConfigs.Sim();
         ResearchContent rc = cfg.Research!;
@@ -658,6 +658,15 @@ public class ResearchPointLifecycleTests(ITestOutputHelper output)
         // THE FINDING (pinned): the AI never leaves a lane without a destination while that lane has a fundable node.
         Assert.Equal(0, steps[0, 0]);
         Assert.Equal(0, steps[1, 0]);
+        // Measured (seed 42, 400 turns, Age 3 at the end): every step of both lanes FUNDED a node — no waiting, no assist, no
+        // empty lane — so every RP lost (3 150 of 31 082, 10.1 %) is surplus past a completed node (case a / h).
+        Assert.Equal(Turns, steps[0, 4]);
+        Assert.Equal(Turns, steps[1, 4]);
+        for (int k = 0; k < 4; k++) Assert.Equal(0.0, lost[k]);
+        Assert.InRange((generated - spentTotal) / generated, 0.10, 0.11);
+        // CP: never lost — the bank was drained to 0 by the end; the ceil-to-milli spend rounding (case i2) is tens of milli-CP.
+        Assert.Equal(account.GeneratedMilli - account.SpentMilli, account.BalanceMilli);
+        Assert.InRange(account.SpentMilli - civicAdded * 1000.0, 0.0, 100.0);
         Assert.Null(ResearchQuery.CivicsPointsInvariantViolation(w.CivicsPoints));
     }
 
