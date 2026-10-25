@@ -432,14 +432,22 @@ public static class InfoQuery
             simulated = true;
             b.Enables.Add(new InfoLink("The research stage (opens the five specialised subtrees together)", null, c.Stage, r.Stage.Source.Replace('_', ' ')));
         }
-        // ADR-047 / ADR-049: its realized effects and level effects — each read by the operand's owning system.
+        // ADR-047 / ADR-049: its realized effects and level effects — each read by the operand's owning system. CR-025: an
+        // operand whose computed value no simulation system consumes is listed as not simulated, and does not make the node
+        // simulated.
         if (KnowledgeEffects.IsOn(r))
             foreach (RealizedEffect e in n.RealizedEffects)
             {
                 KnowledgeOperandInfo op = KnowledgeOperands.All[(int)e.Operand];
+                string label = (op.Direction == OperandDirection.Higher ? "+" : "-") + N1(e.Delta * 100.0) + "%: " + op.Meaning;
+                if (!op.ConsumedInPlay)
+                {
+                    b.Enables.Add(new InfoLink(label + " (not simulated yet)", null, false,
+                        "not simulated in this build: " + op.NotConsumed + " (" + op.Id + ")"));
+                    continue;
+                }
                 simulated = true;
-                b.Enables.Add(new InfoLink((op.Direction == OperandDirection.Higher ? "+" : "-") + N1(e.Delta * 100.0) + "%: " + op.Meaning,
-                    null, done, "read by " + op.ReadBy + " (" + op.Id + ")"));
+                b.Enables.Add(new InfoLink(label, null, done, "read by " + op.ReadBy + " (" + op.Id + ")"));
             }
         if (levelled && n.Levels is { } rule)
             foreach (RepeatableLevelEffect e in rule.Effects)

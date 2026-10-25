@@ -168,6 +168,28 @@ public class InfoQueryTests
     }
 
     [Fact]
+    public void Saddle_ItsOnlyEffectIsTheUnconsumedSpeedOperand_TheCardSaysNotSimulated()
+    {
+        // CR-025: roads.baselineKmPerDay feeds only TransportQuery.EstimateFreight, which no system calls, so the effect
+        // changes nothing in play. Before the fix the card said "Simulated" and "read by TransportQuery".
+        WorldState w = World();
+        ResearchNode n = R.Nodes[Node("saddle")];
+        KnowledgeOperandInfo op = KnowledgeOperands.All[(int)KnowledgeOperand.RoadsBaselineKmPerDay];
+        Assert.False(op.ConsumedInPlay);
+        RealizedEffect only = Assert.Single(n.RealizedEffects);
+        Assert.Equal(KnowledgeOperand.RoadsBaselineKmPerDay, only.Operand);
+        InfoCard card = Card(w, InfoSubject.Node(n.Key));
+        Assert.NotEqual(InfoEffect.Simulated, card.Effect);
+        InfoLink link = Assert.Single(card.Enables, l => l.Label.Contains(op.Meaning, StringComparison.Ordinal));
+        Assert.Contains("not simulated yet", link.Label, StringComparison.Ordinal);
+        Assert.Contains("CR-025", link.Note!, StringComparison.Ordinal);
+        Assert.DoesNotContain("read by TransportQuery", link.Note!, StringComparison.Ordinal);
+        // Every other operand in the registry is consumed in play (the exception is exactly this one).
+        Assert.Equal([KnowledgeOperand.RoadsBaselineKmPerDay],
+            KnowledgeOperands.All.Where(o => !o.ConsumedInPlay).Select(o => o.Operand).ToArray());
+    }
+
+    [Fact]
     public void EveryNodesEffect_IsKnowledgeOnly_ExactlyWhenNothingReadsIt()
     {
         WorldState w = World();
@@ -184,7 +206,9 @@ public class InfoQueryTests
             bool realizedEntity = card.Enables.Any(l => l.Subject is { Kind: InfoKind.Entity } && l.Note is { } note
                 && !note.Contains("not built in this build", StringComparison.Ordinal) && !note.Contains("Battle Layer (M7)", StringComparison.Ordinal));
             // ADR-047 / ADR-049 (tranche 2): a realized operand effect or a level effect is read by its owning system.
-            bool effects = (KnowledgeEffects.IsOn(R) && n.RealizedEffects.Count > 0) || ResearchQuery.IsLevelled(R, i);
+            // CR-025: an effect on an operand no system consumes in play does not count.
+            bool effects = (KnowledgeEffects.IsOn(R) && n.RealizedEffects.Any(e => KnowledgeOperands.All[(int)e.Operand].ConsumedInPlay))
+                || ResearchQuery.IsLevelled(R, i);
             bool reads = realizedEntity || named || effects || tax.AtomIds.Contains(i) || R.Stage.AtomIds.Contains(i);
             InfoEffect expect = reads ? InfoEffect.Simulated : n.Dependents.Count > 0 ? InfoEffect.ResearchOnly : InfoEffect.KnowledgeOnly;
             Assert.True(expect == card.Effect, n.Id + ": expected " + expect + ", card says " + card.Effect);

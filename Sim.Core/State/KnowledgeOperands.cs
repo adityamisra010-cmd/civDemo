@@ -69,7 +69,13 @@ public enum OperandDirection { Higher = 1, Lower = 2 }
 /// </summary>
 public sealed record KnowledgeOperandInfo(
     KnowledgeOperand Operand, string Id, OperandDirection Direction, double Cap, bool Integer, double ResultMax,
-    string ReadBy, string Meaning);
+    string ReadBy, string Meaning, string? NotConsumed = null)
+{
+    /// <summary>CR-025: false when <see cref="NotConsumed"/> names why no simulation system consumes what the reader
+    /// computes, so an effect on this operand changes nothing in play. The research screens must say so rather than
+    /// present it as a simulated effect. Display only: the operand's loading, caps and reader are unchanged.</summary>
+    public bool ConsumedInPlay => NotConsumed is null;
+}
 
 /// <summary>
 /// ADR-047 — THE OPERAND REGISTRY, the one place the operand table lives (tranche-2 contract §1.1, row for row: id,
@@ -113,7 +119,8 @@ public static class KnowledgeOperands
         new(KnowledgeOperand.PathBuildBuildCostMultiplier, "pathBuild.buildCostMultiplier", OperandDirection.Lower, 0.7, false, double.PositiveInfinity, "PathBuildSystem", "paths cheaper to build"),
         new(KnowledgeOperand.PathBuildDirtPathSpeedFactor, "pathBuild.dirtPathSpeedFactor", OperandDirection.Higher, 0.8, false, double.PositiveInfinity, "PathBuildSystem", "faster unpaved paths"),
         new(KnowledgeOperand.TransportRiverCostFactor, "transport.riverCostFactor", OperandDirection.Lower, 0.8, false, double.PositiveInfinity, "transport readers", "cheaper river haulage"),
-        new(KnowledgeOperand.RoadsBaselineKmPerDay, "roads.baselineKmPerDay", OperandDirection.Higher, 3.0, false, double.PositiveInfinity, "TransportQuery", "faster overland travel"),
+        new(KnowledgeOperand.RoadsBaselineKmPerDay, "roads.baselineKmPerDay", OperandDirection.Higher, 3.0, false, double.PositiveInfinity, "TransportQuery", "faster overland travel",
+            "no system uses overland travel time yet (CR-025)"),
         new(KnowledgeOperand.RoadsMaxRouteKm, "roads.maxRouteKm", OperandDirection.Higher, 3.0, false, double.PositiveInfinity, "RoadDevelopmentQuery", "longer roads possible"),
         new(KnowledgeOperand.CatchmentHinterlandRadiusKm, "catchment.hinterlandRadiusKm", OperandDirection.Higher, 1.0, false, double.PositiveInfinity, "CatchmentSystem", "settlements draw on a wider hinterland"),
         new(KnowledgeOperand.TradeGapClosingFraction, "trade.gapClosingFraction", OperandDirection.Higher, 1.5, false, 0.95, "TradeArbitrageSystem", "trade closes price gaps faster (result ≤ 0.95)"),
