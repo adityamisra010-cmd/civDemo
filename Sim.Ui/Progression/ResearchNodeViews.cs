@@ -76,7 +76,8 @@ public sealed class ResearchSnapshot
     public int? CivicsTargetIndex { get; init; }
     /// <summary>ADR-043: the banked Civics Points (whole CP).</summary>
     public double CivicsBalance { get; init; }
-    /// <summary>ADR-043: the Civics Points a step of the current length accrues (ResearchQuery.CivicsPointsMilli / 1000).</summary>
+    /// <summary>ADR-043: the Civics Points the NEXT step accrues (ResearchQuery.CivicsPointsMilli / 1000 over the next step's
+    /// dt — the era table's at the world's date; rp-cp-lifecycle k5).</summary>
     public double CivicsPerTurn { get; init; }
 
     /// <summary>ADR-048: whether destination research is on (research.json tuning.destinationRouting).</summary>
@@ -103,7 +104,11 @@ public sealed class ResearchSnapshot
     /// <summary>The unit of <see cref="PointsPerTurnOn"/>: "CP" or "RP".</summary>
     public string UnitOn(ResearchTree tree) => TwoLanes && tree == ResearchTree.Civics ? "CP" : "RP";
 
-    public static ResearchSnapshot Build(IReadOnlyWorldState world, ResearchContent content, PolityId polity)
+    /// <summary>The snapshot of <paramref name="world"/>. <paramref name="nextDtYears"/> is the length of the step the next End
+    /// Turn plays (<see cref="ActionQueryContext.ForNextStep"/> over the session's era table) — the dt the CP a turn is
+    /// shown for (rp-cp-lifecycle k5); null falls back to the clock's last dt, which is wrong at turn 0 and at the first
+    /// turn of each era band.</summary>
+    public static ResearchSnapshot Build(IReadOnlyWorldState world, ResearchContent content, PolityId polity, double? nextDtYears = null)
     {
         int n = content.Nodes.Count;
         bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
@@ -219,7 +224,7 @@ public sealed class ResearchSnapshot
             TwoLanes = twoLanes,
             CivicsTargetIndex = civicTarget,
             CivicsBalance = ResearchQuery.CivicsPointsBalance(world, polity),
-            CivicsPerTurn = ResearchQuery.CivicsPointsMilli(world, content, polity, world.Clock.DtYears) / 1000.0,
+            CivicsPerTurn = ResearchQuery.CivicsPointsMilli(world, content, polity, nextDtYears ?? world.Clock.DtYears) / 1000.0,
             Routing = content.Tuning.DestinationRouting,
             TechnologyRoute = content.Tuning.DestinationRouting ? ResearchQuery.Route(world, content, polity, ResearchTree.Technology) : ResearchRoute.None(ResearchTree.Technology),
             CivicsRoute = content.Tuning.DestinationRouting ? ResearchQuery.Route(world, content, polity, ResearchTree.Civics) : ResearchRoute.None(ResearchTree.Civics),

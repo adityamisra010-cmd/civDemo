@@ -96,7 +96,12 @@ orders applied as `ResearchSystem` applies them, `ResearchRoutePlanner.Fund`) an
 3. **CP is never lost** except the ceil-to-milli rounding of a completing spend (< 1 milli-CP per civic; 17 milli-CP over
    400 AI turns). One civic per step defers spending (the bank carries it); blocked civics (e) bank without loss.
 4. **Display discrepancies (4), all in the Glass Box research card or the CP-a-turn figure — none in the progression
-   screen's route lines or node numbers:**
+   screen's route lines or node numbers** (FIXED after this report, branch `t4-display` — display only, the simulation
+   unchanged: the cards, the progression screen's node state line and capsule, the action surface's research and civics
+   lines and the status band now name the node a lane FUNDS (`ResearchQuery.Route`'s Current, classified by
+   `ResearchQuery.Activity`: researching toward D / assisting the other tree / waiting on the other tree, points unused),
+   and every CP-a-turn figure is the NEXT step's accrual (the era table's dt at the date, `ActionQueryContext.ForNextStep`).
+   The K2–K5 facts and the UI's `ResearchPointDisplayTests` now pin the corrected text; what follows is what was found):
    - (k2) with routing the research card reports the DESTINATION's progress ("Researching D: 0 of 2,000") while the step
      funds a route node, and the funded node's own card says "Open to research now";
    - (k3) a free technology lane that assists the civic route is called "Idle: … research points a turn go unused" while

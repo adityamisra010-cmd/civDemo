@@ -358,9 +358,18 @@ public static class InfoQuery
         double cost = ResearchQuery.EffectiveCost(c.W, r, c.P, i);
         // ADR-043: a civic is paid in Civics Points in the two-lane model (CP a turn = the accrual of a step of this length).
         bool cp = r.Tuning.TwoLanes && n.Tree == ResearchTree.Civics;
-        double rp = cp ? ResearchQuery.CivicsPointsMilli(c.W, r, c.P, c.W.Clock.DtYears) / 1000.0 : ResearchQuery.ResearchPointPool(c.W, r, c.P);
+        // rp-cp-lifecycle k5: the CP the NEXT step accrues (the context's dt), not the last step's.
+        double rp = cp ? ResearchQuery.CivicsPointsMilli(c.W, r, c.P, c.NextDtYears) / 1000.0 : ResearchQuery.ResearchPointPool(c.W, r, c.P);
         string points = cp ? " civics points" : " research points";
+        // rp-cp-lifecycle k2/k3: with destination routing the node a lane FUNDS is a route node (or an assist), not only
+        // the destination row — ResearchQuery.Route's Current, the planner's own answer.
+        ResearchRoute? funding = r.Tuning.DestinationRouting && !done && available ? FundingRoute(c, i) : null;
         if (done) { b.Status = InfoStatus.Known; b.StatusLine = "Known: your scholars have completed it."; }
+        else if (funding is { } fr && (fr.Assisting || fr.Destination != n.Key))
+        {
+            b.Status = InfoStatus.Researching;
+            b.StatusLine = "Being researched" + Toward(c, fr) + ": " + N0(ResearchQuery.Progress(c.W, c.P, n.Key)) + " of " + N0(cost) + points + ", +" + N1(rp) + " a turn.";
+        }
         else if (target && available)
         {
             b.Status = InfoStatus.Researching;
@@ -1898,7 +1907,52 @@ public static class InfoQuery
         bool held = r.Tuning.TwoLanes
             ? ResearchQuery.TryGetTarget(c.W, r, c.P, ResearchTree.Technology, out t)   // ADR-043: the Technology lane
             : ResearchQuery.TryGetTarget(c.W, c.P, out t);
-        if (held && r.IndexOf(t) is int ti and >= 0)
+        if (r.Tuning.DestinationRouting)
+        {
+            // rp-cp-lifecycle k2–k4: with destination routing the card reports what the step FUNDS — the lane's route
+            // (ResearchQuery.Route, the planner's own answer) — never the destination row's progress in its place. In the
+            // one-pool model the one destination's route is reported on its own tree's lane.
+            ResearchTree lane = !r.Tuning.TwoLanes && held && r.IndexOf(t) is int hi and >= 0 ? r.Nodes[hi].Tree : ResearchTree.Technology;
+            ResearchRoute route = c.RouteOn(lane);
+            switch (ResearchQuery.Activity(route))
+            {
+                case LaneActivity.Researching:
+                case LaneActivity.Assisting:
+                {
+                    int fi = r.IndexOf(route.Current!.Value);
+                    b.Status = InfoStatus.Researching;
+                    b.StatusLine = "Researching " + r.Nodes[fi].Name + Toward(c, route) + ": " + N0(ResearchQuery.Progress(c.W, c.P, route.Current.Value))
+                        + " of " + N0(ResearchQuery.EffectiveCost(c.W, r, c.P, fi)) + " research points, +" + N1(rp) + " a turn.";
+                    bool own = route.Destination is { } own0 && (!route.Assisting || own0 != route.AssistedDestination);
+                    if (route.Assisting && own)
+                        b.StatusLine += " Your destination " + NameOf(r, route.Destination) + " waits on the " + OtherTreeName(route.Lane) + " tree.";
+                    b.TreeNode = fi;
+                    if (!route.Assisting && route.Destination == route.Current) b.Enables.Add(NodeLink(c, fi, "the current target"));
+                    else
+                    {
+                        b.Enables.Add(NodeLink(c, fi, route.Assisting ? "researched now, assisting the " + OtherTreeName(route.Lane) + " tree" : "researched now"));
+                        if (own) b.Enables.Add(NodeLink(c, r.IndexOf(route.Destination!.Value)));   // its state reads "your destination"
+                    }
+                    b.Action = Find(c, ActionDomain.Research, own ? 2 : 1);
+                    break;
+                }
+                case LaneActivity.Waiting:
+                {
+                    int di = r.IndexOf(route.Destination!.Value);
+                    b.Status = InfoStatus.Blocked;
+                    b.StatusLine = Waiting(c, route) + "; " + N1(rp) + " research points go unused this turn.";
+                    b.TreeNode = di;
+                    b.Enables.Add(NodeLink(c, di));   // its state reads "your destination"
+                    b.Action = Find(c, ActionDomain.Research, 2);
+                    b.Summary = "waiting - research points unused this turn";
+                    break;
+                }
+                default:
+                    Idle();
+                    break;
+            }
+        }
+        else if (held && r.IndexOf(t) is int ti and >= 0)
         {
             b.Status = InfoStatus.Researching;
             b.StatusLine = "Researching " + r.Nodes[ti].Name + ": " + N0(ResearchQuery.Progress(c.W, c.P, t)) + " of "
@@ -1907,24 +1961,97 @@ public static class InfoQuery
             b.Enables.Add(NodeLink(c, ti, "the current target"));
             b.Action = Find(c, ActionDomain.Research, 2);
         }
-        else
+        else Idle();
+        if (r.Tuning.TwoLanes)
+        {
+            // ADR-043: the two lanes, stated — RP fund the technology target; banked Civics Points fund the civics target.
+            b.Kind = "Knowledge - research points a turn fund the technology target; civics points, banked, fund the civics target";
+            CivicsPointsRow account = ResearchQuery.CivicsPointsAccount(c.W, c.P);
+            // rp-cp-lifecycle k5: the CP the NEXT step accrues (the era table's dt at the world's date, the context's), not the
+            // dt of the step that produced this world.
+            double cp = ResearchQuery.CivicsPointsMilli(c.W, r, c.P, c.NextDtYears) / 1000.0;
+            string civic;
+            if (r.Tuning.DestinationRouting)
+            {
+                ResearchRoute route = c.RouteOn(ResearchTree.Civics);
+                switch (ResearchQuery.Activity(route))
+                {
+                    case LaneActivity.Researching:
+                    case LaneActivity.Assisting:
+                    {
+                        int fi = r.IndexOf(route.Current!.Value);
+                        string points = N0(ResearchQuery.Progress(c.W, c.P, route.Current.Value)) + " of " + N0(ResearchQuery.EffectiveCost(c.W, r, c.P, fi)) + " civics points";
+                        civic = !route.Assisting && route.Destination == route.Current
+                            ? "civics target " + r.Nodes[fi].Name + ": " + points
+                            : "researching " + r.Nodes[fi].Name + Toward(c, route) + ": " + points;
+                        if (route.Assisting && route.Destination is { } own && own != route.AssistedDestination)
+                            civic += " (your civics destination " + NameOf(r, own) + " waits on the Technology tree)";
+                        break;
+                    }
+                    case LaneActivity.Waiting:
+                    {
+                        string waiting = Waiting(c, route);
+                        civic = char.ToLowerInvariant(waiting[0]) + waiting[1..] + ", civics points stay banked";
+                        break;
+                    }
+                    default:
+                        civic = "no civics target";
+                        break;
+                }
+            }
+            else
+                civic = ResearchQuery.TryGetTarget(c.W, r, c.P, ResearchTree.Civics, out ResearchNodeId ct) && r.IndexOf(ct) is int ci and >= 0
+                    ? "civics target " + r.Nodes[ci].Name + ": " + N0(ResearchQuery.Progress(c.W, c.P, ct)) + " of " + N0(ResearchQuery.EffectiveCost(c.W, r, c.P, ci)) + " civics points"
+                    : "no civics target";
+            b.StatusLine += " Civics: " + civic + "; " + N1(account.BalanceMilli / 1000.0) + " civics points banked, +" + N1(cp) + " a turn.";
+        }
+
+        void Idle()
         {
             b.Status = InfoStatus.Available;
             b.StatusLine = "Idle: " + N1(rp) + " research points a turn go unused; " + Inv(open) + " subjects are open.";
             b.Action = Find(c, ActionDomain.Research, 1);
             b.Summary = "idle - choose a research target";
         }
-        if (r.Tuning.TwoLanes)
-        {
-            // ADR-043: the two lanes, stated — RP fund the technology target; banked Civics Points fund the civics target.
-            b.Kind = "Knowledge - research points a turn fund the technology target; civics points, banked, fund the civics target";
-            CivicsPointsRow account = ResearchQuery.CivicsPointsAccount(c.W, c.P);
-            double cp = ResearchQuery.CivicsPointsMilli(c.W, r, c.P, c.W.Clock.DtYears) / 1000.0;
-            string civic = ResearchQuery.TryGetTarget(c.W, r, c.P, ResearchTree.Civics, out ResearchNodeId ct) && r.IndexOf(ct) is int ci and >= 0
-                ? "civics target " + r.Nodes[ci].Name + ": " + N0(ResearchQuery.Progress(c.W, c.P, ct)) + " of " + N0(ResearchQuery.EffectiveCost(c.W, r, c.P, ci)) + " civics points"
-                : "no civics target";
-            b.StatusLine += " Civics: " + civic + "; " + N1(account.BalanceMilli / 1000.0) + " civics points banked, +" + N1(cp) + " a turn.";
-        }
+    }
+
+    /// <summary>rp-cp-lifecycle k2/k3: what a funding lane's current node is FOR — "" when it is the destination itself,
+    /// " (toward D)" for a route node, " (assisting the Civics tree toward D)" for a free-lane assist.</summary>
+    private static string Toward(Ctx c, ResearchRoute route) =>
+        route.Assisting ? " (assisting the " + OtherTreeName(route.Lane) + " tree toward " + NameOf(c.R!, route.AssistedDestination) + ")"
+        : route.Destination == route.Current ? ""
+        : " (toward " + NameOf(c.R!, route.Destination) + ")";
+
+    /// <summary>rp-cp-lifecycle k4: a waiting lane — "Waiting on the Civics tree: TD needs CV first" (up to three of the
+    /// other tree's outstanding route nodes, ResearchQuery.WaitingOn), or, when the route holds none, that no node of the
+    /// route can be researched now.</summary>
+    private static string Waiting(Ctx c, ResearchRoute route)
+    {
+        ResearchContent r = c.R!;
+        List<ResearchNodeId> on = ResearchQuery.WaitingOn(r, route);
+        string dest = NameOf(r, route.Destination);
+        if (on.Count == 0) return "Waiting: no node on the route to " + dest + " can be researched now";
+        var names = new List<string>(3);
+        for (int k = 0; k < on.Count && k < 3; k++) names.Add(NameOf(r, on[k]));
+        string list = string.Join(", ", names) + (on.Count > 3 ? " and " + Inv(on.Count - 3) + " more" : "");
+        return "Waiting on the " + OtherTreeName(route.Lane) + " tree: " + dest + " needs " + list + " first";
+    }
+
+    private static string OtherTreeName(ResearchTree lane) => lane == ResearchTree.Civics ? "Technology" : "Civics";
+
+    private static string NameOf(ResearchContent r, ResearchNodeId? key) =>
+        key is { } k && r.IndexOf(k) is int i and >= 0 ? r.Nodes[i].Name : "-";
+
+    /// <summary>The lane route whose next step funds node <paramref name="i"/> (destination routing on), or null: its own
+    /// tree's lane in the two-lane model; either route in the one-pool model (its one lane funds both trees).</summary>
+    private static ResearchRoute? FundingRoute(Ctx c, int i)
+    {
+        ResearchNode n = c.R!.Nodes[i];
+        ResearchRoute own = c.RouteOn(n.Tree);
+        if (own.Current == n.Key) return own;
+        if (c.R.Tuning.TwoLanes) return null;
+        ResearchRoute other = c.RouteOn(n.Tree == ResearchTree.Civics ? ResearchTree.Technology : ResearchTree.Civics);
+        return other.Current == n.Key ? other : null;
     }
 
     /// <summary>Whether the node is the polity's target on its own lane (ADR-043; in the one-pool model, the one target).</summary>
@@ -1939,7 +2066,10 @@ public static class InfoQuery
     {
         ResearchNode n = c.R!.Nodes[i];
         bool target = IsTarget(c, n);
-        string state = c.Done[i] ? "known" : target ? "being researched" : c.Available(i) ? "open to research now" : "locked";
+        // rp-cp-lifecycle k2: with destination routing "being researched" is the node a lane funds (ResearchQuery.Route);
+        // a destination not yet open is "your destination".
+        bool funded = c.R.Tuning.DestinationRouting ? !c.Done[i] && c.Available(i) && FundingRoute(c, i) is not null : target;
+        string state = c.Done[i] ? "known" : funded ? "being researched" : target ? "your destination" : c.Available(i) ? "open to research now" : "locked";
         return new InfoLink(n.Name, InfoSubject.Node(n.Key), c.Done[i], TreeWord(n) + ", " + AgeText(c, n.Age) + " - " + state + (extra is null ? "" : "; " + extra));
     }
 
@@ -2363,6 +2493,7 @@ public static class InfoQuery
         public readonly SiteAssessment.Batch? Batch;
         private ImmutableArray<ActionDescriptor>? _actions;
         private SettlementId[]? _controlled;
+        private ResearchRoute? _technologyRoute, _civicsRoute;
 
         public Ctx(IReadOnlyWorldState w, SimConfig cfg, PolityId p, ActionQueryContext q, Func<int, string>? name, ImmutableArray<ActionDescriptor>? actions,
             PolityKnowledge k, SiteAssessment.Prepared? site = null, SiteAssessment.Batch? batch = null)
@@ -2374,6 +2505,13 @@ public static class InfoQuery
         }
 
         public ImmutableArray<ActionDescriptor> Actions => _actions ??= AvailableActionsQuery.For(W, Cfg, P, Q);
+        /// <summary>rp-cp-lifecycle k5: the length in years of the step the next End Turn plays — the context's (the era
+        /// table's dt at the world's date, <see cref="ActionQueryContext.ForNextStep"/>); without one, the clock's last dt.</summary>
+        public double NextDtYears => Q.NextDtYears ?? W.Clock.DtYears;
+        /// <summary>ADR-048: a lane's route (<see cref="ResearchQuery.Route"/>), computed once per card.</summary>
+        public ResearchRoute RouteOn(ResearchTree lane) => lane == ResearchTree.Civics
+            ? _civicsRoute ??= ResearchQuery.Route(W, R!, P, ResearchTree.Civics)
+            : _technologyRoute ??= ResearchQuery.Route(W, R!, P, ResearchTree.Technology);
         public SettlementId[] Controlled => _controlled ??= LabourActivities.ControlledSettlements(W, P);
         public string Name(int s) => NameFn is null ? "settlement " + s.ToString(CultureInfo.InvariantCulture) : NameFn(s);
         public bool Eligible(int e) => ResearchQuery.IsKnowledgeEligible(R!, e, Done);

@@ -90,15 +90,29 @@ public sealed record ResearchItem(long Key, string Name, double Cost, double Pro
 /// </summary>
 public sealed record ResearchBlock(
     ResearchItem? Target, ResearchItem? Chosen, bool ClearQueued, double PointsPerTurn, int Available,
-    ImmutableArray<ResearchItem> Retained, bool CanClear, CivicsLine? Civics = null)
+    ImmutableArray<ResearchItem> Retained, bool CanClear, CivicsLine? Civics = null, RouteFunding? Funding = null)
 {
     /// <summary>The target the next End Turn will research: the one chosen this turn, else none if a clear is
     /// queued, else the current target.</summary>
     public ResearchItem? Effective => Chosen ?? (ClearQueued ? null : Target);
 
-    /// <summary>Research points are idle: nothing will be researched at the next End Turn.</summary>
-    public bool Idle => Effective is null;
+    /// <summary>Research points are idle: nothing will be researched at the next End Turn — no target, and the lane does
+    /// not assist the other tree's route (rp-cp-lifecycle k3: an assisting lane spends its points).</summary>
+    public bool Idle => Effective is null && Funding is not { Activity: LaneActivity.Assisting };
+
+    /// <summary>rp-cp-lifecycle k4: the target waits on the other tree — the next End Turn funds nothing on this lane.</summary>
+    public bool Waiting => Funding is { Activity: LaneActivity.Waiting };
 }
+
+/// <summary>
+/// rp-cp-lifecycle k2–k4 — with destination research (ADR-048), what a lane funds at the next End Turn when that is NOT
+/// simply its target, read from <see cref="ResearchQuery.Route"/> (<see cref="ResearchQuery.Activity"/>): a route node
+/// <see cref="Node"/> toward the destination <see cref="Toward"/> (Researching), a node of its own tree on the other tree's
+/// route toward <see cref="Toward"/> (Assisting), or nothing while the destination waits on <see cref="OtherTree"/>'s
+/// <see cref="WaitingOn"/> (Waiting). Null when the lane funds its target itself, is idle, or a directive for it is queued
+/// this turn (the queued line applies).
+/// </summary>
+public sealed record RouteFunding(LaneActivity Activity, ResearchItem? Node, string? Toward, string OtherTree, string? WaitingOn);
 
 /// <summary>
 /// ADR-043 — THE CIVICS LINE of the two-lane model: the Civics target (funded by Civics Points, separate from the
@@ -106,13 +120,18 @@ public sealed record ResearchBlock(
 /// banked balance, and whether the Civics target can be cleared (order −2). Null in the one-pool model.
 /// </summary>
 public sealed record CivicsLine(
-    ResearchItem? Target, ResearchItem? Chosen, bool ClearQueued, double PointsPerTurn, double Balance, bool CanClear)
+    ResearchItem? Target, ResearchItem? Chosen, bool ClearQueued, double PointsPerTurn, double Balance, bool CanClear,
+    RouteFunding? Funding = null)
 {
     /// <summary>The civic the next End Turn will fund.</summary>
     public ResearchItem? Effective => Chosen ?? (ClearQueued ? null : Target);
 
-    /// <summary>No civic is being funded: Civics Points are banked (never lost).</summary>
-    public bool Idle => Effective is null;
+    /// <summary>No civic is being funded: Civics Points are banked (never lost) — no target, and the lane does not assist
+    /// the Technology tree's route.</summary>
+    public bool Idle => Effective is null && Funding is not { Activity: LaneActivity.Assisting };
+
+    /// <summary>rp-cp-lifecycle k4: the civics target waits on the Technology tree (Civics Points stay banked).</summary>
+    public bool Waiting => Funding is { Activity: LaneActivity.Waiting };
 }
 
 /// <summary>The Age advance — listed only when the query lists it (eligible, not already ordered).</summary>
@@ -330,7 +349,7 @@ public static class ActionSurface
         return new ActionSurfaceModel(
             input.Theme.Era, layout, control, actions,
             labour,
-            Research(input, actions),
+            Research(input, actions, context.NextDtYears ?? input.World.Clock.DtYears),
             Age(input, actions),
             construction,
             Roads(input, actions, context.NextDtYears ?? input.World.Clock.DtYears),
@@ -584,7 +603,7 @@ public static class ActionSurface
 
     // ------------------------------------------------------------------ research
 
-    private static ResearchBlock? Research(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    private static ResearchBlock? Research(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions, double nextDtYears)
     {
         if (input.Config.Research is not { } content) return null;
         bool twoLanes = content.Tuning.TwoLanes;
@@ -627,12 +646,49 @@ public static class ActionSurface
             ResearchItem? civicChosen = Chosen(input, content, civicQueued, retained);
             bool civicClearQueued = civicQueued == ResearchQuery.ClearCivicsTargetId;
             civics = new CivicsLine(civicTarget, civicChosen, civicClearQueued,
-                ResearchQuery.CivicsPointsMilli(input.World, content, input.Player, input.World.Clock.DtYears) / 1000.0,
+                // rp-cp-lifecycle k5: the NEXT step's accrual (the era table's dt at the world's date), not the last step's.
+                ResearchQuery.CivicsPointsMilli(input.World, content, input.Player, nextDtYears) / 1000.0,
                 ResearchQuery.CivicsPointsBalance(input.World, input.Player),
-                !civicClearQueued && (clearCivic is not null || civicChosen is not null));
+                !civicClearQueued && (clearCivic is not null || civicChosen is not null),
+                civicQueued is null ? Funding(input, content, ResearchTree.Civics) : null);
         }
+        ResearchTree lane = !twoLanes && (chosen ?? target) is { } one && IsCivic(content, one.Key) ? ResearchTree.Civics : ResearchTree.Technology;
         return new ResearchBlock(target, chosen, clearQueued, ResearchQuery.ResearchPointPool(input.World, content, input.Player),
-            set?.Targets.Length ?? 0, retained.ToImmutable(), canClear, civics);
+            set?.Targets.Length ?? 0, retained.ToImmutable(), canClear, civics, queued is null ? Funding(input, content, lane) : null);
+    }
+
+    /// <summary>rp-cp-lifecycle k2–k4: what <paramref name="lane"/> funds at the next End Turn when it is not simply its
+    /// target (<see cref="RouteFunding"/>), from <see cref="ResearchQuery.Route"/>; null with routing off.</summary>
+    private static RouteFunding? Funding(ActionSurfaceInput input, ResearchContent content, ResearchTree lane)
+    {
+        if (!content.Tuning.DestinationRouting) return null;
+        ResearchRoute route = ResearchQuery.Route(input.World, content, input.Player, lane);
+        LaneActivity activity = ResearchQuery.Activity(route);
+        string other = lane == ResearchTree.Civics ? "Technology" : "Civics";
+        string Name(ResearchNodeId? key) => key is { } k && content.IndexOf(k) is int i and >= 0 ? content.Nodes[i].Name : "-";
+        switch (activity)
+        {
+            case LaneActivity.Researching when route.Current != route.Destination:
+            case LaneActivity.Assisting:
+            {
+                int i = content.IndexOf(route.Current!.Value);
+                ResearchNode n = content.Nodes[i];
+                var node = new ResearchItem(n.Key.Value, n.Name, ResearchQuery.EffectiveCost(input.World, content, input.Player, i),
+                    ResearchQuery.Progress(input.World, input.Player, n.Key), "");
+                return new RouteFunding(activity, node, Name(activity == LaneActivity.Assisting ? route.AssistedDestination : route.Destination), other, null);
+            }
+            case LaneActivity.Waiting:
+            {
+                List<ResearchNodeId> on = ResearchQuery.WaitingOn(content, route);
+                var names = new List<string>(3);
+                for (int k = 0; k < on.Count && k < 3; k++) names.Add(Name(on[k]));
+                string? waiting = on.Count == 0 ? null
+                    : string.Join(", ", names) + (on.Count > 3 ? " and " + (on.Count - 3).ToString(CultureInfo.InvariantCulture) + " more" : "");
+                return new RouteFunding(activity, null, Name(route.Destination), other, waiting);
+            }
+            default:
+                return null;
+        }
     }
 
     private static bool IsCivic(ResearchContent content, long key) =>

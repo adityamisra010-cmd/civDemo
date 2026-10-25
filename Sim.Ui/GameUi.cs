@@ -943,7 +943,7 @@ public sealed partial class GameUi
     private void ToggleProgression()
     {
         if (_session.Config.Research is not { } content) return;
-        _progression ??= new Sim.Ui.Progression.ProgressionScreen(content, UiPlayer.Empire);
+        _progression ??= new Sim.Ui.Progression.ProgressionScreen(content, UiPlayer.Empire) { Era = _eraTable };
         _progressionOpen = !_progressionOpen;
         _progressionDrag = false;
     }

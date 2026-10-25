@@ -26,6 +26,13 @@ public sealed partial class ProgressionScreen
     /// Null (a preview) paints the plain "opens the way to" list instead.</summary>
     public SimConfig? Config { get; set; }
 
+    /// <summary>The era table the session steps with — the next step's dt for every CP-a-turn figure (rp-cp-lifecycle k5).
+    /// The host hands in its own; until then the production era (<see cref="UiSession.ProductionEra"/>, the one the UI's
+    /// executor is built from), loaded once.</summary>
+    public Sim.Core.Kernel.EraTable Era { get => _era ??= UiSession.ProductionEra(); set => _era = value; }
+
+    private Sim.Core.Kernel.EraTable? _era;
+
     /// <summary>The inspectable regions painted last frame (screen coordinates).</summary>
     public IReadOnlyList<InfoHit> InfoHits => _info;
 
@@ -59,7 +66,7 @@ public sealed partial class ProgressionScreen
         if (Config is null || _world is null) return null;
         if (_cardCache.Node == node && ReferenceEquals(_cardCache.World, _world) && _cardCache.Card is { } cached) return cached;
         InfoCard card = InfoQuery.Card(_world, Config, Polity, InfoSubject.Node(Content.Nodes[node].Key),
-            actions: ImmutableArray<ActionDescriptor>.Empty);
+            ActionQueryContext.ForNextStep(_world, Era), actions: ImmutableArray<ActionDescriptor>.Empty);   // k5: the next step's dt
         _cardCache = (node, _world, card);
         return card;
     }
