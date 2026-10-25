@@ -2,6 +2,21 @@
 
 - Nodes: **1005**. With a realized operand effect: **979**. Live unlock only: 21. Order gate only: 2 (taxation, ore_prospecting). Repeatables with level effects: 13.
 - Nodes with no real effect: **0**.
+
+> **2026-10-25 correction (CR-025, awaiting the Director's ruling).** The counts below overclaim. `roads.baselineKmPerDay`
+> has no consuming system. Its only read site, `TransportQuery.EstimateFreight`, has no caller outside the tests (ADR-032
+> §7: freight time is "not consumed yet"). Its 17 declarations are therefore NOT realized effects. Measured: stripping
+> all 17 leaves a granted-node AI run byte-identical (`UnconsumedOperandTests`). For 14 nodes it is the only effect:
+> horse_domestication, wheel_spoked, saddle, bridge_stone, horseshoe, internal_combustion, aluminium, sprung_coach,
+> integrated_alliance_command, road_houses, pilgrimage, bridge_trusts, turnpike_trusts, road_traffic_regulation. A
+> fifteenth node, motor_road, has no other realized effect, but its `infra.road_highway` unlock is live. So "with a realized
+> operand effect" is 964, not 979 (counted on research.json), and the 14 have no live effect today. Two of them,
+> horse_domestication and bridge_stone, have only placeholder `infra.` unlocks, which `EveryNode_HasARealEffect` counts
+> as live. The `roads.baselineKmPerDay` row's "Read by TransportQuery" names a query no system runs. The disposition
+> (retarget, future-declared or drop, per node) is the subject of `docs/adr/cr-025-unconsumed-overland-speed-operand.md`.
+> The content is unchanged until the ruling. This note was added by hand: regenerating the file with
+> `tools/tranche2_reports.py` drops it, so carry it over until the ruling is applied.
+
 - A realized effect is read by its owning system (ADR-047); the per-operand sum is clamped to its cap. Where the authored sum exceeded 90 % of the cap, every delta on that operand was scaled down proportionally so no node is made inert by the clamp (the saturation column).
 
 | Operand | Direction | Cap Σ | Nodes | Σ deltas | Σ / cap | Saturation scale | Read by |

@@ -221,6 +221,8 @@ public class KnowledgeEffectsTeethTests
                 return FirstNewEdgeCost(w, Step(w, cfg, SystemCatalog.PathBuild));
             }, RivalUnaffected: false, Tune: NoAccrual),
             // ---------------------------------------------------------------- TransportQuery / RoadDevelopmentQuery
+            // CR-025: this case measures the travel-time QUERY, which no system calls (ADR-032 §7) — teeth, not aim. It
+            // proves the read site responds, not that play changes; UnconsumedOperandTests pins the latter as measured.
             new(KnowledgeOperand.RoadsBaselineKmPerDay, -1, (w, cfg, s) =>
                 TransportQuery.EstimateFreight(w, cfg.Roads!, s, Partner(s), 1000.0, cfg.Research, Holder(w, s)).TransitDays),
             new(KnowledgeOperand.RoadsMaxRouteKm, +1, (w, cfg, s) =>
