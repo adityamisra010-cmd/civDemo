@@ -535,6 +535,33 @@ public static class ResearchQuery
         return ResearchRoutePlanner.Describe(content, completed, available, remaining, destinations, twoLanes, lane);
     }
 
+    /// <summary>
+    /// What a lane's points do on the next step (no new order), read from its <see cref="Route"/> — display only, the
+    /// research screens' one classification (rp-cp-lifecycle k2–k4). <see cref="LaneActivity.Researching"/>: the lane funds
+    /// <see cref="ResearchRoute.Current"/>, its destination or a route node toward it. <see cref="LaneActivity.Assisting"/>:
+    /// it funds a node of its own tree on the OTHER lane's route (<see cref="ResearchRoute.AssistedDestination"/>).
+    /// <see cref="LaneActivity.Waiting"/>: it holds a destination but no node of its route can be funded (the route waits on
+    /// the other tree) — the step funds nothing on this lane. <see cref="LaneActivity.Idle"/>: no destination, no assist.
+    /// </summary>
+    public static LaneActivity Activity(ResearchRoute route) =>
+        route.Current is not null ? (route.Assisting ? LaneActivity.Assisting : LaneActivity.Researching)
+        : route.Destination is not null ? LaneActivity.Waiting
+        : LaneActivity.Idle;
+
+    /// <summary>
+    /// Display only: the outstanding nodes of the OTHER tree on a lane's route — what a <see cref="LaneActivity.Waiting"/>
+    /// lane waits for — in the route's blocker order (<see cref="ResearchRoute.Blockers"/>). Empty in the one-pool model
+    /// (its one lane funds both trees) and when the route holds no node of the other tree.
+    /// </summary>
+    public static List<ResearchNodeId> WaitingOn(ResearchContent content, ResearchRoute route)
+    {
+        var result = new List<ResearchNodeId>();
+        if (!content.Tuning.TwoLanes) return result;
+        foreach (RouteBlocker b in route.Blockers)
+            if (content.Nodes[b.Index].Tree != route.Lane) result.Add(b.Key);
+        return result;
+    }
+
 
     /// <summary>ADR-043: the SetResearchTarget TargetId that clears the TECHNOLOGY lane (in the one-pool model, the one
     /// target — the v34 meaning of −1).</summary>
@@ -1075,4 +1102,17 @@ public static class ResearchQuery
         if (index < 0) throw new ArgumentOutOfRangeException(nameof(node), node.Value, "no research node has this key");
         return index;
     }
+}
+
+/// <summary>What a research lane's points do on the next step (<see cref="ResearchQuery.Activity"/>; display only).</summary>
+public enum LaneActivity
+{
+    /// <summary>No destination and no assist: the lane funds nothing (RP lost; CP banked).</summary>
+    Idle = 0,
+    /// <summary>The lane funds its destination, or a node of its route toward it.</summary>
+    Researching = 1,
+    /// <summary>The lane funds a node of its own tree on the other lane's route (free-lane assist).</summary>
+    Assisting = 2,
+    /// <summary>The lane holds a destination but no node of its route is fundable now: it funds nothing (RP lost; CP banked).</summary>
+    Waiting = 3,
 }

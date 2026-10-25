@@ -33,7 +33,8 @@ public static class StatusFigures
     /// The research figure — also the band's way into the trees (it replaces the separate "Knowledge [K]"
     /// button, so the band has room for the research state and the Age): "research idle [K]", "research: Root
     /// and tuber cultivati... 27% +12.3/turn", "research: Cordage next turn", "research stops at End Turn", or
-    /// "Knowledge [K]" when the surface lists no research action at all.
+    /// "research waiting: Bronze casting" (a destination waiting on the other tree), or "Knowledge [K]" when the surface
+    /// lists no research action at all.
     /// </summary>
     public static ResearchFigure Research(ResearchBlock? research)
     {
@@ -41,9 +42,12 @@ public static class StatusFigures
         // UR-3: the idle figure is the turn-1 call to action — it says what to do, not only that nothing happens.
         if (research.Idle)
             return new ResearchFigure(research.ClearQueued ? "Research stops at End Turn" : "Research idle - choose [K]", true);
-        ResearchItem item = research.Effective!;
+        // rp-cp-lifecycle k2–k4 (destination research): the figure is the node the step FUNDS — a route node, or the node
+        // an assisting lane funds — and a target that waits on the other tree says so (its points go unused: attention).
+        ResearchItem item = research.Funding?.Node ?? research.Effective!;
         string name = item.Name.Length <= NameChars ? item.Name : item.Name[..(NameChars - 3)].TrimEnd() + "...";
         if (research.Chosen is not null) return new ResearchFigure("Research: " + name + " next turn", false);
+        if (research.Waiting) return new ResearchFigure("Research waiting: " + name, true);
         double pct = item.Cost > 0 ? Math.Floor(item.Progress / item.Cost * 100.0) : 0.0;
         return new ResearchFigure(string.Create(CultureInfo.InvariantCulture,
             $"Research: {name} {pct:0}% +{research.PointsPerTurn:0.0}/turn"), false);

@@ -265,7 +265,8 @@ public sealed partial class ProgressionScreen
         if (ReferenceEquals(world, _world) && Snapshot is not null) return;
         if (Snapshot is not null && world.Clock.Turn != Snapshot.Turn) { PendingTarget = -1; Array.Clear(_pendingCancel); }
         _world = world;
-        Snapshot = ResearchSnapshot.Build(world, Content, Polity);
+        // rp-cp-lifecycle k5: the CP a turn is the NEXT step's accrual (the era table's dt at the world's date).
+        Snapshot = ResearchSnapshot.Build(world, Content, Polity, ActionQueryContext.ForNextStep(world, Era).NextDtYears);
         Page = Lenses.Page(Lens, world, Content, Polity);
     }
 
@@ -759,25 +760,32 @@ public sealed partial class ProgressionScreen
         EraTheme t = Theme;
         ResearchSnapshot s = Snapshot!;
         double caps = Px(TypeRole.Caption, FontRole.Caps), body = Px(TypeRole.Body, FontRole.Heading);
-        if (CapsuleTarget(s) is int ti)
+        void Active(string label, string name, double fraction)
         {
             PanelFrame.Paint(d, cap, t, 140, FrameKind.Chip, t.Semantic.ActiveFill, A(t.Semantic.Active, 0.8), 1.0);
-            ResearchNodeView v = s.Nodes[ti];
-            // ADR-048: with destination research the capsule names the DESTINATION and the node researched now on its route.
-            ResearchRoute route = s.RouteOn(v.Tree);
-            bool onRoute = s.Routing && route.Current is { } cur && cur != v.Key;
-            string name = onRoute ? v.Name + " - now: " + Content.Nodes[Content.IndexOf(route.Current!.Value)].Name
-                : s.Routing && route.Current is null && !route.DestinationAvailable ? v.Name + " - waiting" : v.Name;
-            d.Write(t, cap.X + Sp(12), cap.Y + Sp(3), s.Routing ? "DESTINATION" : "RESEARCHING", caps, Ink.Active, TextAlign.Left, FontRole.Caps);
-            string pct = Pct(v.Fraction);
+            d.Write(t, cap.X + Sp(12), cap.Y + Sp(3), label, caps, Ink.Active, TextAlign.Left, FontRole.Caps);
+            string pct = Pct(fraction);
             double data = Px(TypeRole.Data, FontRole.Numeric);
             double pw = m.Width(t, pct, data, FontRole.Numeric);
             WriteFit(d, m, cap.X + Sp(12), cap.Y + Sp(3) + Line(caps) - Sp(2), name, body, cap.W - Sp(24) - Sp(96) - pw, t.Ink.Text, TextAlign.Left, FontRole.Heading);
-            EraMarks.Progress(d, t, new RectD(cap.Right - Sp(18) - pw - Sp(82), cap.CenterY - Sp(4), Sp(76), Sp(8)), v.Fraction, t.Semantic.Active, 141);
+            EraMarks.Progress(d, t, new RectD(cap.Right - Sp(18) - pw - Sp(82), cap.CenterY - Sp(4), Sp(76), Sp(8)), fraction, t.Semantic.Active, 141);
             d.Write(t, cap.Right - Sp(12), cap.Y + (cap.H - t.Type.Size(data)) / 2 - Sp(2), pct, data, t.Ink.Text, TextAlign.Right, FontRole.Numeric);
+        }
+        if (CapsuleTarget(s) is int ti)
+        {
+            ResearchNodeView v = s.Nodes[ti];
+            Active(s.Routing ? "DESTINATION" : "RESEARCHING", CapsuleName(s, v), v.Fraction);
             return;
         }
         bool ordered = PendingTarget >= 0;
+        // rp-cp-lifecycle k3: a lane with no destination of its own that ASSISTS the other tree's route spends its points —
+        // the capsule names the node it funds and the destination it serves, never "Research idle".
+        if (!ordered && s.Routing && s.RouteOn(TabTree) is { Assisting: true, Current: { } assisted } lane)
+        {
+            ResearchNodeView a = s.Nodes[Content.IndexOf(assisted)];
+            Active("ASSISTING", a.Name + " - toward " + NodeName(lane.AssistedDestination), a.Fraction);
+            return;
+        }
         PanelFrame.Paint(d, cap, t, 140, FrameKind.Chip, ordered ? t.Semantic.ActiveFill : t.Material.PanelRaised,
             ordered ? A(t.Semantic.Active, 0.8) : t.Semantic.Progress, ordered ? 1.0 : 1.6);
         double bodySize = Px(TypeRole.Body);
@@ -1149,11 +1157,49 @@ public sealed partial class ProgressionScreen
                         (route.Blockers.Count == 1 ? "1 node" : route.Blockers.Count.ToString(CultureInfo.InvariantCulture) + " nodes") + " to go");
                 return Join("Researching", levelled, Pct(v.Fraction), Turns(v.EffectiveCost - v.Progress));
             case NodeState.Available:
-                return PendingTarget == contentIndex ? "Ordered - applies at End Turn" : Join("Available", levelled, Turns(v.EffectiveCost - v.Progress));
+                if (PendingTarget == contentIndex) return "Ordered - applies at End Turn";
+                // rp-cp-lifecycle k2/k3: a route node a lane funds now (ResearchQuery.Route's Current) is being researched —
+                // toward its lane's destination, or assisting the other tree's.
+                if (FundingRoute(s, v.Key) is { } funding)
+                    return Join("Researching", funding.Assisting ? "assisting " + NodeName(funding.AssistedDestination) : "toward " + NodeName(funding.Destination),
+                        levelled, Pct(v.Fraction), Turns(v.EffectiveCost - v.Progress));
+                return Join("Available", levelled, Turns(v.EffectiveCost - v.Progress));
         }
         string why = LockLine(contentIndex);
         return v.State == NodeState.Partial ? Join(Pct(v.Fraction) + " kept", why) : why;
     }
+
+    /// <summary>The capsule's name line for the lane target <paramref name="v"/>. ADR-048: with destination research it
+    /// names the DESTINATION and the node researched now on its route ("D - now: x"); rp-cp-lifecycle k3/k4: a destination
+    /// that waits says so, naming what it waits for in the other tree, or that its lane assists the other tree meanwhile.</summary>
+    public string CapsuleName(ResearchSnapshot s, ResearchNodeView v)
+    {
+        if (!s.Routing) return v.Name;
+        ResearchRoute route = s.RouteOn(v.Tree);
+        switch (ResearchQuery.Activity(route))
+        {
+            case LaneActivity.Researching when route.Current is { } cur && cur != v.Key:
+                return v.Name + " - now: " + NodeName(cur);
+            case LaneActivity.Assisting:
+                return v.Name + " - waiting; meanwhile assisting " + NodeName(route.AssistedDestination) + " with " + NodeName(route.Current);
+            case LaneActivity.Waiting:
+                List<ResearchNodeId> on = ResearchQuery.WaitingOn(Content, route);
+                return v.Name + " - waiting" + (on.Count > 0 ? " on " + NodeName(on[0]) + (on.Count > 1 ? " and " + (on.Count - 1).ToString(CultureInfo.InvariantCulture) + " more" : "") : "");
+            default:
+                return v.Name;
+        }
+    }
+
+    /// <summary>rp-cp-lifecycle k2/k3: the lane route whose next step funds <paramref name="key"/> (destination routing on;
+    /// <see cref="ResearchSnapshot.RouteOn"/>, i.e. ResearchQuery.Route), or null. Either lane's route: in the one-pool model
+    /// the one lane funds both trees.</summary>
+    private static ResearchRoute? FundingRoute(ResearchSnapshot s, ResearchNodeId key) =>
+        !s.Routing ? null
+        : s.TechnologyRoute.Current == key ? s.TechnologyRoute
+        : s.CivicsRoute.Current == key ? s.CivicsRoute
+        : null;
+
+    private string NodeName(ResearchNodeId? key) => key is { } k && Content.IndexOf(k) is int i and >= 0 ? Content.Nodes[i].Name : "-";
 
     /// <summary>ADR-049: one operand effect of a levelled repeatable in words — the operand's meaning, the next level's
     /// benefit and the cumulative benefit of <paramref name="level"/> researched levels, as percentages of the operand's

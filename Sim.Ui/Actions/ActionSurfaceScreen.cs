@@ -807,16 +807,21 @@ public sealed partial class ActionSurfaceScreen
         }
         else
         {
-            ResearchItem item = r.Effective!;
+            // rp-cp-lifecycle k3: a lane with no target that assists the other tree's route names the node it funds.
+            ResearchItem item = r.Effective ?? r.Funding!.Node!;
             bool chosenNow = r.Chosen is not null;
             Info(new RectD(x, y + Sp(3), Math.Min(first, m.Width(t, item.Name, Body, FontRole.Heading)), L(Body)), InfoSubject.Node(new ResearchNodeId((int)item.Key)), item.Name);
             y = Math.Max(Wrapped(d, m, item.Name, x, y + Sp(3), first, Body, t.TextInk.Active, FontRole.Heading), open.Bottom + Sp(4));
-            double frac = item.Cost > 0 ? item.Progress / item.Cost : 0;
+            // rp-cp-lifecycle k2/k4: the bar and the figures are the node the step FUNDS (a route node, an assist), never
+            // the destination's in its place; a waiting target says its points go unused.
+            ResearchItem funded = r.Funding?.Node ?? item;
+            double frac = funded.Cost > 0 ? funded.Progress / funded.Cost : 0;
             EraMarks.Progress(d, t, new RectD(x, y, Math.Min(Sp(240), w * 0.6), Sp(10)), frac, t.Semantic.Active, 832);
             y += Sp(16);
-            string line = N0(item.Progress) + " of " + N0(item.Cost) + " research points, +" + N1(r.PointsPerTurn) + " a turn";
+            string line = FundingLine(r.Funding, N0(funded.Progress) + " of " + N0(funded.Cost) + " research points, +" + N1(r.PointsPerTurn) + " a turn",
+                N1(r.PointsPerTurn) + " research points go unused this turn");
             if (chosenNow) line = "chosen this turn - research starts at End Turn (" + line + ")";
-            y = Wrapped(d, m, line, x, y, w, Second, chosenNow ? t.TextInk.Active : t.Ink.TextSoft);
+            y = Wrapped(d, m, line, x, y, w, Second, chosenNow ? t.TextInk.Active : r.Waiting ? t.TextInk.Progress : t.Ink.TextSoft);
             if (r.CanClear)
             {
                 RectD stop = Button(d, m, "Stop", x + w, y + Sp(4), 833, ControlStyle.Secondary);
@@ -836,6 +841,18 @@ public sealed partial class ActionSurfaceScreen
         return y;
     }
 
+    /// <summary>rp-cp-lifecycle k2–k4: the line under a lane's name — <paramref name="figures"/> (the funded node's progress)
+    /// as before when the lane funds its target itself; "now: x - figures" for a route node toward the target; "assisting
+    /// the Civics tree toward D with x - figures" for an assist; "waiting on the Civics tree (needs y) - unused" when the
+    /// target waits and the step funds nothing on the lane.</summary>
+    public static string FundingLine(RouteFunding? f, string figures, string unused) => f switch
+    {
+        { Activity: LaneActivity.Researching, Node: { } n } => "now: " + n.Name + " - " + figures,
+        { Activity: LaneActivity.Assisting, Node: { } n } => "assisting the " + f.OtherTree + " tree toward " + f.Toward + " with " + n.Name + " - " + figures,
+        { Activity: LaneActivity.Waiting } => "waiting on the " + f.OtherTree + " tree" + (f.WaitingOn is { } on ? " (needs " + on + ")" : "") + " - " + unused,
+        _ => figures,
+    };
+
     /// <summary>ADR-043: the Civics line under the Technology target — the Civics target (funded by Civics Points, shown
     /// separately), its progress, the CP a turn accrues and the bank, and a per-lane Stop.</summary>
     private double PaintCivics(DrawList d, ITextMeasure m, ActionSurfaceModel model, CivicsLine c, double x, double y, double w)
@@ -850,14 +867,15 @@ public sealed partial class ActionSurfaceScreen
             y = Wrapped(d, m, idle, x, y, w, Second, t.TextInk.Progress);
             return Wrapped(d, m, bank + ".", x, y, w, Caption, t.Ink.TextSoft);
         }
-        ResearchItem item = c.Effective!;
+        ResearchItem item = c.Effective ?? c.Funding!.Node!;   // rp-cp-lifecycle k3: an assisting lane names the civic it funds
         bool chosenNow = c.Chosen is not null;
         Info(new RectD(x, y, Math.Min(w, m.Width(t, "Civics: " + item.Name, Second)), L(Second)), InfoSubject.Node(new ResearchNodeId((int)item.Key)), item.Name);
         y = Wrapped(d, m, "Civics: " + item.Name, x, y, w, Second, t.TextInk.Active);
-        double frac = item.Cost > 0 ? item.Progress / item.Cost : 0;
+        ResearchItem funded = c.Funding?.Node ?? item;   // rp-cp-lifecycle k2: the civic the step funds
+        double frac = funded.Cost > 0 ? funded.Progress / funded.Cost : 0;
         EraMarks.Progress(d, t, new RectD(x, y, Math.Min(Sp(240), w * 0.6), Sp(10)), frac, t.Semantic.Active, 834);
         y += Sp(16);
-        string line = N0(item.Progress) + " of " + N0(item.Cost) + " civics points; " + bank;
+        string line = FundingLine(c.Funding, N0(funded.Progress) + " of " + N0(funded.Cost) + " civics points", "civics points stay banked") + "; " + bank;
         if (chosenNow) line = "chosen this turn - civics starts at End Turn (" + line + ")";
         y = Wrapped(d, m, line, x, y, w, Caption, chosenNow ? t.TextInk.Active : t.Ink.TextSoft);
         if (c.CanClear)

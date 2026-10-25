@@ -15,7 +15,9 @@ namespace Sim.Tests.Systems;
 /// <summary>
 /// THE RP / CP LIFECYCLE AUDIT (research-cost-pass, rp-cp-lifecycle.md) — every way Research Points and Civics Points are
 /// banked, spent, lost, blocked or misdisplayed under the SHIPPED engine: two lanes (civicsPoints on), destination routing on,
-/// tuning.researchOverflow OFF. Each [Fact] pins the CURRENT behaviour (not a desired one) with the arithmetic in its comment.
+/// tuning.researchOverflow OFF. Each [Fact] pins the CURRENT behaviour (not a desired one) with the arithmetic in its comment —
+/// except the (k2)–(k5) display facts, which since the display fix pin the CORRECTED Glass Box text (each states what the card
+/// said before the fix).
 ///
 /// Rig calibration (ResearchRigs): one player polity, 10 000 people. RP per step R = ResearchQuery.ResearchPointPool (1 000 at
 /// 10 × P^0.5, measured, never assumed); CP per dt-10 step G = ResearchQuery.CivicsPointsMilli = 1 000 000 milli-CP (1.0 × P^0.5
@@ -86,11 +88,15 @@ public class ResearchPointLifecycleTests(ITestOutputHelper output)
     private static SimConfig Cfg(ResearchContent c) =>
         TestConfigs.Sim() with { Research = c, Ages = null, Roads = null, Governance = null, Institutions = null };
 
-    private static string LearningLine(IReadOnlyWorldState w, ResearchContent c) =>
-        InfoQuery.Card(w, Cfg(c), P, InfoSubject.Research, actions: System.Collections.Immutable.ImmutableArray<ActionDescriptor>.Empty).StatusLine;
+    /// <summary>The Glass Box research card's status line, read as the UI reads it: with the next step's context
+    /// (ActionQueryContext.ForNextStep over <paramref name="era"/>, default the rig's flat dt-10 era — what Executor runs).</summary>
+    private static string LearningLine(IReadOnlyWorldState w, ResearchContent c, EraTable? era = null) =>
+        InfoQuery.Card(w, Cfg(c), P, InfoSubject.Research, ActionQueryContext.ForNextStep(w, era ?? FlatEra(10.0)),
+            actions: System.Collections.Immutable.ImmutableArray<ActionDescriptor>.Empty).StatusLine;
 
-    private static string NodeLine(IReadOnlyWorldState w, ResearchContent c, int key) =>
-        InfoQuery.Card(w, Cfg(c), P, InfoSubject.Node(Key(key)), actions: System.Collections.Immutable.ImmutableArray<ActionDescriptor>.Empty).StatusLine;
+    private static string NodeLine(IReadOnlyWorldState w, ResearchContent c, int key, EraTable? era = null) =>
+        InfoQuery.Card(w, Cfg(c), P, InfoSubject.Node(Key(key)), ActionQueryContext.ForNextStep(w, era ?? FlatEra(10.0)),
+            actions: System.Collections.Immutable.ImmutableArray<ActionDescriptor>.Empty).StatusLine;
 
     private static string N0(double v) => v.ToString("#,0", CultureInfo.InvariantCulture);
     private static string N1(double v) => v.ToString("#,0.#", CultureInfo.InvariantCulture);
@@ -474,25 +480,40 @@ public class ResearchPointLifecycleTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void K2_LearningCard_WithRouting_ShowsTheDestinationsZeroProgress_NotTheRouteNodeTheStepFunds()
+    public void K2_LearningCard_WithRouting_ShowsTheRouteNodeTheStepFunds_TowardTheDestination()
     {
-        // DISPLAY DISCREPANCY. Destination d (2 R) needs x (2.5 R). The step funds x (Route.Current); the card names d and d's
-        // progress: "Researching D: 0 of 2,000" — while x holds R. And x's own card says "Open to research now", never
-        // "Being researched" (InfoQuery NodeCard requires target && available; the route node is not the target).
+        // FIXED DISPLAY DISCREPANCY (before the fix: "Researching D: 0 of 2,000 research points, +1,000 a turn." and x's card
+        // "Open to research now: …"). Destination d (2 R) needs x (2.5 R). The step funds x (Route.Current, what
+        // ResearchRoutePlanner.Fund gives the engine): x holds R. The card now names x, x's progress and the destination; x's
+        // own card says it is being researched toward d; d's card stays "Locked" (it is not open), and a link to d reads
+        // "your destination", not "being researched".
         ResearchContent c = Rig(s => s.Technologies.AddRange([new Node(2, "x", Cost: 2.5 * R), new Node(3, "d", "x", Cost: 2.0 * R)]));
         WorldState w = Executor(c).Step(Toward(3));
         Assert.Equal(R, Progress(w, 2));
         Assert.Equal(Key(2), ResearchQuery.Route(w, c, P, ResearchTree.Technology).Current);
-        Assert.StartsWith("Researching D: 0 of 2,000 research points, +1,000 a turn.", LearningLine(w, c));
-        Assert.StartsWith("Open to research now:", NodeLine(w, c, 2));
+        Assert.Equal("Researching X (toward D): 1,000 of 2,500 research points, +1,000 a turn. Civics: no civics target; "
+            + "1,000 civics points banked, +1,000 a turn.", LearningLine(w, c));
+        // The step after funds x again: the card's +R a turn lands on the node it names.
+        WorldState w2 = Executor(c).Step(w);
+        Assert.Equal(Progress(w, 2) + R, Progress(w2, 2));
+        Assert.Equal("Being researched (toward D): 1,000 of 2,500 research points, +1,000 a turn.", NodeLine(w, c, 2));
         Assert.StartsWith("Locked:", NodeLine(w, c, 3));
+        InfoCard xCard = InfoQuery.Card(w, Cfg(c), P, InfoSubject.Node(Key(2)), actions: System.Collections.Immutable.ImmutableArray<ActionDescriptor>.Empty);
+        Assert.Equal(InfoStatus.Researching, xCard.Status);
+        InfoCard dCard = InfoQuery.Card(w, Cfg(c), P, InfoSubject.Node(Key(3)), actions: System.Collections.Immutable.ImmutableArray<ActionDescriptor>.Empty);
+        InfoLink toX = Assert.Single(dCard.EnabledBy, l => l.Subject is { } s && s.Id == 2);
+        Assert.Contains(" - being researched", toX.Note!, StringComparison.Ordinal);
+        InfoCard research = InfoQuery.Card(w, Cfg(c), P, InfoSubject.Research, actions: System.Collections.Immutable.ImmutableArray<ActionDescriptor>.Empty);
+        Assert.Contains(research.Enables, l => l.Subject is { } s && s.Id == 3 && l.Note!.Contains(" - your destination", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void K3_LearningCard_AFreeTechLaneThatAssists_IsReportedIdleAndUnused_WhileItsRpIsSpent()
+    public void K3_LearningCard_AFreeTechLaneThatAssists_IsReportedAssistingTheCivicsTree_NotIdle()
     {
-        // DISPLAY DISCREPANCY. No technology destination; the civic destination cd needs the technology t (2 R). The free tech
-        // lane ASSISTS: the step adds R to t (spent R, lost 0). The card still says "Idle: 1,000 research points a turn go unused".
+        // FIXED DISPLAY DISCREPANCY (before the fix: "Idle: 1,000 research points a turn go unused; …" — a false waste claim).
+        // No technology destination; the civic destination cd needs the technology t (2 R). The free tech lane ASSISTS: the
+        // step adds R to t (spent R, lost 0). The card now says the lane researches t for the Civics tree's cd, and the
+        // Civics half says cd waits on t (CP banked: G after one step).
         ResearchContent c = Rig(s =>
         {
             s.Technologies.Add(new Node(2, "t", Cost: 2.0 * R));
@@ -502,14 +523,21 @@ public class ResearchPointLifecycleTests(ITestOutputHelper output)
         WorldState w1 = Executor(c).Step(w0);
         Assert.Equal(R, RpSpent(w0, w1, c));
         Assert.True(ResearchQuery.Route(w1, c, P, ResearchTree.Technology).Assisting);
-        Assert.StartsWith("Idle: 1,000 research points a turn go unused;", LearningLine(w1, c));
+        Assert.Equal("Researching T (assisting the Civics tree toward CD): 1,000 of 2,000 research points, +1,000 a turn. "
+            + "Civics: waiting on the Technology tree: CD needs T first, civics points stay banked; 1,000 civics points banked, +1,000 a turn.",
+            LearningLine(w1, c));
+        Assert.Equal("Being researched (assisting the Civics tree toward CD): 1,000 of 2,000 research points, +1,000 a turn.", NodeLine(w1, c, 2));
+        WorldState w2 = Executor(c).Step(w1);
+        Assert.Equal(R, RpSpent(w1, w2, c));   // the RP the card says is spent on t is spent on t
     }
 
     [Fact]
-    public void K4_LearningCard_ALaneWaitingOnTheOtherLane_ReadsResearching_WhileEveryRpIsLost()
+    public void K4_LearningCard_ALaneWaitingOnTheOtherLane_SaysWaiting_AndThatItsRpGoUnused()
     {
-        // DISPLAY DISCREPANCY (hides the loss). D2's state: td waits on the civic cv behind the Civics lane's own cz. RP lost R a
-        // step; the card reads "Researching TD: 0 of 2,000 research points, +1,000 a turn." — no idle or waiting word.
+        // FIXED DISPLAY DISCREPANCY (before the fix: "Researching TD: 0 of 2,000 research points, +1,000 a turn." — it hid the
+        // loss). D2's state: td waits on the civic cv behind the Civics lane's own cz. RP lost R a step; the card now says the
+        // lane waits on the Civics tree, names cv (ResearchQuery.WaitingOn: the route's outstanding civic) and says the RP go
+        // unused this turn. "Researching" is kept for a lane that funds a node.
         ResearchContent c = Rig(s =>
         {
             s.Technologies.Add(new Node(2, "td", "cv", Cost: 2.0 * R));
@@ -518,31 +546,78 @@ public class ResearchPointLifecycleTests(ITestOutputHelper output)
         WorldState w0 = Toward(2, 2002);
         WorldState w1 = Executor(c).Step(w0);
         Assert.Equal(0.0, RpSpent(w0, w1, c));
-        Assert.StartsWith("Researching TD: 0 of 2,000 research points, +1,000 a turn.", LearningLine(w1, c));
+        ResearchRoute tech = ResearchQuery.Route(w1, c, P, ResearchTree.Technology);
+        Assert.Equal((Key(2), (ResearchNodeId?)null), (tech.Destination, tech.Current));   // a destination, nothing fundable: waiting
+        Assert.Equal("Waiting on the Civics tree: TD needs CV first; 1,000 research points go unused this turn. "
+            + "Civics: civics target CZ: 1,000 of 5,000 civics points; 0 civics points banked, +1,000 a turn.", LearningLine(w1, c));
+        InfoCard card = InfoQuery.Card(w1, Cfg(c), P, InfoSubject.Research, actions: System.Collections.Immutable.ImmutableArray<ActionDescriptor>.Empty);
+        Assert.Equal(InfoStatus.Blocked, card.Status);
+        WorldState w2 = Executor(c).Step(w1);
+        Assert.Equal(0.0, RpSpent(w1, w2, c));   // the RP the card says go unused do go unused
     }
 
     [Fact]
-    public void K5_CpPerTurnShown_IsTheLastStepsDt_NotTheNextSteps_AtTurnZeroAndAtABandBoundary()
+    public void K5_CpPerTurnShown_IsTheNextStepsAccrual_AtTurnZeroAndAtABandBoundary()
     {
-        // DISPLAY DISCREPANCY. Every CP-a-turn figure (InfoQuery cards, ResearchSnapshot.CivicsPerTurn, the action surface's
-        // CivicsLine) is CivicsPointsMilli(world, …, world.Clock.DtYears): the dt of the step that PRODUCED the world. The next
-        // step accrues with the era table's dt at the current date (TurnExecutor (1)).
-        // Turn 0: Clock.DtDays = 0 → shown "+0 a turn"; the first step accrues G = 1 000 CP.
+        // FIXED DISPLAY DISCREPANCY (before the fix every CP-a-turn figure was CivicsPointsMilli(world, …, world.Clock.DtYears):
+        // the dt of the step that PRODUCED the world — "+0 a turn" at turn 0, the previous band's accrual at a band start).
+        // The figure is now the accrual of the NEXT step: the era table's dt at the world's date (TurnExecutor (1)), read
+        // through the card's context (ActionQueryContext.ForNextStep).
+        // Turn 0: Clock.DtDays = 0; shown "+1,000 a turn"; the first step accrues G = 1 000 CP. The civic's "about N turns"
+        // estimate (was absent at a rate of 0) is 400 000 / 1 000.
         ResearchContent c = Rig(_ => { });
         WorldState w0 = PlayerWorld();
         Assert.Equal(0.0, w0.Clock.DtYears);
-        Assert.EndsWith("0 civics points banked, +0 a turn.", LearningLine(w0, c));
+        Assert.EndsWith("0 civics points banked, +1,000 a turn.", LearningLine(w0, c));
+        Assert.Equal("Open to research now: 400,000 civics points (about 400 turns at the current rate).", NodeLine(w0, c, 2001));
         WorldState w1 = Executor(c).Step(w0);
         Assert.Equal(1_000_000L, Cp(w1).GeneratedMilli);
-        // A band boundary: dt 10 for years [0, 20), dt 5 after. After two steps the clock says dt 10 (shown "+1,000 a turn"),
-        // but the third step runs at dt 5 and accrues 500 CP.
+        // A band boundary: dt 10 for years [0, 20), dt 5 after. After two steps the clock says dt 10, but the third step runs
+        // at dt 5 and accrues 500 CP — shown "+500 a turn" (before the fix: "+1,000 a turn").
         var era = EraTableLoader.Load("""{ "bands": [ { "name": "a", "startYear": 0, "endYear": 20, "dtYears": 10 }, { "name": "b", "startYear": 20, "endYear": 100000, "dtYears": 5 } ] }""");
         var ex = new TurnExecutor(era, [SystemCatalog.Research(TestConfigs.Sim() with { Research = c })]);
         WorldState b2 = Run(ex, PlayerWorld(), 2);
         Assert.Equal(10.0, b2.Clock.DtYears);
-        Assert.EndsWith("civics points banked, +1,000 a turn.", LearningLine(b2, c));
+        Assert.EndsWith("civics points banked, +500 a turn.", LearningLine(b2, c, era));
         WorldState b3 = ex.Step(b2);
         Assert.Equal(500_000L, Cp(b3).GeneratedMilli - Cp(b2).GeneratedMilli);
+        // Inside the band the next dt equals the last: shown +500, accrued 500.
+        Assert.EndsWith("civics points banked, +500 a turn.", LearningLine(b3, c, era));
+        Assert.Equal(500_000L, Cp(ex.Step(b3)).GeneratedMilli - Cp(b3).GeneratedMilli);
+    }
+
+    [Fact]
+    public void K_LaneActivity_ClassifiesEachLaneState_FromTheRoute_AndWaitingOnNamesTheOtherTreesNodes()
+    {
+        // The display's one classification (ResearchQuery.Activity / WaitingOn, read from Route): Idle (b), Researching the
+        // destination itself (k1) or a route node (k2), Assisting (k3), Waiting (k4) — and what the step does in each.
+        ResearchContent idle = Rig(_ => { });
+        WorldState wi = Executor(idle).Step(PlayerWorld());
+        Assert.Equal(LaneActivity.Idle, ResearchQuery.Activity(ResearchQuery.Route(wi, idle, P, ResearchTree.Technology)));
+
+        ResearchContent k2 = Rig(s => s.Technologies.AddRange([new Node(2, "x", Cost: 2.5 * R), new Node(3, "d", "x", Cost: 2.0 * R)]));
+        WorldState w2 = Executor(k2).Step(Toward(3));
+        ResearchRoute r2 = ResearchQuery.Route(w2, k2, P, ResearchTree.Technology);
+        Assert.Equal((LaneActivity.Researching, Key(2), Key(3)), (ResearchQuery.Activity(r2), r2.Current!.Value, r2.Destination!.Value));
+        Assert.Empty(ResearchQuery.WaitingOn(k2, r2));
+
+        ResearchContent k3 = Rig(s => { s.Technologies.Add(new Node(2, "t", Cost: 2.0 * R)); s.Civics.Add(new Node(2001, "cd", "t", Cost: 5000.0)); });
+        WorldState w3 = Executor(k3).Step(Toward(2001));
+        Assert.Equal(LaneActivity.Assisting, ResearchQuery.Activity(ResearchQuery.Route(w3, k3, P, ResearchTree.Technology)));
+        ResearchRoute c3 = ResearchQuery.Route(w3, k3, P, ResearchTree.Civics);
+        Assert.Equal(LaneActivity.Waiting, ResearchQuery.Activity(c3));
+        Assert.Equal([Key(2)], ResearchQuery.WaitingOn(k3, c3));
+
+        ResearchContent k4 = Rig(s =>
+        {
+            s.Technologies.Add(new Node(2, "td", "cv", Cost: 2.0 * R));
+            s.Civics.AddRange([new Node(2001, "cv", Cost: 5000.0), new Node(2002, "cz", Cost: 5000.0)]);
+        });
+        WorldState w4 = Executor(k4).Step(Toward(2, 2002));
+        ResearchRoute r4 = ResearchQuery.Route(w4, k4, P, ResearchTree.Technology);
+        Assert.Equal(LaneActivity.Waiting, ResearchQuery.Activity(r4));
+        Assert.Equal([Key(2001)], ResearchQuery.WaitingOn(k4, r4));
+        Assert.Equal(LaneActivity.Researching, ResearchQuery.Activity(ResearchQuery.Route(w4, k4, P, ResearchTree.Civics)));
     }
 
     // ================================================================== (l) the AI on the canonical world
