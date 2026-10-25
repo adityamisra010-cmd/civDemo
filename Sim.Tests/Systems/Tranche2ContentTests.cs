@@ -50,6 +50,27 @@ public class Tranche2ContentTests
         Assert.Empty(missing);
     }
 
+    /// <summary>CR-025 — CONTENT FREEZE while the ruling is pending: `roads.baselineKmPerDay` has no consuming system
+    /// (UnconsumedOperandTests), so its declarations are not realized effects. No node beyond the 17 recorded in CR-025 may
+    /// declare it; applying the ruling changes this list (and this test) deliberately.</summary>
+    [Fact]
+    public void NoNewNode_DeclaresTheUnconsumedSpeedOperand()
+    {
+        string[] recorded =
+        [
+            "horse_domestication", "wheel_spoked", "saddle", "road_paved", "bridge_stone", "horseshoe", "wheellock",
+            "internal_combustion", "aluminium", "motor_road", "sprung_coach", "integrated_alliance_command", "road_houses",
+            "pilgrimage", "bridge_trusts", "turnpike_trusts", "road_traffic_regulation",
+        ];
+        var declaring = new List<string>();
+        foreach (ResearchNode n in C.Nodes)
+            foreach (RealizedEffect e in n.RealizedEffects)
+                if (e.Operand == KnowledgeOperand.RoadsBaselineKmPerDay) declaring.Add(n.Id);
+        declaring.Sort(StringComparer.Ordinal);
+        Array.Sort(recorded, StringComparer.Ordinal);
+        Assert.Equal(recorded, declaring);
+    }
+
     [Fact]
     public void AgeSweep_ReachesEveryNode_FromScratch()
     {
