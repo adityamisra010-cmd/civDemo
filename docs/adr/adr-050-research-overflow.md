@@ -65,3 +65,33 @@ fund. Overflow continues spending; it cannot create a funded node. These cases a
   every research-using run move. No save-schema change.
 - **ON-LANE.** Has the same consequences, much larger, and also interacts with the repeatables' pricing
   (`repeatables-proposal.md`).
+
+## 6. Trial on the post-fix baseline (2026-10-25)
+
+Director instruction (2026-10-25): trial route overflow against the previous baseline, with `researchOverflow`
+disabled by default and the lane variant not enabled. Report: `research-cost-pass/overflow-trial.md`. Baseline:
+`9204de7`. The display fixes k2–k5 and CR-025 move no simulation state, so it is the shipped game.
+
+**Measured** (seeds 1, 2, 42 and 7; 1,630 turns):
+
+| Measure | OFF | ON (route) |
+|---|---|---|
+| RP lost | 54.5 % | 50.8 % |
+| Waste in Ages 2, 3, 6 and 8 | — | cut 3–4× |
+| Waste in Age 9 | 72.1 % | 66.2 % |
+| Waste in Age 7 | 22.5 % | 26.7 % (see below) |
+| Age 9 entry | — | 44–65 turns sooner |
+| Completion order (Spearman ρ, 992 finite nodes per seed) | — | ≥ 0.999 |
+| Most nodes in one turn, per tree | 1 | 2 |
+
+- CP identity holds on every run.
+- Repeatables gain at most one level per lane per step.
+- Every ON run replays to the same final hash from its order log, and the save/load round trip at turn 815 is equal.
+
+**Found.** Overflow speeds technology more than civics, so the technology lane reaches the Age-sweep gate first and waits
+on the civics cohort (heavy_plough in Age 5, germ_theory in Age 7). The RP of those steps is lost: 120 waiting steps in
+Age 7 across 4 seeds, against 12 under OFF. This is the empty-lane case, so overflow is not to be adopted alone
+(`research-cost-pass/empty-lane-reserve-proposal.md`).
+
+**Status.** Still PROPOSED, still OFF. Recommendation: rule on overflow together with the empty-lane rule, then refresh
+the pacing baseline once with both. No cost change accompanies either.

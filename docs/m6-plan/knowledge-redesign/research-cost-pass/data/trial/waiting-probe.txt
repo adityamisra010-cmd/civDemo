@@ -1,0 +1,8 @@
+seed 1 overflow OFF [off] proxy-delay none reserve-cap none draw-limit none
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A6 corned_powder (A7) civic-sweep-cohort: 13]
+seed 42 overflow OFF [off] proxy-delay none reserve-cap none draw-limit none
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A6 corned_powder (A7) civic-sweep-cohort: 11]
+seed 1 overflow ON [route] proxy-delay none reserve-cap none draw-limit none
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A5 heavy_plough (A6) civic-sweep-cohort: 7] [A6 corned_powder (A7) civic-sweep-cohort: 11] [A7 germ_theory (A8) civic-sweep-cohort: 21]
+seed 42 overflow ON [route] proxy-delay none reserve-cap none draw-limit none
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A5 heavy_plough (A6) civic-sweep-cohort: 4] [A7 germ_theory (A8) civic-sweep-cohort: 17]
