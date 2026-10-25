@@ -205,12 +205,18 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
             //     the lane (smallest (remaining EffectiveCost, key)); a lane without a destination may assist the other's
             //     route. Read from PREV — exactly what ResearchQuery.Route reports from the same state and destinations.
             int[] fund = target;
+            LaneFunding[]? lanes = null;
+            double[]? remaining = null;
             if (routing)
             {
-                LaneFunding[] lanes = ResearchRoutePlanner.Fund(content, completed, available,
-                    ResearchQuery.RemainingCosts(prev, content, polity), target, twoLanes);
+                remaining = ResearchQuery.RemainingCosts(prev, content, polity);
+                lanes = ResearchRoutePlanner.Fund(content, completed, available, remaining, target, twoLanes);
                 fund = [lanes[0].Current, twoLanes ? lanes[1].Current : -1];
             }
+            // ADR-050: with tuning.researchOverflow, a lane's points continue past a fully paid node (NextFunded); paid[]
+            // marks the nodes already paid in full this step (each node at most once per step).
+            bool overflow = content.Tuning.ResearchOverflow;
+            bool[]? paidOff = null;
 
             // Working view of this polity's progress rows (Next starts as a copy of Prev).
             var rowOf = new int[n];
@@ -274,9 +280,15 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                 double amount = local
                     ? ResearchQuery.CityStateResearchPoints(prev, content, SettlementKnowledge.SettlementOf(polity))
                     : ResearchQuery.ResearchPointPool(prev, content, polity);
-                if (amount > 0.0)
-                    Credit(owned, rowOf, polity, content.Nodes[fund[0]], amount,
-                        ResearchQuery.EffectiveCost(prev, content, polity, fund[0]));
+                for (int node = fund[0]; node >= 0 && amount > 0.0;)
+                {
+                    double cost = ResearchQuery.EffectiveCost(prev, content, polity, node);
+                    amount -= Credit(owned, rowOf, polity, content.Nodes[node], amount, cost);
+                    if (!overflow || rowOf[node] < 0 || owned.Progress[rowOf[node]].Progress < cost) break;
+                    paidOff ??= new bool[n];
+                    paidOff[node] = true;
+                    node = NextFunded(prev, content, polity, local, twoLanes, lanes, target, 0, available, paidOff, remaining);
+                }
             }
 
             // 3b. ADR-043 — CP accrual, then CP spend (two-lane model only). Accrual is a per-SIM-YEAR rate integrated
@@ -293,10 +305,16 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                 {
                     CivicsPointsRow account = accountRow >= 0 ? owned.CivicsPoints[accountRow] : new CivicsPointsRow(polity, 0L, 0L, 0L);
                     long balance = checked(account.BalanceMilli + generated);
-                    long spent = fund[1] >= 0
-                        ? SpendCivics(owned, rowOf, polity, content.Nodes[fund[1]], balance,
-                            ResearchQuery.EffectiveCost(prev, content, polity, fund[1]))
-                        : 0L;
+                    long spent = 0L;
+                    for (int node = fund[1]; node >= 0 && balance - spent > 0L;)
+                    {
+                        double cost = ResearchQuery.EffectiveCost(prev, content, polity, node);
+                        spent += SpendCivics(owned, rowOf, polity, content.Nodes[node], balance - spent, cost);
+                        if (!overflow || rowOf[node] < 0 || owned.Progress[rowOf[node]].Progress < cost) break;
+                        paidOff ??= new bool[n];
+                        paidOff[node] = true;
+                        node = NextFunded(prev, content, polity, local, twoLanes, lanes, target, 1, available, paidOff, remaining);
+                    }
                     var updated = new CivicsPointsRow(polity, balance - spent,
                         checked(account.GeneratedMilli + generated), checked(account.SpentMilli + spent));
                     if (accountRow >= 0) owned.CivicsPoints[accountRow] = updated;
@@ -350,6 +368,30 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
 
         RemoveRows(owned.Progress, progressRemovals);
         RemoveRows(owned.Targets, targetRemovals);
+    }
+
+    /// <summary>ADR-050 (tuning.researchOverflow): the node <paramref name="lane"/> funds next in this step once the nodes
+    /// marked in <paramref name="paidOff"/> are fully paid — ResearchRoutePlanner.Fund's rule replayed on the step's own plans
+    /// (no re-planning: availability stays PREV's, less the paid nodes): the lane's destination if available, else its
+    /// route's current node, else (two lanes) the free-lane assist on the other lane's route; a city state takes the
+    /// cheapest available node of its lane. -1 when nothing more is fundable (routing off: never more than the target).</summary>
+    private static int NextFunded(IReadOnlyWorldState prev, ResearchContent content, PolityId polity, bool local, bool twoLanes,
+        LaneFunding[]? lanes, int[] target, int lane, bool[] available, bool[] paidOff, double[]? remaining)
+    {
+        var open = new bool[available.Length];
+        for (int i = 0; i < open.Length; i++) open[i] = available[i] && !paidOff[i];
+        if (local)
+            return AiResearchPolicy.Cheapest(prev, content, polity, open,
+                twoLanes ? TreeMask(content, lane == 0 ? ResearchTree.Technology : ResearchTree.Civics) : null);
+        if (lanes is null || remaining is null || lane >= lanes.Length) return -1;
+        int d = target[lane];
+        int next = -1;
+        if (d >= 0 && open[d]) next = d;
+        else if (lanes[lane].Plan is { } own)
+            next = ResearchRoutePlanner.PickCurrent(content, own.Route, open, remaining, lane, twoLanes, -1);
+        if (next < 0 && twoLanes && lanes[1 - lane].Plan is { } other)
+            next = ResearchRoutePlanner.PickCurrent(content, other.Route, open, remaining, lane, twoLanes, -1);
+        return next;
     }
 
     /// <summary>Adds up to <paramref name="amount"/> RP of progress to a node, capped at its
