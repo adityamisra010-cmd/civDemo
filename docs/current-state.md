@@ -1,5 +1,16 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-26 (final): RESEARCH-ECONOMY CANDIDATE TRIALLED; TREE CLOSURE TC-1 PROPOSED** on `claude/new-session-yavghm`.
+> Not merged, not released; `main` = `m5-exit` untouched; shipped `research.json` and every default unchanged.
+> - **Candidate (not default):** `research-cost-pass/candidate/research.candidate.json` = the switches + the calibrated scale
+>   with civics A7 = 1.479361 (recalibrated with the civics gate rule on) + cost batches b1 and b3. b2 and b5 were excluded for
+>   measured regressions. Report: `research-cost-pass/candidate-trial.md`. Ready for a separate default-adoption decision
+>   (docket D1).
+> - **Tree closure:** `docs/m6-plan/knowledge-redesign/tree-closure.md`. Baseline TC-1 (STRUCTURE and TEXT hashes pinned by
+>   `TreeClosureBaselineTests`), PROPOSED pending the Director's confirmation. After it: no node redesign or cost tuning
+>   without a material defect. The main effort moves to the unit catalogue, upgrade paths and transformations
+>   (`docs/m7-plan/unit-catalogue-and-progression.md`).
+>
 > **2026-10-26 (later): PACING RECALIBRATED UNDER THE TRIAL CONFIGURATION** on `claude/new-session-yavghm`. Not merged,
 > not released; `main` = `m5-exit` untouched. Shipped defaults unchanged: `research.json` keeps its scale and all three
 > switches stay absent (off).
