@@ -23,7 +23,9 @@ and 7, the canonical world, one AI Empire).
 | 9 | `empty-lane-reserve-proposal.md` (2026-10-25) | The empty-lane RP rule: reserve caps compared against an uncapped reserve, a human proxy, bursts and pacing, a UI spec |
 | 10 | `combined-trial.md` (2026-10-26) | The Director's trial configuration (overflow + capped reserve + gate-aware goals) against the new baseline: waste, Ages, civics, roads, milestones, casual and idling players, gate waits, reserve saturation, replay |
 | 11 | `pacing-recalibration.md` (2026-10-26, later) | The pacing scales recalibrated under the trial configuration (overlay only): passes, held scales and their residuals, per-seed Age turns, waste by Age, reserve time at the cap versus size, replay |
-| 12 | `cost-batches.md` (2026-10-26, later; being written) | The eight cost batches, each measured independently against the calibrated trial |
+| 12 | `cost-batches.md` (2026-10-26, later) | The eight cost batches, each measured independently against the calibrated trial: per-seed shifts, cheaper-but-later and waste-shift flags, verdicts (none adopted) |
+| 13 | `civics-gate-trial.md` (2026-10-26, later) | ADR-053's separate trial: inert on the calibrated baseline (bit-identical), removes the order-driven `caliphate` stall, trims a CP-bound stall |
+| 14 | `decision-docket.md` (2026-10-26, later) | The open decisions for the next ruling, with evidence, options, recommendations and what is pre-staged |
 | — | `../../../adr/cr-025-unconsumed-overland-speed-operand.md` | The 17 nodes whose speed effect no system consumes: evidence, options, the interim display fix |
 
 ## Findings in one screen

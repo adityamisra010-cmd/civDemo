@@ -9,8 +9,13 @@
 >   accepted provisionally; civics gate rule approved for a separate trial; technology Age 9 deferred (a documented
 >   throughput limitation, no lane-wide overflow or cost cuts to force it); the eight cost batches continue as
 >   measurement, not default adoption, each against the calibrated baseline.
-> - **In progress:** cost batches (`research-cost-pass/cost-batches.md`); civics gate rule (ADR-053, separate trial);
->   the 17-node audit (CR-025 §8), merged only after dependency, save/migration and golden checks.
+> - **Done since:**
+>   - **Cost batches** measured, none adopted (`research-cost-pass/cost-batches.md`). b0, the six early cuts, makes the run
+>     slower.
+>   - **Civics gate rule** (ADR-053, `tuning.aiCivicsGateGoals`, off) implemented and trialled
+>     (`research-cost-pass/civics-gate-trial.md`).
+>   - **17-node audit** (CR-025 §8: inert future declarations only) merged after the dependency, save and golden checks.
+> - **Next ruling:** `research-cost-pass/decision-docket.md`.
 >
 > **2026-10-26: RESEARCH ECONOMY TRIAL IMPLEMENTED (Director ruling 2026-10-26)** on
 > `claude/new-session-yavghm`. Not merged, not released; `main` = `m5-exit` untouched.

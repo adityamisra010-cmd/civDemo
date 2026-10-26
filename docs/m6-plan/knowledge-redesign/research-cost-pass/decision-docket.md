@@ -11,7 +11,7 @@ pre-staged so that a ruling can be carried out without new design work.
 |---|---|---|
 | Calibrated trial overlay (overflow + reserve {3, 1} + gate-aware goals + calibrated scale) | **Accepted as the experimental baseline** (ruling 2026-10-26, later); not default | `pacing-recalibration.md` |
 | Casual-player reserve | Accepted provisionally | `pacing-recalibration.md` §5 |
-| Civics gate rule (ADR-053) | Approved for a separate trial; implemented behind `tuning.aiCivicsGateGoals`, off | `civics-gate-trial.md` |
+| Civics gate rule (ADR-053) | Approved for a separate trial; implemented behind `tuning.aiCivicsGateGoals`, off; trial measured | `civics-gate-trial.md` |
 | Technology Age 9 | Deferred; documented throughput limitation | `pacing-recalibration.md` §3 |
 | Eight cost batches | Measured, not adopted | `cost-batches.md` |
 | 17-node audit (CR-025 §8) | Merged only after the dependency, save and golden checks | CR-025 §8 |
@@ -62,7 +62,13 @@ fix, and its trial is the remaining gate.
 - (b) Keep it as a separate trial.
 - (c) Reject it.
 
-**Recommendation:** see `civics-gate-trial.md` §verdict.
+**Recommendation:** (a).
+- **Arm A:** with the calibrated scales the rule is inert, and the final hashes are bit-identical.
+- **Arm B:** with pass-3 scales on seed 2 it removes the order-driven `caliphate` stall: `caliphate` −158 turns, technology
+  steps with nothing to fund 184 → 71, Age 8 entered 158 turns sooner.
+- **Arm C:** a stall limited by CP flow (civics A7 at 2.06) is trimmed only, so recalibrating civics A7 with the rule on is
+  the next step.
+- See `civics-gate-trial.md`.
 
 ## D3. Cost batches
 

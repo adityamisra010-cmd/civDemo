@@ -119,3 +119,17 @@ steps) by polity Age, RP lost by Age, Age entry turns (A7–A9), and replay / sa
 ## 8. Status
 
 PROPOSED, OFF. Queue: `docs/queue.md` (2026-10-26, ADR-053).
+
+## 9. Four-seed trial (2026-10-26)
+
+`docs/m6-plan/knowledge-redesign/research-cost-pass/civics-gate-trial.md`.
+
+| Case | Result |
+|---|---|
+| Calibrated baseline (pass 8) + rule, 4 seeds | Inert: final hashes bit-identical to the rule off; replay and save/load exact |
+| Pass-3 scales, seed 2: the order-driven `caliphate` stall | `caliphate` 1,460 → 1,302; technology steps with nothing to fund 184 → 71; reserve-cap turns 157 → 44; Age 8 entered 158 turns sooner; RP lost 37.0 → 34.2 % |
+| Civics A7 at 2.06 (CP-bound stall), 4 seeds | Seeds 1, 42 and 7 identical; seed 2 technology idle steps 98 → 92 and Age 9 6 turns sooner. A stall where the whole cohort is already being paid for is a pricing matter, not an order matter |
+
+**Status:** PROPOSED, OFF by default. Recommended for the trial configuration, followed by a bounded recalibration of civics
+Age 7 with the rule on.
+
