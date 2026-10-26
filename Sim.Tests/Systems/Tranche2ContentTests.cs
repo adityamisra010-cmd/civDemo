@@ -46,23 +46,64 @@ public class Tranche2ContentTests
 
     /// <summary>
     /// KNOWN GAPS (CR-025 ruling, 2026-10-26): the nodes that, judged by ACTUAL liveness, have neither a real effect nor a
-    /// declared future effect. Each passed the pre-ruling test only because it counted any `infra.` or `building.` unlock
-    /// as live, placeholders included (a unit unlock never counted). Their content is outside the CR-025 ruling and is
-    /// unchanged; CR-025 §7.3 records them for a content decision. The test asserts the gap set EQUALS this list, so it may
-    /// only change deliberately: a node leaves it when it gains a real effect or a future declaration (and the test fails
-    /// until it is removed here), and no new node can join it silently.
+    /// declared future effect. The test asserts the gap set EQUALS this list, so it may only change deliberately: a node
+    /// leaves it when it gains a real effect or a future declaration (and the test fails until it is removed here), and no
+    /// new node can join it silently.
+    /// <para>History: CR-025 §7.3 found 17 — kiln_updraft, oil_press, papyrus, plank_boat, fulling_mill, sulphuric_acid,
+    /// telephone, petroleum_refining, integrated_circuit, nuclear_power, solar_pv, wind_turbine_modern, cloud_computing,
+    /// desalination, fusion_power, trace_italienne, rocket — each unlocking only placeholder entities. The node-by-node
+    /// audit of CR-025 §8 (2026-10-26) declared each one's future effect (<see cref="GapAuditDisposition"/>), so the list
+    /// is empty. Two of them (papyrus, telephone) also have a PROPOSED live effect awaiting the Director's ruling (CR-025
+    /// §8.3); it is not applied, and nothing here depends on it.</para>
     /// </summary>
-    internal static readonly string[] KnownGapsWithoutARealEffect =
+    internal static readonly string[] KnownGapsWithoutARealEffect = [];
+
+    /// <summary>
+    /// CR-025 §8 (2026-10-26) — THE APPLIED DISPOSITION of the 17 former known gaps: each declares only future effects, in
+    /// this milestone order, with operand null (no registered operand belongs to the realizing systems), and nothing else
+    /// changed: no realized effect, the same node key (saves key their rows by it) and the same placeholder unlocks.
+    /// </summary>
+    internal static readonly (string Id, int Key, string[] Milestones, string[] Unlocks)[] GapAuditDisposition =
     [
-        // Technology, each unlocking only a placeholder building or infrastructure entity (no construction project, no
-        // road class): kiln, oil press, library, harbour, fulling mill, chemical works, telephone network, refinery,
-        // semiconductor fab, nuclear / solar / wind / fusion plants, data centre, desalination plant.
-        "kiln_updraft", "oil_press", "papyrus", "plank_boat", "fulling_mill", "sulphuric_acid", "telephone",
-        "petroleum_refining", "integrated_circuit", "nuclear_power", "solar_pv", "wind_turbine_modern", "cloud_computing",
-        "desalination", "fusion_power",
-        // Unit and M7-tier placeholders only (bastion fort; missile, spaceport, orbital launch project).
-        "trace_italienne", "rocket",
+        ("kiln_updraft", 48, ["unscheduled"], ["building.kiln"]),
+        ("oil_press", 57, ["unscheduled"], ["building.oil_press"]),
+        ("papyrus", 90, ["unscheduled"], ["building.library"]),
+        ("plank_boat", 95, ["unscheduled"], ["building.harbour"]),
+        ("fulling_mill", 182, ["unscheduled"], ["building.fulling_mill"]),
+        ("sulphuric_acid", 275, ["unscheduled"], ["building.chemical_works"]),
+        ("telephone", 290, ["unscheduled"], ["infra.telephone_network"]),
+        ("petroleum_refining", 292, ["unscheduled"], ["building.refinery"]),
+        ("integrated_circuit", 317, ["unscheduled"], ["building.semiconductor_fab"]),
+        ("nuclear_power", 322, ["unscheduled"], ["building.nuclear_power_station"]),
+        ("solar_pv", 346, ["unscheduled"], ["building.solar_farm"]),
+        ("wind_turbine_modern", 355, ["unscheduled"], ["building.wind_farm"]),
+        ("cloud_computing", 368, ["unscheduled"], ["building.data_centre"]),
+        ("desalination", 393, ["unscheduled"], ["building.desalination_plant"]),
+        ("fusion_power", 409, ["unscheduled"], ["building.fusion_plant"]),
+        ("trace_italienne", 229, ["M7"], ["building.bastion_fort"]),
+        ("rocket", 308, ["M7", "unscheduled"], ["building.spaceport", "project.orbital_launch", "unit.missile"]),
     ];
+
+    /// <summary>CR-025 §8 (2026-10-26): <see cref="GapAuditDisposition"/> is what the shipped content says, node for node,
+    /// and none of the 17 is a live consumer's input: no realized effect, no level, no unlock some system realizes.</summary>
+    [Fact]
+    public void TheGapAuditDisposition_IsApplied_FutureOnly_KeysAndUnlocksUnchanged()
+    {
+        ResearchContent c = C;
+        foreach ((string id, int key, string[] milestones, string[] unlocks) in GapAuditDisposition)
+        {
+            int i = c.IndexOfId(id);
+            ResearchNode n = c.Nodes[i];
+            Assert.Equal(key, n.Key.Value);
+            Assert.Empty(n.RealizedEffects);
+            Assert.False(ResearchQuery.IsLevelled(c, i), id);
+            Assert.Equal(milestones, n.FutureEffects.Select(f => f.Milestone).ToArray());
+            Assert.All(n.FutureEffects, f => Assert.Null(f.Operand));
+            Assert.All(n.FutureEffects, f => Assert.False(string.IsNullOrWhiteSpace(f.System) || string.IsNullOrWhiteSpace(f.Description)));
+            string[] entities = [.. n.UnlockedEntities.Select(e => c.Entities[e].Id).Order(StringComparer.Ordinal)];
+            Assert.Equal(unlocks, entities);
+        }
+    }
 
     /// <summary>
     /// D-063 R1, as amended by the Director's CR-025 ruling (2026-10-26): every node produces a REAL gameplay effect — or
