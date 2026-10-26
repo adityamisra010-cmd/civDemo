@@ -263,6 +263,58 @@ public class FutureEffectsTests
         Assert.NotEqual(live, WorldHash.ComputeHex(RunAi(w.Clone(), noControl, turns)));
     }
 
+    /// <summary>
+    /// CR-025 §8 (2026-10-26) — SAVE / LOAD across the gap audit, on a MID-GAME world. The canonical founded world (seed 42,
+    /// one AI empire) with every holder holding completed rows for the 17 gap-audit nodes runs 20 AI turns under the
+    /// pre-audit content (the 17 future lists removed — the base research.json) and under the shipped content. The two
+    /// saves are the SAME bytes at the unchanged schema version; each loads bit-exactly and re-saves to the same bytes; and
+    /// the BASE save, loaded and continued 10 more turns under the shipped content, reaches the hash the base content
+    /// reaches from it and the hash of the in-memory shipped-content world continued without a save.
+    /// </summary>
+    [Fact]
+    public void SaveLoad_AMidGameWorld_IsTheSameBytes_AndContinuesIdentically_AcrossTheGapAudit()
+    {
+        string[] gaps = [.. Tranche2ContentTests.GapAuditDisposition.Select(g => g.Id)];
+        SimConfig shipped = TestConfigs.Sim();
+        ResearchContent c = shipped.Research!;
+        SimConfig preAudit = shipped with
+        {
+            Research = Edited(doc => Each(doc, (id, effects) => { if (Array.IndexOf(gaps, id) >= 0) Assert.True(effects.Remove("future"), id); })),
+        };
+        WorldState w = WorldFounding.Found(TestConfigs.Worldgen() with { AiEmpires = 1 }, shipped, 42);
+        var holders = new List<PolityId>();
+        for (int i = 0; i < w.Settlements.Count; i++)
+        {
+            PolityId h = SettlementKnowledge.HolderOf(w, w.Settlements[i].Id);
+            if (!holders.Contains(h)) holders.Add(h);
+        }
+        foreach (PolityId h in holders)
+            foreach (string id in gaps) w.ResearchCompleted.Add(new ResearchCompletedRow(h, c.Nodes[c.IndexOfId(id)].Key));
+
+        WorldState baseMid = RunAi(w.Clone(), preAudit, 20), newMid = RunAi(w.Clone(), shipped, 20);
+        byte[] baseSave = Saved(baseMid), newSave = Saved(newMid);
+        Assert.Equal(CanonicalSchema.Version, BitConverter.ToInt32(baseSave, 8));
+        Assert.Equal(37, CanonicalSchema.Version);
+        Assert.Equal(baseSave, newSave);
+
+        WorldState fromBase = Snapshot.Load(new MemoryStream(baseSave), w.Terrain);
+        Assert.True(WorldStates.StateEquals(baseMid, fromBase), "round trip drifted");
+        Assert.Equal(baseSave, Saved(fromBase));
+        foreach (PolityId h in holders)
+            foreach (string id in gaps) Assert.True(ResearchQuery.IsCompleted(fromBase, h, c.Nodes[c.IndexOfId(id)].Key), id);
+
+        string continuedNew = WorldHash.ComputeHex(RunAi(fromBase.Clone(), shipped, 10));
+        Assert.Equal(WorldHash.ComputeHex(RunAi(fromBase.Clone(), preAudit, 10)), continuedNew);
+        Assert.Equal(WorldHash.ComputeHex(RunAi(newMid.Clone(), shipped, 10)), continuedNew);   // = never saved, never left the new content
+    }
+
+    private static byte[] Saved(WorldState w)
+    {
+        using var ms = new MemoryStream();
+        Snapshot.Save(w, ms);
+        return ms.ToArray();
+    }
+
     private static ResearchContent Edited(Action<JsonObject> edit)
     {
         JsonObject doc;
