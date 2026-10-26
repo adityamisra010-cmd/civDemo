@@ -215,3 +215,23 @@ reserve {3, 1} + gate-aware goals), against the new default baseline (CR-025 con
 
 Replay and save/load are exact. **Status:** still PROPOSED and OFF by default. Adoption and the pacing recalibration
 wait for the Director's review of the combined baseline.
+
+## Calibrated trial (2026-10-26, later)
+
+The pacing scales were recalibrated under the trial configuration, in a trial overlay only (`trial/research-economy-trial.json`):
+`docs/m6-plan/knowledge-redesign/research-cost-pass/pacing-recalibration.md`.
+
+| Decision | Ruling | Reason |
+|---|---|---|
+| Civics gate rule | Approve for a separate trial | The caliphate stall is a structural goal-selection problem, not a cost problem |
+
+- **The gate rule keeps technology waiting at 0** in the calibrated trial, on every seed, and the AI never holds a reserve.
+- **The remaining stall is on the civics side.** With no milestone goal the civics lane funds the cheapest available civic
+  (`AiResearchPolicy.DecideLane`). All 46 Age-7 civics are cheaper than `caliphate`, the dearest Age-6 civic, which gates
+  the Age-8 sweep in both trees. When the Age-7 civics were dearer (pass 3), `caliphate` landed 100–277 turns after the rest
+  of Age 6 and technology had nothing fundable at the gate: 157 turns at the reserve cap. Civics Age 7 is therefore held at
+  its shipped scale (residual −75).
+- **Next:** ADR-053, a civics-side counterpart of this rule (when the technology lane is held at an Age sweep, the civics
+  lane funds the blocking cohort first), approved for a separate trial. It is not part of this record.
+
+**Status:** still PROPOSED and OFF by default. Shipped defaults are unchanged.

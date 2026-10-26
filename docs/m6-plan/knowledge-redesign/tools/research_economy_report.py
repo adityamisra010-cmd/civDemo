@@ -8,6 +8,8 @@ Usage:
                                                  a pacing pass against the D-063 R6 targets; ref = the run it is compared with)
   python3 -I tools/research_economy_report.py batch   <dir> <base-label> <label>...   (cost batches: each label against
                                                  the calibrated trial baseline, independently)
+  python3 -I tools/research_economy_report.py batchdetail <dir> <base-label> <batch-dir> <label>...   (per-seed effects
+                                                 and the flags: cheaper-but-later, waste moved into a later Age)
 <dir> holds <label>-s<seed>-{summary.txt,turns.csv,nodes.csv,milestones.csv}. Prints Markdown.
 """
 import csv
@@ -479,6 +481,127 @@ def batch(d, base, labels):
     print("\n".join(out))
 
 
+def _closures():
+    """Research-milestone closures: milestone key -> every node its research fact needs (the fact's nodes and all their
+    authored ancestors, union over OR)."""
+    import json
+    root = Path(__file__).resolve().parents[4] / "Sim.Data" / "content"
+    research = json.load(open(root / "research.json", encoding="utf-8"))
+    prereq = {}
+    for tree in ("technologies", "civics"):
+        for n in research[tree]:
+            prereq[n["id"]] = re.findall(r"[a-z][a-z0-9_]*", n.get("prereq") or "")
+    prereq = {k: [t for t in v if t not in ("and", "or", "not") and t in prereq] for k, v in prereq.items()}
+    def anc(ids):
+        seen, stack = set(), list(ids)
+        while stack:
+            x = stack.pop()
+            if x in seen:
+                continue
+            seen.add(x)
+            stack.extend(prereq.get(x, []))
+        return seen
+    ages = json.load(open(root / "ages.json", encoding="utf-8"))["ages"]
+    out = {}
+    for a in ages:
+        for kind in ("core", "supporting"):
+            for m in (a.get("entry") or {}).get(kind, []):
+                f = m.get("fact") or {}
+                if f.get("kind") == "research":
+                    out[f"A{a['key']}|{kind}|{m['id']}"] = anc(f["nodes"])
+    return out
+
+
+def batchdetail(d, base, batch_dir, labels):
+    """Per-seed effects of each cost batch against the calibrated baseline, with the Director's two flags: a change that
+    makes a milestone (or the node itself) LATER although it made it cheaper, and waste moved into a later Age."""
+    import json
+    closures = _closures()
+    base_runs = {s: load(d, base, s) for s in SEEDS}
+    out = []
+    for l in labels:
+        patch = json.load(open(Path(batch_dir) / f"{l}.json", encoding="utf-8"))
+        nodes = {k: v["magnitudeStep"] for k, v in patch["nodes"].items()}
+        cheaper = {k for k, v in nodes.items() if v < 0}
+        dearer = {k for k, v in nodes.items() if v > 0}
+        rs = {s: load(d, l, s) for s in SEEDS}
+        out += [f"### {l}", "", f"{patch['_doc'].split(':')[1].split('.')[0].strip()}. {len(nodes)} nodes: "
+                + ", ".join(f"`{k}` {v:+g}" for k, v in sorted(nodes.items())) + ".", ""]
+        out += ["Polity Age entered, shift against the baseline (turns):", "",
+                "| Seed | " + " | ".join(f"A{a}" for a in range(2, 10)) + " | RP lost (base → batch) |", "|---|" + "---:|" * 8 + "---|"]
+        for s in SEEDS:
+            b, r = base_runs[s], rs[s]
+            cells = [(f"{r['entered'][a] - b['entered'][a]:+d}" if r["entered"].get(a) is not None and b["entered"].get(a) is not None
+                      else ("never" if r["entered"].get(a) is None else "-")) for a in range(2, 10)]
+            gb, lb = lost_by_age(b); gt, lt = lost_by_age(r)
+            cells.append(f"{pct(sum(lb.values()), sum(gb.values()))} → {pct(sum(lt.values()), sum(gt.values()))}")
+            out.append(f"| {s} | " + " | ".join(cells) + " |")
+        for key, title in (("techDone", "Technology"), ("civDone", "Civics")):
+            out += ["", f"{title} Age complete, shift against the baseline (turns; never = not completed in 1,630 turns):", "",
+                    "| Seed | " + " | ".join(f"A{a}" for a in range(1, 10)) + " |", "|---|" + "---:|" * 9]
+            for s in SEEDS:
+                b, r = base_runs[s][key], rs[s][key]
+                out.append(f"| {s} | " + " | ".join(
+                    ("never" if r.get(a, -1) < 0 else (f"{r[a] - b[a]:+d}" if b.get(a, -1) >= 0 else f"{r[a]} (base never)"))
+                    for a in range(1, 10)) + " |")
+        # waste by Age, pooled
+        out += ["", "RP lost by polity Age, four seeds pooled (baseline → batch):", "", "| Age | Baseline | Batch | Change (points) |",
+                "|---|---:|---:|---:|"]
+        moved = []
+        for a in range(1, 10):
+            gb = lb = gt = lt = 0.0
+            for s in SEEDS:
+                g, ll = lost_by_age(base_runs[s]); gb += g.get(a, 0.0); lb += ll.get(a, 0.0)
+                g, ll = lost_by_age(rs[s]); gt += g.get(a, 0.0); lt += ll.get(a, 0.0)
+            pb = 100 * lb / gb if gb else 0.0
+            pt = 100 * lt / gt if gt else 0.0
+            out.append(f"| A{a} | {pb:.1f} % | {pt:.1f} % | {pt - pb:+.1f} |")
+            if pt - pb >= 2.0:
+                moved.append(f"A{a} {pt - pb:+.1f} points")
+        # flags
+        later_nodes, later_ms, earlier_ms = [], [], []
+        for s in SEEDS:
+            bn, rn = base_runs[s]["nodes"], rs[s]["nodes"]
+            for k in sorted(cheaper):
+                tb, tt = int(bn[k]["completedTurn"]), int(rn[k]["completedTurn"])
+                if tb >= 0 and (tt < 0 or tt > tb):
+                    later_nodes.append(f"seed {s}: `{k}` {tb} → {tt if tt >= 0 else 'never'}")
+            bm, rm = base_runs[s]["milestones"], rs[s]["milestones"]
+            for key in sorted(bm):
+                if key not in closures:
+                    continue
+                tb, tt = bm[key], rm.get(key)
+                if tt is None:   # recorded only while its Age is the NEXT Age: unmet when the Age was entered, not a delay
+                    continue
+                if closures[key] & cheaper and tt > tb:
+                    later_ms.append(f"seed {s}: {key} {tb} → {tt if tt is not None else 'never'}")
+                if closures[key] & dearer and tt is not None and tt < tb:
+                    earlier_ms.append(f"seed {s}: {key} {tb} → {tt}")
+        out += ["", "**Flags**", ""]
+        out.append("- Cheaper node completed LATER: " + ("; ".join(later_nodes) if later_nodes else "none") + ".")
+        def summary(items):
+            if not items:
+                return "none"
+            per = {}
+            for it in items:
+                seed, rest = it.split(": ", 1)
+                m = re.match(r"(\S+) (\d+) → (\S+)", rest)
+                shift = 9999 if m.group(3) == "never" else int(m.group(3)) - int(m.group(2))
+                per.setdefault(seed, []).append((abs(shift), m.group(1), m.group(2), m.group(3)))
+            parts = []
+            for seed in sorted(per, key=lambda x: int(x.split()[1])):
+                v = sorted(per[seed], reverse=True)
+                parts.append(f"{seed}: {len(v)} milestones, largest " + ", ".join(
+                    f"{k} {a} → {b}" for _, k, a, b in v[:3]))
+            return "; ".join(parts)
+        out.append("- Research milestone LATER although a node it needs got cheaper: " + summary(later_ms) + ".")
+        if dearer:
+            out.append("- Research milestone EARLIER although a node it needs got dearer: " + summary(earlier_ms) + ".")
+        out.append("- Waste moved into an Age (+2 points or more, pooled): " + (", ".join(moved) if moved else "none") + ".")
+        out.append("")
+    print("\n".join(out))
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "trial":
         trial(sys.argv[2])
@@ -486,6 +609,8 @@ if __name__ == "__main__":
         combined(sys.argv[2])
     elif sys.argv[1] == "pacing":
         pacing(*sys.argv[2:6]) if len(sys.argv) > 4 else pacing(sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == "batchdetail":
+        batchdetail(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5:])
     elif sys.argv[1] == "batch":
         batch(sys.argv[2], sys.argv[3], sys.argv[4:])
     else:

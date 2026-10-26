@@ -1,6 +1,18 @@
 # CURRENT STATE — the routing document
 
-> **2026-10-26 (latest): RESEARCH ECONOMY TRIAL IMPLEMENTED (Director ruling 2026-10-26)** on
+> **2026-10-26 (later): PACING RECALIBRATED UNDER THE TRIAL CONFIGURATION** on `claude/new-session-yavghm`. Not merged,
+> not released; `main` = `m5-exit` untouched. Shipped defaults unchanged: `research.json` keeps its scale and all three
+> switches stay absent (off).
+> - **Calibrated overlay:** `research-cost-pass/trial/research-economy-trial.json` (the three switches + its own
+>   `pacingScale`). Report: `docs/m6-plan/knowledge-redesign/research-cost-pass/pacing-recalibration.md`.
+> - **Rulings:** calibrated overlay accepted as the trial baseline (RP lost 46.3 %); casual-player reserve behaviour
+>   accepted provisionally; civics gate rule approved for a separate trial; technology Age 9 deferred (a documented
+>   throughput limitation, no lane-wide overflow or cost cuts to force it); the eight cost batches continue as
+>   measurement, not default adoption, each against the calibrated baseline.
+> - **In progress:** cost batches (`research-cost-pass/cost-batches.md`); civics gate rule (ADR-053, separate trial);
+>   the 17-node audit (CR-025 §8), merged only after dependency, save/migration and golden checks.
+>
+> **2026-10-26: RESEARCH ECONOMY TRIAL IMPLEMENTED (Director ruling 2026-10-26)** on
 > `claude/new-session-yavghm`. Not merged, not released; `main` = `m5-exit` untouched.
 > - **Behind switches, all OFF by default:** overflow (ADR-050), the capped RP reserve (ADR-051, schema v37) and
 >   gate-aware AI goals (ADR-052).

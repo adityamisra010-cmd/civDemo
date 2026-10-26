@@ -22,6 +22,8 @@ and 7, the canonical world, one AI Empire).
 | 8 | `overflow-trial.md` (2026-10-25) | Route overflow against the post-fix baseline: RP by Age, Age and milestone turns, completion order, CP, repeatable levels, replay |
 | 9 | `empty-lane-reserve-proposal.md` (2026-10-25) | The empty-lane RP rule: reserve caps compared against an uncapped reserve, a human proxy, bursts and pacing, a UI spec |
 | 10 | `combined-trial.md` (2026-10-26) | The Director's trial configuration (overflow + capped reserve + gate-aware goals) against the new baseline: waste, Ages, civics, roads, milestones, casual and idling players, gate waits, reserve saturation, replay |
+| 11 | `pacing-recalibration.md` (2026-10-26, later) | The pacing scales recalibrated under the trial configuration (overlay only): passes, held scales and their residuals, per-seed Age turns, waste by Age, reserve time at the cap versus size, replay |
+| 12 | `cost-batches.md` (2026-10-26, later; being written) | The eight cost batches, each measured independently against the calibrated trial |
 | — | `../../../adr/cr-025-unconsumed-overland-speed-operand.md` | The 17 nodes whose speed effect no system consumes: evidence, options, the interim display fix |
 
 ## Findings in one screen
@@ -64,6 +66,11 @@ and 7, the canonical world, one AI Empire).
 | `Sim.Tests/Kernel/ResearchPacingRunner.cs`, `ResearchEconomyMeasurement.cs` (`SIM_MEASURE=1`) | the overflow trial and the reserve study: per-step funding reconstruction, a human proxy, a reserve model outside the engine, replay and save/load |
 | `tools/research_economy_report.py` | regenerate the trial and reserve tables from the run CSVs (`data/trial`, `data/reserve`) |
 | `tools/cost_audit.py`, `tools/decision_table.py`, `tools/overflow_report.py` | regenerate `baseline-screen.csv`, the decision table and the comparison tables |
+| `trial/research-economy-trial.json`, `trial/batches/b0…b7-*.json` | the calibrated trial overlay (three switches + its own `pacingScale`) and the eight cost-batch overlays; the shipped `research.json` is untouched |
+| `tools/recalibrate_trial.py` | the shipped calibration algorithm (D-063 R6) applied to the runner's CSVs, writing only the overlay; bounded step (`--max-step`) and held scales (`--freeze`) |
+| `tools/cost_batch_overlays.py` | writes the cost-batch overlays from the decision table |
+| `tools/research_economy_report.py pacing \| batch \| batchdetail` | the pacing-pass tables, the batch summary and the per-seed batch effects |
+| `Sim.Tests/Kernel/ResearchOverlayTests.cs` (4) | the overlays: shipped `research.json` keeps the switches absent; the trial overlay sets only the switches and its scale; a node patch moves only that node within the factor ranges; the batches are disjoint, load on the overlay and never touch a held node |
 
 ## 2026-10-25 sequence (Director instruction): status
 
@@ -90,6 +97,21 @@ and 7, the canonical world, one AI Empire).
 - **CR-025:** ruled and applied (CR-025 §7; D-063 R1 Amendment 1). Its attribution twin reproduces the old baseline bit
   for bit.
 - **Costs and final-Age repeatables:** unchanged, waiting for the review of the combined baseline.
+
+## 2026-10-26 (later) ruling: status
+
+| Decision | Ruling | Reason |
+|---|---|---|
+| Calibrated pacing overlay | Accept as trial baseline | RP waste falls to 46.3 %, and technology pacing is much closer to target |
+| Casual-player reserve behavior | Accept provisionally | The casual scenario finishes within roughly one turn of the AI; idling falls 48 turns behind |
+| Civics gate rule | Approve for a separate trial | The caliphate stall is a structural goal-selection problem, not a cost problem |
+| Technology Age 9 | Defer | Do not use lane-wide overflow or arbitrary cost cuts to force completion into the target window |
+| Eight cost batches | Continue measurement, not default adoption | Each batch must be evaluated independently against the calibrated baseline |
+
+- **Shipped defaults:** unchanged. The calibrated overlay is the experimental baseline, not the default.
+- **The 17-node audit** (CR-025 §8) is merged only after dependency, save/migration and golden checks.
+- **Age 9** stays a documented throughput limitation; its fix belongs in the eventual repeatable/progression design.
+- **Civics gate rule:** ADR-053, a separate trial.
 
 ## Decisions waiting on the Director
 

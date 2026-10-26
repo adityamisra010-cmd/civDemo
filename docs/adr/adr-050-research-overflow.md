@@ -112,3 +112,27 @@ reserve {3, 1} + gate-aware goals), against the new default baseline (CR-025 con
 
 Replay and save/load are exact. **Status:** still PROPOSED and OFF by default. Adoption and the pacing recalibration
 wait for the Director's review of the combined baseline.
+
+## Calibrated trial (2026-10-26, later)
+
+The pacing scales were recalibrated under the trial configuration, in a trial overlay only (`trial/research-economy-trial.json`):
+`docs/m6-plan/knowledge-redesign/research-cost-pass/pacing-recalibration.md`.
+
+| Decision | Ruling | Reason |
+|---|---|---|
+| Calibrated pacing overlay | Accept as trial baseline | RP waste falls to 46.3 %, and technology pacing is much closer to target |
+| Technology Age 9 | Defer | Do not use lane-wide overflow or arbitrary cost cuts to force completion into the target window |
+
+| Measure | Default | Trial, shipped scale | Trial, calibrated |
+|---|---:|---:|---:|
+| RP lost (four seeds, 1,630 turns) | 55.7 % | 49.5 % | 46.3 % |
+| RP lost, Ages 1–8 | — | 1.7–9.7 % per Age | 1.2–6.5 % per Age |
+| RP lost, Age 9 | — | 63.4 % | 75.9 % |
+
+- **Age 9 is a throughput limit, not a cost problem.** With route overflow a lane completes at most ~2 nodes a turn (the
+  route, then the destination). Age 9 has ~140 finite technologies, so it takes 140–145 turns after Age 8 at every scale
+  tried. The 75.9 % is surplus once that content is done.
+- **The lane variant (§2.6) is NOT to be used to force Age 9** into the target window, and neither are arbitrary cost cuts.
+  Age 9 stays a documented throughput limitation; its fix belongs in the eventual repeatable/progression design.
+
+**Status:** still PROPOSED and OFF by default. Shipped defaults are unchanged.

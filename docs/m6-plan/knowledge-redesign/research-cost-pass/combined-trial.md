@@ -4,6 +4,11 @@
 and `aiGateAwareGoals` are all absent from the shipped `research.json`. Node costs and the final-Age repeatables are
 unchanged. Not merged, not released.
 
+**Update (2026-10-26, later).** The pacing scales have been recalibrated under this configuration:
+`pacing-recalibration.md`. That calibrated trial (overlay `trial/research-economy-trial.json`) is now the experimental
+baseline; this report remains the uncalibrated trial. Cost batches are measured against the calibrated trial in
+`cost-batches.md` (being written). Shipped defaults are unchanged.
+
 ## What was built (behind switches)
 
 | Piece | Record | Switch | Default |
@@ -89,6 +94,11 @@ Full tables are generated below (§ Tables). In summary:
    | Trial, d = 3 proxy | 0 | 6.34 M / 6.25 M | 35 | 7 |
    | Trial, d = 6 proxy | 0 | 3.76 M / 3.70 M | 125 | 4 |
 
+   - **Reserve metric clarified (2026-10-26, later).** The 35 (d = 3) and 125 (d = 6) figures are TURNS AT THE CAP,
+     four seeds pooled: steps ending with the reserve full (3 turns of RP). They are not the reserve's size. Reserve
+     size in turns of RP is now reported separately (`pacing-recalibration.md` §5). Under the calibrated trial, casual
+     d = 3 holds a reserve 161–194 turns per seed at a mean 1.7–1.8 turns of RP, and is at the cap 2–7 turns; idling
+     d = 6 holds one 238–303 turns per seed at a mean 2.2 turns of RP, and is at the cap 16–30 turns.
    - The technology lane successfully selects alternative goals (14 switches across 4 seeds) and never waits.
    - Without the gate rule the reserve saturates for 98 turns and the waits remain: the planner rule is what removes
      the stall.
@@ -206,6 +216,9 @@ Full tables are generated below (§ Tables). In summary:
 | d1-trial | 0 | 0.0% | 4,208,186 / 4,208,186 | 0 | 10 |
 | d3-trial | 0 | 0.7% | 6,344,257 / 6,251,714 | 35 | 7 |
 | d6-trial | 0 | 6.3% | 3,763,474 / 3,696,860 | 125 | 4 |
+
+Reserve metric clarified (2026-10-26, later): "Turns at the reserve cap" counts steps ending with the reserve full, four
+seeds pooled. It is not the reserve's size. Reserve size in turns of RP, per seed, is in `pacing-recalibration.md` §5.
 
 ### Determinism (trial runs)
 

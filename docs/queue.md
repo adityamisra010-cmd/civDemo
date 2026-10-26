@@ -1671,3 +1671,17 @@
   (c) a disposition for the 17 R1 known-gap nodes (placeholder-only unlocks).
   Costs and final-Age repeatables are unchanged.
 
+- 2026-10-26, later (Director ruling; pacing recalibration, `research-cost-pass/pacing-recalibration.md`; MEASURED):
+  (a) The calibrated trial overlay (`research-cost-pass/trial/research-economy-trial.json`) is accepted as the
+      EXPERIMENTAL baseline, not as the default. RP lost 46.3 % (uncalibrated trial 49.5 %, default 55.7 %). Shipped
+      `research.json` unchanged. Each cost batch is measured against it, independently (`cost-batches.md`).
+  (b) Technology Age 9 throughput limitation: ~140 finite technologies, at most ~2 completions a turn per lane with route
+      overflow, so 140–145 turns after Age 8 at any scale tried. DEFERRED to the eventual repeatable/progression design.
+      No lane-wide overflow and no cost cuts to force it into the target window.
+  (c) AI civics ordering: with no milestone goal the civics lane funds the cheapest civic first, which clears the Age-7
+      civics before `caliphate` and holds the Age-8 sweep cohort in both trees. Civics Age 7 held at its shipped scale.
+      → ADR-053 civics gate rule, approved for a separate trial.
+  (d) Age 1 is not cost-bound: the AI researches next-Age milestones before the last Age-1 nodes (cutting both A1 scales
+      13–15 % made seed 1 finish later). Residual +40 technology / +65 civics, left as is.
+  (e) Seed spread: seed 2 trails the others by 40–70 turns in most Ages. The slowest-seed rule (D-063 R6) leaves the other
+      seeds ahead of target (up to −195 in civics A7), so a single-seed playtest feels faster than the targets.

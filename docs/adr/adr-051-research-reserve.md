@@ -109,3 +109,26 @@ reserve {3, 1} + gate-aware goals), against the new default baseline (CR-025 con
 
 Replay and save/load are exact. **Status:** still PROPOSED and OFF by default. Adoption and the pacing recalibration
 wait for the Director's review of the combined baseline.
+
+## Calibrated trial (2026-10-26, later)
+
+The pacing scales were recalibrated under the trial configuration, in a trial overlay only (`trial/research-economy-trial.json`):
+`docs/m6-plan/knowledge-redesign/research-cost-pass/pacing-recalibration.md` §5.
+
+| Decision | Ruling | Reason |
+|---|---|---|
+| Casual-player reserve behavior | Accept provisionally | The casual scenario finishes within roughly one turn of the AI; idling falls 48 turns behind |
+
+The earlier "35 turns at cap (d = 3) / 125 (d = 6)" counted TIME AT THE CAP (steps ending with the reserve full), not reserve
+size. The two are now reported apart; size is the reserve after a step divided by that step's RP.
+
+| Player (calibrated trial) | Age 9 vs the AI | Turns holding a reserve, per seed | Mean reserve while held (turns of RP) | Turns at the cap, per seed |
+|---|---:|---|---:|---|
+| AI | — | 0 | — | 0 |
+| Casual, 3-turn delay | +1 | 161–194 | 1.7–1.8 | 2–7 |
+| Idling, 6-turn delay | +48 | 238–303 | 2.2 | 16–30 |
+
+- **The AI never holds a reserve:** gate-aware goals (ADR-052) keep its technology lane funded.
+- The largest reserve is 3.00–3.07 turns of RP; the cap is reached exactly.
+
+**Status:** still PROPOSED and OFF by default. Shipped defaults are unchanged.
