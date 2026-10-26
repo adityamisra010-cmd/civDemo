@@ -110,6 +110,17 @@ public sealed record PacingScale(IReadOnlyList<double> Technology, IReadOnlyList
 public sealed record RealizedEffect(KnowledgeOperand Operand, double Delta);
 
 /// <summary>
+/// CR-025 ruling / D-063 R1 amendment (2026-10-26) — ONE DECLARED FUTURE EFFECT of a node (research.json
+/// <c>effects.future</c>): an effect the node will have once a system that is NOT in this build exists. It is
+/// documentation the loader validates, never an effect: no system reads it, it carries no magnitude, it never enters an
+/// operand sum, and the research screens show it as "not simulated in this build". <see cref="Milestone"/> is the
+/// milestone that owns the realizing system (M7..M11) or <see cref="ResearchContentLoader.UnscheduledMilestone"/> when
+/// the system is recorded design intent with no milestone yet; <see cref="Operand"/> is the registered operand the system
+/// would read, if one exists — never an operand a system already consumes in play (that effect would be realized).
+/// </summary>
+public sealed record FutureEffect(string Milestone, string System, KnowledgeOperand? Operand, string Description);
+
+/// <summary>
 /// ADR-043 (D-062) — Civics Points tuning. CP per SIM-YEAR = <see cref="CoefficientPerYear"/> × population^
 /// <see cref="Exponent"/>, integrated over dtYears (law 3 as written — unlike RP, CP is NOT a per-turn exception) and
 /// stored in integer milli-CP: generated per step = floor(1000 × c × P^β × dtYears). Values are PROPOSED (ADR-043 §3).
@@ -266,6 +277,10 @@ public sealed class ResearchNode
     /// <summary>ADR-047: the node's realized effects (research.json <c>effects.realized</c>), in content order; empty when
     /// it declares none. Operand ids are registered, deltas in (0, 0.5], no operand twice (loader-validated).</summary>
     public IReadOnlyList<RealizedEffect> RealizedEffects { get; init; } = [];
+    /// <summary>CR-025 ruling (D-063 R1 amendment): the node's declared FUTURE effects (research.json
+    /// <c>effects.future</c>), in content order; empty when it declares none. Never a realized effect: nothing reads them
+    /// in play and they never count as simulated.</summary>
+    public IReadOnlyList<FutureEffect> FutureEffects { get; init; } = [];
     public bool IsTrunk => Tree == ResearchTree.Technology && Branch < 0;
 }
 
@@ -514,6 +529,8 @@ public static class ResearchContentLoader
         }
         var realized = new RealizedEffect[n][];
         for (int i = 0; i < n; i++) realized[i] = ValidateRealized(raw[i].Json, raw[i].Path);
+        var future = new FutureEffect[n][];
+        for (int i = 0; i < n; i++) future[i] = ValidateFuture(raw[i].Json, raw[i].Path);
         string[] ids = new string[n];
         for (int i = 0; i < n; i++) ids[i] = raw[i].Json.Id;
         int[] idOrder = new int[n];
@@ -853,6 +870,7 @@ public static class ResearchContentLoader
                 IsRecursive = recursive[i],
                 IsSpeculative = speculative[i],
                 RealizedEffects = realized[i],
+                FutureEffects = future[i],
             };
         }
         (int[][] operandNodes, double[][] operandDeltas, bool anyRealized) = IndexRealized(realized);
@@ -885,6 +903,10 @@ public static class ResearchContentLoader
     /// ADR-047 (tranche-2 contract §1, §1.1) — a node's <c>effects.realized</c>: each entry names a REGISTERED operand
     /// (<see cref="KnowledgeOperands"/>) with an improvement fraction 0 &lt; delta ≤ 0.5, finite, and no operand appears
     /// twice in one node (two entries would be one effect split in two). Absent is the empty list.
+    /// <para>CR-025 ruling (2026-10-26) — THE RECURRENCE GUARD: the operand must be consumed in play
+    /// (<see cref="KnowledgeOperandInfo.ConsumedInPlay"/>). A delta on an operand no simulation system consumes would change
+    /// nothing in play while the screens and reports counted it as an effect; such an effect is declared under
+    /// <c>effects.future</c> instead.</para>
     /// </summary>
     private static RealizedEffect[] ValidateRealized(NodeJson j, string path)
     {
@@ -898,6 +920,9 @@ public static class ResearchContentLoader
             if (KnowledgeOperands.FromId(e.Operand) is not { } operand)
                 throw Fail($"{where}: operand '{e.Operand}' is not a registered operand; the legal ids are the operand registry " +
                            "(tranche-2 contract §1.1, State.KnowledgeOperands).");
+            if (KnowledgeOperands.Of(operand) is { ConsumedInPlay: false } dead)
+                throw Fail($"{where}: operand '{e.Operand}' is not consumed in play ({dead.NotConsumed}), so a realized delta on " +
+                           "it would change nothing; declare it under effects.future instead (CR-025 ruling, D-063 R1 amendment).");
             if (!(double.IsFinite(e.Delta) && e.Delta > 0.0 && e.Delta <= MaxRealizedDelta))
                 throw Fail($"{where}: delta {Inv(e.Delta)} for '{e.Operand}' must be finite and in (0, {Inv(MaxRealizedDelta)}] — an " +
                            "improvement fraction (tranche-2 contract §1).");
@@ -911,6 +936,58 @@ public static class ResearchContentLoader
 
     /// <summary>ADR-047: the largest delta one realized effect may carry (tranche-2 contract §1).</summary>
     public const double MaxRealizedDelta = 0.5;
+
+    /// <summary>CR-025 ruling: the <c>effects.future[].milestone</c> of a system that is recorded design intent with no
+    /// milestone assigned yet (e.g. the ADR-032 §7 freight-time consumer).</summary>
+    public const string UnscheduledMilestone = "unscheduled";
+
+    /// <summary>CR-025 ruling: the milestones a future effect may name — those after M6, the milestone that ships this
+    /// content (docs/milestones.md: M7 Battle Layer · M8 Politics / Diplomacy · M9 Society · M10 Integrated · M11+
+    /// Depth), or <see cref="UnscheduledMilestone"/>.</summary>
+    public static readonly IReadOnlyList<string> FutureMilestones = ["M7", "M8", "M9", "M10", "M11", UnscheduledMilestone];
+
+    /// <summary>
+    /// CR-025 ruling / D-063 R1 amendment (2026-10-26) — a node's <c>effects.future</c>: each entry names the milestone that
+    /// owns the realizing system (<see cref="FutureMilestones"/>), the system (non-blank), a description (non-blank) and an
+    /// operand, explicitly null when the system has no registered operand. A named operand must be registered and must NOT
+    /// be consumed in play: an effect a live system can read is declared realized, not future. No entry carries a magnitude
+    /// (an unknown member such as <c>delta</c> is refused), the same system appears at most once per node, and no consumer
+    /// counts a future effect as realized. Absent is the empty list.
+    /// </summary>
+    private static FutureEffect[] ValidateFuture(NodeJson j, string path)
+    {
+        FutureJson[]? list = j.Effects.Future;
+        if (list is null || list.Length == 0) return [];
+        var result = new FutureEffect[list.Length];
+        for (int k = 0; k < list.Length; k++)
+        {
+            FutureJson e = list[k];
+            string where = $"{path} ({j.Id}).effects.future[{k}]";
+            bool known = false;
+            foreach (string m in FutureMilestones) known |= string.Equals(m, e.Milestone, StringComparison.Ordinal);
+            if (!known)
+                throw Fail($"{where}: milestone '{e.Milestone}' must be one of {string.Join(", ", FutureMilestones)} — a future " +
+                           "effect names the later milestone that owns its realizing system (CR-025 ruling).");
+            if (string.IsNullOrWhiteSpace(e.System)) throw Fail($"{where}: system is empty — name the system that will realize it.");
+            if (string.IsNullOrWhiteSpace(e.Description)) throw Fail($"{where}: description is empty.");
+            KnowledgeOperand? operand = null;
+            if (e.Operand is not null)
+            {
+                if (KnowledgeOperands.FromId(e.Operand) is not { } op)
+                    throw Fail($"{where}: operand '{e.Operand}' is not a registered operand (State.KnowledgeOperands); use null " +
+                               "when the future system has no registered operand.");
+                if (KnowledgeOperands.Of(op).ConsumedInPlay)
+                    throw Fail($"{where}: operand '{e.Operand}' is consumed in play by {KnowledgeOperands.Of(op).ReadBy}; an effect " +
+                               "on it is realized today — declare it under effects.realized, not effects.future.");
+                operand = op;
+            }
+            for (int m = 0; m < k; m++)
+                if (string.Equals(result[m].System, e.System, StringComparison.Ordinal))
+                    throw Fail($"{where}: system '{e.System}' appears twice in one node; declare one future effect per system.");
+            result[k] = new FutureEffect(e.Milestone, e.System, operand, e.Description);
+        }
+        return result;
+    }
 
     /// <summary>ADR-047: the operand → nodes index (ascending node index per operand) and whether any effect exists.</summary>
     private static (int[][] Nodes, double[][] Deltas, bool Any) IndexRealized(RealizedEffect[][] realized)
@@ -1198,8 +1275,12 @@ public static class ResearchContentLoader
             if (x.ValueKind != JsonValueKind.Object || !x.TryGetProperty("operand", out JsonElement op) || op.ValueKind != JsonValueKind.String)
                 throw Fail($"{ep}: operand must be a string.");
             string id = op.GetString()!;
-            if (RepeatableOperands.IndexOf(id) < 0)
+            if (RepeatableOperands.IndexOf(id) is int at && at < 0)
                 throw Fail($"{ep}: operand '{id}' is not in the tranche-2 operand registry (contract §1.1).");
+            // CR-025 ruling — the recurrence guard, for level effects too (RepeatableOperands is the registry, row for row).
+            if (KnowledgeOperands.All[at] is { ConsumedInPlay: false } dead)
+                throw Fail($"{ep}: operand '{id}' is not consumed in play ({dead.NotConsumed}), so a level effect on it would " +
+                           "change nothing (CR-025 ruling).");
             foreach (RepeatableLevelEffect seen in effects)
                 if (string.Equals(seen.Operand, id, StringComparison.Ordinal)) throw Fail($"{ep}: operand '{id}' is listed twice.");
             if (!x.TryGetProperty("gapFraction", out JsonElement k) || k.ValueKind != JsonValueKind.Number
@@ -1814,7 +1895,18 @@ public static class ResearchContentLoader
     private sealed record EffectsJson(
         [property: JsonPropertyName("immediate"), JsonRequired] JsonElement[] Immediate,
         // ADR-047: optional — absent is the empty list.
-        [property: JsonPropertyName("realized")] RealizedJson[]? Realized = null);
+        [property: JsonPropertyName("realized")] RealizedJson[]? Realized = null,
+        // CR-025 ruling: optional — absent is the empty list.
+        [property: JsonPropertyName("future")] FutureJson[]? Future = null);
+
+    // CR-025 ruling: every member is required (operand explicitly null when there is none), and an unknown member — a
+    // "delta" above all — is refused, so a future effect can never carry a magnitude.
+    [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+    private sealed record FutureJson(
+        [property: JsonPropertyName("milestone"), JsonRequired] string Milestone,
+        [property: JsonPropertyName("system"), JsonRequired] string System,
+        [property: JsonPropertyName("operand"), JsonRequired] string? Operand,
+        [property: JsonPropertyName("description"), JsonRequired] string Description);
 
     private sealed record RealizedJson(
         [property: JsonPropertyName("operand"), JsonRequired] string Operand,

@@ -72,8 +72,9 @@ public sealed record KnowledgeOperandInfo(
     string ReadBy, string Meaning, string? NotConsumed = null)
 {
     /// <summary>CR-025: false when <see cref="NotConsumed"/> names why no simulation system consumes what the reader
-    /// computes, so an effect on this operand changes nothing in play. The research screens must say so rather than
-    /// present it as a simulated effect. Display only: the operand's loading, caps and reader are unchanged.</summary>
+    /// computes, so an effect on this operand would change nothing in play. Since the CR-025 ruling (2026-10-26) the
+    /// research loader REFUSES a realized delta or a level effect on such an operand (the recurrence guard), and only a
+    /// declared future effect (<c>effects.future</c>) may name it. The registry row, cap and reader are unchanged.</summary>
     public bool ConsumedInPlay => NotConsumed is null;
 }
 
