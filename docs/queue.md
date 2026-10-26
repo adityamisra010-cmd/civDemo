@@ -1648,3 +1648,10 @@
   - Age 9 comes 16–48 turns sooner.
   Open: Age 7 is entered later on two seeds (+16 and +29), because the Age-5 civics cohort completes later. The cause of
   that civics reordering is untraced. Adoption and a pacing-baseline refresh are the Director's call.
+- 2026-10-26 (CR-025 RULED; implemented on LOCAL branch `t5-cr025`, not merged): the 17 speed-operand nodes disposed per
+  CR-025 §2.2 and §7 (8 retargets to live operands, 6 future declarations under the new `effects.future`, 3 dead deltas
+  dropped; no cost changed; node keys unchanged). The loader now refuses a realized or level effect on an operand no
+  system consumes (the recurrence guard). D-063 R1 amended (future-dependent content allowed when declared). R1's test
+  now judges actual liveness: 17 nodes with only placeholder unlocks have neither a real nor a future effect and are
+  pinned as known gaps for a content decision (CR-025 §7.3). Found while doing it, not fixed (outside the ruling): the
+  research card does not count the assay order gate, so `ore_prospecting`'s card under-claims (it is live).

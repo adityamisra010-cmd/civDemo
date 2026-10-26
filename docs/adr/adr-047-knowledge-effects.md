@@ -99,3 +99,24 @@ Units and most institutions are not realized by any system yet (M7/M8) and are n
 unlocks remain the kinds `building`, `infrastructure`, `recipe`, `activity`, plus `inst.university`, the tax edict and
 the assay. Known limits (queue.md): a change of controller alone does not re-trigger a catchment recompute (the captured
 settlement takes its new holder's radius at the next recompute event); the shared-partition river factor stays the base.
+
+## Amendment note (2026-10-26): the CR-025 ruling
+
+Recorded from the Director's ruling of 2026-10-26 on CR-025 (D-063 R1 amendment, `docs/d063-tranche2-director-direction.md`).
+The sections above are not edited; where they differ, this note governs.
+
+1. **§2.2 holds as a loader rule now.** "Every operand is a parameter of a live equation" was false for one row:
+   `roads.baselineKmPerDay`'s reader (`TransportQuery.EstimateFreight`) has no caller (ADR-032 §7). The registry marks such
+   a row with a `NotConsumed` reason (`KnowledgeOperandInfo.ConsumedInPlay` false; today that one row only), and the
+   loader REFUSES a realized delta (§2.1) or a repeatable level effect on it. The row, its cap, its reader and the
+   contract table are unchanged; the §5 read-site row for it describes a query, not a consumer.
+2. **Future effects (new, optional).** A node may declare `effects.future`: `{ "milestone": "M7".."M11" | "unscheduled",
+   "system": text, "operand": registered id not consumed in play | null, "description": text }`, all four members
+   required, any other member (a `delta` above all) refused, one entry per system per node. They load into
+   `ResearchNode.FutureEffects`. They are never in the operand index, Σ, the snapshot or any system; the research card
+   lists each as "Future (M7 …): …, not simulated in this build" and never counts it as simulated.
+3. **Teeth.** The per-operand teeth cover the operands consumed in play only; the former `roads.baselineKmPerDay` row
+   measured the uncalled query (teeth without aim, ADR-015 §7.2) and is removed. The guard's own tests are
+   `UnconsumedOperandTests` and `FutureEffectsTests`.
+
+No new state, table, order or schema bump. Content changes (17 nodes) are in CR-025 §7.

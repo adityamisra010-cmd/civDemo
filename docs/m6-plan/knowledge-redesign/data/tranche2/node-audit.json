@@ -18,6 +18,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -52,6 +54,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -86,6 +90,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -120,6 +126,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -160,6 +168,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -198,6 +208,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -243,6 +255,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -290,6 +304,8 @@
    "liveUnlocks": [
     "activity.logging"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -334,6 +350,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -368,6 +386,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -413,6 +433,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -458,6 +480,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -491,9 +515,9 @@
      "delta": 0.0194
     }
    ],
-   "liveUnlocks": [
-    "infra.fish_weir"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -534,6 +558,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -574,6 +600,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -614,6 +642,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -654,6 +684,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -694,6 +726,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -734,6 +768,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -779,6 +815,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -819,6 +857,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -864,6 +904,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -904,6 +946,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -938,6 +982,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -972,6 +1018,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1012,6 +1060,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1052,6 +1102,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1092,6 +1144,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1134,6 +1188,10 @@
    "liveUnlocks": [
     "activity.farming"
    ],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1174,6 +1232,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1225,6 +1285,8 @@
    "liveUnlocks": [
     "activity.farming"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1267,6 +1329,8 @@
    "liveUnlocks": [
     "activity.farming"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1309,6 +1373,8 @@
    "liveUnlocks": [
     "activity.farming"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1355,6 +1421,8 @@
    "liveUnlocks": [
     "activity.farming"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1401,6 +1469,8 @@
    "liveUnlocks": [
     "activity.farming"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1439,6 +1509,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1483,6 +1555,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1528,6 +1602,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1568,6 +1644,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1613,6 +1691,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1660,6 +1740,10 @@
    "liveUnlocks": [
     "activity.herding"
    ],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1706,6 +1790,8 @@
    "liveUnlocks": [
     "activity.herding"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1746,6 +1832,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1786,6 +1874,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1836,6 +1926,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1885,6 +1977,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1928,7 +2022,13 @@
      "delta": 0.0233
     }
    ],
-   "liveUnlocks": [],
+   "liveUnlocks": [
+    "recipe.pottery_firing"
+   ],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -1963,9 +2063,9 @@
    "depth": 3,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.kiln"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2011,6 +2111,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2050,9 +2152,9 @@
      "delta": 0.06
     }
    ],
-   "liveUnlocks": [
-    "building.city_wall"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2091,6 +2193,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2131,6 +2235,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2176,10 +2282,10 @@
     }
    ],
    "liveUnlocks": [
-    "building.city_wall",
-    "building.harbour",
     "infra.road_built"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2219,9 +2325,9 @@
      "delta": 0.0115
     }
    ],
-   "liveUnlocks": [
-    "infra.well"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2271,6 +2377,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2336,6 +2444,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2370,9 +2480,9 @@
    "depth": 3,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.oil_press"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2422,6 +2532,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2466,6 +2578,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2506,6 +2620,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2561,6 +2677,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2606,6 +2724,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2651,6 +2771,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2695,9 +2817,9 @@
      "delta": 0.03
     }
    ],
-   "liveUnlocks": [
-    "building.smithy"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2748,6 +2870,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2793,6 +2917,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2833,6 +2959,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2872,9 +3000,9 @@
      "delta": 0.0296
     }
    ],
-   "liveUnlocks": [
-    "infra.basin_irrigation"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2919,9 +3047,9 @@
      "delta": 0.05
     }
    ],
-   "liveUnlocks": [
-    "infra.canal_irrigation"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -2966,9 +3094,9 @@
      "delta": 0.0148
     }
    ],
-   "liveUnlocks": [
-    "infra.terraces"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3019,6 +3147,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3059,6 +3189,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3104,6 +3238,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3139,10 +3275,11 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [
-    "infra.road_track",
     "infra.road_built",
-    "infra.courier_relay"
+    "infra.road_track"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3187,6 +3324,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3232,6 +3371,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3277,6 +3420,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "research stage"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3326,6 +3473,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3366,6 +3515,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3406,6 +3557,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3445,7 +3600,13 @@
      "delta": 0.04
     }
    ],
-   "liveUnlocks": [],
+   "liveUnlocks": [
+    "recipe.bronze_casting"
+   ],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3486,6 +3647,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3531,6 +3694,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3571,6 +3736,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3613,6 +3780,8 @@
    "liveUnlocks": [
     "activity.mining"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3658,6 +3827,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3697,10 +3870,9 @@
      "delta": 0.04
     }
    ],
-   "liveUnlocks": [
-    "building.school",
-    "building.library"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3740,10 +3912,9 @@
      "delta": 0.0194
     }
    ],
-   "liveUnlocks": [
-    "building.school",
-    "building.library"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3783,10 +3954,9 @@
      "delta": 0.0073
     }
    ],
-   "liveUnlocks": [
-    "building.school",
-    "building.library"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3826,9 +3996,9 @@
    "depth": 2,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.library"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3869,6 +4039,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3909,6 +4081,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -3949,6 +4123,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4003,9 +4179,9 @@
      "delta": 0.04
     }
    ],
-   "liveUnlocks": [
-    "activity.coastal_shipping"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4050,9 +4226,9 @@
    "depth": 5,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.harbour"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4093,13 +4269,13 @@
    "origin": "pre-tranche",
    "realized": [
     {
-     "operand": "roads.baselineKmPerDay",
+     "operand": "catchment.hinterlandRadiusKm",
      "delta": 0.05
     }
    ],
-   "liveUnlocks": [
-    "infra.courier_relay"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4139,9 +4315,9 @@
      "delta": 0.0223
     }
    ],
-   "liveUnlocks": [
-    "activity.caravans"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4181,9 +4357,9 @@
      "delta": 0.05
     }
    ],
-   "liveUnlocks": [
-    "activity.caravans"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4217,13 +4393,23 @@
    "prereq": "wheel_solid AND casting_closed",
    "depth": 8,
    "origin": "pre-tranche",
-   "realized": [
+   "realized": [],
+   "liveUnlocks": [],
+   "future": [
     {
+     "milestone": "M7",
+     "system": "Battle Layer - chariots",
+     "operand": null,
+     "description": "the light, fast spoked-wheel vehicle makes the war chariot possible"
+    },
+    {
+     "milestone": "unscheduled",
+     "system": "freight-time consumer (ADR-032 section 7 design intent: delivery delay, carriage term, route tonnage caps)",
      "operand": "roads.baselineKmPerDay",
-     "delta": 0.04
+     "description": "light fast vehicles shorten overland transit once a system consumes travel time"
     }
    ],
-   "liveUnlocks": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4269,6 +4455,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4314,6 +4502,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4363,10 +4553,9 @@
      "delta": 0.04
     }
    ],
-   "liveUnlocks": [
-    "infra.urban_drainage",
-    "infra.sewer"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4412,6 +4601,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4457,6 +4648,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4497,6 +4690,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4552,6 +4747,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4612,6 +4809,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4657,6 +4856,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4707,6 +4908,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4746,8 +4949,10 @@
      "delta": 0.06
     }
    ],
-   "liveUnlocks": [
-    "building.smithy"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -4794,6 +4999,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4839,6 +5046,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4879,6 +5088,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4923,6 +5134,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -4963,6 +5176,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5012,6 +5227,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5051,8 +5268,10 @@
      "delta": 0.0287
     }
    ],
-   "liveUnlocks": [
-    "building.school"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -5104,6 +5323,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5143,9 +5364,9 @@
      "delta": 0.007
     }
    ],
-   "liveUnlocks": [
-    "building.school"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5186,6 +5407,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5234,8 +5457,10 @@
      "delta": 0.0245
     }
    ],
-   "liveUnlocks": [
-    "building.mint"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -5282,6 +5507,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5315,13 +5542,17 @@
    "prereq": "cavalry AND sewing",
    "depth": 5,
    "origin": "pre-tranche",
-   "realized": [
+   "realized": [],
+   "liveUnlocks": [],
+   "future": [
     {
-     "operand": "roads.baselineKmPerDay",
-     "delta": 0.02
+     "milestone": "M7",
+     "system": "Battle Layer - mounted movement",
+     "operand": null,
+     "description": "a stable seat for cavalry and long rides; formations do not move before M7"
     }
    ],
-   "liveUnlocks": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5367,6 +5598,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5412,6 +5645,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5451,10 +5686,9 @@
      "delta": 0.03
     }
    ],
-   "liveUnlocks": [
-    "building.castle",
-    "building.lighthouse"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5500,6 +5734,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5545,6 +5781,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5589,9 +5827,9 @@
      "delta": 0.03
     }
    ],
-   "liveUnlocks": [
-    "infra.qanat"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5641,9 +5879,9 @@
      "delta": 0.0115
     }
    ],
-   "liveUnlocks": [
-    "infra.aqueduct"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5688,9 +5926,9 @@
      "delta": 0.03
     }
    ],
-   "liveUnlocks": [
-    "infra.aqueduct"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5736,6 +5974,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5781,6 +6021,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5841,6 +6083,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5881,6 +6125,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -5941,8 +6187,11 @@
     }
    ],
    "liveUnlocks": [
-    "building.university",
-    "building.hospital"
+    "building.university"
+   ],
+   "future": [],
+   "otherLive": [
+    "research stage"
    ],
    "orderGate": null,
    "levels": null,
@@ -5984,6 +6233,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6024,6 +6275,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6069,6 +6322,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6116,6 +6371,11 @@
    "liveUnlocks": [
     "building.university"
    ],
+   "future": [],
+   "otherLive": [
+    "age milestone fact",
+    "research stage"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6156,6 +6416,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6196,6 +6458,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6236,6 +6500,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6276,6 +6542,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6320,9 +6588,10 @@
      "delta": 0.06
     }
    ],
-   "liveUnlocks": [
-    "building.water_mill",
-    "building.paper_mill"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -6364,6 +6633,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6404,6 +6675,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6453,6 +6726,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6492,11 +6769,9 @@
      "delta": 0.03
     }
    ],
-   "liveUnlocks": [
-    "building.bathhouse",
-    "building.castle",
-    "infra.sewer"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6549,14 +6824,14 @@
     {
      "operand": "governance.authorityDecayCostUnits",
      "delta": 0.04
-    },
-    {
-     "operand": "roads.baselineKmPerDay",
-     "delta": 0.05
     }
    ],
    "liveUnlocks": [
     "infra.road_paved"
+   ],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -6593,13 +6868,13 @@
    "origin": "pre-tranche",
    "realized": [
     {
-     "operand": "roads.baselineKmPerDay",
+     "operand": "roads.maxRouteKm",
      "delta": 0.04
     }
    ],
-   "liveUnlocks": [
-    "infra.bridge"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6649,10 +6924,9 @@
      "delta": 0.0172
     }
    ],
-   "liveUnlocks": [
-    "building.bathhouse",
-    "infra.aqueduct"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6698,6 +6972,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6743,6 +7019,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6782,9 +7060,9 @@
      "delta": 0.04
     }
    ],
-   "liveUnlocks": [
-    "building.blast_furnace"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6839,6 +7117,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6888,6 +7168,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6933,6 +7215,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -6977,9 +7261,10 @@
      "delta": 0.04
     }
    ],
-   "liveUnlocks": [
-    "building.paper_mill",
-    "building.library"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -7025,6 +7310,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7065,6 +7352,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7110,6 +7399,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7155,6 +7446,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7194,9 +7487,9 @@
      "delta": 0.0229
     }
    ],
-   "liveUnlocks": [
-    "building.observatory"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7242,6 +7535,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7282,6 +7577,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7327,6 +7624,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7372,6 +7671,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7412,6 +7713,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7451,9 +7754,9 @@
      "delta": 0.02
     }
    ],
-   "liveUnlocks": [
-    "building.hospital"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7494,6 +7797,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7539,6 +7844,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7584,6 +7891,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7634,6 +7943,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7684,6 +7995,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7738,6 +8053,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7773,11 +8090,13 @@
    "origin": "pre-tranche",
    "realized": [
     {
-     "operand": "roads.baselineKmPerDay",
+     "operand": "catchment.hinterlandRadiusKm",
      "delta": 0.03
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7827,6 +8146,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7871,6 +8192,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7915,9 +8238,9 @@
      "delta": 0.02
     }
    ],
-   "liveUnlocks": [
-    "building.windmill"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -7957,8 +8280,10 @@
      "delta": 0.03
     }
    ],
-   "liveUnlocks": [
-    "building.windmill"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -8004,9 +8329,9 @@
    "depth": 8,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.fulling_mill"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8052,6 +8377,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8097,6 +8424,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8137,6 +8466,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8182,6 +8513,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8222,6 +8555,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8267,6 +8602,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8307,6 +8644,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8351,9 +8690,9 @@
      "delta": 0.0663
     }
    ],
-   "liveUnlocks": [
-    "building.observatory"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8394,6 +8733,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8439,6 +8780,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8479,6 +8822,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8519,6 +8864,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8569,6 +8916,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8609,6 +8958,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8649,6 +9000,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8694,6 +9047,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8733,9 +9088,9 @@
      "delta": 0.02
     }
    ],
-   "liveUnlocks": [
-    "building.printing_house"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8781,6 +9136,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8826,6 +9183,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8871,6 +9230,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8916,6 +9277,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -8957,6 +9322,10 @@
    ],
    "liveUnlocks": [
     "building.university"
+   ],
+   "future": [],
+   "otherLive": [
+    "research stage"
    ],
    "orderGate": null,
    "levels": null,
@@ -9008,6 +9377,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9058,6 +9429,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9103,6 +9476,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9148,6 +9523,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9193,6 +9570,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9237,9 +9616,9 @@
      "delta": 0.03
     }
    ],
-   "liveUnlocks": [
-    "building.blast_furnace"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9290,6 +9669,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9335,6 +9716,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9380,6 +9763,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9430,6 +9817,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9483,8 +9874,10 @@
      "delta": 0.0188
     }
    ],
-   "liveUnlocks": [
-    "building.printing_house"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -9536,6 +9929,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9575,8 +9970,10 @@
      "delta": 0.12
     }
    ],
-   "liveUnlocks": [
-    "activity.ocean_shipping"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -9627,10 +10024,9 @@
      "delta": 0.0223
     }
    ],
-   "liveUnlocks": [
-    "building.dry_dock",
-    "activity.ocean_shipping"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9680,9 +10076,9 @@
      "delta": 0.04
     }
    ],
-   "liveUnlocks": [
-    "activity.ocean_shipping"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9728,6 +10124,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9773,6 +10171,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9818,6 +10218,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9868,6 +10270,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9908,6 +10314,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9953,6 +10361,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -9998,6 +10408,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10040,13 +10452,11 @@
     {
      "operand": "society.unrestOutputDrag",
      "delta": 0.0042
-    },
-    {
-     "operand": "roads.baselineKmPerDay",
-     "delta": 0.01
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10092,6 +10502,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10126,9 +10538,9 @@
    "depth": 15,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.bastion_fort"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10179,6 +10591,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10224,6 +10638,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10268,9 +10684,9 @@
      "delta": 0.0663
     }
    ],
-   "liveUnlocks": [
-    "building.observatory"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10311,6 +10727,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10351,6 +10769,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10401,6 +10823,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10446,6 +10870,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10491,6 +10917,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10540,6 +10968,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10584,6 +11014,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10624,6 +11056,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10664,6 +11098,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10713,6 +11149,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10763,6 +11201,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10813,6 +11253,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10867,6 +11309,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10917,6 +11361,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -10956,9 +11402,9 @@
      "delta": 0.0335
     }
    ],
-   "liveUnlocks": [
-    "infra.navigation_canal"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11004,6 +11450,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11049,6 +11497,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11094,6 +11544,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11144,6 +11598,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11189,6 +11645,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11234,6 +11694,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11273,9 +11735,9 @@
      "delta": 0.0279
     }
    ],
-   "liveUnlocks": [
-    "building.steelworks"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11315,9 +11777,9 @@
      "delta": 0.04
     }
    ],
-   "liveUnlocks": [
-    "building.steelworks"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11363,6 +11825,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11403,6 +11867,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11448,6 +11914,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11488,6 +11956,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11528,6 +11998,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11568,6 +12040,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11607,9 +12081,9 @@
      "delta": 0.04
     }
    ],
-   "liveUnlocks": [
-    "building.textile_mill"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11655,6 +12129,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11699,9 +12175,9 @@
      "delta": 0.007
     }
    ],
-   "liveUnlocks": [
-    "building.textile_mill"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11752,6 +12228,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11797,6 +12275,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11842,6 +12322,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11885,8 +12367,10 @@
      "delta": 0.04
     }
    ],
-   "liveUnlocks": [
-    "infra.railway"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -11938,6 +12422,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -11983,6 +12469,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12028,6 +12516,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12075,6 +12565,8 @@
    "liveUnlocks": [
     "infra.road_macadam"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12115,6 +12607,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12159,9 +12653,9 @@
      "delta": 0.0109
     }
    ],
-   "liveUnlocks": [
-    "building.research_laboratory"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12201,9 +12695,9 @@
    "depth": 13,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.chemical_works"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12249,6 +12743,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12294,6 +12790,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12334,6 +12832,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12383,9 +12883,9 @@
      "delta": 0.05
     }
    ],
-   "liveUnlocks": [
-    "building.cement_works"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12435,9 +12935,9 @@
      "delta": 0.05
     }
    ],
-   "liveUnlocks": [
-    "infra.sewerage_system"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12483,6 +12983,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12537,6 +13039,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12582,6 +13086,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12621,8 +13127,10 @@
      "delta": 0.0491
     }
    ],
-   "liveUnlocks": [
-    "infra.telegraph_line"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -12668,9 +13176,9 @@
      "delta": 0.06
     }
    ],
-   "liveUnlocks": [
-    "infra.submarine_cable"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12716,6 +13224,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12761,6 +13271,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12800,9 +13312,10 @@
    "depth": 20,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.power_station",
-    "infra.power_grid"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -12854,6 +13367,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12888,9 +13403,9 @@
    "depth": 16,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "infra.telephone_network"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12926,11 +13441,15 @@
    "origin": "pre-tranche",
    "realized": [
     {
-     "operand": "roads.baselineKmPerDay",
+     "operand": "catchment.hinterlandRadiusKm",
      "delta": 0.04
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -12970,9 +13489,9 @@
    "depth": 14,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.refinery"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13013,6 +13532,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13053,6 +13574,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13101,8 +13624,10 @@
      "delta": 0.02
     }
    ],
-   "liveUnlocks": [
-    "infra.sewerage_system"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -13148,6 +13673,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13193,6 +13720,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13238,6 +13767,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13287,9 +13818,9 @@
      "delta": 0.5
     }
    ],
-   "liveUnlocks": [
-    "building.airfield"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13335,6 +13866,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13380,6 +13913,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13425,6 +13960,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13475,6 +14012,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13525,6 +14064,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13585,6 +14126,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13628,13 +14171,17 @@
    "prereq": "electricity_generation AND soda_leblanc",
    "depth": 21,
    "origin": "pre-tranche",
-   "realized": [
+   "realized": [],
+   "liveUnlocks": [],
+   "future": [
     {
-     "operand": "roads.baselineKmPerDay",
-     "delta": 0.03
+     "milestone": "M7",
+     "system": "Battle Layer - aircraft",
+     "operand": null,
+     "description": "cheap light structural metal for aircraft; no live equation is about light metal"
     }
    ],
-   "liveUnlocks": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13680,6 +14227,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13719,9 +14268,9 @@
    "depth": 22,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.spaceport"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13772,6 +14321,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13822,6 +14373,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13861,8 +14414,10 @@
    "depth": 16,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.radio_transmitter"
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
    ],
    "orderGate": null,
    "levels": null,
@@ -13909,6 +14464,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -13958,6 +14515,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14003,6 +14562,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14052,6 +14613,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14097,6 +14662,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14136,9 +14703,9 @@
    "depth": 22,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.semiconductor_fab"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14184,6 +14751,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14228,9 +14797,9 @@
      "delta": 0.0182
     }
    ],
-   "liveUnlocks": [
-    "infra.internet_backbone"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14281,6 +14850,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14345,6 +14916,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14379,9 +14952,9 @@
    "depth": 26,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.nuclear_power_station"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14447,6 +15020,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14491,6 +15066,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14540,6 +15119,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14584,6 +15165,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14638,6 +15221,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14683,6 +15268,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14732,6 +15319,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14786,6 +15375,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14835,6 +15426,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14890,6 +15483,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14939,6 +15534,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -14993,6 +15590,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15038,6 +15637,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15087,6 +15688,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15137,6 +15740,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15187,6 +15792,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15231,9 +15838,9 @@
      "delta": 0.08
     }
    ],
-   "liveUnlocks": [
-    "building.skyscraper"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15283,9 +15890,9 @@
      "delta": 0.0222
     }
    ],
-   "liveUnlocks": [
-    "building.hydroelectric_dam"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15336,6 +15943,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15386,6 +15995,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15430,9 +16041,9 @@
      "delta": 0.0327
     }
    ],
-   "liveUnlocks": [
-    "infra.mobile_network"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15487,6 +16098,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15542,6 +16155,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15581,9 +16196,9 @@
    "depth": 22,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.solar_farm"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15629,6 +16244,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15674,6 +16291,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15719,6 +16338,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15764,6 +16385,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15809,6 +16432,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15849,6 +16474,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15894,6 +16521,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15934,6 +16563,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -15978,9 +16609,9 @@
    "depth": 22,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.wind_farm"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16026,6 +16657,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16081,6 +16714,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16131,6 +16766,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16176,6 +16813,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16216,6 +16855,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16256,6 +16897,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16296,6 +16939,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16341,6 +16986,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16381,6 +17028,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16421,6 +17070,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16466,6 +17117,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16515,6 +17168,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16554,9 +17209,9 @@
    "depth": 25,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.data_centre"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16606,6 +17261,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16656,6 +17313,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16705,6 +17364,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16755,6 +17416,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16800,6 +17463,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16845,6 +17510,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16890,6 +17557,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16930,6 +17599,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -16975,6 +17646,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17029,6 +17702,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17074,6 +17749,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17123,6 +17800,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17172,6 +17851,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17216,6 +17897,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17265,6 +17948,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17310,6 +17995,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17355,6 +18042,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17399,6 +18088,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17444,6 +18135,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17488,6 +18181,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17537,6 +18232,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17591,6 +18288,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17636,6 +18335,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17690,6 +18391,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17729,9 +18432,9 @@
    "depth": 21,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.desalination_plant"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17782,6 +18485,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17827,6 +18532,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17872,6 +18579,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17917,6 +18626,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -17962,6 +18673,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18012,6 +18725,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18062,6 +18777,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18102,6 +18819,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18156,6 +18875,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18205,6 +18926,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18255,6 +18978,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18314,6 +19039,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18368,6 +19095,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18413,6 +19142,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18458,6 +19189,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18497,9 +19230,9 @@
    "depth": 28,
    "origin": "pre-tranche",
    "realized": [],
-   "liveUnlocks": [
-    "building.fusion_plant"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18540,6 +19273,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18584,6 +19319,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18624,6 +19361,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18669,6 +19408,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18714,6 +19455,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -18759,6 +19502,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -18804,6 +19549,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -18853,6 +19600,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -18898,6 +19647,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -18948,6 +19699,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -18993,6 +19746,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -19038,6 +19793,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -19087,6 +19844,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -19136,6 +19895,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -19181,6 +19942,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -19219,15 +19982,12 @@
    "prereq": "automobile_mass AND reinforced_concrete AND petroleum_refining",
    "depth": 22,
    "origin": "pre-tranche",
-   "realized": [
-    {
-     "operand": "roads.baselineKmPerDay",
-     "delta": 0.06
-    }
-   ],
+   "realized": [],
    "liveUnlocks": [
     "infra.road_highway"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19275,6 +20035,8 @@
    "liveUnlocks": [
     "activity.trade"
    ],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19330,6 +20092,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19374,9 +20138,9 @@
      "delta": 0.03
     }
    ],
-   "liveUnlocks": [
-    "building.lighthouse"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19422,6 +20186,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19466,10 +20232,9 @@
      "delta": 0.007
     }
    ],
-   "liveUnlocks": [
-    "building.school",
-    "building.library"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19505,6 +20270,8 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": "order.assay (sim.json discovery.assayRequires)",
    "levels": null,
    "costGrowth": null,
@@ -19545,6 +20312,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19585,6 +20354,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19634,6 +20405,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19678,9 +20451,9 @@
      "delta": 0.0327
     }
    ],
-   "liveUnlocks": [
-    "activity.ocean_shipping"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19731,6 +20504,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19776,6 +20551,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19820,6 +20597,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19860,6 +20639,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19900,6 +20681,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19945,6 +20728,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -19985,6 +20770,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20025,6 +20812,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20080,6 +20869,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20120,6 +20911,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20170,6 +20963,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20215,6 +21010,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20255,6 +21052,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20295,6 +21094,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20335,6 +21136,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20385,6 +21188,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20425,6 +21230,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20470,6 +21277,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20514,9 +21323,9 @@
      "delta": 0.0344
     }
    ],
-   "liveUnlocks": [
-    "infra.sewerage_system"
-   ],
+   "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20562,6 +21371,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20602,6 +21413,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20647,6 +21460,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20691,6 +21506,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20731,6 +21548,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20771,6 +21590,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20811,6 +21632,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20856,6 +21679,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20901,6 +21726,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20950,6 +21777,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -20990,6 +21819,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21039,6 +21870,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21094,6 +21927,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21139,6 +21974,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21184,6 +22021,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21243,6 +22082,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21288,6 +22129,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21332,6 +22175,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21372,6 +22217,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21421,6 +22268,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21470,6 +22319,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21519,6 +22370,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21564,6 +22417,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21608,6 +22463,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21658,6 +22515,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21703,6 +22562,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21748,6 +22609,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21798,6 +22661,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21842,6 +22707,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21892,6 +22759,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21937,6 +22806,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -21982,6 +22853,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22027,6 +22900,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22076,6 +22951,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22120,6 +22997,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22165,6 +23044,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22219,6 +23100,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22268,6 +23151,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22317,6 +23202,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22362,6 +23249,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22407,6 +23296,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22456,6 +23347,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22496,6 +23389,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22534,6 +23429,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22568,6 +23465,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22602,6 +23501,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22640,6 +23541,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22674,6 +23577,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22708,6 +23613,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22742,6 +23649,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22776,6 +23685,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22814,6 +23725,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22852,6 +23765,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22890,6 +23805,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22924,6 +23841,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22958,6 +23877,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -22992,6 +23913,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23026,6 +23949,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23064,6 +23989,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23098,6 +24025,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23132,6 +24061,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23161,11 +24092,13 @@
    "origin": "tranche-2",
    "realized": [
     {
-     "operand": "roads.baselineKmPerDay",
+     "operand": "governance.authorityDecayCostUnits",
      "delta": 0.05
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23200,6 +24133,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23238,6 +24173,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23272,6 +24209,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23310,6 +24249,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23348,6 +24289,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23382,6 +24325,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23420,6 +24365,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23454,6 +24401,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23492,6 +24441,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23526,6 +24477,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23578,6 +24533,10 @@
    "liveUnlocks": [
     "inst.university"
    ],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23618,6 +24577,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23673,6 +24636,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23713,6 +24680,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23762,6 +24733,10 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "age milestone fact"
+   ],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23802,6 +24777,10 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [
+    "tax edict"
+   ],
    "orderGate": "order.tax_edict (sim.json governance.taxationRequires)",
    "levels": null,
    "costGrowth": null,
@@ -23862,6 +24841,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23896,6 +24877,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23941,6 +24924,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -23981,6 +24966,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24031,6 +25018,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24071,6 +25060,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24111,6 +25102,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24166,6 +25159,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24206,6 +25201,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24251,6 +25248,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24305,6 +25304,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24350,6 +25351,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24395,6 +25398,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24440,6 +25445,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24485,6 +25492,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24530,6 +25539,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24580,6 +25591,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24620,6 +25633,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24660,6 +25675,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24705,6 +25722,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24754,6 +25773,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24794,6 +25815,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24839,6 +25862,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24889,6 +25914,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24934,6 +25961,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -24984,6 +26013,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25029,6 +26060,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25074,6 +26107,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25119,6 +26154,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25164,6 +26201,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25209,6 +26248,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25254,6 +26295,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25304,6 +26347,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25354,6 +26399,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25404,6 +26451,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25449,6 +26498,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25499,6 +26550,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25544,6 +26597,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25589,6 +26644,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25634,6 +26691,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25679,6 +26738,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25729,6 +26790,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25774,6 +26837,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25819,6 +26884,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25859,6 +26926,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25904,6 +26973,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -25962,6 +27033,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26017,6 +27090,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26067,6 +27142,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26112,6 +27189,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26152,6 +27231,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26197,6 +27278,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26237,6 +27320,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26282,6 +27367,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26327,6 +27414,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26372,6 +27461,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26417,6 +27508,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26457,6 +27550,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26502,6 +27597,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26547,6 +27644,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26597,6 +27696,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26637,6 +27738,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26671,6 +27774,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26711,6 +27816,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26761,6 +27868,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26815,6 +27924,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26865,6 +27976,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26910,6 +28023,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -26955,6 +28070,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27000,6 +28117,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27045,6 +28164,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27085,6 +28206,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27130,6 +28253,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27179,6 +28304,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27234,6 +28361,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27279,6 +28408,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27324,6 +28455,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27369,6 +28502,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27419,6 +28554,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27464,6 +28601,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27509,6 +28648,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27554,6 +28695,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27599,6 +28742,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27659,6 +28804,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27704,6 +28851,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27749,6 +28898,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27789,6 +28940,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27834,6 +28987,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27874,6 +29029,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27919,6 +29076,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -27959,6 +29118,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28019,6 +29180,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28064,6 +29227,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28109,6 +29274,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28163,6 +29330,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28212,6 +29381,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28262,6 +29433,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28307,6 +29480,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28352,6 +29527,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28397,6 +29574,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28442,6 +29621,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28492,6 +29673,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28537,6 +29720,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28582,6 +29767,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28627,6 +29814,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28672,6 +29861,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28717,6 +29908,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28762,6 +29955,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28807,6 +30002,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28852,6 +30049,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28897,6 +30096,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28942,6 +30143,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -28987,6 +30190,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29032,6 +30237,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29077,6 +30284,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29126,6 +30335,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29171,6 +30382,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29216,6 +30429,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29261,6 +30476,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29306,6 +30523,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29351,6 +30570,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29396,6 +30617,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29441,6 +30664,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29486,6 +30711,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29536,6 +30763,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29581,6 +30810,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29630,6 +30861,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29680,6 +30913,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29720,6 +30955,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29769,6 +31006,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29814,6 +31053,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29859,6 +31100,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29904,6 +31147,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29944,6 +31189,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -29989,6 +31236,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30034,6 +31283,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30079,6 +31330,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30124,6 +31377,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30164,6 +31419,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30209,6 +31466,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30254,6 +31513,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30299,6 +31560,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30344,6 +31607,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30384,6 +31649,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30434,6 +31701,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30479,6 +31748,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30524,6 +31795,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30569,6 +31842,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30614,6 +31889,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30659,6 +31936,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30704,6 +31983,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30754,6 +32035,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30799,6 +32082,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30844,6 +32129,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30893,6 +32180,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30943,6 +32232,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -30983,6 +32274,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31032,6 +32325,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31077,6 +32372,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31122,6 +32419,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31162,6 +32461,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31212,6 +32513,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31261,6 +32564,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31306,6 +32611,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31356,6 +32663,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31401,6 +32710,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31450,6 +32761,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31495,6 +32808,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31540,6 +32855,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31585,6 +32902,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31623,13 +32942,23 @@
    "prereq": "collective_security AND general_staff",
    "depth": 18,
    "origin": "tranche-2",
-   "realized": [
+   "realized": [],
+   "liveUnlocks": [],
+   "future": [
     {
-     "operand": "roads.baselineKmPerDay",
-     "delta": 0.03
+     "milestone": "M8",
+     "system": "Politics / Diplomacy - alliances",
+     "operand": null,
+     "description": "allies place forces under a joint peacetime command"
+    },
+    {
+     "milestone": "M7",
+     "system": "Battle Layer - joint command of formations",
+     "operand": null,
+     "description": "allied formations act under one command"
     }
    ],
-   "liveUnlocks": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31675,6 +33004,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31720,6 +33051,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31765,6 +33098,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31810,6 +33145,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31855,6 +33192,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31908,6 +33247,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -31953,6 +33294,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32007,6 +33350,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32052,6 +33397,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32097,6 +33444,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32147,6 +33496,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32181,6 +33532,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32215,6 +33568,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32249,6 +33604,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32283,6 +33640,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32321,6 +33680,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32355,6 +33716,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32389,6 +33752,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32423,6 +33788,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32457,6 +33824,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32491,6 +33860,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32529,6 +33900,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32563,6 +33936,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32597,6 +33972,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32631,6 +34008,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32665,6 +34044,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32699,6 +34080,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32733,6 +34116,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32767,6 +34152,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32801,6 +34188,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32835,6 +34224,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32869,6 +34260,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32903,6 +34296,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32937,6 +34332,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -32971,6 +34368,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33005,6 +34404,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33039,6 +34440,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33073,6 +34476,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33107,6 +34512,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33141,6 +34548,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33175,6 +34584,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33209,6 +34620,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33243,6 +34656,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33277,6 +34692,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33311,6 +34728,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33345,6 +34764,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33379,6 +34800,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33413,6 +34836,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33447,6 +34872,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33481,6 +34908,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33515,6 +34944,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33549,6 +34980,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33583,6 +35016,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33617,6 +35052,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33651,6 +35088,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33685,6 +35124,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33719,6 +35160,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33753,6 +35196,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33787,6 +35232,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33821,6 +35268,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33855,6 +35304,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33889,6 +35340,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33923,6 +35376,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33952,11 +35407,13 @@
    "origin": "tranche-2",
    "realized": [
     {
-     "operand": "roads.baselineKmPerDay",
+     "operand": "governance.authorityDecayCostUnits",
      "delta": 0.03
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -33991,6 +35448,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34025,6 +35484,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34063,6 +35524,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34097,6 +35560,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34131,6 +35596,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34158,13 +35625,17 @@
    "prereq": "organized_priesthood AND track_road",
    "depth": 7,
    "origin": "tranche-2",
-   "realized": [
+   "realized": [],
+   "liveUnlocks": [],
+   "future": [
     {
-     "operand": "roads.baselineKmPerDay",
-     "delta": 0.02
+     "milestone": "M9",
+     "system": "Society - religion and pilgrimage",
+     "operand": null,
+     "description": "pilgrims travel to shared sanctuaries under a sacred truce"
     }
    ],
-   "liveUnlocks": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34199,6 +35670,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34233,6 +35706,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34267,6 +35742,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34301,6 +35778,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34335,6 +35814,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34369,6 +35850,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34403,6 +35886,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34437,6 +35922,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34471,6 +35958,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34505,6 +35994,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34539,6 +36030,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34573,6 +36066,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34607,6 +36102,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34641,6 +36138,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34675,6 +36174,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34709,6 +36210,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34747,6 +36250,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34781,6 +36286,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34815,6 +36322,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34849,6 +36358,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34883,6 +36394,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34917,6 +36430,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34951,6 +36466,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -34985,6 +36502,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35019,6 +36538,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35053,6 +36574,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35087,6 +36610,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35121,6 +36646,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35155,6 +36682,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35189,6 +36718,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35223,6 +36754,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35257,6 +36790,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35291,6 +36826,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35325,6 +36862,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35359,6 +36898,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35393,6 +36934,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35422,11 +36965,13 @@
    "origin": "tranche-2",
    "realized": [
     {
-     "operand": "roads.baselineKmPerDay",
+     "operand": "roads.maxRouteKm",
      "delta": 0.03
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35465,6 +37010,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35499,6 +37046,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35533,6 +37082,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35567,6 +37118,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35601,6 +37154,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35635,6 +37190,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35669,6 +37226,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35703,6 +37262,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35737,6 +37298,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35771,6 +37334,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35805,6 +37370,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35843,6 +37410,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35877,6 +37446,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35915,6 +37486,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35949,6 +37522,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -35983,6 +37558,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36017,6 +37594,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36051,6 +37630,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36085,6 +37666,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36119,6 +37702,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36153,6 +37738,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36187,6 +37774,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36216,11 +37805,13 @@
    "origin": "tranche-2",
    "realized": [
     {
-     "operand": "roads.baselineKmPerDay",
+     "operand": "roads.maxRouteKm",
      "delta": 0.04
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36255,6 +37846,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36289,6 +37882,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36323,6 +37918,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36357,6 +37954,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36391,6 +37990,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36425,6 +38026,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36459,6 +38062,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36493,6 +38098,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36527,6 +38134,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36561,6 +38170,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36595,6 +38206,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36629,6 +38242,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36663,6 +38278,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36697,6 +38314,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36731,6 +38350,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36765,6 +38386,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36799,6 +38422,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36833,6 +38458,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36867,6 +38494,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36901,6 +38530,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36935,6 +38566,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -36969,6 +38602,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37003,6 +38638,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37037,6 +38674,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37071,6 +38710,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37105,6 +38746,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37139,6 +38782,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37173,6 +38818,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37211,6 +38858,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37245,6 +38894,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37279,6 +38930,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37313,6 +38966,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37347,6 +39002,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37381,6 +39038,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37415,6 +39074,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37449,6 +39110,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37483,6 +39146,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37517,6 +39182,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37551,6 +39218,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37585,6 +39254,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37619,6 +39290,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37653,6 +39326,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37687,6 +39362,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37721,6 +39398,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37755,6 +39434,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37789,6 +39470,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37823,6 +39506,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37857,6 +39542,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37895,6 +39582,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37929,6 +39618,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37963,6 +39654,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -37997,6 +39690,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38031,6 +39726,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38065,6 +39762,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38099,6 +39798,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38137,6 +39838,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38171,6 +39874,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38209,6 +39914,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38243,6 +39950,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38277,6 +39986,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38311,6 +40022,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38345,6 +40058,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38379,6 +40094,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38413,6 +40130,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38451,6 +40170,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38485,6 +40206,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38519,6 +40242,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38557,6 +40282,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38591,6 +40318,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38625,6 +40354,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38659,6 +40390,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38693,6 +40426,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38727,6 +40462,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38761,6 +40498,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38795,6 +40534,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38829,6 +40570,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38863,6 +40606,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38897,6 +40642,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38935,6 +40682,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -38973,6 +40722,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39007,6 +40758,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39041,6 +40794,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39079,6 +40834,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39113,6 +40870,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39147,6 +40906,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39181,6 +40942,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39215,6 +40978,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39249,6 +41014,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39287,6 +41054,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39321,6 +41090,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39355,6 +41126,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39389,6 +41162,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39423,6 +41198,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39457,6 +41234,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39491,6 +41270,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39525,6 +41306,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39559,6 +41342,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39593,6 +41378,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39627,6 +41414,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39661,6 +41450,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39695,6 +41486,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39729,6 +41522,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39763,6 +41558,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39797,6 +41594,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39835,6 +41634,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39873,6 +41674,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39907,6 +41710,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39941,6 +41746,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -39975,6 +41782,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40009,6 +41818,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40043,6 +41854,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40077,6 +41890,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40111,6 +41926,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40145,6 +41962,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40179,6 +41998,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40213,6 +42034,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40247,6 +42070,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40281,6 +42106,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40315,6 +42142,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40349,6 +42178,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40383,6 +42214,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40417,6 +42250,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40451,6 +42286,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40489,6 +42326,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40523,6 +42362,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40557,6 +42398,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40595,6 +42438,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40629,6 +42474,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40663,6 +42510,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40697,6 +42546,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40731,6 +42582,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40765,6 +42618,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40799,6 +42654,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40833,6 +42690,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40867,6 +42726,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40901,6 +42762,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40935,6 +42798,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -40969,6 +42834,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41007,6 +42874,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41041,6 +42910,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41075,6 +42946,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41109,6 +42982,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41136,13 +43011,17 @@
    "prereq": "automobile_mass AND civil_police",
    "depth": 22,
    "origin": "tranche-2",
-   "realized": [
+   "realized": [],
+   "liveUnlocks": [],
+   "future": [
     {
+     "milestone": "unscheduled",
+     "system": "freight-time consumer (ADR-032 section 7 design intent: delivery delay, carriage term, route tonnage caps)",
      "operand": "roads.baselineKmPerDay",
-     "delta": 0.02
+     "description": "regulated motor traffic raises road speed and throughput once a system consumes travel time"
     }
    ],
-   "liveUnlocks": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41177,6 +43056,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41211,6 +43092,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41245,6 +43128,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41279,6 +43164,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41317,6 +43204,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41351,6 +43240,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41389,6 +43280,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41423,6 +43316,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41457,6 +43352,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41491,6 +43388,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41525,6 +43424,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41563,6 +43464,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41597,6 +43500,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41631,6 +43536,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41665,6 +43572,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41699,6 +43608,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41733,6 +43644,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41767,6 +43680,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41805,6 +43720,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41839,6 +43756,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41877,6 +43796,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41911,6 +43832,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41945,6 +43868,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -41979,6 +43904,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -42013,6 +43940,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -42047,6 +43976,8 @@
     }
    ],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": null,
    "costGrowth": null,
@@ -42076,6 +44007,8 @@
    "origin": "engine",
    "realized": [],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -42110,6 +44043,8 @@
    "origin": "engine",
    "realized": [],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {
@@ -42144,6 +44079,8 @@
    "origin": "engine",
    "realized": [],
    "liveUnlocks": [],
+   "future": [],
+   "otherLive": [],
    "orderGate": null,
    "levels": [
     {

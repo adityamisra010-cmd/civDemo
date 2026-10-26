@@ -434,7 +434,7 @@ public static class InfoQuery
         }
         // ADR-047 / ADR-049: its realized effects and level effects — each read by the operand's owning system. CR-025: an
         // operand whose computed value no simulation system consumes is listed as not simulated, and does not make the node
-        // simulated.
+        // simulated (since the ruling the loader refuses such a realized effect; the branch stays as the display's own guard).
         if (KnowledgeEffects.IsOn(r))
             foreach (RealizedEffect e in n.RealizedEffects)
             {
@@ -456,6 +456,9 @@ public static class InfoQuery
                 b.Enables.Add(new InfoLink("Each level closes " + N1(e.GapFraction * 100.0) + "% of the remaining gap: " +
                     RepeatableOperands.Get(e.Operand).Meaning, null, c.Done[i], e.Operand));
             }
+        // CR-025 ruling (D-063 R1 amendment): its declared FUTURE effects — named, never counted as simulated.
+        foreach (FutureEffect e in n.FutureEffects)
+            b.Enables.Add(new InfoLink(FutureLabel(e), null, false, FutureNote(e)));
         foreach (int d in n.Dependents) b.Enables.Add(NodeLink(c, d, "leads to"));
 
         foreach (string s in n.Capabilities) b.KnowledgeOnly.Add(s);
@@ -2235,6 +2238,18 @@ public static class InfoQuery
             if (o != e && Contains(r.Entities[o].InstitutionAtoms, e))
                 enables.Add(new InfoLink(EntityName(r.Entities[o]), InfoSubject.OfEntity(r.Entities[o].Id), c.Eligible(o), KindName(r.Entities[o].Kind) + " - needs it"));
     }
+
+    /// <summary>CR-025 ruling: the card line of a declared future effect — "Future (M7 Battle Layer - …): …, not simulated
+    /// in this build".</summary>
+    public static string FutureLabel(FutureEffect e) =>
+        "Future (" + e.Milestone + " " + e.System + "): " + e.Description + ", not simulated in this build";
+
+    /// <summary>CR-025 ruling: the note under a future-effect line — who will realize it, and the operand it would act on.</summary>
+    private static string FutureNote(FutureEffect e) =>
+        (string.Equals(e.Milestone, ResearchContentLoader.UnscheduledMilestone, StringComparison.Ordinal)
+            ? "declared future effect: its system is design intent with no milestone yet"
+            : "declared future effect: arrives with " + e.Milestone)
+        + (e.Operand is { } op ? " (" + KnowledgeOperands.Of(op).Id + ")" : "");
 
     /// <summary>The short realization note an "opens the way to" line carries, and whether a system realizes it.</summary>
     private static (string Note, bool Realized) Realization(Ctx c, int e)

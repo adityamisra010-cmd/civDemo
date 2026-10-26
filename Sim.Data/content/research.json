@@ -7236,7 +7236,7 @@
     "immediate": [],
     "realized": [
      {
-      "operand": "roads.baselineKmPerDay",
+      "operand": "catchment.hinterlandRadiusKm",
       "delta": 0.05
      }
     ]
@@ -7491,10 +7491,18 @@
    "generation": null,
    "effects": {
     "immediate": [],
-    "realized": [
+    "future": [
      {
+      "milestone": "M7",
+      "system": "Battle Layer - chariots",
+      "operand": null,
+      "description": "the light, fast spoked-wheel vehicle makes the war chariot possible"
+     },
+     {
+      "milestone": "unscheduled",
+      "system": "freight-time consumer (ADR-032 section 7 design intent: delivery delay, carriage term, route tonnage caps)",
       "operand": "roads.baselineKmPerDay",
-      "delta": 0.04
+      "description": "light fast vehicles shorten overland transit once a system consumes travel time"
      }
     ]
    },
@@ -9199,10 +9207,12 @@
    "generation": null,
    "effects": {
     "immediate": [],
-    "realized": [
+    "future": [
      {
-      "operand": "roads.baselineKmPerDay",
-      "delta": 0.02
+      "milestone": "M7",
+      "system": "Battle Layer - mounted movement",
+      "operand": null,
+      "description": "a stable seat for cavalry and long rides; formations do not move before M7"
      }
     ]
    },
@@ -11133,10 +11143,6 @@
      {
       "operand": "governance.authorityDecayCostUnits",
       "delta": 0.04
-     },
-     {
-      "operand": "roads.baselineKmPerDay",
-      "delta": 0.05
      }
     ]
    },
@@ -11203,7 +11209,7 @@
     "immediate": [],
     "realized": [
      {
-      "operand": "roads.baselineKmPerDay",
+      "operand": "roads.maxRouteKm",
       "delta": 0.04
      }
     ]
@@ -13043,7 +13049,7 @@
     "immediate": [],
     "realized": [
      {
-      "operand": "roads.baselineKmPerDay",
+      "operand": "catchment.hinterlandRadiusKm",
       "delta": 0.03
      }
     ]
@@ -16537,10 +16543,6 @@
      {
       "operand": "society.unrestOutputDrag",
       "delta": 0.0042
-     },
-     {
-      "operand": "roads.baselineKmPerDay",
-      "delta": 0.01
      }
     ]
    },
@@ -20932,7 +20934,7 @@
     "immediate": [],
     "realized": [
      {
-      "operand": "roads.baselineKmPerDay",
+      "operand": "catchment.hinterlandRadiusKm",
       "delta": 0.04
      }
     ]
@@ -22002,10 +22004,12 @@
    "generation": null,
    "effects": {
     "immediate": [],
-    "realized": [
+    "future": [
      {
-      "operand": "roads.baselineKmPerDay",
-      "delta": 0.03
+      "milestone": "M7",
+      "system": "Battle Layer - aircraft",
+      "operand": null,
+      "description": "cheap light structural metal for aircraft; no live equation is about light metal"
      }
     ]
    },
@@ -30738,13 +30742,7 @@
    "family": "road",
    "generation": null,
    "effects": {
-    "immediate": [],
-    "realized": [
-     {
-      "operand": "roads.baselineKmPerDay",
-      "delta": 0.06
-     }
-    ]
+    "immediate": []
    },
    "repeatable": null,
    "universityRelevance": [
@@ -37101,7 +37099,7 @@
     "immediate": [],
     "realized": [
      {
-      "operand": "roads.baselineKmPerDay",
+      "operand": "governance.authorityDecayCostUnits",
       "delta": 0.05
      }
     ]
@@ -47800,10 +47798,18 @@
    "generation": null,
    "effects": {
     "immediate": [],
-    "realized": [
+    "future": [
      {
-      "operand": "roads.baselineKmPerDay",
-      "delta": 0.03
+      "milestone": "M8",
+      "system": "Politics / Diplomacy - alliances",
+      "operand": null,
+      "description": "allies place forces under a joint peacetime command"
+     },
+     {
+      "milestone": "M7",
+      "system": "Battle Layer - joint command of formations",
+      "operand": null,
+      "description": "allied formations act under one command"
      }
     ]
    },
@@ -51406,7 +51412,7 @@
     "immediate": [],
     "realized": [
      {
-      "operand": "roads.baselineKmPerDay",
+      "operand": "governance.authorityDecayCostUnits",
       "delta": 0.03
      }
     ]
@@ -51744,10 +51750,12 @@
    "generation": null,
    "effects": {
     "immediate": [],
-    "realized": [
+    "future": [
      {
-      "operand": "roads.baselineKmPerDay",
-      "delta": 0.02
+      "milestone": "M9",
+      "system": "Society - religion and pilgrimage",
+      "operand": null,
+      "description": "pilgrims travel to shared sanctuaries under a sacred truce"
      }
     ]
    },
@@ -53822,7 +53830,7 @@
     "immediate": [],
     "realized": [
      {
-      "operand": "roads.baselineKmPerDay",
+      "operand": "roads.maxRouteKm",
       "delta": 0.03
      }
     ]
@@ -55122,7 +55130,7 @@
     "immediate": [],
     "realized": [
      {
-      "operand": "roads.baselineKmPerDay",
+      "operand": "roads.maxRouteKm",
       "delta": 0.04
      }
     ]
@@ -63188,10 +63196,12 @@
    "generation": null,
    "effects": {
     "immediate": [],
-    "realized": [
+    "future": [
      {
+      "milestone": "unscheduled",
+      "system": "freight-time consumer (ADR-032 section 7 design intent: delivery delay, carriage term, route tonnage caps)",
       "operand": "roads.baselineKmPerDay",
-      "delta": 0.02
+      "description": "regulated motor traffic raises road speed and throughput once a system consumes travel time"
      }
     ]
    },

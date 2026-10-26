@@ -152,21 +152,21 @@
    "live": false,
    "reader": "Sim.Core/State/TransportQuery.cs:213",
    "gate": null,
-   "consequence": "NOT LIVE: only TransportQuery.EstimateFreight(shipper) applies it, and EstimateFreight has no caller in Sim.Core/Sim.Cli/Sim.Ui (tests only) -> no state change; cap S<=3.0; content: 17 nodes sum delta 0.59"
+   "consequence": "NOT LIVE: only TransportQuery.EstimateFreight(shipper) applies it, and EstimateFreight has no caller in Sim.Core/Sim.Cli/Sim.Ui (tests only) -> no state change; cap S<=3.0; content: 0 nodes (CR-025 ruling 2026-10-26: the loader refuses a realized delta on it; 2 future declarations name it)"
   },
   {
    "id": "roads.maxRouteKm",
    "live": true,
    "reader": "Sim.Core/State/RoadDevelopmentQuery.cs:162 (via RoadDevelopmentPolicy.cs:36/40 -> AiOrders.cs:74; Plan used by road-development orders)",
    "gate": null,
-   "consequence": "max buildable road route length x(1+S); affects AI road-development route candidacy/plan; cap S<=3.0; content: 6 nodes sum delta 0.29"
+   "consequence": "max buildable road route length x(1+S); affects AI road-development route candidacy/plan; cap S<=3.0; content: 9 nodes sum delta 0.40 (CR-025 ruling: +bridge_stone, bridge_trusts, turnpike_trusts)"
   },
   {
    "id": "catchment.hinterlandRadiusKm",
    "live": true,
    "reader": "Sim.Core/Systems/Catchment/CatchmentSystem.cs:85",
    "gate": null,
-   "consequence": "hinterland radius x(1+S) (staleness key line 95); cap S<=1.0; content: 20 nodes sum delta 0.61"
+   "consequence": "hinterland radius x(1+S) (staleness key line 95); cap S<=1.0; content: 23 nodes sum delta 0.73 (CR-025 ruling: +horse_domestication, horseshoe, internal_combustion)"
   },
   {
    "id": "trade.gapClosingFraction",
@@ -236,7 +236,7 @@
    "live": true,
    "reader": "Sim.Core/State/Governance.cs:105 (via GovernanceSystem.cs:93)",
    "gate": null,
-   "consequence": "administrative reach e-fold x(1+S) -> ControlRow.Strength; cap S<=3.0; content: 74 nodes sum delta 2.49 + levels(institutional_reform)"
+   "consequence": "administrative reach e-fold x(1+S) -> ControlRow.Strength; cap S<=3.0; content: 76 nodes sum delta 2.57 (CR-025 ruling: +sprung_coach, road_houses) + levels(institutional_reform)"
   },
   {
    "id": "governance.taxExtractionResponseMax",
@@ -1874,7 +1874,12 @@
   },
   {
    "id": "horse_domestication",
-   "liveOperandEffects": [],
+   "liveOperandEffects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.05
+    }
+   ],
    "liveUnlocks": [],
    "placeholderUnlocks": [
     "infra.courier_relay"
@@ -1922,7 +1927,7 @@
    "placeholderUnlocks": [],
    "orderGates": [],
    "levels": false,
-   "futureSystem": null
+   "futureSystem": "M7 battle layer (chariots); unscheduled ADR-032 section 7 freight-time consumer [declared in research.json effects.future, CR-025 ruling 2026-10-26]"
   },
   {
    "id": "chariot",
@@ -2290,7 +2295,7 @@
    "placeholderUnlocks": [],
    "orderGates": [],
    "levels": false,
-   "futureSystem": null
+   "futureSystem": "M7 battle layer (mounted movement) [declared in research.json effects.future, CR-025 ruling 2026-10-26]"
   },
   {
    "id": "siege_ram",
@@ -2722,7 +2727,12 @@
   },
   {
    "id": "bridge_stone",
-   "liveOperandEffects": [],
+   "liveOperandEffects": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.04
+    }
+   ],
    "liveUnlocks": [],
    "placeholderUnlocks": [
     "infra.bridge"
@@ -3121,7 +3131,12 @@
   },
   {
    "id": "horseshoe",
-   "liveOperandEffects": [],
+   "liveOperandEffects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.03
+    }
+   ],
    "liveUnlocks": [],
    "placeholderUnlocks": [],
    "orderGates": [],
@@ -4840,7 +4855,12 @@
   },
   {
    "id": "internal_combustion",
-   "liveOperandEffects": [],
+   "liveOperandEffects": [
+    {
+     "operand": "catchment.hinterlandRadiusKm",
+     "delta": 0.04
+    }
+   ],
    "liveUnlocks": [],
    "placeholderUnlocks": [],
    "orderGates": [
@@ -5069,7 +5089,7 @@
    "placeholderUnlocks": [],
    "orderGates": [],
    "levels": false,
-   "futureSystem": null
+   "futureSystem": "M7 battle layer (aircraft) [declared in research.json effects.future, CR-025 ruling 2026-10-26]"
   },
   {
    "id": "superalloy",
@@ -8291,7 +8311,12 @@
   },
   {
    "id": "sprung_coach",
-   "liveOperandEffects": [],
+   "liveOperandEffects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.05
+    }
+   ],
    "liveUnlocks": [],
    "placeholderUnlocks": [],
    "orderGates": [],
@@ -11031,7 +11056,7 @@
    "placeholderUnlocks": [],
    "orderGates": [],
    "levels": false,
-   "futureSystem": null
+   "futureSystem": "M8 politics / diplomacy (alliances); M7 battle layer (joint command) [declared in research.json effects.future, CR-025 ruling 2026-10-26]"
   },
   {
    "id": "international_tribunals",
@@ -11937,7 +11962,12 @@
   },
   {
    "id": "road_houses",
-   "liveOperandEffects": [],
+   "liveOperandEffects": [
+    {
+     "operand": "governance.authorityDecayCostUnits",
+     "delta": 0.03
+    }
+   ],
    "liveUnlocks": [],
    "placeholderUnlocks": [],
    "orderGates": [],
@@ -12025,7 +12055,7 @@
    "placeholderUnlocks": [],
    "orderGates": [],
    "levels": false,
-   "futureSystem": null
+   "futureSystem": "M9 society (religion and pilgrimage) [declared in research.json effects.future, CR-025 ruling 2026-10-26]"
   },
   {
    "id": "banking_houses",
@@ -12537,7 +12567,12 @@
   },
   {
    "id": "bridge_trusts",
-   "liveOperandEffects": [],
+   "liveOperandEffects": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.03
+    }
+   ],
    "liveUnlocks": [],
    "placeholderUnlocks": [],
    "orderGates": [],
@@ -12866,7 +12901,12 @@
   },
   {
    "id": "turnpike_trusts",
-   "liveOperandEffects": [],
+   "liveOperandEffects": [
+    {
+     "operand": "roads.maxRouteKm",
+     "delta": 0.04
+    }
+   ],
    "liveUnlocks": [],
    "placeholderUnlocks": [],
    "orderGates": [],
@@ -14928,7 +14968,7 @@
    "placeholderUnlocks": [],
    "orderGates": [],
    "levels": false,
-   "futureSystem": null
+   "futureSystem": "unscheduled ADR-032 section 7 freight-time consumer [declared in research.json effects.future, CR-025 ruling 2026-10-26]"
   },
   {
    "id": "veterinary_campaigns",
@@ -15355,6 +15395,13 @@
    "orderGates": [],
    "levels": true,
    "futureSystem": null
+  }
+ ],
+ "corrections": [
+  {
+   "date": "2026-10-26",
+   "by": "CR-025 ruling (docs/adr/cr-025-unconsumed-overland-speed-operand.md section 7)",
+   "what": "Updated in place for the 17 nodes that declared roads.baselineKmPerDay and the four operands they touch: 8 retargets (liveOperandEffects), 6 future declarations (futureSystem), 3 dead deltas dropped (they were never listed as live). Everything else is the original reading at b1dce0f and was not re-derived."
   }
  ]
 }

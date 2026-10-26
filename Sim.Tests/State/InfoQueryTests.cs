@@ -168,25 +168,60 @@ public class InfoQueryTests
     }
 
     [Fact]
-    public void Saddle_ItsOnlyEffectIsTheUnconsumedSpeedOperand_TheCardSaysNotSimulated()
+    public void Saddle_ItsOnlyEffectIsAFutureOne_TheCardNamesItAndSaysNotSimulated()
     {
-        // CR-025: roads.baselineKmPerDay feeds only TransportQuery.EstimateFreight, which no system calls, so the effect
-        // changes nothing in play. Before the fix the card said "Simulated" and "read by TransportQuery".
+        // CR-025 ruling (2026-10-26): saddle's former realized effect (roads.baselineKmPerDay, which no system consumes) is
+        // now a declared future effect of the M7 Battle Layer. The card names it as future, not simulated in this build,
+        // and the node is not Simulated. Before the interim fix the card said "Simulated" and "read by TransportQuery".
         WorldState w = World();
         ResearchNode n = R.Nodes[Node("saddle")];
-        KnowledgeOperandInfo op = KnowledgeOperands.All[(int)KnowledgeOperand.RoadsBaselineKmPerDay];
-        Assert.False(op.ConsumedInPlay);
-        RealizedEffect only = Assert.Single(n.RealizedEffects);
-        Assert.Equal(KnowledgeOperand.RoadsBaselineKmPerDay, only.Operand);
+        Assert.Empty(n.RealizedEffects);
+        FutureEffect f = Assert.Single(n.FutureEffects);
+        Assert.Equal("M7", f.Milestone);
         InfoCard card = Card(w, InfoSubject.Node(n.Key));
         Assert.NotEqual(InfoEffect.Simulated, card.Effect);
-        InfoLink link = Assert.Single(card.Enables, l => l.Label.Contains(op.Meaning, StringComparison.Ordinal));
-        Assert.Contains("not simulated yet", link.Label, StringComparison.Ordinal);
-        Assert.Contains("CR-025", link.Note!, StringComparison.Ordinal);
-        Assert.DoesNotContain("read by TransportQuery", link.Note!, StringComparison.Ordinal);
-        // Every other operand in the registry is consumed in play (the exception is exactly this one).
-        Assert.Equal([KnowledgeOperand.RoadsBaselineKmPerDay],
-            KnowledgeOperands.All.Where(o => !o.ConsumedInPlay).Select(o => o.Operand).ToArray());
+        InfoLink link = Assert.Single(card.Enables, l => l.Label.StartsWith("Future (", StringComparison.Ordinal));
+        Assert.Equal("Future (M7 " + f.System + "): " + f.Description + ", not simulated in this build", link.Label);
+        Assert.False(link.Met);
+        Assert.Null(link.Subject);
+        Assert.Contains("arrives with M7", link.Note!, StringComparison.Ordinal);
+        Assert.DoesNotContain("read by", link.Note!, StringComparison.Ordinal);
+        Assert.DoesNotContain("Read by the simulation", card.RealizedBy);
+    }
+
+    /// <summary>CR-025 ruling — every node declaring a future effect: the card lists each one, in content order, as
+    /// "Future (…): …, not simulated in this build" (never met, never a link), no other line of the card claims it, and a
+    /// node whose only effects are future ones is never Simulated. Unscheduled systems say they have no milestone yet.</summary>
+    [Fact]
+    public void EveryFutureEffect_IsOnTheCard_AsNotSimulated_AndNeverMakesTheNodeSimulated()
+    {
+        WorldState w = World();
+        int nodes = 0, lines = 0;
+        for (int i = 0; i < R.Nodes.Count; i++)
+        {
+            ResearchNode n = R.Nodes[i];
+            if (n.FutureEffects.Count == 0) continue;
+            nodes++;
+            InfoCard card = Card(w, InfoSubject.Node(n.Key));
+            InfoLink[] future = [.. card.Enables.Where(l => l.Label.StartsWith("Future (", StringComparison.Ordinal))];
+            Assert.Equal(n.FutureEffects.Select(InfoQuery.FutureLabel).ToArray(), future.Select(l => l.Label).ToArray());
+            for (int k = 0; k < future.Length; k++)
+            {
+                FutureEffect f = n.FutureEffects[k];
+                Assert.EndsWith(", not simulated in this build", future[k].Label, StringComparison.Ordinal);
+                Assert.False(future[k].Met);
+                Assert.Null(future[k].Subject);
+                Assert.Contains(f.Milestone == ResearchContentLoader.UnscheduledMilestone ? "no milestone yet" : "arrives with " + f.Milestone,
+                    future[k].Note!, StringComparison.Ordinal);
+                if (f.Operand is { } op) Assert.Contains(KnowledgeOperands.Of(op).Id, future[k].Note!, StringComparison.Ordinal);
+                lines++;
+            }
+            // The six shipped future nodes have no realized effect, level, live unlock or gate: none is Simulated.
+            Assert.Empty(n.RealizedEffects);
+            Assert.True(card.Effect != InfoEffect.Simulated, n.Id + " is shown as simulated");
+        }
+        Assert.Equal(6, nodes);
+        Assert.Equal(8, lines);
     }
 
     [Fact]
@@ -206,7 +241,8 @@ public class InfoQueryTests
             bool realizedEntity = card.Enables.Any(l => l.Subject is { Kind: InfoKind.Entity } && l.Note is { } note
                 && !note.Contains("not built in this build", StringComparison.Ordinal) && !note.Contains("Battle Layer (M7)", StringComparison.Ordinal));
             // ADR-047 / ADR-049 (tranche 2): a realized operand effect or a level effect is read by its owning system.
-            // CR-025: an effect on an operand no system consumes in play does not count.
+            // CR-025: an effect on an operand no system consumes in play does not count, and a declared FUTURE effect
+            // (n.FutureEffects) never counts — it is deliberately absent from this expectation.
             bool effects = (KnowledgeEffects.IsOn(R) && n.RealizedEffects.Any(e => KnowledgeOperands.All[(int)e.Operand].ConsumedInPlay))
                 || ResearchQuery.IsLevelled(R, i);
             bool reads = realizedEntity || named || effects || tax.AtomIds.Contains(i) || R.Stage.AtomIds.Contains(i);

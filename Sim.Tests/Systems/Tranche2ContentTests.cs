@@ -1,12 +1,16 @@
+using Sim.Core;
+using Sim.Core.Kernel;
 using Sim.Core.State;
 using Sim.Core.Systems;
 using Sim.Core.Systems.Research;
+using Sim.Core.Worldgen;
 using Sim.Tests.TestUtil;
 
 namespace Sim.Tests.Systems;
 
 /// <summary>
-/// D-063 (tranche 2) — properties of the SHIPPED research content: counts and parity (R5), every node a real effect (R1),
+/// D-063 (tranche 2) — properties of the SHIPPED research content: counts and parity (R5), every node a real effect or a
+/// declared future effect (R1 as amended by the CR-025 ruling), the CR-025 disposition,
 /// the Age sweep deadlocks nothing (R2), no prerequisite from a later Age, no operand above its cap, and the repeatables
 /// of the final Age in both trees (R4).
 /// </summary>
@@ -30,45 +34,127 @@ public class Tranche2ContentTests
         Assert.InRange(civ, (int)Math.Ceiling(0.9 * tech), tech);
     }
 
-    [Fact]
-    public void EveryNode_HasARealEffect()
+    /// <summary>The founded dev world and its player, for the research card (InfoQuery) — the screens' own notion of what
+    /// the simulation reads.</summary>
+    private static readonly Lazy<(WorldState World, PolityId Player)> Founded = new(() =>
     {
-        // A realized operand effect, a live entity unlock, a level rule, or one of the two order gates sim.json names.
-        string[] live = ["building.", "infra.", "recipe.", "activity.", "inst.university"];
+        WorldState w = WorldFounding.Found(TestConfigs.DevWorldgen(), TestConfigs.Sim(), 42);
+        for (int i = 0; i < w.Polities.Count; i++)
+            if (w.Polities[i].Source == CommandSource.Player) return (w, w.Polities[i].Id);
+        throw new InvalidOperationException("no player Empire");
+    });
+
+    /// <summary>
+    /// KNOWN GAPS (CR-025 ruling, 2026-10-26): the nodes that, judged by ACTUAL liveness, have neither a real effect nor a
+    /// declared future effect. Each passed the pre-ruling test only because it counted any `infra.` or `building.` unlock
+    /// as live, placeholders included (a unit unlock never counted). Their content is outside the CR-025 ruling and is
+    /// unchanged; CR-025 §7.3 records them for a content decision. The test asserts the gap set EQUALS this list, so it may
+    /// only change deliberately: a node leaves it when it gains a real effect or a future declaration (and the test fails
+    /// until it is removed here), and no new node can join it silently.
+    /// </summary>
+    internal static readonly string[] KnownGapsWithoutARealEffect =
+    [
+        // Technology, each unlocking only a placeholder building or infrastructure entity (no construction project, no
+        // road class): kiln, oil press, library, harbour, fulling mill, chemical works, telephone network, refinery,
+        // semiconductor fab, nuclear / solar / wind / fusion plants, data centre, desalination plant.
+        "kiln_updraft", "oil_press", "papyrus", "plank_boat", "fulling_mill", "sulphuric_acid", "telephone",
+        "petroleum_refining", "integrated_circuit", "nuclear_power", "solar_pv", "wind_turbine_modern", "cloud_computing",
+        "desalination", "fusion_power",
+        // Unit and M7-tier placeholders only (bastion fort; missile, spaceport, orbital launch project).
+        "trace_italienne", "rocket",
+    ];
+
+    /// <summary>
+    /// D-063 R1, as amended by the Director's CR-025 ruling (2026-10-26): every node produces a REAL gameplay effect — or
+    /// declares, explicitly, a FUTURE effect (`effects.future`) that a later milestone's system will realize. "Real" is
+    /// actual liveness: the research card's own verdict (InfoQuery, pinned against the systems by
+    /// InfoQueryTests.EveryNodesEffect_IsKnowledgeOnly_ExactlyWhenNothingReadsIt) — a realized operand effect on an operand
+    /// consumed in play, a level rule, an entity unlock some system realizes (a placeholder unlock does NOT count), an Age
+    /// milestone fact, the research stage, the tax edict — or one of the two order gates sim.json names (the card does not
+    /// show the assay gate; queue.md 2026-10-26). A future declaration never makes a node simulated (FutureEffectsTests,
+    /// InfoQueryTests), and the invariant on what IS implemented is not weakened: every realized effect names an operand
+    /// consumed in play.
+    /// </summary>
+    [Fact]
+    public void EveryNode_HasARealEffect_OrADeclaredFutureEffect()
+    {
+        (WorldState w, PolityId player) = Founded.Value;
         SimConfig cfg = TestConfigs.Sim();
+        ResearchContent c = cfg.Research!;
         string[] gates = [cfg.Governance!.TaxationRequires, cfg.Discovery!.AssayRequires!];
         var missing = new List<string>();
-        foreach (ResearchNode n in C.Nodes)
+        var deadRealized = new List<string>();
+        foreach (ResearchNode n in c.Nodes)
         {
-            if (n.RealizedEffects.Count > 0 || n.Levels is not null || Array.IndexOf(gates, n.Id) >= 0) continue;
-            bool liveUnlock = false;
-            foreach (int e in n.UnlockedEntities)
-                foreach (string prefix in live)
-                    if (C.Entities[e].Id.StartsWith(prefix, StringComparison.Ordinal)) liveUnlock = true;
-            if (!liveUnlock) missing.Add(n.Id);
+            foreach (RealizedEffect e in n.RealizedEffects)
+                if (!KnowledgeOperands.Of(e.Operand).ConsumedInPlay) deadRealized.Add(n.Id + ": " + KnowledgeOperands.Of(e.Operand).Id);
+            bool real = Array.IndexOf(gates, n.Id) >= 0
+                || InfoQuery.Card(w, cfg, player, InfoSubject.Node(n.Key)).Effect == InfoEffect.Simulated;
+            if (!real && n.FutureEffects.Count == 0) missing.Add(n.Id);
         }
-        Assert.Empty(missing);
+        Assert.Empty(deadRealized);
+        missing.Sort(StringComparer.Ordinal);
+        string[] known = [.. KnownGapsWithoutARealEffect];
+        Array.Sort(known, StringComparer.Ordinal);
+        Assert.True(known.SequenceEqual(missing), "nodes without a real or future effect: " + string.Join(", ", missing));
     }
 
-    /// <summary>CR-025 — CONTENT FREEZE while the ruling is pending: `roads.baselineKmPerDay` has no consuming system
-    /// (UnconsumedOperandTests), so its declarations are not realized effects. No node beyond the 17 recorded in CR-025 may
-    /// declare it; applying the ruling changes this list (and this test) deliberately.</summary>
+    /// <summary>
+    /// CR-025 ruling (2026-10-26) — THE APPLIED DISPOSITION of the 17 nodes that declared roads.baselineKmPerDay: 8
+    /// retargeted to a live operand (delta kept as authored), 6 declaring a future effect with no realized effect, 3 with the
+    /// dead delta dropped and every other effect kept. Node keys are unchanged (saves key their rows by them).
+    /// </summary>
     [Fact]
-    public void NoNewNode_DeclaresTheUnconsumedSpeedOperand()
+    public void TheCr025Disposition_IsApplied_AndNoNodeDeclaresTheUnconsumedSpeedOperand()
     {
-        string[] recorded =
+        ResearchContent c = C;
+        (string Id, int Key, string Operand, double Delta)[] retargets =
         [
-            "horse_domestication", "wheel_spoked", "saddle", "road_paved", "bridge_stone", "horseshoe", "wheellock",
-            "internal_combustion", "aluminium", "motor_road", "sprung_coach", "integrated_alliance_command", "road_houses",
-            "pilgrimage", "bridge_trusts", "turnpike_trusts", "road_traffic_regulation",
+            ("horse_domestication", 96, "catchment.hinterlandRadiusKm", 0.05), ("horseshoe", 177, "catchment.hinterlandRadiusKm", 0.03),
+            ("internal_combustion", 291, "catchment.hinterlandRadiusKm", 0.04), ("bridge_stone", 151, "roads.maxRouteKm", 0.04),
+            ("bridge_trusts", 1285, "roads.maxRouteKm", 0.03), ("turnpike_trusts", 1308, "roads.maxRouteKm", 0.04),
+            ("sprung_coach", 516, "governance.authorityDecayCostUnits", 0.05), ("road_houses", 1242, "governance.authorityDecayCostUnits", 0.03),
         ];
-        var declaring = new List<string>();
-        foreach (ResearchNode n in C.Nodes)
-            foreach (RealizedEffect e in n.RealizedEffects)
-                if (e.Operand == KnowledgeOperand.RoadsBaselineKmPerDay) declaring.Add(n.Id);
-        declaring.Sort(StringComparer.Ordinal);
-        Array.Sort(recorded, StringComparer.Ordinal);
-        Assert.Equal(recorded, declaring);
+        foreach ((string id, int key, string operand, double delta) in retargets)
+        {
+            ResearchNode n = c.Nodes[c.IndexOfId(id)];
+            Assert.Equal(key, n.Key.Value);
+            RealizedEffect e = Assert.Single(n.RealizedEffects);
+            Assert.Equal(operand, KnowledgeOperands.Of(e.Operand).Id);
+            Assert.Equal(delta, e.Delta);
+            Assert.Empty(n.FutureEffects);
+        }
+        (string Id, int Key, string[] Milestones)[] future =
+        [
+            ("wheel_spoked", 99, ["M7", "unscheduled"]), ("saddle", 123, ["M7"]), ("aluminium", 306, ["M7"]),
+            ("integrated_alliance_command", 1178, ["M8", "M7"]), ("pilgrimage", 1248, ["M9"]), ("road_traffic_regulation", 1451, ["unscheduled"]),
+        ];
+        foreach ((string id, int key, string[] milestones) in future)
+        {
+            ResearchNode n = c.Nodes[c.IndexOfId(id)];
+            Assert.Equal(key, n.Key.Value);
+            Assert.Empty(n.RealizedEffects);
+            Assert.Equal(milestones, n.FutureEffects.Select(f => f.Milestone).ToArray());
+        }
+        (string Id, int Key, string[] Kept)[] drops =
+        [
+            ("road_paved", 150, ["governance.authorityDecayCostUnits"]), ("wheellock", 227, ["society.unrestOutputDrag"]), ("motor_road", 425, []),
+        ];
+        foreach ((string id, int key, string[] kept) in drops)
+        {
+            ResearchNode n = c.Nodes[c.IndexOfId(id)];
+            Assert.Equal(key, n.Key.Value);
+            Assert.Equal(kept, n.RealizedEffects.Select(e => KnowledgeOperands.Of(e.Operand).Id).ToArray());
+            Assert.Empty(n.FutureEffects);
+        }
+        // No node anywhere declares the unconsumed operand as a realized effect (the loader refuses it; this is the content
+        // view of the same fact), and only the two freight-time future declarations name it.
+        Assert.Empty(c.NodesWith(KnowledgeOperand.RoadsBaselineKmPerDay));
+        var naming = new List<string>();
+        foreach (ResearchNode n in c.Nodes)
+            foreach (FutureEffect f in n.FutureEffects)
+                if (f.Operand == KnowledgeOperand.RoadsBaselineKmPerDay) naming.Add(n.Id);
+        Assert.Equal(["wheel_spoked", "road_traffic_regulation"], naming);
     }
 
     [Fact]

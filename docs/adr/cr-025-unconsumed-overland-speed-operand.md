@@ -1,6 +1,8 @@
 # CR-025 — `roads.baselineKmPerDay` has no consuming system: D-063 R1 ("every node a real effect") vs "do not invent gameplay"
 
-**Status: RAISED 2026-10-25. Awaiting the Director's ruling. NO content, registry or engine change made.** Format per
+**Status: RULED 2026-10-26 — option 1, the §2.2 disposition, subject to a dependency and persistence audit; D-063 R1
+amended. Applied on branch `t5-cr025` (§7).** Raised 2026-10-25; the text from here to §6 is the record as raised
+(status at raising: "Awaiting the Director's ruling. NO content, registry or engine change made."). Format per
 CLAUDE.md "Governance": (1) items in conflict, (2) evidence, (3) ≤3 minimal fix options, (4) blast radius,
 (5) recommendation. Tree: branch `t4-roads`, cut from `2ca21a9`. This record adds evidence pins only (§2.3), and they
 change no simulation outcome.
@@ -163,3 +165,128 @@ The misleading player-facing claim is corrected without touching content, as the
 
 Content, loader, caps and every system are unchanged. The per-node disposition in §2.2 and the R1 question still await
 the ruling.
+
+## 7. Ruling and application (2026-10-26)
+
+**The Director's ruling** (2026-10-26, essentials verbatim): "Approve the proposed disposition of all 17 nodes, subject to a
+complete dependency and persistence audit: retarget the eight nodes to real, implemented effects; mark the six nodes as
+explicitly future-dependent, without claiming their effects are already simulated; drop the three nodes only after
+confirming they are not required by prerequisites, saves, migrations, tests or external content references. Approve the
+D-063 R1 amendment so future-dependent content is permitted when clearly identified and documented. Do not weaken the
+invariant that every currently implemented effect must be real and testable." Recorded as D-063 Amendment 1
+(`docs/d063-tranche2-director-direction.md`) and the ADR-047 amendment note.
+
+**"Drop the three"** is applied as §2.2 proposes it: the dead `roads.baselineKmPerDay` ENTRY is dropped from road_paved,
+wheellock and motor_road. The nodes themselves stay. Each keeps its other effects and its live unlock. The audit below
+covers all 17 nodes anyway.
+
+### 7.1 Applied content (research.json; no cost, costRationale, prerequisite, Age or key changed)
+
+| Node (key) | Before | After |
+|---|---|---|
+| horse_domestication (96) | roads 0.05 | `catchment.hinterlandRadiusKm` 0.05 |
+| horseshoe (177) | roads 0.03 | `catchment.hinterlandRadiusKm` 0.03 |
+| internal_combustion (291) | roads 0.04 | `catchment.hinterlandRadiusKm` 0.04 |
+| bridge_stone (151) | roads 0.04 | `roads.maxRouteKm` 0.04 |
+| bridge_trusts (1285) | roads 0.03 | `roads.maxRouteKm` 0.03 |
+| turnpike_trusts (1308) | roads 0.04 | `roads.maxRouteKm` 0.04 |
+| sprung_coach (516) | roads 0.05 | `governance.authorityDecayCostUnits` 0.05 |
+| road_houses (1242) | roads 0.03 | `governance.authorityDecayCostUnits` 0.03 |
+| wheel_spoked (99) | roads 0.04 | no realized effect; future: M7 Battle Layer (chariots); unscheduled freight-time consumer (operand `roads.baselineKmPerDay`) |
+| saddle (123) | roads 0.02 | no realized effect; future: M7 Battle Layer (mounted movement) |
+| aluminium (306) | roads 0.03 | no realized effect; future: M7 Battle Layer (aircraft) |
+| integrated_alliance_command (1178) | roads 0.03 | no realized effect; future: M8 Politics / Diplomacy (alliances); M7 Battle Layer (joint command) |
+| pilgrimage (1248) | roads 0.02 | no realized effect; future: M9 Society (religion and pilgrimage) |
+| road_traffic_regulation (1451) | roads 0.02 | no realized effect; future: unscheduled freight-time consumer (operand `roads.baselineKmPerDay`) |
+| road_paved (150) | governance 0.04 + roads 0.05 | governance 0.04 (live `infra.road_paved` unchanged) |
+| wheellock (227) | unrest 0.0042 + roads 0.01 | unrest 0.0042 |
+| motor_road (425) | roads 0.06 | no realized effect (live `infra.road_highway` unchanged) |
+
+Σ against the caps after the change: catchment.hinterlandRadiusKm 0.73 / 1.0, roads.maxRouteKm 0.40 / 3.0,
+governance.authorityDecayCostUnits 2.57 / 3.0. All three are below the 90 % saturation line, so no other node's delta is
+rescaled. `Tranche2ContentTests.NoOperand_SumsAboveItsCap` passes. "Unscheduled" is used where the realizing system is
+ADR-032 §7's freight-time consumer, which is recorded design intent with no milestone. It names no milestone rather than
+inventing one.
+
+### 7.2 Dependency and persistence audit (all 17 nodes; this tree)
+
+No node is deleted, renamed or re-keyed. Only `effects` changed. So every reference by id or key still resolves.
+
+| Concern | What was checked | Finding | Blocker? |
+|---|---|---|---|
+| Prerequisites / dependents | Every `prereq` expression and entity `requires` in research.json; `researchStage.requires` | Unchanged. The 17 nodes still gate 24 dependents (horse_domestication 5, internal_combustion 6, aluminium 3, wheel_spoked 2, road_paved 2, one each for saddle, bridge_stone, horseshoe, turnpike_trusts, wheellock and motor_road; the other six none). Entity unlocks are unchanged (`infra.courier_relay`, `infra.bridge`, `infra.road_paved`, `infra.road_highway`). None is a stage atom. `AgeSweep_ReachesEveryNode_FromScratch` passes. | No |
+| Saves (completed / progress / level / target rows) | `ResearchCompletedRow`, `ResearchProgressRow`, `ResearchLevelRow` and targets key by `ResearchNodeId` (the content key); `Snapshot` / `CanonicalSchema` | Keys unchanged, so every save loads. The save format carries no research-content fingerprint (only the terrain hash), and none of the 17 is repeatable. One consequence on load: a holder that has completed a node retargeted to `catchment.hinterlandRadiusKm` gets a different `CatchmentSystem.Revision` (it counts such completions), so its catchments recompute once at the next step. That recompute is correct under the new content. | No |
+| Schema / migrations | CanonicalSchema version (36), WorldState tables | No state, table, order or row type changed. No schema bump and no migration. The `effects.future` field is content only: the research loader reads it and nothing serializes it. | No |
+| Replays / goldens | Old order logs replayed on the new content | A replay reproduces as long as the run never completes a retargeted node. A run that does complete one diverges from that turn on. That is the intended gameplay change, attributed in §7.4. | No (attributed) |
+| Tests | Every Sim.Tests / Sim.Ui.Tests reference to the 17 ids or the operand | Updated in this change: the freeze test, the Saddle card test, `UnconsumedOperandTests`, the teeth row, and the probe/early rigs (the loader now refuses a realized delta on the operand). Other references use ids or keys only, for road classes or milestones: `RoadDevelopmentTests`, `ResearchContentTests`, `WorldMapStateTests`, `TaxationGateTraceMeasurement`, `IntegratedPinAttributionTests`. They are unaffected. | No |
+| External content | ages.json, sim.json, goods.json, unit-families.json, knowledge-texts.json, research-pre-tranche2.json, the test fixture research-pre-adr045.json, government-packages.json | ages.json milestones `a5_roads` (road_paved) and `a9_combustion` (internal_combustion) name node ids, which are unchanged. sim.json names only `infra.road_paved` (a road class entity). knowledge-texts.json carries history texts that make no effect claim. The pre-tranche files carry no realized effects. Nothing else names the 17. | No |
+| Tools, UI, CI | scripts/*.py, docs tools, Sim.Ui, .github/workflows | The three research `--check` scripts went stale on the content hash only and were regenerated. `tools/tranche2_reports.py` had a registry regex that silently dropped the `NotConsumed` row; it is fixed and the report regenerated (§7.5). Sim.Ui renders the card's lines and has no node-specific code. CI pins no research.json hash. | No |
+
+**No blocker was found.**
+
+### 7.3 R1 under actual liveness: the known gaps
+
+The pre-ruling R1 test counted any `building.` or `infra.` unlock as live, placeholders included. The test now judges
+liveness by the research card's own verdict (InfoQuery, which `InfoQueryTests.EveryNodesEffect_IsKnowledgeOnly_…` pins
+against the systems), plus the two sim.json order gates. Judged that way, **17 nodes outside this CR** have neither a
+real effect nor a future declaration. Each unlocks only placeholder entities:
+
+kiln_updraft, oil_press, papyrus, plank_boat, fulling_mill, sulphuric_acid, telephone, petroleum_refining,
+integrated_circuit, nuclear_power, solar_pv, wind_turbine_modern, cloud_computing, desalination, fusion_power,
+trace_italienne, rocket.
+
+The ruling does not cover their content, and it is unchanged. They are pinned as an exact-match list
+(`Tranche2ContentTests.KnownGapsWithoutARealEffect`), so the test stays honest. A node leaves the list only when it gains a
+real effect or a future declaration, and no node can join it silently. The independently derived coverage report
+(§7.5) finds the same 17. They await a content decision: retarget, declare future, or accept.
+
+Related findings, not fixed:
+- The card does not count the assay order gate (`discovery.assayRequires`), so `ore_prospecting`'s card under-claims; the
+  node is live. Recorded in queue.md.
+- The card counts the label-only sector activities (herding, logging, mining) as realized. No node depends on them
+  alone: cattle, sheep_goat, ground_stone_early and mining_shaft each also carry a realized effect.
+
+### 7.4 Gameplay attribution (moved pins)
+
+**No pin moved.** Measured on this tree, with the content and loader commit and the test commit applied: the full
+`Sim.Tests` Release suite was run in two halves. The `Sim.Tests.Kernel` half gave 528 passed, 0 failed, 17 skipped; the
+other half gave 2425 passed, 0 failed, 14 skipped. Every skip is a pre-existing `[Fact(Skip)]` measurement harness. Those
+runs include every golden, attribution and pin test, `CiPinAgreementTests` (ci.yml `FOUNDED_GOLDEN`) and
+`AllocationCiLegTests` (the ci.yml allocation log hashes, run `--without-tranche2`). Every hard-coded hash and turn pin
+holds at its pre-ruling value.
+
+Why no pin moved:
+- The AI's research choice reads costs and prerequisites, never effects, and no cost changed. So a pinned run diverges
+  only once some holder completes one of the 8 retargeted nodes.
+- The 3 dropped deltas and the 6 removed ones sat on an operand nothing consumes. CR-025 §2.3 measured them
+  outcome-neutral.
+- No pinned run completes a retargeted node within its horizon: CR-025 §2.3 measured that the canonical 300-turn AI run
+  completes none of the 17. The full suite above is the measurement for every other pin.
+
+The retargets are not vacuous: `FutureEffectsTests.InPlay_TheRetargetsChangeTheWorld_AndTheFutureDeclarationsDoNot`
+grants every holder of the canonical world (seed 42, one AI) the 8 retargeted and the 6 future nodes and runs the AI
+for 40 turns. Removing the future declarations gives the identical hash. Removing the 8 retargeted effects gives a
+different hash. That third content, the shipped content without the 8 retargeted effects, is the attribution twin for
+any pin the retargets move later. It reproduces pre-ruling behaviour because the pre-ruling deltas were inert.
+
+Note for integration: schema v37 lands on a parallel branch, and its own re-pins are independent of this change.
+
+### 7.5 Enforcement (this tree)
+
+- Loader recurrence guard: `UnconsumedOperandTests.TheLoader_RefusesARealizedDelta_OnAnOperandNotConsumedInPlay` (3 rows)
+  and `…ALevelEffect…`. Mutant "guard off": the 3 rows fail.
+- Future schema: `FutureEffectsTests` covers milestone, system and description, the operand (unregistered or consumed),
+  a delta member, a missing operand member, and the same system twice. It also shows a future effect enters no index,
+  no Σ and no snapshot.
+- Display: `InfoQueryTests.Saddle_ItsOnlyEffectIsAFutureOne_…` and `EveryFutureEffect_IsOnTheCard_AsNotSimulated_…`.
+  Mutant "the card counts future effects as simulated": both fail, and so does `EveryNodesEffect_IsKnowledgeOnly_…`.
+- Retargets reach their live readers at the shipped delta:
+  `KnowledgeEffectsTeethTests.ACr025RetargetedNode_MovesItsOperandsLiveReader_AtItsShippedDelta`, one row per node:
+  CatchmentSystem's catchment, RoadDevelopmentQuery.Routes, Governance.AdministrativeReach.
+- R1 and the disposition: `Tranche2ContentTests.EveryNode_HasARealEffect_OrADeclaredFutureEffect` and
+  `TheCr025Disposition_IsApplied_AndNoNodeDeclaresTheUnconsumedSpeedOperand`.
+- In play: `FutureEffectsTests.InPlay_TheRetargetsChangeTheWorld_AndTheFutureDeclarationsDoNot` (§7.4).
+- Reports: `tranche2-effect-coverage.md` is regenerated, with its generator fixed to keep the `NotConsumed` registry row,
+  count only realized effects on consumed operands, judge unlocks by actual liveness, and list future declarations
+  separately. It reports 972 nodes with a realized effect on a consumed operand, 6 future-only nodes, and 17 without
+  either. That supersedes the 2026-10-25 hand note. `research-cost-pass/data/live-map.*` carry a dated correction.
