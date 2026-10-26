@@ -190,3 +190,46 @@ It is now reported apart from RESERVE SIZE in turns of RP, which is the reserve 
    feel faster than the targets.
 4. **Coupling.** The scale is calibrated for THIS configuration. Turning any of the three switches off, or applying a cost
    batch, moves completion turns. Each cost batch is therefore measured against pass 8, not the shipped default.
+
+## 7. Civics Age 7 recalibrated with the civics gate rule on (2026-10-26, later)
+
+**Director instruction (2026-10-26, "execute the next approved trial"):** "Recalibrate Civics Age 7 with the civics-gate rule
+enabled. Use the existing bounded calibration procedure. Keep the other calibrated parameters fixed."
+
+**Method.**
+- **Procedure:** `tools/recalibrate_trial.py` with `--damp 0.5 --max-step 1.25`. Every scale is frozen except civics:7
+  (`data/civics-a7/`).
+- **Start:** pass 8 + `aiCivicsGateGoals`, which is bit-identical to pass 8 (`civics-gate-trial.md`, arm A).
+- **Runs:** seeds 1, 2, 42 and 7, 1,630 turns.
+- **Why q2–q4 ran in parallel:** completion did not move in q1, so those steps were fixed in advance. Each is exactly the
+  next ×1.25 step.
+- **Bracketing:** the procedure's own next step after q3 (1.744) and the geometric midpoint (1.606) were also measured.
+
+| Pass | Civics A7 scale | Civics A7 complete (s1, s2, s42, s7) | Slowest-seed residual | Civics A8 / A9 (slowest) | Technology A8 / A9 (slowest) | Age 9 entered | RP lost | AI turns at the reserve cap |
+|---|---:|---|---:|---|---|---|---:|---:|
+| start (`cg1`) | 0.757433 | 1183, 1250, 1130, 1142 | −75 | +10 / +47 | +20 / +101 | 1258, 1341, 1190, 1210 | 46.3 % | 0 |
+| q1 | 0.946791 | identical | −75 | +10 / +47 | +20 / +101 | identical | 46.2 % | 0 |
+| q2 | 1.183489 | 1184, 1253, 1130, 1142 | −72 | +12 / +49 | +22 / +103 | +1…+2 | 46.2 % | 0 |
+| **q3 (selected)** | **1.479361** | 1186, **1310**, 1135, 1143 | **−15** | +14 / +51 | +24 / +105 | 1261, 1345, 1192, 1211 | 46.2 % | 0 |
+| q5m | 1.606201 | 1187, 1365, 1135, 1145 | +40 | +53 / +58 | +31 / **never** | 1262, 1371, 1196, 1212 | 46.1 % | 0 |
+| q5 (the procedure's next step) | 1.743916 | 1186, 1430, 1134, 1143 | +105 | −65 / +64 | +37 / **never** | 1262, 1438, 1191, 1211 | 46.0 % | 0 |
+| q4 | 1.849201 | 1186, 1468, 1135, 1143 | +143 | −29 / +99 | −25 / **never** | 1261, 1474, 1195, 1211 | 45.9 % | 0 |
+
+**Why civics A7 hardly responds.**
+- **Bound by technology.** On every seed the last Age-7 civics complete one turn after a technology prerequisite:
+  - `insurance_underwriting` after `probability_statistics`;
+  - `military_engineers` after `trace_italienne`;
+  - `central_banking` after `paper_money`.
+- **Up to 1.18:** the cohort's completion turn is set by technology, not by its CP price.
+- **Seed 2 only:** its CP flow is the smallest, so it becomes cost-bound from about 1.4. Seeds 1, 42 and 7 never do.
+- **Consequence for the procedure:** its pincer term pulls civics toward the technology midpoint. On the three
+  prerequisite-bound seeds no price can satisfy it, so it keeps raising the scale (1.158 at q3) until seed 2 overshoots.
+
+**Selected: 1.479361 (q3).**
+- **Why:** it is the only measured value above the shipped 0.757 at which every seed completes every Age AND the slowest
+  seed is within ±30 of the civics A7 target (−15).
+- **Cost:** about +4 turns on the downstream slowest-seed residuals (civics A8/A9, technology A8/A9) and Age 9 entered 2–4
+  turns later. RP lost is unchanged (46.2 %), and the AI never holds a reserve.
+- **The next two steps fail.** The procedure's own next step (1.744) and the midpoint (1.606) both cost seed 2 its
+  technology Age 9 within 1,630 turns. That is a hard regression, because the slowest seed binds.
+- **Not done:** the other scales stay frozen, as instructed. The +4 drift downstream is reported, not compensated.

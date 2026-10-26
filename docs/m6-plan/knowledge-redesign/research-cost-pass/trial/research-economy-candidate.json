@@ -1,0 +1,37 @@
+{
+ "_doc": "The research-economy CANDIDATE's tuning (Director instruction 2026-10-26, 'execute the next approved trial'): the calibrated trial configuration (research-economy-trial.json: route overflow, reserve {3, 1}, gate-aware goals, its pacing scale) plus the civics gate rule (ADR-053) and civics Age 7 recalibrated with that rule on (pacing-recalibration.md \u00a77). A candidate only: research.json is not edited and every switch stays absent there.",
+ "tuning": {
+  "researchOverflow": true,
+  "researchReserve": {
+   "capTurns": 3.0,
+   "drawTurns": 1.0
+  },
+  "aiGateAwareGoals": true,
+  "aiCivicsGateGoals": true,
+  "pacingScale": {
+   "technology": [
+    0.395862,
+    0.943333,
+    0.959209,
+    2.66088,
+    6.005702,
+    9.786664,
+    7.007961,
+    0.926249,
+    0.068141
+   ],
+   "civics": [
+    0.645983,
+    0.989987,
+    0.715481,
+    0.9204,
+    1.504901,
+    1.729102,
+    1.479361,
+    0.044319,
+    0.016684
+   ],
+   "_doc": "Calibrated trial scale (pass 8) with civics Age 7 = 1.479361, selected by the bounded procedure with aiCivicsGateGoals on and every other scale frozen (pacing-recalibration.md \u00a77)."
+  }
+ }
+}
