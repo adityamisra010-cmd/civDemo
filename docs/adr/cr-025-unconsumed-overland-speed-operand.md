@@ -432,6 +432,17 @@ include all of them.
 - **Pins.** The golden, CI-pin and snapshot tests (`--filter "FullyQualifiedName~Golden|FullyQualifiedName~CiPin|
   FullyQualifiedName~SnapshotTests"`) and the full suites were run on this tree. Results are in §8.5.
 
+- **Saves (measured).**
+  - **Schema.** It stays v37. No table, row or order type changed, and nothing serializes `effects.future`.
+  - **Test.** `FutureEffectsTests.SaveLoad_AMidGameWorld_IsTheSameBytes_AndContinuesIdentically_AcrossTheGapAudit`
+    (commit `8d5e41d`) uses the canonical world (seed 42, one AI empire) with the 17 nodes held, after 20 AI turns.
+  - **Same bytes.** The base-content and audit-content saves are identical.
+  - **Round trip.** The base save loads bit-exactly and re-saves to the same bytes.
+  - **Continuation.** Continued 10 more turns under either content, it reaches the hash of the in-memory world.
+- **Dependencies (measured).** Removing the 17 `future` lists and re-serializing gives the base research.json byte for
+  byte. All 1,005 nodes compare equal on key, prerequisite, unlocks, cost, Age and realized effects. `entities`,
+  `researchStage` and `tuning` are identical.
+
 ### 8.5 Enforcement and validation (this tree)
 
 - **`KnownGapsWithoutARealEffect` is now empty.** The exact-match R1 test
@@ -441,6 +452,17 @@ include all of them.
   realized effect, no level, its milestones, operand null, and its unlocks.
 - **The loader guard is unchanged.** It still refuses a realized or level effect on an operand no system consumes, and
   a future entry naming a consumed operand.
+- **Golden and pin results (measured).** The filter `Golden|CiPin|SnapshotTests` gives 87 passed and 0 failed on
+  this content, and 87 passed and 0 failed on the base `06f127a`. No golden or pin test file differs from base.
+- **Full suites at `351e5d7`.**
+
+  | Suite | Passed | Failed | Skipped |
+  |---|---:|---:|---:|
+  | Sim.Tests, Kernel half | 531 | 0 | 20 (measurement harnesses) |
+  | Sim.Tests, rest | 2,466 | 0 | 14 |
+  | Sim.Ui.Tests | 1,119 | 0 | 0 |
+
+  The merged development tree was then re-validated as a whole (see the combined validation report).
 - **The card.** `InfoQueryTests.TheGapAuditNodes_ShowTheirFutureEffects_AsNotSimulated_AndKeepTheirVerdict` checks the
   future lines ("no milestone yet" for unscheduled systems, "arrives with M7" for the Battle Layer), the placeholder
   entity lines ("not built in this build" or "Battle Layer (M7)"), and the unchanged verdict. In
