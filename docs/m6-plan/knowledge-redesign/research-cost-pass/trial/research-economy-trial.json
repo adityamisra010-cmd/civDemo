@@ -1,0 +1,36 @@
+{
+ "_doc": "Director ruling 2026-10-26: the combined TRIAL configuration of the research economy, as a test-and-measurement overlay. The shipped research.json is NOT edited and every switch below stays absent (off) there. Applied by Sim.Tests ResearchPacingRunner.ApplyOverlay (tuning members replace the shipped members of the same name). pacingScale is this configuration's OWN recalibrated scale (research-cost-pass/pacing-recalibration.md); it starts from the shipped scale and is written by tools/recalibrate_trial.py.",
+ "tuning": {
+  "researchOverflow": true,
+  "researchReserve": {
+   "capTurns": 3.0,
+   "drawTurns": 1.0
+  },
+  "aiGateAwareGoals": true,
+  "pacingScale": {
+   "technology": [
+    0.395862,
+    0.803516,
+    1.367587,
+    3.40823,
+    5.044871,
+    4.822191,
+    5.072868,
+    0.775796,
+    0.068141
+   ],
+   "civics": [
+    0.645983,
+    0.998856,
+    0.907987,
+    1.306316,
+    1.396621,
+    1.791944,
+    0.757433,
+    0.070609,
+    0.008686
+   ],
+   "_doc": "Trial-configuration pacing scale (D-063 R6 targets, recalibrated with overflow + reserve {3, 1} + gate-aware goals ON). Pass 0 = the shipped scale."
+  }
+ }
+}

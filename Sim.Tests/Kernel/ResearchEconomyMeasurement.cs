@@ -86,6 +86,30 @@ public class ResearchEconomyMeasurement(ITestOutputHelper output)
         RunAll([.. jobs]);
     }
 
+    /// <summary>An OVERLAY run (pacing recalibration and cost batches, Director ruling 2026-10-26): the shipped content with the
+    /// research overlays named in CIVSIM_OVERLAYS (absolute paths, comma-separated, applied in order) — the trial configuration
+    /// overlay sets the three research-economy switches and its own pacing scale; a cost-batch overlay moves node magnitudes.
+    /// CIVSIM_LABEL names the run; CIVSIM_REPLAY=1 adds replay and a mid-run save/load to the AI runs; CIVSIM_DELAYS adds
+    /// human-proxy runs.</summary>
+    [Sim.Tests.Systems.MeasurementFact("research overlay run; research-cost-pass/pacing-recalibration.md")]
+    public void OverlayRun_FourSeeds()
+    {
+        string[] overlays = (Environment.GetEnvironmentVariable("CIVSIM_OVERLAYS") ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries);
+        string label = Environment.GetEnvironmentVariable("CIVSIM_LABEL") ?? "overlay";
+        bool replay = Environment.GetEnvironmentVariable("CIVSIM_REPLAY") == "1";
+        var jobs = new List<RunOptions>();
+        // CIVSIM_DELAYS: a comma list of human-proxy delays d; each adds a run labelled d{d}-{label} for every seed.
+        int[] delays = [.. (Environment.GetEnvironmentVariable("CIVSIM_DELAYS") ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(d => int.Parse(d, NumberStyles.Integer, CultureInfo.InvariantCulture))];
+        foreach (ulong s in Seeds)
+        {
+            jobs.Add(new RunOptions(s, false, label, Turns, Replay: replay, SaveLoadAt: replay ? Turns / 2 : -1, Overlays: overlays));
+            foreach (int d in delays)
+                jobs.Add(new RunOptions(s, false, $"d{d}-{label}", Turns, HumanDelay: d, Overlays: overlays));
+        }
+        RunAll([.. jobs]);
+    }
+
     /// <summary>CR-025 attribution: the shipped defaults with the eight retargeted effects stripped. If the old speed effects
     /// were inert, this twin reproduces the pre-CR-025 baseline's final hashes (as schema v36) bit for bit.</summary>
     [Sim.Tests.Systems.MeasurementFact("CR-025 attribution twin; research-cost-pass/combined-trial.md")]

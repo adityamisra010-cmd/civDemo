@@ -43,7 +43,8 @@ internal static class ResearchPacingRunner
         ulong Seed, bool Overflow, string Label, int Turns = 1630, int? HumanDelay = null,
         double ReserveCapTurns = 0.0, double DrawLimitTurns = double.PositiveInfinity,
         bool Replay = false, long SaveLoadAt = -1, bool DrawLosesSurplus = false, bool GateAware = false,
-        double EngineReserveCapTurns = 0.0, double EngineReserveDrawTurns = 1.0, bool StripCr025Retargets = false);
+        double EngineReserveCapTurns = 0.0, double EngineReserveDrawTurns = 1.0, bool StripCr025Retargets = false,
+        string[]? Overlays = null);
 
     /// <summary>CR-025's eight retargeted nodes (each carries exactly one realized effect, the retarget).</summary>
     internal static readonly string[] Cr025Retargets =
@@ -54,7 +55,7 @@ internal static class ResearchPacingRunner
     /// <summary>The shipped research.json with tuning.researchOverflow set to <paramref name="overflow"/> and, when
     /// <paramref name="gateAware"/>, tuning.aiGateAwareGoals set to true (ADR-052; otherwise left absent); nothing else.</summary>
     internal static SimConfig Config(bool overflow, bool gateAware = false, double reserveCap = 0.0, double reserveDraw = 1.0,
-        bool stripCr025Retargets = false)
+        bool stripCr025Retargets = false, string[]? overlays = null)
     {
         System.Text.Json.Nodes.JsonObject doc;
         using (var s = Sim.Data.DataFiles.OpenResearch()) doc = System.Text.Json.Nodes.JsonNode.Parse(s)!.AsObject();
@@ -69,8 +70,58 @@ internal static class ResearchPacingRunner
         // ADR-051: the ENGINE reserve (tuning.researchReserve), as opposed to the harness model below.
         if (reserveCap > 0.0)
             doc["tuning"]!.AsObject()["researchReserve"] = new System.Text.Json.Nodes.JsonObject { ["capTurns"] = reserveCap, ["drawTurns"] = reserveDraw };
+        foreach (string path in overlays ?? []) ApplyOverlay(doc, path);
         using var goods = Sim.Data.DataFiles.OpenGoods();
         return TestConfigs.Sim() with { Research = ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods)) };
+    }
+
+    /// <summary>
+    /// A research OVERLAY (test and measurement only; the shipped research.json is never edited): a JSON file with an optional
+    /// "tuning" object, whose members replace the shipped tuning members of the same name ("_doc" ignored), and an optional
+    /// "nodes" object, { id: { "magnitudeStep": s } }, which moves a node's cost-rationale magnitude by s and its cost to
+    /// U × 2^magnitude rounded to tens (finalization ruling 1). A negative step comes from breadth first (to 0), then novelty
+    /// (to 0.5); a positive step goes to difficulty first (to 3.5), then novelty (to 2) — the factors stay in their ranges,
+    /// so the loader validates the patched node exactly as it validates shipped content.
+    /// </summary>
+    internal static void ApplyOverlay(System.Text.Json.Nodes.JsonObject doc, string path)
+    {
+        var overlay = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        if (overlay["tuning"] is System.Text.Json.Nodes.JsonObject tuning)
+            foreach (KeyValuePair<string, System.Text.Json.Nodes.JsonNode?> kv in tuning)
+                if (kv.Key != "_doc") doc["tuning"]!.AsObject()[kv.Key] = kv.Value?.DeepClone();
+        if (overlay["nodes"] is not System.Text.Json.Nodes.JsonObject nodes) return;
+        int patched = 0;
+        foreach (string tree in new[] { "technologies", "civics" })
+            foreach (System.Text.Json.Nodes.JsonNode? node in doc[tree]!.AsArray())
+            {
+                if (nodes[(string)node!["id"]!] is not System.Text.Json.Nodes.JsonObject patch) continue;
+                double step = (double)patch["magnitudeStep"]!;
+                var cr = node["costRationale"]!.AsObject();
+                var f = cr["factors"]!.AsObject();
+                double rest = step;
+                if (rest < 0.0)
+                {
+                    double b = (double)f["breadth"]!, take = Math.Min(-rest, b);
+                    f["breadth"] = b - take; rest += take;
+                    double nv = (double)f["novelty"]!, take2 = Math.Min(-rest, nv - 0.5);
+                    f["novelty"] = nv - take2; rest += take2;
+                }
+                else if (rest > 0.0)
+                {
+                    double d = (double)f["difficulty"]!, give = Math.Min(rest, 3.5 - d);
+                    f["difficulty"] = d + give; rest -= give;
+                    double nv = (double)f["novelty"]!, give2 = Math.Min(rest, 2.0 - nv);
+                    f["novelty"] = nv + give2; rest -= give2;
+                }
+                if (Math.Abs(rest) > 1e-12) throw new ArgumentException($"overlay {path}: node {node["id"]} cannot move {step} within the factor ranges");
+                double magnitude = (double)cr["magnitude"]! + step;
+                cr["magnitude"] = magnitude;
+                double cost = Math.Round(92.4 * Math.Pow(2.0, magnitude) / 10.0, MidpointRounding.AwayFromZero) * 10.0;
+                cr["content_cost"] = cost;
+                node["cost"] = cost;
+                patched++;
+            }
+        if (patched != nodes.Count) throw new ArgumentException($"overlay {path}: {nodes.Count - patched} node ids not found");
     }
 
     private static TurnExecutor Executor(SimConfig cfg, WorldgenConfig shipped, OrderLog log)
@@ -82,8 +133,8 @@ internal static class ResearchPacingRunner
 
     internal static RunResult Run(RunOptions o, string? outDir)
     {
-        SimConfig cfg = Config(o.Overflow, o.GateAware, o.EngineReserveCapTurns, o.EngineReserveDrawTurns, o.StripCr025Retargets);
-        bool engineReserve = o.EngineReserveCapTurns > 0.0;
+        SimConfig cfg = Config(o.Overflow, o.GateAware, o.EngineReserveCapTurns, o.EngineReserveDrawTurns, o.StripCr025Retargets, o.Overlays);
+        bool engineReserve = cfg.Research!.Tuning.Reserve is not null;
         if (engineReserve && o.ReserveCapTurns > 0.0) throw new ArgumentException("the engine reserve and the harness reserve model are exclusive");
         WorldgenConfig shipped = TestConfigs.Worldgen();
         var log = new OrderLog();
@@ -116,6 +167,9 @@ internal static class ResearchPacingRunner
         long firstLevelTurn = -1;
         var emptySince = new long[] { -1, -1 };
         int saturatedTurns = 0;                      // engine reserve at its cap after the step
+        // Reserve SIZE, in turns of RP (the reserve after the step / that step's pool), as distinct from TIME at the cap:
+        int heldTurns = 0;                           // steps ending with a reserve > 0
+        double sizeTurnsMax = 0.0, sizeTurnsSum = 0.0;
         var techSwitches = new int[10];              // technology destination changed away from a still-incomplete one
         var waitDetail = new SortedDictionary<string, int>(StringComparer.Ordinal);   // test bookkeeping, sorted keys
 
@@ -266,6 +320,13 @@ internal static class ResearchPacingRunner
                 if (pool > 0.0) drawMaxRatio = Math.Max(drawMaxRatio, draw / pool);
                 double capAfter = ResearchQuery.ReserveCapMilli(w, rc, Ai) / 1000.0;
                 if (r1 > 0.0 && r1 >= capAfter - 0.001) saturatedTurns++;
+                if (r1 > 0.0)
+                {
+                    heldTurns++;
+                    double size = pool > 0.0 ? r1 / pool : 0.0;
+                    sizeTurnsSum += size;
+                    sizeTurnsMax = Math.Max(sizeTurnsMax, size);
+                }
             }
             rpGen[age] += pool;
             rpSpent[age] += spent;
@@ -326,7 +387,7 @@ internal static class ResearchPacingRunner
         }
 
         var sb = new StringBuilder();
-        sb.AppendLine(Inv, $"seed {o.Seed} overflow {(o.Overflow ? "ON" : "OFF")}{(o.GateAware ? " gate-aware" : "")} [{o.Label}] proxy-delay {(o.HumanDelay is int hd ? hd.ToString(Inv) : "none")} " +
+        sb.AppendLine(Inv, $"seed {o.Seed} overflow {(rc.Tuning.ResearchOverflow ? "ON" : "OFF")}{(rc.Tuning.AiGateAwareGoals ? " gate-aware" : "")} [{o.Label}] proxy-delay {(o.HumanDelay is int hd ? hd.ToString(Inv) : "none")} " +
                            $"reserve-cap {(reserveOn ? o.ReserveCapTurns.ToString("0.##", Inv) : "none")} draw-limit {(double.IsPositiveInfinity(o.DrawLimitTurns) ? "none" : o.DrawLimitTurns.ToString("0.##", Inv))}{(o.DrawLosesSurplus ? " draw-lossy" : "")}");
         sb.Append("  Age entered (effective turn):");
         for (int r = 0; r < w.AgeTransitions.Count; r++)
@@ -366,7 +427,10 @@ internal static class ResearchPacingRunner
         }
         if (engineReserve)
         {
-            sb.AppendLine(Inv, $"  engine reserve (cap {o.EngineReserveCapTurns:0.##} turns, draw {o.EngineReserveDrawTurns:0.##}): deposited {deposits:0} drawn {draws:0} left {reserve:0} max {reserveMax:0}; turns at the cap {saturatedTurns}; largest draw {drawMaxRatio:0.##}x the turn's pool");
+            ResearchReserveRule rule = rc.Tuning.Reserve!;
+            string meanSize = heldTurns > 0 ? (sizeTurnsSum / heldTurns).ToString("0.00", Inv) : "-";
+            sb.AppendLine(Inv, $"  engine reserve (cap {rule.CapTurns:0.##} turns, draw {rule.DrawTurns:0.##}): deposited {deposits:0} drawn {draws:0} left {reserve:0} max {reserveMax:0}; turns at the cap {saturatedTurns}; largest draw {drawMaxRatio:0.##}x the turn's pool");
+            sb.AppendLine(Inv, $"  engine reserve size (turns of RP = reserve / that turn's RP): turns holding a reserve {heldTurns}; largest {sizeTurnsMax:0.00}; mean while held {meanSize}");
         }
         sb.Append("  technology destination switched away from an incomplete one, by Age:");
         for (int a = 1; a < 10; a++) if (techSwitches[a] > 0) sb.Append(Inv, $" A{a}={techSwitches[a]}");

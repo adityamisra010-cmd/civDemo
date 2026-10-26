@@ -4,6 +4,10 @@ Usage:
   python3 -I tools/research_economy_report.py trial   <dir>   (RouteOverflowTrial_FourSeeds: labels off / route)
   python3 -I tools/research_economy_report.py reserve <dir> <trial-dir>   (EmptyLaneReserveStudy_FourSeeds; the AI
                                                                            reference is the trial's 'off' run)
+  python3 -I tools/research_economy_report.py pacing  <dir> <label> [<ref-dir> <ref-label>]   (OverlayRun_FourSeeds:
+                                                 a pacing pass against the D-063 R6 targets; ref = the run it is compared with)
+  python3 -I tools/research_economy_report.py batch   <dir> <base-label> <label>...   (cost batches: each label against
+                                                 the calibrated trial baseline, independently)
 <dir> holds <label>-s<seed>-{summary.txt,turns.csv,nodes.csv,milestones.csv}. Prints Markdown.
 """
 import csv
@@ -351,10 +355,138 @@ def combined(d):
     print("\n".join(out))
 
 
+# D-063 R6: Age x complete in both trees by the midpoint of the entry turns E[x+1] and E[x+2] (calibrate_pacing.ENTRY)
+TARGET = {1: 240, 2: 510, 3: 690, 4: 820, 5: 970, 6: 1155, 7: 1325, 8: 1460, 9: 1520}
+
+
+def lost_by_age(run):
+    g, lost = {}, {}
+    for t in run["turns"]:
+        a = int(t["age"])
+        g[a] = g.get(a, 0.0) + float(t["pool"])
+        lost[a] = lost.get(a, 0.0) + float(t["lostSurplus"]) + float(t["lostEmpty"])
+    return g, lost
+
+
+def reserve_line(run):
+    m = re.search(r"turns at the cap (\d+)", run["summary"])
+    z = re.search(r"turns holding a reserve (\d+); largest ([\d.]+); mean while held ([\d.-]+)", run["summary"])
+    return (int(m.group(1)) if m else None, ) + ((int(z.group(1)), z.group(2), z.group(3)) if z else (None, "-", "-"))
+
+
+def pacing(d, label, ref_d=None, ref_label=None):
+    runs = {s: load(d, label, s) for s in SEEDS}
+    ref = {s: load(ref_d, ref_label, s) for s in SEEDS} if ref_d else {}
+    out = []
+    for key, title in (("techDone", "Technology"), ("civDone", "Civics")):
+        out += [f"### {title}: turn each Age's finite nodes are complete (residual against the target; -1 = never)", "",
+                "| Seed | " + " | ".join(f"A{a} ({TARGET[a]})" for a in range(1, 10)) + " |", "|---|" + "---:|" * 9]
+        for s in SEEDS:
+            r = runs[s]
+            out.append(f"| {s} | " + " | ".join(
+                (f"{r[key][a]} ({r[key][a] - TARGET[a]:+d})" if r[key].get(a, -1) >= 0 else "never") for a in range(1, 10)) + " |")
+        worst = []
+        for a in range(1, 10):
+            v = [runs[s][key].get(a, -1) for s in SEEDS]
+            worst.append("never" if min(v) < 0 else f"{max(v) - TARGET[a]:+d}")
+        out.append("| slowest seed | " + " | ".join(worst) + " |")
+        out.append("")
+    out += ["### Polity Age entered (effective turn)" + (" — reference → this run" if ref else ""), "",
+            "| Seed | " + " | ".join(f"A{a}" for a in range(2, 10)) + " |", "|---|" + "---:|" * 8]
+    for s in SEEDS:
+        r, o = runs[s], ref.get(s)
+        cells = []
+        for a in range(2, 10):
+            t = r["entered"].get(a)
+            if o and o["entered"].get(a) is not None and t is not None:
+                cells.append(f"{o['entered'][a]} → {t} ({t - o['entered'][a]:+d})")
+            else:
+                cells.append("-" if t is None else str(t))
+        out.append(f"| {s} | " + " | ".join(cells) + " |")
+    out += ["", "### RP lost by polity Age (four seeds pooled; lost = surplus past a funded node + a lane that funded nothing)", "",
+            "| Age | " + ("reference | " if ref else "") + "this run |", "|---|" + ("---:|" if ref else "") + "---:|"]
+    tot = {"r": [0.0, 0.0], "t": [0.0, 0.0]}
+    for a in range(1, 10):
+        cells = []
+        for k, rs in (("r", ref), ("t", runs)) if ref else (("t", runs),):
+            g = l = 0.0
+            for s in SEEDS:
+                if rs.get(s):
+                    gg, ll = lost_by_age(rs[s]); g += gg.get(a, 0.0); l += ll.get(a, 0.0)
+            tot[k][0] += g; tot[k][1] += l
+            cells.append(pct(l, g))
+        out.append(f"| A{a} | " + " | ".join(cells) + " |")
+    out.append("| **All** | " + " | ".join(pct(tot[k][1], tot[k][0]) for k in (("r", "t") if ref else ("t",))) + " |")
+    out += ["", "### Reserve: time at the cap versus size (turns of RP), and the technology lane", "",
+            "| Seed | Turns at the cap | Turns holding a reserve | Largest (turns of RP) | Mean while held (turns of RP) | Technology waiting steps | Goal switches |",
+            "|---|---:|---:|---:|---:|---:|---:|"]
+    for s in SEEDS:
+        r = runs[s]
+        cap, held, big, mean = reserve_line(r)
+        wait = sum(1 for t in r["turns"] if t["techClass"] == "2")
+        m = re.search(r"switched away from an incomplete one, by Age:(.*)", r["summary"])
+        sw = sum(int(x) for x in re.findall(r"A\d=(\d+)", m.group(1))) if m else 0
+        out.append(f"| {s} | {cap} | {held} | {big} | {mean} | {wait} | {sw} |")
+    out += ["", "### Civics, roads, milestones and end state", "",
+            "| Seed | Civics done | Tech done | Levels | Road developments | Structures | Institutions | Median A5 / A7 / A9 milestone turn | CP identity |",
+            "|---|---:|---:|---:|---:|---:|---:|---|---|"]
+    for s in SEEDS:
+        r = runs[s]
+        ms = []
+        for a in (5, 7, 9):
+            v = [t for k, t in r["milestones"].items() if k.startswith(f"A{a}|")]
+            ms.append(f"{statistics.median(v):.0f}" if v else "-")
+        out.append(f"| {s} | {r['end'][2]} | {r['end'][1]} | {r['end'][3]} | {r['infra'][1]} | {r['infra'][0]} | {r['infra'][2]} | "
+                   f"{' / '.join(ms)} | {r['cp'][3]} |")
+    if any(runs[s]["replay"] for s in SEEDS):
+        out += ["", "### Determinism", "", "| Seed | Reconstruction mismatches | Replay | Save/load at mid-run |", "|---|---:|---|---|"]
+        for s in SEEDS:
+            r = runs[s]
+            out.append(f"| {s} | {r['mismatches']} | {r['replay']} | {r['saveload']} |")
+    print("\n".join(out))
+
+
+def batch(d, base, labels):
+    base_runs = {s: load(d, base, s) for s in SEEDS}
+    out = ["### Cost batches, each against the calibrated trial baseline (four seeds; mean shift in turns, slowest seed in brackets)", "",
+           "| Batch | Tech A1–A3 complete | Tech A4–A6 | Tech A7–A9 | Civics A1–A3 | Civics A4–A6 | Civics A7–A9 | Age 9 entered | RP lost (base → batch) |",
+           "|---|---|---|---|---|---|---|---|---|"]
+    def band(runs, key, ages):
+        return [[runs[s][key].get(a, -1) for a in ages] for s in SEEDS]
+    for l in labels:
+        rs = {s: load(d, l, s) for s in SEEDS}
+        cells = []
+        for key in ("techDone", "civDone"):
+            for ages in ((1, 2, 3), (4, 5, 6), (7, 8, 9)):
+                shifts, never = [], 0
+                for s in SEEDS:
+                    for a in ages:
+                        b, t = base_runs[s][key].get(a, -1), rs[s][key].get(a, -1)
+                        if b < 0 or t < 0:
+                            never += (t < 0) and (b >= 0)
+                            continue
+                        shifts.append(t - b)
+                cells.append((f"{statistics.fmean(shifts):+.1f} [{max(shifts):+d}]" if shifts else "-") + (f", {never} never" if never else ""))
+        e = [(rs[s]["entered"].get(9), base_runs[s]["entered"].get(9)) for s in SEEDS]
+        e9 = [t - b for t, b in e if t is not None and b is not None]
+        cells.append(f"{statistics.fmean(e9):+.1f}" + (f" ({len(SEEDS) - len(e9)} seeds n/a)" if len(e9) < len(SEEDS) else "") if e9 else "-")
+        gb = lb = gt = lt = 0.0
+        for s in SEEDS:
+            g, ll = lost_by_age(base_runs[s]); gb += sum(g.values()); lb += sum(ll.values())
+            g, ll = lost_by_age(rs[s]); gt += sum(g.values()); lt += sum(ll.values())
+        cells.append(f"{pct(lb, gb)} → {pct(lt, gt)}")
+        out.append(f"| {l} | " + " | ".join(cells) + " |")
+    print("\n".join(out))
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "trial":
         trial(sys.argv[2])
     elif sys.argv[1] == "combined":
         combined(sys.argv[2])
+    elif sys.argv[1] == "pacing":
+        pacing(*sys.argv[2:6]) if len(sys.argv) > 4 else pacing(sys.argv[2], sys.argv[3])
+    elif sys.argv[1] == "batch":
+        batch(sys.argv[2], sys.argv[3], sys.argv[4:])
     else:
         reserve(sys.argv[2], sys.argv[3])
