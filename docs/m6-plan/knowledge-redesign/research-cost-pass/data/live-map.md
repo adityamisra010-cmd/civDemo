@@ -4,6 +4,21 @@ Tree read: `/home/user/m5w/dev` at `b1dce0f` on branch `claude/new-session-yavgh
 
 **How "live" is decided.** An operand counts as live when a system in `pipeline.json` reads it, under the switches as shipped, and the value it reads can change world state. Shipped research.json switches: `tuning.knowledgeEffects` true, `repeatableLevels` true, `civicsPoints.enabled` true, `ageSweep` true. Shipped sim.json switches: `granaries.enabled`, `fog.enabled`, `discovery.enabled`, `farming.preCultivation.enabled` and `colonization.aiFounding.enabled` are all true. Readers in Observability, InfoQuery or AvailableActionsQuery do not count. An entity counts as live when a system builds, founds or crafts it, or uses its knowledge eligibility to change state.
 
+> **2026-10-26 correction (CR-025 ruling applied; branch `t5-cr025`).** This map is a reading of `b1dce0f` and is not
+> re-derived here; these are the changes the ruling made to what it describes. `roads.baselineKmPerDay` now has **no**
+> declaring node: the loader refuses a realized delta on an operand no system consumes. Eight nodes were retargeted to a
+> live operand with their authored delta: horse_domestication, horseshoe, internal_combustion →
+> `catchment.hinterlandRadiusKm` (Σ 0.61 → 0.73); bridge_stone, bridge_trusts, turnpike_trusts → `roads.maxRouteKm`
+> (Σ 0.29 → 0.40); sprung_coach, road_houses → `governance.authorityDecayCostUnits` (Σ 2.49 → 2.57). Six nodes declare a
+> FUTURE effect instead (`effects.future`, never counted as live): wheel_spoked (M7 chariots; unscheduled freight-time
+> consumer), saddle (M7 mounted movement), aluminium (M7 aircraft), integrated_alliance_command (M8 alliances; M7 joint
+> command), pilgrimage (M9 society), road_traffic_regulation (unscheduled freight-time consumer). road_paved, wheellock
+> and motor_road lost the dead delta and keep their other effects. So in the "no live value" table below, the eight
+> retargeted nodes now have a live operand effect, and the six future nodes are future-declared. The other 17 rows of
+> that table (kiln_updraft … fusion_power, except the CR-025 nodes) are unchanged and are now pinned as known gaps
+> (`Tranche2ContentTests.KnownGapsWithoutARealEffect`, CR-025 §7.3). `live-map.json` carries the same changes in its
+> node and operand records and a `corrections` entry.
+
 ## Headline counts
 
 - **Operands live: 45/47.** Two are not live:

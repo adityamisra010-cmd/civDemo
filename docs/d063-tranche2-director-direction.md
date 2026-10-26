@@ -19,3 +19,23 @@
 
 **Not changed:** `main`, release tags, the milestone order, D-D (adoption in M8), CR-008 (no treasury), and the
 conservation and determinism laws.
+
+## Amendment 1 to R1: future-dependent content (Director, 2026-10-26; CR-025 ruling)
+
+**Status: RULED. Recorded from the Director's ruling of 2026-10-26 on CR-025.** R1 above is not edited; this section
+amends it. Precedence (gov-4 §1): this explicit Director ruling ranks above R1 where they differ.
+
+The Director's words (essentials, verbatim): "Approve the proposed disposition of all 17 nodes, subject to a complete
+dependency and persistence audit: retarget the eight nodes to real, implemented effects; mark the six nodes as
+explicitly future-dependent, without claiming their effects are already simulated; drop the three nodes only after
+confirming they are not required by prerequisites, saves, migrations, tests or external content references. Approve the
+D-063 R1 amendment so future-dependent content is permitted when clearly identified and documented. Do not weaken the
+invariant that every currently implemented effect must be real and testable."
+
+| # | Amended ruling | Amends |
+|---|---|---|
+| R1-A1 | Every Technology and Civics node produces a real gameplay effect **or declares, explicitly, a future effect**. A future effect is content (`effects.future` in research.json: the milestone that owns the realizing system, or `unscheduled` for recorded design intent with no milestone; the system; the registered operand it would act on, or null; a description). The loader validates it. No system reads it, it carries no magnitude, it is never counted as a realized effect, and every screen and report shows it as not simulated in this build. | R1 ("No text-only nodes" stands for everything else) |
+| R1-A2 | The invariant on implemented effects is not weakened: every realized effect (and every repeatable level effect) names an operand some simulation system consumes in play. The loader refuses any other (the CR-025 recurrence guard). | R1, ADR-047 §2.1 |
+
+**How it is applied:** `docs/adr/cr-025-unconsumed-overland-speed-operand.md` §7 (the disposition, the dependency and
+persistence audit, the enforcing tests); ADR-047 amendment note (2026-10-26).
