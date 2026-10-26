@@ -290,3 +290,162 @@ Note for integration: schema v37 lands on a parallel branch, and its own re-pins
   count only realized effects on consumed operands, judge unlocks by actual liveness, and list future declarations
   separately. It reports 972 nodes with a realized effect on a consumed operand, 6 future-only nodes, and 17 without
   either. That supersedes the 2026-10-25 hand note. `research-cost-pass/data/live-map.*` carry a dated correction.
+
+## 8. The 17 known gaps — audit and disposition (2026-10-26)
+
+**The Director's ruling** (2026-10-26, verbatim): "Audit all 17 nodes against current simulation behavior, planned M7/M8
+mechanics, prerequisites, save compatibility and content references. For each, propose a real implementation, an
+explicit future dependency, or retargeting/removal. Do not blanket-classify them. Preserve the strict loader guard and
+regression tests. Future-dependent effects must not be represented as active gameplay."
+
+Tree: branch `t6-gaps`, cut from `06f127a`. The §7.3 list is the subject. **Applied:** only the gameplay-inert
+disposition (b), an `effects.future` declaration, on all 17 nodes, each with its own milestone and system. **Proposed,
+not applied:** (a) a live realized effect for papyrus and telephone (§8.3), because a realized effect changes the default
+game while pacing is being recalibrated. **(c) removal:** proposed for none.
+
+### 8.1 Evidence common to every row
+
+- **Why each unlock is a placeholder (current simulation).** A research entity is live only if a system builds, founds
+  or crafts it, or reads its eligibility. The research card applies that rule (InfoQuery.Consumers), and so does the
+  report generator (`tools/tranche2_reports.py` `live_entities`). The sources are goods.json construction projects
+  (only `building.granary`, `building.workshop` and `building.university`), goods.json recipes, the research sector
+  activities, sim.json road classes (only `infra.road_*`) and the trade entity. `unit.*` gates nothing:
+  unit-families.json says so, formations are founded at worldgen and modernized by AgeTransitionSystem, and recruitment
+  is M7. No goods.json project names a `project.*` entity. None of the 17 nodes has any other effect: no realized
+  effect, no level, no Age-milestone fact, no stage atom, no tax or assay gate. On this tree the card's verdict for each
+  of them is research-only (dependents > 0) or knowledge-only (none), never Simulated. That verdict is pinned before and
+  after this change (`InfoQueryTests.TheGapAuditNodes_…`).
+- **Save compatibility (the same for every row, so it is not repeated in the table).** Saves key completed, progress,
+  level and target rows by `ResearchNodeId` (the content key). Every key is unchanged, and the test pins all 17. The
+  change adds a content-only `effects.future` list. The loader reads it, the research card displays it, and nothing
+  serializes it. The save format carries no research-content fingerprint (Snapshot carries only the terrain hash).
+  The schema stays at version 37 (no table, row or order change, and no migration). None of the 17 is repeatable.
+  Old saves and order logs load and replay unchanged (§8.4).
+- **Content references outside research.json** (grep over the tree, all 17 ids). ages.json, sim.json, goods.json,
+  Sim.Ui and `.github/workflows` name none of them. knowledge-texts.json holds one display-only history text per node
+  ("Not read by the simulation", its `_doc`); none claims an effect. unit-families.json `ballistic_missiles` (key 1201)
+  is `realizedBy` `unit.missile`, rocket's unit. Three tests use an id as a fixture or label only, and are unaffected:
+  `ConstructionAvailabilityTests` (a test-only kiln project gated by kiln_updraft), `RoadDevelopmentTests`
+  (petroleum_refining in motor_road's prerequisite) and `ResearchContentTests` (nuclear_power's display name).
+- **Where the planned realizations sit.** The source is `docs/deferred-entity-realization-plan.md` (PLAN R2c; tier
+  membership "INFERRED and OPEN to Director revision"). Tier E (military) is owned by **M7 Battle Layer**: §E, M7
+  handoff register H7-03 and H7-08, and H7-07 for siege. Tiers A–D and G have **no milestone in any ratified record**.
+  The draft M6 spec (T6.11, "realization of tiers A–D, G") is NOT ratified. The deferred-work register DW-011 reads
+  "M6 / M7 / M11+ per tier" with a Director decision still owed. The loader admits M7–M11 or `unscheduled`, and M6
+  cannot be named because M6 ships this content. So those rows say `unscheduled` and cite their tier. The rows invent
+  no milestone. If T6.11 is ratified and realizes an entity, that node gains a realized effect or a live unlock, and
+  its future line is removed at that time.
+- **Operand room for any (a).** Σ over all nodes against the cap, measured on this tree, with the 90 % saturation line
+  of `tools/import_tranche2.py`: above that line one more delta means rescaling every node on the operand. Measured:
+  - governance.authorityDecayCostUnits 2.570 / 3.0 (85.7 %);
+  - foodState.adaptationAbsorbableShortfall 0.900 / 1.0 (90.0 %);
+  - trade.gapClosingFraction 1.349 / 1.5 (90.0 %);
+  - trade.costPerBulkCostUnit 0.719 / 0.8 (89.9 %);
+  - research.researchPointsCoefficient 0.277 / 0.3 (92.2 %);
+  - institutions.universities.maxResearchCostReduction 0.451 / 0.5 (90.1 %);
+  - consumption.grainSpoilagePerYear 0.510 / 0.85 (60.0 %);
+  - colonization.orderPartyFraction 0.350 / 0.5 (70.0 %);
+  - transport.riverCostFactor 0.360 / 0.8 (45.0 %).
+
+### 8.2 Per-node audit
+
+"Deps" counts the nodes whose prerequisite names the node (the entity `requires` that names it is the unlock). Removing
+a node with Deps > 0 would break those prerequisite expressions; removal is also not needed anywhere, because every
+node keeps a historical meaning and a prerequisite role. The Age sweep cannot deadlock on any of them
+(`AgeSweep_ReachesEveryNode_FromScratch` passes).
+
+| Node (key, Age) | Unlock — why it is a placeholder | Deps / other references | Planned realization (doc) | (a) considered | Recommended | Applied? |
+|---|---|---|---|---|---|---|
+| kiln_updraft (48, A2) | `building.kiln`. No construction project. Pottery firing is live but gated by pottery_open_fired, and no recipe has a capacity or fuel term a kiln could feed. | 8 (copper_smelting, fired_brick, glass_glaze, iron_bloomery, bellows, wootz, movable_type_ceramic, portland_cement); `ConstructionAvailabilityTests` fixture | Tier A ("kiln as the capacity/fuel-efficiency term of the existing firing recipe"; needs a per-building capacity mechanism packet). Unscheduled. | `consumption.grainSpoilagePerYear` (high-fired, less porous jars): weak. pottery_open_fired (0.04) and glass_glaze (0.02) already claim storage jars, and the kiln's own consequence is firing capacity, which no operand models. Rejected. | (b) unscheduled: Construction - kiln (tier A) | yes (b) |
+| oil_press (57, A2) | `building.oil_press`. No project, and no oil good exists (goods.json has 14 goods, none an oil). | 1 (olive_press_beam) | Tier D (production chains). Unscheduled. | `foodState.adaptationAbsorbableShortfall` ("storable calories" as a household buffer): moderate meaning, but the operand sits at the 90 % line (0.900 / 1.0), so adding to it rescales 33 nodes. No other operand is about oil. Rejected for now. | (b) unscheduled: Production chains - oil press (tier D) | yes (b) |
+| papyrus (90, A3) | `building.library`. No project. inst.library, not building.library, is the university chain atom. | 0 node deps; building.library `requires` "cuneiform OR hieroglyphic OR chinese_script OR papyrus OR paper OR mesoamerican_script" | Tier B (library, research stage). Unscheduled. | **`governance.authorityDecayCostUnits` +0.04: strong.** It is a light, portable writing surface for administration at distance (the Egyptian bureaucracy). Its writing-surface family carries the same operand at the same Age-scaled delta: cuneiform 0.04 (A3), paper 0.04 (A5). Room 85.7 % → 87.0 %. | (b) now; (a) PROPOSED as an additional live effect (§8.3) | (b) yes; (a) no |
+| plank_boat (95, A3) | `building.harbour`. No project. `activity.coastal_shipping` and `activity.ocean_shipping` have no consumer. | 4 (naval_ram, mortise_hull, stern_rudder, cog); building.harbour `requires` plank_boat AND stone_dry | Tier B (harbour, trade). Unscheduled. | `trade.costPerBulkCostUnit` (its family's operand, mortise_hull 0.0112) and `trade.gapClosingFraction`: both at the 90 % line. `transport.riverCostFactor` has room, but its only reader is the path builder's segment lattice (live-map item 3), not haulage. `colonization.orderPartyFraction`: founding is overland reachability, not by sea. Rejected. | (b) unscheduled: Construction - harbour (tier B) | yes (b) |
+| fulling_mill (182, A6) | `building.fulling_mill`. No project. Cloth comes from the weaving recipe, which has no finishing or capacity term. | 0 | Tier D. Unscheduled. | None: no live operand concerns textile finishing or water power. `production.outputPerExtractorPerYear` covers extractors, not cloth. | (b) unscheduled: Production chains - fulling mill (tier D) | yes (b) |
+| sulphuric_acid (275, A8) | `building.chemical_works`. No project and no chemical good. | 5 (soda_leblanc, bleach_chlorine, dynamite, chemical_fertilizer, uranium_milling) | Tier D. Unscheduled. | None genuine. Its consequences (fertiliser +0.15 farming yield, dynamite's extraction and path cost, bleach, soda) are already realized on its dependents, so an effect of its own would double-count them. | (b) unscheduled: Production chains - chemical works (tier D) | yes (b) |
+| telephone (290, A8) | `infra.telephone_network`. The only live `infra.` ids are the road classes. | 3 (internet, automatic_switching, universal_telephone_service) | Tier C (infrastructure). Unscheduled. | **`governance.authorityDecayCostUnits` +0.03: moderate.** Real-time voice between a capital and provincial offices extends administrative reach (Governance.AdministrativeReach's e-fold). Comparable: optical_telegraph 0.05 (A7), vacuum_tube 0.03 and communications_satellite 0.03 (A9). Its market effects already sit on its dependents (automatic_switching price 0.02, universal_telephone_service catchment 0.03), and trade.gapClosingFraction (telegraph's operand) is saturated. | (b) now; (a) PROPOSED as an additional live effect (§8.3) | (b) yes; (a) no |
+| petroleum_refining (292, A8) | `building.refinery`. No project and no oil or fuel good. | 4 (internal_combustion, automobile_mass, plastics, motor_road); `RoadDevelopmentTests` (motor_road's prereq string) | Tier D. Unscheduled. | None genuine. Kerosene lighting has no operand. Motor fuel's consequence is realized on internal_combustion and automobile_mass (catchment); a delta here would double-claim it. | (b) unscheduled: Production chains - oil refinery (tier D) | yes (b) |
+| integrated_circuit (317, A9) | `building.semiconductor_fab`. No project. | 3 (microprocessor, internet, lunar_flight) | Tier G. Unscheduled. | `research.researchPointsCoefficient` ("cheap computation"): 92.2 %, above the line. `institutions.universities.maxResearchCostReduction`: 90.1 %. Rejected (saturation, and internet already carries computation into RP). | (b) unscheduled: Construction - semiconductor fab (tier G) | yes (b) |
+| nuclear_power (322, A9) | `building.nuclear_power_station`. No project and no energy or electricity system at all. | 0; `ResearchContentTests` (name) | Tier G. D-062 R10: "no new nuclear simulation mechanics in M6". Spine: the nuclear layer belongs to the modern-era expansion. Unscheduled. | Excluded by D-062 R10; no energy operand exists. | (b) unscheduled: Energy - nuclear power station (tier G) | yes (b) |
+| solar_pv (346, A9) | `building.solar_farm`. No project and no energy system. | 3 (space_solar, frontier_energy (repeatable), communications_satellite). Removal would break the final-Age repeatable's prerequisite. | Tier G. Unscheduled. | None: no generation or energy operand. | (b) unscheduled: Energy - solar farm (tier G) | yes (b) |
+| wind_turbine_modern (355, A9) | `building.wind_farm`. No project and no energy system. | 0 | Tier G. Unscheduled. | None: no energy operand. | (b) unscheduled: Energy - wind farm (tier G) | yes (b) |
+| cloud_computing (368, A9) | `building.data_centre`. No project. | 0 | Tier G. Unscheduled. | `research.researchPointsCoefficient`: 92.2 %. `governance.taxExtractionResponseMax` (relational_database's operand): 89.9 %. Rejected. | (b) unscheduled: Construction - data centre (tier G) | yes (b) |
+| desalination (393, A9) | `building.desalination_plant`. No project. Settlement water supply is not modelled: tier A's `infra.well` blocker is "needs a water-supply term in the population/health model". | 0 | Tier G. Unscheduled. | None: no water-supply operand. Mortality or catchment would mislabel the effect. | (b) unscheduled: Settlement water supply - desalination plant (tier G) | yes (b) |
+| fusion_power (409, A9) | `building.fusion_plant`. No project and no energy system. | 1 (fusion_propulsion) | Tier G. Unscheduled. | None: no energy operand. | (b) unscheduled: Energy - fusion power plant (tier G) | yes (b) |
+| trace_italienne (229, A7) | `building.bastion_fort`, tier E. No project. Siege and fortification are not simulated. | 1 (military_engineers) | **M7 Battle Layer.** Deferred-entity plan §E ("castle, bastion_fort … owned by M7 Battle Layer (do not pull forward)"); H7-08; H7-07 (siege, D-039 Part D). | `governance.authorityDecayCostUnits` (stone_fortification's proxy): weak. A bastion's meaning is siege resistance, which is M7. Rejected. | (b) M7: Battle Layer - siege and fortification | yes (b) |
+| rocket (308, A9) | `unit.missile` (tier E, which gates nothing), `building.spaceport` and `project.orbital_launch` (tier G). None has a realizing system. | 3 (icbm, guided_missile, orbital_launch_vehicle); unit-families.json `ballistic_missiles` realizedBy unit.missile | **M7 Battle Layer** for the missile unit (§E, H7-03 recruitment, H7-08). Unscheduled for the space programme (tier G; the Spine rescoped the space era to "a note"). | None: the dependents already carry the space-surveillance proxies (`fog.exploreMaxRadiusNodes` on the satellite family, 90.0 %). | (b) M7: Battle Layer - missile forces; and (b) unscheduled: Space programme - spaceport and orbital launch (tier G) | yes (b), 2 entries |
+
+### 8.3 Proposals for the Director (NOT applied)
+
+**(a) Additional live effects: papyrus and telephone.** Exact content diff in `Sim.Data/content/research.json`. Each
+node keeps its `future` entry, because its placeholder unlock still belongs to a future system. Keys, costs,
+prerequisites and Ages are unchanged.
+
+```diff
+   "id": "papyrus",  … "effects": {
+     "immediate": [],
++    "realized": [{"operand": "governance.authorityDecayCostUnits", "delta": 0.04}],
+     "future": [{"milestone": "unscheduled", "system": "Construction - library (deferred-entity plan, tier B)", …}]
+   "id": "telephone",  … "effects": {
+     "immediate": [],
++    "realized": [{"operand": "governance.authorityDecayCostUnits", "delta": 0.03}],
+     "future": [{"milestone": "unscheduled", "system": "Infrastructure - telephone network (deferred-entity plan, tier C)", …}]
+```
+
+- **Reader:** Governance.AdministrativeReach (`Sim.Core/State/Governance.cs:94-115`, via GovernanceSystem): reach
+  `exp(−travelCost / (authorityDecayCostUnits × (1 + Σ)))`, which feeds `ControlRow.Strength`.
+- **Σ:** 2.570 → 2.640 / 3.0 (88.0 %). That stays below the 90 % line, so no other delta is rescaled and
+  `NoOperand_SumsAboveItsCap` still holds.
+- **Deltas:** they follow the comparable nodes in §8.2.
+- **Consequences:** both nodes would turn Simulated on the card. The tests to update when it is applied are
+  `GapAuditDisposition` (realized entries), the card test's verdict expectation for these two, and
+  `TheShippedFutureNodes_AddNothingToAnySigma`, which grants every future-declaring node, so it would see the new Σ.
+  `KnowledgeEffectsTeethTests` would also need a row each.
+- **Not measured here:** whether any pinned run completes papyrus or telephone within its horizon, and so whether any
+  golden moves. Every pin must be re-measured on application. The attribution twin is this branch's content (the same
+  content without the two realized entries).
+- **Why the other 15 get no (a):** the per-row reasons are in §8.2. For four of them the closest operand is at or
+  above the 90 % line (oil_press, plank_boat, integrated_circuit, cloud_computing). For three, the meaning is already
+  realized on their dependents (sulphuric_acid, petroleum_refining, kiln_updraft's smelting line). For six, no
+  operand of that meaning exists (fulling_mill and the energy, water and space rows). nuclear_power is excluded by
+  D-062 R10. trace_italienne's meaning is M7 siege.
+
+**(c) Removal: none proposed.** Every node is a real historical technology, and its unlock has a recorded realization
+path (tier A–G). Eleven of the 17 gate dependents. solar_pv gates a final-Age repeatable, and the Age-sweep cohorts
+include all of them.
+
+### 8.4 Proof the applied change is gameplay-inert (measured on this tree)
+
+- **Structural.** The only reader of `ResearchNode.FutureEffects` in Sim.Core, Sim.Cli and Sim.Ui is
+  `InfoQuery` (the card). The research.json diff only replaces the 17 lines `"immediate": []` with `"immediate": [],`
+  plus a `future` list. No realized effect, level, cost, prerequisite, Age or key changed, and the 17 nodes' entity
+  unlocks are the same.
+- **In play (the twin method of §7.4).**
+  - Test: `FutureEffectsTests.InPlay_TheGapAuditDeclarations_ChangeNoWorld`.
+  - Setup: the canonical founded world (seed 42, one AI empire). Every holder is granted the 17 nodes plus the control
+    sanitary_engineering, whose only effect is a realized `demographics.mortalityPerYear` delta. The AI then runs 40
+    turns.
+  - Twin: the shipped content against the shipped content with the 17 `future` lists removed. That second content is
+    exactly the pre-audit research.json. The twin gives the **identical world hash**.
+  - Control: removing the control's realized effect gives a **different** hash, so the test has teeth.
+  - The existing `InPlay_TheRetargetsChangeTheWorld_AndTheFutureDeclarationsDoNot` now grants all 23 future nodes and
+    still shows no change.
+- **Pins.** The golden, CI-pin and snapshot tests (`--filter "FullyQualifiedName~Golden|FullyQualifiedName~CiPin|
+  FullyQualifiedName~SnapshotTests"`) and the full suites were run on this tree. Results are in §8.5.
+
+### 8.5 Enforcement and validation (this tree)
+
+- **`KnownGapsWithoutARealEffect` is now empty.** The exact-match R1 test
+  (`EveryNode_HasARealEffect_OrADeclaredFutureEffect`) is unchanged. It fails if any node loses its declaration, or if
+  a new node has neither a real nor a future effect.
+- **`TheGapAuditDisposition_IsApplied_FutureOnly_KeysAndUnlocksUnchanged`** pins, for each of the 17: its key, no
+  realized effect, no level, its milestones, operand null, and its unlocks.
+- **The loader guard is unchanged.** It still refuses a realized or level effect on an operand no system consumes, and
+  a future entry naming a consumed operand.
+- **The card.** `InfoQueryTests.TheGapAuditNodes_ShowTheirFutureEffects_AsNotSimulated_AndKeepTheirVerdict` checks the
+  future lines ("no milestone yet" for unscheduled systems, "arrives with M7" for the Battle Layer), the placeholder
+  entity lines ("not built in this build" or "Battle Layer (M7)"), and the unchanged verdict. In
+  `EveryFutureEffect_IsOnTheCard_…` the expected counts become 23 nodes and 26 lines.
+- **Reports.**
+  - `tranche2-effect-coverage.md` is regenerated: 972 nodes with a realized effect on a consumed operand, 23 future-only
+    nodes, 26 future declarations, 0 nodes without either.
+  - The three research `--check` scripts went stale on the content hash only. They were regenerated and pass.
