@@ -79,6 +79,9 @@ public sealed class ResearchSnapshot
     /// <summary>ADR-043: the Civics Points the NEXT step accrues (ResearchQuery.CivicsPointsMilli / 1000 over the next step's
     /// dt — the era table's at the world's date; rp-cp-lifecycle k5).</summary>
     public double CivicsPerTurn { get; init; }
+    /// <summary>ADR-051: the technology lane's RP reserve and what the next step does with it (ResearchQuery.Reserve); null
+    /// with research.json tuning.researchReserve absent.</summary>
+    public ReserveStatus? Reserve { get; init; }
 
     /// <summary>ADR-048: whether destination research is on (research.json tuning.destinationRouting).</summary>
     public bool Routing { get; init; }
@@ -225,6 +228,7 @@ public sealed class ResearchSnapshot
             CivicsTargetIndex = civicTarget,
             CivicsBalance = ResearchQuery.CivicsPointsBalance(world, polity),
             CivicsPerTurn = ResearchQuery.CivicsPointsMilli(world, content, polity, nextDtYears ?? world.Clock.DtYears) / 1000.0,
+            Reserve = ResearchQuery.Reserve(world, content, polity),
             Routing = content.Tuning.DestinationRouting,
             TechnologyRoute = content.Tuning.DestinationRouting ? ResearchQuery.Route(world, content, polity, ResearchTree.Technology) : ResearchRoute.None(ResearchTree.Technology),
             CivicsRoute = content.Tuning.DestinationRouting ? ResearchQuery.Route(world, content, polity, ResearchTree.Civics) : ResearchRoute.None(ResearchTree.Civics),

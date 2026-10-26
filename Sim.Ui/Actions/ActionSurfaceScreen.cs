@@ -802,7 +802,11 @@ public sealed partial class ActionSurfaceScreen
         {
             string idle = r.ClearQueued ? "stopping at End Turn: research will be idle" : "Nothing is being learned - choose what to learn.";
             y = Math.Max(Wrapped(d, m, idle, x, y + Sp(3), first, Body, t.TextInk.Progress, FontRole.Heading), open.Bottom + Sp(4));
-            y = Wrapped(d, m, (model.Control.Numerals ? N1(r.PointsPerTurn) + " research points a turn go unused; " : "what our people learn each turn goes unused; ")
+            // ADR-051: with the reserve on, the idle lane's RP go to the reserve (or are unused once it is full).
+            string unused = r.Reserve is { } rs && !r.ClearQueued
+                ? (model.Control.Numerals ? rs.Unused + "; " : "what our people learn each turn goes to the reserve; ")
+                : model.Control.Numerals ? N1(r.PointsPerTurn) + " research points a turn go unused; " : "what our people learn each turn goes unused; ";
+            y = Wrapped(d, m, unused
                 + r.Available.ToString(CultureInfo.InvariantCulture) + " subjects are open to us.", x, y, w, Second, t.Ink.TextSoft);
         }
         else
@@ -818,8 +822,10 @@ public sealed partial class ActionSurfaceScreen
             double frac = funded.Cost > 0 ? funded.Progress / funded.Cost : 0;
             EraMarks.Progress(d, t, new RectD(x, y, Math.Min(Sp(240), w * 0.6), Sp(10)), frac, t.Semantic.Active, 832);
             y += Sp(16);
-            string line = FundingLine(r.Funding, N0(funded.Progress) + " of " + N0(funded.Cost) + " research points, +" + N1(r.PointsPerTurn) + " a turn",
-                N1(r.PointsPerTurn) + " research points go unused this turn");
+            // ADR-051: with the reserve on, the figures carry the reserve (and the draw), and a waiting lane's RP go to it.
+            string reserveFigures = r.Reserve is { } rf && !chosenNow ? " · " + rf.Funding : "";
+            string line = FundingLine(r.Funding, N0(funded.Progress) + " of " + N0(funded.Cost) + " research points, +" + N1(r.PointsPerTurn) + " a turn" + reserveFigures,
+                r.Reserve is { } ru ? ru.Unused : N1(r.PointsPerTurn) + " research points go unused this turn");
             if (chosenNow) line = "chosen this turn - research starts at End Turn (" + line + ")";
             y = Wrapped(d, m, line, x, y, w, Second, chosenNow ? t.TextInk.Active : r.Waiting ? t.TextInk.Progress : t.Ink.TextSoft);
             if (r.CanClear)

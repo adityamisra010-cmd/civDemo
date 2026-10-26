@@ -1909,6 +1909,8 @@ public static class InfoQuery
         b.Effect = InfoEffect.Simulated;
         b.RealizedBy = "ResearchSystem spends the pool on the target you set (SetResearchTarget).";
         double rp = ResearchQuery.ResearchPointPool(c.W, r, c.P);
+        // ADR-051 (tuning.researchReserve): the reserve and what the next step does with it; null with the switch off.
+        ReserveStatus? reserve = ResearchQuery.Reserve(c.W, r, c.P);
         int open = 0;
         for (int i = 0; i < r.Nodes.Count; i++) if (c.Available(i)) open++;
         ResearchNodeId t = default;
@@ -1930,7 +1932,8 @@ public static class InfoQuery
                     int fi = r.IndexOf(route.Current!.Value);
                     b.Status = InfoStatus.Researching;
                     b.StatusLine = "Researching " + r.Nodes[fi].Name + Toward(c, route) + ": " + N0(ResearchQuery.Progress(c.W, c.P, route.Current.Value))
-                        + " of " + N0(ResearchQuery.EffectiveCost(c.W, r, c.P, fi)) + " research points, +" + N1(rp) + " a turn.";
+                        + " of " + N0(ResearchQuery.EffectiveCost(c.W, r, c.P, fi)) + " research points, +" + N1(rp) + " a turn"
+                        + (reserve is { } rs ? "; " + rs.Funding : "") + ".";
                     bool own = route.Destination is { } own0 && (!route.Assisting || own0 != route.AssistedDestination);
                     if (route.Assisting && own)
                         b.StatusLine += " Your destination " + NameOf(r, route.Destination) + " waits on the " + OtherTreeName(route.Lane) + " tree.";
@@ -1948,7 +1951,7 @@ public static class InfoQuery
                 {
                     int di = r.IndexOf(route.Destination!.Value);
                     b.Status = InfoStatus.Blocked;
-                    b.StatusLine = Waiting(c, route) + "; " + N1(rp) + " research points go unused this turn.";
+                    b.StatusLine = Waiting(c, route) + "; " + (reserve is { } rs ? rs.Unused : N1(rp) + " research points go unused this turn") + ".";
                     b.TreeNode = di;
                     b.Enables.Add(NodeLink(c, di));   // its state reads "your destination"
                     b.Action = Find(c, ActionDomain.Research, 2);
@@ -1964,7 +1967,8 @@ public static class InfoQuery
         {
             b.Status = InfoStatus.Researching;
             b.StatusLine = "Researching " + r.Nodes[ti].Name + ": " + N0(ResearchQuery.Progress(c.W, c.P, t)) + " of "
-                + N0(ResearchQuery.EffectiveCost(c.W, r, c.P, ti)) + " research points, +" + N1(rp) + " a turn.";
+                + N0(ResearchQuery.EffectiveCost(c.W, r, c.P, ti)) + " research points, +" + N1(rp) + " a turn"
+                + (reserve is { } rs ? "; " + rs.Funding : "") + ".";
             b.TreeNode = ti;
             b.Enables.Add(NodeLink(c, ti, "the current target"));
             b.Action = Find(c, ActionDomain.Research, 2);
@@ -2017,7 +2021,7 @@ public static class InfoQuery
         void Idle()
         {
             b.Status = InfoStatus.Available;
-            b.StatusLine = "Idle: " + N1(rp) + " research points a turn go unused; " + Inv(open) + " subjects are open.";
+            b.StatusLine = "Idle: " + (reserve is { } rs ? rs.Unused : N1(rp) + " research points a turn go unused") + "; " + Inv(open) + " subjects are open.";
             b.Action = Find(c, ActionDomain.Research, 1);
             b.Summary = "idle - choose a research target";
         }
