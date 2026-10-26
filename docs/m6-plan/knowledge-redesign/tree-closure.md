@@ -45,9 +45,27 @@ The report is reproduced in `tree-closure-integrity.md`.
 Costs and tuning are deliberately outside both hashes. A third test proves the projection: a cost or tuning edit leaves the
 hash unchanged, and a prerequisite edit moves it.
 
-## 3. Regression baseline
+## 3. Regression baseline (TC-1)
 
-Filled in by the final validation of this branch: see `research-cost-pass/candidate-trial.md` §validation.
+**Measured on this branch, shipped defaults** (`research-cost-pass/candidate-trial.md` §G.2):
+- full `Sim.Tests` (3,024 passed, 0 failed) and `Sim.Ui.Tests` (1,119 passed, 0 failed);
+- read-only proof;
+- the CI cross-process leg: toy and founded worlds, seam seed, replay, the AI-empire leg over 600 turns, founded golden
+  `8abc32b0…`;
+- the allocation leg;
+- whole-run order invariants on every trial run.
+
+**Determinism and save/load** on the research economy:
+- replay EQUAL and mid-run save/load equal on seeds 1, 2, 42 and 7 for every trial configuration measured;
+- 0 reconstruction mismatches.
+
+**Limitations, documented, not blocking:**
+- technology Age 9 throughput (D4);
+- Age 1 residual and seed spread (D5);
+- the 23 future-only nodes;
+- CLI `--from-save` has no content check (queue; matters only when content changes).
+
+**GitHub CI:** the run on the final pushed commit is recorded in the hand-over.
 
 ## 4. Tracked follow-ups (do not reopen the trees)
 

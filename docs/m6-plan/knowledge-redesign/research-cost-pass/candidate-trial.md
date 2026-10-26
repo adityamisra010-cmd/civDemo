@@ -257,4 +257,23 @@ rebuilt. Nothing from that tree is committed.
 
 ### G.2 Validation of this branch (shipped defaults; candidate files present)
 
-See §G.3, recorded from the final validation run.
+**Measured at `0473367`.** The commit that adds this section changes documentation only.
+
+| Check | Result |
+|---|---|
+| `dotnet build Sim.slnx -c Release` | Build succeeded |
+| `Sim.Tests` kernel | Passed 538, failed 0, skipped 21 (559) |
+| `Sim.Tests` other | Passed 2,486, failed 0, skipped 14 (2,500) |
+| `Sim.Ui.Tests` | Passed 1,119, failed 0 |
+| Read-only proof (`scripts/check-readonly-proof.sh`) | OK |
+| CI cross-process leg, run locally in a clean directory | All pass: orderless and ordered 400-turn toy, founded 300-turn (matches the pinned golden `8abc32b0…`), seam seed 16, founded replay, the AI-empire leg over 600 turns |
+| CI allocation leg | PASS, and the four pinned hashes match |
+| Banned-construct grep over the changed C# files | No match |
+| `tools/tree_closure_check.py` (shipped content) | No FAIL; `tree-closure-integrity.md` is current |
+| `tools/check_research_order.py` on every run in §B–C | HOLD |
+| Shipped `research.json` | Unchanged (`0e8fb9897eec23f4`) |
+
+**Pins.**
+- No pin was re-pinned on this branch: the defaults are unchanged, so nothing is justified.
+- The new tests (`ResearchCandidateTests`, `TreeClosureBaselineTests`) pin new facts only.
+- **GitHub CI on the final pushed commit:** reported in the hand-over, since the run id does not exist before the push.
