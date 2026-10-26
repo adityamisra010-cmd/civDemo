@@ -42,18 +42,22 @@ internal static class ResearchPacingRunner
     internal sealed record RunOptions(
         ulong Seed, bool Overflow, string Label, int Turns = 1630, int? HumanDelay = null,
         double ReserveCapTurns = 0.0, double DrawLimitTurns = double.PositiveInfinity,
-        bool Replay = false, long SaveLoadAt = -1, bool DrawLosesSurplus = false, bool GateAware = false);
+        bool Replay = false, long SaveLoadAt = -1, bool DrawLosesSurplus = false, bool GateAware = false,
+        double EngineReserveCapTurns = 0.0, double EngineReserveDrawTurns = 1.0);
 
     internal sealed record RunResult(string Summary, string? Hash, string? ReplayHash, string? SaveLoadHash);
 
     /// <summary>The shipped research.json with tuning.researchOverflow set to <paramref name="overflow"/> and, when
     /// <paramref name="gateAware"/>, tuning.aiGateAwareGoals set to true (ADR-052; otherwise left absent); nothing else.</summary>
-    internal static SimConfig Config(bool overflow, bool gateAware = false)
+    internal static SimConfig Config(bool overflow, bool gateAware = false, double reserveCap = 0.0, double reserveDraw = 1.0)
     {
         System.Text.Json.Nodes.JsonObject doc;
         using (var s = Sim.Data.DataFiles.OpenResearch()) doc = System.Text.Json.Nodes.JsonNode.Parse(s)!.AsObject();
         doc["tuning"]!.AsObject()["researchOverflow"] = overflow;
         if (gateAware) doc["tuning"]!.AsObject()["aiGateAwareGoals"] = true;
+        // ADR-051: the ENGINE reserve (tuning.researchReserve), as opposed to the harness model below.
+        if (reserveCap > 0.0)
+            doc["tuning"]!.AsObject()["researchReserve"] = new System.Text.Json.Nodes.JsonObject { ["capTurns"] = reserveCap, ["drawTurns"] = reserveDraw };
         using var goods = Sim.Data.DataFiles.OpenGoods();
         return TestConfigs.Sim() with { Research = ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods)) };
     }
@@ -67,7 +71,9 @@ internal static class ResearchPacingRunner
 
     internal static RunResult Run(RunOptions o, string? outDir)
     {
-        SimConfig cfg = Config(o.Overflow, o.GateAware);
+        SimConfig cfg = Config(o.Overflow, o.GateAware, o.EngineReserveCapTurns, o.EngineReserveDrawTurns);
+        bool engineReserve = o.EngineReserveCapTurns > 0.0;
+        if (engineReserve && o.ReserveCapTurns > 0.0) throw new ArgumentException("the engine reserve and the harness reserve model are exclusive");
         WorldgenConfig shipped = TestConfigs.Worldgen();
         var log = new OrderLog();
         TurnExecutor exec = Executor(cfg, shipped, log);
@@ -98,6 +104,8 @@ internal static class ResearchPacingRunner
         int mismatches = 0, maxTechPerTurn = 0, maxCivPerTurn = 0, maxLevelsPerTurn = 0;
         long firstLevelTurn = -1;
         var emptySince = new long[] { -1, -1 };
+        int saturatedTurns = 0;                      // engine reserve at its cap after the step
+        var techSwitches = new int[10];              // technology destination changed away from a still-incomplete one
         var waitDetail = new SortedDictionary<string, int>(StringComparer.Ordinal);   // test bookkeeping, sorted keys
 
         for (int t = 0; t < o.Turns; t++)
@@ -105,6 +113,7 @@ internal static class ResearchPacingRunner
             OrderRecord[] orders = AiOrders.For(w, cfg, shipped);
             bool[] completed = ResearchQuery.CompletedMask(w, rc, Ai);
             int[] dest = ResearchQuery.Destinations(w, rc, Ai, completed);
+            int heldTech = dest[0];
             if (o.HumanDelay is int d)
                 for (int lane = 0; lane < 2; lane++)
                     emptySince[lane] = dest[lane] < 0 ? (emptySince[lane] < 0 ? t : emptySince[lane]) : -1;
@@ -194,6 +203,8 @@ internal static class ResearchPacingRunner
             for (int i = 0; i < n; i++) cost[i] = ResearchQuery.EffectiveCost(prev, rc, Ai, i);
             (double techCr0, double civCr0) = Credits(prev, rc);
             long cpSpent0 = ResearchQuery.CivicsPointsAccount(prev, Ai).SpentMilli;
+            double r0 = engineReserve ? ResearchQuery.ReserveMilli(prev, Ai) / 1000.0 : 0.0;
+            if (heldTech >= 0 && dest[0] != heldTech && !completed[heldTech]) techSwitches[age]++;
             var levelBefore = new int[n];
             for (int i = 0; i < n; i++) if (rc.Nodes[i].HasRepeatableDescriptor) levelBefore[i] = ResearchQuery.Level(prev, Ai, rc.Nodes[i].Key);
 
@@ -228,6 +239,23 @@ internal static class ResearchPacingRunner
                 : 0.0;
             double spent = Math.Min(pool, Math.Max(0.0, techAdded - (techCr1 - techCr0) + rpToCivic));
             double lost = Math.Max(0.0, pool - spent - deposit);
+            if (engineReserve)
+            {
+                // ADR-051 accounting: the engine moved RP into or out of its reserve; what the step applied may exceed the pool.
+                double r1 = ResearchQuery.ReserveMilli(w, Ai) / 1000.0;
+                deposit = Math.Max(0.0, r1 - r0);
+                draw = Math.Max(0.0, r0 - r1);
+                double applied = Math.Max(0.0, techAdded - (techCr1 - techCr0) + rpToCivic);
+                spent = applied;
+                lost = Math.Max(0.0, pool + draw - deposit - applied);
+                deposits += deposit;
+                draws += draw;
+                reserve = r1;
+                reserveMax = Math.Max(reserveMax, r1);
+                if (pool > 0.0) drawMaxRatio = Math.Max(drawMaxRatio, draw / pool);
+                double capAfter = ResearchQuery.ReserveCapMilli(w, rc, Ai) / 1000.0;
+                if (r1 > 0.0 && r1 >= capAfter - 0.001) saturatedTurns++;
+            }
             rpGen[age] += pool;
             rpSpent[age] += spent;
             if (cur >= 0) lostSurplus[age] += lost + drawLost; else lostEmpty[age] += lost;
@@ -325,6 +353,13 @@ internal static class ResearchPacingRunner
             foreach (KeyValuePair<string, int> kv in waitDetail) sb.Append(Inv, $" [{kv.Key}: {kv.Value}]");
             sb.AppendLine();
         }
+        if (engineReserve)
+        {
+            sb.AppendLine(Inv, $"  engine reserve (cap {o.EngineReserveCapTurns:0.##} turns, draw {o.EngineReserveDrawTurns:0.##}): deposited {deposits:0} drawn {draws:0} left {reserve:0} max {reserveMax:0}; turns at the cap {saturatedTurns}; largest draw {drawMaxRatio:0.##}x the turn's pool");
+        }
+        sb.Append("  technology destination switched away from an incomplete one, by Age:");
+        for (int a = 1; a < 10; a++) if (techSwitches[a] > 0) sb.Append(Inv, $" A{a}={techSwitches[a]}");
+        sb.AppendLine();
         if (reserveOn)
             sb.AppendLine(Inv, $"  reserve: deposited {deposits:0} drawn {draws:0} left {reserve:0} max {reserveMax:0}; largest draw {drawMaxRatio:0.##}x the turn's pool");
         CivicsPointsRow end = ResearchQuery.CivicsPointsAccount(w, Ai);

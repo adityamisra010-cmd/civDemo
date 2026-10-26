@@ -63,6 +63,29 @@ public class ResearchEconomyMeasurement(ITestOutputHelper output)
         RunAll([.. jobs]);
     }
 
+    /// <summary>Director ruling 2026-10-26 — the COMBINED trial: the shipped defaults ("off") against the trial configuration
+    /// ("trial": tuning.researchOverflow + the engine reserve tuning.researchReserve {capTurns 3, drawTurns 1} +
+    /// tuning.aiGateAwareGoals), the trial without the gate rule (diagnostic), and the human proxy (re-target d turns after a
+    /// lane empties) under both, d = 6 standing in for deliberate idling. Every trial run is replayed from its order log with
+    /// a save/load round trip at mid-run. Node costs and repeatables are the shipped content's.</summary>
+    [Sim.Tests.Systems.MeasurementFact("combined overflow + reserve + gate-aware trial; research-cost-pass/combined-trial.md")]
+    public void CombinedTrial_FourSeeds()
+    {
+        var jobs = new List<RunOptions>();
+        foreach (ulong s in Seeds)
+        {
+            jobs.Add(new RunOptions(s, false, "off", Turns));
+            jobs.Add(new RunOptions(s, true, "trial", Turns, Replay: true, SaveLoadAt: Turns / 2, GateAware: true, EngineReserveCapTurns: 3.0));
+            jobs.Add(new RunOptions(s, true, "trial-nogate", Turns, EngineReserveCapTurns: 3.0));
+            jobs.Add(new RunOptions(s, false, "d1-off", Turns, HumanDelay: 1));
+            jobs.Add(new RunOptions(s, false, "d3-off", Turns, HumanDelay: 3));
+            jobs.Add(new RunOptions(s, true, "d1-trial", Turns, HumanDelay: 1, GateAware: true, EngineReserveCapTurns: 3.0));
+            jobs.Add(new RunOptions(s, true, "d3-trial", Turns, HumanDelay: 3, GateAware: true, EngineReserveCapTurns: 3.0));
+            jobs.Add(new RunOptions(s, true, "d6-trial", Turns, HumanDelay: 6, GateAware: true, EngineReserveCapTurns: 3.0));
+        }
+        RunAll([.. jobs]);
+    }
+
     /// <summary>The empty-lane reserve study (a measurement model; the engine is unchanged): a human proxy that re-targets a
     /// lane d turns after it empties, with the RP of a technology lane that funds nothing discarded (today) or kept in a reserve
     /// capped at k turns of RP (d = 1: discard or uncapped; d = 3: discard, k = 1, 3, uncapped, and uncapped with a draw limit of one turn's RP). The AI
