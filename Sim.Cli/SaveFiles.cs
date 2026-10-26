@@ -140,22 +140,26 @@ public static class SaveFiles
         const string v35Tables = " M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys)";
         // ADR-049 (v36): ResearchLevels joins every older version's list of tables added empty.
         const string v36Table = " ResearchLevels (no repeatable research level existed before v36) was added empty too.";
+        // ADR-051 (v37): ResearchReserves joins every older version's list of tables added empty.
+        const string v37Table = " ResearchReserves (no research reserve existed before v37) was added empty too.";
         return version switch
         {
             32 => "note: " + path + ": migrated from save schema v32: the four tables added since v32 (ConstructionProgress,"
                   + " ResourceAllocations, ConstructionHolds, CivicsPoints) and the four" + v35Tables + " were added empty; the"
                   + " hash printed is the v" + current + " hash (SchemaProjection.V32 gives the v32 build's). Its terrain was"
                   + " regenerated flat (no v32 world was a cylinder) and its queued entries are at progress 0, ordered as enqueued"
-                  + " on turn -1." + v36Table,
+                  + " on turn -1." + v36Table + v37Table,
             33 => "note: " + path + ": migrated from save schema v33: ConstructionHolds, CivicsPoints and the four" + v35Tables
                   + " were added empty; the hash printed is the v" + current + " hash (SchemaProjection.V33 gives the v33 build's)."
-                  + v36Table,
+                  + v36Table + v37Table,
             34 => "note: " + path + ": migrated from save schema v34: CivicsPoints (every Civics Points bank starts at zero) and"
                   + " the four" + v35Tables + " were added empty; the first step re-derives each polity's seed extent; the hash"
-                  + " printed is the v" + current + " hash (SchemaProjection.V34 gives the v34 build's)." + v36Table,
-            _ => "note: " + path + ": migrated from save schema v35: ResearchLevels was added empty (no repeatable research level"
+                  + " printed is the v" + current + " hash (SchemaProjection.V34 gives the v34 build's)." + v36Table + v37Table,
+            35 => "note: " + path + ": migrated from save schema v35: ResearchLevels was added empty (no repeatable research level"
                   + " existed before v36; a repeatable completed under v35 reads level 1); the hash printed is the v" + current
-                  + " hash (SchemaProjection.V35 gives the v35 build's).",
+                  + " hash (SchemaProjection.V35 gives the v35 build's)." + v37Table,
+            _ => "note: " + path + ": migrated from save schema v36: ResearchReserves was added empty (no research reserve"
+                  + " existed before v37); the hash printed is the v" + current + " hash (SchemaProjection.V36 gives the v36 build's).",
         };
     }
 

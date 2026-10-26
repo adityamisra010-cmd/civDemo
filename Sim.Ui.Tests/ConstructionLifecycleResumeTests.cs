@@ -167,8 +167,10 @@ public class ConstructionLifecycleResumeTests
         byte[] full = buffer.ToArray();
         // ADR-049 (v36): section 67 (ResearchLevels) follows, asserted empty — 28 bytes of empty prefixes in all.
         Assert.Equal(0, c.ResearchLevels.Count);
-        for (int i = full.Length - 28; i < full.Length; i++) Assert.Equal(0, full[i]);
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 28)));
+        // ADR-051 (v37): section 68 (ResearchReserves) follows too, asserted empty — 32 bytes of empty prefixes in all.
+        Assert.Equal(0, c.ResearchReserves.Count);
+        for (int i = full.Length - 32; i < full.Length; i++) Assert.Equal(0, full[i]);
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 32)));
     }
 
     // ================================================================== kinds 11 and 12 pending across the save (M-C)

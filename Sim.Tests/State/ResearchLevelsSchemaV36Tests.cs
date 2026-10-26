@@ -37,15 +37,17 @@ public class ResearchLevelsSchemaV36Tests
     [Fact]
     public void SchemaV36_PopulatedResearchLevels_ExpectedLengthBitExactRoundTripAndHashEquality()
     {
-        Assert.Equal(36, CanonicalSchema.Version);
+        Assert.True(CanonicalSchema.Version >= 36);   // v37 (ADR-051) appends section 68 after this one
         WorldState world = Populated();
         Assert.Null(ResearchQuery.LevelsInvariantViolation(world.ResearchLevels));   // a table the rule could write
         byte[] bytes = SchemaProjection.Serialize(world);
         Assert.Equal(CanonicalSchema.ExpectedLength(world), bytes.Length);
         Assert.Equal(4 * 12, CanonicalSchema.ExpectedLength(world) - CanonicalSchema.ExpectedLength(new WorldState(36)));   // 12 bytes a row
 
-        // Section 67 is the LAST block: its count prefix, then each row as Polity, Node, Level (little-endian int32s).
-        int start = bytes.Length - 4 - 4 * 12;
+        // Section 67: its count prefix, then each row as Polity, Node, Level (little-endian int32s) — followed since v37 only by
+        // the empty section-68 (ResearchReserves) count prefix.
+        Assert.Equal(0, BitConverter.ToInt32(bytes, bytes.Length - 4));
+        int start = bytes.Length - 4 - 4 - 4 * 12;
         Assert.Equal(4, BitConverter.ToInt32(bytes, start));
         Assert.Equal(1, BitConverter.ToInt32(bytes, start + 4));
         Assert.Equal(419, BitConverter.ToInt32(bytes, start + 8));
@@ -53,7 +55,7 @@ public class ResearchLevelsSchemaV36Tests
         Assert.Equal(-5, BitConverter.ToInt32(bytes, start + 16));
         Assert.Equal(1990, BitConverter.ToInt32(bytes, start + 20));
         Assert.Equal(27, BitConverter.ToInt32(bytes, start + 4 + 2 * 12 + 8));
-        Assert.Equal(ResearchQuery.MaxRepeatableLevel, BitConverter.ToInt32(bytes, bytes.Length - 4));
+        Assert.Equal(ResearchQuery.MaxRepeatableLevel, BitConverter.ToInt32(bytes, bytes.Length - 8));
 
         using (var ms = new MemoryStream(bytes))
         using (var reader = new BinaryReader(ms))
@@ -78,7 +80,7 @@ public class ResearchLevelsSchemaV36Tests
 
         // Through a SNAPSHOT: it loads bit-exactly and re-saves to the identical bytes.
         byte[] file = Saved(world);
-        Assert.Equal(36, BitConverter.ToInt32(file, 8));
+        Assert.Equal(CanonicalSchema.Version, BitConverter.ToInt32(file, 8));
         WorldState loaded = Snapshot.Load(new MemoryStream(file));
         Assert.True(WorldStates.StateEquals(world, loaded));
         Assert.Equal(file, Saved(loaded));
@@ -93,9 +95,10 @@ public class ResearchLevelsSchemaV36Tests
         var w = new WorldState(9);
         w.CivicsPoints.Add(new CivicsPointsRow(new PolityId(1), 5, 5, 0));          // populated v35 tables before the cut
         w.ResearchCompleted.Add(new ResearchCompletedRow(new PolityId(1), new ResearchNodeId(419)));
-        byte[] v36 = Saved(w);
-        // header (8 magic + 4 version + 8 seed + 8 turn) | stream | 4-byte topology trailer: drop the empty section-67 prefix.
-        byte[] v35 = [.. v36[..^8], .. v36[^4..]];
+        byte[] v37 = Saved(w);
+        // header (8 magic + 4 version + 8 seed + 8 turn) | stream | 4-byte topology trailer: drop the empty section-67 and
+        // section-68 (v37, ADR-051) prefixes.
+        byte[] v35 = [.. v37[..^12], .. v37[^4..]];
         BitConverter.GetBytes(35).CopyTo(v35, 8);
         WorldState loaded = Snapshot.Load(new MemoryStream(v35));
         Assert.Equal(0, loaded.ResearchLevels.Count);
@@ -103,8 +106,8 @@ public class ResearchLevelsSchemaV36Tests
         byte[] v35Stream = v35[(8 + 4 + 8 + 8)..^4];
         Assert.Equal(Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(v35Stream)), SchemaProjection.V35(loaded));
         Assert.Equal(SchemaProjection.V35(loaded), WorldHash.ComputeHexAsSchema(loaded, 35));
-        Assert.Equal(4, CanonicalSchema.BytesAppendedSince(loaded, 35));
-        Assert.Equal(4 + 5 * 4 + 28, CanonicalSchema.BytesAppendedSince(loaded, 34));   // + sections 62–66, one CP row
+        Assert.Equal(8, CanonicalSchema.BytesAppendedSince(loaded, 35));                 // sections 67 and 68, empty
+        Assert.Equal(8 + 5 * 4 + 28, CanonicalSchema.BytesAppendedSince(loaded, 34));   // + sections 62–66, one CP row
         // The migrated repeatable reads level 1 through its completed row.
         Assert.Equal(1, ResearchQuery.Level(loaded, new PolityId(1), new ResearchNodeId(419)));
         Assert.Contains("ResearchLevels was added empty", SaveFiles.MigrationNote("x", 35));
@@ -112,26 +115,26 @@ public class ResearchLevelsSchemaV36Tests
     }
 
     [Fact]
-    public void TheReadableSet_Is32To36_ThroughOneHelper_AndEveryReaderAgrees()
+    public void TheReadableSet_Includes32To36_ThroughOneHelper_AndEveryReaderAgrees()
     {
+        // v37 (ADR-051) extends the set by 37; ResearchReservesSchemaV37Tests pins the whole set.
         foreach (int v in new[] { 32, 33, 34, 35, 36 }) Assert.True(CanonicalSchema.IsReadable(v));
-        foreach (int v in new[] { 31, 37, 0, 27, -1, int.MaxValue }) Assert.False(CanonicalSchema.IsReadable(v));
-        foreach (int v in new[] { 31, 37, 0 })
+        foreach (int v in new[] { 31, 0, 27, -1, int.MaxValue }) Assert.False(CanonicalSchema.IsReadable(v));
+        foreach (int v in new[] { 31, 0 })
             Assert.Throws<ArgumentOutOfRangeException>(() => CanonicalSchema.Read(new BinaryReader(new MemoryStream(new byte[64])), v, out _));
-        Assert.Equal(SnapshotDiff.Layout.Length, SnapshotDiff.LayoutFor(36).Length);
-        Assert.Equal("ResearchLevels", SnapshotDiff.Layout[^1].Name);
+        Assert.Equal(SnapshotDiff.Layout.Length - 1, SnapshotDiff.LayoutFor(36).Length);
+        Assert.Equal("ResearchLevels", SnapshotDiff.LayoutFor(36)[^1].Name);
         Assert.Equal("SettlementSurveys", SnapshotDiff.LayoutFor(35)[^1].Name);
         Assert.Equal("ConstructionHolds", SnapshotDiff.LayoutFor(34)[^1].Name);
-        Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(37));
-        foreach (int v in new[] { 32, 33, 34, 35 }) Assert.NotNull(SaveFiles.MigrationNote("x", v));
-        foreach (int v in new[] { 36, 31, 37 }) Assert.Null(SaveFiles.MigrationNote("x", v));
+        foreach (int v in new[] { 32, 33, 34, 35, 36 }) Assert.NotNull(SaveFiles.MigrationNote("x", v));
+        foreach (int v in new[] { CanonicalSchema.Version, 31 }) Assert.Null(SaveFiles.MigrationNote("x", v));
 
-        // A populated v36 stream walks to its end with the level table's row count read back.
+        // A populated stream walks to its end with the level table's row count read back (section 67, before 68).
         byte[] bytes = SchemaProjection.Serialize(Populated());
-        SnapshotDiff.Result self = SnapshotDiff.CompareStreams(bytes, 36, bytes, 36);
+        SnapshotDiff.Result self = SnapshotDiff.CompareStreams(bytes, CanonicalSchema.Version, bytes, CanonicalSchema.Version);
         Assert.True(self.Identical);
         Assert.Equal(bytes.Length, self.BytesWalkedA);
-        Assert.Equal(("ResearchLevels", 4), (self.Tables[^1].Table, self.Tables[^1].RowsA));
+        Assert.Equal(("ResearchLevels", 4), (self.Tables[^2].Table, self.Tables[^2].RowsA));
     }
 
     private static string Refusal(params ResearchLevelRow[] rows)

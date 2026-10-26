@@ -84,6 +84,8 @@ internal static class ResearchRigs
         public bool ResearchOverflow { get; set; }
         /// <summary>ADR-050 lane variant: tuning.researchOverflowLane (null = absent).</summary>
         public bool ResearchOverflowLane { get; set; }
+        /// <summary>ADR-051: tuning.researchReserve {capTurns, drawTurns} (null = absent, the no-reserve engine).</summary>
+        public (double CapTurns, double DrawTurns)? ResearchReserve { get; set; }
 
         public string Json()
         {
@@ -251,6 +253,9 @@ internal static class ResearchRigs
                     ["knowledgeEffects"] = KnowledgeEffects ? true : null,
                     ["researchOverflow"] = ResearchOverflow ? true : null,
                     ["researchOverflowLane"] = ResearchOverflowLane ? true : null,
+                    ["researchReserve"] = ResearchReserve is { } rr
+                        ? new JsonObject { ["capTurns"] = rr.CapTurns, ["drawTurns"] = rr.DrawTurns }
+                        : null,
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject

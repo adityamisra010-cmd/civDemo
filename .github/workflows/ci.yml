@@ -217,7 +217,8 @@ jobs:
           # coordinator's rulings), Track TREE's research-content tranche (ADR-045; measured to move nothing here). CONTROLS:
           # DiscoveryLayoutAttributionTests (TestConfigs.PreM6 returns 0f29efc7… through SchemaProjection.V34) and
           # CivicsPointsAttributionTests (the CP part on the EX-off, tranche-off world).
-          FOUNDED_GOLDEN=35bb235ff1eb59196e54d7a29177cf3a7881354897c93bb5e25260851674b707
+          # ADR-051 (schema v37): re-pinned for the empty section-68 prefix alone (OLD 35bb235f…, its v36 projection; ResearchReserveLayoutAttributionTests).
+          FOUNDED_GOLDEN=8abc32b0d85ef6fc00d0b7476d976953e34f16d6a7e900bdbdd07e5c49f61e28
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"

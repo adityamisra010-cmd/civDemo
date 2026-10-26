@@ -27,7 +27,7 @@ public class TaxGrievanceSchemaTests
     [Fact]
     public void SchemaV32_PopulatedTaxGrievances_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(36, CanonicalSchema.Version);   // v33: D-054 ConstructionProgress + ResourceAllocations (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone)
+        Assert.Equal(37, CanonicalSchema.Version);   // v33: D-054 ConstructionProgress + ResourceAllocations (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -46,7 +46,8 @@ public class TaxGrievanceSchemaTests
         // ADR-043 + ADR-044 (v35, 2026-10-22) CAUSE BLOCK: CivicsPoints and the four discovery tables follow, EMPTY — 8 × 4
         // (was 3 × 4). The layout alone.
         // ADR-049 (v36) CAUSE BLOCK: ResearchLevels follows, EMPTY — 9 × 4. The layout alone.
-        const int V33Trailer = 9 * 4;
+        // ADR-051 (v37) CAUSE BLOCK: ResearchReserves follows, EMPTY — 10 × 4. The layout alone.
+        const int V33Trailer = 10 * 4;
         Assert.All(bytes[^V33Trailer..], x => Assert.Equal(0, x));
         Assert.Equal(0x7FF8_0000_0000_0D07, BitConverter.ToInt64(bytes, bytes.Length - V33Trailer - 8));
         Assert.Equal(1, BitConverter.ToInt32(bytes, bytes.Length - V33Trailer - 12));

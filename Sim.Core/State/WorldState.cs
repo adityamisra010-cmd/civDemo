@@ -874,6 +874,17 @@ public record struct SettlementSurveyRow(PolityId Polity, SettlementId Settlemen
 public record struct ResearchLevelRow(PolityId Polity, ResearchNodeId Node, int Level);
 
 /// <summary>
+/// ADR-051 (schema v37 section 68; PROPOSED, behind research.json <c>tuning.researchReserve</c>) — ONE KNOWLEDGE HOLDER'S
+/// TECHNOLOGY-LANE RESEARCH RESERVE, in integer milli-RP. A step whose technology lane funds nothing deposits that step's RP
+/// pool here, up to capTurns × the holder's current pool; a step whose technology lane funds its own technology node draws at
+/// most drawTurns × the pool, spent by the pool's own rules (LOSSY: what the funding cannot absorb is lost). Written only by
+/// ResearchSystem with the switch on. One row per holder that has ever deposited (it stays, possibly at 0); rows in strictly
+/// ascending Polity (the CivicsPoints precedent: the stream depends only on the set of holders); ReserveMilli ≥ 0. Research
+/// Points are not a conserved stock (no Ledger, ADR-030), but the reserve is integer milli-RP so it is exact and has no drift.
+/// </summary>
+public record struct ResearchReserveRow(PolityId Polity, long ReserveMilli);
+
+/// <summary>
 /// M4-D — a completed structure, counted per (settlement, project).
 ///
 /// NOT a Conserved stock, and that is a considered choice rather than an
@@ -1337,6 +1348,9 @@ public interface IReadOnlyWorldState
 
     /// <summary>ADR-049 (v36 §67): each knowledge holder's repeatable research levels — owned by ResearchSystem.</summary>
     IReadOnlyTable<ResearchLevelRow> ResearchLevels { get; }
+
+    /// <summary>ADR-051 (v37 §68): each knowledge holder's technology-lane RP reserve — owned by ResearchSystem.</summary>
+    IReadOnlyTable<ResearchReserveRow> ResearchReserves { get; }
 }
 
 /// <summary>
@@ -1560,6 +1574,9 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>ADR-049 (v36 §67): each knowledge holder's repeatable research levels — owned by ResearchSystem.</summary>
     public Table<ResearchLevelRow> ResearchLevels { get; }
 
+    /// <summary>ADR-051 (v37 §68): each knowledge holder's technology-lane RP reserve — owned by ResearchSystem.</summary>
+    public Table<ResearchReserveRow> ResearchReserves { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1627,6 +1644,7 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<SettlementSightingRow> IReadOnlyWorldState.SettlementSightings => SettlementSightings;
     IReadOnlyTable<SettlementSurveyRow> IReadOnlyWorldState.SettlementSurveys => SettlementSurveys;
     IReadOnlyTable<ResearchLevelRow> IReadOnlyWorldState.ResearchLevels => ResearchLevels;
+    IReadOnlyTable<ResearchReserveRow> IReadOnlyWorldState.ResearchReserves => ResearchReserves;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1698,6 +1716,7 @@ public sealed class WorldState : IReadOnlyWorldState
         SettlementSightings = new Table<SettlementSightingRow>();
         SettlementSurveys = new Table<SettlementSurveyRow>();
         ResearchLevels = new Table<ResearchLevelRow>();
+        ResearchReserves = new Table<ResearchReserveRow>();
     }
 
     private WorldState(
@@ -1736,7 +1755,7 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<ConstructionHoldRow> constructionHolds, Table<CivicsPointsRow> civicsPoints,
         Table<KnownExtentRow> knownExtents, Table<ExplorationRow> explorations,
         Table<SettlementSightingRow> settlementSightings, Table<SettlementSurveyRow> settlementSurveys,
-        Table<ResearchLevelRow> researchLevels)
+        Table<ResearchLevelRow> researchLevels, Table<ResearchReserveRow> researchReserves)
     {
         Seed = seed;
         Clock = clock;
@@ -1807,6 +1826,7 @@ public sealed class WorldState : IReadOnlyWorldState
         SettlementSightings = settlementSightings;
         SettlementSurveys = settlementSurveys;
         ResearchLevels = researchLevels;
+        ResearchReserves = researchReserves;
     }
 
     /// <summary>
@@ -1835,7 +1855,7 @@ public sealed class WorldState : IReadOnlyWorldState
             ConstructionProgress.Clone(), ResourceAllocations.Clone(), ConstructionHolds.Clone(),
             CivicsPoints.Clone(),
             KnownExtents.Clone(), Explorations.Clone(), SettlementSightings.Clone(), SettlementSurveys.Clone(),
-            ResearchLevels.Clone())
+            ResearchLevels.Clone(), ResearchReserves.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

@@ -24,8 +24,12 @@ namespace Sim.Tests.Kernel;
 public class DiscoveryLayoutAttributionTests
 {
     // The worlds under TestConfigs.PreM6, RAW (the v34 stream plus the five empty v35 count prefixes, sections 62–66).
-    internal const string PreM6FoundedGolden = "b84449737c9fd9099c300b0b8405a8fc4df532ba7a5c2d9e897e39a04e9d7804";
-    internal const string PreM6AiTurn300 = "994e3d1022d608b2e348da34c8771e0fb31535cd8fd28fae96a3ae3d8a55c48e";
+    // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD b84449737c9fd909… -> NEW 9ec11ace4ca354f4… — the empty section-68
+    // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
+    internal const string PreM6FoundedGolden = "9ec11ace4ca354f4a70ad5b57831cc2f69ccbea3a00c9c17754b88856031c918";
+    // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD 994e3d1022d608b2… -> NEW b4f6616cd8ce23db… — the empty section-68
+    // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
+    internal const string PreM6AiTurn300 = "b4f6616cd8ce23dbde6ca84668b94eab8793f665f2d5981823fa76fd2455a582";
 
     private static SimConfig Off() => TestConfigs.PreM6(TestConfigs.Sim());
     private static SimConfig ExAlone() => TestConfigs.PreTrackCp(TestConfigs.PreTreeTranche(TestConfigs.Sim()));
@@ -48,6 +52,7 @@ public class DiscoveryLayoutAttributionTests
     {
         WorldState twin = SnapshotTests.RunFoundedGolden(Off());
         AssertExMoves(twin, SnapshotTests.RunFoundedGolden(ExAlone()), CivicsPointsAttributionTests.V34FoundedGolden, PreM6FoundedGolden);
+        ResearchReserveLayoutAttributionTests.LayoutAlone(twin, ResearchReserveLayoutAttributionTests.V36PreM6FoundedGolden, PreM6FoundedGolden);   // ADR-051 (v37)
         // The older links, reached through the twin (they were asserted on the live world before v35).
         Assert.Equal(ReservationsLayoutAttributionTests.Batch3FoundedGolden, SchemaProjection.V33(twin));
         Assert.Equal(SnapshotTests.FoundedGoldenHashAtV32, SchemaProjection.V32(twin));

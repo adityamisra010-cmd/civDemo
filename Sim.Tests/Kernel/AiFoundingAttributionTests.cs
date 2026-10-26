@@ -99,11 +99,15 @@ public class AiFoundingAttributionTests
     // turn 0 the AI targets cereal_cultivation and oral_tradition (were grinding_stone and kin_council) and its whole
     // trajectory moves (AiEmpireIntegrationTests). No level row is written by turn 300 (ResearchLevels empty). CONTROL:
     // AiWorldTurn300_WithTranche2Off_IsThePreTranche2World — TestConfigs.PreTranche2 returns OLD byte for byte.
-    internal const string S1cTurn300 = "d6b4a3cfddea59d0c86cbc603338b40537769c3a0d0501b0c3bd5b534a43d7d2";
+    // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD d6b4a3cfddea59d0… -> NEW 2a6a61d3dbd26dac… — the empty section-68
+    // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
+    internal const string S1cTurn300 = "2a6a61d3dbd26dac52cc94e309924622c28b17dac2a2c94bca929812ac216e74";
 
     /// <summary>D-063: the live AI world at turn 300 BEFORE tranche 2 (the S1cTurn300 value at 86800d9) — what the
     /// pre-tranche-2 twin (TestConfigs.PreTranche2) must return.</summary>
-    internal const string PreTranche2Turn300 = "80ace28280e268fd827a83fc5804d9a15b47c5d2178f7f42e043cfd4f71582f1";
+    // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD 80ace28280e268fd… -> NEW b8646444d555ae50… — the empty section-68
+    // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
+    internal const string PreTranche2Turn300 = "b8646444d555ae50acf64acda63e6abd8cc184af658a35b10e1b533c0d9b59f2";
 
     /// <summary>The batch-2 (e91d10b) AI world at turn 300: the value both batch-3 twins off must return.</summary>
     internal const string E91d10bTurn300 = "2e4759ac494d946126624fec584e26fdce323a8018877987b26b2ecc08b98be8";
@@ -183,6 +187,7 @@ public class AiFoundingAttributionTests
         }
         Assert.True(live.Terrain!.WrapX);
         Assert.Equal(S1cTurn300, WorldHash.ComputeHex(live));
+        ResearchReserveLayoutAttributionTests.LayoutAlone(live, ResearchReserveLayoutAttributionTests.V36AiTurn300, S1cTurn300);   // ADR-051 (v37)
         // ADR-043 (2026-10-22) CAUSE BLOCK: the live world now carries Civics Points accounts and the AI's civics lane
         // (behaviour, not layout), so the batch-3 cylinder-alone link is asserted on the pre-CP live world instead:
         // ReservationsLayoutAttributionTests.AiWorldSeed42Turn300_MovedForTheV34LayoutAlone (SchemaProjection.V32 of the
@@ -258,6 +263,8 @@ public class AiFoundingAttributionTests
             w = exec.Step(w);
         }
         Assert.Equal(DiscoveryLayoutAttributionTests.PreM6AiTurn300, WorldHash.ComputeHex(w));
+        ResearchReserveLayoutAttributionTests.LayoutAlone(w, ResearchReserveLayoutAttributionTests.V36PreM6AiTurn300,
+            DiscoveryLayoutAttributionTests.PreM6AiTurn300);   // ADR-051 (v37)
         Assert.Equal(CivicsPointsAttributionTests.V34AiTurn300, SchemaProjection.V34(w));
         Assert.Equal(S1cTurn300AtV32, SchemaProjection.V32(w));
         Assert.NotEqual(CivicsPointsAttributionTests.V34AiTurn300, S1cTurn300);

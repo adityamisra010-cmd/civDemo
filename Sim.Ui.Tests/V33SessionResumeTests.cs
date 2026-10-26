@@ -55,7 +55,7 @@ public class V33SessionResumeTests
             // The four-line notice, its second line the cylinder one.
             Assert.Equal(UiSession.SchemaMismatchNotice(33, CanonicalSchema.Version), s.ResumeNotice);
             Assert.Equal(4, s.ResumeNotice.Count);
-            Assert.Equal("Recorded under save schema v33; this build is v36.", s.ResumeNotice[0]);   // ADR-043 (2026-10-22): v35 (was v34)
+            Assert.Equal("Recorded under save schema v33; this build is v37.", s.ResumeNotice[0]);   // ADR-043 (2026-10-22): v35 (was v34); ADR-049: v36; ADR-051: v37 — the schema bump alone
             Assert.Equal("Resumed by replaying its seed and orders (D-008).", s.ResumeNotice[1]);
 
             // The fresh shipped replay of the same seed and log, with no trace at all: the same world.

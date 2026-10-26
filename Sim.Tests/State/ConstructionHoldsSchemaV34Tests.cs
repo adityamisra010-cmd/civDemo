@@ -45,7 +45,7 @@ public class ConstructionHoldsSchemaV34Tests
     [Fact]
     public void SchemaV34_PopulatedHolds_ExpectedLengthBitExactRoundTripAndHashEquality()
     {
-        Assert.Equal(36, CanonicalSchema.Version);   // v35 (ADR-043 CivicsPoints, 2026-10-22): the schema bump alone (v36: ADR-049 ResearchLevels — the schema bump alone)
+        Assert.Equal(37, CanonicalSchema.Version);   // v35 (ADR-043 CivicsPoints, 2026-10-22): the schema bump alone (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone)
         WorldState world = Populated();
         Assert.Null(Reservations.InvariantViolation(world.ConstructionHolds));   // a table a rule could write
         byte[] bytes = SchemaProjection.Serialize(world);
@@ -56,7 +56,8 @@ public class ConstructionHoldsSchemaV34Tests
         // ADR-043 + ADR-044 (v35, 2026-10-22) CAUSE BLOCK: sections 62–66 (CivicsPoints and the four discovery tables, EMPTY
         // here) follow it — every offset below moves by their five 4-byte zero count prefixes (`tail`). The layout alone.
         // ADR-049 (v36) CAUSE BLOCK: section 67 (ResearchLevels, EMPTY) follows too — six prefixes. The layout alone.
-        const int tail = 6 * 4;
+        // ADR-051 (v37) CAUSE BLOCK: section 68 (ResearchReserves, EMPTY) follows too — seven prefixes. The layout alone.
+        const int tail = 7 * 4;
         for (int i = bytes.Length - tail; i < bytes.Length; i++) Assert.Equal(0, bytes[i]);
         int start = bytes.Length - tail - 4 - 4 * 16;
         Assert.Equal(4, BitConverter.ToInt32(bytes, start));
@@ -179,10 +180,10 @@ public class ConstructionHoldsSchemaV34Tests
     {
         // M6 EX (v35, 2026-10-22): the set is {32, 33, 34, 35} now (DiscoverySchemaV35Tests pins 35).
         foreach (int v in new[] { 32, 33, 34, 35 }) Assert.True(CanonicalSchema.IsReadable(v));
-        foreach (int v in new[] { 31, 37, 0, 27, -1, int.MaxValue }) Assert.False(CanonicalSchema.IsReadable(v));
+        foreach (int v in new[] { 31, 38, 0, 27, -1, int.MaxValue }) Assert.False(CanonicalSchema.IsReadable(v));
 
         // CanonicalSchema.Read: the four read; the rest are refused.
-        foreach (int v in new[] { 31, 37, 0, 27 })
+        foreach (int v in new[] { 31, 38, 0, 27 })
             Assert.Throws<ArgumentOutOfRangeException>(() => CanonicalSchema.Read(new BinaryReader(new MemoryStream(new byte[64])), v, out _));
 
         // Snapshot.Load: v32 (the batch-2 fixture), v33 (the batch-3 fixture) and v34 (a save of this build) load.
@@ -196,20 +197,21 @@ public class ConstructionHoldsSchemaV34Tests
         Assert.Equal(4, v34.ConstructionHolds.Count);
 
         // SnapshotDiff.LayoutFor: v34 the layout less the five v35 blocks (62–66), v33 less six, v32 less eight; the rest refused.
-        Assert.Equal(SnapshotDiff.Layout.Length - 6, SnapshotDiff.LayoutFor(34).Length);
+        // ADR-049 (v36) and ADR-051 (v37) each appended one more block: one more for every older version.
+        Assert.Equal(SnapshotDiff.Layout.Length - 7, SnapshotDiff.LayoutFor(34).Length);
         Assert.Equal("ConstructionHolds", SnapshotDiff.LayoutFor(34)[^1].Name);
-        Assert.Equal(SnapshotDiff.Layout.Length - 7, SnapshotDiff.LayoutFor(33).Length);
+        Assert.Equal(SnapshotDiff.Layout.Length - 8, SnapshotDiff.LayoutFor(33).Length);
         Assert.Equal("ResourceAllocations", SnapshotDiff.LayoutFor(33)[^1].Name);
-        Assert.Equal(SnapshotDiff.Layout.Length - 9, SnapshotDiff.LayoutFor(32).Length);
+        Assert.Equal(SnapshotDiff.Layout.Length - 10, SnapshotDiff.LayoutFor(32).Length);
         Assert.Equal("TaxGrievance", SnapshotDiff.LayoutFor(32)[^1].Name);
-        foreach (int v in new[] { 31, 37, 0, 27 })
+        foreach (int v in new[] { 31, 38, 0, 27 })
             Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(v));
 
         // SaveFiles.MigrationNote: a note for each older member, none for this build's or any refused version.
         Assert.NotNull(SaveFiles.MigrationNote("x", 32));
         Assert.NotNull(SaveFiles.MigrationNote("x", 33));
         Assert.NotNull(SaveFiles.MigrationNote("x", 34));
-        foreach (int v in new[] { 36, 31, 37, 0, 27 }) Assert.Null(SaveFiles.MigrationNote("x", v));
+        foreach (int v in new[] { 37, 31, 38, 0, 27 }) Assert.Null(SaveFiles.MigrationNote("x", v));
     }
 
     /// <summary>The ConstructionHolds block's layout widths sum to the row width: a populated v34 stream walks to EXACTLY
@@ -223,8 +225,8 @@ public class ConstructionHoldsSchemaV34Tests
         SnapshotDiff.Result self = SnapshotDiff.CompareStreams(bytes, CanonicalSchema.Version, bytes, CanonicalSchema.Version);
         Assert.True(self.Identical);
         Assert.Equal(bytes.Length, self.BytesWalkedA);
-        Assert.Equal(4, self.Tables[^7].RowsA);   // the five v35 blocks and v36 section 67 follow section 61
-        Assert.Equal("ConstructionHolds", self.Tables[^7].Table);
+        Assert.Equal(4, self.Tables[^8].RowsA);   // the five v35 blocks, v36 section 67 and v37 section 68 follow section 61
+        Assert.Equal("ConstructionHolds", self.Tables[^8].Table);
 
         byte[] v33File = ConstructionHoldsV33FixtureTests.FixtureFile();
         byte[] v33Stream = v33File[(8 + 4 + 8 + 8)..^4];
@@ -235,7 +237,7 @@ public class ConstructionHoldsSchemaV34Tests
         Assert.Equal(v33Stream.Length, cross.BytesWalkedA);
         Assert.Equal(v34Stream.Length, cross.BytesWalkedB);
         Assert.Equal((0, 0), (cross.Tables[^1].RowsA, cross.Tables[^1].RowsB));
-        Assert.Equal(v33Stream.Length + 4 + 5 * 4 + 4, v34Stream.Length);   // ADR-049 (v36): + section 67
+        Assert.Equal(v33Stream.Length + 4 + 5 * 4 + 4 + 4, v34Stream.Length);   // ADR-049 (v36): + section 67; ADR-051 (v37): + 68
     }
 
     // ================================================================== the switch

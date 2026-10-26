@@ -156,6 +156,8 @@ public static class SnapshotDiff
         new("SettlementSurveys", [I("Polity"), I("Settlement"), L("Turn")]),
         // v36 (ADR-049): each knowledge holder's level of each levelled repeatable research node, section 67.
         new("ResearchLevels", [I("Polity"), I("Node"), I("Level")]),
+        // v37 (ADR-051): each knowledge holder's technology-lane RP reserve, milli-RP, section 68.
+        new("ResearchReserves", [I("Polity"), L("ReserveMilli")]),
     ];
 
     /// <summary>The number of trailing <see cref="Layout"/> blocks schema v33 appended (absent from a v32 stream).</summary>
@@ -172,6 +174,10 @@ public static class SnapshotDiff
     /// ResearchLevels (ADR-049).</summary>
     private const int V36Blocks = 1;
 
+    /// <summary>The number of trailing <see cref="Layout"/> blocks schema v37 appended (absent from v32–v36 streams):
+    /// ResearchReserves (ADR-051).</summary>
+    private const int V37Blocks = 1;
+
     /// <summary>
     /// THE LAYOUT OF A STREAM OF <paramref name="version"/> (ADR-039: the walk dispatches on the save's header version;
     /// D-055: the readable SET, CanonicalSchema.IsReadable): this build's <see cref="Layout"/> for v34; the same less the
@@ -183,13 +189,14 @@ public static class SnapshotDiff
     {
         if (!CanonicalSchema.IsReadable(version))
             throw new ArgumentOutOfRangeException(nameof(version), version,
-                $"sim diff walks canonical streams of version 32, 33, 34, 35 and {CanonicalSchema.Version} only.");
+                $"sim diff walks canonical streams of version 32, 33, 34, 35, 36 and {CanonicalSchema.Version} only.");
         return version switch
         {
-            32 => Layout[..^(V33Blocks + V34Blocks + V35Blocks + V36Blocks)],
-            33 => Layout[..^(V34Blocks + V35Blocks + V36Blocks)],
-            34 => Layout[..^(V35Blocks + V36Blocks)],
-            35 => Layout[..^V36Blocks],
+            32 => Layout[..^(V33Blocks + V34Blocks + V35Blocks + V36Blocks + V37Blocks)],
+            33 => Layout[..^(V34Blocks + V35Blocks + V36Blocks + V37Blocks)],
+            34 => Layout[..^(V35Blocks + V36Blocks + V37Blocks)],
+            35 => Layout[..^(V36Blocks + V37Blocks)],
+            36 => Layout[..^V37Blocks],
             _ => Layout,   // CanonicalSchema.Version, the one other member of the readable set
         };
     }

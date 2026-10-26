@@ -325,7 +325,7 @@ public class IntegratedPinAttributionTests
             CanonicalSchema.Write(stripped, writer);
         }
 
-        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), dropTrailingTables + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount + TestUtil.SchemaProjection.V37TableCount);
     }
 
     private static string HashDroppingTrailer(byte[] full, int dropTrailingTables)
@@ -414,7 +414,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount + TestUtil.SchemaProjection.V37TableCount);
     }
 
     /// <summary>ADR-032: the two v29 transport tables, appended after UnitConversions. Every pin in
@@ -447,7 +447,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount + TestUtil.SchemaProjection.V37TableCount);
     }
 
     /// <summary>ADR-033 D4: the one v30 governance table (TaxPolicies), appended after
@@ -496,7 +496,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount + TestUtil.SchemaProjection.V37TableCount);
     }
 
     /// <summary>ADR-033 D6 + D10: the two v31 tables (Institutions, ConstructionLabor), appended after
@@ -538,7 +538,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount + TestUtil.SchemaProjection.V37TableCount);
     }
 
     /// <summary>H2 (2026-10-05): the one v32 table (TaxGrievances — the levy's grievance per population segment),
@@ -569,7 +569,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount + TestUtil.SchemaProjection.V37TableCount);
     }
 
     /// <summary>A pre-v32 pin's comparison form: the v31 stream of an UNTAXED run (no levy-grievance row to strip —
@@ -603,6 +603,9 @@ public class IntegratedPinAttributionTests
         // ADR-043 (2026-10-22): a Civics Points account is BEHAVIOUR (the two-lane model on), never layout — a pre-v35 pin
         // is reached only from a world run with Track CP off (TestConfigs.PreTrackCp, or an older twin that strips it).
         // ADR-049 (v36): a repeatable level row is behaviour too (tuning.repeatableLevels); section 67 is stripped with v35.
+        // ADR-051 (v37): a research reserve row is behaviour too (tuning.researchReserve); section 68 is stripped with v35.
+        int reserves = TestUtil.SchemaProjection.StripV37(stripped);
+        Assert.True(reserves == 0, $"the v37 strip removed {reserves} reserve row(s): a research reserve is behaviour, not layout");
         int levels = TestUtil.SchemaProjection.StripV36(stripped);
         Assert.True(levels == 0, $"the v36 strip removed {levels} level row(s): a repeatable level is behaviour, not layout");
         int removed = TestUtil.SchemaProjection.StripV35(stripped);
@@ -718,7 +721,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount + TestUtil.SchemaProjection.V37TableCount);
     }
 
     /// <summary>
@@ -745,7 +748,7 @@ public class IntegratedPinAttributionTests
         {
             CanonicalSchema.Write(stripped, writer);
         }
-        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount);
+        return HashDroppingTrailer(buffer.ToArray(), 1 + ResearchTableCount + AgeTableCount + RoadTableCount + GovernanceTableCount + InstitutionTableCount + LevyTableCount + TestUtil.SchemaProjection.V33TableCount + TestUtil.SchemaProjection.V34TableCount + TestUtil.SchemaProjection.V35TableCount + TestUtil.SchemaProjection.V36TableCount + TestUtil.SchemaProjection.V37TableCount);
     }
 
     /// <summary>
@@ -967,7 +970,7 @@ public class IntegratedPinAttributionTests
         Assert.Equal(beforeT421, HashAtSchemaV24(world, out int removed));
         Assert.Equal(0, removed);
         Assert.Equal(0, world.Disasters.Count);
-        Assert.Equal(36, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone)
+        Assert.Equal(37, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone)
     }
 
     [Fact]
@@ -1526,7 +1529,7 @@ public class IntegratedPinAttributionTests
         WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
         Assert.Equal(V31ToyGolden, V31(world));
         Assert.Equal(0, world.TaxPolicies.Count);
-        Assert.Equal(36, CanonicalSchema.Version);   // v33: D-054 ConstructionProgress + ResourceAllocations (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone)
+        Assert.Equal(37, CanonicalSchema.Version);   // v33: D-054 ConstructionProgress + ResourceAllocations (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone)
     }
 
     [Fact]

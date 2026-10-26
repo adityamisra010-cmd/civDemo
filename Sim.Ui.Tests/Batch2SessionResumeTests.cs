@@ -60,8 +60,10 @@ public class Batch2SessionResumeTests
         byte[] full = buffer.ToArray();
         // ADR-049 (v36): section 67 (ResearchLevels) follows, asserted empty — 36 bytes of empty prefixes in all.
         Assert.Equal(0, c.ResearchLevels.Count);
-        for (int i = full.Length - 36; i < full.Length; i++) Assert.Equal(0, full[i]);
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 36)));
+        // ADR-051 (v37): section 68 (ResearchReserves) follows, asserted empty — 40 bytes of empty prefixes in all.
+        Assert.Equal(0, c.ResearchReserves.Count);
+        for (int i = full.Length - 40; i < full.Length; i++) Assert.Equal(0, full[i]);
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 40)));
     }
 
     [Fact]

@@ -13,7 +13,8 @@ public sealed record ResearchTables(
     Table<ResearchEurekaRow> Eurekas,
     Table<ResearchCreditRow> Credits,
     Table<CivicsPointsRow> CivicsPoints,
-    Table<ResearchLevelRow> Levels);
+    Table<ResearchLevelRow> Levels,
+    Table<ResearchReserveRow> Reserves);
 
 /// <summary>
 /// ADR-029 — THE RESEARCH ENGINE (D-044; addendum A; ADR-030; ADR-043).
@@ -70,6 +71,18 @@ public sealed record ResearchTables(
 /// each Eureka fires once and the one pool (ceiling × BaseCost, BaseCost of level 1) is shared across all levels, landing
 /// on whichever level is in progress when a credit is paid — a later level is paid in RP/CP. With the switch off no level
 /// row is ever written and a repeatable completes once (D-044 R11), byte for byte.
+///
+/// ADR-051 (PROPOSED) — THE TECHNOLOGY-LANE RP RESERVE. With research.json tuning.researchReserve present (absent = off, the
+/// shipped default), step 3 changes in two places and nothing else does. DEPOSIT: a holder whose technology lane funds nothing
+/// this step (<c>fund[0] &lt; 0</c>: no destination and no assist, or a destination none of whose route nodes is fundable)
+/// puts the step's RP into its ResearchReserves row, up to capTurns × its current pool
+/// (<see cref="ResearchQuery.ReserveDepositMilli"/>); the rest is lost as before. DRAW: a holder whose technology lane funds
+/// one of its OWN technology nodes (its destination or its route — not a free-lane assist, and never a civic) draws
+/// <see cref="ResearchQuery.ReserveDrawMilli"/> = min(reserve, drawTurns × pool); the whole draw leaves the reserve and joins
+/// the step's points, spent by exactly the pool's rules (one node; along the route with tuning.researchOverflow), the pool
+/// first and the draw last. What the funding cannot absorb is lost — LOSSY, never refunded — and if overflow carries the
+/// points on to an assist or a civic, the unspent draw is dropped there (the reserve never pays an assist or a civic). The
+/// CP bank is never read or written by the reserve. Everything is read from PREV; integer milli-RP; no RNG.
 ///
 /// R2a CITY STATES (docs/city-state-progression.md): after the roster polities, every settlement no Empire
 /// controls is a knowledge holder under its reserved local key (SettlementKnowledge.LocalHolder) and runs the
@@ -274,12 +287,34 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
 
             // 3. RP throughput to the Technology target (in the one-pool model, the one target). ADR-030 §2: Research
             //    Points are generated and spent PER TURN — deliberately NOT multiplied by dtYears (the scoped exception
-            //    to law 3; this is its one code site). RP that reaches no node is lost (no general bank, D-044 R20-D).
+            //    to law 3; this is its one code site). RP that reaches no node is lost (no general bank, D-044 R20-D) —
+            //    except, with ADR-051's tuning.researchReserve, the capped deposit of a lane that funds nothing.
+            bool reserve = content.Tuning.Reserve is not null;
+            if (fund[0] < 0 && reserve)
+            {
+                // ADR-051 DEPOSIT: the step's pool, up to the cap (capTurns × the current pool); the rest is lost.
+                long deposit = ResearchQuery.ReserveDepositMilli(prev, content, polity);
+                if (deposit > 0L) SetReserve(owned.Reserves, polity, checked(ResearchQuery.ReserveMilli(prev, polity) + deposit));
+            }
             if (fund[0] >= 0)
             {
                 double amount = local
                     ? ResearchQuery.CityStateResearchPoints(prev, content, SettlementKnowledge.SettlementOf(polity))
                     : ResearchQuery.ResearchPointPool(prev, content, polity);
+                // ADR-051 DRAW: only for the lane's OWN technology node (never an assist, never a civic); the whole draw
+                // leaves the reserve; the pool is spent first, the draw last; whatever the funding cannot absorb is lost.
+                double drawn = 0.0;
+                bool ownTechnology = content.Nodes[fund[0]].Tree == ResearchTree.Technology && lanes is not [{ Assisting: true }, ..];
+                if (reserve && ownTechnology)
+                {
+                    long draw = ResearchQuery.ReserveDrawMilli(prev, content, polity);
+                    if (draw > 0L)
+                    {
+                        SetReserve(owned.Reserves, polity, ResearchQuery.ReserveMilli(prev, polity) - draw);
+                        drawn = draw / 1000.0;
+                        amount += drawn;
+                    }
+                }
                 for (int node = fund[0]; node >= 0 && amount > 0.0;)
                 {
                     double cost = ResearchQuery.EffectiveCost(prev, content, polity, node);
@@ -287,7 +322,13 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                     if (!overflow || rowOf[node] < 0 || owned.Progress[rowOf[node]].Progress < cost) break;
                     paidOff ??= new bool[n];
                     paidOff[node] = true;
-                    node = NextFunded(prev, content, polity, local, twoLanes, lanes, target, 0, available, paidOff, remaining);
+                    node = NextFunded(prev, content, polity, local, twoLanes, lanes, target, 0, available, paidOff, remaining, out bool assist);
+                    if (drawn > 0.0 && node >= 0 && (assist || content.Nodes[node].Tree != ResearchTree.Technology))
+                    {
+                        // ADR-051: overflow moves on to an assist or a civic — the unspent draw (spent last) is dropped here.
+                        amount -= Math.Min(amount, drawn);
+                        drawn = 0.0;
+                    }
                 }
             }
 
@@ -313,7 +354,7 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                         if (!overflow || rowOf[node] < 0 || owned.Progress[rowOf[node]].Progress < cost) break;
                         paidOff ??= new bool[n];
                         paidOff[node] = true;
-                        node = NextFunded(prev, content, polity, local, twoLanes, lanes, target, 1, available, paidOff, remaining);
+                        node = NextFunded(prev, content, polity, local, twoLanes, lanes, target, 1, available, paidOff, remaining, out _);
                     }
                     var updated = new CivicsPointsRow(polity, balance - spent,
                         checked(account.GeneratedMilli + generated), checked(account.SpentMilli + spent));
@@ -377,8 +418,9 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
     /// cheapest available node of its lane; with tuning.researchOverflowLane an Empire's lane, its route exhausted, does too.
     /// -1 when nothing more is fundable (routing off: never more than the target).</summary>
     private static int NextFunded(IReadOnlyWorldState prev, ResearchContent content, PolityId polity, bool local, bool twoLanes,
-        LaneFunding[]? lanes, int[] target, int lane, bool[] available, bool[] paidOff, double[]? remaining)
+        LaneFunding[]? lanes, int[] target, int lane, bool[] available, bool[] paidOff, double[]? remaining, out bool assist)
     {
+        assist = false;   // ADR-051: whether the node returned is a free-lane assist on the other lane's route
         var open = new bool[available.Length];
         for (int i = 0; i < open.Length; i++) open[i] = available[i] && !paidOff[i];
         if (local)
@@ -391,7 +433,10 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
         else if (lanes[lane].Plan is { } own)
             next = ResearchRoutePlanner.PickCurrent(content, own.Route, open, remaining, lane, twoLanes, -1);
         if (next < 0 && twoLanes && lanes[1 - lane].Plan is { } other)
+        {
             next = ResearchRoutePlanner.PickCurrent(content, other.Route, open, remaining, lane, twoLanes, -1);
+            assist = next >= 0;
+        }
         if (next < 0 && content.Tuning.ResearchOverflowLane)   // the lane variant: the cheapest available node of the lane
             next = AiResearchPolicy.Cheapest(prev, content, polity, open,
                 twoLanes ? TreeMask(content, lane == 0 ? ResearchTree.Technology : ResearchTree.Civics) : null);
@@ -413,6 +458,23 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
         if (r >= 0) owned.Progress[r] = row;
         else rowOf[node.Index] = owned.Progress.Add(row);
         return next - have;
+    }
+
+    /// <summary>ADR-051: writes a holder's reserve — replacing its row in place, or inserting the first one keeping the table
+    /// in strictly ascending Polity order (shifting later rows, never a swap: the stream depends only on the set of holders).
+    /// A row once written stays, at 0 when drawn empty.</summary>
+    private static void SetReserve(Table<ResearchReserveRow> reserves, PolityId polity, long reserveMilli)
+    {
+        var row = new ResearchReserveRow(polity, reserveMilli);
+        int at = reserves.Count;
+        for (int i = 0; i < reserves.Count; i++)
+        {
+            if (reserves[i].Polity.Value == polity.Value) { reserves[i] = row; return; }
+            if (reserves[i].Polity.Value > polity.Value) { at = i; break; }
+        }
+        reserves.Add(row);
+        for (int i = reserves.Count - 1; i > at; i--) reserves[i] = reserves[i - 1];
+        reserves[at] = row;
     }
 
     /// <summary>ADR-049: writes a holder's new level of a node — replacing its row in place, or appending the first one, so

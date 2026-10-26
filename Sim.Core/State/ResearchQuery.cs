@@ -872,6 +872,80 @@ public static class ResearchQuery
         return null;
     }
 
+    // ------------------------------------------------------------------ the technology-lane RP reserve (ADR-051)
+
+    /// <summary>
+    /// The RP a knowledge holder generates this turn: <see cref="CityStateResearchPoints"/> for a city-state's reserved local
+    /// key, else <see cref="ResearchPointPool"/> — exactly the amount ResearchSystem's throughput spends (per turn, never ×
+    /// dtYears, ADR-030 §2).
+    /// </summary>
+    public static double HolderResearchPoints(IReadOnlyWorldState world, ResearchContent content, PolityId holder) =>
+        SettlementKnowledge.IsLocalHolder(holder)
+            ? CityStateResearchPoints(world, content, SettlementKnowledge.SettlementOf(holder))
+            : ResearchPointPool(world, content, holder);
+
+    /// <summary>ADR-051: RP → integer milli-RP, rounded DOWN (never more than the RP it stands for); 0 for a non-positive or
+    /// NaN amount, saturating at long.MaxValue (+∞ included).</summary>
+    public static long ToMilliRp(double rp)
+    {
+        double milli = Math.Floor(rp * 1000.0);
+        if (!(milli > 0.0)) return 0L;
+        return milli >= 9.2e18 ? long.MaxValue : (long)milli;
+    }
+
+    /// <summary>ADR-051: the holder's research reserve in milli-RP (0 without a row).</summary>
+    public static long ReserveMilli(IReadOnlyWorldState world, PolityId holder)
+    {
+        for (int i = 0; i < world.ResearchReserves.Count; i++)
+            if (world.ResearchReserves[i].Polity.Value == holder.Value) return world.ResearchReserves[i].ReserveMilli;
+        return 0L;
+    }
+
+    /// <summary>ADR-051: the reserve's cap for the holder's CURRENT pool, milli-RP — floor(1000 × capTurns × pool); 0 with
+    /// tuning.researchReserve absent.</summary>
+    public static long ReserveCapMilli(IReadOnlyWorldState world, ResearchContent content, PolityId holder) =>
+        content.Tuning.Reserve is { } rule ? ToMilliRp(rule.CapTurns * HolderResearchPoints(world, content, holder)) : 0L;
+
+    /// <summary>
+    /// ADR-051 — THE DEPOSIT of a step whose technology lane funds nothing, milli-RP: the step's pool (floor, milli-RP) up to
+    /// the room left under <see cref="ReserveCapMilli"/>; 0 when the reserve is at or above the cap, and with the switch
+    /// off. What is not deposited is lost (D-044 R20-D). The one function ResearchSystem deposits with and the UI shows.
+    /// </summary>
+    public static long ReserveDepositMilli(IReadOnlyWorldState world, ResearchContent content, PolityId holder)
+    {
+        if (content.Tuning.Reserve is not { } rule) return 0L;
+        double pool = HolderResearchPoints(world, content, holder);
+        long room = ToMilliRp(rule.CapTurns * pool) - ReserveMilli(world, holder);
+        return room > 0L ? Math.Min(ToMilliRp(pool), room) : 0L;
+    }
+
+    /// <summary>
+    /// ADR-051 — THE DRAW of a step whose technology lane funds its own technology node, milli-RP: min(reserve,
+    /// floor(1000 × drawTurns × pool)); 0 with the switch off. The whole draw leaves the reserve; it is spent by the pool's
+    /// own rules and whatever the funding cannot absorb is lost (LOSSY — never refunded). The one function ResearchSystem
+    /// draws with and the UI shows.
+    /// </summary>
+    public static long ReserveDrawMilli(IReadOnlyWorldState world, ResearchContent content, PolityId holder)
+    {
+        if (content.Tuning.Reserve is not { } rule) return 0L;
+        long reserve = ReserveMilli(world, holder);
+        return reserve > 0L ? Math.Min(reserve, ToMilliRp(rule.DrawTurns * HolderResearchPoints(world, content, holder))) : 0L;
+    }
+
+    /// <summary>ADR-051: the ResearchReserves table as only ResearchSystem writes it, or null: rows in strictly ascending
+    /// Polity (so no holder twice) and ReserveMilli ≥ 0. Snapshot.Load refuses a save that breaks it.</summary>
+    public static string? ReservesInvariantViolation(IReadOnlyTable<ResearchReserveRow> rows)
+    {
+        for (int i = 0; i < rows.Count; i++)
+        {
+            string at = "ResearchReserves[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]";
+            if (i > 0 && rows[i - 1].Polity.Value >= rows[i].Polity.Value)
+                return at + ": rows are not in strictly ascending Polity order";
+            if (rows[i].ReserveMilli < 0) return at + ": ReserveMilli is negative";
+        }
+        return null;
+    }
+
     // ------------------------------------------------------------------ acceleration credit (Eureka + foreign exposure)
 
     public static bool EurekaFired(IReadOnlyWorldState world, PolityId polity, ResearchNodeId node, int eureka)

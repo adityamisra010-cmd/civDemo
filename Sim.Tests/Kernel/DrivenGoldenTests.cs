@@ -98,7 +98,9 @@ public class DrivenGoldenTests
     // TestConfigs.PreTreeTranche returns the same hash). CONTROLS: CivicsPointsAttributionTests.DrivenGoldenSeed42Turn300_…
     // and DiscoveryLayoutAttributionTests.DrivenGoldenSeed42Turn300_… (TestConfigs.PreM6 returns eb88663a… through
     // SchemaProjection.V34).
-    internal const string Golden = "96ddd58124bcbe8aedd439463caeac09ed93793619ab8ffb43f720b1beea86aa";
+    // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD 96ddd58124bcbe8a… -> NEW af5be6a12fd1391d… — the empty section-68
+    // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
+    internal const string Golden = "af5be6a12fd1391d89b51602080bdda338b6cc1ba618c41a24b2928eb14f13b5";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the driven golden's world through the
     /// v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the driven golden the W1

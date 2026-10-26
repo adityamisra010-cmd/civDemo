@@ -50,8 +50,14 @@ public sealed record ResearchTuning(
     double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null, bool AiCheapestOrRoute = false,
     bool AiSupportingMilestones = false, bool AgeSweep = false, bool DestinationRouting = false,
     bool KnowledgeEffects = false, PacingScale? Pacing = null, bool RepeatableLevels = false, bool ResearchOverflow = false,
-    bool ResearchOverflowLane = false)
+    bool ResearchOverflowLane = false, ResearchReserveRule? Reserve = null)
 {
+    // Reserve (ADR-051; PROPOSED, behind the switch): research.json tuning.researchReserve {capTurns, drawTurns}. Present,
+    // a holder's technology lane that funds nothing in a step deposits that step's RP pool into its ResearchReserves row, up
+    // to capTurns × its current pool (the rest is lost as before); a step whose technology lane funds its OWN technology node
+    // draws min(reserve, drawTurns × pool), spent by the pool's own rules and LOSSY (what the funding cannot absorb is lost,
+    // never refunded). Never drawn for a civic or a free-lane assist; the CP bank is untouched. Absent (null) is the
+    // no-reserve engine exactly (D-044 R20-D) and no ResearchReserves row is ever written — the attribution switch.
     // ResearchOverflowLane (ADR-050 variant, evidence for D-064): research.json tuning.researchOverflowLane. With
     // ResearchOverflow on, once the destination's route and the free-lane assist have nothing left to pay, the remainder
     // also funds the CHEAPEST available node of the lane's own tree (a levelled repeatable included; composite key
@@ -115,6 +121,14 @@ public sealed record RealizedEffect(KnowledgeOperand Operand, double Delta);
 /// stored in integer milli-CP: generated per step = floor(1000 × c × P^β × dtYears). Values are PROPOSED (ADR-043 §3).
 /// </summary>
 public sealed record CivicsPointsTuning(bool Enabled, double CoefficientPerYear, double Exponent);
+
+/// <summary>
+/// ADR-051 (PROPOSED; research.json tuning.researchReserve) — THE TECHNOLOGY-LANE RP RESERVE RULE. <see cref="CapTurns"/>:
+/// the reserve holds at most this many turns of the holder's current RP pool (deposits stop at the cap; the excess is lost).
+/// <see cref="DrawTurns"/>: a step whose technology lane funds its own technology node draws at most this many turns of the
+/// pool. Both finite and &gt; 0 (validated). Measured proposal: capTurns 3, drawTurns 1 (empty-lane-reserve-proposal.md §4).
+/// </summary>
+public sealed record ResearchReserveRule(double CapTurns, double DrawTurns);
 
 /// <summary>A baseline capability (D-045 §1): something a newly founded civilization can do with
 /// ZERO completed research nodes. It lives OUTSIDE the research graph — no node, no completed row
@@ -995,7 +1009,20 @@ public static class ResearchContentLoader
             t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics,
             t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false, t.AgeSweep ?? false, t.DestinationRouting ?? false,
             t.KnowledgeEffects ?? false, ValidatePacing(t.PacingScale), t.RepeatableLevels ?? false, t.ResearchOverflow ?? false,
-            t.ResearchOverflowLane ?? false);
+            t.ResearchOverflowLane ?? false, ValidateReserve(t.ResearchReserve));
+    }
+
+    /// <summary>tuning.researchReserve (ADR-051): capTurns and drawTurns finite and &gt; 0; absent = off (null).</summary>
+    private static ResearchReserveRule? ValidateReserve(ResearchReserveJson? r)
+    {
+        if (r is null) return null;
+        if (!(double.IsFinite(r.CapTurns) && r.CapTurns > 0.0))
+            throw Fail($"tuning.researchReserve.capTurns {Inv(r.CapTurns)} must be finite and > 0: the reserve is capped at that many " +
+                       "turns of the current RP pool (ADR-051; an unlimited reserve is not allowed).");
+        if (!(double.IsFinite(r.DrawTurns) && r.DrawTurns > 0.0))
+            throw Fail($"tuning.researchReserve.drawTurns {Inv(r.DrawTurns)} must be finite and > 0: a step draws at most that many " +
+                       "turns of the current RP pool from the reserve (ADR-051).");
+        return new ResearchReserveRule(r.CapTurns, r.DrawTurns);
     }
 
     /// <summary>tuning.pacingScale (D-063 R6): nine finite scales in (0, 16] per tree, one per content Age A1..A9.</summary>
@@ -1677,7 +1704,12 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("pacingScale")] PacingScaleJson? PacingScale = null,
         [property: JsonPropertyName("repeatableLevels")] bool? RepeatableLevels = null,
         [property: JsonPropertyName("researchOverflow")] bool? ResearchOverflow = null,
-        [property: JsonPropertyName("researchOverflowLane")] bool? ResearchOverflowLane = null);
+        [property: JsonPropertyName("researchOverflowLane")] bool? ResearchOverflowLane = null,
+        [property: JsonPropertyName("researchReserve")] ResearchReserveJson? ResearchReserve = null);
+
+    private sealed record ResearchReserveJson(
+        [property: JsonPropertyName("capTurns"), JsonRequired] double CapTurns,
+        [property: JsonPropertyName("drawTurns"), JsonRequired] double DrawTurns);
 
     private sealed record PacingScaleJson(
         [property: JsonPropertyName("technology"), JsonRequired] double[] Technology,
