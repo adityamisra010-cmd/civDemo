@@ -1685,3 +1685,4 @@
       13–15 % made seed 1 finish later). Residual +40 technology / +65 civics, left as is.
   (e) Seed spread: seed 2 trails the others by 40–70 turns in most Ages. The slowest-seed rule (D-063 R6) leaves the other
       seeds ahead of target (up to −195 in civics A7), so a single-seed playtest feels faster than the targets.
+- 2026-10-26 (ADR-053, t6-civgate; PROPOSED, switch OFF, NOT YET MEASURED): AI civics gate goals behind `tuning.aiCivicsGateGoals` — while the AI's technology tree has no available node and is swept on an outstanding civic, its Civics lane targets the cheapest-to-reach civic of the lowest gating cohort (the caliphate stall); otherwise today's rule exactly. Trial overlay `research-cost-pass/trial/civics-gate-trial.json`; the four-seed measurement is pending.

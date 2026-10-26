@@ -73,6 +73,17 @@ namespace Sim.Core.Systems.Research;
 /// never switched (no churn), and it never forces a return to the gated goal: once the gate opens, the next decision
 /// (when the lane's destination completes) finds the gated goal fundable and takes it by the existing order. RP never
 /// pays a civic; a player's research is never chosen. Off: the rule above exactly.
+///
+/// ADR-053 (PROPOSED) — CIVICS GATE GOALS (research.json tuning.aiCivicsGateGoals; acts only with the two lanes, destination
+/// routing and the Age sweep, on the CIVICS lane). When technology cannot advance because an Age needs civics — the
+/// polity's technology tree has NO available node, and some technology fails its eligibility ONLY on the Age sweep while
+/// its sweep cohort still holds an incomplete civic (<see cref="CivicsGateBlockers"/>) — the BLOCKERS are the incomplete
+/// sweep-cohort civics of the LOWEST such cohort Age, and the Civics lane's destination is the blocker cheapest to reach
+/// (<see cref="CivicsGateDestination"/>: composite key (remaining route cost, index)); the route planner funds its
+/// prerequisites first. A held civic destination that is not a blocker is re-decided while the trigger holds (its
+/// progress stays on its nodes); a held blocker is kept. When the trigger does not hold, the rule above exactly — the
+/// civics lane is diverted only while the technology tree is fully stalled on the sweep, and only to the bounded cohort.
+/// RP never pays a civic; a player's research is never chosen. Off: the rule above exactly.
 /// </summary>
 public static class AiResearchPolicy
 {
@@ -122,6 +133,13 @@ public static class AiResearchPolicy
         if (ResearchQuery.TryGetTarget(world, content, polity, lane, out ResearchNodeId current)
             && content.IndexOf(current) is int held and >= 0 && (routing ? ResearchQuery.IsOpenTarget(content, held, completed) : available[held]))
         {
+            // ADR-053 (tuning.aiCivicsGateGoals): while technology is stalled on the Age sweep's civics, a held civic destination
+            // that is not one of the blockers is re-decided to the chosen blocker (its progress stays on its nodes); a held
+            // blocker is kept. Trigger not holding: kept, as before (the gate-aware rule below never acts on this lane).
+            if (CivicsGate(content, lane))
+                return CivicsGateBlockers(world, content, polity, completed, available) is { } blockers && !blockers[held]
+                    && CivicsGateDestination(world, content, polity, completed, available, blockers) is int gate and >= 0 && gate != held
+                    ? ResearchQuery.TargetOrder(world, content, polity, content.Nodes[gate].Key) : null;
             // ADR-052 (tuning.aiGateAwareGoals): a held technology destination the lane cannot fund now is not live — the AI
             // re-decides (its progress stays on its nodes). Off, or fundable: kept, as before.
             if (!GateAware(content, lane) || TechnologyFundable(world, content, polity, completed, available, held)) return null;
@@ -139,6 +157,77 @@ public static class AiResearchPolicy
     private static bool GateAware(ResearchContent content, ResearchTree? lane) =>
         content.Tuning.AiGateAwareGoals && content.Tuning.TwoLanes && content.Tuning.DestinationRouting
         && lane == ResearchTree.Technology;
+
+    /// <summary>ADR-053: whether the civics gate rule acts on <paramref name="lane"/> — research.json tuning.aiCivicsGateGoals,
+    /// with the two-lane model, destination routing and the Age sweep, on the CIVICS lane only.</summary>
+    private static bool CivicsGate(ResearchContent content, ResearchTree? lane) =>
+        content.Tuning.AiCivicsGateGoals && content.Tuning.TwoLanes && content.Tuning.DestinationRouting && content.Tuning.AgeSweep
+        && lane == ResearchTree.Civics;
+
+    /// <summary>
+    /// ADR-053 — THE CIVICS GATE: the blocker civics (a mask over the dense indices), or null when the trigger does not hold.
+    /// The trigger is "technology cannot advance because an Age requires civics":
+    /// <list type="number">
+    /// <item>no TECHNOLOGY node is available (<paramref name="available"/>, the polity's availability, levels included);</item>
+    /// <item>some technology fails its eligibility ONLY on the Age sweep — THE eligibility predicate
+    ///   (<see cref="ResearchQuery.IsAvailable(ResearchContent, int, bool[], bool, bool[])"/>: completion, subtree stage,
+    ///   prerequisites, the repeatable exhaustion rule) holds for it with every Age treated as swept, and the level cap
+    ///   leaves it open — and its sweep cohort (content Age a − 2) still holds an incomplete sweep-cohort CIVIC.</item>
+    /// </list>
+    /// The blockers are the incomplete sweep-cohort civics (<see cref="ResearchQuery.IsSweepCohortMember"/>: never a
+    /// repeatable) of the LOWEST such cohort Age — the cohort whose completion unblocks technology soonest. Pure; reads only
+    /// the content and the polity's knowledge.
+    /// </summary>
+    public static bool[]? CivicsGateBlockers(IReadOnlyWorldState world, ResearchContent content, PolityId polity, bool[] completed,
+        bool[] available)
+    {
+        int n = content.Nodes.Count;
+        for (int i = 0; i < n; i++)
+            if (available[i] && content.Nodes[i].Tree == ResearchTree.Technology) return null;
+        var civicOutstanding = new bool[10];   // per content Age 1..9: an incomplete sweep-cohort civic
+        for (int i = 0; i < n; i++)
+        {
+            ResearchNode c = content.Nodes[i];
+            if (!completed[i] && c.Tree == ResearchTree.Civics && ResearchQuery.IsSweepCohortMember(c)) civicOutstanding[c.AgeNumber] = true;
+        }
+        var swept = new bool[10];
+        Array.Fill(swept, true);               // the sweep treated as satisfied: what is left of the predicate is everything else
+        bool stage = ResearchQuery.StageReached(content, completed);
+        int[] levels = ResearchQuery.LevelMask(world, content, polity, completed);
+        int lowest = 0;
+        for (int i = 0; i < n; i++)
+        {
+            ResearchNode t = content.Nodes[i];
+            if (t.Tree != ResearchTree.Technology || levels[i] >= ResearchQuery.MaxRepeatableLevel) continue;
+            if (!ResearchQuery.IsAvailable(content, i, completed, stage, swept)) continue;   // fails on more than the sweep
+            int cohort = t.AgeNumber - 2;      // not available, yet eligible but for the sweep: the sweep blocks it
+            if (cohort >= 1 && civicOutstanding[cohort] && (lowest == 0 || cohort < lowest)) lowest = cohort;
+        }
+        if (lowest == 0) return null;
+        var blockers = new bool[n];
+        for (int i = 0; i < n; i++)
+        {
+            ResearchNode c = content.Nodes[i];
+            blockers[i] = !completed[i] && c.Tree == ResearchTree.Civics && c.AgeNumber == lowest && ResearchQuery.IsSweepCohortMember(c);
+        }
+        return blockers;
+    }
+
+    /// <summary>
+    /// ADR-053: the Civics lane's destination among <paramref name="blockers"/> — the blocker with the lowest remaining
+    /// route cost (an available blocker: its remaining cost; else <see cref="ResearchRoutePlanner.Plan"/>'s RemainingCost,
+    /// its prerequisites included), composite key (cost, index) by <see cref="OrderByCost"/>. -1 when there is none.
+    /// </summary>
+    public static int CivicsGateDestination(IReadOnlyWorldState world, ResearchContent content, PolityId polity, bool[] completed,
+        bool[] available, bool[] blockers)
+    {
+        double[] remaining = ResearchQuery.RemainingCosts(world, content, polity);
+        var cost = new double[blockers.Length];
+        for (int i = 0; i < blockers.Length; i++)
+            if (blockers[i]) cost[i] = available[i] ? remaining[i] : ResearchRoutePlanner.Plan(content, completed, remaining, i).RemainingCost;
+        int[] order = OrderByCost(cost, blockers);
+        return order.Length > 0 ? order[0] : -1;
+    }
 
     /// <summary>
     /// ADR-052: whether the technology lane, holding <paramref name="destination"/>, funds a node this step — the engine's
@@ -178,6 +267,9 @@ public static class AiResearchPolicy
                 for (int i = 0; i < tree.Length; i++) goals[g][i] &= tree[i];
         }
         if (GateAware(content, lane)) return FundableDestination(world, content, polity, goals, completed, available, tree);
+        // ADR-053 (tuning.aiCivicsGateGoals): while technology is stalled on the sweep's civics, the chosen blocker civic.
+        if (CivicsGate(content, lane) && CivicsGateBlockers(world, content, polity, completed, available) is { } blockers
+            && CivicsGateDestination(world, content, polity, completed, available, blockers) is int gate and >= 0) return gate;
         int goal = ChooseGoal(world, content, polity, goals, completed, available);
         if (goal >= 0 && GoalDestination(world, content, polity, goals[goal], completed, available) is int d and >= 0) return d;
         return Cheapest(world, content, polity, available, tree);

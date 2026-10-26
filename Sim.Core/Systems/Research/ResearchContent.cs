@@ -50,8 +50,16 @@ public sealed record ResearchTuning(
     double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null, bool AiCheapestOrRoute = false,
     bool AiSupportingMilestones = false, bool AgeSweep = false, bool DestinationRouting = false,
     bool KnowledgeEffects = false, PacingScale? Pacing = null, bool RepeatableLevels = false, bool ResearchOverflow = false,
-    bool ResearchOverflowLane = false, ResearchReserveRule? Reserve = null, bool AiGateAwareGoals = false)
+    bool ResearchOverflowLane = false, ResearchReserveRule? Reserve = null, bool AiGateAwareGoals = false,
+    bool AiCivicsGateGoals = false)
 {
+    // AiCivicsGateGoals (ADR-053, PROPOSED; Director ruling 2026-10-26): research.json tuning.aiCivicsGateGoals. Acts only with
+    // the two-lane model, destinationRouting and ageSweep, and only on an AI polity's CIVICS lane (AiResearchPolicy): while
+    // the polity's technology tree has NO available node and at least one technology fails its eligibility ONLY on the Age
+    // sweep, with a civic outstanding in its sweep cohort, the Civics lane's destination is the cheapest-to-reach outstanding
+    // cohort civic of the LOWEST such cohort Age (composite key (route cost, index)); the route planner funds its
+    // prerequisites first. Otherwise the AI rule exactly. Never RP for a civic; a human player's research is never chosen.
+    // Off (absent or false) is the AI rule exactly.
     // Reserve (ADR-051; PROPOSED, behind the switch): research.json tuning.researchReserve {capTurns, drawTurns}. Present,
     // a holder's technology lane that funds nothing in a step deposits that step's RP pool into its ResearchReserves row, up
     // to capTurns × its current pool (the rest is lost as before); a step whose technology lane funds its OWN technology node
@@ -1092,7 +1100,8 @@ public static class ResearchContentLoader
             t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics,
             t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false, t.AgeSweep ?? false, t.DestinationRouting ?? false,
             t.KnowledgeEffects ?? false, ValidatePacing(t.PacingScale), t.RepeatableLevels ?? false, t.ResearchOverflow ?? false,
-            t.ResearchOverflowLane ?? false, ValidateReserve(t.ResearchReserve), t.AiGateAwareGoals ?? false);
+            t.ResearchOverflowLane ?? false, ValidateReserve(t.ResearchReserve), t.AiGateAwareGoals ?? false,
+            t.AiCivicsGateGoals ?? false);
     }
 
     /// <summary>tuning.researchReserve (ADR-051): capTurns and drawTurns finite and &gt; 0; absent = off (null).</summary>
@@ -1793,7 +1802,8 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("researchOverflow")] bool? ResearchOverflow = null,
         [property: JsonPropertyName("researchOverflowLane")] bool? ResearchOverflowLane = null,
         [property: JsonPropertyName("researchReserve")] ResearchReserveJson? ResearchReserve = null,
-        [property: JsonPropertyName("aiGateAwareGoals")] bool? AiGateAwareGoals = null);
+        [property: JsonPropertyName("aiGateAwareGoals")] bool? AiGateAwareGoals = null,
+        [property: JsonPropertyName("aiCivicsGateGoals")] bool? AiCivicsGateGoals = null);
 
     private sealed record ResearchReserveJson(
         [property: JsonPropertyName("capTurns"), JsonRequired] double CapTurns,
