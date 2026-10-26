@@ -36,7 +36,8 @@ internal static class KnowledgeEffectsRigs
         return ids;
     });
 
-    /// <summary>The shipped content with one probe effect (delta <see cref="ProbeDelta"/>) per operand, switch ON.</summary>
+    /// <summary>The shipped content with one probe effect (delta <see cref="ProbeDelta"/>) per operand CONSUMED IN PLAY,
+    /// switch ON (CR-025 ruling: an operand no system consumes cannot carry a realized delta; its probe node carries none).</summary>
     public static ResearchContent ProbeOn => ProbeOnContent.Value;
 
     /// <summary>The same document with tuning.knowledgeEffects false (the attribution twin of <see cref="ProbeOn"/>).</summary>
@@ -55,7 +56,8 @@ internal static class KnowledgeEffectsRigs
         JsonObject doc = ShippedDocument();
         JsonArray techs = doc["technologies"]!.AsArray();
         for (int k = 0; k < KnowledgeOperands.Count; k++)
-            SetRealized(techs[techs.Count - 1 - k]!.AsObject(), (KnowledgeOperands.All[k].Id, ProbeDelta));
+            if (KnowledgeOperands.All[k].ConsumedInPlay)   // CR-025 ruling: the loader refuses a realized delta on the others
+                SetRealized(techs[techs.Count - 1 - k]!.AsObject(), (KnowledgeOperands.All[k].Id, ProbeDelta));
         SetRealized(techs[techs.Count - 1 - KnowledgeOperands.Count]!.AsObject(), ("fog.formationSightNodes", ProbeDelta));
         doc["tuning"]!["knowledgeEffects"] = on;
         return doc.ToJsonString();
@@ -70,6 +72,7 @@ internal static class KnowledgeEffectsRigs
         JsonArray civics = doc["civics"]!.AsArray();
         for (int k = 0; k < KnowledgeOperands.Count; k++)
         {
+            if (!KnowledgeOperands.All[k].ConsumedInPlay) continue;   // CR-025 ruling: the loader refuses these
             // Two operands per node across the first technologies, and every operand once more on an early civic.
             SetRealized(techs[k / 2]!.AsObject(), Append(techs[k / 2]!.AsObject(), KnowledgeOperands.All[k].Id, 0.02 + 0.01 * (k % 7)));
             SetRealized(civics[k % civics.Count]!.AsObject(), Append(civics[k % civics.Count]!.AsObject(), KnowledgeOperands.All[k].Id, 0.05));

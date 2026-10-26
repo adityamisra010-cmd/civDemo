@@ -71,27 +71,32 @@ public class KnowledgeEffectsTeethTests
 
     private static readonly Lazy<Case[]> Cases = new(BuildCases);
 
+    /// <summary>Every registry operand CONSUMED IN PLAY. CR-025 ruling: an operand no system consumes has no teeth case — the
+    /// loader refuses any realized delta on it (UnconsumedOperandTests), so there is no effect to measure.</summary>
     public static TheoryData<string> OperandIds()
     {
         var data = new TheoryData<string>();
-        foreach (KnowledgeOperandInfo info in KnowledgeOperands.All) data.Add(info.Id);
+        foreach (KnowledgeOperandInfo info in KnowledgeOperands.All) if (info.ConsumedInPlay) data.Add(info.Id);
         return data;
     }
 
     [Fact]
-    public void EveryRegistryOperand_HasATeethCase()
+    public void EveryRegistryOperand_ConsumedInPlay_HasATeethCase_AndNoOtherDoes()
     {
         Case[] cases = Cases.Value;
-        Assert.Equal(KnowledgeOperands.Count, cases.Length);
-        for (int i = 0; i < cases.Length; i++) Assert.Equal((KnowledgeOperand)i, cases[i].Op);
+        var expected = new List<KnowledgeOperand>();
+        foreach (KnowledgeOperandInfo info in KnowledgeOperands.All) if (info.ConsumedInPlay) expected.Add(info.Operand);
+        Assert.Equal(expected, cases.Select(c => c.Op).ToList());
     }
+
+    private static Case CaseOf(KnowledgeOperand op) => Cases.Value.Single(c => c.Op == op);
 
     [Theory]
     [MemberData(nameof(OperandIds))]
     public void TheOperand_MovesItsSystemsOutput_ForTheHolderOnly(string operandId)
     {
         KnowledgeOperand op = KnowledgeOperands.FromId(operandId)!.Value;
-        Case c = Cases.Value[(int)op];
+        Case c = CaseOf(op);
         SimConfig on = c.Tune is null ? On : c.Tune(On);
         SimConfig off = c.Tune is null ? Off : c.Tune(Off);
 
@@ -111,6 +116,80 @@ public class KnowledgeEffectsTeethTests
         // The rival empire's settlement does not see P's knowledge.
         if (c.RivalUnaffected)
             Assert.Equal(c.Measure(granted.Clone(), off, S(1)), c.Measure(granted.Clone(), on, S(1)));
+    }
+
+    // ================================================================== CR-025 ruling: the retargeted nodes
+
+    /// <summary>The eight nodes the CR-025 ruling (2026-10-26) retargeted from the unconsumed roads.baselineKmPerDay to a
+    /// live operand, with the operand and the delta (kept as authored) each now carries.</summary>
+    public static TheoryData<string, string, double> Cr025Retargets() => new()
+    {
+        { "horse_domestication", "catchment.hinterlandRadiusKm", 0.05 },
+        { "horseshoe", "catchment.hinterlandRadiusKm", 0.03 },
+        { "internal_combustion", "catchment.hinterlandRadiusKm", 0.04 },
+        { "bridge_stone", "roads.maxRouteKm", 0.04 },
+        { "bridge_trusts", "roads.maxRouteKm", 0.03 },
+        { "turnpike_trusts", "roads.maxRouteKm", 0.04 },
+        { "sprung_coach", "governance.authorityDecayCostUnits", 0.05 },
+        { "road_houses", "governance.authorityDecayCostUnits", 0.03 },
+    };
+
+    /// <summary>
+    /// CR-025 ruling — EACH RETARGETED NODE REACHES ITS LIVE READER, at its SHIPPED delta: on the teeth fixture under the
+    /// SHIPPED research content, completing the node for P moves the operand's owning read site for P in the stated
+    /// direction (the same measures as the per-operand teeth), and leaves the rival exactly unchanged where nothing couples
+    /// the empires within the step. The two arms differ only in the one completion row.
+    /// </summary>
+    [Theory]
+    [MemberData(nameof(Cr025Retargets))]
+    public void ACr025RetargetedNode_MovesItsOperandsLiveReader_AtItsShippedDelta(string nodeId, string operandId, double delta)
+    {
+        ResearchContent shipped = TestConfigs.Research();
+        Assert.True(shipped.Tuning.KnowledgeEffects);
+        ResearchNode node = shipped.Nodes[shipped.IndexOfId(nodeId)];
+        RealizedEffect e = Assert.Single(node.RealizedEffects);
+        KnowledgeOperand op = KnowledgeOperands.FromId(operandId)!.Value;
+        Assert.Equal(op, e.Operand);
+        Assert.Equal(delta, e.Delta);
+        Assert.True(KnowledgeOperands.Of(op).ConsumedInPlay);
+
+        WorldState plain = Fixture.Value.Clone();
+        Assert.False(ResearchQuery.IsCompleted(plain, Holder(plain, S(0)), node.Key));
+        WorldState granted = plain.Clone();
+        KnowledgeEffectsRigs.Grant(granted, shipped, Holder(granted, S(0)), nodeId);
+
+        SimConfig cfg = KnowledgeEffectsRigs.Cfg(shipped);
+        Case c = CaseOf(op);
+        Func<WorldState, SimConfig, SettlementId, double> measure = c.Measure;
+        if (op == KnowledgeOperand.RoadsMaxRouteKm)
+        {
+            // The per-operand case sets the limit at 0.8 × the shortest route, which only a large Σ crosses. At a shipped
+            // delta the limit sits between P's reach without and with the node: P's shortest route L is out of reach at
+            // limit × (1 + Σ0) and within it at limit × (1 + Σ0 + delta), Σ0 being P's improvement before the completion.
+            double l = ShortestRouteKm(plain, cfg, Holder(plain, S(0)));
+            double sigma0 = KnowledgeEffects.Improvement(plain, shipped, Holder(plain, S(0)), op);
+            double limit = l / (1.0 + sigma0 + delta / 2.0);
+            measure = (w, k, s) => RoadDevelopmentQuery.Routes(w, k.Research!, k.Roads! with { MaxRouteKm = limit }, Holder(w, s)).Length;
+        }
+        else if (c.Tune is not null) cfg = c.Tune(cfg);
+
+        double with = measure(granted.Clone(), cfg, S(0));
+        double without = measure(plain.Clone(), cfg, S(0));
+        Assert.True(double.IsFinite(with) && double.IsFinite(without));
+        if (c.Direction > 0) Assert.True(with > without, $"{nodeId} -> {operandId}: expected the completion to raise it, got {with} vs {without}");
+        else Assert.True(with < without, $"{nodeId} -> {operandId}: expected the completion to lower it, got {with} vs {without}");
+        if (c.RivalUnaffected)
+            Assert.Equal(measure(plain.Clone(), cfg, S(1)), measure(granted.Clone(), cfg, S(1)));
+    }
+
+    /// <summary>The shortest candidate route of <paramref name="holder"/> with no length limit.</summary>
+    private static double ShortestRouteKm(IReadOnlyWorldState w, SimConfig cfg, PolityId holder)
+    {
+        double min = double.PositiveInfinity;
+        foreach (RouteStatus r in RoadDevelopmentQuery.Routes(w, cfg.Research!, cfg.Roads! with { MaxRouteKm = 1e12 }, holder))
+            min = Math.Min(min, r.LengthKm);
+        Assert.True(double.IsFinite(min), "no candidate route");
+        return min;
     }
 
     private static Case[] BuildCases()
@@ -220,11 +299,10 @@ public class KnowledgeEffectsTeethTests
                 SetFrontierOnRiver(w, cfg, S(0));
                 return FirstNewEdgeCost(w, Step(w, cfg, SystemCatalog.PathBuild));
             }, RivalUnaffected: false, Tune: NoAccrual),
-            // ---------------------------------------------------------------- TransportQuery / RoadDevelopmentQuery
-            // CR-025: this case measures the travel-time QUERY, which no system calls (ADR-032 §7) — teeth, not aim. It
-            // proves the read site responds, not that play changes; UnconsumedOperandTests pins the latter as measured.
-            new(KnowledgeOperand.RoadsBaselineKmPerDay, -1, (w, cfg, s) =>
-                TransportQuery.EstimateFreight(w, cfg.Roads!, s, Partner(s), 1000.0, cfg.Research, Holder(w, s)).TransitDays),
+            // ---------------------------------------------------------------- RoadDevelopmentQuery
+            // CR-025 ruling: roads.baselineKmPerDay has no case. Its only read site is the travel-time query, which no system
+            // calls (ADR-032 §7); the former case measured that query — teeth without aim (ADR-015 §7.2) — and the loader
+            // now refuses any realized delta on the operand.
             new(KnowledgeOperand.RoadsMaxRouteKm, +1, (w, cfg, s) =>
             {
                 RoadsConfig roads = cfg.Roads! with { MaxRouteKm = ShortestRouteKm(w, cfg) * 0.8 };

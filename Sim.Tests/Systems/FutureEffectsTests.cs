@@ -1,0 +1,162 @@
+using System.Text.Json.Nodes;
+using Sim.Core.Kernel;
+using Sim.Core.State;
+using Sim.Core.Systems.Research;
+using Sim.Core.Worldgen;
+using Sim.Tests.TestUtil;
+
+namespace Sim.Tests.Systems;
+
+/// <summary>
+/// CR-025 ruling / D-063 R1 amendment (2026-10-26) — DECLARED FUTURE EFFECTS (research.json <c>effects.future</c>): the
+/// loader's schema and refusals, the shipped declarations parsed exactly, and the property that matters most — a future
+/// effect is NEVER a realized effect: it enters no operand index, no Σ, no snapshot, and moves no world. The research
+/// card's rendering ("Future (M7 …): …, not simulated in this build", never Simulated) is InfoQueryTests.
+/// </summary>
+public class FutureEffectsTests
+{
+    private static JsonObject Entry(string milestone = "M7", string system = "Battle Layer - mounted movement",
+        string? operand = null, string description = "riders move faster") =>
+        new() { ["milestone"] = milestone, ["system"] = system, ["operand"] = operand, ["description"] = description };
+
+    /// <summary>The pre-tranche-2 document (no realized effect) with <paramref name="entries"/> as technology 0's
+    /// effects.future.</summary>
+    private static string WithFuture(params JsonObject[] entries)
+    {
+        JsonObject doc = KnowledgeEffectsRigs.ShippedDocument();
+        var list = new JsonArray();
+        foreach (JsonObject e in entries) list.Add(e);
+        doc["technologies"]![0]!["effects"]!["future"] = list;
+        return doc.ToJsonString();
+    }
+
+    private static ResearchContentException Refused(string json) =>
+        Assert.Throws<ResearchContentException>(() => KnowledgeEffectsRigs.Load(json));
+
+    [Fact]
+    public void AValidDeclaration_Loads_AndIsExposedOnTheNode()
+    {
+        ResearchContent c = KnowledgeEffectsRigs.Load(WithFuture(
+            Entry(),
+            Entry("unscheduled", "freight-time consumer", "roads.baselineKmPerDay", "light vehicles shorten transit")));
+        FutureEffect[] f = [.. c.Nodes[0].FutureEffects];
+        Assert.Equal(2, f.Length);
+        Assert.Equal(new FutureEffect("M7", "Battle Layer - mounted movement", null, "riders move faster"), f[0]);
+        Assert.Equal(new FutureEffect("unscheduled", "freight-time consumer", KnowledgeOperand.RoadsBaselineKmPerDay, "light vehicles shorten transit"), f[1]);
+        Assert.Empty(c.Nodes[1].FutureEffects);   // absent = the empty list
+    }
+
+    [Fact]
+    public void TheLoader_RefusesAnUnknownMilestone()
+    {
+        foreach (string m in new[] { "M6", "M5", "m7", "M12", "", "later" })
+            Assert.Contains("must be one of M7, M8, M9, M10, M11, unscheduled", Refused(WithFuture(Entry(milestone: m))).Message);
+    }
+
+    [Fact]
+    public void TheLoader_RefusesABlankSystemOrDescription()
+    {
+        Assert.Contains("system is empty", Refused(WithFuture(Entry(system: " "))).Message);
+        Assert.Contains("description is empty", Refused(WithFuture(Entry(description: ""))).Message);
+    }
+
+    [Fact]
+    public void TheLoader_RefusesAnUnregisteredOperand_AndAnOperandConsumedInPlay()
+    {
+        Assert.Contains("is not a registered operand", Refused(WithFuture(Entry(operand: "roads.notAnOperand"))).Message);
+        // An operand a live system reads: the effect would be realized today, so it must be declared realized.
+        string e = Refused(WithFuture(Entry(operand: "catchment.hinterlandRadiusKm"))).Message;
+        Assert.Contains("is consumed in play by CatchmentSystem", e);
+        Assert.Contains("effects.future[0]", e);
+    }
+
+    [Fact]
+    public void TheLoader_RefusesAMagnitude_AMissingOperandMember_AndASystemTwice()
+    {
+        JsonObject withDelta = Entry();
+        withDelta["delta"] = 0.04;   // a future effect never carries a magnitude
+        Refused(WithFuture(withDelta));
+        JsonObject noOperand = Entry();
+        noOperand.Remove("operand");   // operand is required, explicitly null when there is none
+        Refused(WithFuture(noOperand));
+        Assert.Contains("appears twice in one node", Refused(WithFuture(Entry(), Entry(milestone: "M8"))).Message);
+    }
+
+    [Fact]
+    public void TheShippedDeclarations_AreTheirJson_EntryForEntry()
+    {
+        JsonObject doc;
+        using (Stream s = Sim.Data.DataFiles.OpenResearch()) doc = JsonNode.Parse(s)!.AsObject();
+        ResearchContent c = TestConfigs.Research();
+        int declared = 0, nodes = 0;
+        foreach (string tree in new[] { "technologies", "civics" })
+            foreach (JsonNode? node in doc[tree]!.AsArray())
+            {
+                ResearchNode parsed = c.Nodes[c.IndexOfId(node!["id"]!.GetValue<string>())];
+                JsonArray? list = node["effects"]!["future"] as JsonArray;
+                Assert.Equal(list?.Count ?? 0, parsed.FutureEffects.Count);
+                if (list is null) continue;
+                nodes++;
+                for (int k = 0; k < list.Count; k++)
+                {
+                    FutureEffect f = parsed.FutureEffects[k];
+                    Assert.Equal(list[k]!["milestone"]!.GetValue<string>(), f.Milestone);
+                    Assert.Equal(list[k]!["system"]!.GetValue<string>(), f.System);
+                    Assert.Equal(list[k]!["description"]!.GetValue<string>(), f.Description);
+                    Assert.Equal(list[k]!["operand"]?.GetValue<string>(), f.Operand is { } op ? KnowledgeOperands.Of(op).Id : null);
+                    declared++;
+                }
+            }
+        Assert.Equal(6, nodes);       // the six future-dependent nodes of the CR-025 ruling
+        Assert.Equal(8, declared);
+    }
+
+    /// <summary>A future effect is never realized: a content whose ONLY declarations are future effects — naming the
+    /// unconsumed operand among them — has no realized effect, an empty operand index, the inert snapshot, and every
+    /// operand at its base for a holder that completed every node.</summary>
+    [Fact]
+    public void AFutureEffect_IsNeverRealized_NoIndexNoSigmaNoSnapshot()
+    {
+        JsonObject doc = KnowledgeEffectsRigs.ShippedDocument();
+        doc["tuning"]!["knowledgeEffects"] = true;
+        JsonArray techs = doc["technologies"]!.AsArray();
+        for (int k = 0; k < 5; k++)
+            techs[k]!["effects"]!["future"] = new JsonArray(
+                Entry("unscheduled", "freight-time consumer", "roads.baselineKmPerDay", "faster"), Entry("M8", "alliances", null, "joint command"));
+        ResearchContent c = KnowledgeEffectsRigs.Load(doc.ToJsonString());
+        Assert.Equal(2, c.Nodes[0].FutureEffects.Count);
+        Assert.False(c.HasRealizedEffects);
+        for (int op = 0; op < KnowledgeOperands.Count; op++) Assert.Empty(c.NodesWith((KnowledgeOperand)op));
+
+        WorldState w = WorldFounding.Found(TestConfigs.DevWorldgen(), TestConfigs.Sim(), 42);
+        var p = new PolityId(1);
+        foreach (ResearchNode n in c.Nodes) w.ResearchCompleted.Add(new ResearchCompletedRow(p, n.Key));
+        Assert.Same(KnowledgeEffectsSnapshot.Inert, KnowledgeEffects.Snapshot(w, c));
+        foreach (KnowledgeOperandInfo info in KnowledgeOperands.All)
+        {
+            Assert.Equal(0.0, KnowledgeEffects.Improvement(w, c, p, info.Operand));
+            Assert.Equal(2.5, KnowledgeEffects.Apply(w, c, p, info.Operand, 2.5));
+        }
+    }
+
+    /// <summary>On the SHIPPED content: completing every future-declaring node adds nothing to any operand's Σ (their
+    /// effects lists are empty), so the holder's improvements equal those without them, operand for operand.</summary>
+    [Fact]
+    public void TheShippedFutureNodes_AddNothingToAnySigma()
+    {
+        ResearchContent c = TestConfigs.Research();
+        WorldState w = WorldFounding.Found(TestConfigs.DevWorldgen(), TestConfigs.Sim(), 42);
+        var p = new PolityId(1);
+        WorldState with = w.Clone();
+        int granted = 0;
+        foreach (ResearchNode n in c.Nodes)
+            if (n.FutureEffects.Count > 0 && !ResearchQuery.IsCompleted(with, p, n.Key))
+            {
+                with.ResearchCompleted.Add(new ResearchCompletedRow(p, n.Key));
+                granted++;
+            }
+        Assert.Equal(6, granted);
+        foreach (KnowledgeOperandInfo info in KnowledgeOperands.All)
+            Assert.Equal(KnowledgeEffects.Improvement(w, c, p, info.Operand), KnowledgeEffects.Improvement(with, c, p, info.Operand));
+    }
+}

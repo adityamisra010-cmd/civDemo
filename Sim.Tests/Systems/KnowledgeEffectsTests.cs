@@ -158,7 +158,8 @@ public class KnowledgeEffectsTests
                     declared++;
                 }
             }
-        Assert.Equal(2 * KnowledgeOperands.Count, declared);
+        // Every operand consumed in play, twice (CR-025 ruling: the rig declares nothing on an unconsumed operand).
+        Assert.Equal(2 * KnowledgeOperands.All.Count(o => o.ConsumedInPlay), declared);
 
         // The operand index: every effect once, ascending node index per operand.
         int indexed = 0;
@@ -382,7 +383,9 @@ public class KnowledgeEffectsTests
             Assert.Equal(0.0, KnowledgeEffects.Improvement(w, off, p, info.Operand));
             if (KnowledgeEffects.Apply(w, on, p, info.Operand, b) != b) differs++;
         }
-        Assert.Equal(KnowledgeOperands.Count, differs);   // the same rows DO move every operand with the switch on
+        // The same rows DO move every operand consumed in play with the switch on (CR-025 ruling: no realized delta may
+        // name an unconsumed operand, so those read their base either way).
+        Assert.Equal(KnowledgeOperands.All.Count(o => o.ConsumedInPlay), differs);
     }
 
     [Fact]
