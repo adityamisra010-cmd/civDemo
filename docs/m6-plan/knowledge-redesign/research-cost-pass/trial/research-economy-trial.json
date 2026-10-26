@@ -10,27 +10,27 @@
   "pacingScale": {
    "technology": [
     0.395862,
-    0.803516,
-    1.367587,
-    3.40823,
-    5.044871,
-    4.822191,
-    5.072868,
-    0.775796,
+    0.943333,
+    0.959209,
+    2.66088,
+    6.005702,
+    9.786664,
+    7.007961,
+    0.926249,
     0.068141
    ],
    "civics": [
     0.645983,
-    0.998856,
-    0.907987,
-    1.306316,
-    1.396621,
-    1.791944,
+    0.989987,
+    0.715481,
+    0.9204,
+    1.504901,
+    1.729102,
     0.757433,
-    0.070609,
-    0.008686
+    0.044319,
+    0.016684
    ],
-   "_doc": "Trial-configuration pacing scale (D-063 R6 targets, recalibrated with overflow + reserve {3, 1} + gate-aware goals ON). Pass 0 = the shipped scale."
+   "_doc": "Trial-configuration pacing scale, CALIBRATED (pass 8; research-cost-pass/pacing-recalibration.md): D-063 R6 targets, recalibrated with overflow + reserve {3, 1} + gate-aware goals ON, seeds 1, 2, 42, 7. Held at the shipped scale, not calibrated: Age 1 (both trees; not cost-bound), civics Age 7 (bound to civics Age 6 by the AI's cheapest-first civics order) and technology Age 9 (throughput-bound: ~140 turns at any scale)."
   }
  }
 }

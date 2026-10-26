@@ -379,7 +379,7 @@ def pacing(d, label, ref_d=None, ref_label=None):
     ref = {s: load(ref_d, ref_label, s) for s in SEEDS} if ref_d else {}
     out = []
     for key, title in (("techDone", "Technology"), ("civDone", "Civics")):
-        out += [f"### {title}: turn each Age's finite nodes are complete (residual against the target; -1 = never)", "",
+        out += [f"### {title}: turn each Age's finite nodes are complete (residual against the target)", "",
                 "| Seed | " + " | ".join(f"A{a} ({TARGET[a]})" for a in range(1, 10)) + " |", "|---|" + "---:|" * 9]
         for s in SEEDS:
             r = runs[s]
