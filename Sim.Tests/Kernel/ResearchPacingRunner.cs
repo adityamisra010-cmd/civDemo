@@ -43,18 +43,29 @@ internal static class ResearchPacingRunner
         ulong Seed, bool Overflow, string Label, int Turns = 1630, int? HumanDelay = null,
         double ReserveCapTurns = 0.0, double DrawLimitTurns = double.PositiveInfinity,
         bool Replay = false, long SaveLoadAt = -1, bool DrawLosesSurplus = false, bool GateAware = false,
-        double EngineReserveCapTurns = 0.0, double EngineReserveDrawTurns = 1.0);
+        double EngineReserveCapTurns = 0.0, double EngineReserveDrawTurns = 1.0, bool StripCr025Retargets = false);
+
+    /// <summary>CR-025's eight retargeted nodes (each carries exactly one realized effect, the retarget).</summary>
+    internal static readonly string[] Cr025Retargets =
+        ["horse_domestication", "horseshoe", "internal_combustion", "bridge_stone", "bridge_trusts", "turnpike_trusts", "sprung_coach", "road_houses"];
 
     internal sealed record RunResult(string Summary, string? Hash, string? ReplayHash, string? SaveLoadHash);
 
     /// <summary>The shipped research.json with tuning.researchOverflow set to <paramref name="overflow"/> and, when
     /// <paramref name="gateAware"/>, tuning.aiGateAwareGoals set to true (ADR-052; otherwise left absent); nothing else.</summary>
-    internal static SimConfig Config(bool overflow, bool gateAware = false, double reserveCap = 0.0, double reserveDraw = 1.0)
+    internal static SimConfig Config(bool overflow, bool gateAware = false, double reserveCap = 0.0, double reserveDraw = 1.0,
+        bool stripCr025Retargets = false)
     {
         System.Text.Json.Nodes.JsonObject doc;
         using (var s = Sim.Data.DataFiles.OpenResearch()) doc = System.Text.Json.Nodes.JsonNode.Parse(s)!.AsObject();
         doc["tuning"]!.AsObject()["researchOverflow"] = overflow;
         if (gateAware) doc["tuning"]!.AsObject()["aiGateAwareGoals"] = true;
+        // CR-025 attribution twin: the shipped content without the eight retargeted realized effects.
+        if (stripCr025Retargets)
+            foreach (string tree in new[] { "technologies", "civics" })
+                foreach (System.Text.Json.Nodes.JsonNode? node in doc[tree]!.AsArray())
+                    if (Array.IndexOf(Cr025Retargets, (string)node!["id"]!) >= 0)
+                        node["effects"]!.AsObject()["realized"] = new System.Text.Json.Nodes.JsonArray();
         // ADR-051: the ENGINE reserve (tuning.researchReserve), as opposed to the harness model below.
         if (reserveCap > 0.0)
             doc["tuning"]!.AsObject()["researchReserve"] = new System.Text.Json.Nodes.JsonObject { ["capTurns"] = reserveCap, ["drawTurns"] = reserveDraw };
@@ -71,7 +82,7 @@ internal static class ResearchPacingRunner
 
     internal static RunResult Run(RunOptions o, string? outDir)
     {
-        SimConfig cfg = Config(o.Overflow, o.GateAware, o.EngineReserveCapTurns, o.EngineReserveDrawTurns);
+        SimConfig cfg = Config(o.Overflow, o.GateAware, o.EngineReserveCapTurns, o.EngineReserveDrawTurns, o.StripCr025Retargets);
         bool engineReserve = o.EngineReserveCapTurns > 0.0;
         if (engineReserve && o.ReserveCapTurns > 0.0) throw new ArgumentException("the engine reserve and the harness reserve model are exclusive");
         WorldgenConfig shipped = TestConfigs.Worldgen();
@@ -384,7 +395,7 @@ internal static class ResearchPacingRunner
         sb.AppendLine(Inv, $"  infrastructure: structures {structures} road developments {roads} institutions {institutions}; discovery: surveys {surveys} explorations {explorations} known cells {known}");
         string replayText = replayHash is null ? "" : "; replay " + (replayHash == hash ? "EQUAL" : "DIFFERENT " + replayHash);
         string saveText = saveLoadHash is null ? "" : string.Create(Inv, $"; save/load at turn {o.SaveLoadAt} {saveLoadHash}");
-        sb.AppendLine(Inv, $"  reconstruction mismatches {mismatches}; final hash {hash}{replayText}{saveText}");
+        sb.AppendLine(Inv, $"  reconstruction mismatches {mismatches}; final hash {hash}{replayText}{saveText}; as schema v36 {WorldHash.ComputeHexAsSchema(w, 36)}");
 
         if (outDir is not null)
         {

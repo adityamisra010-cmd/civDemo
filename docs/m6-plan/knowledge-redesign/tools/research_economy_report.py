@@ -249,8 +249,112 @@ def reserve(d, trial_dir):
     print("\n".join(out))
 
 
+COMBINED = ["off", "trial", "trial-nogate", "d1-off", "d3-off", "d1-trial", "d3-trial", "d6-trial"]
+
+
+def combined(d):
+    """CombinedTrial_FourSeeds: waste uses the LOST columns (with the engine reserve a step may apply more RP than it
+    generated, and deposits are not losses)."""
+    runs = {(s, l): load(d, l, s) for s in SEEDS for l in COMBINED}
+    out = ["### RP waste by polity Age (four seeds pooled): lost / generated", "",
+           "| Age | off | trial | trial without the gate rule |", "|---|---:|---:|---:|"]
+    tot = {}
+    for a in range(1, 10):
+        cells = []
+        for l in ("off", "trial", "trial-nogate"):
+            g = lost = 0.0
+            for s in SEEDS:
+                r = runs.get((s, l))
+                if not r:
+                    continue
+                for t in r["turns"]:
+                    if int(t["age"]) == a:
+                        g += float(t["pool"]); lost += float(t["lostSurplus"]) + float(t["lostEmpty"])
+            tt = tot.setdefault(l, [0.0, 0.0]); tt[0] += g; tt[1] += lost
+            cells.append(pct(lost, g))
+        out.append(f"| A{a} | " + " | ".join(cells) + " |")
+    out.append("| **All** | " + " | ".join(pct(tot[l][1], tot[l][0]) for l in ("off", "trial", "trial-nogate")) + " |")
+    out += ["", "### Polity Age entered (effective turn): off → trial", "",
+            "| Seed | " + " | ".join(f"A{a}" for a in range(2, 10)) + " |", "|---|" + "---|" * 8]
+    for s in SEEDS:
+        o, t = runs.get((s, "off")), runs.get((s, "trial"))
+        if o and t:
+            out.append(f"| {s} | " + " | ".join(
+                f"{o['entered'].get(a)} → {t['entered'].get(a)} ({t['entered'].get(a) - o['entered'].get(a):+d})"
+                if o['entered'].get(a) is not None and t['entered'].get(a) is not None else "-" for a in range(2, 10)) + " |")
+    for key, title in (("civDone", "Civics: turn each Age's finite civics are complete (off → trial)"),
+                       ("techDone", "Technology: turn each Age's finite technologies are complete (off → trial)")):
+        out += ["", f"### {title}", "", "| Seed | " + " | ".join(f"A{a}" for a in range(1, 10)) + " |", "|---|" + "---|" * 9]
+        for s in SEEDS:
+            o, t = runs.get((s, "off")), runs.get((s, "trial"))
+            if o and t:
+                out.append(f"| {s} | " + " | ".join(f"{o[key].get(a)} → {t[key].get(a)}" for a in range(1, 10)) + " |")
+    out += ["", "### Age milestones (median first-met turn over milestones met in both runs; off → trial)", "",
+            "| Seed | " + " | ".join(f"A{a}" for a in range(2, 10)) + " |", "|---|" + "---|" * 8]
+    for s in SEEDS:
+        o, t = runs.get((s, "off")), runs.get((s, "trial"))
+        if not (o and t):
+            continue
+        cells = []
+        for a in range(2, 10):
+            keys = [k for k in o["milestones"] if k.startswith(f"A{a}|") and k in t["milestones"]]
+            cells.append(f"{statistics.median(o['milestones'][k] for k in keys):.0f} → {statistics.median(t['milestones'][k] for k in keys):.0f}" if keys else "-")
+        out.append(f"| {s} | " + " | ".join(cells) + " |")
+    out += ["", "### End state: research, roads, infrastructure (off → trial)", "",
+            "| Seed | Tech | Civics | Levels | Road developments | Structures | Institutions | Known cells | Population |",
+            "|---|---|---|---|---|---|---|---|---|"]
+    for s in SEEDS:
+        o, t = runs.get((s, "off")), runs.get((s, "trial"))
+        if o and t:
+            out.append(f"| {s} | {o['end'][1]} → {t['end'][1]} | {o['end'][2]} → {t['end'][2]} | {o['end'][3]} → {t['end'][3]} | "
+                       f"{o['infra'][1]} → {t['infra'][1]} | {o['infra'][0]} → {t['infra'][0]} | {o['infra'][2]} → {t['infra'][2]} | "
+                       f"{o['infra'][5]} → {t['infra'][5]} | {o['end'][4]:,} → {t['end'][4]:,} |")
+    out += ["", "### Casual and idling players: polity Age entered, mean over four seeds (shift vs the AI under the same rules)", "",
+            "| Configuration | Player | " + " | ".join(f"A{a}" for a in range(2, 10)) + " |", "|---|---|" + "---|" * 8]
+    def mean_entry(l, a):
+        v = [runs[(s, l)]["entered"].get(a) for s in SEEDS if runs.get((s, l))]
+        v = [x for x in v if x is not None]
+        return statistics.fmean(v) if len(v) == len(SEEDS) else None
+    for cfg, ai, players in (("off (shipped)", "off", ["off", "d1-off", "d3-off"]),
+                             ("trial", "trial", ["trial", "d1-trial", "d3-trial", "d6-trial"])):
+        for l in players:
+            cells = []
+            for a in range(2, 10):
+                m, r = mean_entry(l, a), mean_entry(ai, a)
+                cells.append("-" if m is None else f"{m:.0f}" + ("" if l == ai or r is None else f" ({m - r:+.0f})"))
+            who = "AI (no delay)" if l == ai else f"proxy, {l.split('-')[0][1:]}-turn delay"
+            out.append(f"| {cfg} | {who} | " + " | ".join(cells) + " |")
+    out += ["", "### Age-gate waiting, reserve and goal switching (four seeds pooled)", "",
+            "| Run | Technology waiting steps | Empty-lane RP lost | Reserve deposited / drawn | Turns at the reserve cap | Technology goal switches away from an incomplete destination |",
+            "|---|---:|---:|---|---:|---:|"]
+    for l in COMBINED:
+        rs = [runs[(s, l)] for s in SEEDS if runs.get((s, l))]
+        if not rs:
+            continue
+        wait = sum(1 for r in rs for t in r["turns"] if t["techClass"] == "2")
+        g = sum(float(t["pool"]) for r in rs for t in r["turns"])
+        em = sum(float(t["lostEmpty"]) for r in rs for t in r["turns"])
+        dep = sum(float(t["deposit"]) for r in rs for t in r["turns"])
+        dr = sum(float(t["draw"]) for r in rs for t in r["turns"])
+        sat = sum(int(m.group(1)) for r in rs for m in [re.search(r"turns at the cap (\d+)", r["summary"])] if m)
+        sw = 0
+        for r in rs:
+            m = re.search(r"switched away from an incomplete one, by Age:(.*)", r["summary"])
+            if m:
+                sw += sum(int(x) for x in re.findall(r"A\d=(\d+)", m.group(1)))
+        out.append(f"| {l} | {wait} | {pct(em, g)} | {dep:,.0f} / {dr:,.0f} | {sat} | {sw} |")
+    out += ["", "### Determinism (trial runs)", "", "| Seed | Reconstruction mismatches | Replay from the order log | Save/load at mid-run |", "|---|---:|---|---|"]
+    for s in SEEDS:
+        t = runs.get((s, "trial"))
+        if t:
+            out.append(f"| {s} | {t['mismatches']} | {t['replay']} | {t['saveload']} |")
+    print("\n".join(out))
+
+
 if __name__ == "__main__":
     if sys.argv[1] == "trial":
         trial(sys.argv[2])
+    elif sys.argv[1] == "combined":
+        combined(sys.argv[2])
     else:
         reserve(sys.argv[2], sys.argv[3])

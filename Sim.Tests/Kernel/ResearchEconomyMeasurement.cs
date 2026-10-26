@@ -86,6 +86,16 @@ public class ResearchEconomyMeasurement(ITestOutputHelper output)
         RunAll([.. jobs]);
     }
 
+    /// <summary>CR-025 attribution: the shipped defaults with the eight retargeted effects stripped. If the old speed effects
+    /// were inert, this twin reproduces the pre-CR-025 baseline's final hashes (as schema v36) bit for bit.</summary>
+    [Sim.Tests.Systems.MeasurementFact("CR-025 attribution twin; research-cost-pass/combined-trial.md")]
+    public void Cr025AttributionTwin_FourSeeds()
+    {
+        var jobs = new List<RunOptions>();
+        foreach (ulong s in Seeds) jobs.Add(new RunOptions(s, false, "off-cr025-twin", Turns, StripCr025Retargets: true));
+        RunAll([.. jobs]);
+    }
+
     /// <summary>The empty-lane reserve study (a measurement model; the engine is unchanged): a human proxy that re-targets a
     /// lane d turns after it empties, with the RP of a technology lane that funds nothing discarded (today) or kept in a reserve
     /// capped at k turns of RP (d = 1: discard or uncapped; d = 3: discard, k = 1, 3, uncapped, and uncapped with a draw limit of one turn's RP). The AI

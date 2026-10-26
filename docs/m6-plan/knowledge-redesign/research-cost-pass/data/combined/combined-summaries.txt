@@ -1,0 +1,575 @@
+seed 1 overflow OFF [d1-off] proxy-delay 1 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=68 A3=344 A4=691 A5=720 A6=798 A7=940 A8=1067 A9=1187
+  Age complete (turn) technology: A1=268 A2=483 A3=657 A4=783 A5=910 A6=1034 A7=1161 A8=1340 A9=1485
+  Age complete (turn) civics:     A1=281 A2=468 A3=644 A4=782 A5=872 A6=1032 A7=1135 A8=1309 A9=1428
+  RP by polity Age (turns, generated, spent, lost %): A1[68t 1576 1455 7.7%] A2[276t 20155 17970 10.8%] A3[347t 266352 228733 14.1%] A4[29t 81947 75785 7.5%] A5[78t 368573 291622 20.9%] A6[142t 1221875 1008119 17.5%] A7[127t 1350448 1058689 21.6%] A8[120t 1491524 1094895 26.6%] A9[443t 8750915 2229707 74.5%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[49 72] A2[1814 370] A3[32179 5440] A4[205 5958] A5[54452 22499] A6[185707 28049] A7[268693 23066] A8[333452 63177] A9[6363377 157831]
+  technology lane steps: nodest+fundable=38 nodest+nothing=0 waiting=0 assisting=0 funded=1592
+  civics lane steps:     nodest+fundable=88 nodest+nothing=167 waiting=0 assisting=96 funded=1279
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 3] A2[0 0 5] A3[0 0 4] A4[0 0 2] A5[0 0 4] A6[0 0 3] A7[0 0 2] A8[0 0 5] A9[0 0 10]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1673868 spent 1671920 banked 1948; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1367
+  end: Age 9 tech 525 civics 480 levels 304 population 51706101 settlements 20
+  infrastructure: structures 55 road developments 701 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+  reconstruction mismatches 0; final hash ae7816a8becca3d5030661285fc6429c1569ae577d66cecf9f7ac26317dfc836
+seed 2 overflow OFF [d1-off] proxy-delay 1 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=69 A3=357 A4=732 A5=766 A6=853 A7=984 A8=1152 A9=1283
+  Age complete (turn) technology: A1=276 A2=503 A3=691 A4=837 A5=966 A6=1084 A7=1261 A8=1433 A9=1578
+  Age complete (turn) civics:     A1=288 A2=496 A3=686 A4=835 A5=936 A6=1117 A7=1203 A8=1413 A9=1521
+  RP by polity Age (turns, generated, spent, lost %): A1[69t 1573 1455 7.5%] A2[288t 19558 17970 8.1%] A3[375t 258206 228733 11.4%] A4[34t 81192 75785 6.7%] A5[87t 382415 291622 23.7%] A6[131t 1112782 927589 16.6%] A7[168t 1791801 1090144 39.2%] A8[131t 1615202 1239230 23.3%] A9[347t 6149290 1237599 79.9%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[49 70] A2[1243 344] A3[24935 4539] A4[351 5056] A5[68901 21892] A6[166474 18719] A7[304315 397342] A8[337657 38315] A9[4744500 167191]
+  technology lane steps: nodest+fundable=36 nodest+nothing=0 waiting=33 assisting=0 funded=1561
+  civics lane steps:     nodest+fundable=77 nodest+nothing=175 waiting=0 assisting=121 funded=1257
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 3] A2[0 0 5] A3[0 0 4] A4[0 0 2] A5[0 0 4] A6[0 0 2] A7[33 0 2] A8[0 0 3] A9[0 0 11]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A7 germ_theory (A8) civic-sweep-cohort: 33]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1391946 spent 1391395 banked 550; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1460
+  end: Age 9 tech 525 civics 480 levels 203 population 45765231 settlements 21
+  infrastructure: structures 57 road developments 945 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+  reconstruction mismatches 0; final hash 40a216ab231c973ca0c40e9275236f43252b8f68b41667e03586894dcc5ba355
+seed 42 overflow OFF [d1-off] proxy-delay 1 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=68 A3=346 A4=700 A5=731 A6=808 A7=929 A8=1035 A9=1148
+  Age complete (turn) technology: A1=270 A2=487 A3=665 A4=794 A5=904 A6=1006 A7=1126 A8=1285 A9=1426
+  Age complete (turn) civics:     A1=285 A2=474 A3=653 A4=791 A5=874 A6=1002 A7=1081 A8=1278 A9=1373
+  RP by polity Age (turns, generated, spent, lost %): A1[68t 1597 1455 8.9%] A2[278t 19893 17970 9.7%] A3[354t 265334 228733 13.8%] A4[31t 84582 75785 10.4%] A5[77t 370177 291622 21.2%] A6[121t 1224713 1008658 17.6%] A7[106t 1356802 1060504 21.8%] A8[113t 1711579 1166234 31.9%] A9[482t 12807744 3144638 75.4%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[69 73] A2[1558 364] A3[31369 5232] A4[3038 5759] A5[54366 24190] A6[182811 33244] A7[269144 27154] A8[497469 47876] A9[9161872 501234]
+  technology lane steps: nodest+fundable=43 nodest+nothing=0 waiting=0 assisting=0 funded=1587
+  civics lane steps:     nodest+fundable=79 nodest+nothing=146 waiting=0 assisting=87 funded=1318
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 3] A2[0 0 5] A3[0 0 4] A4[0 0 2] A5[0 0 4] A6[0 0 3] A7[0 0 2] A8[0 0 3] A9[0 0 17]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 2052246 spent 2052246 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1313
+  end: Age 9 tech 525 civics 480 levels 342 population 76500901 settlements 21
+  infrastructure: structures 57 road developments 770 institutions 15; discovery: surveys 21 explorations 19 known cells 1232
+  reconstruction mismatches 0; final hash 464180b7041b1735695250ae33434f9d4c60dab9b4ffed2c44a5e5d4f0011778
+seed 7 overflow OFF [d1-off] proxy-delay 1 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=69 A3=346 A4=698 A5=728 A6=805 A7=921 A8=1034 A9=1144
+  Age complete (turn) technology: A1=270 A2=486 A3=663 A4=790 A5=904 A6=1002 A7=1120 A8=1291 A9=1436
+  Age complete (turn) civics:     A1=287 A2=474 A3=650 A4=787 A5=867 A6=1004 A7=1089 A8=1268 A9=1378
+  RP by polity Age (turns, generated, spent, lost %): A1[69t 1589 1455 8.5%] A2[277t 19751 17970 9.0%] A3[352t 268658 228733 14.9%] A4[30t 84156 75785 9.9%] A5[77t 373784 291622 22.0%] A6[116t 1122242 927398 17.4%] A7[113t 1365833 1082433 20.7%] A8[110t 1536417 1142378 25.6%] A9[486t 11015075 2953241 73.2%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[65 70] A2[1418 363] A3[34557 5369] A4[2428 5943] A5[58696 23467] A6[174008 20835] A7[231729 51670] A8[323292 70747] A9[7616746 445089]
+  technology lane steps: nodest+fundable=45 nodest+nothing=0 waiting=2 assisting=0 funded=1583
+  civics lane steps:     nodest+fundable=85 nodest+nothing=144 waiting=0 assisting=90 funded=1311
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 3] A2[0 0 5] A3[0 0 4] A4[0 0 2] A5[0 0 4] A6[0 0 2] A7[2 0 2] A8[0 0 5] A9[0 0 18]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A7 germ_theory (A8) civic-sweep-cohort: 2]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1894990 spent 1894990 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1319
+  end: Age 9 tech 525 civics 480 levels 334 population 60633920 settlements 20
+  infrastructure: structures 55 road developments 856 institutions 15; discovery: surveys 20 explorations 15 known cells 1195
+  reconstruction mismatches 0; final hash 2a29f67e94c1b1d126740e0172d7f070f1f5e45c23057f937c852c21c0e82ef4
+seed 1 overflow ON gate-aware [d1-trial] proxy-delay 1 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=329 A4=664 A5=693 A6=762 A7=887 A8=1006 A9=1097
+  Age complete (turn) technology: A1=255 A2=455 A3=629 A4=748 A5=861 A6=960 A7=1078 A8=1238 A9=1383
+  Age complete (turn) civics:     A1=265 A2=461 A3=625 A4=747 A5=841 A6=992 A7=1034 A8=1230 A9=1324
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1548 1455 6.0%] A2[262t 18430 17970 2.5%] A3[335t 235024 228733 2.7%] A4[29t 79422 75785 4.6%] A5[69t 305773 291622 4.6%] A6[125t 1037452 1007774 2.9%] A7[119t 1267278 1163577 8.2%] A8[91t 1165416 1066570 8.5%] A9[533t 11396934 4174642 63.4%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[66 0] A2[348 0] A3[3990 0] A4[3069 0] A5[10857 0] A6[26271 0] A7[101827 0] A8[96719 0] A9[7236004 0]
+  technology lane steps: nodest+fundable=59 nodest+nothing=0 waiting=0 assisting=0 funded=1571
+  civics lane steps:     nodest+fundable=71 nodest+nothing=105 waiting=0 assisting=105 funded=1349
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 3] A2[0 0 5] A3[0 0 4] A4[0 0 2] A5[0 0 3] A6[0 0 3] A7[0 0 5] A8[0 0 3] A9[0 0 31]
+  engine reserve (cap 3 turns, draw 1): deposited 891864 drawn 891864 left 0 max 26435; turns at the cap 0; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A7=2
+  CP generated 1905748 spent 1905748 banked 0; identity holds
+  bursts: most technologies completed in one turn 3, civics 2, repeatable levels 2; first level turn 1265
+  end: Age 9 tech 525 civics 480 levels 362 population 54026277 settlements 20
+  infrastructure: structures 55 road developments 678 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+  reconstruction mismatches 0; final hash 0650d242acb20f27051b64ba8cce178e6a49e1bcc296d7cbef31751673baa0fc
+seed 2 overflow ON gate-aware [d1-trial] proxy-delay 1 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=348 A4=694 A5=744 A6=836 A7=939 A8=1098 A9=1158
+  Age complete (turn) technology: A1=265 A2=483 A3=669 A4=805 A5=922 A6=1015 A7=1141 A8=1312 A9=1457
+  Age complete (turn) civics:     A1=287 A2=492 A3=673 A4=823 A5=900 A6=1085 A7=1115 A8=1302 A9=1399
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1520 1455 4.3%] A2[281t 18617 17970 3.5%] A3[346t 204180 198918 2.6%] A4[50t 109560 105600 3.6%] A5[92t 407815 366211 10.2%] A6[103t 864357 851519 1.5%] A7[159t 1733657 1526127 12.0%] A8[60t 763531 705777 7.6%] A9[472t 9197789 2729064 70.3%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[39 0] A2[543 0] A3[3548 0] A4[3241 0] A5[37283 0] A6[10519 0] A7[204130 0] A8[57382 0] A9[6481700 0]
+  technology lane steps: nodest+fundable=60 nodest+nothing=0 waiting=0 assisting=0 funded=1570
+  civics lane steps:     nodest+fundable=88 nodest+nothing=87 waiting=0 assisting=104 funded=1351
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 3] A2[0 0 5] A3[0 0 3] A4[0 0 3] A5[0 0 10] A6[0 0 2] A7[0 0 16] A8[0 0 3] A9[0 0 15]
+  engine reserve (cap 3 turns, draw 1): deposited 578433 drawn 578433 left 0 max 25320; turns at the cap 0; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A3=1 A5=1 A7=2
+  CP generated 1572606 spent 1572606 banked 0; identity holds
+  bursts: most technologies completed in one turn 2, civics 2, repeatable levels 2; first level turn 1339
+  end: Age 9 tech 525 civics 480 levels 320 population 50793354 settlements 21
+  infrastructure: structures 57 road developments 934 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+  reconstruction mismatches 0; final hash 7136a9a14455eab810b92194d4d5ecb1991381d0fc78cf828208b0c4bc79833e
+seed 42 overflow ON gate-aware [d1-trial] proxy-delay 1 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=66 A3=333 A4=673 A5=703 A6=773 A7=872 A8=971 A9=1056
+  Age complete (turn) technology: A1=256 A2=460 A3=637 A4=759 A5=858 A6=937 A7=1038 A8=1193 A9=1338
+  Age complete (turn) civics:     A1=269 A2=467 A3=633 A4=758 A5=839 A6=959 A7=998 A8=1190 A9=1281
+  RP by polity Age (turns, generated, spent, lost %): A1[66t 1541 1455 5.6%] A2[267t 18529 17970 3.0%] A3[340t 235015 228733 2.7%] A4[30t 79070 75785 4.2%] A5[70t 308610 291622 5.5%] A6[99t 954476 926084 3.0%] A7[99t 1249138 1164810 6.8%] A8[85t 1274510 1150571 9.7%] A9[574t 16012990 5759317 64.0%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[58 0] A2[449 0] A3[4050 0] A4[2755 0] A5[13241 0] A6[23851 0] A7[81862 0] A8[120829 0] A9[10270440 0]
+  technology lane steps: nodest+fundable=67 nodest+nothing=0 waiting=0 assisting=0 funded=1563
+  civics lane steps:     nodest+fundable=70 nodest+nothing=95 waiting=0 assisting=104 funded=1361
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 3] A2[0 0 5] A3[0 0 4] A4[0 0 2] A5[0 0 4] A6[0 0 2] A7[0 0 3] A8[0 0 3] A9[0 0 41]
+  engine reserve (cap 3 turns, draw 1): deposited 1453913 drawn 1453913 left 0 max 34015; turns at the cap 0; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A7=2
+  CP generated 2350357 spent 2350357 banked 0; identity holds
+  bursts: most technologies completed in one turn 3, civics 2, repeatable levels 2; first level turn 1221
+  end: Age 9 tech 525 civics 480 levels 390 population 77712018 settlements 21
+  infrastructure: structures 57 road developments 765 institutions 15; discovery: surveys 21 explorations 19 known cells 1232
+  reconstruction mismatches 0; final hash 7b243b338d720aa8a6dadcf13678d675436e249d931004ae3c204f3c7569a6e5
+seed 7 overflow ON gate-aware [d1-trial] proxy-delay 1 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=333 A4=668 A5=697 A6=766 A7=870 A8=974 A9=1060
+  Age complete (turn) technology: A1=256 A2=459 A3=633 A4=752 A5=854 A6=938 A7=1040 A8=1203 A9=1348
+  Age complete (turn) civics:     A1=255 A2=466 A3=629 A4=751 A5=839 A6=960 A7=1013 A8=1188 A9=1289
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1534 1455 5.2%] A2[266t 18510 17970 2.9%] A3[335t 233113 228733 1.9%] A4[29t 78180 75785 3.1%] A5[69t 312479 291622 6.7%] A6[104t 962363 925744 3.8%] A7[104t 1250155 1135516 9.2%] A8[86t 1223344 1091965 10.7%] A9[570t 13735739 5172300 62.3%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[53 0] A2[429 0] A3[2109 0] A4[1838 0] A5[17024 0] A6[32661 0] A7[112182 0] A8[129368 0] A9[8578665 0]
+  technology lane steps: nodest+fundable=69 nodest+nothing=0 waiting=0 assisting=0 funded=1561
+  civics lane steps:     nodest+fundable=68 nodest+nothing=102 waiting=0 assisting=104 funded=1356
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 3] A2[0 0 5] A3[0 0 4] A4[0 0 2] A5[0 0 4] A6[0 0 2] A7[0 0 4] A8[0 0 4] A9[0 0 41]
+  engine reserve (cap 3 turns, draw 1): deposited 1283976 drawn 1283976 left 0 max 29363; turns at the cap 0; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A7=2
+  CP generated 2163931 spent 2163931 banked 0; identity holds
+  bursts: most technologies completed in one turn 3, civics 2, repeatable levels 2; first level turn 1230
+  end: Age 9 tech 525 civics 480 levels 380 population 62755571 settlements 20
+  infrastructure: structures 55 road developments 848 institutions 15; discovery: surveys 20 explorations 15 known cells 1195
+  reconstruction mismatches 0; final hash 623a2e8b37ff328d822ca1d4c69925b7710a567caaa75e34b7f01abeb583c047
+seed 1 overflow OFF [d3-off] proxy-delay 3 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=72 A3=349 A4=699 A5=732 A6=816 A7=963 A8=1099 A9=1210
+  Age complete (turn) technology: A1=275 A2=489 A3=663 A4=797 A5=929 A6=1061 A7=1235 A8=1405 A9=1550
+  Age complete (turn) civics:     A1=283 A2=471 A3=651 A4=797 A5=873 A6=1055 A7=1213 A8=1383 A9=1491
+  RP by polity Age (turns, generated, spent, lost %): A1[72t 1688 1455 13.8%] A2[277t 20516 17970 12.4%] A3[350t 272792 228733 16.2%] A4[33t 94812 75785 20.1%] A5[84t 416750 291622 30.0%] A6[147t 1278563 1008250 21.1%] A7[136t 1454133 1070090 26.4%] A8[111t 1332778 895035 32.8%] A9[420t 7686180 1632679 78.8%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[76 157] A2[1647 899] A3[32552 11507] A4[1974 17053] A5[61996 63132] A6[190229 80084] A7[318332 65711] A8[306865 130878] A9[5581560 471941]
+  technology lane steps: nodest+fundable=108 nodest+nothing=0 waiting=0 assisting=0 funded=1522
+  civics lane steps:     nodest+fundable=222 nodest+nothing=215 waiting=0 assisting=180 funded=1013
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 7] A2[0 0 15] A3[0 0 12] A4[0 0 6] A5[0 0 12] A6[0 0 9] A7[0 0 6] A8[0 0 11] A9[0 0 30]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1579186 spent 1579186 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1433
+  end: Age 9 tech 525 civics 480 levels 236 population 49234797 settlements 20
+  infrastructure: structures 55 road developments 699 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+  reconstruction mismatches 0; final hash d700ee38679d4c0cf1346dc90ec4561c44ec20ad5f541f36dcbe67451e1b0759
+seed 2 overflow OFF [d3-off] proxy-delay 3 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=73 A3=367 A4=747 A5=785 A6=877 A7=1013 A8=1161 A9=1298
+  Age complete (turn) technology: A1=287 A2=515 A3=704 A4=858 A5=993 A6=1119 A7=1272 A8=1470 A9=1615
+  Age complete (turn) civics:     A1=307 A2=503 A3=702 A4=855 A5=931 A6=1123 A7=1217 A8=1424 A9=1558
+  RP by polity Age (turns, generated, spent, lost %): A1[73t 1683 1455 13.6%] A2[294t 20242 17970 11.2%] A3[380t 260382 228733 12.2%] A4[38t 90832 75785 16.6%] A5[92t 415334 291622 29.8%] A6[136t 1146607 926619 19.2%] A7[148t 1526813 1093274 28.4%] A8[137t 1654690 1234662 25.4%] A9[332t 5593414 1180061 78.9%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[73 155] A2[1427 846] A3[22136 9513] A4[858 14189] A5[64940 58771] A6[170065 49923] A7[327741 105798] A8[310721 109306] A9[3880433 532920]
+  technology lane steps: nodest+fundable=108 nodest+nothing=0 waiting=4 assisting=0 funded=1518
+  civics lane steps:     nodest+fundable=201 nodest+nothing=194 waiting=0 assisting=222 funded=1013
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 7] A2[0 0 15] A3[0 0 12] A4[0 0 6] A5[0 0 12] A6[0 0 6] A7[4 0 6] A8[0 0 9] A9[0 0 35]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A7 germ_theory (A8) civic-sweep-cohort: 4]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1293179 spent 1185297 banked 107881; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1497
+  end: Age 9 tech 523 civics 480 levels 156 population 43396582 settlements 21
+  infrastructure: structures 57 road developments 947 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+  reconstruction mismatches 0; final hash 18bfa589a378521cc74a083fbb2c41e8e632cac4b9125fdce11064d102b94540
+seed 42 overflow OFF [d3-off] proxy-delay 3 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=71 A3=353 A4=710 A5=745 A6=828 A7=954 A8=1063 A9=1174
+  Age complete (turn) technology: A1=277 A2=495 A3=672 A4=810 A5=925 A6=1033 A7=1144 A8=1335 A9=1480
+  Age complete (turn) civics:     A1=287 A2=477 A3=659 A4=809 A5=868 A6=1029 A7=1120 A8=1292 A9=1422
+  RP by polity Age (turns, generated, spent, lost %): A1[71t 1681 1455 13.5%] A2[282t 20521 17970 12.4%] A3[357t 272100 228733 15.9%] A4[35t 96461 75785 21.4%] A5[83t 421317 291622 30.8%] A6[126t 1294917 1009110 22.1%] A7[109t 1390822 1059098 23.9%] A8[111t 1652424 1081718 34.5%] A9[456t 10710004 2336619 78.2%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[66 161] A2[1665 885] A3[32319 11048] A4[4313 16363] A5[62430 67265] A6[191227 94580] A7[254031 77693] A8[344773 225932] A9[7940632 432753]
+  technology lane steps: nodest+fundable=105 nodest+nothing=0 waiting=0 assisting=0 funded=1525
+  civics lane steps:     nodest+fundable=217 nodest+nothing=172 waiting=0 assisting=167 funded=1074
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 7] A2[0 0 15] A3[0 0 12] A4[0 0 6] A5[0 0 12] A6[0 0 9] A7[0 0 6] A8[0 0 15] A9[0 0 23]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1875091 spent 1875091 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1363
+  end: Age 9 tech 525 civics 480 levels 312 population 66883727 settlements 21
+  infrastructure: structures 57 road developments 793 institutions 15; discovery: surveys 21 explorations 19 known cells 1232
+  reconstruction mismatches 0; final hash 954f9080c7c6b963e84531a45a3a6c07572b46461fc81d03757e7fa2f62ae2f4
+seed 7 overflow OFF [d3-off] proxy-delay 3 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=72 A3=353 A4=706 A5=740 A6=823 A7=945 A8=1061 A9=1188
+  Age complete (turn) technology: A1=277 A2=494 A3=669 A4=805 A5=926 A6=1029 A7=1158 A8=1351 A9=1496
+  Age complete (turn) civics:     A1=288 A2=477 A3=657 A4=802 A5=865 A6=1025 A7=1125 A8=1305 A9=1438
+  RP by polity Age (turns, generated, spent, lost %): A1[72t 1673 1455 13.1%] A2[281t 20433 17970 12.1%] A3[353t 272017 228733 15.9%] A4[34t 95963 75785 21.0%] A5[83t 426504 291622 31.6%] A6[122t 1206978 925874 23.3%] A7[116t 1394881 1080762 22.5%] A8[127t 1759573 1154763 34.4%] A9[442t 9535877 2006391 79.0%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[67 151] A2[1580 883] A3[32055 11229] A4[3411 16767] A5[67276 67606] A6[222616 58487] A7[241533 72585] A8[394613 210196] A9[7124348 405138]
+  technology lane steps: nodest+fundable=102 nodest+nothing=0 waiting=0 assisting=0 funded=1528
+  civics lane steps:     nodest+fundable=221 nodest+nothing=187 waiting=0 assisting=157 funded=1065
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 7] A2[0 0 15] A3[0 0 12] A4[0 0 6] A5[0 0 12] A6[0 0 6] A7[0 0 6] A8[0 0 15] A9[0 0 23]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1788060 spent 1788060 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1378
+  end: Age 9 tech 525 civics 480 levels 295 population 58598210 settlements 20
+  infrastructure: structures 55 road developments 862 institutions 15; discovery: surveys 20 explorations 15 known cells 1195
+  reconstruction mismatches 0; final hash 87b3d1d2cecb889c843583fe3eec5fa80f9770a9a22e7868409d1c8d4553d55a
+seed 1 overflow ON gate-aware [d3-trial] proxy-delay 3 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=66 A3=329 A4=663 A5=692 A6=763 A7=889 A8=1005 A9=1103
+  Age complete (turn) technology: A1=254 A2=454 A3=628 A4=746 A5=861 A6=962 A7=1082 A8=1250 A9=1395
+  Age complete (turn) civics:     A1=262 A2=460 A3=623 A4=745 A5=822 A6=990 A7=1041 A8=1234 A9=1336
+  RP by polity Age (turns, generated, spent, lost %): A1[66t 1521 1455 4.4%] A2[263t 18615 17970 3.5%] A3[334t 237021 228733 3.5%] A4[29t 80537 75785 5.9%] A5[71t 320249 291622 8.9%] A6[126t 1052595 1008393 4.2%] A7[116t 1230193 1109811 9.8%] A8[98t 1244544 1119857 10.0%] A9[527t 11170272 3941389 64.7%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[39 0] A2[531 0] A3[5952 0] A4[4177 0] A5[19844 5403] A6[40895 87] A7[118698 41] A8[122163 46] A9[7242633 20]
+  technology lane steps: nodest+fundable=126 nodest+nothing=0 waiting=0 assisting=0 funded=1504
+  civics lane steps:     nodest+fundable=190 nodest+nothing=117 waiting=0 assisting=197 funded=1126
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 7] A2[0 0 15] A3[0 0 12] A4[0 0 6] A5[0 0 9] A6[0 0 9] A7[0 0 12] A8[0 0 9] A9[0 0 47]
+  engine reserve (cap 3 turns, draw 1): deposited 1459014 drawn 1459012 left 2 max 79058; turns at the cap 10; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A7=2
+  CP generated 1895607 spent 1895607 banked 0; identity holds
+  bursts: most technologies completed in one turn 3, civics 2, repeatable levels 2; first level turn 1277
+  end: Age 9 tech 525 civics 480 levels 358 population 53786316 settlements 20
+  infrastructure: structures 55 road developments 674 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+  reconstruction mismatches 0; final hash 3d570ca2c5f66ab430373698fd0a57d7a4f410430804744312a6ae4ab08ebb5a
+seed 2 overflow ON gate-aware [d3-trial] proxy-delay 3 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=347 A4=692 A5=742 A6=822 A7=938 A8=1094 A9=1161
+  Age complete (turn) technology: A1=265 A2=481 A3=667 A4=805 A5=920 A6=1015 A7=1144 A8=1330 A9=1475
+  Age complete (turn) civics:     A1=270 A2=490 A3=671 A4=804 A5=888 A6=1083 A7=1118 A8=1302 A9=1416
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1521 1455 4.4%] A2[280t 18614 17970 3.5%] A3[345t 204035 198918 2.5%] A4[50t 110136 105600 4.1%] A5[80t 327420 291622 10.9%] A6[116t 953653 927140 2.8%] A7[156t 1691866 1440673 14.8%] A8[67t 854315 789582 7.6%] A9[469t 8958288 2468956 72.4%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[40 0] A2[539 0] A3[3405 0] A4[3816 0] A5[24448 7711] A6[23520 0] A7[247825 160] A8[64084 6] A9[6487282 15097]
+  technology lane steps: nodest+fundable=120 nodest+nothing=0 waiting=0 assisting=0 funded=1510
+  civics lane steps:     nodest+fundable=200 nodest+nothing=104 waiting=0 assisting=211 funded=1115
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 7] A2[0 0 15] A3[0 0 9] A4[0 0 9] A5[0 0 12] A6[0 0 6] A7[0 0 24] A8[0 0 9] A9[0 0 29]
+  engine reserve (cap 3 turns, draw 1): deposited 923501 drawn 923501 left 0 max 46955; turns at the cap 5; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A3=1 A7=2
+  CP generated 1567114 spent 1567114 banked 0; identity holds
+  bursts: most technologies completed in one turn 3, civics 2, repeatable levels 2; first level turn 1358
+  end: Age 9 tech 525 civics 480 levels 311 population 50200081 settlements 21
+  infrastructure: structures 57 road developments 928 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+  reconstruction mismatches 0; final hash 59ed28e78aacde1ede4cac7ba866a15b84f46d1d1dc7b3a74185ea3df5460750
+seed 42 overflow ON gate-aware [d3-trial] proxy-delay 3 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=66 A3=333 A4=672 A5=702 A6=776 A7=873 A8=966 A9=1059
+  Age complete (turn) technology: A1=257 A2=460 A3=636 A4=759 A5=859 A6=938 A7=1038 A8=1198 A9=1343
+  Age complete (turn) civics:     A1=267 A2=466 A3=632 A4=757 A5=827 A6=943 A7=996 A8=1190 A9=1285
+  RP by polity Age (turns, generated, spent, lost %): A1[66t 1539 1455 5.5%] A2[267t 18595 17970 3.4%] A3[339t 235225 228733 2.8%] A4[30t 79480 75785 4.6%] A5[74t 334156 291622 12.7%] A6[97t 945029 925922 2.0%] A7[93t 1162662 1109734 4.6%] A8[93t 1411938 1209250 14.4%] A9[571t 15922470 5178315 67.5%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[56 1] A2[514 0] A3[4245 0] A4[3165 0] A5[30240 8235] A6[14875 0] A7[63789 3] A8[185976 20] A9[10491362 235929]
+  technology lane steps: nodest+fundable=135 nodest+nothing=0 waiting=0 assisting=0 funded=1495
+  civics lane steps:     nodest+fundable=177 nodest+nothing=114 waiting=0 assisting=183 funded=1156
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 7] A2[0 0 15] A3[0 0 12] A4[0 0 6] A5[0 0 12] A6[0 0 6] A7[0 0 5] A8[0 0 7] A9[0 0 65]
+  engine reserve (cap 3 turns, draw 1): deposited 2126189 drawn 2092290 left 33899 max 102003; turns at the cap 13; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A7=1
+  CP generated 2352722 spent 2352722 banked 0; identity holds
+  bursts: most technologies completed in one turn 3, civics 9, repeatable levels 2; first level turn 1226
+  end: Age 9 tech 525 civics 480 levels 383 population 77613569 settlements 21
+  infrastructure: structures 57 road developments 722 institutions 15; discovery: surveys 21 explorations 20 known cells 1663
+  reconstruction mismatches 0; final hash 29d20adc6723e5e0e659b9353547c14e00e8d8d926d45ccff8dec857c1fb7034
+seed 7 overflow ON gate-aware [d3-trial] proxy-delay 3 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=334 A4=669 A5=698 A6=770 A7=875 A8=973 A9=1070
+  Age complete (turn) technology: A1=257 A2=460 A3=634 A4=753 A5=858 A6=943 A7=1049 A8=1209 A9=1354
+  Age complete (turn) civics:     A1=255 A2=467 A3=630 A4=752 A5=827 A6=947 A7=1008 A8=1201 A9=1297
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1534 1455 5.1%] A2[267t 18601 17970 3.4%] A3[335t 233427 228733 2.0%] A4[29t 78022 75785 2.9%] A5[72t 323190 291622 9.8%] A6[105t 974417 926269 4.9%] A7[98t 1163768 1108680 4.7%] A8[97t 1387892 1209593 12.8%] A9[560t 13521120 4608411 65.9%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[52 0] A2[519 0] A3[2428 0] A4[1685 0] A5[22496 5287] A6[44203 0] A7[65774 0] A8[162488 81] A9[8693922 175875]
+  technology lane steps: nodest+fundable=130 nodest+nothing=0 waiting=0 assisting=0 funded=1500
+  civics lane steps:     nodest+fundable=182 nodest+nothing=122 waiting=0 assisting=184 funded=1142
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 7] A2[0 0 15] A3[0 0 12] A4[0 0 6] A5[0 0 9] A6[0 0 6] A7[0 0 5] A8[0 0 7] A9[0 0 63]
+  engine reserve (cap 3 turns, draw 1): deposited 1835553 drawn 1776911 left 58642 max 87963; turns at the cap 7; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A7=1
+  CP generated 2147237 spent 2147237 banked 0; identity holds
+  bursts: most technologies completed in one turn 3, civics 8, repeatable levels 2; first level turn 1236
+  end: Age 9 tech 525 civics 480 levels 373 population 62681149 settlements 20
+  infrastructure: structures 55 road developments 850 institutions 15; discovery: surveys 20 explorations 15 known cells 1195
+  reconstruction mismatches 0; final hash 9720e36262fa80e47abd3181400774e582055eb4fde8d09b60539b9fed23418c
+seed 1 overflow ON gate-aware [d6-trial] proxy-delay 6 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=72 A3=341 A4=679 A5=714 A6=794 A7=927 A8=1042 A9=1151
+  Age complete (turn) technology: A1=267 A2=468 A3=641 A4=771 A5=892 A6=1004 A7=1122 A8=1332 A9=1473
+  Age complete (turn) civics:     A1=280 A2=469 A3=635 A4=768 A5=839 A6=1009 A7=1096 A8=1268 A9=1420
+  RP by polity Age (turns, generated, spent, lost %): A1[72t 1688 1455 13.8%] A2[269t 19491 17970 7.8%] A3[338t 242914 228733 5.8%] A4[35t 95692 75785 20.8%] A5[80t 368326 291622 20.8%] A6[133t 1136122 1007920 11.3%] A7[115t 1203751 1059288 12.0%] A8[109t 1353846 1088481 19.6%] A9[479t 9487254 2416382 74.5%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[77 127] A2[635 771] A3[3491 8434] A4[3850 15392] A5[22637 50398] A6[50262 75234] A7[81490 61056] A8[116297 147151] A9[6709467 374679]
+  technology lane steps: nodest+fundable=198 nodest+nothing=0 waiting=0 assisting=0 funded=1432
+  civics lane steps:     nodest+fundable=307 nodest+nothing=182 waiting=0 assisting=233 funded=908
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 13] A2[0 0 30] A3[0 0 24] A4[0 0 12] A5[0 0 18] A6[0 0 18] A7[0 0 12] A8[0 0 24] A9[0 0 47]
+  engine reserve (cap 3 turns, draw 1): deposited 730859 drawn 730859 left 0 max 52231; turns at the cap 30; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A7=1
+  CP generated 1711766 spent 1711766 banked 0; identity holds
+  bursts: most technologies completed in one turn 3, civics 7, repeatable levels 2; first level turn 1360
+  end: Age 9 tech 525 civics 480 levels 312 population 51956991 settlements 20
+  infrastructure: structures 55 road developments 697 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+  reconstruction mismatches 0; final hash 71875174fb8e438a354186da96cc178ade106488b8e30471b0ec6eeeec063637
+seed 2 overflow ON gate-aware [d6-trial] proxy-delay 6 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=73 A3=358 A4=708 A5=767 A6=857 A7=979 A8=1146 A9=1236
+  Age complete (turn) technology: A1=278 A2=496 A3=682 A4=834 A5=958 A6=1061 A7=1202 A8=1434 A9=1575
+  Age complete (turn) civics:     A1=291 A2=500 A3=690 A4=831 A5=911 A6=1128 A7=1163 A8=1352 A9=1522
+  RP by polity Age (turns, generated, spent, lost %): A1[73t 1683 1455 13.6%] A2[285t 19243 17970 6.6%] A3[350t 205291 198918 3.1%] A4[59t 127590 105600 17.2%] A5[90t 382766 291622 23.8%] A6[122t 1001455 926236 7.5%] A7[167t 1766663 1311786 25.7%] A8[90t 1121036 937626 16.4%] A9[394t 6834323 1285896 81.2%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[74 127] A2[444 725] A3[2667 2093] A4[2984 18143] A5[28491 58771] A6[25772 46952] A7[220940 231046] A8[70058 112248] A9[5101936 459471]
+  technology lane steps: nodest+fundable=234 nodest+nothing=0 waiting=0 assisting=0 funded=1396
+  civics lane steps:     nodest+fundable=329 nodest+nothing=162 waiting=0 assisting=277 funded=862
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 13] A2[0 0 30] A3[0 0 18] A4[0 0 18] A5[0 0 24] A6[0 0 12] A7[0 0 42] A8[0 0 18] A9[0 0 59]
+  engine reserve (cap 3 turns, draw 1): deposited 890447 drawn 890447 left 0 max 47992; turns at the cap 36; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A3=1 A7=2
+  CP generated 1378526 spent 1378526 banked 0; identity holds
+  bursts: most technologies completed in one turn 2, civics 2, repeatable levels 2; first level turn 1462
+  end: Age 9 tech 525 civics 480 levels 201 population 45337768 settlements 21
+  infrastructure: structures 57 road developments 944 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+  reconstruction mismatches 0; final hash 05ec0a4cc281a0588d5e4c3dd4f0ae6d3584e92aa898fda838972f0c1c1dda52
+seed 42 overflow ON gate-aware [d6-trial] proxy-delay 6 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=71 A3=343 A4=688 A5=724 A6=804 A7=905 A8=1004 A9=1115
+  Age complete (turn) technology: A1=269 A2=473 A3=649 A4=782 A5=888 A6=972 A7=1103 A8=1266 A9=1407
+  Age complete (turn) civics:     A1=272 A2=474 A3=643 A4=780 A5=843 A6=968 A7=1083 A8=1251 A9=1353
+  RP by polity Age (turns, generated, spent, lost %): A1[71t 1681 1455 13.5%] A2[272t 19261 17970 6.7%] A3[345t 242954 228733 5.9%] A4[36t 95119 75785 20.3%] A5[80t 376679 291622 22.6%] A6[101t 1003456 926821 7.6%] A7[99t 1244537 1083431 12.9%] A8[111t 1653864 1210545 26.8%] A9[515t 13492324 3399393 74.8%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[68 130] A2[422 757] A3[3896 8154] A4[3815 14868] A5[20459 53401] A6[17922 61726] A7[86576 72040] A8[223477 217020] A9[9306328 736448]
+  technology lane steps: nodest+fundable=204 nodest+nothing=0 waiting=0 assisting=0 funded=1426
+  civics lane steps:     nodest+fundable=330 nodest+nothing=137 waiting=0 assisting=210 funded=953
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 13] A2[0 0 30] A3[0 0 24] A4[0 0 12] A5[0 0 18] A6[0 0 12] A7[0 0 12] A8[0 0 30] A9[0 0 53]
+  engine reserve (cap 3 turns, draw 1): deposited 1149342 drawn 1082729 left 66614 max 99921; turns at the cap 29; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 2098182 spent 2098182 banked 0; identity holds
+  bursts: most technologies completed in one turn 3, civics 3, repeatable levels 2; first level turn 1294
+  end: Age 9 tech 525 civics 480 levels 350 population 75201677 settlements 21
+  infrastructure: structures 57 road developments 733 institutions 15; discovery: surveys 21 explorations 19 known cells 1320
+  reconstruction mismatches 0; final hash 4b514eb50015c4888fd3d7cbfbbf884b59e7378af0e8da0f2ff9f4e9213f0a41
+seed 7 overflow ON gate-aware [d6-trial] proxy-delay 6 reserve-cap none draw-limit none
+  Age entered (effective turn): A2=72 A3=344 A4=686 A5=721 A6=801 A7=907 A8=1011 A9=1115
+  Age complete (turn) technology: A1=270 A2=473 A3=647 A4=778 A5=887 A6=978 A7=1087 A8=1275 A9=1420
+  Age complete (turn) civics:     A1=273 A2=474 A3=641 A4=775 A5=841 A6=977 A7=1061 A8=1235 A9=1362
+  RP by polity Age (turns, generated, spent, lost %): A1[72t 1673 1455 13.1%] A2[272t 19288 17970 6.8%] A3[342t 244637 228733 6.5%] A4[35t 94334 75785 19.7%] A5[80t 382268 291622 23.7%] A6[106t 1021264 925921 9.3%] A7[104t 1234453 1083568 12.2%] A8[104t 1458735 1145253 21.5%] A9[515t 12363202 3368113 72.8%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[68 122] A2[447 759] A3[5362 8313] A4[2695 15197] A5[33526 52892] A6[39874 52392] A7[81001 67275] A8[146408 165088] A9[8376887 633129]
+  technology lane steps: nodest+fundable=198 nodest+nothing=0 waiting=0 assisting=0 funded=1432
+  civics lane steps:     nodest+fundable=307 nodest+nothing=150 waiting=0 assisting=233 funded=940
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 13] A2[0 0 30] A3[0 0 24] A4[0 0 12] A5[0 0 18] A6[0 0 12] A7[0 0 12] A8[0 0 24] A9[0 0 53]
+  engine reserve (cap 3 turns, draw 1): deposited 992825 drawn 992825 left 0 max 91030; turns at the cap 30; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1983975 spent 1983975 banked 0; identity holds
+  bursts: most technologies completed in one turn 3, civics 7, repeatable levels 2; first level turn 1302
+  end: Age 9 tech 525 civics 480 levels 345 population 65828636 settlements 21
+  infrastructure: structures 57 road developments 882 institutions 15; discovery: surveys 21 explorations 15 known cells 1201
+  reconstruction mismatches 0; final hash 146567ee27df96f32d746dbd16773fe70ac06b387dc3b28c5c99d42bd3da028d
+seed 1 overflow OFF [off] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=339 A4=683 A5=716 A6=783 A7=934 A8=1060 A9=1184
+  Age complete (turn) technology: A1=263 A2=476 A3=651 A4=770 A5=895 A6=1026 A7=1164 A8=1317 A9=1462
+  Age complete (turn) civics:     A1=265 A2=464 A3=638 A4=768 A5=906 A6=1020 A7=1108 A8=1317 A9=1405
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1548 1482 4.2%] A2[272t 19753 18088 8.4%] A3[344t 262435 231154 11.9%] A4[33t 96604 89808 7.0%] A5[67t 335819 279471 16.8%] A6[151t 1304608 1010140 22.6%] A7[126t 1343888 1068568 20.5%] A8[124t 1573679 1173177 25.5%] A9[446t 9055566 2596938 71.3%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[66 0] A2[1665 0] A3[31281 0] A4[6796 0] A5[56347 0] A6[192615 101853] A7[275320 0] A8[400502 0] A9[6458628 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=11 assisting=0 funded=1619
+  civics lane steps:     nodest+fundable=0 nodest+nothing=165 waiting=0 assisting=0 funded=1465
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[0 0 0] A6[11 0 0] A7[0 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A6 corned_powder (A7) civic-sweep-cohort: 11]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1738969 spent 1738969 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1344
+  end: Age 9 tech 525 civics 480 levels 321 population 52270070 settlements 20
+  infrastructure: structures 55 road developments 692 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+  reconstruction mismatches 0; final hash 4544557eea9f0c61e6a6df3693785321746628f018089d02622d046f5214f83d
+seed 2 overflow OFF [off] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=355 A4=728 A5=767 A6=844 A7=992 A8=1136 A9=1264
+  Age complete (turn) technology: A1=273 A2=501 A3=688 A4=826 A5=956 A6=1089 A7=1244 A8=1403 A9=1548
+  Age complete (turn) civics:     A1=287 A2=494 A3=682 A4=831 A5=975 A6=1103 A7=1183 A8=1397 A9=1489
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1520 1481 2.6%] A2[288t 19438 18078 7.0%] A3[373t 255675 230735 9.8%] A4[39t 95704 89776 6.2%] A5[77t 373248 279934 25.0%] A6[148t 1287143 928663 27.9%] A7[144t 1541404 1087544 29.4%] A8[128t 1586914 1226687 22.7%] A9[366t 6667143 1353698 79.7%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[39 0] A2[1360 0] A3[24940 0] A4[5928 0] A5[62999 30315] A6[177807 180674] A7[294459 159400] A8[360227 0] A9[5313445 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=38 assisting=0 funded=1592
+  civics lane steps:     nodest+fundable=0 nodest+nothing=158 waiting=0 assisting=0 funded=1472
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[5 0 0] A6[19 0 0] A7[14 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A5 heavy_plough (A6) civic-sweep-cohort: 5] [A6 corned_powder (A7) civic-sweep-cohort: 19] [A7 germ_theory (A8) civic-sweep-cohort: 14]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1440526 spent 1440526 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1431
+  end: Age 9 tech 525 civics 480 levels 234 population 47744127 settlements 21
+  infrastructure: structures 57 road developments 950 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+  reconstruction mismatches 0; final hash 65a67800247ebf9cd9d22e8a0bf8ac55eb81483c270feb3cd9ebda483a3043de
+seed 42 overflow OFF [off] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=66 A3=341 A4=693 A5=727 A6=793 A7=920 A8=1023 A9=1134
+  Age complete (turn) technology: A1=265 A2=480 A3=659 A4=781 A5=889 A6=996 A7=1114 A8=1264 A9=1409
+  Age complete (turn) civics:     A1=269 A2=470 A3=647 A4=780 A5=897 A6=992 A7=1067 A8=1267 A9=1351
+  RP by polity Age (turns, generated, spent, lost %): A1[66t 1541 1483 3.8%] A2[275t 19542 18085 7.5%] A3[352t 263466 231100 12.3%] A4[34t 96244 89769 6.7%] A5[66t 341446 279567 18.1%] A6[127t 1299330 1010003 22.3%] A7[103t 1319531 1059404 19.7%] A8[111t 1681047 1164522 30.7%] A9[496t 13360856 3924153 70.6%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[58 0] A2[1457 0] A3[32366 0] A4[6475 0] A5[61879 0] A6[200757 88570] A7[260127 0] A8[516526 0] A9[9436703 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=8 assisting=0 funded=1622
+  civics lane steps:     nodest+fundable=0 nodest+nothing=145 waiting=0 assisting=0 funded=1485
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[0 0 0] A6[8 0 0] A7[0 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A6 corned_powder (A7) civic-sweep-cohort: 8]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 2135068 spent 2135068 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1292
+  end: Age 9 tech 525 civics 480 levels 361 population 76872583 settlements 21
+  infrastructure: structures 57 road developments 768 institutions 15; discovery: surveys 21 explorations 19 known cells 1232
+  reconstruction mismatches 0; final hash b7bbfc29801b561fe8a75690bfbafc0ebf0d247a15ae1686fbff1f344e565f6d
+seed 7 overflow OFF [off] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=342 A4=691 A5=723 A6=792 A7=918 A8=1031 A9=1145
+  Age complete (turn) technology: A1=266 A2=481 A3=658 A4=779 A5=891 A6=1002 A7=1125 A8=1275 A9=1420
+  Age complete (turn) civics:     A1=271 A2=471 A3=645 A4=777 A5=900 A6=998 A7=1080 A8=1278 A9=1363
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1534 1482 3.4%] A2[275t 19481 18085 7.2%] A3[349t 263813 231120 12.4%] A4[32t 91315 85499 6.4%] A5[69t 352088 283819 19.4%] A6[126t 1222565 946371 22.6%] A7[113t 1367112 1122713 17.9%] A8[114t 1617614 1166955 27.9%] A9[485t 11244525 3430690 69.5%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[53 0] A2[1396 0] A3[32694 0] A4[5816 0] A5[68269 0] A6[183974 92220] A7[244398 0] A8[450659 0] A9[7813835 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=9 assisting=0 funded=1621
+  civics lane steps:     nodest+fundable=0 nodest+nothing=147 waiting=0 assisting=0 funded=1483
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[0 0 0] A6[9 0 0] A7[0 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A6 corned_powder (A7) civic-sweep-cohort: 9]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1956108 spent 1956108 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1302
+  end: Age 9 tech 525 civics 480 levels 348 population 61276426 settlements 20
+  infrastructure: structures 55 road developments 853 institutions 15; discovery: surveys 20 explorations 15 known cells 1195
+  reconstruction mismatches 0; final hash 1d20ec2ac7fc05c04e2baea447956ee69129f6a3da7cb728975e42745fe18ed1
+seed 1 overflow ON [trial-nogate] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=329 A4=664 A5=697 A6=765 A7=888 A8=1018 A9=1117
+  Age complete (turn) technology: A1=255 A2=455 A3=629 A4=746 A5=862 A6=962 A7=1098 A8=1249 A9=1394
+  Age complete (turn) civics:     A1=265 A2=461 A3=625 A4=753 A5=862 A6=989 A7=1055 A8=1251 A9=1336
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1548 1482 4.2%] A2[262t 18430 18082 1.9%] A3[335t 234943 231034 1.7%] A4[33t 92149 86568 6.1%] A5[68t 325692 282838 13.2%] A6[123t 1034445 1009890 2.4%] A7[130t 1388082 1064771 23.3%] A8[99t 1262950 1155324 8.5%] A9[513t 10928680 3967568 63.7%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[66 0] A2[348 0] A3[3910 0] A4[5581 0] A5[20426 22428] A6[24555 0] A7[56578 266733] A8[107626 0] A9[6961112 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=34 assisting=0 funded=1596
+  civics lane steps:     nodest+fundable=0 nodest+nothing=120 waiting=0 assisting=0 funded=1510
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[7 0 0] A6[0 0 0] A7[27 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A5 heavy_plough (A6) civic-sweep-cohort: 7] [A7 germ_theory (A8) civic-sweep-cohort: 27]
+  engine reserve (cap 3 turns, draw 1): deposited 51300 drawn 51300 left 0 max 33616; turns at the cap 25; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1885487 spent 1885487 banked 0; identity holds
+  bursts: most technologies completed in one turn 2, civics 2, repeatable levels 2; first level turn 1277
+  end: Age 9 tech 525 civics 480 levels 358 population 53820646 settlements 20
+  infrastructure: structures 55 road developments 678 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+  reconstruction mismatches 0; final hash d5a335d1beecc3fe134aac4e7565a77f7eb54deb65e58da6465819e0728f0cd8
+seed 2 overflow ON [trial-nogate] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=348 A4=711 A5=752 A6=827 A7=940 A8=1110 A9=1217
+  Age complete (turn) technology: A1=265 A2=483 A3=669 A4=803 A5=923 A6=1016 A7=1198 A8=1356 A9=1501
+  Age complete (turn) civics:     A1=287 A2=492 A3=673 A4=815 A5=922 A6=1080 A7=1145 A8=1351 A9=1442
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1520 1481 2.6%] A2[281t 18617 18074 2.9%] A3[363t 237364 230654 2.8%] A4[41t 98594 91184 7.5%] A5[75t 350075 278611 20.4%] A6[113t 940924 929176 1.2%] A7[170t 1836065 1088924 40.7%] A8[107t 1323396 1215330 8.2%] A9[413t 7806864 1861609 76.2%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[39 0] A2[543 0] A3[5147 1564] A4[7411 0] A5[20624 50840] A6[11748 0] A7[66574 680566] A8[108066 0] A9[5945255 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=80 assisting=0 funded=1550
+  civics lane steps:     nodest+fundable=0 nodest+nothing=135 waiting=0 assisting=0 funded=1495
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[4 0 0] A4[0 0 0] A5[12 0 0] A6[0 0 0] A7[64 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A3 road_paved (A5) civic-sweep-cohort: 4] [A5 heavy_plough (A6) civic-sweep-cohort: 12] [A7 germ_theory (A8) civic-sweep-cohort: 64]
+  engine reserve (cap 3 turns, draw 1): deposited 56672 drawn 56672 left 0 max 34009; turns at the cap 50; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1528284 spent 1528284 banked 0; identity holds
+  bursts: most technologies completed in one turn 2, civics 2, repeatable levels 2; first level turn 1384
+  end: Age 9 tech 525 civics 480 levels 284 population 49542556 settlements 21
+  infrastructure: structures 57 road developments 923 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+  reconstruction mismatches 0; final hash da628a00704967fa8d4cd4e83ed61cdeab55dcb302bbbbc05702727374c031d3
+seed 42 overflow ON [trial-nogate] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=66 A3=333 A4=673 A5=711 A6=770 A7=876 A8=978 A9=1068
+  Age complete (turn) technology: A1=256 A2=460 A3=637 A4=757 A5=854 A6=941 A7=1051 A8=1198 A9=1343
+  Age complete (turn) civics:     A1=269 A2=467 A3=633 A4=760 A5=864 A6=954 A7=1012 A8=1204 A9=1284
+  RP by polity Age (turns, generated, spent, lost %): A1[66t 1541 1483 3.8%] A2[267t 18529 18081 2.4%] A3[340t 234960 230965 1.7%] A4[38t 104033 94093 9.6%] A5[59t 286379 275382 3.8%] A6[106t 1043393 928367 11.0%] A7[102t 1292596 1093286 15.4%] A8[90t 1354215 1216001 10.2%] A9[562t 15691083 5621083 64.2%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[58 0] A2[449 0] A3[3994 0] A4[9939 0] A5[10996 0] A6[40131 74895] A7[62727 136583] A8[138214 0] A9[10070000 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=26 assisting=0 funded=1604
+  civics lane steps:     nodest+fundable=0 nodest+nothing=104 waiting=0 assisting=0 funded=1526
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[3 0 0] A6[10 0 0] A7[13 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A5 heavy_plough (A6) civic-sweep-cohort: 3] [A6 corned_powder (A7) civic-sweep-cohort: 10] [A7 germ_theory (A8) civic-sweep-cohort: 13]
+  engine reserve (cap 3 turns, draw 1): deposited 92458 drawn 92458 left 0 max 41693; turns at the cap 9; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 2341956 spent 2341956 banked 0; identity holds
+  bursts: most technologies completed in one turn 2, civics 2, repeatable levels 2; first level turn 1226
+  end: Age 9 tech 525 civics 480 levels 388 population 77769242 settlements 21
+  infrastructure: structures 57 road developments 767 institutions 15; discovery: surveys 21 explorations 19 known cells 1232
+  reconstruction mismatches 0; final hash 336c9fae43739825181e248eee7da6b32e07c10847a205b5a436a83a6e10b670
+seed 7 overflow ON [trial-nogate] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=334 A4=671 A5=707 A6=766 A7=870 A8=985 A9=1079
+  Age complete (turn) technology: A1=256 A2=461 A3=635 A4=753 A5=854 A6=938 A7=1061 A8=1209 A9=1354
+  Age complete (turn) civics:     A1=271 A2=468 A3=631 A4=755 A5=846 A6=959 A7=1018 A8=1214 A9=1295
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1534 1482 3.4%] A2[267t 18504 18081 2.3%] A3[337t 234937 231008 1.7%] A4[36t 100193 90822 9.4%] A5[59t 294872 278611 5.5%] A6[104t 970988 928607 4.4%] A7[115t 1390158 1093470 21.3%] A8[94t 1347144 1218629 9.5%] A9[551t 13346273 4973784 62.7%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[53 0] A2[423 0] A3[3929 0] A4[9371 0] A5[16260 0] A6[42382 0] A7[67243 229445] A8[128514 0] A9[8372489 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=23 assisting=0 funded=1607
+  civics lane steps:     nodest+fundable=0 nodest+nothing=110 waiting=0 assisting=0 funded=1520
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[2 0 0] A6[0 0 0] A7[21 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A5 heavy_plough (A6) civic-sweep-cohort: 2] [A7 germ_theory (A8) civic-sweep-cohort: 21]
+  engine reserve (cap 3 turns, draw 1): deposited 50959 drawn 50959 left 0 max 38734; turns at the cap 14; largest draw 1x the turn's pool
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 2153584 spent 2153584 banked 0; identity holds
+  bursts: most technologies completed in one turn 2, civics 2, repeatable levels 2; first level turn 1237
+  end: Age 9 tech 525 civics 480 levels 378 population 62687224 settlements 20
+  infrastructure: structures 55 road developments 852 institutions 15; discovery: surveys 20 explorations 15 known cells 1195
+  reconstruction mismatches 0; final hash 6a2d1c091b0726db4826c8b0c11ceae5e0c254651e1fa3bf554a33ea094adab3
+seed 1 overflow ON gate-aware [trial] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=329 A4=664 A5=697 A6=768 A7=888 A8=1003 A9=1097
+  Age complete (turn) technology: A1=255 A2=455 A3=629 A4=746 A5=862 A6=961 A7=1078 A8=1230 A9=1375
+  Age complete (turn) civics:     A1=265 A2=461 A3=625 A4=755 A5=862 A6=989 A7=1034 A8=1231 A9=1317
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1548 1482 4.2%] A2[262t 18430 18082 1.9%] A3[335t 234943 231034 1.7%] A4[33t 92149 86568 6.1%] A5[71t 345471 322473 6.7%] A6[120t 1013918 977255 3.6%] A7[115t 1219319 1138083 6.7%] A8[94t 1190987 1079524 9.4%] A9[533t 11494604 4344195 62.2%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[66 0] A2[348 0] A3[3910 0] A4[5581 0] A5[22998 0] A6[36663 0] A7[81237 0] A8[111464 0] A9[7150409 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=0 assisting=0 funded=1630
+  civics lane steps:     nodest+fundable=0 nodest+nothing=102 waiting=0 assisting=0 funded=1528
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[0 0 0] A6[0 0 0] A7[0 0 0] A8[0 0 0] A9[0 0 0]
+  engine reserve (cap 3 turns, draw 1): deposited 0 drawn 0 left 0 max 0; turns at the cap 0; largest draw 0x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A5=1 A7=2
+  CP generated 1915345 spent 1915345 banked 0; identity holds
+  bursts: most technologies completed in one turn 2, civics 2, repeatable levels 2; first level turn 1258
+  end: Age 9 tech 525 civics 480 levels 364 population 54216139 settlements 20
+  infrastructure: structures 55 road developments 678 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+  reconstruction mismatches 0; final hash eeee45cd9be300dd292e0fb9a7fd86c06d2999ea3bdd58f5b992038562f3a658; replay EQUAL; save/load at turn 815 equal
+seed 2 overflow ON gate-aware [trial] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=348 A4=694 A5=744 A6=836 A7=940 A8=1097 A9=1166
+  Age complete (turn) technology: A1=265 A2=483 A3=669 A4=805 A5=923 A6=1016 A7=1147 A8=1303 A9=1448
+  Age complete (turn) civics:     A1=287 A2=492 A3=673 A4=823 A5=923 A6=1085 A7=1097 A8=1301 A9=1389
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1520 1481 2.6%] A2[281t 18617 18074 2.9%] A3[346t 204168 200633 1.7%] A4[50t 109548 106318 2.9%] A5[92t 408503 370533 9.3%] A6[104t 874487 858788 1.8%] A7[157t 1705322 1526618 10.5%] A8[69t 883562 780639 11.6%] A9[464t 9225137 2812102 69.5%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[39 0] A2[543 0] A3[3536 0] A4[3230 0] A5[37970 0] A6[15699 0] A7[178704 0] A8[102923 0] A9[6413035 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=0 assisting=0 funded=1630
+  civics lane steps:     nodest+fundable=0 nodest+nothing=78 waiting=0 assisting=0 funded=1552
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[0 0 0] A6[0 0 0] A7[0 0 0] A8[0 0 0] A9[0 0 0]
+  engine reserve (cap 3 turns, draw 1): deposited 0 drawn 0 left 0 max 0; turns at the cap 0; largest draw 0x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A3=1 A5=1 A7=2
+  CP generated 1579692 spent 1579692 banked 0; identity holds
+  bursts: most technologies completed in one turn 2, civics 2, repeatable levels 2; first level turn 1331
+  end: Age 9 tech 525 civics 480 levels 324 population 51101922 settlements 21
+  infrastructure: structures 57 road developments 931 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+  reconstruction mismatches 0; final hash ea53cc7159fb44e0770b0872183f5f6c8d6edaa2531988a8dca06e985b78c80a; replay EQUAL; save/load at turn 815 equal
+seed 42 overflow ON gate-aware [trial] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=66 A3=333 A4=673 A5=711 A6=773 A7=896 A8=969 A9=1058
+  Age complete (turn) technology: A1=256 A2=460 A3=637 A4=757 A5=855 A6=943 A7=1041 A8=1186 A9=1331
+  Age complete (turn) civics:     A1=269 A2=467 A3=633 A4=760 A5=882 A6=953 A7=1001 A8=1194 A9=1272
+  RP by polity Age (turns, generated, spent, lost %): A1[66t 1541 1483 3.8%] A2[267t 18529 18081 2.4%] A3[340t 234960 230965 1.7%] A4[38t 104033 94093 9.6%] A5[62t 307208 288524 6.1%] A6[123t 1260476 1133019 10.1%] A7[73t 950144 881040 7.3%] A8[89t 1330504 1209206 9.1%] A9[572t 16106038 5970834 62.9%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[58 0] A2[449 0] A3[3994 0] A4[9939 0] A5[18683 0] A6[127457 0] A7[69104 0] A8[121298 0] A9[10135204 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=0 assisting=0 funded=1630
+  civics lane steps:     nodest+fundable=0 nodest+nothing=93 waiting=0 assisting=0 funded=1537
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[0 0 0] A6[0 0 0] A7[0 0 0] A8[0 0 0] A9[0 0 0]
+  engine reserve (cap 3 turns, draw 1): deposited 0 drawn 0 left 0 max 0; turns at the cap 0; largest draw 0x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A5=1 A6=2 A7=1
+  CP generated 2374556 spent 2374556 banked 0; identity holds
+  bursts: most technologies completed in one turn 2, civics 2, repeatable levels 2; first level turn 1214
+  end: Age 9 tech 525 civics 480 levels 393 population 77780342 settlements 21
+  infrastructure: structures 57 road developments 767 institutions 15; discovery: surveys 21 explorations 19 known cells 1213
+  reconstruction mismatches 0; final hash d1f1c756e270314f7b2d561c1faa9bb6b896342db6ebc633fac85da406fb558b; replay EQUAL; save/load at turn 815 equal
+seed 7 overflow ON gate-aware [trial] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=334 A4=671 A5=707 A6=769 A7=871 A8=972 A9=1062
+  Age complete (turn) technology: A1=256 A2=461 A3=635 A4=753 A5=855 A6=938 A7=1044 A8=1192 A9=1337
+  Age complete (turn) civics:     A1=271 A2=468 A3=631 A4=756 A5=846 A6=959 A7=999 A8=1197 A9=1278
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1534 1482 3.4%] A2[267t 18504 18081 2.3%] A3[337t 234937 231008 1.7%] A4[36t 100193 90822 9.4%] A5[62t 316039 291760 7.7%] A6[102t 958457 922182 3.8%] A7[101t 1214351 1137840 6.3%] A8[90t 1285482 1167539 9.2%] A9[568t 13833617 5410451 60.9%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[53 0] A2[423 0] A3[3929 0] A4[9371 0] A5[24280 0] A6[36275 0] A7[76511 0] A8[117943 0] A9[8423166 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=0 assisting=0 funded=1630
+  civics lane steps:     nodest+fundable=0 nodest+nothing=93 waiting=0 assisting=0 funded=1537
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[0 0 0] A6[0 0 0] A7[0 0 0] A8[0 0 0] A9[0 0 0]
+  engine reserve (cap 3 turns, draw 1): deposited 0 drawn 0 left 0 max 0; turns at the cap 0; largest draw 0x the turn's pool
+  technology destination switched away from an incomplete one, by Age: A5=1 A7=2
+  CP generated 2183663 spent 2183663 banked 0; identity holds
+  bursts: most technologies completed in one turn 2, civics 2, repeatable levels 2; first level turn 1220
+  end: Age 9 tech 525 civics 480 levels 383 population 62880395 settlements 20
+  infrastructure: structures 55 road developments 852 institutions 15; discovery: surveys 20 explorations 15 known cells 1195
+  reconstruction mismatches 0; final hash fb813a03a5a7054c41e190b0982da4c0372f6b59a45ebe34694789c0d3af097c; replay EQUAL; save/load at turn 815 equal
+seed 1 overflow OFF [off-cr025-twin] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=339 A4=683 A5=717 A6=783 A7=939 A8=1074 A9=1204
+  Age complete (turn) technology: A1=263 A2=476 A3=651 A4=770 A5=898 A6=1039 A7=1184 A8=1342 A9=1483
+  Age complete (turn) civics:     A1=265 A2=464 A3=639 A4=769 A5=911 A6=1033 A7=1129 A8=1336 A9=1430
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1548 1482 4.2%] A2[272t 19753 18088 8.4%] A3[344t 261979 231147 11.8%] A4[34t 99612 90675 9.0%] A5[66t 325472 278611 14.4%] A6[156t 1302686 1013498 22.2%] A7[135t 1374973 1058958 23.0%] A8[130t 1546449 1175864 24.0%] A9[426t 7987204 2124914 73.4%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[66 0] A2[1665 0] A3[30833 0] A4[8937 0] A5[46861 0] A6[174340 114848] A7[316015 0] A8[370584 0] A9[5862290 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=13 assisting=0 funded=1617
+  civics lane steps:     nodest+fundable=0 nodest+nothing=177 waiting=0 assisting=0 funded=1453
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[0 0 0] A6[13 0 0] A7[0 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A6 corned_powder (A7) civic-sweep-cohort: 13]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1637806 spent 1637806 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1369
+  end: Age 9 tech 525 civics 480 levels 301 population 47018057 settlements 20
+  infrastructure: structures 55 road developments 671 institutions 15; discovery: surveys 20 explorations 13 known cells 991
+  reconstruction mismatches 0; final hash 3529ef0c41b73469ad2983c97530abc7be7be3ced4b61c3d665021de353780e6; as schema v36 9d487f5a13c7efffa2f761a2a42c52e4fe30fb2da6fcde6bf787ed236a303489
+seed 2 overflow OFF [off-cr025-twin] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=355 A4=728 A5=768 A6=847 A7=1005 A8=1156 A9=1290
+  Age complete (turn) technology: A1=273 A2=501 A3=688 A4=829 A5=963 A6=1109 A7=1270 A8=1429 A9=1574
+  Age complete (turn) civics:     A1=287 A2=494 A3=683 A4=834 A5=988 A6=1121 A7=1211 A8=1423 A9=1515
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1520 1481 2.6%] A2[288t 19438 18078 7.0%] A3[373t 254882 230725 9.5%] A4[40t 97819 91109 6.9%] A5[79t 367738 278611 24.2%] A6[158t 1325705 929587 29.9%] A7[151t 1537316 1093743 28.9%] A8[134t 1559676 1226080 21.4%] A9[340t 5684025 1247533 78.1%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[39 0] A2[1360 0] A3[24156 0] A4[6710 0] A5[60111 29016] A6[168834 227283] A7[315407 128165] A8[333596 0] A9[4436492 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=42 assisting=0 funded=1588
+  civics lane steps:     nodest+fundable=0 nodest+nothing=166 waiting=0 assisting=0 funded=1464
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[5 0 0] A6[25 0 0] A7[12 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A5 heavy_plough (A6) civic-sweep-cohort: 5] [A6 corned_powder (A7) civic-sweep-cohort: 25] [A7 germ_theory (A8) civic-sweep-cohort: 12]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1349247 spent 1349247 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1457
+  end: Age 9 tech 525 civics 480 levels 205 population 42008153 settlements 21
+  infrastructure: structures 57 road developments 907 institutions 15; discovery: surveys 21 explorations 8 known cells 885
+  reconstruction mismatches 0; final hash 6ff181bb2c2d2aa609a652364150fc3ba324fbe0663c379b75600ad7f584bf38; as schema v36 16f6253edd15fb57c69792de98486fc96c7d5e9be65a91dc6259dedc277324c6
+seed 42 overflow OFF [off-cr025-twin] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=66 A3=341 A4=693 A5=727 A6=793 A7=924 A8=1030 A9=1143
+  Age complete (turn) technology: A1=265 A2=480 A3=659 A4=781 A5=890 A6=1001 A7=1123 A8=1273 A9=1414
+  Age complete (turn) civics:     A1=269 A2=470 A3=647 A4=781 A5=901 A6=997 A7=1074 A8=1276 A9=1361
+  RP by polity Age (turns, generated, spent, lost %): A1[66t 1541 1483 3.8%] A2[275t 19542 18085 7.5%] A3[352t 262623 231088 12.0%] A4[34t 95701 89757 6.2%] A5[66t 337406 279591 17.1%] A6[131t 1302675 1008406 22.6%] A7[106t 1302575 1058010 18.8%] A8[113t 1621057 1163332 28.2%] A9[487t 12128845 3619799 70.2%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[58 0] A2[1457 0] A3[31535 0] A4[5944 0] A5[57816 0] A6[176486 117783] A7[244565 0] A8[457725 0] A9[8509046 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=11 assisting=0 funded=1619
+  civics lane steps:     nodest+fundable=0 nodest+nothing=146 waiting=0 assisting=0 funded=1484
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[0 0 0] A6[11 0 0] A7[0 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A6 corned_powder (A7) civic-sweep-cohort: 11]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 2015978 spent 2015978 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1301
+  end: Age 9 tech 525 civics 480 levels 353 population 69210515 settlements 21
+  infrastructure: structures 57 road developments 736 institutions 15; discovery: surveys 21 explorations 19 known cells 1232
+  reconstruction mismatches 0; final hash dc1cbfed6c2015a36b88b2585e7940927fccf9e38ad80307ee72d5ff69df1a7f; as schema v36 7af2de23a22e440e3b0390ead09662102649f83a12afae2b82b30d05e56f495f
+seed 7 overflow OFF [off-cr025-twin] proxy-delay none reserve-cap none draw-limit none
+  Age entered (effective turn): A2=67 A3=342 A4=692 A5=728 A6=793 A7=919 A8=1037 A9=1158
+  Age complete (turn) technology: A1=266 A2=481 A3=658 A4=780 A5=894 A6=1008 A7=1138 A8=1288 A9=1433
+  Age complete (turn) civics:     A1=271 A2=471 A3=646 A4=777 A5=902 A6=1004 A7=1090 A8=1291 A9=1375
+  RP by polity Age (turns, generated, spent, lost %): A1[67t 1534 1482 3.4%] A2[275t 19481 18085 7.2%] A3[350t 265871 231136 13.1%] A4[36t 105206 94137 10.5%] A5[65t 345534 275165 20.4%] A6[126t 1197466 942228 21.3%] A7[118t 1375727 1123636 18.3%] A8[121t 1655641 1164616 29.7%] A9[472t 10255534 3069324 70.1%]
+  RP lost by Age (surplus past a funded node / lane funded nothing): A1[53 0] A2[1396 0] A3[34736 0] A4[11070 0] A5[70369 0] A6[175973 79266] A7[252092 0] A8[491025 0] A9[7186210 0]
+  technology lane steps: nodest+fundable=0 nodest+nothing=0 waiting=8 assisting=0 funded=1622
+  civics lane steps:     nodest+fundable=0 nodest+nothing=152 waiting=0 assisting=0 funded=1478
+  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable): A1[0 0 0] A2[0 0 0] A3[0 0 0] A4[0 0 0] A5[0 0 0] A6[8 0 0] A7[0 0 0] A8[0 0 0] A9[0 0 0]
+  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree): [A6 corned_powder (A7) civic-sweep-cohort: 8]
+  technology destination switched away from an incomplete one, by Age:
+  CP generated 1872365 spent 1872365 banked 0; identity holds
+  bursts: most technologies completed in one turn 1, civics 1, repeatable levels 2; first level turn 1315
+  end: Age 9 tech 525 civics 480 levels 338 population 56179099 settlements 20
+  infrastructure: structures 55 road developments 827 institutions 15; discovery: surveys 20 explorations 15 known cells 1195
+  reconstruction mismatches 0; final hash 969138dcd870831c973162a8a5c5240b8caa09fc39e5fad5138f4acbb584d593; as schema v36 17b16e1189f9c96533743234f10318051207b8eb72bd7dabe76ef3eb613bfda5
