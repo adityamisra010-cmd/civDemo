@@ -1639,3 +1639,12 @@
   review before either switch is turned on by default; (b) a reserve above its cap after the pool shrinks is kept, not
   trimmed (it only stops receiving) — trimming would destroy RP silently; revisit if the screens' "Y of Z" with Y > Z
   confuses players.
+- 2026-10-26 (ADR-052, PROPOSED; Director ruling 2026-10-26; MEASURED): gate-aware AI technology goals behind
+  `research.json` `tuning.aiGateAwareGoals` (absent = off; the shipped AI rule is unchanged, byte for byte). With the switch on
+  and overflow ON (four seeds, 1,630 turns):
+  - technology waiting steps on the Age sweep fall 172 → 0;
+  - EMPTY-lane RP falls 1,709,141 → 0 (2.82 % of RP generated);
+  - total RP lost falls 50.78 % → 48.58 %;
+  - Age 9 comes 16–48 turns sooner.
+  Open: Age 7 is entered later on two seeds (+16 and +29), because the Age-5 civics cohort completes later. The cause of
+  that civics reordering is untraced. Adoption and a pacing-baseline refresh are the Director's call.

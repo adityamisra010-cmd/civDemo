@@ -50,7 +50,7 @@ public sealed record ResearchTuning(
     double CityStatePaceFraction = 0.0, CivicsPointsTuning? CivicsPoints = null, bool AiCheapestOrRoute = false,
     bool AiSupportingMilestones = false, bool AgeSweep = false, bool DestinationRouting = false,
     bool KnowledgeEffects = false, PacingScale? Pacing = null, bool RepeatableLevels = false, bool ResearchOverflow = false,
-    bool ResearchOverflowLane = false, ResearchReserveRule? Reserve = null)
+    bool ResearchOverflowLane = false, ResearchReserveRule? Reserve = null, bool AiGateAwareGoals = false)
 {
     // Reserve (ADR-051; PROPOSED, behind the switch): research.json tuning.researchReserve {capTurns, drawTurns}. Present,
     // a holder's technology lane that funds nothing in a step deposits that step's RP pool into its ResearchReserves row, up
@@ -58,6 +58,12 @@ public sealed record ResearchTuning(
     // draws min(reserve, drawTurns × pool), spent by the pool's own rules and LOSSY (what the funding cannot absorb is lost,
     // never refunded). Never drawn for a civic or a free-lane assist; the CP bank is untouched. Absent (null) is the
     // no-reserve engine exactly (D-044 R20-D) and no ResearchReserves row is ever written — the attribution switch.
+    // AiGateAwareGoals (ADR-052, PROPOSED; Director ruling 2026-10-26): research.json tuning.aiGateAwareGoals. Acts only with
+    // the two-lane model and destinationRouting, and only on an AI polity's TECHNOLOGY lane (AiResearchPolicy): a held
+    // destination the engine's planner cannot fund now (ResearchRoutePlanner.Fund gives the lane no current node — the
+    // route waits on the other tree, e.g. the Age sweep's civics cohort) is re-decided, and the choice prefers a goal
+    // destination the lane can fund now, then the cheapest available technology, else none. Never a civic, never RP for a
+    // civic; a human player's research is never chosen. Off (absent or false) is the AI rule exactly.
     // ResearchOverflowLane (ADR-050 variant, evidence for D-064): research.json tuning.researchOverflowLane. With
     // ResearchOverflow on, once the destination's route and the free-lane assist have nothing left to pay, the remainder
     // also funds the CHEAPEST available node of the lane's own tree (a levelled repeatable included; composite key
@@ -1009,7 +1015,7 @@ public static class ResearchContentLoader
             t.AccelerationCreditCeilingFraction, new ResearchCostModel(cm.U, cm.K), t.CityStatePaceFraction ?? 0.0, civics,
             t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false, t.AgeSweep ?? false, t.DestinationRouting ?? false,
             t.KnowledgeEffects ?? false, ValidatePacing(t.PacingScale), t.RepeatableLevels ?? false, t.ResearchOverflow ?? false,
-            t.ResearchOverflowLane ?? false, ValidateReserve(t.ResearchReserve));
+            t.ResearchOverflowLane ?? false, ValidateReserve(t.ResearchReserve), t.AiGateAwareGoals ?? false);
     }
 
     /// <summary>tuning.researchReserve (ADR-051): capTurns and drawTurns finite and &gt; 0; absent = off (null).</summary>
@@ -1705,7 +1711,8 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("repeatableLevels")] bool? RepeatableLevels = null,
         [property: JsonPropertyName("researchOverflow")] bool? ResearchOverflow = null,
         [property: JsonPropertyName("researchOverflowLane")] bool? ResearchOverflowLane = null,
-        [property: JsonPropertyName("researchReserve")] ResearchReserveJson? ResearchReserve = null);
+        [property: JsonPropertyName("researchReserve")] ResearchReserveJson? ResearchReserve = null,
+        [property: JsonPropertyName("aiGateAwareGoals")] bool? AiGateAwareGoals = null);
 
     private sealed record ResearchReserveJson(
         [property: JsonPropertyName("capTurns"), JsonRequired] double CapTurns,

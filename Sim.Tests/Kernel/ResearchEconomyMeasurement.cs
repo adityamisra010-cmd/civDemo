@@ -46,6 +46,23 @@ public class ResearchEconomyMeasurement(ITestOutputHelper output)
         RunAll([.. jobs]);
     }
 
+    /// <summary>ADR-052 — gate-aware AI technology goals (research.json tuning.aiGateAwareGoals): overflow ON with the switch
+    /// absent ("route", the trial's ON run) and with it on ("route-gate", replayed from its order log with a save/load round
+    /// trip at mid-run); "off-gate" (overflow OFF, switch on) is optional context. Results:
+    /// docs/adr/adr-052-ai-gate-aware-goals.md §4 (raw summaries: research-cost-pass/data/gate-aware/summaries.txt).</summary>
+    [Sim.Tests.Systems.MeasurementFact("gate-aware AI technology goals; docs/adr/adr-052-ai-gate-aware-goals.md")]
+    public void GateAwareGoals_FourSeeds()
+    {
+        var jobs = new List<RunOptions>();
+        foreach (ulong s in Seeds)
+        {
+            jobs.Add(new RunOptions(s, true, "route", Turns));
+            jobs.Add(new RunOptions(s, true, "route-gate", Turns, Replay: true, SaveLoadAt: Turns / 2, GateAware: true));
+            jobs.Add(new RunOptions(s, false, "off-gate", Turns, GateAware: true));
+        }
+        RunAll([.. jobs]);
+    }
+
     /// <summary>The empty-lane reserve study (a measurement model; the engine is unchanged): a human proxy that re-targets a
     /// lane d turns after it empties, with the RP of a technology lane that funds nothing discarded (today) or kept in a reserve
     /// capped at k turns of RP (d = 1: discard or uncapped; d = 3: discard, k = 1, 3, uncapped, and uncapped with a draw limit of one turn's RP). The AI

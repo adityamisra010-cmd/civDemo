@@ -86,6 +86,8 @@ internal static class ResearchRigs
         public bool ResearchOverflowLane { get; set; }
         /// <summary>ADR-051: tuning.researchReserve {capTurns, drawTurns} (null = absent, the no-reserve engine).</summary>
         public (double CapTurns, double DrawTurns)? ResearchReserve { get; set; }
+        /// <summary>ADR-052: tuning.aiGateAwareGoals (null = absent).</summary>
+        public bool AiGateAwareGoals { get; set; }
 
         public string Json()
         {
@@ -256,6 +258,7 @@ internal static class ResearchRigs
                     ["researchReserve"] = ResearchReserve is { } rr
                         ? new JsonObject { ["capTurns"] = rr.CapTurns, ["drawTurns"] = rr.DrawTurns }
                         : null,
+                    ["aiGateAwareGoals"] = AiGateAwareGoals ? true : null,
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject
