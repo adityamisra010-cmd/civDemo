@@ -1671,3 +1671,4 @@
   (c) a disposition for the 17 R1 known-gap nodes (placeholder-only unlocks).
   Costs and final-Age repeatables are unchanged.
 
+- 2026-10-26 (ADR-053, t6-civgate; PROPOSED, switch OFF, NOT YET MEASURED): AI civics gate goals behind `tuning.aiCivicsGateGoals` — while the AI's technology tree has no available node and is swept on an outstanding civic, its Civics lane targets the cheapest-to-reach civic of the lowest gating cohort (the caliphate stall); otherwise today's rule exactly. Trial overlay `research-cost-pass/trial/civics-gate-trial.json`; the four-seed measurement is pending.
