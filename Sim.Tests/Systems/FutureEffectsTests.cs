@@ -1,6 +1,8 @@
 using System.Text.Json.Nodes;
+using Sim.Core;
 using Sim.Core.Kernel;
 using Sim.Core.State;
+using Sim.Core.Systems;
 using Sim.Core.Systems.Research;
 using Sim.Core.Worldgen;
 using Sim.Tests.TestUtil;
@@ -158,5 +160,82 @@ public class FutureEffectsTests
         Assert.Equal(6, granted);
         foreach (KnowledgeOperandInfo info in KnowledgeOperands.All)
             Assert.Equal(KnowledgeEffects.Improvement(w, c, p, info.Operand), KnowledgeEffects.Improvement(with, c, p, info.Operand));
+    }
+    /// <summary>
+    /// CR-025 ruling — IN PLAY, on the canonical founded world (seed 42, one AI empire) with the AI running 40 turns, every
+    /// holder having completed the 8 retargeted and the 6 future-dependent nodes (granted: the canonical AI reaches none of
+    /// the 17 in 300 turns, CR-025 §2.3). Three contents run the same granted world: shipped; shipped with every
+    /// effects.future removed; shipped with the 8 retargeted realized effects removed (the pre-ruling content's behaviour:
+    /// before the ruling those 8 deltas sat on an operand no system consumes). Removing the future declarations changes
+    /// nothing, hash for hash; removing the retargets changes the world — the retargets are real gameplay, the future
+    /// declarations are not. The third content is the attribution twin of any pin the retargets move.
+    /// </summary>
+    [Fact]
+    public void InPlay_TheRetargetsChangeTheWorld_AndTheFutureDeclarationsDoNot()
+    {
+        string[] retargets = ["horse_domestication", "horseshoe", "internal_combustion", "bridge_stone", "bridge_trusts",
+            "turnpike_trusts", "sprung_coach", "road_houses"];
+        SimConfig shipped = TestConfigs.Sim();
+        ResearchContent c = shipped.Research!;
+        SimConfig noFuture = shipped with { Research = Edited(doc => Each(doc, (id, effects) => effects.Remove("future"))) };
+        SimConfig noRetargets = shipped with
+        {
+            Research = Edited(doc => Each(doc, (id, effects) => { if (Array.IndexOf(retargets, id) >= 0) effects.Remove("realized"); })),
+        };
+        Assert.Empty(noRetargets.Research!.Nodes[noRetargets.Research.IndexOfId("sprung_coach")].RealizedEffects);
+        Assert.Empty(noFuture.Research!.Nodes[noFuture.Research.IndexOfId("saddle")].FutureEffects);
+
+        WorldState w = WorldFounding.Found(TestConfigs.Worldgen() with { AiEmpires = 1 }, shipped, 42);
+        var holders = new List<PolityId>();
+        for (int i = 0; i < w.Settlements.Count; i++)
+        {
+            PolityId h = SettlementKnowledge.HolderOf(w, w.Settlements[i].Id);
+            if (!holders.Contains(h)) holders.Add(h);
+        }
+        Assert.True(holders.Count >= 2);
+        int granted = 0;
+        foreach (PolityId h in holders)
+            foreach (ResearchNode n in c.Nodes)
+                if ((n.FutureEffects.Count > 0 || Array.IndexOf(retargets, n.Id) >= 0) && !ResearchQuery.IsCompleted(w, h, n.Key))
+                {
+                    w.ResearchCompleted.Add(new ResearchCompletedRow(h, n.Key));
+                    granted++;
+                }
+        Assert.Equal(14 * holders.Count, granted);
+
+        const int turns = 40;
+        string live = WorldHash.ComputeHex(RunAi(w.Clone(), shipped, turns));
+        Assert.Equal(live, WorldHash.ComputeHex(RunAi(w.Clone(), noFuture, turns)));
+        Assert.NotEqual(live, WorldHash.ComputeHex(RunAi(w.Clone(), noRetargets, turns)));
+    }
+
+    private static ResearchContent Edited(Action<JsonObject> edit)
+    {
+        JsonObject doc;
+        using (Stream s = Sim.Data.DataFiles.OpenResearch()) doc = JsonNode.Parse(s)!.AsObject();
+        edit(doc);
+        return KnowledgeEffectsRigs.Load(doc.ToJsonString());
+    }
+
+    private static void Each(JsonObject doc, Action<string, JsonObject> onEffects)
+    {
+        foreach (string tree in new[] { "technologies", "civics" })
+            foreach (JsonNode? node in doc[tree]!.AsArray())
+                onEffects(node!["id"]!.GetValue<string>(), node["effects"]!.AsObject());
+    }
+
+    private static WorldState RunAi(WorldState w, SimConfig cfg, int turns)
+    {
+        var log = new OrderLog();
+        TurnExecutor exec;
+        using (var era = Sim.Data.DataFiles.OpenEraPacing())
+        using (var pipe = Sim.Data.DataFiles.OpenPipeline())
+            exec = new TurnExecutor(EraTableLoader.Load(era), PipelineLoader.Load(pipe, SystemCatalog.All(cfg, TestConfigs.Worldgen())), log);
+        for (int t = 1; t <= turns; t++)
+        {
+            AiOrders.Append(log, w, cfg, TestConfigs.Worldgen());
+            w = exec.Step(w);
+        }
+        return w;
     }
 }
