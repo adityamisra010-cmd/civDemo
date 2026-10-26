@@ -49,8 +49,8 @@ public class ResearchEconomyMeasurement(ITestOutputHelper output)
     /// <summary>ADR-052 — gate-aware AI technology goals (research.json tuning.aiGateAwareGoals): overflow ON with the switch
     /// absent ("route", the trial's ON run) and with it on ("route-gate", replayed from its order log with a save/load round
     /// trip at mid-run); "off-gate" (overflow OFF, switch on) is optional context. Results:
-    /// docs/m6-plan/knowledge-redesign/research-cost-pass/gate-aware-goals.md.</summary>
-    [Sim.Tests.Systems.MeasurementFact("gate-aware AI technology goals; research-cost-pass/gate-aware-goals.md")]
+    /// docs/adr/adr-052-ai-gate-aware-goals.md §4 (raw summaries: research-cost-pass/data/gate-aware/summaries.txt).</summary>
+    [Sim.Tests.Systems.MeasurementFact("gate-aware AI technology goals; docs/adr/adr-052-ai-gate-aware-goals.md")]
     public void GateAwareGoals_FourSeeds()
     {
         var jobs = new List<RunOptions>();

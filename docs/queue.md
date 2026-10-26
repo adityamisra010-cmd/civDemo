@@ -1631,3 +1631,13 @@
   Cost revisions (six early cuts, cost batches) and the final-Age repeatables proposal stay DEFERRED until (a) is ruled
   and the pacing baseline is refreshed. FUTURE-DEPENDENT (22) and EFFECT-DEFECT (6) rows stay on hold, and placeholder
   civics get no blanket reductions.
+
+- 2026-10-26 (ADR-052, PROPOSED; Director ruling 2026-10-26; MEASURED): gate-aware AI technology goals behind
+  `research.json` `tuning.aiGateAwareGoals` (absent = off; the shipped AI rule is unchanged, byte for byte). With the switch on
+  and overflow ON (four seeds, 1,630 turns):
+  - technology waiting steps on the Age sweep fall 172 → 0;
+  - EMPTY-lane RP falls 1,709,141 → 0 (2.82 % of RP generated);
+  - total RP lost falls 50.78 % → 48.58 %;
+  - Age 9 comes 16–48 turns sooner.
+  Open: Age 7 is entered later on two seeds (+16 and +29), because the Age-5 civics cohort completes later. The cause of
+  that civics reordering is untraced. Adoption and a pacing-baseline refresh are the Director's call.
