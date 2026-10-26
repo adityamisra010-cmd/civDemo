@@ -1631,3 +1631,11 @@
   Cost revisions (six early cuts, cost batches) and the final-Age repeatables proposal stay DEFERRED until (a) is ruled
   and the pacing baseline is refreshed. FUTURE-DEPENDENT (22) and EFFECT-DEFECT (6) rows stay on hold, and placeholder
   civics get no blanket reductions.
+
+- 2026-10-26 (ADR-051, t5-reserve; PROPOSED, switch OFF): the capped technology-lane RP reserve is implemented behind
+  `research.json tuning.researchReserve {capTurns, drawTurns}` (absent = off; schema v37 adds the empty ResearchReserves
+  section, so raw golden hashes moved for the layout alone — each v36 pin is reached through `SchemaProjection.V36`). Open:
+  (a) the four-seed pacing baseline of the trial configuration (`researchOverflow` + reserve 3/1) for the Director's
+  review before either switch is turned on by default; (b) a reserve above its cap after the pool shrinks is kept, not
+  trimmed (it only stops receiving) — trimming would destroy RP silently; revisit if the screens' "Y of Z" with Y > Z
+  confuses players.
