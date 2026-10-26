@@ -42,16 +42,18 @@ internal static class ResearchPacingRunner
     internal sealed record RunOptions(
         ulong Seed, bool Overflow, string Label, int Turns = 1630, int? HumanDelay = null,
         double ReserveCapTurns = 0.0, double DrawLimitTurns = double.PositiveInfinity,
-        bool Replay = false, long SaveLoadAt = -1, bool DrawLosesSurplus = false);
+        bool Replay = false, long SaveLoadAt = -1, bool DrawLosesSurplus = false, bool GateAware = false);
 
     internal sealed record RunResult(string Summary, string? Hash, string? ReplayHash, string? SaveLoadHash);
 
-    /// <summary>The shipped research.json with tuning.researchOverflow set to <paramref name="overflow"/>; nothing else.</summary>
-    internal static SimConfig Config(bool overflow)
+    /// <summary>The shipped research.json with tuning.researchOverflow set to <paramref name="overflow"/> and, when
+    /// <paramref name="gateAware"/>, tuning.aiGateAwareGoals set to true (ADR-052; otherwise left absent); nothing else.</summary>
+    internal static SimConfig Config(bool overflow, bool gateAware = false)
     {
         System.Text.Json.Nodes.JsonObject doc;
         using (var s = Sim.Data.DataFiles.OpenResearch()) doc = System.Text.Json.Nodes.JsonNode.Parse(s)!.AsObject();
         doc["tuning"]!.AsObject()["researchOverflow"] = overflow;
+        if (gateAware) doc["tuning"]!.AsObject()["aiGateAwareGoals"] = true;
         using var goods = Sim.Data.DataFiles.OpenGoods();
         return TestConfigs.Sim() with { Research = ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods)) };
     }
@@ -65,7 +67,7 @@ internal static class ResearchPacingRunner
 
     internal static RunResult Run(RunOptions o, string? outDir)
     {
-        SimConfig cfg = Config(o.Overflow);
+        SimConfig cfg = Config(o.Overflow, o.GateAware);
         WorldgenConfig shipped = TestConfigs.Worldgen();
         var log = new OrderLog();
         TurnExecutor exec = Executor(cfg, shipped, log);
@@ -91,6 +93,7 @@ internal static class ResearchPacingRunner
         var lostEmpty = new double[10];
         var turnsAt = new int[10];
         var classSteps = new int[2, 5];
+        var techClassByAge = new int[10, 5];   // the technology lane's step classes by polity Age
         double reserve = 0.0, deposits = 0.0, draws = 0.0, reserveMax = 0.0, drawMaxRatio = 0.0;
         int mismatches = 0, maxTechPerTurn = 0, maxCivPerTurn = 0, maxLevelsPerTurn = 0;
         long firstLevelTurn = -1;
@@ -136,6 +139,7 @@ internal static class ResearchPacingRunner
             }
 
             int age = AgeQuery.CurrentAge(w, ages, Ai);
+            techClassByAge[age, cls[0]]++;
             if (cls[0] == 2 && lanes[0].Plan is { } plan)
             {
                 // Why the technology lane waits: the outstanding route nodes of the OTHER tree, by structural cause.
@@ -283,7 +287,7 @@ internal static class ResearchPacingRunner
         }
 
         var sb = new StringBuilder();
-        sb.AppendLine(Inv, $"seed {o.Seed} overflow {(o.Overflow ? "ON" : "OFF")} [{o.Label}] proxy-delay {(o.HumanDelay is int hd ? hd.ToString(Inv) : "none")} " +
+        sb.AppendLine(Inv, $"seed {o.Seed} overflow {(o.Overflow ? "ON" : "OFF")}{(o.GateAware ? " gate-aware" : "")} [{o.Label}] proxy-delay {(o.HumanDelay is int hd ? hd.ToString(Inv) : "none")} " +
                            $"reserve-cap {(reserveOn ? o.ReserveCapTurns.ToString("0.##", Inv) : "none")} draw-limit {(double.IsPositiveInfinity(o.DrawLimitTurns) ? "none" : o.DrawLimitTurns.ToString("0.##", Inv))}{(o.DrawLosesSurplus ? " draw-lossy" : "")}");
         sb.Append("  Age entered (effective turn):");
         for (int r = 0; r < w.AgeTransitions.Count; r++)
@@ -311,6 +315,10 @@ internal static class ResearchPacingRunner
             for (int k = 0; k < 5; k++) sb.Append(Inv, $" {names[k]}={classSteps[lane, k]}");
             sb.AppendLine();
         }
+        sb.Append("  technology lane by polity Age (waiting / no destination, nothing available / no destination, fundable):");
+        for (int a = 1; a < 10; a++)
+            if (turnsAt[a] > 0) sb.Append(Inv, $" A{a}[{techClassByAge[a, 2]} {techClassByAge[a, 1]} {techClassByAge[a, 0]}]");
+        sb.AppendLine();
         if (waitDetail.Count > 0)
         {
             sb.Append("  technology waiting steps (polity Age, destination (its Age), first blocking node of the other tree):");
