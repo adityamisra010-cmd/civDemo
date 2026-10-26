@@ -188,7 +188,7 @@ Order invariants HOLD.
 
 ## D. Validation
 
-See §G, filled in by the final validation of the pushed commit.
+See §G.
 
 ## E. Adoption impact, if the candidate became the default (measured on a scratch tree; nothing was changed)
 
@@ -201,7 +201,7 @@ rebuilt. Nothing from that tree is committed.
 | `sim run --seed 42 --turns 400` (M0 toy world, no research) | `903c7028…` | **identical on all 400 turns** | Worlds without research are untouched. |
 | UI `--resume` of a session recorded by the shipped build | resumes at turn 30 | **refused, exit 3**: "This saved session cannot be resumed with this build … Replaying its orders here produces a different world from turn 1"; the session files are unchanged | The existing trace check refuses every pre-adoption session. There is no migration and no silent reinterpretation. |
 | CLI `sim run --from-save` of a shipped turn-100 save, 20 more turns | `daeeffac…` | `655a3444…`, **no warning** | **Risk.** `--from-save` restores the snapshot and continues under the new content with no content check. The old game silently continues under new rules. |
-| Moved test pins | — | see §G | Each needs a re-pin with a switch-off twin returning the old hash. |
+| Moved test pins | — | 23 (§G.1) | Each needs a re-pin with a switch-off twin returning the old hash. |
 
 **Save-resume compatibility.**
 - **UI sessions:** adopting the candidate makes every saved UI session from an earlier build unresumable. It fails safe, with
@@ -235,4 +235,26 @@ rebuilt. Nothing from that tree is committed.
 
 ## G. Validation and moved pins
 
-Filled in after the final validation and CI run.
+### G.1 Pins that would move if the candidate became the default (measured)
+
+**How measured.**
+- Scratch tree at `b698c90` with `research.candidate.json` as the shipped content.
+- Ran the full `Sim.Tests` (556 kernel + 2,497 other) and `Sim.Ui.Tests` (1,119) suites.
+- Result: 23 tests fail, every one of them a pin of the current default. No test outside these four groups fails.
+- `ResearchContentTests.Canonical_Costs_…` passes on b1 + b3. It failed on a b1 + b2 + b3 candidate.
+
+| Group | Tests | What moves | What adoption must do |
+|---|---|---|---|
+| **Switch-off guards** (assert the shipped content keeps a switch off) | `ResearchOverlayTests.ShippedResearch_KeepsTheThreeTrialSwitchesAbsent`; `AiCivicsGateGoalTests.Loader_SwitchParsed_AbsentIsFalse_ShippedResearchLeavesItAbsent`; `ResearchReserveTests.TheShippedContent_HasNoReserve_TheSwitchIsOff`; `ResearchReserveLayoutAttributionTests.TheShippedContent_HasTheSwitchOff_…`; `Sim.Ui.Tests ResearchReserveDisplayTests.WithTheSwitchOff_NoSurfaceCarriesAReserve` | The switches are on by design | Invert each guard to the adopted values. Keep a switch-off twin (TestConfigs) proving each old behaviour is still reachable. |
+| **World-hash goldens** | `SnapshotTests.FoundedGolden_Seed42Turn300` (`8abc32b0…` → `1e5f035b…`, also `FOUNDED_GOLDEN` in `ci.yml`); `DrivenGoldenTests.DrivenGolden_Seed42Turn300`; `CivicsPointsAttributionTests` ×4; `ResearchLevelsLayoutAttributionTests` ×3; `AiFoundingAttributionTests.WithTheSwitchOff_…`; `FirstReignTests.FirstReign_PostFix_…` (hash); `DiscoverySchemaV35Tests.AV34Save_…` (first step after a v34 load) | Any world that runs research | Re-pin each. Each needs an attribution control: the same run with the candidate overlay removed returns the old hash. |
+| **AI trajectory pin** | `AiEmpireIntegrationTests.OneAiEmpire_OnTheCanonicalFoundedWorld_…` | First target and first build unchanged (0, 2). Age II advance 65/66 → **73/74**. | Re-pin, attributing the move with the switch-off twin. Not attributed here to a single switch. The four-seed runs show the same Age II entry, turns 74–75. |
+| **UI text and recorded sessions** | `ActionSurfaceTests.TurnOne_TheStatusBand_…` and `ResearchPointDisplayTests.WaitingLane_…`; `Batch2SessionResumeTests` ×2 and `ConstructionLifecycleResumeTests.TheRealV33Session_…` | The status line gains "- reserve 0/93" (the reserve is on). Three recorded real sessions no longer replay into their trace: the same refusal as §E. | Re-word the two text pins. Re-record the three session fixtures under the new default, or pin them to the switch-off config. |
+
+**Unchanged under the candidate:**
+- the M0 toy-world goldens;
+- the CI allocation leg's four pinned `alloc*.bin` hashes (`sha256sum -c` passes);
+- every other test.
+
+### G.2 Validation of this branch (shipped defaults; candidate files present)
+
+See §G.3, recorded from the final validation run.
