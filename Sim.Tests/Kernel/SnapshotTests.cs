@@ -1161,14 +1161,18 @@ public class SnapshotTests
     // TestConfigs.PreTreeTranche returns the same hash). CONTROLS: DiscoveryLayoutAttributionTests (TestConfigs.PreM6,
     // sections 62–66 stripped by SchemaProjection.V34, returns 0f29efc7…; the EX-alone world differs) and
     // CivicsPointsAttributionTests (the CP part, on the EX-off, tranche-off world). ci.yml FOUNDED_GOLDEN moves with it.
-    internal const string FoundedGoldenHash = "35bb235ff1eb59196e54d7a29177cf3a7881354897c93bb5e25260851674b707";
+    // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD 35bb235ff1eb5919… -> NEW 8abc32b0d85ef6fc… — the empty section-68
+    // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
+    internal const string FoundedGoldenHash = "8abc32b0d85ef6fc00d0b7476d976953e34f16d6a7e900bdbdd07e5c49f61e28";
 
     /// <summary>THE toy golden (seed 42, turn 200; history on GoldenHash_Seed42Turn200_MatchesPinnedConstant). A named
     /// constant since D-055 (2026-10-16) so its v34 layout companion (ReservationsLayoutAttributionTests) compares with it.</summary>
     // D-055 (2026-10-16) RE-PIN (LAYOUT ALONE): 222280e50f567557… -> 2e6d446161e16547…. CAUSE: schema v34 appends ConstructionHolds, EMPTY here — one four-byte zero count prefix. CONTROL: ReservationsLayoutAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV34LayoutAlone (SchemaProjection.V33 = OLD).
     // ADR-043 (2026-10-22) RE-PIN (LAYOUT ALONE): 2e6d446161e16547… -> 1d3f5be2dea41bba…. CAUSE: schema v35 appends CivicsPoints, EMPTY here (the toy world has no research content and no polity) — one four-byte zero count prefix. CONTROL: CivicsPointsAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV35LayoutAlone (SchemaProjection.V34 = OLD).
     // M6 MERGE (2026-10-22, D-062 Tracks EX + CP; MEASURED on the merged tree by the agent writing this line) RE-PIN (VALUE + LAYOUT): 1d3f5be2dea41bba… -> f97432f0e1a7eb5e…. CAUSE: the LAYOUT ALONE — v35 also appends the four EMPTY discovery tables (sections 63–66; the toy pipeline has no DiscoverySystem): four more zero count prefixes. CONTROL: DiscoveryLayoutAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV35LayoutAlone (SchemaProjection.V34 strips sections 62–66 and returns 2e6d4461…).
-    internal const string ToyGoldenHash = "f52a32981fca7cb9b5d747edca1111fce3fc6355addd341dde33bc63f8b332b1";
+    // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD f52a32981fca7cb9… -> NEW 1e2155736b9cfd2b… — the empty section-68
+    // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
+    internal const string ToyGoldenHash = "1e2155736b9cfd2b9009dd4d8f667ae924a11b29e956d44cec5c17c8c50182a3";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the founded golden's world through
     /// the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the founded golden

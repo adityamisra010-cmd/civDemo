@@ -42,7 +42,7 @@ public class DiscoverySchemaV35Tests
     [Fact]
     public void SchemaV35_PopulatedDiscoveryTables_ExpectedLengthBitExactRoundTripAndHashEquality()
     {
-        Assert.Equal(36, CanonicalSchema.Version);   // (v36: ADR-049 ResearchLevels — the schema bump alone)
+        Assert.Equal(37, CanonicalSchema.Version);   // (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone)
         WorldState world = Populated();
         Assert.Null(DiscoveryQuery.InvariantViolation(world));
         byte[] bytes = SchemaProjection.Serialize(world);
@@ -51,7 +51,8 @@ public class DiscoverySchemaV35Tests
 
         // Sections 63–66 are the last four blocks before section 67 (v36, ADR-049: ResearchLevels, EMPTY here — its 4-byte
         // count prefix ends the stream; the layout alone): (count, rows) each, little-endian, in declaration order.
-        const int v36 = 4;
+        // ADR-051 (v37): section 68 (ResearchReserves, EMPTY) follows 67 — two 4-byte prefixes end the stream now.
+        const int v36 = 8;
         Assert.Equal(0, BitConverter.ToInt32(bytes, bytes.Length - v36));
         int surveys = bytes.Length - v36 - (4 + 2 * 16);
         int sightings = surveys - (4 + 2 * 16);
@@ -126,25 +127,26 @@ public class DiscoverySchemaV35Tests
     [Fact]
     public void TheReadableSet_Is32To35_AndTheDiffLayoutAndMigrationNoteAgree()
     {
-        foreach (int v in new[] { 32, 33, 34, 35, 36 }) Assert.True(CanonicalSchema.IsReadable(v));   // v36: ADR-049
-        foreach (int v in new[] { 31, 37, 0 }) Assert.False(CanonicalSchema.IsReadable(v));
-        Assert.Equal(SnapshotDiff.Layout.Length - 1, SnapshotDiff.LayoutFor(35).Length);   // v36: section 67 follows
+        foreach (int v in new[] { 32, 33, 34, 35, 36, 37 }) Assert.True(CanonicalSchema.IsReadable(v));   // v36: ADR-049; v37: ADR-051
+        foreach (int v in new[] { 31, 38, 0 }) Assert.False(CanonicalSchema.IsReadable(v));
+        Assert.Equal(SnapshotDiff.Layout.Length - 2, SnapshotDiff.LayoutFor(35).Length);   // v36: section 67 follows; v37: 68
         Assert.Equal("SettlementSurveys", SnapshotDiff.LayoutFor(35)[^1].Name);
-        Assert.Equal(SnapshotDiff.Layout.Length - 6, SnapshotDiff.LayoutFor(34).Length);   // M6 merge: v35 = section 62 + 63–66; v36: 67
-        Assert.Equal("CivicsPoints", SnapshotDiff.Layout[^6].Name);
+        Assert.Equal(SnapshotDiff.Layout.Length - 7, SnapshotDiff.LayoutFor(34).Length);   // M6 merge: v35 = section 62 + 63–66; v36: 67; v37: 68
+        Assert.Equal("CivicsPoints", SnapshotDiff.Layout[^7].Name);   // v37 (ADR-051): section 68 follows too
         Assert.Equal("ConstructionHolds", SnapshotDiff.LayoutFor(34)[^1].Name);
         Assert.Equal("ResourceAllocations", SnapshotDiff.LayoutFor(33)[^1].Name);
         Assert.Equal("TaxGrievance", SnapshotDiff.LayoutFor(32)[^1].Name);
         Assert.NotNull(SaveFiles.MigrationNote("x", 34));
         Assert.Contains("KnownExtents", SaveFiles.MigrationNote("x", 34)!);
         Assert.Contains("ResearchLevels", SaveFiles.MigrationNote("x", 35)!);   // v36 (ADR-049): a v35 save now migrates
-        Assert.Null(SaveFiles.MigrationNote("x", 36));
+        Assert.Contains("ResearchReserves", SaveFiles.MigrationNote("x", 36)!);   // v37 (ADR-051): a v36 save now migrates
+        Assert.Null(SaveFiles.MigrationNote("x", 37));
         // A populated v35 stream walks to its end.
         byte[] bytes = SchemaProjection.Serialize(Populated());
         SnapshotDiff.Result self = SnapshotDiff.CompareStreams(bytes, CanonicalSchema.Version, bytes, CanonicalSchema.Version);
         Assert.True(self.Identical);
         Assert.Equal(bytes.Length, self.BytesWalkedA);
-        Assert.Equal(2, self.Tables[^2].RowsA);   // v36: section 67 (empty) follows
+        Assert.Equal(2, self.Tables[^3].RowsA);   // v36: section 67 (empty) follows; v37: and section 68
     }
 
     /// <summary>THE v34 → v35 MIGRATION on a real fogged world: a v34 save of it (the same header, the stream to section 61,

@@ -90,8 +90,12 @@ public sealed record ResearchItem(long Key, string Name, double Cost, double Pro
 /// </summary>
 public sealed record ResearchBlock(
     ResearchItem? Target, ResearchItem? Chosen, bool ClearQueued, double PointsPerTurn, int Available,
-    ImmutableArray<ResearchItem> Retained, bool CanClear, CivicsLine? Civics = null, RouteFunding? Funding = null)
+    ImmutableArray<ResearchItem> Retained, bool CanClear, CivicsLine? Civics = null, RouteFunding? Funding = null,
+    ReserveStatus? Reserve = null)
 {
+    // Reserve (ADR-051): the technology lane's RP reserve and what the next End Turn does with it (ResearchQuery.Reserve);
+    // null with research.json tuning.researchReserve absent (the shipped default).
+
     /// <summary>The target the next End Turn will research: the one chosen this turn, else none if a clear is
     /// queued, else the current target.</summary>
     public ResearchItem? Effective => Chosen ?? (ClearQueued ? null : Target);
@@ -654,7 +658,8 @@ public static class ActionSurface
         }
         ResearchTree lane = !twoLanes && (chosen ?? target) is { } one && IsCivic(content, one.Key) ? ResearchTree.Civics : ResearchTree.Technology;
         return new ResearchBlock(target, chosen, clearQueued, ResearchQuery.ResearchPointPool(input.World, content, input.Player),
-            set?.Targets.Length ?? 0, retained.ToImmutable(), canClear, civics, queued is null ? Funding(input, content, lane) : null);
+            set?.Targets.Length ?? 0, retained.ToImmutable(), canClear, civics, queued is null ? Funding(input, content, lane) : null,
+            ResearchQuery.Reserve(input.World, content, input.Player));
     }
 
     /// <summary>rp-cp-lifecycle k2–k4: what <paramref name="lane"/> funds at the next End Turn when it is not simply its

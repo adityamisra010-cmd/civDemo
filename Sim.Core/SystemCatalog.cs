@@ -416,7 +416,7 @@ public static class SystemCatalog
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ResearchTables>(
                 prev, new ResearchTables(next.ResearchTargets, next.ResearchProgress,
                     next.ResearchCompleted, next.ResearchEurekas, next.ResearchCredits, next.CivicsPoints,
-                    next.ResearchLevels),
+                    next.ResearchLevels, next.ResearchReserves),
                 rng, ResearchSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 

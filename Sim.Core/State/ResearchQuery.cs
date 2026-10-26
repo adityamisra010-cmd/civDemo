@@ -872,6 +872,124 @@ public static class ResearchQuery
         return null;
     }
 
+    // ------------------------------------------------------------------ the technology-lane RP reserve (ADR-051)
+
+    /// <summary>
+    /// The RP a knowledge holder generates this turn: <see cref="CityStateResearchPoints"/> for a city-state's reserved local
+    /// key, else <see cref="ResearchPointPool"/> — exactly the amount ResearchSystem's throughput spends (per turn, never ×
+    /// dtYears, ADR-030 §2).
+    /// </summary>
+    public static double HolderResearchPoints(IReadOnlyWorldState world, ResearchContent content, PolityId holder) =>
+        SettlementKnowledge.IsLocalHolder(holder)
+            ? CityStateResearchPoints(world, content, SettlementKnowledge.SettlementOf(holder))
+            : ResearchPointPool(world, content, holder);
+
+    /// <summary>ADR-051: RP → integer milli-RP, rounded DOWN (never more than the RP it stands for); 0 for a non-positive or
+    /// NaN amount, saturating at long.MaxValue (+∞ included).</summary>
+    public static long ToMilliRp(double rp)
+    {
+        double milli = Math.Floor(rp * 1000.0);
+        if (!(milli > 0.0)) return 0L;
+        return milli >= 9.2e18 ? long.MaxValue : (long)milli;
+    }
+
+    /// <summary>ADR-051: the holder's research reserve in milli-RP (0 without a row).</summary>
+    public static long ReserveMilli(IReadOnlyWorldState world, PolityId holder)
+    {
+        for (int i = 0; i < world.ResearchReserves.Count; i++)
+            if (world.ResearchReserves[i].Polity.Value == holder.Value) return world.ResearchReserves[i].ReserveMilli;
+        return 0L;
+    }
+
+    /// <summary>ADR-051: the reserve's cap for the holder's CURRENT pool, milli-RP — floor(1000 × capTurns × pool); 0 with
+    /// tuning.researchReserve absent.</summary>
+    public static long ReserveCapMilli(IReadOnlyWorldState world, ResearchContent content, PolityId holder) =>
+        content.Tuning.Reserve is { } rule ? ToMilliRp(rule.CapTurns * HolderResearchPoints(world, content, holder)) : 0L;
+
+    /// <summary>
+    /// ADR-051 — THE DEPOSIT of a step whose technology lane funds nothing, milli-RP: the step's pool (floor, milli-RP) up to
+    /// the room left under <see cref="ReserveCapMilli"/>; 0 when the reserve is at or above the cap, and with the switch
+    /// off. What is not deposited is lost (D-044 R20-D). The one function ResearchSystem deposits with and the UI shows.
+    /// </summary>
+    public static long ReserveDepositMilli(IReadOnlyWorldState world, ResearchContent content, PolityId holder)
+    {
+        if (content.Tuning.Reserve is not { } rule) return 0L;
+        double pool = HolderResearchPoints(world, content, holder);
+        long room = ToMilliRp(rule.CapTurns * pool) - ReserveMilli(world, holder);
+        return room > 0L ? Math.Min(ToMilliRp(pool), room) : 0L;
+    }
+
+    /// <summary>
+    /// ADR-051 — THE DRAW of a step whose technology lane funds its own technology node, milli-RP: min(reserve,
+    /// floor(1000 × drawTurns × pool)); 0 with the switch off. The whole draw leaves the reserve; it is spent by the pool's
+    /// own rules and whatever the funding cannot absorb is lost (LOSSY — never refunded). The one function ResearchSystem
+    /// draws with and the UI shows.
+    /// </summary>
+    public static long ReserveDrawMilli(IReadOnlyWorldState world, ResearchContent content, PolityId holder)
+    {
+        if (content.Tuning.Reserve is not { } rule) return 0L;
+        long reserve = ReserveMilli(world, holder);
+        return reserve > 0L ? Math.Min(reserve, ToMilliRp(rule.DrawTurns * HolderResearchPoints(world, content, holder))) : 0L;
+    }
+
+    /// <summary>
+    /// ADR-051 — DISPLAY ONLY: the holder's reserve as the research surfaces show it, or null with tuning.researchReserve
+    /// absent. What the NEXT step does with it (no new order) follows the step's own rule: the technology lane funds nothing
+    /// → <see cref="ReserveAction.Deposit"/> (<see cref="ReserveDepositMilli"/>); it funds its own technology node →
+    /// <see cref="ReserveAction.Draw"/> (<see cref="ReserveDrawMilli"/>); it assists the other tree or funds a civic (one-pool
+    /// model) → <see cref="ReserveAction.None"/>. RP are per turn (ADR-030), so no figure here depends on the step's dt.
+    /// </summary>
+    public static ReserveStatus? Reserve(IReadOnlyWorldState world, ResearchContent content, PolityId holder)
+    {
+        if (content.Tuning.Reserve is null) return null;
+        double pool = HolderResearchPoints(world, content, holder);
+        long reserve = ReserveMilli(world, holder), cap = ReserveCapMilli(world, content, holder);
+        int funded = TechnologyLaneFunds(world, content, holder, out bool assisting);
+        if (funded < 0)
+            return new ReserveStatus(pool, reserve, cap, ReserveAction.Deposit, ReserveDepositMilli(world, content, holder));
+        if (assisting || content.Nodes[funded].Tree != ResearchTree.Technology)
+            return new ReserveStatus(pool, reserve, cap, ReserveAction.None, 0L);
+        return new ReserveStatus(pool, reserve, cap, ReserveAction.Draw, ReserveDrawMilli(world, content, holder));
+    }
+
+    /// <summary>Display only: the node the technology lane (the one-pool model's one lane) funds on the next step with no new
+    /// order, or −1 — <see cref="Route"/>'s current node with destination routing, else the available target.</summary>
+    private static int TechnologyLaneFunds(IReadOnlyWorldState world, ResearchContent content, PolityId holder, out bool assisting)
+    {
+        assisting = false;
+        bool twoLanes = content.Tuning.TwoLanes;
+        if (content.Tuning.DestinationRouting)
+        {
+            foreach (ResearchTree lane in twoLanes ? [ResearchTree.Technology] : new[] { ResearchTree.Technology, ResearchTree.Civics })
+            {
+                ResearchRoute route = Route(world, content, holder, lane);
+                if (route.Current is not { } current) continue;
+                assisting = route.Assisting;
+                return content.IndexOf(current);
+            }
+            return -1;
+        }
+        bool found = twoLanes
+            ? TryGetTarget(world, content, holder, ResearchTree.Technology, out ResearchNodeId t)
+            : TryGetTarget(world, holder, out t);
+        int index = found ? content.IndexOf(t) : -1;
+        return index >= 0 && AvailableMask(world, content, holder)[index] ? index : -1;
+    }
+
+    /// <summary>ADR-051: the ResearchReserves table as only ResearchSystem writes it, or null: rows in strictly ascending
+    /// Polity (so no holder twice) and ReserveMilli ≥ 0. Snapshot.Load refuses a save that breaks it.</summary>
+    public static string? ReservesInvariantViolation(IReadOnlyTable<ResearchReserveRow> rows)
+    {
+        for (int i = 0; i < rows.Count; i++)
+        {
+            string at = "ResearchReserves[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]";
+            if (i > 0 && rows[i - 1].Polity.Value >= rows[i].Polity.Value)
+                return at + ": rows are not in strictly ascending Polity order";
+            if (rows[i].ReserveMilli < 0) return at + ": ReserveMilli is negative";
+        }
+        return null;
+    }
+
     // ------------------------------------------------------------------ acceleration credit (Eureka + foreign exposure)
 
     public static bool EurekaFired(IReadOnlyWorldState world, PolityId polity, ResearchNodeId node, int eureka)
@@ -1115,4 +1233,50 @@ public enum LaneActivity
     Assisting = 2,
     /// <summary>The lane holds a destination but no node of its route is fundable now: it funds nothing (RP lost; CP banked).</summary>
     Waiting = 3,
+}
+
+/// <summary>ADR-051: what the next step does with a holder's research reserve (display only).</summary>
+public enum ReserveAction
+{
+    /// <summary>The technology lane funds nothing: the step's RP go to the reserve, up to the cap.</summary>
+    Deposit = 0,
+    /// <summary>The technology lane funds its own technology node: up to drawTurns × the pool is drawn.</summary>
+    Draw = 1,
+    /// <summary>The lane assists the other tree, or funds a civic: the reserve is neither drawn nor filled.</summary>
+    None = 2,
+}
+
+/// <summary>
+/// ADR-051 — a holder's research reserve as the surfaces show it (<see cref="ResearchQuery.Reserve"/>): the RP pool a turn,
+/// the reserve and its cap (milli-RP), and what the next step does (<see cref="Action"/>, <see cref="AmountMilli"/> milli-RP
+/// deposited or drawn). The phrases below are the one wording every research surface uses.
+/// </summary>
+public sealed record ReserveStatus(double Pool, long ReserveMilli, long CapMilli, ReserveAction Action, long AmountMilli)
+{
+    private static string N1(double v) => v.ToString("#,0.#", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>"reserve Y of Z RP".</summary>
+    public string Holding => "reserve " + N1(ReserveMilli / 1000.0) + " of " + N1(CapMilli / 1000.0) + " RP";
+
+    /// <summary>For a lane funding nothing: "X RP go to the reserve (Y of Z)", "reserve full - X RP unused this turn", or for a
+    /// partial room "D RP go to the reserve (Y of Z), U RP unused this turn".</summary>
+    public string Unused
+    {
+        get
+        {
+            double deposit = AmountMilli / 1000.0, unused = Math.Max(0.0, Pool - deposit);
+            string room = " (" + N1(ReserveMilli / 1000.0) + " of " + N1(CapMilli / 1000.0) + ")";
+            if (AmountMilli <= 0L) return "reserve full - " + N1(Pool) + " RP unused this turn";
+            return N1(deposit) + " RP go to the reserve" + room + (unused >= 0.05 ? ", " + N1(unused) + " RP unused this turn" : "");
+        }
+    }
+
+    /// <summary>For a funding lane: "+W RP from the reserve this turn · reserve Y of Z RP", or the holding alone; an assisting
+    /// lane says the reserve is not drawn.</summary>
+    public string Funding => Action switch
+    {
+        ReserveAction.Draw when AmountMilli > 0L => "+" + N1(AmountMilli / 1000.0) + " RP from the reserve this turn · " + Holding,
+        ReserveAction.None => Holding + " (not drawn for the other tree)",
+        _ => Holding,
+    };
 }

@@ -27,7 +27,7 @@ public class GovernanceSchemaTests
     [Fact]
     public void SchemaV30_PopulatedTaxPolicyTable_LengthRoundTripAndHashExact()
     {
-        Assert.Equal(36, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone)
+        Assert.Equal(37, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone)
         WorldState world = Populated();
 
         using var ms = new MemoryStream();
@@ -83,7 +83,8 @@ public class GovernanceSchemaTests
         // ADR-043 + ADR-044 (v35, 2026-10-22) CAUSE BLOCK: CivicsPoints and the four discovery tables follow, EMPTY here —
         // 11 × 4 in all (was 6 × 4). The layout alone.
         // ADR-049 (v36) CAUSE BLOCK: ResearchLevels follows, EMPTY — 12 × 4. The layout alone.
-        const int V31Trailer = 12 * 4;
+        // ADR-051 (v37) CAUSE BLOCK: ResearchReserves follows, EMPTY — 13 × 4. The layout alone.
+        const int V31Trailer = 13 * 4;
         Assert.All(bytes[^V31Trailer..], b => Assert.Equal(0, b));
         Assert.Equal(BitConverter.DoubleToInt64Bits(a.TaxPolicies[3].Rate), BitConverter.ToInt64(bytes, bytes.Length - V31Trailer - 8));
         Assert.Equal(int.MaxValue, BitConverter.ToInt32(bytes, bytes.Length - V31Trailer - 12));

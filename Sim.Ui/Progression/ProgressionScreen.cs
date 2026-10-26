@@ -799,7 +799,10 @@ public sealed partial class ProgressionScreen
         double r0 = Sp(10), mx = cap.X + Sp(12) + r0;
         d.Circle(mx, cap.CenterY, r0, Ink.Progress, null);
         d.Write(t, mx, cap.CenterY - t.Type.Size(Px(TypeRole.Caption, FontRole.Heading)) * 0.62, "!", Px(TypeRole.Caption, FontRole.Heading), t.Material.Panel, TextAlign.Center, FontRole.Heading);
-        WriteFit(d, m, mx + r0 + Sp(10), ty, "Research idle - choose an available node", bodySize, cap.Right - Sp(12) - (mx + r0 + Sp(10)), t.Ink.Text);
+        // ADR-051: with the reserve on, the idle capsule says where this turn's RP go (the reserve, or unused once full).
+        string idleText = s.Reserve is { } rs && TabTree == ResearchTree.Technology
+            ? "Research idle - choose a node; " + rs.Unused : "Research idle - choose an available node";
+        WriteFit(d, m, mx + r0 + Sp(10), ty, idleText, bodySize, cap.Right - Sp(12) - (mx + r0 + Sp(10)), t.Ink.Text);
     }
 
     /// <summary>The Age header chip: current Age, progress toward the next, and its state; a click opens
@@ -1594,6 +1597,20 @@ public sealed partial class ProgressionScreen
         else
         {
             y = Stat(d, m, x, w, y, "Research per turn", s.PointsPerTurn.ToString("0.0", CultureInfo.InvariantCulture) + " RP", Ink.Knowledge);
+            if (s.Reserve is { } rs)
+            {
+                // ADR-051: the technology lane's reserve (capped) and what this turn does with it.
+                y = Stat(d, m, x, w, y, "Research reserve", (rs.ReserveMilli / 1000.0).ToString("0.0", CultureInfo.InvariantCulture) + " of "
+                    + (rs.CapMilli / 1000.0).ToString("0.0", CultureInfo.InvariantCulture) + " RP", Ink.Knowledge);
+                string turn = rs.Action switch
+                {
+                    ReserveAction.Deposit => rs.Unused,
+                    ReserveAction.Draw => rs.AmountMilli > 0L
+                        ? "+" + (rs.AmountMilli / 1000.0).ToString("0.0", CultureInfo.InvariantCulture) + " RP drawn" : "nothing to draw",
+                    _ => "not drawn for the other tree",
+                };
+                y = Stat(d, m, x, w, y, "Reserve this turn", turn, t.Ink.Text);
+            }
         }
         y = Stat(d, m, x, w, y, "Completed", Graph.Tree == ResearchTree.Technology ? s.CompletedTechnology + " of " + Content.TechnologyCount : s.CompletedCivics + " of " + Content.CivicsCount, t.Ink.Text);
         int avail = 0;

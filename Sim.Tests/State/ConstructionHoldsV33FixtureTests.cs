@@ -204,8 +204,9 @@ public class ConstructionHoldsV33FixtureTests
         // before the trailer (was one). The layout alone.
         // M6 merge (2026-10-22): and the four EMPTY M6 EX discovery tables (sections 63–66) — SIX empty prefixes in all.
         // ADR-049 (v36): and the EMPTY ResearchLevels (section 67) — SEVEN empty prefixes in all.
-        Assert.Equal(v33.Length + 28, v34.Length);
-        byte[] expected = [.. v33[..8], .. BitConverter.GetBytes(CanonicalSchema.Version), .. v33[12..^4], .. new byte[28], .. v33[^4..]];
+        // ADR-051 (v37): and the EMPTY ResearchReserves (section 68) — EIGHT empty prefixes in all.
+        Assert.Equal(v33.Length + 32, v34.Length);
+        byte[] expected = [.. v33[..8], .. BitConverter.GetBytes(CanonicalSchema.Version), .. v33[12..^4], .. new byte[32], .. v33[^4..]];
         Assert.Equal(expected, v34);
         WorldState reloaded = Snapshot.Load(new MemoryStream(v34), Terrain());
 
@@ -370,7 +371,7 @@ public class ConstructionHoldsV33FixtureTests
         WorldState loaded = SaveFiles.Load(fixture, 256, out string? note);
         // ADR-043 + ADR-044 (2026-10-22) RE-PIN of the note: v35 adds CivicsPoints and the four discovery tables empty.
         Assert.Equal("note: " + fixture + ": migrated from save schema v33: ConstructionHolds, CivicsPoints and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; "
-            + "the hash printed is the v36 hash (SchemaProjection.V33 gives the v33 build's). ResearchLevels (no repeatable research level existed before v36) was added empty too.", note);   // ADR-049 (v36) re-pin
+            + "the hash printed is the v37 hash (SchemaProjection.V33 gives the v33 build's). ResearchLevels (no repeatable research level existed before v36) was added empty too. ResearchReserves (no research reserve existed before v37) was added empty too.", note);   // ADR-049 (v36), ADR-051 (v37) re-pins
         Assert.Equal(V33SaveHash, SchemaProjection.V33(loaded));       // what the note claims
 
         (int exit, string stdout, string stderr) = CliProcess.Run(Limit, "hash", fixture, "--size", "256");

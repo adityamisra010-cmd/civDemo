@@ -38,6 +38,13 @@ namespace Sim.Tests.TestUtil;
 /// the hash the v35 build reported. A level row is BEHAVIOUR (tuning.repeatableLevels on), never layout, so
 /// <see cref="V35"/> asserts the strip removed nothing — with the switch off (the shipped value on the t2-levels branch)
 /// every v35 pin is reached through it unchanged. Every older projection now also drops section 67 and asserts it empty.
+///
+/// ADR-051 (schema v37) — THE v36 PROJECTION, the same construction one schema later. v37 APPENDED one table after section 67
+/// (section 68 ResearchReserves) and changed no existing row, so a world with no reserve serializes to the v36 stream plus
+/// one empty count prefix; <see cref="HashAtSchemaV36(WorldState, out int)"/> drops it and returns the hash the v36 build
+/// reported. A reserve row is BEHAVIOUR (tuning.researchReserve on), never layout, so <see cref="V36"/> asserts the strip
+/// removed nothing — with the switch off (shipped) every v36 pin is reached through it unchanged. Every older projection now
+/// also drops section 68 and asserts it empty.
 /// </summary>
 public static class SchemaProjection
 {
@@ -53,6 +60,9 @@ public static class SchemaProjection
 
     /// <summary>The table v36 appended: ResearchLevels (section 67, ADR-049).</summary>
     public const int V36TableCount = 1;
+
+    /// <summary>The table v37 appended: ResearchReserves (section 68, ADR-051).</summary>
+    public const int V37TableCount = 1;
 
     /// <summary>Bytes one empty table contributes to the stream: its count prefix.</summary>
     private const int EmptyTableBytes = 4;
@@ -95,13 +105,39 @@ public static class SchemaProjection
         return removed;
     }
 
-    /// <summary>The world's hash at schema v35: a Clone with the v36 table stripped, re-serialized, its empty count prefix
-    /// dropped (asserted zero), hashed. <paramref name="v36RowsRemoved"/> counts what the strip removed.</summary>
+    /// <summary>Clears the v37 table IN PLACE (its entire footprint in the stream). Returns the rows removed.</summary>
+    public static int StripV37(WorldState stripped)
+    {
+        int removed = stripped.ResearchReserves.Count;
+        stripped.ResearchReserves.Clear();
+        return removed;
+    }
+
+    /// <summary>The world's hash at schema v36: a Clone with the v37 table stripped, re-serialized, its empty count prefix
+    /// dropped (asserted zero), hashed. <paramref name="v37RowsRemoved"/> counts what the strip removed.</summary>
+    public static string HashAtSchemaV36(WorldState world, out int v37RowsRemoved)
+    {
+        WorldState stripped = world.Clone();
+        v37RowsRemoved = StripV37(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V37TableCount);
+    }
+
+    /// <summary>A v36 pin's comparison form: the v36 hash of a world with NO research reserve (asserted — a reserve row is
+    /// tuning.researchReserve's behaviour, never layout).</summary>
+    public static string V36(WorldState world)
+    {
+        string hash = HashAtSchemaV36(world, out int removed);
+        Xunit.Assert.Equal(0, removed);
+        return hash;
+    }
+
+    /// <summary>The world's hash at schema v35: a Clone with the v37 and v36 tables stripped, re-serialized, their empty count
+    /// prefixes dropped (asserted zero), hashed. <paramref name="v36RowsRemoved"/> counts what the strip removed.</summary>
     public static string HashAtSchemaV35(WorldState world, out int v36RowsRemoved)
     {
         WorldState stripped = world.Clone();
-        v36RowsRemoved = StripV36(stripped);
-        return HashDroppingTrailer(Serialize(stripped), V36TableCount);
+        v36RowsRemoved = StripV37(stripped) + StripV36(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V36TableCount + V37TableCount);
     }
 
     /// <summary>A v35 pin's comparison form: the v35 hash of a world with NO repeatable level (asserted — a level row is
@@ -118,8 +154,8 @@ public static class SchemaProjection
     public static string HashAtSchemaV34(WorldState world, out int v35RowsRemoved)
     {
         WorldState stripped = world.Clone();
-        v35RowsRemoved = StripV36(stripped) + StripV35(stripped);
-        return HashDroppingTrailer(Serialize(stripped), V35TableCount + V36TableCount);
+        v35RowsRemoved = StripV37(stripped) + StripV36(stripped) + StripV35(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V35TableCount + V36TableCount + V37TableCount);
     }
 
     /// <summary>A v34 pin's comparison form: the v34 hash of a world with NO Civics Points account (asserted — an account
@@ -136,8 +172,8 @@ public static class SchemaProjection
     public static string HashAtSchemaV33(WorldState world, out int v34RowsRemoved)
     {
         WorldState stripped = world.Clone();
-        v34RowsRemoved = StripV36(stripped) + StripV35(stripped) + StripV34(stripped);
-        return HashDroppingTrailer(Serialize(stripped), V34TableCount + V35TableCount + V36TableCount);
+        v34RowsRemoved = StripV37(stripped) + StripV36(stripped) + StripV35(stripped) + StripV34(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V34TableCount + V35TableCount + V36TableCount + V37TableCount);
     }
 
     /// <summary>A batch-3 (v33) pin's comparison form: the v33 hash of a world with NO hold row (asserted — a published
@@ -155,8 +191,8 @@ public static class SchemaProjection
     public static string HashAtSchemaV32(WorldState world, out int v33RowsRemoved)
     {
         WorldState stripped = world.Clone();
-        v33RowsRemoved = StripV36(stripped) + StripV35(stripped) + StripV34(stripped) + StripV33(stripped);
-        return HashDroppingTrailer(Serialize(stripped), V33TableCount + V34TableCount + V35TableCount + V36TableCount);
+        v33RowsRemoved = StripV37(stripped) + StripV36(stripped) + StripV35(stripped) + StripV34(stripped) + StripV33(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V33TableCount + V34TableCount + V35TableCount + V36TableCount + V37TableCount);
     }
 
     /// <summary>A pre-v33 pin's comparison form: the v32 hash of a world with NO v33 or v34 row (asserted — a world with

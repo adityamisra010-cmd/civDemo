@@ -1,4 +1,5 @@
 using System.Globalization;
+using Sim.Core.State;
 using Sim.Ui.Actions;
 using Sim.Ui.Ages;
 
@@ -41,17 +42,26 @@ public static class StatusFigures
         if (research is null) return new ResearchFigure("Knowledge [K]", false);
         // UR-3: the idle figure is the turn-1 call to action — it says what to do, not only that nothing happens.
         if (research.Idle)
-            return new ResearchFigure(research.ClearQueued ? "Research stops at End Turn" : "Research idle - choose [K]", true);
+            return new ResearchFigure(research.ClearQueued ? "Research stops at End Turn"
+                : "Research idle - choose [K]" + ReserveTail(research), true);
         // rp-cp-lifecycle k2–k4 (destination research): the figure is the node the step FUNDS — a route node, or the node
         // an assisting lane funds — and a target that waits on the other tree says so (its points go unused: attention).
         ResearchItem item = research.Funding?.Node ?? research.Effective!;
         string name = item.Name.Length <= NameChars ? item.Name : item.Name[..(NameChars - 3)].TrimEnd() + "...";
         if (research.Chosen is not null) return new ResearchFigure("Research: " + name + " next turn", false);
-        if (research.Waiting) return new ResearchFigure("Research waiting: " + name, true);
+        if (research.Waiting) return new ResearchFigure("Research waiting: " + name + ReserveTail(research), true);
         double pct = item.Cost > 0 ? Math.Floor(item.Progress / item.Cost * 100.0) : 0.0;
+        // ADR-051: a turn that draws on the reserve shows the draw beside the pool.
+        string draw = research.Reserve is { Action: ReserveAction.Draw, AmountMilli: > 0L } rs
+            ? string.Create(CultureInfo.InvariantCulture, $" +{rs.AmountMilli / 1000.0:0.0} reserve") : "";
         return new ResearchFigure(string.Create(CultureInfo.InvariantCulture,
-            $"Research: {name} {pct:0}% +{research.PointsPerTurn:0.0}/turn"), false);
+            $"Research: {name} {pct:0}% +{research.PointsPerTurn:0.0}/turn{draw}"), false);
     }
+
+    /// <summary>ADR-051: " - reserve Y/Z" (whole RP) for a lane whose RP go to the reserve; "" with the switch off.</summary>
+    private static string ReserveTail(ResearchBlock research) => research.Reserve is { } rs
+        ? string.Create(CultureInfo.InvariantCulture, $" - reserve {Math.Floor(rs.ReserveMilli / 1000.0):0}/{Math.Floor(rs.CapMilli / 1000.0):0}")
+        : "";
 
     /// <summary>The Age indicator: "Age I Prehistoric / Stone Age - not yet" (eligible for the next Age: not yet; the
     /// milestones are one click away, in the capital's Age panel).</summary>

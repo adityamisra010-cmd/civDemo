@@ -296,8 +296,8 @@ public class CliConstructionLifecycleTests
             // ADR-043 + ADR-044 (2026-10-22) RE-PIN of the note: v35 adds CivicsPoints and the four discovery tables empty, and
             // the hash printed is v35's.
             Assert.Equal(new[] { "note: " + v33 + ": migrated from save schema v33: ConstructionHolds, CivicsPoints and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; "
-                + "the hash printed is the v36 hash (SchemaProjection.V33 gives the v33 build's). ResearchLevels (no repeatable research level existed before v36) was added empty too." },
-                CliProcess.Lines(stderr));   // ADR-049 (v36) RE-PIN of the note: ResearchLevels is added empty too
+                + "the hash printed is the v37 hash (SchemaProjection.V33 gives the v33 build's). ResearchLevels (no repeatable research level existed before v36) was added empty too. ResearchReserves (no research reserve existed before v37) was added empty too." },
+                CliProcess.Lines(stderr));   // ADR-049 (v36) RE-PIN of the note: ResearchLevels is added empty too; ADR-051 (v37): ResearchReserves too
             string[] lines = CliProcess.Lines(stdout);
             int first = Array.IndexOf(lines, "FIRST DIVERGENT FIELD");
             Assert.True(first >= 0, stdout);

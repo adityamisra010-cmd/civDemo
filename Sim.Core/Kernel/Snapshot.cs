@@ -40,6 +40,12 @@ public sealed class SnapshotFormatException(string message) : Exception(message)
 /// 66 and its ResearchLevels table is left empty (no level existed under v35). A loaded ResearchLevels table that no rule
 /// could have written (a duplicate (Polity, Node), a level outside [1, ResearchQuery.MaxRepeatableLevel]) is refused
 /// (ResearchQuery.LevelsInvariantViolation).
+///
+/// ADR-051 (schema v37): THE v37 FILE LAYOUT is the v36 one with the canonical stream running to section 68
+/// (ResearchReserves). <see cref="Load"/> accepts the readable SET {32, 33, 34, 35, 36, 37}: a v36 file's stream ends after
+/// section 67 and its ResearchReserves table is left empty (no reserve existed under v36). A loaded ResearchReserves table
+/// that no rule could have written (unsorted or duplicate Polity keys, a negative reserve) is refused
+/// (ResearchQuery.ReservesInvariantViolation).
 /// </summary>
 public static class Snapshot
 {
@@ -93,7 +99,7 @@ public static class Snapshot
         if (!CanonicalSchema.IsReadable(version))
             throw new SnapshotFormatException(
                 $"save is schema version {version}, this build reads only versions " +
-                $"32, 33, 34 and 35 (migrated) and {CanonicalSchema.Version}; saves break " +
+                $"32, 33, 34, 35 and 36 (migrated) and {CanonicalSchema.Version}; saves break " +
                 "between milestones by design (D-008) — no migration exists for this version. Re-derive the world " +
                 "via seed + order-log replay.");
 
@@ -205,5 +211,8 @@ public static class Snapshot
         // ADR-049 (v36): the repeatable research levels as only ResearchSystem writes them.
         if (ResearchQuery.LevelsInvariantViolation(world.ResearchLevels) is { } levels)
             throw new SnapshotFormatException("save is corrupt: " + levels + " (schema v36 invariant).");
+        // ADR-051 (v37): the research reserves as only ResearchSystem writes them.
+        if (ResearchQuery.ReservesInvariantViolation(world.ResearchReserves) is { } reserves)
+            throw new SnapshotFormatException("save is corrupt: " + reserves + " (schema v37 invariant).");
     }
 }

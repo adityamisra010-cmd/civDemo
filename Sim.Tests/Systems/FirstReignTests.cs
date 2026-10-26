@@ -39,7 +39,9 @@ public class FirstReignTests
     // TREE (ADR-045) — MEASURED to move nothing here (TestConfigs.PreTreeTranche returns the same hash). CONTROLS:
     // CivicsPointsAttributionTests.FirstReignTurn40_… and DiscoveryLayoutAttributionTests.FirstReignTurn40_…
     // (TestConfigs.PreM6 returns f7ca60a5… through SchemaProjection.V34).
-    internal const string PostR1Golden = "f4073f424ddb853bd7997f528705e66be0eea50b667e6aadf4e09502c8e88f13";
+    // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD f4073f424ddb853b… -> NEW 6b9571cd1c2f50fe… — the empty section-68
+    // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
+    internal const string PostR1Golden = "6b9571cd1c2f50fe22801104c99e75c55a1555cba6a8617e660c187b5a1a4fe5";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — <see cref="PostR1Golden"/>'s world
     /// through the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the turn-40

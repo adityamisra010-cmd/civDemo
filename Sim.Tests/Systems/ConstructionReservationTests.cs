@@ -1599,14 +1599,15 @@ public class ConstructionReservationTests
         Assert.Equal(0, empty.CivicsPoints.Count);
         Assert.Equal(0, empty.KnownExtents.Count + empty.Explorations.Count + empty.SettlementSightings.Count + empty.SettlementSurveys.Count);
         Assert.Equal(0, empty.ResearchLevels.Count);   // ADR-049 (v36): section 67 follows too — seven prefixes (28 bytes) in all
+        Assert.Equal(0, empty.ResearchReserves.Count); // ADR-051 (v37): and section 68 — eight prefixes (32 bytes)
         byte[] v34;
         using (var ms = new MemoryStream()) { Snapshot.Save(empty, ms); v34 = ms.ToArray(); }
         Assert.Equal(CanonicalSchema.Version, BinaryPrimitives.ReadInt32LittleEndian(v34.AsSpan(8)));   // the header's version (35)
-        for (int k = 1; k <= 7; k++)                                                                // sections 67 … 61: 0 rows
+        for (int k = 1; k <= 8; k++)                                                                // sections 68 … 61: 0 rows
             Assert.Equal(0, BinaryPrimitives.ReadInt32LittleEndian(v34.AsSpan(v34.Length - 4 - 4 * k)));
-        var v33 = new byte[v34.Length - 28];
-        v34.AsSpan(0, v34.Length - 32).CopyTo(v33);
-        v34.AsSpan(v34.Length - 4).CopyTo(v33.AsSpan(v34.Length - 32));                          // the topology trailer
+        var v33 = new byte[v34.Length - 32];
+        v34.AsSpan(0, v34.Length - 36).CopyTo(v33);
+        v34.AsSpan(v34.Length - 4).CopyTo(v33.AsSpan(v34.Length - 36));                          // the topology trailer
         BinaryPrimitives.WriteInt32LittleEndian(v33.AsSpan(8), 33);
         return Snapshot.Load(new MemoryStream(v33), w.Terrain);
     }
