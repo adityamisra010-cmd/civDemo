@@ -198,3 +198,20 @@ This rule cannot recover:
 ## 7. Status
 
 PROPOSED, OFF. Raw run summaries: `docs/m6-plan/knowledge-redesign/research-cost-pass/data/gate-aware/summaries.txt`.
+
+## Combined trial (2026-10-26)
+
+Measured together with the other two switches of the Director's 2026-10-26 trial configuration (overflow + capped
+reserve {3, 1} + gate-aware goals), against the new default baseline (CR-025 content):
+`docs/m6-plan/knowledge-redesign/research-cost-pass/combined-trial.md`.
+
+| Measure | Default | Trial configuration |
+|---|---|---|
+| RP lost | 55.7 % | 49.5 % |
+| Technology waiting steps | 66 | 0 |
+| Casual player's lag (Age 9) | +36 turns | +2 turns |
+| Deliberate idling (Age 9) | — | −58 turns (no advantage) |
+| Age 9 entry | — | 76–98 turns sooner |
+
+Replay and save/load are exact. **Status:** still PROPOSED and OFF by default. Adoption and the pacing recalibration
+wait for the Director's review of the combined baseline.

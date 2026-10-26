@@ -1655,3 +1655,19 @@
   now judges actual liveness: 17 nodes with only placeholder unlocks have neither a real nor a future effect and are
   pinned as known gaps for a content decision (CR-025 §7.3). Found while doing it, not fixed (outside the ruling): the
   research card does not count the assay order gate, so `ore_prospecting`'s card under-claims (it is live).
+- 2026-10-26 (Director ruling, combined trial): overflow (ADR-050), the capped reserve (ADR-051) and gate-aware AI goals
+  (ADR-052) are implemented behind switches, all OFF by default. CR-025 is ruled and applied: it is the only default-game
+  change, and its attribution twin reproduces the old baseline bit for bit. Combined trial
+  (`research-cost-pass/combined-trial.md`):
+  - RP lost 55.7 % → 49.5 %;
+  - technology waiting 66 → 0;
+  - casual-player lag +36 → +2 turns;
+  - deliberate idling −58 turns;
+  - Age 9 entry 76–98 turns sooner;
+  - replay and save/load exact.
+  Open for the Director:
+  (a) adopt the trial configuration as default;
+  (b) the pacing recalibration it needs, which starts the deferred cost work;
+  (c) a disposition for the 17 R1 known-gap nodes (placeholder-only unlocks).
+  Costs and final-Age repeatables are unchanged.
+

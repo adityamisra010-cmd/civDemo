@@ -21,6 +21,7 @@ and 7, the canonical world, one AI Empire).
 | 7 | `repeatables-proposal.md` | Final-Age repeatables for both trees: set, operands, pricing, and its tie to pacing |
 | 8 | `overflow-trial.md` (2026-10-25) | Route overflow against the post-fix baseline: RP by Age, Age and milestone turns, completion order, CP, repeatable levels, replay |
 | 9 | `empty-lane-reserve-proposal.md` (2026-10-25) | The empty-lane RP rule: reserve caps compared against an uncapped reserve, a human proxy, bursts and pacing, a UI spec |
+| 10 | `combined-trial.md` (2026-10-26) | The Director's trial configuration (overflow + capped reserve + gate-aware goals) against the new baseline: waste, Ages, civics, roads, milestones, casual and idling players, gate waits, reserve saturation, replay |
 | — | `../../../adr/cr-025-unconsumed-overland-speed-operand.md` | The 17 nodes whose speed effect no system consumes: evidence, options, the interim display fix |
 
 ## Findings in one screen
@@ -81,6 +82,14 @@ and 7, the canonical world, one AI Empire).
    - FUTURE-DEPENDENT and EFFECT-DEFECT rows stay on hold.
    - Placeholder civics get no blanket reductions.
 5. **Final-Age repeatables. Deferred** on the same condition. Military waits on M7.
+
+## 2026-10-26 ruling: status
+
+- **Overflow, reserve and gate-aware goals:** implemented behind switches (ADR-050, -051, -052), all OFF by default. The
+  combined trial is measured in `combined-trial.md`.
+- **CR-025:** ruled and applied (CR-025 §7; D-063 R1 Amendment 1). Its attribution twin reproduces the old baseline bit
+  for bit.
+- **Costs and final-Age repeatables:** unchanged, waiting for the review of the combined baseline.
 
 ## Decisions waiting on the Director
 

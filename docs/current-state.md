@@ -1,6 +1,14 @@
 # CURRENT STATE — the routing document
 
-> **2026-10-25, later (latest): RESEARCH DEFECTS FIXED, OVERFLOW TRIALLED, EMPTY-LANE RULE PROPOSED** on
+> **2026-10-26 (latest): RESEARCH ECONOMY TRIAL IMPLEMENTED (Director ruling 2026-10-26)** on
+> `claude/new-session-yavghm`. Not merged, not released; `main` = `m5-exit` untouched.
+> - **Behind switches, all OFF by default:** overflow (ADR-050), the capped RP reserve (ADR-051, schema v37) and
+>   gate-aware AI goals (ADR-052).
+> - **CR-025 content ruled and applied:** the only default-game change, with attribution proven.
+> - **Results:** `docs/m6-plan/knowledge-redesign/research-cost-pass/combined-trial.md`.
+> - **Unchanged:** costs and final-Age repeatables.
+>
+> **2026-10-25, later: RESEARCH DEFECTS FIXED, OVERFLOW TRIALLED, EMPTY-LANE RULE PROPOSED** on
 > `claude/new-session-yavghm`. Not merged; `research.json` unchanged; `main` = `m5-exit` untouched.
 > - **Display fixes k2–k5:** `9204de7`.
 > - **CR-025** (the speed operand has no consumer): raised, awaiting ruling. Interim display fix `1ad60d3`.
