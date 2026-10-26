@@ -109,8 +109,8 @@ public class FutureEffectsTests
                     declared++;
                 }
             }
-        Assert.Equal(6, nodes);       // the six future-dependent nodes of the CR-025 ruling
-        Assert.Equal(8, declared);
+        Assert.Equal(23, nodes);      // the six future-dependent nodes of the CR-025 ruling + the 17 of its §8 gap audit
+        Assert.Equal(26, declared);   // 8 + 18 (the 17 gap-audit nodes; rocket declares two)
     }
 
     /// <summary>A future effect is never realized: a content whose ONLY declarations are future effects — naming the
@@ -157,14 +157,14 @@ public class FutureEffectsTests
                 with.ResearchCompleted.Add(new ResearchCompletedRow(p, n.Key));
                 granted++;
             }
-        Assert.Equal(6, granted);
+        Assert.Equal(23, granted);
         foreach (KnowledgeOperandInfo info in KnowledgeOperands.All)
             Assert.Equal(KnowledgeEffects.Improvement(w, c, p, info.Operand), KnowledgeEffects.Improvement(with, c, p, info.Operand));
     }
     /// <summary>
     /// CR-025 ruling — IN PLAY, on the canonical founded world (seed 42, one AI empire) with the AI running 40 turns, every
-    /// holder having completed the 8 retargeted and the 6 future-dependent nodes (granted: the canonical AI reaches none of
-    /// the 17 in 300 turns, CR-025 §2.3). Three contents run the same granted world: shipped; shipped with every
+    /// holder having completed the 8 retargeted and every future-declaring node (the 6 of the ruling and, since CR-025 §8,
+    /// the 17 of the gap audit; granted: the canonical AI reaches none of the ruling's 17 in 300 turns, CR-025 §2.3). Three contents run the same granted world: shipped; shipped with every
     /// effects.future removed; shipped with the 8 retargeted realized effects removed (the pre-ruling content's behaviour:
     /// before the ruling those 8 deltas sat on an operand no system consumes). Removing the future declarations changes
     /// nothing, hash for hash; removing the retargets changes the world — the retargets are real gameplay, the future
@@ -201,12 +201,118 @@ public class FutureEffectsTests
                     w.ResearchCompleted.Add(new ResearchCompletedRow(h, n.Key));
                     granted++;
                 }
-        Assert.Equal(14 * holders.Count, granted);
+        Assert.Equal(31 * holders.Count, granted);   // 8 retargets + 6 CR-025 future nodes + 17 gap-audit future nodes
 
         const int turns = 40;
         string live = WorldHash.ComputeHex(RunAi(w.Clone(), shipped, turns));
         Assert.Equal(live, WorldHash.ComputeHex(RunAi(w.Clone(), noFuture, turns)));
         Assert.NotEqual(live, WorldHash.ComputeHex(RunAi(w.Clone(), noRetargets, turns)));
+    }
+
+    /// <summary>
+    /// CR-025 §8 (2026-10-26) — THE GAP-AUDIT DECLARATIONS ARE GAMEPLAY-INERT, IN PLAY (the CR-025 twin method). The
+    /// canonical founded world (seed 42, one AI empire), every holder granted the 17 gap-audit nodes plus a control node
+    /// (sanitary_engineering, whose only effect is a realized demographics.mortalityPerYear delta), the AI running 40 turns
+    /// under three contents: shipped; shipped with the 17 nodes' effects.future removed — which IS the pre-audit content,
+    /// the declarations being the audit's only content change; and shipped with the control's realized effect removed.
+    /// The first two give the same world hash; the third differs, so the method has teeth.
+    /// </summary>
+    [Fact]
+    public void InPlay_TheGapAuditDeclarations_ChangeNoWorld()
+    {
+        const string control = "sanitary_engineering";
+        string[] gaps = [.. Tranche2ContentTests.GapAuditDisposition.Select(g => g.Id)];
+        Assert.Equal(17, gaps.Length);
+        SimConfig shipped = TestConfigs.Sim();
+        ResearchContent c = shipped.Research!;
+        SimConfig preAudit = shipped with
+        {
+            Research = Edited(doc => Each(doc, (id, effects) => { if (Array.IndexOf(gaps, id) >= 0) Assert.True(effects.Remove("future"), id); })),
+        };
+        SimConfig noControl = shipped with { Research = Edited(doc => Each(doc, (id, effects) => { if (id == control) effects.Remove("realized"); })) };
+        foreach (string id in gaps)
+        {
+            Assert.NotEmpty(c.Nodes[c.IndexOfId(id)].FutureEffects);
+            Assert.Empty(preAudit.Research!.Nodes[preAudit.Research.IndexOfId(id)].FutureEffects);
+        }
+        Assert.Equal("demographics.mortalityPerYear", KnowledgeOperands.Of(Assert.Single(c.Nodes[c.IndexOfId(control)].RealizedEffects).Operand).Id);
+        Assert.Empty(noControl.Research!.Nodes[noControl.Research.IndexOfId(control)].RealizedEffects);
+
+        WorldState w = WorldFounding.Found(TestConfigs.Worldgen() with { AiEmpires = 1 }, shipped, 42);
+        var holders = new List<PolityId>();
+        for (int i = 0; i < w.Settlements.Count; i++)
+        {
+            PolityId h = SettlementKnowledge.HolderOf(w, w.Settlements[i].Id);
+            if (!holders.Contains(h)) holders.Add(h);
+        }
+        Assert.True(holders.Count >= 2);
+        int granted = 0;
+        foreach (PolityId h in holders)
+            foreach (string id in (string[])[.. gaps, control])
+            {
+                ResearchNodeId key = c.Nodes[c.IndexOfId(id)].Key;
+                Assert.False(ResearchQuery.IsCompleted(w, h, key), id + " is complete at founding");
+                w.ResearchCompleted.Add(new ResearchCompletedRow(h, key));
+                granted++;
+            }
+        Assert.Equal(18 * holders.Count, granted);
+
+        const int turns = 40;
+        string live = WorldHash.ComputeHex(RunAi(w.Clone(), shipped, turns));
+        Assert.Equal(live, WorldHash.ComputeHex(RunAi(w.Clone(), preAudit, turns)));
+        Assert.NotEqual(live, WorldHash.ComputeHex(RunAi(w.Clone(), noControl, turns)));
+    }
+
+    /// <summary>
+    /// CR-025 §8 (2026-10-26) — SAVE / LOAD across the gap audit, on a MID-GAME world. The canonical founded world (seed 42,
+    /// one AI empire) with every holder holding completed rows for the 17 gap-audit nodes runs 20 AI turns under the
+    /// pre-audit content (the 17 future lists removed — the base research.json) and under the shipped content. The two
+    /// saves are the SAME bytes at the unchanged schema version; each loads bit-exactly and re-saves to the same bytes; and
+    /// the BASE save, loaded and continued 10 more turns under the shipped content, reaches the hash the base content
+    /// reaches from it and the hash of the in-memory shipped-content world continued without a save.
+    /// </summary>
+    [Fact]
+    public void SaveLoad_AMidGameWorld_IsTheSameBytes_AndContinuesIdentically_AcrossTheGapAudit()
+    {
+        string[] gaps = [.. Tranche2ContentTests.GapAuditDisposition.Select(g => g.Id)];
+        SimConfig shipped = TestConfigs.Sim();
+        ResearchContent c = shipped.Research!;
+        SimConfig preAudit = shipped with
+        {
+            Research = Edited(doc => Each(doc, (id, effects) => { if (Array.IndexOf(gaps, id) >= 0) Assert.True(effects.Remove("future"), id); })),
+        };
+        WorldState w = WorldFounding.Found(TestConfigs.Worldgen() with { AiEmpires = 1 }, shipped, 42);
+        var holders = new List<PolityId>();
+        for (int i = 0; i < w.Settlements.Count; i++)
+        {
+            PolityId h = SettlementKnowledge.HolderOf(w, w.Settlements[i].Id);
+            if (!holders.Contains(h)) holders.Add(h);
+        }
+        foreach (PolityId h in holders)
+            foreach (string id in gaps) w.ResearchCompleted.Add(new ResearchCompletedRow(h, c.Nodes[c.IndexOfId(id)].Key));
+
+        WorldState baseMid = RunAi(w.Clone(), preAudit, 20), newMid = RunAi(w.Clone(), shipped, 20);
+        byte[] baseSave = Saved(baseMid), newSave = Saved(newMid);
+        Assert.Equal(CanonicalSchema.Version, BitConverter.ToInt32(baseSave, 8));
+        Assert.Equal(37, CanonicalSchema.Version);
+        Assert.Equal(baseSave, newSave);
+
+        WorldState fromBase = Snapshot.Load(new MemoryStream(baseSave), w.Terrain);
+        Assert.True(WorldStates.StateEquals(baseMid, fromBase), "round trip drifted");
+        Assert.Equal(baseSave, Saved(fromBase));
+        foreach (PolityId h in holders)
+            foreach (string id in gaps) Assert.True(ResearchQuery.IsCompleted(fromBase, h, c.Nodes[c.IndexOfId(id)].Key), id);
+
+        string continuedNew = WorldHash.ComputeHex(RunAi(fromBase.Clone(), shipped, 10));
+        Assert.Equal(WorldHash.ComputeHex(RunAi(fromBase.Clone(), preAudit, 10)), continuedNew);
+        Assert.Equal(WorldHash.ComputeHex(RunAi(newMid.Clone(), shipped, 10)), continuedNew);   // = never saved, never left the new content
+    }
+
+    private static byte[] Saved(WorldState w)
+    {
+        using var ms = new MemoryStream();
+        Snapshot.Save(w, ms);
+        return ms.ToArray();
     }
 
     private static ResearchContent Edited(Action<JsonObject> edit)

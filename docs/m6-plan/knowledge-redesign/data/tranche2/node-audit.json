@@ -2064,7 +2064,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Construction - kiln (deferred-entity plan, tier A)",
+     "operand": null,
+     "description": "a built kiln fires pottery in greater volume for less fuel"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -2481,7 +2488,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Production chains - oil press (deferred-entity plan, tier D)",
+     "operand": null,
+     "description": "a press turns olives, sesame and flax into oil for food and lamps; no oil good exists in this build"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -3997,7 +4011,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Construction - library (deferred-entity plan, tier B)",
+     "operand": null,
+     "description": "a library keeps portable documents and archives"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -4227,7 +4248,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Construction - harbour (deferred-entity plan, tier B)",
+     "operand": null,
+     "description": "a harbour berths plank-built cargo vessels for sea-going trade"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -8330,7 +8358,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Production chains - fulling mill (deferred-entity plan, tier D)",
+     "operand": null,
+     "description": "water-powered hammers finish cloth at scale"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -10539,7 +10574,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "M7",
+     "system": "Battle Layer - siege and fortification",
+     "operand": null,
+     "description": "low, thick, angled bastions resist cannon and lengthen sieges"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -12696,7 +12738,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Production chains - chemical works (deferred-entity plan, tier D)",
+     "operand": null,
+     "description": "chemical works make acid for bleaching, soda, fertiliser and explosives"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -13404,7 +13453,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Infrastructure - telephone network (deferred-entity plan, tier C)",
+     "operand": null,
+     "description": "a wired network carries voice between settlements"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -13490,7 +13546,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Production chains - oil refinery (deferred-entity plan, tier D)",
+     "operand": null,
+     "description": "a refinery distils crude oil into lamp oil and motor fuel; no oil good exists in this build"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -14269,7 +14332,20 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "M7",
+     "system": "Battle Layer - missile forces",
+     "operand": null,
+     "description": "ballistic missiles fielded as a military asset"
+    },
+    {
+     "milestone": "unscheduled",
+     "system": "Space programme - spaceport and orbital launch (deferred-entity plan, tier G)",
+     "operand": null,
+     "description": "a spaceport launches satellites and orbital campaigns"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -14704,7 +14780,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Construction - semiconductor fab (deferred-entity plan, tier G)",
+     "operand": null,
+     "description": "a fab makes integrated circuits for cheap computation"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -14953,7 +15036,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Energy - nuclear power station (deferred-entity plan, tier G)",
+     "operand": null,
+     "description": "a reactor station generates baseload electricity; no energy system exists in this build"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -16197,7 +16287,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Energy - solar farm (deferred-entity plan, tier G)",
+     "operand": null,
+     "description": "photovoltaic farms generate electricity without fuel or river; no energy system exists in this build"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -16610,7 +16707,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Energy - wind farm (deferred-entity plan, tier G)",
+     "operand": null,
+     "description": "wind farms add generating capacity to the grid; no energy system exists in this build"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -17210,7 +17314,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Construction - data centre (deferred-entity plan, tier G)",
+     "operand": null,
+     "description": "networked data centres rent out computation and storage"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -18433,7 +18544,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Settlement water supply - desalination plant (deferred-entity plan, tier G)",
+     "operand": null,
+     "description": "a plant makes fresh water from seawater; settlement water supply is not modelled in this build"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,
@@ -19231,7 +19349,14 @@
    "origin": "pre-tranche",
    "realized": [],
    "liveUnlocks": [],
-   "future": [],
+   "future": [
+    {
+     "milestone": "unscheduled",
+     "system": "Energy - fusion power plant (deferred-entity plan, tier G)",
+     "operand": null,
+     "description": "fusion plants generate baseload electricity without fission fuel; no energy system exists in this build"
+    }
+   ],
    "otherLive": [],
    "orderGate": null,
    "levels": null,

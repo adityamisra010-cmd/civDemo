@@ -216,12 +216,49 @@ public class InfoQueryTests
                 if (f.Operand is { } op) Assert.Contains(KnowledgeOperands.Of(op).Id, future[k].Note!, StringComparison.Ordinal);
                 lines++;
             }
-            // The six shipped future nodes have no realized effect, level, live unlock or gate: none is Simulated.
+            // The shipped future nodes (the six of the CR-025 ruling, the 17 of its §8 gap audit) have no realized effect,
+            // level, live unlock or gate: none is Simulated.
             Assert.Empty(n.RealizedEffects);
             Assert.True(card.Effect != InfoEffect.Simulated, n.Id + " is shown as simulated");
         }
-        Assert.Equal(6, nodes);
-        Assert.Equal(8, lines);
+        Assert.Equal(23, nodes);
+        Assert.Equal(26, lines);
+    }
+
+    /// <summary>
+    /// CR-025 §8 (2026-10-26) — the 17 gap-audit nodes on the research card: each declared future effect is a "Future (…):
+    /// …, not simulated in this build" line (never met, never a link; "no milestone yet" for unscheduled systems, "arrives
+    /// with M7" for the Battle Layer), the placeholder unlocks are still shown as not built (or as M7 Battle Layer), and the
+    /// verdict is exactly the pre-audit one — research-only when the node has dependents, knowledge-only otherwise, never
+    /// Simulated.
+    /// </summary>
+    [Fact]
+    public void TheGapAuditNodes_ShowTheirFutureEffects_AsNotSimulated_AndKeepTheirVerdict()
+    {
+        WorldState w = World();
+        foreach ((string id, _, string[] milestones, _) in Sim.Tests.Systems.Tranche2ContentTests.GapAuditDisposition)
+        {
+            ResearchNode n = R.Nodes[Node(id)];
+            InfoCard card = Card(w, InfoSubject.Node(n.Key));
+            InfoLink[] future = [.. card.Enables.Where(l => l.Label.StartsWith("Future (", StringComparison.Ordinal))];
+            Assert.Equal(milestones.Length, future.Length);
+            for (int k = 0; k < future.Length; k++)
+            {
+                FutureEffect f = n.FutureEffects[k];
+                Assert.Equal("Future (" + milestones[k] + " " + f.System + "): " + f.Description + ", not simulated in this build", future[k].Label);
+                Assert.False(future[k].Met);
+                Assert.Null(future[k].Subject);
+                Assert.Contains(milestones[k] == ResearchContentLoader.UnscheduledMilestone ? "no milestone yet" : "arrives with " + milestones[k],
+                    future[k].Note!, StringComparison.Ordinal);
+                Assert.DoesNotContain("read by", future[k].Note!, StringComparison.Ordinal);
+            }
+            InfoLink[] entities = [.. card.Enables.Where(l => l.Subject is { Kind: InfoKind.Entity })];
+            Assert.Equal(n.UnlockedEntities.Count, entities.Length);
+            Assert.All(entities, l => Assert.True(l.Note is { } note && (note.Contains("not built in this build", StringComparison.Ordinal)
+                || note.Contains("Battle Layer (M7)", StringComparison.Ordinal)), id + ": " + l.Label + " / " + l.Note));
+            Assert.Equal(n.Dependents.Count > 0 ? InfoEffect.ResearchOnly : InfoEffect.KnowledgeOnly, card.Effect);
+            Assert.DoesNotContain("Read by the simulation", card.RealizedBy);
+        }
     }
 
     [Fact]

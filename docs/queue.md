@@ -1686,3 +1686,14 @@
   (e) Seed spread: seed 2 trails the others by 40–70 turns in most Ages. The slowest-seed rule (D-063 R6) leaves the other
       seeds ahead of target (up to −195 in civics A7), so a single-seed playtest feels faster than the targets.
 - 2026-10-26 (ADR-053, t6-civgate; PROPOSED, switch OFF, NOT YET MEASURED): AI civics gate goals behind `tuning.aiCivicsGateGoals` — while the AI's technology tree has no available node and is swept on an outstanding civic, its Civics lane targets the cheapest-to-reach civic of the lowest gating cohort (the caliphate stall); otherwise today's rule exactly. Trial overlay `research-cost-pass/trial/civics-gate-trial.json`; the four-seed measurement is pending.
+- 2026-10-26 (CR-025 §8, Director ruling on the 17 known gaps; LOCAL branch `t6-gaps`, not merged): the node-by-node
+  audit is applied. Each of the 17 now declares its own future effect, and no realized effect, cost, prerequisite or key
+  changed:
+  - M7 Battle Layer: trace_italienne (siege) and rocket (missile forces);
+  - `unscheduled`, citing the deferred-entity tier: the other buildings and infrastructure, plus rocket's space
+    programme.
+
+  Measured gameplay-inert (twin hash equality). `KnownGapsWithoutARealEffect` is now empty. Open for the Director:
+  - (a) proposed, not applied: papyrus +0.04 and telephone +0.03 on `governance.authorityDecayCostUnits`, as live
+    effects in addition to their future lines (CR-025 §8.3; pin impact unmeasured);
+  - tiers A–D and G still have no ratified milestone (draft M6 spec T6.11, DW-011).

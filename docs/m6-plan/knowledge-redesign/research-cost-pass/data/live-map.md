@@ -19,6 +19,12 @@ Tree read: `/home/user/m5w/dev` at `b1dce0f` on branch `claude/new-session-yavgh
 > (`Tranche2ContentTests.KnownGapsWithoutARealEffect`, CR-025 §7.3). `live-map.json` carries the same changes in its
 > node and operand records and a `corrections` entry.
 
+> **2026-10-26 correction (CR-025 §8; branch `t6-gaps`).** The 17 known gaps named in the correction above now each
+> declare a FUTURE effect (`effects.future`, never counted as live). trace_italienne and rocket (missile forces) declare
+> the M7 Battle Layer. The others declare `unscheduled` with their deferred-entity tier, and so does rocket's space
+> programme. Their liveness is unchanged: each is still a node with no live value in the table below. Two live effects
+> are proposed and not applied (papyrus, telephone: CR-025 §8.3). `live-map.json` is not re-derived.
+
 ## Headline counts
 
 - **Operands live: 45/47.** Two are not live:

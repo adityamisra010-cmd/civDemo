@@ -197,7 +197,8 @@ def main():
          f"- Nodes whose only declared effect is a FUTURE one (not simulated in this build): **{len(future_only)}**"
          f"{(' — ' + ', '.join(future_only)) if future_only else ''}; future declarations in all: {n_future}.",
          f"- Nodes with neither a real effect nor a future declaration: **{len(none)}**{(' — ' + ', '.join(none)) if none else ''}. "
-         "They are the known gaps `Tranche2ContentTests.KnownGapsWithoutARealEffect` lists (CR-025 §7.3).",
+         "They must equal the known gaps `Tranche2ContentTests.KnownGapsWithoutARealEffect` lists (CR-025 §7.3 found 17; "
+         "the §8 audit, 2026-10-26, declared a future effect for each of them).",
          "- A realized effect is read by its owning system (ADR-047); the per-operand sum is clamped to its cap. Where the "
          "authored sum exceeded 90 % of the cap, every delta on that operand was scaled down proportionally so no node is "
          "made inert by the clamp (the saturation column).", "",
