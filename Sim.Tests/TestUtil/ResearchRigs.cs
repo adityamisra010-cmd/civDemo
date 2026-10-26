@@ -84,6 +84,8 @@ internal static class ResearchRigs
         public bool ResearchOverflow { get; set; }
         /// <summary>ADR-050 lane variant: tuning.researchOverflowLane (null = absent).</summary>
         public bool ResearchOverflowLane { get; set; }
+        /// <summary>ADR-052: tuning.aiGateAwareGoals (null = absent).</summary>
+        public bool AiGateAwareGoals { get; set; }
 
         public string Json()
         {
@@ -251,6 +253,7 @@ internal static class ResearchRigs
                     ["knowledgeEffects"] = KnowledgeEffects ? true : null,
                     ["researchOverflow"] = ResearchOverflow ? true : null,
                     ["researchOverflowLane"] = ResearchOverflowLane ? true : null,
+                    ["aiGateAwareGoals"] = AiGateAwareGoals ? true : null,
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject

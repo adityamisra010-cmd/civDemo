@@ -62,6 +62,17 @@ namespace Sim.Core.Systems.Research;
 /// node is incomplete; the AI orders only when the lane holds none. The goal choice is unchanged; the goal's NODE
 /// (<see cref="GoalDestination"/>) becomes the destination and ResearchRoutePlanner — the player's planner — picks what is
 /// funded on the way (<see cref="ChooseDestination"/>). Off: the rule above exactly.
+///
+/// ADR-052 (PROPOSED) — GATE-AWARE TECHNOLOGY GOALS (research.json tuning.aiGateAwareGoals; acts only with the two lanes and
+/// destination routing, on the Technology lane). A technology destination whose route the lane cannot fund now — the
+/// engine's planner (<see cref="ResearchRoutePlanner.Fund"/>) gives the lane no current node, typically because the Age
+/// sweep needs the current Age's civics cohort first — is not live: the AI re-decides (<see cref="DecideLane"/>), and the
+/// choice (<see cref="ChooseDestination"/> → <see cref="FundableDestination"/>) takes the first goal sink, in the existing
+/// priority order, the lane can fund now; else the cheapest available technology; else nothing (the lane funds nothing —
+/// the empty-lane rule's case). It re-decides ONLY while the held destination is unfundable, so a fundable destination is
+/// never switched (no churn), and it never forces a return to the gated goal: once the gate opens, the next decision
+/// (when the lane's destination completes) finds the gated goal fundable and takes it by the existing order. RP never
+/// pays a civic; a player's research is never chosen. Off: the rule above exactly.
 /// </summary>
 public static class AiResearchPolicy
 {
@@ -109,11 +120,41 @@ public static class AiResearchPolicy
         bool[] available = ResearchQuery.AvailableMask(content, completed, ResearchQuery.LevelMask(world, content, polity, completed));
         bool routing = content.Tuning.DestinationRouting;
         if (ResearchQuery.TryGetTarget(world, content, polity, lane, out ResearchNodeId current)
-            && content.IndexOf(current) is int held and >= 0 && (routing ? ResearchQuery.IsOpenTarget(content, held, completed) : available[held])) return null;
+            && content.IndexOf(current) is int held and >= 0 && (routing ? ResearchQuery.IsOpenTarget(content, held, completed) : available[held]))
+        {
+            // ADR-052 (tuning.aiGateAwareGoals): a held technology destination the lane cannot fund now is not live — the AI
+            // re-decides (its progress stays on its nodes). Off, or fundable: kept, as before.
+            if (!GateAware(content, lane) || TechnologyFundable(world, content, polity, completed, available, held)) return null;
+            int other = ChooseDestination(world, cfg, polity, completed, available, lane);
+            return other < 0 || other == held ? null : ResearchQuery.TargetOrder(world, content, polity, content.Nodes[other].Key);
+        }
 
         int choice = routing ? ChooseDestination(world, cfg, polity, completed, available, lane)
             : Choose(world, cfg, polity, completed, available, lane);
         return choice < 0 ? null : ResearchQuery.TargetOrder(world, content, polity, content.Nodes[choice].Key);
+    }
+
+    /// <summary>ADR-052: whether the gate-aware rule acts on <paramref name="lane"/> — research.json tuning.aiGateAwareGoals,
+    /// with the two-lane model and destination routing, on the TECHNOLOGY lane only.</summary>
+    private static bool GateAware(ResearchContent content, ResearchTree? lane) =>
+        content.Tuning.AiGateAwareGoals && content.Tuning.TwoLanes && content.Tuning.DestinationRouting
+        && lane == ResearchTree.Technology;
+
+    /// <summary>
+    /// ADR-052: whether the technology lane, holding <paramref name="destination"/>, funds a node this step — the engine's
+    /// own rule: <see cref="ResearchRoutePlanner.Fund"/> over the polity's completed mask, available mask and remaining
+    /// costs, with the Civics lane's destination as it stands (<see cref="ResearchQuery.Destinations"/>), exactly as
+    /// ResearchSystem and <see cref="ResearchQuery.Route"/> compute it. True when the lane's CURRENT node is set (its
+    /// destination, a route node, or a free-lane assist); false when it would wait.
+    /// </summary>
+    public static bool TechnologyFundable(IReadOnlyWorldState world, ResearchContent content, PolityId polity, bool[] completed,
+        bool[] available, int destination)
+    {
+        if (available[destination]) return true;   // Fund: an available destination is funded itself
+        int[] destinations = ResearchQuery.Destinations(world, content, polity, completed);
+        destinations[0] = destination;
+        double[] remaining = ResearchQuery.RemainingCosts(world, content, polity);
+        return ResearchRoutePlanner.Fund(content, completed, available, remaining, destinations, twoLanes: true)[0].Current >= 0;
     }
 
     /// <summary>
@@ -136,9 +177,76 @@ public static class AiResearchPolicy
             for (int g = 0; g < goals.Length; g++)
                 for (int i = 0; i < tree.Length; i++) goals[g][i] &= tree[i];
         }
+        if (GateAware(content, lane)) return FundableDestination(world, content, polity, goals, completed, available, tree);
         int goal = ChooseGoal(world, content, polity, goals, completed, available);
         if (goal >= 0 && GoalDestination(world, content, polity, goals[goal], completed, available) is int d and >= 0) return d;
         return Cheapest(world, content, polity, available, tree);
+    }
+
+    /// <summary>
+    /// ADR-052 (tuning.aiGateAwareGoals) — THE TECHNOLOGY LANE'S GATE-AWARE DESTINATION. The goals in the existing priority
+    /// order — the goals <see cref="ChooseGoal"/> admits (a closure node AVAILABLE), by its composite key (remaining closure
+    /// cost, ordinal) — and within each goal its SINKS in <see cref="GoalDestination"/>'s order (route cost, key); the first
+    /// sink the lane can fund now (<see cref="TechnologyFundable"/>) is the destination. So when the existing choice is
+    /// fundable it is the answer, unchanged. Else the cheapest AVAILABLE node of the lane's tree (<see cref="Cheapest"/> —
+    /// fundable by definition), else -1: the lane holds no new destination and funds nothing (the empty-lane rule's case).
+    /// <paramref name="goals"/> and <paramref name="tree"/> are already restricted to the Technology tree, so a civic is
+    /// never chosen.
+    /// </summary>
+    private static int FundableDestination(IReadOnlyWorldState world, ResearchContent content, PolityId polity, bool[][] goals,
+        bool[] completed, bool[] available, bool[]? tree)
+    {
+        var goalCost = new double[goals.Length];
+        var eligible = new bool[goals.Length];
+        for (int g = 0; g < goals.Length; g++)   // ChooseGoal's key, computed the same way
+        {
+            bool[] closure = goals[g];
+            for (int i = 0; i < closure.Length; i++)
+            {
+                if (!closure[i] || completed[i]) continue;
+                goalCost[g] += ResearchQuery.EffectiveCost(world, content, polity, i);
+                eligible[g] |= available[i];
+            }
+        }
+        double[]? remaining = null;
+        foreach (int g in OrderByCost(goalCost, eligible))
+        {
+            remaining ??= ResearchQuery.RemainingCosts(world, content, polity);
+            bool[] closure = goals[g];
+            var sink = new bool[closure.Length];
+            var sinkCost = new double[closure.Length];
+            for (int i = 0; i < closure.Length; i++)   // GoalDestination's sinks and costs
+            {
+                if (!closure[i] || completed[i]) continue;
+                bool isSink = true;
+                foreach (int dep in content.Nodes[i].Dependents)
+                    if (closure[dep] && !completed[dep]) { isSink = false; break; }
+                if (!isSink) continue;
+                sink[i] = true;
+                sinkCost[i] = available[i] ? remaining[i] : ResearchRoutePlanner.Plan(content, completed, remaining, i).RemainingCost;
+            }
+            foreach (int d in OrderByCost(sinkCost, sink))
+                if (TechnologyFundable(world, content, polity, completed, available, d)) return d;
+        }
+        return Cheapest(world, content, polity, available, tree);
+    }
+
+    /// <summary>
+    /// ADR-052: the included indices ordered by the composite key (cost, index) — ascending cost, bit-equal costs to the
+    /// lower index. A stable insertion over an ascending-index scan that moves an entry only past a STRICTLY higher cost, so
+    /// its first element is exactly the argmin the ascending scans above take (strictly-lower replacement). Pure; no LINQ.
+    /// </summary>
+    public static int[] OrderByCost(double[] cost, bool[] include)
+    {
+        var order = new List<int>();
+        for (int i = 0; i < cost.Length; i++)
+        {
+            if (!include[i]) continue;
+            int at = order.Count;
+            while (at > 0 && cost[i] < cost[order[at - 1]]) at--;
+            order.Insert(at, i);
+        }
+        return [.. order];
     }
 
     /// <summary>
