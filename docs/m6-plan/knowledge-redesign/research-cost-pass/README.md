@@ -25,6 +25,8 @@ and 7, the canonical world, one AI Empire).
 | 11 | `pacing-recalibration.md` (2026-10-26, later) | The pacing scales recalibrated under the trial configuration (overlay only): passes, held scales and their residuals, per-seed Age turns, waste by Age, reserve time at the cap versus size, replay |
 | 12 | `cost-batches.md` (2026-10-26, later) | The eight cost batches, each measured independently against the calibrated trial: per-seed shifts, cheaper-but-later and waste-shift flags, verdicts (none adopted) |
 | 13 | `civics-gate-trial.md` (2026-10-26, later) | ADR-053's separate trial: inert on the calibrated baseline (bit-identical), removes the order-driven `caliphate` stall, trims a CP-bound stall |
+| 15 | `candidate-trial.md` (2026-10-26, final trial) | The research-economy CANDIDATE: civics A7 recalibrated with the gate rule on (1.479), batches b1/b2/b3/b5 alone and combined on it (b2 and b5 excluded, with the isolating runs), four seeds with and without the approved batches, casual and idling players, determinism, adoption impact on saves and pins, readiness recommendation |
+| — | `candidate/` | The candidate content file (`research.candidate.json`) and its manifest; pinned by `ResearchCandidateTests`; NOT the shipped content |
 | 14 | `decision-docket.md` (2026-10-26, later) | The open decisions for the next ruling, with evidence, options, recommendations and what is pre-staged |
 | — | `../../../adr/cr-025-unconsumed-overland-speed-operand.md` | The 17 nodes whose speed effect no system consumes: evidence, options, the interim display fix |
 

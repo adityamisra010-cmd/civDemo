@@ -11,9 +11,10 @@ pre-staged so that a ruling can be carried out without new design work.
 |---|---|---|
 | Calibrated trial overlay (overflow + reserve {3, 1} + gate-aware goals + calibrated scale) | **Accepted as the experimental baseline** (ruling 2026-10-26, later); not default | `pacing-recalibration.md` |
 | Casual-player reserve | Accepted provisionally | `pacing-recalibration.md` §5 |
-| Civics gate rule (ADR-053) | Approved for a separate trial; implemented behind `tuning.aiCivicsGateGoals`, off; trial measured | `civics-gate-trial.md` |
+| Civics gate rule (ADR-053) | Approved for a separate trial; implemented behind `tuning.aiCivicsGateGoals`, off; trial measured; on in the candidate | `civics-gate-trial.md` |
+| **Research-economy CANDIDATE** (switches + recalibrated scale, civics A7 = 1.479361, + batches b1 and b3) | **Final four-seed trial passed; ready for a separate default-adoption decision**; not default | `candidate-trial.md`, `candidate/` |
 | Technology Age 9 | Deferred; documented throughput limitation | `pacing-recalibration.md` §3 |
-| Eight cost batches | Measured, not adopted | `cost-batches.md` |
+| Eight cost batches | Measured. b1 and b3 are in the candidate. b2 and b5 are excluded for regressions on the candidate. None is default. | `cost-batches.md`, `candidate-trial.md` §C |
 | 17-node audit (CR-025 §8) | Merged only after the dependency, save and golden checks | CR-025 §8 |
 
 ## D1. Make the trial configuration the default?
@@ -21,12 +22,19 @@ pre-staged so that a ruling can be carried out without new design work.
 **Preconditions named in the ruling:** the two structural issues (the civics gate and Age 9) resolved or explicitly accepted,
 and the policy and cost changes reviewed together.
 
+**Update (2026-10-26, final trial):** the candidate is prepared and measured (`candidate-trial.md`).
+
 **What adoption is, exactly (pre-staged):**
-- Run `tools/apply_overlay.py Sim.Data/content/research.json <candidate> trial/research-economy-trial.json`, plus
-  `trial/civics-gate-trial.json` if D2 is adopted.
-- Diff the candidate, then copy it over the shipped file only on the ruling.
-- The overlay is the whole change. It sets four tuning members (`researchOverflow`, `researchReserve` {3, 1},
-  `aiGateAwareGoals`, `pacingScale`), plus `aiCivicsGateGoals` with D2. No node cost moves unless D3 adds batches.
+- The file to adopt already exists: `candidate/research.candidate.json` (sha256 prefix `4ed3c69e32bba343`).
+- It is the shipped file plus the overlays in `candidate/manifest.json`, written by `tools/apply_overlay.py` and pinned by
+  `ResearchCandidateTests`.
+- On the ruling, copy it over `Sim.Data/content/research.json`.
+- What it changes:
+  - five tuning members: `researchOverflow`, `researchReserve` {3, 1}, `aiGateAwareGoals`, `aiCivicsGateGoals`,
+    `pacingScale` with civics A7 = 1.479361;
+  - the `cost` and `costRationale` of 16 nodes (b1 and b3).
+- Nothing else changes, so the tree-closure STRUCTURE and TEXT hashes are the same. `ResearchCandidateTests` proves the
+  file differs only in tuning, `cost` and `costRationale`, and both hashes exclude those.
 
 **Blast radius (known now):**
 - **Golden and CI hash pins.** Every pinned run that uses research moves. That covers the `sim run` / `--founded` legs in
@@ -43,26 +51,49 @@ and the policy and cost changes reviewed together.
   - the AI never holds a reserve;
   - replay and save/load are exact.
 
+**Measured (final trial, `candidate-trial.md`):**
+- every seed completes every Age;
+- the slowest seed is within −5…+22 of target on technology A2–A8 and within −2…+15 on civics A2–A4 and A6–A8;
+- what remains open: civics A5 +57, the Age 1s (+40 / +65) and the Age 9s (+103 / +49) (D4, D5);
+- there are no anomaly flags;
+- replay and save/load are exact;
+- the order invariants hold;
+- the AI never holds a reserve;
+- RP lost is 46.2 %, against 55.7 % under the shipped default.
+
+**Adoption consequences (measured on a scratch tree):**
+- **Founded and AI worlds** differ from turn 1. The M0 toy world is identical.
+- **UI sessions saved earlier** are refused (exit 3), with the session files unchanged.
+- **CLI `--from-save`** continues an old snapshot under the new rules without warning. Proposed fix: store the content hash
+  in the save header.
+- **Moved pins:** see `candidate-trial.md` §G.
+
 **Options:**
-- (a) Adopt now.
-- (b) Adopt after the ADR-053 trial has been reviewed.
+- (a) Adopt the candidate now, with re-pins and switch-off attribution twins.
+- (b) Adopt after the `--from-save` content check is in.
 - (c) Keep it as a trial.
 
-**Recommendation:** (b). The configuration is measurably better than the default on waste (46.3 % vs 55.7 %) and pacing
-(technology A2–A8 within −7…+20 of target, against −81…+6). The civics-side stall is the one structural issue a policy can
-fix, and its trial is the remaining gate.
+**Recommendation:** (b), or (a) if CLI snapshots are not a concern. The candidate is ready for the decision. The
+`--from-save` gap is the one compatibility hole, and it predates this candidate: any content change has it.
 
 ## D2. Civics gate rule (ADR-053)
 
 **Status:** implemented behind `tuning.aiCivicsGateGoals` and measured as a separate trial on top of the calibrated baseline
 (`civics-gate-trial.md`).
 
-**Options:**
+**Done (2026-10-26, final trial):** on in the candidate. Civics A7 was recalibrated with it on, from 0.757 to 1.479:
+- slowest-seed residual −15;
+- the only measured value that keeps every Age on every seed;
+- rule on vs off bit-identical at that scale.
+
+The record is in `pacing-recalibration.md` §7 and `candidate-trial.md` §B. Its adoption is part of D1.
+
+**Options (as prepared before the trial):**
 - (a) Adopt it into the trial configuration, then recalibrate civics Age 7, which is unfrozen once the stall is gone.
 - (b) Keep it as a separate trial.
 - (c) Reject it.
 
-**Recommendation:** (a).
+**Recommendation:** (a), carried out in the candidate.
 - **Arm A:** with the calibrated scales the rule is inert, and the final hashes are bit-identical.
 - **Arm B:** with pass-3 scales on seed 2 it removes the order-driven `caliphate` stall: `caliphate` −158 turns, technology
   steps with nothing to fund 184 → 71, Age 8 entered 158 turns sooner.
@@ -77,12 +108,14 @@ Measured one at a time (`cost-batches.md` §1). None is pacing-relevant beyond �
 | Batch | Recommendation |
 |---|---|
 | b0, the six early cuts | **Reject.** The cuts make the run slower: `fire_making` +38 and writing (A3) +36 on every seed. |
-| b1, b2, b3 (increases) and b5 | Eligible on pricing grounds. Adopt together with D1 and confirm with one four-seed pass. |
+| b1, b3 (increases) | **In the candidate.** Confirmed on the recalibrated candidate: no flags, every Age on every seed (`candidate-trial.md` §C). |
+| b2 (increases, technology A6–A9) | **Excluded.** With b1 and b3, seed 2 loses technology Age 9 within 1,630 turns. b2 alone ends it on the last turn. Revisit after D4. |
+| b5 (cuts, Ages 5–7) | **Excluded.** Civics A7 on seed 2 −43 (outside ±30), and cheaper-but-later `steam_atmospheric` / `mine_pumping_engines` flags. |
 | b4 | Hold: order effects on seed 1. |
 | b6 | Hold: Age 9 is throughput-bound, so the cut buys nothing. |
 | b7 | Hold: low value. |
 
-**Staged:** the same `apply_overlay.py` with the batch overlays appended.
+**Staged:** `candidate/manifest.json` lists the overlays in the candidate.
 
 ## D4. Technology Age 9
 

@@ -1697,3 +1697,12 @@
   - (a) proposed, not applied: papyrus +0.04 and telephone +0.03 on `governance.authorityDecayCostUnits`, as live
     effects in addition to their future lines (CR-025 §8.3; pin impact unmeasured);
   - tiers A–D and G still have no ratified milestone (draft M6 spec T6.11, DW-011).
+- 2026-10-26 (final trial): `sim run --from-save` restores a snapshot and continues under the CURRENT research content with no
+  content check (measured: a shipped turn-100 save continues silently under the candidate). Proposal: record the research
+  content hash in the save header and refuse or warn on mismatch, as the UI trace check already does
+  (`research-cost-pass/candidate-trial.md` §E). Should land before any research default change.
+- 2026-10-26 (final trial): the UI incompatibility message's last line calls a mismatch between two unstamped `dev` builds a
+  probable determinism defect. That is misleading after a deliberate content change. Consider naming the research content
+  hash in the message.
+- 2026-10-26 (final trial): cost batch b2 (technology A6–A9 increases) is sound on pricing but consumes seed 2's technology Age 9
+  slack. Revisit with D4 (final-Age throughput). Batch b5 should be re-cut without its A5–A7 civics before any re-measure.

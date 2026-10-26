@@ -1,0 +1,9 @@
+{
+ "_doc": "The research-economy CANDIDATE (not the shipped content): research.candidate.json = Sim.Data/content/research.json + these overlays, in order, written by tools/apply_overlay.py and pinned by Sim.Tests ResearchCandidateTests. Batches b1 and b3 only: b5 moved the recalibrated civics Age 7 out of tolerance and produced the only cheaper-but-later flags; b2 cost seed 2 its technology Age 9 within 1,630 turns when combined (candidate-trial.md).",
+ "overlays": [
+  "trial/research-economy-candidate.json",
+  "trial/batches/b1-under-a3-5.json",
+  "trial/batches/b3-under-a6-9-civ.json"
+ ],
+ "content": "research.candidate.json"
+}
