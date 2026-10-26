@@ -105,5 +105,12 @@ Not to be done: lane-wide overflow, or cost cuts that only move waste.
 - **Seed spread.** Seed 2 trails by 40–70 turns, and the slowest-seed rule leaves the other three seeds ahead of target. Options:
   - (a) accept it (D-063 R6 as written);
   - (b) calibrate to the median seed, with a stated maximum lag for the slowest.
-- **17-node audit.** Merge as reported in CR-025 §8 once its checks hold. Its (a) real-effect and (c) removal proposals each
-  need their own ruling and stay "not simulated yet" until then.
+- **17-node audit.** MERGED (CR-025 §8). It added inert future declarations only: same save bytes, no golden moved, every
+  node unchanged apart from `effects.future`. Proposals for the Director, NOT applied:
+  - **papyrus:** realized `governance.authorityDecayCostUnits` +0.04.
+  - **telephone:** realized `governance.authorityDecayCostUnits` +0.03.
+  - **Operand budget:** the operand sum goes from 2.570 to 2.640 of a cap of 3.0, under the 90 % line, so no other delta is
+    rescaled.
+  - **Cost of applying:** each moves the default game and needs a pin re-measure.
+  - **Removals:** none proposed.
+  - **The rest:** the other 15 stay future-only until their system exists, showing "not simulated yet".
