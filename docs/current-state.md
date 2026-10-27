@@ -1,5 +1,21 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-27: M7 UNIT CHARTER AND BUILDING CHARTER PROPOSED (docs only)** on `claude/new-session-yavghm`. Nothing in
+> code, content, schema, tests, defaults, `main`, tags or releases changed; TC-1 stays PROPOSED.
+> - **Unit charter:** `docs/m7-plan/unit-catalogue-and-progression.md`. Contents:
+>   - the taxonomy across all unit classes;
+>   - a reconciliation of the 12 existing families: keys kept, five identities proposed for rehoming with a migration
+>     map, new families 13–22 proposed;
+>   - per-family sheets;
+>   - seven end-to-end dependency chains, a dependency matrix and a staged sequence (M7.0–M7.7, EC-1…EC-6, M8–M11+);
+>   - balance/validation rules;
+>   - conflicts C1–C10 and questions Q1–Q9.
+> - **Building charter:** `docs/m7-plan/building-and-infrastructure-charter.md`. Contents:
+>   - building, improvement, network, strategic and wonder families;
+>   - the electricity/oil/nuclear models;
+>   - a status register for all 99 building/infra/project/inst entities.
+> - **Check:** `python3 -I docs/m7-plan/tools/check_charters.py .` (ids, register, keys, prerequisite Ages, links).
+>
 > **2026-10-26 (final): RESEARCH-ECONOMY CANDIDATE TRIALLED; TREE CLOSURE TC-1 PROPOSED** on `claude/new-session-yavghm`.
 > Not merged, not released; `main` = `m5-exit` untouched; shipped `research.json` and every default unchanged.
 > - **Candidate (not default):** `research-cost-pass/candidate/research.candidate.json` = the switches + the calibrated scale
