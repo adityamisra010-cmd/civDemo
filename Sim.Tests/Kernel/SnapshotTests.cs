@@ -1132,6 +1132,7 @@ public class SnapshotTests
         //         (TestConfigs.PreTrackCp) and Civics Points off alone return OLD through SchemaProjection.V34; the stage gate
         //         off alone returns NEW. ci.yml FOUNDED_GOLDEN moves with it (CiPinAgreementTests).
         WorldState world = RunFoundedGolden();
+        Assert.Equal(FoundedGoldenHashPreEconomy, TestUtil.EconomyProjection.HashWithout(world, TestUtil.TestConfigs.Sim()));   // ADR-056 control (first)
         Assert.Equal(golden, WorldHash.ComputeHex(world));
         // M6 merge (2026-10-22): Track EX moves this world by BEHAVIOUR (concealed deposits), not by rows a strip could undo,
         // so the batch-3 cylinder-alone link (FoundedGoldenHashAtV32) is asserted on the PreM6 twin instead
@@ -1163,7 +1164,27 @@ public class SnapshotTests
     // CivicsPointsAttributionTests (the CP part, on the EX-off, tranche-off world). ci.yml FOUNDED_GOLDEN moves with it.
     // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD 35bb235ff1eb5919… -> NEW 8abc32b0d85ef6fc… — the empty section-68
     // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
-    internal const string FoundedGoldenHash = "8abc32b0d85ef6fc00d0b7476d976953e34f16d6a7e900bdbdd07e5c49f61e28";
+    // ADR-054 (schema v38; the Director's binding rule D-065 R6, 2026-10-27) RE-PIN, VALUE + LAYOUT: OLD 8abc32b0d85ef6fc… -> NEW 1f9f3d4f8bfa1991…. CAUSE: CP per turn from the RP base and the
+    // average population (research.json tuning.civicsPoints.perTurn, tuning.populationAverageTurns 2) — the research holders'
+    // RP/CP move from turn 1 and section 69 (ResearchPopulations) carries their turn-start populations. CONTROL: Adr054AttributionTests.FoundedGoldenSeed42Turn300_…
+    // (TestConfigs.PrePerTurnCivics returns OLD through SchemaProjection.V37, MEASURED).
+    // ADR-055 (schema v39, M7 recruitment slice) RE-PIN (VALUE + LAYOUT; MEASURED on the combined research + units tree by
+    // the agent writing this line, in-test harness): OLD 1f9f3d4f8bfa1991… -> NEW bb825342455bdbd8…. CAUSE: the military
+    // layer (sim.json military, on) — the founding warband draws its 20 people from the capital's adults (Ledger.Transfer into
+    // section 70) and they eat grain per person-year × dtYears, which moves the population and grain trajectory from turn 0;
+    // plus the four v39 sections. CONTROL: MilitaryAttributionTests.FoundedGoldenSeed42Turn300_MovedForTheMilitaryLayerAlone —
+    // the switch-off twin (TestConfigs.PreMilitary, the research switches as shipped) writes no v39 row and its
+    // SchemaProjection.V38 is OLD byte for byte. ci.yml FOUNDED_GOLDEN moves with it.
+    // M7 MERGE (research + units + economy) RE-PIN (MEASURED on the fully combined tree by the agent writing this line):
+    // research 1f9f3d4f8bfa1991… -> units bb825342455bdbd8… (ADR-055, the military layer; above) and research+econ bd8a343b6683e19a…
+    // (ADR-056, the economy packets' inert content rows) -> COMBINED d5ebd0b2c642ec5c…. TWO CONTROLS, both exact: (a) packets off —
+    // EconomyProjection.HashWithout(live), the packet rows removed and ASSERTED inert, asserted FIRST in the pin test — is the
+    // units pin (FoundedGoldenHashPreEconomy); (b) military off — MilitaryAttributionTests: TestConfigs.PreMilitary's world is the
+    // research+econ pin through SchemaProjection.V38KeepingPackets and the research pin through SchemaProjection.V38.
+    internal const string FoundedGoldenHash = "d5ebd0b2c642ec5ce92fb6aade3efcffcd2eee1364f19d0548f5f5c306f93501";
+
+    /// <summary>ADR-056 §13: <see cref="FoundedGoldenHash"/> with the economy packets off — the units track's pin (control (a)).</summary>
+    internal const string FoundedGoldenHashPreEconomy = "bb825342455bdbd89530b0c68df32160fb6735673d099e683efabf8b28a9a24d";
 
     /// <summary>THE toy golden (seed 42, turn 200; history on GoldenHash_Seed42Turn200_MatchesPinnedConstant). A named
     /// constant since D-055 (2026-10-16) so its v34 layout companion (ReservationsLayoutAttributionTests) compares with it.</summary>
@@ -1172,7 +1193,12 @@ public class SnapshotTests
     // M6 MERGE (2026-10-22, D-062 Tracks EX + CP; MEASURED on the merged tree by the agent writing this line) RE-PIN (VALUE + LAYOUT): 1d3f5be2dea41bba… -> f97432f0e1a7eb5e…. CAUSE: the LAYOUT ALONE — v35 also appends the four EMPTY discovery tables (sections 63–66; the toy pipeline has no DiscoverySystem): four more zero count prefixes. CONTROL: DiscoveryLayoutAttributionTests.ToyGoldenSeed42Turn200_MovedForTheV35LayoutAlone (SchemaProjection.V34 strips sections 62–66 and returns 2e6d4461…).
     // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD f52a32981fca7cb9… -> NEW 1e2155736b9cfd2b… — the empty section-68
     // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
-    internal const string ToyGoldenHash = "1e2155736b9cfd2b9009dd4d8f667ae924a11b29e956d44cec5c17c8c50182a3";
+    // ADR-054 (schema v38) RE-PIN, LAYOUT ALONE: OLD 1e2155736b9cfd2b… -> NEW 175f55bee2f87547… — the empty section-69
+    // (ResearchPopulations) count prefix (no ADR-054 switch acts on this world). CONTROL: Adr054AttributionTests.ToyGoldenSeed42Turn200_… (SchemaProjection.V37 is OLD).
+    // ADR-055 (schema v39) RE-PIN, LAYOUT ALONE (MEASURED on the combined tree): OLD 175f55bee2f87547… -> NEW ff4ea4111932fd50… —
+    // the four empty section 70–73 count prefixes (no unit-family content, no formation); MilitaryAttributionTests proves
+    // SchemaProjection.V38 of the live world is OLD.
+    internal const string ToyGoldenHash = "ff4ea4111932fd50c6a103e10abc81e4613b6055cd88fb45453f227afc476b36";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the founded golden's world through
     /// the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the founded golden

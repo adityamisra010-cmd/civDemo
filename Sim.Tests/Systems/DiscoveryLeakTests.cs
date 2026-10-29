@@ -61,7 +61,10 @@ public class DiscoveryLeakTests
                 {
                     SettlementId id = w.Settlements[i].Id;
                     if (!EmpireQuery.ControlsSettlement(w, viewer, id)) continue;
-                    int[] hidden = DepositConcealment.ConcealedGoods(w.Deposits, w.Seed, cfg, id);
+                    // ADR-056: a base-pool ore (no economy packet). A packet ore (iron-ore, coal) is not WORKED until its
+                    // knowledge gate is met, so the labour-surface positive control below could not see it either way.
+                    int[] hidden = Array.FindAll(DepositConcealment.ConcealedGoods(w.Deposits, w.Seed, cfg, id),
+                        g => cfg.Goods!.ById(g).Packet is null);
                     if (hidden.Length > 0) { s = id; good = hidden[0]; }
                 }
                 if (good >= 0) break;

@@ -158,6 +158,15 @@ public static class SnapshotDiff
         new("ResearchLevels", [I("Polity"), I("Node"), I("Level")]),
         // v37 (ADR-051): each knowledge holder's technology-lane RP reserve, milli-RP, section 68.
         new("ResearchReserves", [I("Polity"), L("ReserveMilli")]),
+        // v38 (ADR-054): each knowledge holder's population at the start of its last research step, section 69.
+        new("ResearchPopulations", [I("Polity"), L("Population")]),
+        // v39 (ADR-055): formation personnel, pending re-equipments, their escrow and the re-equipment log, sections 70-73.
+        new("FormationPersonnel", [I("Unit"), L("Count"), D("UpkeepRemainder"), L("UnfedUnits")]),
+        new("Reequips", [I("Unit"), I("Owner"), I("TargetFamily"), I("TargetIdentity"), L("IssuedTurn"), L("AcceptedTurn"),
+            L("RequiredDays"), L("ElapsedDays"), L("PersonnelDelta")]),
+        new("ReequipEscrow", [I("Unit"), I("Good"), L("Units")]),
+        new("ReequipLog", [L("Turn"), I("Unit"), I("Owner"), I("FromFamily"), I("FromIdentity"), I("ToFamily"), I("ToIdentity"),
+            I("Cause"), L("PersonnelDelta"), D("ExperienceBefore"), D("ExperienceAfter")]),
     ];
 
     /// <summary>The number of trailing <see cref="Layout"/> blocks schema v33 appended (absent from a v32 stream).</summary>
@@ -178,6 +187,14 @@ public static class SnapshotDiff
     /// ResearchReserves (ADR-051).</summary>
     private const int V37Blocks = 1;
 
+    /// <summary>The number of trailing <see cref="Layout"/> blocks schema v38 appended (absent from v32–v37 streams):
+    /// ResearchPopulations (ADR-054).</summary>
+    private const int V38Blocks = 1;
+
+    /// <summary>The number of trailing <see cref="Layout"/> blocks schema v39 appended (absent from v32–v38 streams): the four
+    /// ADR-055 military tables.</summary>
+    private const int V39Blocks = 4;
+
     /// <summary>
     /// THE LAYOUT OF A STREAM OF <paramref name="version"/> (ADR-039: the walk dispatches on the save's header version;
     /// D-055: the readable SET, CanonicalSchema.IsReadable): this build's <see cref="Layout"/> for v34; the same less the
@@ -189,14 +206,16 @@ public static class SnapshotDiff
     {
         if (!CanonicalSchema.IsReadable(version))
             throw new ArgumentOutOfRangeException(nameof(version), version,
-                $"sim diff walks canonical streams of version 32, 33, 34, 35, 36 and {CanonicalSchema.Version} only.");
+                $"sim diff walks canonical streams of version 32, 33, 34, 35, 36, 37 and {CanonicalSchema.Version} only.");
         return version switch
         {
-            32 => Layout[..^(V33Blocks + V34Blocks + V35Blocks + V36Blocks + V37Blocks)],
-            33 => Layout[..^(V34Blocks + V35Blocks + V36Blocks + V37Blocks)],
-            34 => Layout[..^(V35Blocks + V36Blocks + V37Blocks)],
-            35 => Layout[..^(V36Blocks + V37Blocks)],
-            36 => Layout[..^V37Blocks],
+            32 => Layout[..^(V33Blocks + V34Blocks + V35Blocks + V36Blocks + V37Blocks + V38Blocks + V39Blocks)],
+            33 => Layout[..^(V34Blocks + V35Blocks + V36Blocks + V37Blocks + V38Blocks + V39Blocks)],
+            34 => Layout[..^(V35Blocks + V36Blocks + V37Blocks + V38Blocks + V39Blocks)],
+            35 => Layout[..^(V36Blocks + V37Blocks + V38Blocks + V39Blocks)],
+            36 => Layout[..^(V37Blocks + V38Blocks + V39Blocks)],
+            37 => Layout[..^(V38Blocks + V39Blocks)],
+            38 => Layout[..^V39Blocks],
             _ => Layout,   // CanonicalSchema.Version, the one other member of the readable set
         };
     }

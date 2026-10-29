@@ -184,10 +184,11 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         // projects' build buttons — no slider track, no tax, road, Age or apply control (nothing changed yet). M5 S1d: and
         // the founding block's "Choose a site..." (it opens the placement mode; the order is the placement's Confirm).
         // M6 EX (ADR-044): and the Actions menu's Explore and Prospect (one each per settlement the player holds), and
-        // (ADR-046) the Assay beside Prospect, drawn disabled until Ore prospecting.
+        // (ADR-046) the Assay beside Prospect, drawn disabled until Ore prospecting. ADR-055: and the roster's military order
+        // buttons (Recruit / Re-equip / Disband for the founding warband; each enabled only when its predicate admits it).
         var kinds = screen.Hits.Select(h => h.Kind).Distinct().OrderBy(k => k).ToArray();
         Assert.Equal(new[] { ActionHitKind.LabourSlot, ActionHitKind.ResearchOpen, ActionHitKind.Build, ActionHitKind.PrevSettlement, ActionHitKind.NextSettlement,
-                ActionHitKind.FoundSettlement, ActionHitKind.Explore, ActionHitKind.Prospect, ActionHitKind.Assay }
+                ActionHitKind.FoundSettlement, ActionHitKind.Explore, ActionHitKind.Prospect, ActionHitKind.Assay, ActionHitKind.MilitaryOrder }
             .OrderBy(k => k).ToArray(), kinds);
         Assert.Equal(1, screen.Hits.Count(h => h.Kind == ActionHitKind.FoundSettlement));
         Assert.Equal(Sectors.Count * 10, screen.Hits.Count(h => h.Kind == ActionHitKind.LabourSlot));
@@ -204,7 +205,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         Assert.True(AvailableActionsQuery.Same(query, m.Actions));
         // ADR-048 (tranche 2, D-063: routing on): + 1 — the research destination action beside the target action (132 -> 133),
         // as Sim.Tests' TurnOneActionSurfaceTests.
-        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 36 + 1, query.Length);   // R1: + the two baseline recipes; construction 12 (granaries) — no workshop at founding (Director 2026-10-10, D-051 §4); M5 S1d: + 12 Found Settlement (84 -> 96); M6 EX (ADR-044): + 24 Discovery (Explore and Prospect per settlement, 96 -> 120); ADR-046: + 12 Assay (120 -> 132)
+        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 36 + 1 + 12 + 1, query.Length);   // R1: + the two baseline recipes; construction 12 (granaries) — no workshop at founding (Director 2026-10-10, D-051 §4); M5 S1d: + 12 Found Settlement (84 -> 96); M6 EX (ADR-044): + 24 Discovery (Explore and Prospect per settlement, 96 -> 120); ADR-046: + 12 Assay (120 -> 132); ADR-055: + 12 Recruit (one per settlement: the founding warband is the one known identity) + 1 Disband (the warband; no Re-equip target is known at turn 1) (133 -> 146)
         foreach (ActionHit build in screen.Hits.Where(h => h.Kind == ActionHitKind.Build))
             Assert.Contains(query, a => a.Domain == ActionDomain.Construction && a.Targets[0].Id == build.A && a.Targets[1].Id == build.B);
     }

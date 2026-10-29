@@ -18,10 +18,48 @@ public enum NoSuccessorRule { Preserve = 1, Generic = 2 }
 /// <summary>One per-Age realization of a unit family (a generic unit identity).
 /// <c>Age</c> is the first Age in which it realizes the family. A <c>Branch</c>
 /// identity is a declared alternative realization; automatic conversion never
-/// targets it (the mainline does), so modernization is deterministic.</summary>
+/// targets it (the mainline does), so modernization is deterministic.
+/// <para>ADR-055 (M7 recruitment, unit charter §6.5): the KNOWLEDGE GATE is <see cref="RealizedBy"/> (a research entity)
+/// and/or <see cref="Requires"/> (an expression of research.json node ids, ANDed with the entity where both are given), or
+/// <see cref="Baseline"/> (a research.json baseline capability — known from the start). <see cref="Recruitment"/> is what
+/// recruiting it takes (null in a schema-1 file: not recruitable). <see cref="CarrierCapable"/> and <see cref="JetDeck"/>
+/// form the one embark predicate (MilitaryQuery.CanEmbark; aviation-progression §9.1).</para></summary>
 public sealed record UnitIdentity(
     int Key, string Id, string Name, int Age, bool Branch, string HistoricalEmergence,
-    IReadOnlyList<string> Equipment, string? RealizedBy, string? Reference, int FamilyKey);
+    IReadOnlyList<string> Equipment, string? RealizedBy, string? Reference, int FamilyKey)
+{
+    /// <summary>The per-identity requirement (node ids, research dialect), or null.</summary>
+    public Sim.Core.Systems.ClassMobility.Predicate? Requires { get; init; }
+    /// <summary>The requirement's source text, or null.</summary>
+    public string? RequiresSource { get; init; }
+    /// <summary>A research.json baseline capability id: the identity is known from the start.</summary>
+    public string? Baseline { get; init; }
+    public UnitRecruitment? Recruitment { get; init; }
+    public CarrierCapability CarrierCapable { get; init; } = CarrierCapability.No;
+    /// <summary>A carrier identity whose deck takes jet aircraft (the jet-capable fleet carrier).</summary>
+    public bool JetDeck { get; init; }
+}
+
+/// <summary>ADR-055: whether an aircraft identity may embark on a carrier (aviation-progression §9.1): never, on any
+/// carrier, or only on a jet-capable deck.</summary>
+public enum CarrierCapability { No = 0, Any = 1, JetDeck = 2 }
+
+/// <summary>ADR-055 — one input of a recruitment bill: a good by name and a whole quantity. <see cref="GoodId"/> is the
+/// goods.json id, or -1 when the good is PLANNED (not yet in goods.json): then <see cref="PlannedPacket"/> names the EC packet
+/// that adds it, and the identity is blocked while it is absent.</summary>
+public sealed record UnitRecruitInput(string Good, long Qty, int GoodId, string? PlannedPacket)
+{
+    public bool IsPlanned => GoodId < 0;
+}
+
+/// <summary>ADR-055 — what recruiting an identity takes (unit charter §6.5 items 3–5): <see cref="Personnel"/> adults,
+/// <see cref="Inputs"/> from the empire stockpile, an optional <see cref="Building"/> (a research building entity a completed
+/// structure at the location realizes), an optional <see cref="BlockedBy"/> (a named missing system or ruling) and the
+/// recruitment time <see cref="Years"/> (the re-equipment duration, a rate × dtYears).</summary>
+public sealed record UnitRecruitment(long Personnel, double Years, IReadOnlyList<UnitRecruitInput> Inputs, string? Building, string? BlockedBy);
+
+/// <summary>ADR-055 — a good the content needs and goods.json does not carry yet, with the EC packet that will add it.</summary>
+public sealed record PlannedGood(string Good, string Packet, string? Note);
 
 /// <summary>A declared branching point of a family line (documentation for the UI;
 /// conversion follows the mainline).</summary>
@@ -107,6 +145,8 @@ public sealed class UnitFamilyContent
     public required int FormationsPerPolity { get; init; }
     public required string FoundingBasis { get; init; }
     public required string Status { get; init; }
+    /// <summary>ADR-055: goods the recruitment bills name that goods.json does not carry yet (content order).</summary>
+    public IReadOnlyList<PlannedGood> PlannedGoods { get; init; } = [];
 
     public UnitFamily? FamilyByKey(int key)
     {
@@ -136,24 +176,88 @@ public sealed class UnitFamilyContent
                 if (string.Equals(Families[f].Line[i].Id, id, StringComparison.Ordinal)) return Families[f].Line[i];
         return null;
     }
+
+    /// <summary>ADR-056 §13 (the M7 merge): this content with every recruitment input RE-RESOLVED against
+    /// <paramref name="goods"/> — the loader's own rule (ValidateRecruitment): a name <paramref name="goods"/> carries takes
+    /// its id; a name it does not carry falls back to PLANNED, with the packet <see cref="PlannedGoods"/> names, so the
+    /// identity is blocked. It is how a config whose economy packets are switched off after loading
+    /// (EconomyKnowledge.WithGoods) keeps its recruitment bills on the roster it actually holds: a bill never names a
+    /// good id the roster lacks. Content order, keys and every other field are unchanged; returns this instance when no
+    /// input moves.</summary>
+    public UnitFamilyContent ResolvedAgainst(Sim.Core.Systems.GoodsConfig goods)
+    {
+        ArgumentNullException.ThrowIfNull(goods);
+        bool moved = false;
+        var families = new UnitFamily[Families.Count];
+        UnitIdentity founding = FoundingIdentity;
+        for (int f = 0; f < Families.Count; f++)
+        {
+            UnitFamily fam = Families[f];
+            var line = new UnitIdentity[fam.Line.Count];
+            bool lineMoved = false;
+            for (int i = 0; i < fam.Line.Count; i++)
+            {
+                UnitIdentity id = fam.Line[i];
+                line[i] = id;
+                if (id.Recruitment is not { } r) continue;
+                UnitRecruitInput[]? inputs = null;
+                for (int k = 0; k < r.Inputs.Count; k++)
+                {
+                    UnitRecruitInput x = r.Inputs[k];
+                    int gid = goods.IdOf(x.Good);
+                    string? packet = null;
+                    if (gid < 0)
+                    {
+                        for (int m = 0; m < PlannedGoods.Count; m++)
+                            if (string.Equals(PlannedGoods[m].Good, x.Good, StringComparison.Ordinal)) { packet = PlannedGoods[m].Packet; break; }
+                        packet ??= "absent from the goods roster";
+                    }
+                    if (gid == x.GoodId && string.Equals(packet, x.PlannedPacket, StringComparison.Ordinal)) continue;
+                    inputs ??= [.. r.Inputs];
+                    inputs[k] = x with { GoodId = gid, PlannedPacket = packet };
+                }
+                if (inputs is null) continue;
+                line[i] = id with { Recruitment = r with { Inputs = inputs } };
+                if (id.Key == FoundingIdentity.Key) founding = line[i];
+                lineMoved = true;
+            }
+            if (!lineMoved) { families[f] = fam; continue; }
+            moved = true;
+            families[f] = new UnitFamily
+            {
+                Index = fam.Index, Key = fam.Key, Id = fam.Id, Name = fam.Name, Role = fam.Role,
+                HistoricalEmergence = fam.HistoricalEmergence, Composition = fam.Composition, AutoModernize = fam.AutoModernize,
+                Branches = fam.Branches, LineEndsAfterAge = fam.LineEndsAfterAge, NoSuccessor = fam.NoSuccessor,
+                GenericSuccessorFamily = fam.GenericSuccessorFamily, NoSuccessorNote = fam.NoSuccessorNote, Line = line,
+            };
+        }
+        if (!moved) return this;
+        return new UnitFamilyContent
+        {
+            Families = families, FoundingIdentity = founding, FormationsPerPolity = FormationsPerPolity,
+            FoundingBasis = FoundingBasis, Status = Status, PlannedGoods = PlannedGoods,
+        };
+    }
 }
 
 /// <summary>Loads and validates unit-families.json on the T0.4 template (Sim.Core takes a
 /// Stream or string; loud, actionable errors).</summary>
 public static class UnitFamilyContentLoader
 {
-    public const int Schema = 1;
+    /// <summary>The current schema (2: ADR-055 knowledge gates and recruitment data, required on every identity). Schema 1
+    /// (ADR-031: no gates, no recruitment) is still read: its identities are not recruitable.</summary>
+    public const int Schema = 2;
     public const int AgeCount = 9;
 
     private static readonly JsonSerializerOptions JsonOptions = new() { RespectNullableAnnotations = true };
 
-    public static UnitFamilyContent Load(Stream json, ResearchContent? research)
+    public static UnitFamilyContent Load(Stream json, ResearchContent? research, Sim.Core.Systems.GoodsConfig? goods = null)
     {
         using var reader = new StreamReader(json);
-        return Load(reader.ReadToEnd(), research);
+        return Load(reader.ReadToEnd(), research, goods);
     }
 
-    public static UnitFamilyContent Load(string json, ResearchContent? research)
+    public static UnitFamilyContent Load(string json, ResearchContent? research, Sim.Core.Systems.GoodsConfig? goods = null)
     {
         FileJson? file;
         try { file = JsonSerializer.Deserialize<FileJson>(json, JsonOptions); }
@@ -162,7 +266,9 @@ public static class UnitFamilyContentLoader
             throw new UnitFamilyContentException($"unit-families.json is not valid JSON or is missing required values: {e.Message}", e);
         }
         if (file is null) throw Fail("the document is empty (null).");
-        if (file.Schema != Schema) throw Fail($"schema is {file.Schema}, expected {Schema}.");
+        if (file.Schema is not (1 or Schema)) throw Fail($"schema is {file.Schema}, expected 1 or {Schema}.");
+        bool gated = file.Schema >= 2;
+        PlannedGood[] planned = ValidatePlannedGoods(file.PlannedGoods ?? [], gated);
         if (file.Families.Length == 0) throw Fail("families must not be empty.");
 
         var families = new UnitFamily[file.Families.Length];
@@ -220,7 +326,23 @@ public static class UnitFamilyContentLoader
                 if (ij.RealizedBy is { } entity && research is not null && research.EntityIndexOf(entity) < 0)
                     throw Fail($"{ip}: realizedBy '{entity}' is not an entity in research.json.");
                 line[i] = new UnitIdentity(ij.Key, ij.Id, ij.Name, ij.Age, ij.Branch, ij.HistoricalEmergence,
-                    ij.Equipment ?? [], ij.RealizedBy, ij.Reference, j.Key);
+                    ij.Equipment ?? [], ij.RealizedBy, ij.Reference, j.Key)
+                {
+                    Requires = ParseRequires(ij, ip, research),
+                    RequiresSource = ij.Requires,
+                    Baseline = ValidateBaseline(ij, ip, research, gated),
+                    Recruitment = ValidateRecruitment(ij, ip, research, goods, planned, gated),
+                    CarrierCapable = ij.CarrierCapable switch
+                    {
+                        null or "no" => CarrierCapability.No,
+                        "any" => CarrierCapability.Any,
+                        "jet_deck" => CarrierCapability.JetDeck,
+                        _ => throw Fail($"{ip}: carrierCapable must be 'no', 'any' or 'jet_deck', got '{ij.CarrierCapable}'."),
+                    },
+                    JetDeck = ij.JetDeck,
+                };
+                if (ij.JetDeck && composition != UnitComposition.MobileAgent)
+                    throw Fail($"{ip}: jetDeck applies only to a carrier (mobile_agent) identity.");
             }
             if (mainlineCount == 0) throw Fail($"{path}: line must have at least one mainline (non-branch) identity.");
 
@@ -304,17 +426,128 @@ public static class UnitFamilyContentLoader
         return new UnitFamilyContent
         {
             Families = families, FoundingIdentity = founding, FormationsPerPolity = file.Founding.FormationsPerPolity,
-            FoundingBasis = file.Founding.Basis, Status = file.Status,
+            FoundingBasis = file.Founding.Basis, Status = file.Status, PlannedGoods = planned,
         };
     }
 
     private static UnitFamilyContentException Fail(string message) => new($"unit-families.json: {message}");
 
+    /// <summary>ADR-055: plannedGoods — each a distinct name with a non-empty packet. Only schema 2 carries it.</summary>
+    private static PlannedGood[] ValidatePlannedGoods(PlannedGoodJson[] planned, bool gated)
+    {
+        if (!gated && planned.Length > 0) throw Fail("plannedGoods needs schema 2.");
+        var result = new PlannedGood[planned.Length];
+        for (int i = 0; i < planned.Length; i++)
+        {
+            PlannedGoodJson p = planned[i];
+            if (string.IsNullOrWhiteSpace(p.Good)) throw Fail($"plannedGoods[{i}]: good must be a name.");
+            if (string.IsNullOrWhiteSpace(p.Packet)) throw Fail($"plannedGoods[{i}] ('{p.Good}'): packet must name the EC packet that adds it.");
+            for (int k = 0; k < i; k++)
+                if (string.Equals(planned[k].Good, p.Good, StringComparison.Ordinal))
+                    throw Fail($"plannedGoods[{i}]: '{p.Good}' is planned twice.");
+            result[i] = new PlannedGood(p.Good, p.Packet, p.Note);
+        }
+        return result;
+    }
+
+    /// <summary>ADR-055: the per-identity requirement, parsed in the research dialect against research.json's node ids (a
+    /// name that is not a node fails the load). Without research content the text is kept unparsed (it gates nothing).</summary>
+    private static Sim.Core.Systems.ClassMobility.Predicate? ParseRequires(IdentityJson ij, string ip, ResearchContent? research)
+    {
+        if (ij.Requires is not { } expression) return null;
+        if (string.IsNullOrWhiteSpace(expression)) throw Fail($"{ip}: requires must be a non-empty expression of research.json node ids.");
+        if (research is null) return null;
+        try { return ResearchContentLoader.ParseRequirement(research, expression, $"unit-families.json {ip}.requires"); }
+        catch (ResearchContentException e) { throw new UnitFamilyContentException($"unit-families.json: {ip}: requires '{expression}' — {e.Message}", e); }
+    }
+
+    /// <summary>ADR-055: a baseline gate names a research.json baseline capability. Schema 2: every identity declares a
+    /// knowledge gate — realizedBy, requires or baseline.</summary>
+    private static string? ValidateBaseline(IdentityJson ij, string ip, ResearchContent? research, bool gated)
+    {
+        if (ij.Baseline is { } b)
+        {
+            if (ij.RealizedBy is not null || ij.Requires is not null)
+                throw Fail($"{ip}: a baseline identity is known from the start and must not also declare realizedBy or requires.");
+            if (research is not null)
+            {
+                bool found = false;
+                for (int i = 0; i < research.Baseline.Count; i++)
+                    if (string.Equals(research.Baseline[i].Id, b, StringComparison.Ordinal)) { found = true; break; }
+                if (!found) throw Fail($"{ip}: baseline '{b}' is not a research.json baseline capability.");
+            }
+        }
+        else if (gated && ij.RealizedBy is null && ij.Requires is null)
+            throw Fail($"{ip}: every identity declares a knowledge gate (realizedBy, requires or baseline) under schema 2.");
+        return ij.Baseline;
+    }
+
+    /// <summary>ADR-055: the recruitment bill. Every good is a goods.json good or a plannedGoods name (a typo can never
+    /// silently block an identity); a building is a research.json building entity; personnel ≥ 1; years finite and &gt; 0;
+    /// quantities ≥ 1, each good once. Schema 2: every identity carries one.</summary>
+    private static UnitRecruitment? ValidateRecruitment(
+        IdentityJson ij, string ip, ResearchContent? research, Sim.Core.Systems.GoodsConfig? goods, PlannedGood[] planned, bool gated)
+    {
+        if (ij.Recruitment is not { } r)
+        {
+            if (gated) throw Fail($"{ip}: every identity carries recruitment data under schema 2.");
+            return null;
+        }
+        if (!gated) throw Fail($"{ip}: recruitment needs schema 2.");
+        if (r.Personnel < 1) throw Fail($"{ip}: recruitment.personnel must be >= 1 adult, got {r.Personnel}.");
+        if (!double.IsFinite(r.Years) || r.Years <= 0.0) throw Fail($"{ip}: recruitment.years must be finite and > 0.");
+        var inputs = new UnitRecruitInput[r.Inputs.Length];
+        for (int k = 0; k < r.Inputs.Length; k++)
+        {
+            RecruitInputJson x = r.Inputs[k];
+            if (x.Qty < 1) throw Fail($"{ip}: recruitment.inputs[{k}] ('{x.Good}'): qty must be a whole number >= 1, got {x.Qty}.");
+            for (int m = 0; m < k; m++)
+                if (string.Equals(r.Inputs[m].Good, x.Good, StringComparison.Ordinal))
+                    throw Fail($"{ip}: recruitment.inputs names '{x.Good}' twice.");
+            int id = goods?.IdOf(x.Good) ?? -1;
+            string? packet = null;
+            if (id < 0)
+            {
+                for (int m = 0; m < planned.Length; m++)
+                    if (string.Equals(planned[m].Good, x.Good, StringComparison.Ordinal)) { packet = planned[m].Packet; break; }
+                if (packet is null && goods is not null)
+                    throw Fail($"{ip}: recruitment.inputs names '{x.Good}', which is neither a goods.json good nor in plannedGoods.");
+            }
+            inputs[k] = new UnitRecruitInput(x.Good, x.Qty, id, packet);
+        }
+        if (r.Building is { } building && research is not null)
+        {
+            int e = research.EntityIndexOf(building);
+            if (e < 0 || !building.StartsWith("building.", StringComparison.Ordinal))
+                throw Fail($"{ip}: recruitment.building '{building}' is not a research.json building entity.");
+        }
+        if (r.BlockedBy is { } blocked && string.IsNullOrWhiteSpace(blocked))
+            throw Fail($"{ip}: recruitment.blockedBy, when present, must name the missing system or ruling.");
+        return new UnitRecruitment(r.Personnel, r.Years, inputs, r.Building, r.BlockedBy);
+    }
+
     private sealed record FileJson(
         [property: JsonPropertyName("schema"), JsonRequired] int Schema,
         [property: JsonPropertyName("status"), JsonRequired] string Status,
         [property: JsonPropertyName("founding"), JsonRequired] FoundingJson Founding,
-        [property: JsonPropertyName("families"), JsonRequired] FamilyJson[] Families);
+        [property: JsonPropertyName("families"), JsonRequired] FamilyJson[] Families,
+        [property: JsonPropertyName("plannedGoods")] PlannedGoodJson[]? PlannedGoods = null);
+
+    private sealed record PlannedGoodJson(
+        [property: JsonPropertyName("good"), JsonRequired] string Good,
+        [property: JsonPropertyName("packet"), JsonRequired] string Packet,
+        [property: JsonPropertyName("note")] string? Note = null);
+
+    private sealed record RecruitInputJson(
+        [property: JsonPropertyName("good"), JsonRequired] string Good,
+        [property: JsonPropertyName("qty"), JsonRequired] long Qty);
+
+    private sealed record RecruitmentJson(
+        [property: JsonPropertyName("personnel"), JsonRequired] long Personnel,
+        [property: JsonPropertyName("years"), JsonRequired] double Years,
+        [property: JsonPropertyName("inputs"), JsonRequired] RecruitInputJson[] Inputs,
+        [property: JsonPropertyName("building")] string? Building = null,
+        [property: JsonPropertyName("blockedBy")] string? BlockedBy = null);
 
     private sealed record FoundingJson(
         [property: JsonPropertyName("identity"), JsonRequired] string Identity,
@@ -353,5 +586,10 @@ public static class UnitFamilyContentLoader
         [property: JsonPropertyName("equipment")] string[]? Equipment,
         [property: JsonPropertyName("realizedBy")] string? RealizedBy,
         [property: JsonPropertyName("reference")] string? Reference,
-        [property: JsonPropertyName("branch")] bool Branch = false);
+        [property: JsonPropertyName("branch")] bool Branch = false,
+        [property: JsonPropertyName("requires")] string? Requires = null,
+        [property: JsonPropertyName("baseline")] string? Baseline = null,
+        [property: JsonPropertyName("recruitment")] RecruitmentJson? Recruitment = null,
+        [property: JsonPropertyName("carrierCapable")] string? CarrierCapable = null,
+        [property: JsonPropertyName("jetDeck")] bool JetDeck = false);
 }

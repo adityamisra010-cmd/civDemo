@@ -41,7 +41,24 @@ public class FirstReignTests
     // (TestConfigs.PreM6 returns f7ca60a5… through SchemaProjection.V34).
     // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD f4073f424ddb853b… -> NEW 6b9571cd1c2f50fe… — the empty section-68
     // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
-    internal const string PostR1Golden = "6b9571cd1c2f50fe22801104c99e75c55a1555cba6a8617e660c187b5a1a4fe5";
+    // ADR-054 (schema v38; the Director's binding rule D-065 R6, 2026-10-27) RE-PIN, VALUE + LAYOUT: OLD 6b9571cd1c2f50fe… -> NEW 389e05266085018b…. CAUSE: CP per turn from the RP base and the
+    // average population (research.json tuning.civicsPoints.perTurn, tuning.populationAverageTurns 2) — the research holders'
+    // RP/CP move from turn 1 and section 69 (ResearchPopulations) carries their turn-start populations. CONTROL: Adr054AttributionTests.FirstReignTurn40_…
+    // (TestConfigs.PrePerTurnCivics returns OLD through SchemaProjection.V37, MEASURED).
+    // ADR-055 (schema v39, M7 recruitment slice) RE-PIN (VALUE + LAYOUT; MEASURED on the combined research + units tree by
+    // the agent writing this line, in-test harness, Replay(40)): OLD 389e05266085018b… -> NEW df73d4f2b022107a…. CAUSE: the
+    // military layer — the founding warband's 20 people leave the lone settlement's adults and eat grain; plus the four v39
+    // sections. CONTROL: MilitaryAttributionTests.FirstReignTurn40_… (TestConfigs.PreMilitary returns OLD through SchemaProjection.V38).
+    // M7 MERGE (research + units + economy) RE-PIN (MEASURED on the fully combined tree by the agent writing this line):
+    // research 389e05266085018b… -> units df73d4f2b022107a… (ADR-055, the military layer; above) and research+econ 58f017059925b16e…
+    // (ADR-056, the economy packets' inert content rows) -> COMBINED 064ed6b76374dea4…. TWO CONTROLS, both exact: (a) packets off —
+    // EconomyProjection.HashWithout(live), the packet rows removed and ASSERTED inert, asserted FIRST in the pin test — is the
+    // units pin (PostR1GoldenPreEconomy); (b) military off — MilitaryAttributionTests: TestConfigs.PreMilitary's world is the
+    // research+econ pin through SchemaProjection.V38KeepingPackets and the research pin through SchemaProjection.V38.
+    internal const string PostR1Golden = "064ed6b76374dea44bb6ddec15bf91d6bacf0f4e264bfb7c270fcb2cd7f8f3d8";
+
+    /// <summary>ADR-056 §13: <see cref="PostR1Golden"/> with the economy packets off — the units track's pin (control (a)).</summary>
+    internal const string PostR1GoldenPreEconomy = "df73d4f2b022107ac6dce85d71fedf370ca2c67e3144ec029916bf1438a92b7e";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — <see cref="PostR1Golden"/>'s world
     /// through the v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the turn-40
@@ -587,6 +604,7 @@ public class FirstReignTests
         //   CAUSE schema v35 appends CivicsPoints and the player Empire accrues Civics Points every step (one account row).
         //   CONTROL CivicsPointsAttributionTests.FirstReignTurn40_MovedForCivicsPointsAlone (Track CP off and CP off alone
         //         return OLD through SchemaProjection.V34). The SHAPE asserts below are unchanged.
+        Assert.Equal(PostR1GoldenPreEconomy, EconomyProjection.HashWithout(final, TestConfigs.Sim()));   // ADR-056 control (first: the switch-off proof)
         Assert.Equal(PostR1Golden, WorldHash.ComputeHex(final));
         // M6 merge (2026-10-22): Track EX moves this world by behaviour (concealed deposits), not by rows a strip could undo,
         // so the v32 link is read on the PreM6 twin (both M6 tracks off; DiscoveryLayoutAttributionTests).

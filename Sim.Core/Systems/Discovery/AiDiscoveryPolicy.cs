@@ -182,7 +182,10 @@ public static class AiDiscoveryPolicy
         && AiFoundingPolicy.IsDue(world, ai, polity)
         && AiFoundingPolicy.RankedSources(world, cfg, ai, polity).Length > 0;
 
-    /// <summary>The concealable deposit goods the settlement's controller can see there (known abundance &gt; 0).</summary>
+    /// <summary>The concealable deposit goods the settlement's controller can see there (known abundance &gt; 0).
+    /// ADR-056: and can WORK (EconomyKnowledge.IsWorkable — an economy packet's ore counts once the settlement's knowledge
+    /// meets its goods.json gate; every base good always counts), so an ore nobody there can smelt does not reorder the
+    /// survey queue before it matters.</summary>
     public static int KnownEligible(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement)
     {
         if (cfg.Discovery is not { } d || cfg.Goods is not { } goods) return 0;
@@ -190,7 +193,8 @@ public static class AiDiscoveryPolicy
         foreach (string name in d.ConcealableGoods)
         {
             int id = goods.IdOf(name);
-            if (id >= 0 && DepositConcealment.KnownAbundance(world, cfg, settlement, id) > 0.0) n++;
+            if (id >= 0 && DepositConcealment.KnownAbundance(world, cfg, settlement, id) > 0.0
+                && EconomyKnowledge.IsWorkable(world, cfg, settlement, id)) n++;
         }
         return n;
     }

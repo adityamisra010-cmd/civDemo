@@ -45,7 +45,7 @@ public class ConstructionSchemaV33Tests
         // D-055 (2026-10-16) CAUSE BLOCK: Version 33 -> 34, and every tail offset below moves by the 4-byte count prefix of
         // the EMPTY section 61 (ConstructionHolds) that v34 appends after ResourceAllocations — the layout alone; no v33
         // row changed width (ExpectedLength's row arithmetic is unchanged). `end` is where the v33 stream ended.
-        Assert.Equal(37, CanonicalSchema.Version);   // v35 (ADR-043 CivicsPoints, 2026-10-22): the schema bump alone (v36: ADR-049 ResearchLevels; v37: ADR-051 ResearchReserves — each the schema bump alone)
+        Assert.Equal(39, CanonicalSchema.Version);   // v35 (ADR-043 CivicsPoints, 2026-10-22): the schema bump alone (v36: ADR-049 ResearchLevels; v37: ADR-051 ResearchReserves — each the schema bump alone) (v39: ADR-055 the four military tables — the schema bump alone) (v38: ADR-054 ResearchPopulations — the schema bump alone)
         Assert.Equal(32, CanonicalSchema.OldestReadableVersion);
         WorldState world = Populated();
         byte[] bytes = Stream(world);
@@ -59,8 +59,9 @@ public class ConstructionSchemaV33Tests
         // 20 more. The layout alone.
         // ADR-049 (v36): and the empty section 67 (ResearchLevels) — 28 bytes of zero prefixes. The layout alone.
         // ADR-051 (v37): and the empty section 68 (ResearchReserves) — 32 bytes of zero prefixes. The layout alone.
-        for (int i = bytes.Length - 32; i < bytes.Length; i++) Assert.Equal(0, bytes[i]);
-        int end = bytes.Length - 32;
+        // ADR-054 (v38): and the empty section 69 (ResearchPopulations) — 36 bytes of zero prefixes. The layout alone.
+        for (int i = bytes.Length - 52; i < bytes.Length; i++) Assert.Equal(0, bytes[i]);   // ADR-055 (v39): + sections 70–73
+        int end = bytes.Length - 52;
         Assert.Equal(100, BitConverter.ToInt32(bytes, end - 4));
         Assert.Equal(1, BitConverter.ToInt32(bytes, end - 8));
         Assert.Equal(3, BitConverter.ToInt32(bytes, end - 4 - 3 * 8));                     // allocation count prefix
@@ -303,7 +304,7 @@ public class ConstructionSchemaV33Tests
         Snapshot.Save(new WorldState(5), ms);
         // ADR-043 (2026-10-22) CAUSE BLOCK: v35 is this build's schema and v34 joined the readable set, so the version above
         // the set is 36 (was 35). Re-rigged, not re-pinned.
-        foreach (int v in new[] { 31, 38, 0, 27 })   // ADR-049: v36 was this build's; ADR-051: v37 is, v36 readable — 38 is above the set
+        foreach (int v in new[] { 31, 40, 0, 27 })   // ADR-049: v36 was this build's; ADR-051: v37 was; ADR-054: v38 was; ADR-055: v39 is — 40 is above the set
         {
             byte[] bytes = ms.ToArray();
             BitConverter.GetBytes(v).CopyTo(bytes, 8);
@@ -397,7 +398,7 @@ public class ConstructionSchemaV33Tests
         Snapshot.Save(w, ms);
         WorldState again = Snapshot.Load(new MemoryStream(ms.ToArray()), FixtureTerrain());
         Assert.Equal(CanonicalSchema.Version, BitConverter.ToInt32(ms.ToArray(), 8));
-        Assert.Equal(37, CanonicalSchema.Version);   // v35 (ADR-043 CivicsPoints, 2026-10-22): the schema bump alone (v36: ADR-049 ResearchLevels; v37: ADR-051 ResearchReserves — each the schema bump alone)
+        Assert.Equal(39, CanonicalSchema.Version);   // v35 (ADR-043 CivicsPoints, 2026-10-22): the schema bump alone (v36: ADR-049 ResearchLevels; v37: ADR-051 ResearchReserves — each the schema bump alone) (v39: ADR-055 the four military tables — the schema bump alone) (v38: ADR-054 ResearchPopulations — the schema bump alone)
         Assert.Equal(V32FixtureHash, SchemaProjection.V32(again));
     }
 
@@ -439,7 +440,7 @@ public class ConstructionSchemaV33Tests
         Assert.True(self.Identical);
         Assert.Equal(v32Stream.Length, self.BytesWalkedA);
         // ADR-043 + ADR-044 (2026-10-22) CAUSE BLOCK: the layout gained the five v35 blocks — a v32 stream lacks eight now.
-        Assert.Equal(SnapshotDiff.Layout.Length - 10 + 1, self.Tables.Count);   // ADR-049 (v36): and section 67 — nine; ADR-051 (v37): and 68 — ten
+        Assert.Equal(SnapshotDiff.Layout.Length - 15 + 1, self.Tables.Count);   // ADR-049 (v36): and section 67 — nine; ADR-051 (v37): and 68 — ten; ADR-054 (v38): and 69 — eleven   // ADR-055 (v39): + the four military tables (sections 70–73)
 
         WorldState migrated = Snapshot.Load(new MemoryStream(file), FixtureTerrain());
         byte[] v34Stream = SchemaProjection.Serialize(migrated);
@@ -455,9 +456,9 @@ public class ConstructionSchemaV33Tests
         SnapshotDiff.Result v32v33 = SnapshotDiff.CompareStreams(v32Stream, 32, v33Stream, 33);
         Assert.Equal(v32Stream.Length, v32v33.BytesWalkedA);
         Assert.Equal(v33Stream.Length, v32v33.BytesWalkedB);
-        Assert.Equal(SnapshotDiff.Layout.Length - 8 + 1, v32v33.Tables.Count);   // the v33 walk, the longer of the two (eight blocks short of v37)
+        Assert.Equal(SnapshotDiff.Layout.Length - 13 + 1, v32v33.Tables.Count);   // the v33 walk, the longer of the two (nine blocks short of v38)
         Assert.False(v32v33.Identical);                                          // two different worlds (flat turn 40, cylinder turn 2)
         Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(31));
-        Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(38));   // 37 is this build's (ADR-051)
+        Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(40));   // 39 is this build's (ADR-055)
     }
 }

@@ -49,6 +49,16 @@ public enum ActionCommandKind
     Prospect = 14,
     /// <summary>ADR-046: the assay at <see cref="ActionCommand.Settlement"/> (order kind 15, Amount 1; UiSession.EmitProspect).</summary>
     Assay = 15,
+    /// <summary>ADR-055: recruit identity <see cref="ActionCommand.Project"/> at <see cref="ActionCommand.Settlement"/> (order kind
+    /// 16, UiSession.EmitRecruit).</summary>
+    Recruit = 16,
+    /// <summary>ADR-055: re-equip formation <see cref="ActionCommand.Settlement"/> (the formation id) to identity
+    /// <see cref="ActionCommand.Project"/> (order kind 17, UiSession.EmitReequip).</summary>
+    Reequip = 17,
+    /// <summary>ADR-055: cancel formation <see cref="ActionCommand.Settlement"/>'s re-equipment (kind 17, Amount 0).</summary>
+    CancelReequip = 18,
+    /// <summary>ADR-055: disband formation <see cref="ActionCommand.Settlement"/> (order kind 18, UiSession.EmitDisband).</summary>
+    Disband = 19,
 }
 
 public sealed record ActionCommand(
@@ -59,7 +69,8 @@ public sealed record ActionCommand(
     /// <summary>Whether the command would append an order (the rest only move the UI).</summary>
     public bool IsOrder => Kind is ActionCommandKind.ApplyLabour or ActionCommandKind.ClearResearch or ActionCommandKind.Enqueue
         or ActionCommandKind.DevelopRoads or ActionCommandKind.SetTax or ActionCommandKind.CancelConstruction
-        or ActionCommandKind.SetAllocation or ActionCommandKind.ClearCivicsResearch or ActionCommandKind.Explore or ActionCommandKind.Prospect or ActionCommandKind.Assay;
+        or ActionCommandKind.SetAllocation or ActionCommandKind.ClearCivicsResearch or ActionCommandKind.Explore or ActionCommandKind.Prospect or ActionCommandKind.Assay
+        or ActionCommandKind.Recruit or ActionCommandKind.Reequip or ActionCommandKind.CancelReequip or ActionCommandKind.Disband;
 }
 
 /// <summary>THE ONE DISPATCH of an order-bearing command, through the session's guarded emitters (each
@@ -83,6 +94,10 @@ public static class ActionDispatch
             ActionCommandKind.Explore => session.EmitExplore(command.Settlement),
             ActionCommandKind.Prospect => session.EmitProspect(command.Settlement),
             ActionCommandKind.Assay => session.EmitProspect(command.Settlement, ProspectMethod.Assay),
+            ActionCommandKind.Recruit => session.EmitRecruit(command.Settlement, command.Project),
+            ActionCommandKind.Reequip => session.EmitReequip(command.Settlement, command.Project),
+            ActionCommandKind.CancelReequip => session.EmitCancelReequip(command.Settlement),
+            ActionCommandKind.Disband => session.EmitDisband(command.Settlement),
             _ => false,
         };
     }
@@ -118,6 +133,9 @@ public enum ActionHitKind
     Prospect,
     /// <summary>ADR-046: the Actions menu's "Assay" (A = the settlement) — emits kind 15 with the assay method (Amount 1).</summary>
     Assay,
+    /// <summary>ADR-055: a military order button on the roster card (A = its index in <see cref="MilitaryBlock.Orders"/>, whose
+    /// entry carries the command kind and arguments; a disabled entry answers nothing).</summary>
+    MilitaryOrder,
 }
 
 public readonly record struct ActionHit(RectD Rect, ActionHitKind Kind, int A, int B);
@@ -328,6 +346,9 @@ public sealed partial class ActionSurfaceScreen
                 case ActionHitKind.Explore: return new ActionCommand(ActionCommandKind.Explore, h.A);
                 case ActionHitKind.Prospect: return new ActionCommand(ActionCommandKind.Prospect, h.A);
                 case ActionHitKind.Assay: return new ActionCommand(ActionCommandKind.Assay, h.A);
+                case ActionHitKind.MilitaryOrder:
+                    if (model.Military is not { } mil || h.A < 0 || h.A >= mil.Orders.Length || !mil.Orders[h.A].Enabled) return ActionCommand.None;
+                    return new ActionCommand(mil.Orders[h.A].Kind, mil.Orders[h.A].A, Project: mil.Orders[h.A].B);
                 case ActionHitKind.AllocApply:
                     if (model.Allocation is not { } al || _allocDraft < 0 || _allocDraft == al.BuildingsPercent) return ActionCommand.None;
                     return new ActionCommand(ActionCommandKind.SetAllocation, Percent: _allocDraft);
@@ -1352,6 +1373,16 @@ public sealed partial class ActionSurfaceScreen
         }
         if (mb.NextAgeName is { } next && !mb.Modernization.IsDefaultOrEmpty)
             y = Wrapped(d, m, "At the next Age (" + next + "): " + string.Join("; ", mb.Modernization), x, y + Sp(2), w, Second, t.Ink.TextSoft);
+        // ADR-055: the military orders — one button each (enabled exactly when the predicate admits it) and its text.
+        for (int i = 0; i < mb.Orders.Length; i++)
+        {
+            MilitaryOrderEntry o = mb.Orders[i];
+            RectD b = Button(d, m, o.Label, x + w, y, 945 + i, o.Enabled ? ControlStyle.Primary : ControlStyle.Disabled);
+            _hits.Add(new ActionHit(b, ActionHitKind.MilitaryOrder, i, 0));
+            double ny = Wrapped(d, m, o.Text, x + Sp(8), y + Math.Max(0, (b.H - L(Second)) / 2), Math.Max(Sp(40), b.X - x - Sp(14)), Second,
+                o.Enabled ? t.Ink.Text : t.Ink.TextSoft);
+            y = Math.Max(ny, y + b.H) + Sp(2);
+        }
         return Wrapped(d, m, mb.Note, x, y, w, Caption, t.Ink.TextSoft);
     }
 

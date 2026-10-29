@@ -88,7 +88,30 @@ public sealed record SimConfig(
     // M6 Track EX (D-062, ADR-044): the minimal fog of war (known extent, sight, settlement memory) and the Explore order.
     // OPTIONAL and in the defaulted tail: absent (or enabled false) PolityKnowledge.Of answers all-known exactly as before,
     // DiscoverySystem writes nothing and the Explore order is refused. The canonical sim.json carries it, ON.
-    [property: JsonPropertyName("fog")] FogConfig? Fog = null);
+    [property: JsonPropertyName("fog")] FogConfig? Fog = null,
+    // ADR-055 (M7 recruitment slice; unit charter §6.5–§6.6, D-065 R1, Q7): formation personnel, food upkeep, the
+    // RecruitFormation / ReequipFormation / DisbandFormation orders and the AI's legal-only recruitment. OPTIONAL and in the
+    // defaulted tail: absent (or enabled false) the founding warband stays the ADR-031 token, MilitarySystem writes nothing
+    // and every military order is refused — the pre-ADR-055 world byte for byte through the v37 projection (the attribution
+    // control TestConfigs.PreMilitary). The canonical sim.json carries it, ON.
+    [property: JsonPropertyName("military")] MilitaryConfig? Military = null);
+
+/// <summary>
+/// ADR-055 — THE MILITARY SECTION. <c>Enabled</c>: THE SWITCH (false or absent: tokens only — the attribution control).
+/// <c>UpkeepGrainPerPersonYear</c>: the grain one formation member eats per sim-year (a rate × dtYears; DERIVED = 1.0, the
+/// D-015 person-year-equivalent convention every food entry of needs.json is denominated in — a soldier eats what an adult
+/// eats, and leaves the buckets Consumption feeds). <c>SupportYears</c>: the §6.5 item 6 support test — a recruitment or
+/// re-equipment is refused unless the purse's free grain covers every formation of the owner, the new one included, for this
+/// many years of upkeep (TUNE). <c>ReequipExperienceTransfer</c>: the share of experience a role change (another family,
+/// §6.6 class a) keeps (TUNE, the charter's band 0.25–0.5). <c>AiRecruitment</c>: the AI's legal-only recruitment policy
+/// (AiMilitaryPolicy); false or absent: the AI recruits nothing (the attribution switch).
+/// </summary>
+public sealed record MilitaryConfig(
+    [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
+    [property: JsonPropertyName("upkeepGrainPerPersonYear"), JsonRequired] double UpkeepGrainPerPersonYear,
+    [property: JsonPropertyName("supportYears"), JsonRequired] double SupportYears,
+    [property: JsonPropertyName("reequipExperienceTransfer"), JsonRequired] double ReequipExperienceTransfer,
+    [property: JsonPropertyName("aiRecruitment")] bool AiRecruitment = false);
 
 /// <summary>
 /// M6 Track EX (D-062; ADR-044) — CONCEALED DEPOSITS AND PROSPECTING. <c>Enabled</c>: THE SWITCH (false or absent: nothing
@@ -1070,7 +1093,7 @@ public static class SimConfigLoader
     /// (validated against its research, goods and class registries).</summary>
     public static SimConfig WithProgression(SimConfig cfg, Stream agesJson, Stream unitFamiliesJson)
     {
-        Ages.UnitFamilyContent families = Ages.UnitFamilyContentLoader.Load(unitFamiliesJson, cfg.Research);
+        Ages.UnitFamilyContent families = Ages.UnitFamilyContentLoader.Load(unitFamiliesJson, cfg.Research, cfg.Goods);
         Ages.AgeContent ages = Ages.AgeContentLoader.Load(agesJson, cfg.Research, cfg.Goods, cfg.Registries, families);
         return cfg with { Ages = ages, UnitFamilies = families };
     }
@@ -1248,6 +1271,7 @@ public static class SimConfigLoader
                 "(incremental false) has no partial capacity to carry, got incremental false.");
         if (cfg.Discovery is { } discovery) ValidateDiscovery(discovery);
         if (cfg.Fog is { } fog) ValidateFog(fog);
+        if (cfg.Military is { } military) ValidateMilitary(military);
         if (cfg.Colonization is { } colonization
             && !(colonization.OrderPartyFraction > 0.0 && colonization.OrderPartyFraction < 1.0))
             throw new SimConfigException(
@@ -1472,6 +1496,13 @@ public static class SimConfigLoader
             throw new SimConfigException($"{name} must be a finite value >= 0, got {Inv(value)}.");
     }
 
+    /// <summary>ADR-056: parses a goods.json knowledge expression against the research content, or refuses the load.</summary>
+    private static void ParseKnowledge(Research.ResearchContent research, string gate, string where)
+    {
+        try { _ = Research.ResearchContentLoader.ParseRequirement(research, gate, where); }
+        catch (Research.ResearchContentException e) { throw new SimConfigException(e.Message, e); }
+    }
+
     /// <summary>
     /// ADR-033 D3: every construction project's research entity (goods.json projects[].entity) exists in
     /// research.json and is something a construction queue can build — a building, an institution or
@@ -1493,6 +1524,12 @@ public static class SimConfigLoader
                 throw new SimConfigException($"goods.json recipes: '{r.Name}' names entity '{r.Entity}' of kind {research.Entities[e].Kind} — " +
                                              "a recipe's knowledge entity is a recipe.");
         }
+        // ADR-056: every goods.json knowledge expression (recipes and goods) parses against research.json — existing node
+        // ids only, no NOT (the ADR-033 D4 rules). At run time an unparseable gate reads never-met; here it is refused.
+        foreach (RecipeEntry r in goods.Recipes)
+            if (r.Knowledge is { } gate) ParseKnowledge(research, gate, $"goods.json recipes: '{r.Name}'.knowledge");
+        foreach (GoodEntry g in goods.Goods)
+            if (g.Knowledge is { } gate) ParseKnowledge(research, gate, $"goods.json goods: '{g.Name}'.knowledge");
         if (goods.Projects is null) return;
         foreach (ConstructionProjectEntry p in goods.Projects)
         {
@@ -1618,6 +1655,17 @@ public static class SimConfigLoader
         }
     }
 
+    /// <summary>ADR-055: the military section's ranges.</summary>
+    private static void ValidateMilitary(MilitaryConfig m)
+    {
+        if (!double.IsFinite(m.UpkeepGrainPerPersonYear) || m.UpkeepGrainPerPersonYear < 0.0)
+            throw new SimConfigException("military.upkeepGrainPerPersonYear must be a finite rate >= 0 grain per person-year.");
+        if (!double.IsFinite(m.SupportYears) || m.SupportYears < 0.0)
+            throw new SimConfigException("military.supportYears must be a finite number of years >= 0.");
+        if (!(m.ReequipExperienceTransfer >= 0.0 && m.ReequipExperienceTransfer <= 1.0))
+            throw new SimConfigException("military.reequipExperienceTransfer must be in [0, 1] (experience is never increased).");
+    }
+
     /// <summary>M6 Track EX (ADR-044): the fog section's ranges.</summary>
     private static void ValidateFog(FogConfig f)
     {
@@ -1639,6 +1687,9 @@ public static class SimConfigLoader
         if (cfg.Discovery is not { } d || cfg.Goods is not { } goods) return;
         foreach (string name in d.ConcealableGoods)
         {
+            // ADR-056 §1: a good of a DISABLED economy packet is absent from the roster by design (the switch-off twin
+            // loads the same sim.json); it conceals nothing, exactly as DepositConcealment.ConcealableMask reads it.
+            if (Array.IndexOf(goods.DisabledGoodNames, name) >= 0) continue;
             int id = goods.IdOf(name);
             if (id < 0 || goods.ById(id).DepositChannel is null)
                 throw new SimConfigException($"discovery.concealableGoods names '{name}', which is not a goods.json deposit good (one with a depositChannel).");

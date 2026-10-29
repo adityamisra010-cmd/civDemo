@@ -42,10 +42,13 @@ public class CivicsPointsAttributionTests
     private static void AssertTrackCpIsTheWholeMove(
         Func<SimConfig, WorldState> run, string v34, string v35, bool stageGateMoves = false)
     {
-        WorldState live = run(TestConfigs.Sim());
+        // ADR-055 (v39, the R4 rule) CAUSE BLOCK: the "live" arm is the military switch-off twin (TestConfigs.PreMilitary — the
+        // founding warband's personnel and upkeep are newer than Track CP), and v35 is its v38 pin (MilitaryAttributionTests.V38*,
+        // the raw pin before v39) reached through SchemaProjection.V37.
+        WorldState live = run(TestConfigs.PreMilitary(TestConfigs.Sim()));
         Assert.True(live.CivicsPoints.Count > 0, "the live world accrues Civics Points (an account row)");
         Assert.Null(ResearchQuery.CivicsPointsInvariantViolation(live.CivicsPoints));
-        Assert.Equal(v35, WorldHash.ComputeHex(live));                         // (1) the re-pinned value (the whole M6 slice on)
+        Assert.Equal(v35, SchemaProjection.V38(live));                         // (1) the re-pinned value (the whole M6 slice on)
 
         // M6 merge (2026-10-22/23): Track EX (the discovery layer, sections 63–66) and Track TREE (the research-content tranche,
         // ADR-045) are the slice's other parts, so the CP layers are attributed on the EX-OFF, TRANCHE-OFF world
@@ -68,19 +71,19 @@ public class CivicsPointsAttributionTests
 
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForCivicsPointsAlone() =>
-        AssertTrackCpIsTheWholeMove(cfg => SnapshotTests.RunFoundedGolden(cfg), V34FoundedGolden, SnapshotTests.FoundedGoldenHash);
+        AssertTrackCpIsTheWholeMove(cfg => SnapshotTests.RunFoundedGolden(cfg), V34FoundedGolden, Sim.Tests.Military.MilitaryAttributionTests.V38FoundedGolden);
 
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForCivicsPointsAlone() =>
-        AssertTrackCpIsTheWholeMove(cfg => DrivenGoldenTests.RunDriven(300, cfg).World, V34DrivenGolden, DrivenGoldenTests.Golden);
+        AssertTrackCpIsTheWholeMove(cfg => DrivenGoldenTests.RunDriven(300, cfg).World, V34DrivenGolden, Sim.Tests.Military.MilitaryAttributionTests.V38DrivenGolden);
 
     [Fact]
     public void FirstReignTurn40_MovedForCivicsPointsAlone() =>
-        AssertTrackCpIsTheWholeMove(cfg => FirstReignTests.Replay(40, out _, cfg), V34FirstReignGolden, FirstReignTests.PostR1Golden);
+        AssertTrackCpIsTheWholeMove(cfg => FirstReignTests.Replay(40, out _, cfg), V34FirstReignGolden, Sim.Tests.Military.MilitaryAttributionTests.V38FirstReignGolden);
 
     [Fact]
     public void AiWorldSeed42Turn300_MovedForCivicsPointsAlone() =>
-        AssertTrackCpIsTheWholeMove(RunAiWorld, V34AiTurn300, AiFoundingAttributionTests.S1cTurn300);
+        AssertTrackCpIsTheWholeMove(RunAiWorld, V34AiTurn300, Sim.Tests.Military.MilitaryAttributionTests.V38AiTurn300);
 
     [Fact]
     public void ToyGoldenSeed42Turn200_MovedForTheV35LayoutAlone()
@@ -88,8 +91,8 @@ public class CivicsPointsAttributionTests
         WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200);
         Assert.Equal(0, world.CivicsPoints.Count);
         Assert.Equal(V34ToyGolden, SchemaProjection.V34(world));               // the v34 value, byte for byte
-        Assert.Equal(SnapshotTests.ToyGoldenHash, WorldHash.ComputeHex(world));
-        Assert.NotEqual(V34ToyGolden, SnapshotTests.ToyGoldenHash);
+        Assert.Equal(Sim.Tests.Military.MilitaryAttributionTests.V38ToyGolden, SchemaProjection.V38(world));   // ADR-055: the v38 pin (the raw pin before v39)
+        Assert.NotEqual(V34ToyGolden, Sim.Tests.Military.MilitaryAttributionTests.V38ToyGolden);
         Assert.Equal(new byte[4 * SchemaProjection.V35TableCount], SchemaProjection.Serialize(world)[^(4 * SchemaProjection.V35TableCount)..]);   // the movement IS the empty v35 count prefixes (sections 62–66)
     }
 

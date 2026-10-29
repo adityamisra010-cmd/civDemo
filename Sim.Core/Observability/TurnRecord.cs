@@ -59,13 +59,14 @@ public sealed record StockRecord(
     bool Reconciles,                  // Opening + ΣSources − ΣSinks == Closing, EXACTLY
     long Discrepancy);                // Closing − (Opening + ΣSources − ΣSinks); 0 when it reconciles
 
-/// <summary>Population: carriers are Buckets AND Notables (both hold
+/// <summary>Population: carriers are Buckets, Notables AND (ADR-055) FormationPersonnel (all hold
 /// ConservedQuantityIds.Population). Nothing in the shipped pipeline calls
 /// NotableLifecycle, so the Notables term is summed and stays zero — stated so a
 /// reader does not mistake the zero for an omission.</summary>
 public sealed record PopulationAccount(
     long Opening, long Births, long NaturalDeaths, long Starvation, long Closing,
-    bool Reconciles, long Discrepancy);
+    bool Reconciles, long Discrepancy,
+    long InFormations = 0);   // ADR-055: of Closing, the people serving in formations (FormationPersonnel) — in no settlement's record
 
 /// <summary>Grain: Opening + Endowment + Harvest − Eaten − Spoilage − Overflow == Closing.
 /// Endowment (InitialEndowment, reason 2) is sourced only at world founding,
@@ -73,7 +74,9 @@ public sealed record PopulationAccount(
 /// carried so a founding-time source can never make a step "not reconcile".</summary>
 public sealed record GrainAccount(
     long Opening, long Endowment, long Harvest, long Eaten, long Spoilage, long Overflow, long Closing,
-    bool Reconciles, long Discrepancy, long Expedition = 0);   // M6 EX: − Expedition (the discovery provisions: Explore, reason 18, and Prospect, reason 17)
+    bool Reconciles, long Discrepancy, long Expedition = 0,   // M6 EX: − Expedition (the discovery provisions: Explore, reason 18, and Prospect, reason 17)
+    long Military = 0,   // ADR-055: − Military (Recruitment 19 + FormationUpkeep 20 + Reequipment 21 sinks)
+    long Fodder = 0);                                          // ADR-056 (EC-2): − Fodder (a herd's grain, reason 23)
 
 /// <summary>Dwellings (ConservedQuantityIds.Dwellings, carried by HousingRow):
 /// Opening + Built − Decayed == Closing.</summary>
@@ -87,7 +90,9 @@ public sealed record GoodAccount(
     int Good, string Name,
     long Opening, long Produced, long InputsConsumed, long ToolWear, long Eaten,
     long HousingMaterials, long ConstructionMaterials, long Closing,
-    bool Reconciles, long Discrepancy, long Discovery = 0);   // M6 EX: − Discovery (Prospecting 17 + Expedition 18 sinks)
+    bool Reconciles, long Discrepancy, long Discovery = 0,   // M6 EX: − Discovery (Prospecting 17 + Expedition 18 sinks)
+    long Military = 0,   // ADR-055: − Military (Recruitment 19 + FormationUpkeep 20 + Reequipment 21 sinks)
+    long HerdLosses = 0);                                     // ADR-056 (EC-2): − HerdLosses (a herd's net decline, reason 22)
 
 /// <summary>
 /// The step's cross-settlement movements. <see cref="UnattributedGrainTransfer"/>
@@ -129,7 +134,7 @@ public sealed record CausesRecord(
     long PopulationDelta,             // Closing − Opening
     long PopulationExplained,         // Births − NaturalDeaths − Starvation
     long GrainDelta,                  // Closing − Opening
-    long GrainExplained);             // Endowment + Harvest − Eaten − Spoilage − Overflow − Expedition (M6 EX)
+    long GrainExplained);             // Endowment + Harvest − Eaten − Spoilage − Overflow − Expedition (M6 EX) − Fodder (ADR-056)
 
 /// <summary>
 /// One order APPLIED this step, with its position in the order log. The delivery
@@ -156,6 +161,7 @@ public readonly record struct OrderApplied(
         OrderKind.FoundSettlement => TargetId,
         OrderKind.Explore => TargetId,
         OrderKind.Prospect => TargetId,
+        OrderKind.RecruitFormation => TargetId,
         _ => -1,
     };
 

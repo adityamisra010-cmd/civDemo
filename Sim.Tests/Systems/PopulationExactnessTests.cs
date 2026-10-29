@@ -690,7 +690,9 @@ public class PopulationExactnessTests
         // endowmentJitter = 0 — the identity the jitter must reduce to. The
         // JITTERED path's own contract (bounds + Ledger-exactness on the
         // jittered totals) is pinned right after.
-        SimConfig cfg = TestConfigs.Sim() with
+        // ADR-055: the endowment is pinned BEFORE the founding warband draws its people (TestConfigs.PreMilitary: the warband a
+        // token) — the draw itself is FormationPersonnelTests' (20 adults moved by Ledger.Transfer, the totals unchanged).
+        SimConfig cfg = TestConfigs.PreMilitary(TestConfigs.Sim()) with
         {
             Founding = TestConfigs.Sim().Founding with { EndowmentJitter = 0.0 },
         };
@@ -754,7 +756,7 @@ public class PopulationExactnessTests
         // config base — (1 ± j)² — and the Ledger flow rows still equal the
         // realized stocks EXACTLY (conservation holds on the jittered world;
         // no unaudited person or unit enters at founding).
-        SimConfig cfg = TestConfigs.Sim();
+        SimConfig cfg = TestConfigs.PreMilitary(TestConfigs.Sim());   // ADR-055: the endowment before the warband's draw (as above)
         double j = cfg.Founding.EndowmentJitter;
         Assert.True(j > 0.0, "canonical endowmentJitter is expected to be > 0 at M3");
         WorldState world = WorldFounding.Found(TestConfigs.DevWorldgen(), cfg, seed: 42);

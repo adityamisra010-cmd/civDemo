@@ -45,7 +45,7 @@ public class TelemetryTests
                 Assert.DoesNotContain("ObservationLog", File.ReadAllText(file));
             }
         }
-        Assert.Equal(37, CanonicalSchema.Version);   // nothing here is serialized into the schema (v26 is ADR-029's research tables) (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone)
+        Assert.Equal(39, CanonicalSchema.Version);   // nothing here is serialized into the schema (v26 is ADR-029's research tables) (v31: ADR-033 D6/D10 Institutions + ConstructionLabor) (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone) (v39: ADR-055 the four military tables — the schema bump alone) (v38: ADR-054 ResearchPopulations — the schema bump alone)
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class TelemetryTests
         Assert.Equal(Observer.StoreLossesIdentity, s.GetProperty("food").GetProperty("storeLossesIdentity").GetString());
         Assert.StartsWith("GAP:", s.GetProperty("housing").GetProperty("builtDecayedSplit").GetString());
         Assert.StartsWith("GAP:", s.GetProperty("migration").GetProperty("pairwiseFlows").GetString());
-        Assert.Equal(14, s.GetProperty("economy").GetProperty("goods").GetArrayLength());
+        Assert.Equal(TestConfigs.Sim().Goods!.Goods.Length, s.GetProperty("economy").GetProperty("goods").GetArrayLength());   // ADR-056: every roster good
         Assert.True(s.GetProperty("social").GetProperty("grievance").GetArrayLength() >= 2);
         Assert.True(s.GetProperty("social").GetProperty("needSatisfaction").GetArrayLength() >= 3);
         Assert.Equal(12, s.GetProperty("migration").GetProperty("allAttractiveness").GetArrayLength());
@@ -173,7 +173,7 @@ public class TelemetryTests
         // (3) NOT IN THE SCHEMA. The canonical version is T4.21-1's v25 and this
         // packet did not touch it; neither the section types nor their JSON keys
         // appear in the serializer or in WorldState.
-        Assert.Equal(37, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone)
+        Assert.Equal(39, CanonicalSchema.Version);   // v31: ADR-033 D6/D10 Institutions + ConstructionLabor (v32: H2 TaxGrievances) (v33: D-054 ConstructionProgress + ResourceAllocations) (v34: D-055 ConstructionHolds — 2026-10-16 cause: the schema bump alone, the version number this file pins) (v35: ADR-043 CivicsPoints + ADR-044 discovery tables 63–66 — 2026-10-22 cause: the schema bump alone) (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone) (v39: ADR-055 the four military tables — the schema bump alone) (v38: ADR-054 ResearchPopulations — the schema bump alone)
         string root = RepoPaths.Root();
         foreach (string file in new[] { "Sim.Core/Kernel/CanonicalSchema.cs", "Sim.Core/State/WorldState.cs" })
         {

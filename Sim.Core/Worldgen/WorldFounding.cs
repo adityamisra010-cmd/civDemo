@@ -263,8 +263,9 @@ public static class WorldFounding
     /// ADR-031 (D-047 Parts 2-3; research.json baseline.basic_military): every founded
     /// Empire that holds a capital fields unit-families.json founding.formationsPerPolity
     /// formations of the founding identity (the warband), stationed at its capital, in roster
-    /// order, with ids 1, 2, … A FORMATION TOKEN ONLY: it draws no people from the buckets
-    /// and no goods from any stock, so founding conserves exactly what it did before (law 1).
+    /// order, with ids 1, 2, … It draws no goods. ADR-055: with sim.json military on it draws its
+    /// PEOPLE from the capital's adult buckets (<see cref="DrawFoundingPersonnel"/>, a conserving Ledger.Transfer);
+    /// with it off it is the ADR-031 token, exactly as before (law 1 either way).
     /// Position is the capital's site in terrain pixel coordinates (the continuous x/y frame of
     /// D-047 ruling 17). Without unit-family content nothing is founded, so worlds built from a
     /// config without unit-families.json are unchanged.
@@ -272,6 +273,7 @@ public static class WorldFounding
     private static void FoundInitialFormations(WorldState world, SimConfig simCfg)
     {
         if (simCfg.UnitFamilies is not { } families) return;
+        var ledger = new Ledger(world.LedgerFlows);
         Systems.Ages.UnitIdentity identity = families.FoundingIdentity;
         int size = world.Terrain?.Size ?? 1;
         int nextId = 1;
@@ -288,11 +290,33 @@ public static class WorldFounding
                 // position is ONE place in [0, size) on a cylinder — never a second copy one circumference on.
                 // (A site cell's column is already in range: this is the normalisation guard every future
                 // writer of X — M7 movement — must also pass through.)
+                int unitId = nextId++;
                 world.MilitaryUnits.Add(new MilitaryUnitRow(
-                    nextId++, polity, identity.FamilyKey, identity.Key, capital,
+                    unitId, polity, identity.FamilyKey, identity.Key, capital,
                     Pathing.MapTopology.WrapCoord(site % size, size), site / size, Experience: 0.0, Army: 0));
+                DrawFoundingPersonnel(world, simCfg, ledger, unitId, capital, identity);
             }
         }
+    }
+
+    /// <summary>
+    /// ADR-055 (unit charter §6.5 "Nothing spawns", Q7 resolved: D-037 A1 leaves no lawful alternative) — THE FOUNDING
+    /// WARBAND'S PEOPLE. With sim.json military on, the founding identity's recruitment.personnel adults leave the capital's
+    /// adult buckets by Ledger.Transfer (RecruitmentQuery.AllocateDraw: proportional, exact integers) into the formation's
+    /// FormationPersonnelRow — people are conserved from turn zero, no flow is recorded. With the switch off (the attribution
+    /// control), or a schema-1 unit-family file (no recruitment data), or fewer adults than that at the capital, nothing is
+    /// drawn and the warband stays the ADR-031 token, byte for byte.
+    /// </summary>
+    private static void DrawFoundingPersonnel(
+        WorldState world, SimConfig simCfg, Ledger ledger, int unitId, SettlementId capital, Systems.Ages.UnitIdentity identity)
+    {
+        if (simCfg.Military is not { Enabled: true } || identity.Recruitment is not { } recruitment) return;
+        long[]? draw = RecruitmentQuery.AllocateDraw(world.Buckets, capital, recruitment.Personnel);
+        if (draw is null) return;
+        int row = world.FormationPersonnel.Add(new FormationPersonnelRow(unitId, Conserved.Zero, 0.0, 0));
+        for (int b = 0; b < draw.Length; b++)
+            if (draw[b] > 0)
+                ledger.Transfer(ref world.Buckets.Ref(b).Count, ref world.FormationPersonnel.Ref(row).Count, draw[b], OverdrawPolicy.Throw);
     }
 
     /// <summary>

@@ -1719,7 +1719,7 @@ public sealed partial class GameUi
         if (card.NextAge.Length > 0) lines.Add((card.NextAge, _frameTheme.Ink.TextSoft, CardLine.Plain));
         // P11: what the row records (in the explanation size), then what this build does not simulate — each its own
         // line, each saying so — then the locked movement line, then the card's own statement of the limitation.
-        foreach (string recorded in new[] { card.PositionAddsToStation ? card.Position : "", card.Experience, card.Army })
+        foreach (string recorded in new[] { card.PositionAddsToStation ? card.Position : "", card.Personnel, card.Reequip, card.Experience, card.Army })
             if (recorded.Length > 0) lines.Add((recorded, _frameTheme.Ink.Text, CardLine.Detail));
         foreach (string gap in card.NotSimulated) lines.Add((gap, _frameTheme.Ink.TextSoft, CardLine.Detail));
         if (card.Movement.Length > 0) lines.Add((card.Movement, _frameTheme.Ink.TextSoft, CardLine.Locked));

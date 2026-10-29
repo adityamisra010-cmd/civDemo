@@ -46,6 +46,12 @@ public sealed class SnapshotFormatException(string message) : Exception(message)
 /// section 67 and its ResearchReserves table is left empty (no reserve existed under v36). A loaded ResearchReserves table
 /// that no rule could have written (unsorted or duplicate Polity keys, a negative reserve) is refused
 /// (ResearchQuery.ReservesInvariantViolation).
+///
+/// ADR-054 (schema v38): THE v38 FILE LAYOUT is the v37 one with the canonical stream running to section 69
+/// (ResearchPopulations). <see cref="Load"/> accepts the readable SET {32, …, 38}: a v37 file's stream ends after section 68
+/// and its ResearchPopulations table is left empty (a holder's first step after the load reads its current population). A
+/// loaded ResearchPopulations table that no rule could have written (unsorted or duplicate Polity keys, a negative
+/// population) is refused (ResearchQuery.PopulationsInvariantViolation).
 /// </summary>
 public static class Snapshot
 {
@@ -99,7 +105,7 @@ public static class Snapshot
         if (!CanonicalSchema.IsReadable(version))
             throw new SnapshotFormatException(
                 $"save is schema version {version}, this build reads only versions " +
-                $"32, 33, 34, 35 and 36 (migrated) and {CanonicalSchema.Version}; saves break " +
+                $"32, 33, 34, 35, 36 and 37 (migrated) and {CanonicalSchema.Version}; saves break " +
                 "between milestones by design (D-008) — no migration exists for this version. Re-derive the world " +
                 "via seed + order-log replay.");
 
@@ -214,5 +220,11 @@ public static class Snapshot
         // ADR-051 (v37): the research reserves as only ResearchSystem writes them.
         if (ResearchQuery.ReservesInvariantViolation(world.ResearchReserves) is { } reserves)
             throw new SnapshotFormatException("save is corrupt: " + reserves + " (schema v37 invariant).");
+        // ADR-054 (v38): the stored turn-start populations as only ResearchSystem writes them.
+        if (ResearchQuery.PopulationsInvariantViolation(world.ResearchPopulations) is { } populations)
+            throw new SnapshotFormatException("save is corrupt: " + populations + " (schema v38 invariant).");
+        // ADR-055 (v39): personnel, pending re-equipments, their escrow and the log as only MilitarySystem writes them.
+        if (RecruitmentQuery.InvariantViolation(world) is { } military)
+            throw new SnapshotFormatException("save is corrupt: " + military + " (schema v39 invariant).");
     }
 }

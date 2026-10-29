@@ -99,9 +99,37 @@ public static class OrderValidation
                 continue;   // no settlement target to resolve
             }
 
+            // ADR-055: a ReequipFormation / DisbandFormation names a FORMATION. One that exists in the validated world must be
+            // the issuer's (ownership never changes in this build: there is no capture); an id above every formation the
+            // world holds may be recruited later and is DEFERRED to delivery (MilitarySystem refuses an order naming no formation
+            // of the issuer's — the colony rule, for formations).
+            if (record.Kind is OrderKind.ReequipFormation or OrderKind.DisbandFormation)
+            {
+                if (futureActor) continue;
+                int maxUnit = 0;
+                bool exists = false, owned = false;
+                for (int u = 0; u < world.MilitaryUnits.Count; u++)
+                {
+                    MilitaryUnitRow unit = world.MilitaryUnits[u];
+                    if (unit.Id > maxUnit) maxUnit = unit.Id;
+                    if (unit.Id == record.TargetId) { exists = true; owned = unit.Owner.Value == record.ActorId; }
+                }
+                if (record.Turn >= 1 && record.TargetId > maxUnit) continue;
+                if (!exists)
+                    throw new OrderValidationException(
+                        $"order[{i}] (turn {record.Turn}): {record.Kind} targets formation {record.TargetId}, which does not " +
+                        $"exist in this world ({world.MilitaryUnits.Count} formation(s)).");
+                if (!owned)
+                    throw new OrderValidationException(
+                        $"order[{i}] (turn {record.Turn}): {record.Kind} targets formation {record.TargetId}, which polity " +
+                        $"{record.ActorId} does not own. An Empire commands only its own formations.");
+                continue;
+            }
+
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
                 or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction
-                or OrderKind.CancelConstructionEntry or OrderKind.Explore or OrderKind.Prospect)) continue;
+                or OrderKind.CancelConstructionEntry or OrderKind.Explore or OrderKind.Prospect
+                or OrderKind.RecruitFormation)) continue;
 
             // ADR-036: a Found Settlement site must be ON THE MAP. The load-time pass sees no terrain, so it
             // could only insist on a whole, non-negative cell (OrderLog.ValidateRecord); the map size is
@@ -141,7 +169,7 @@ public static class OrderValidation
             // M6 EX (ADR-044): Explore and Prospect act from / on a settlement the issuer rules — the same rule, re-applied on
             // PREV at delivery by DiscoveryQuery.CheckExplore / CheckProspect.
             if (record.Kind is (OrderKind.EnqueueConstruction or OrderKind.CancelConstruction or OrderKind.CancelConstructionEntry
-                    or OrderKind.Explore or OrderKind.Prospect)
+                    or OrderKind.Explore or OrderKind.Prospect or OrderKind.RecruitFormation)
                 && world.Controls.Count > 0
                 && !EmpireQuery.ControlsSettlement(world, record.Actor, new SettlementId(record.TargetId)))
             {
@@ -230,7 +258,8 @@ public static class OrderValidation
 
             if (record.Kind is not (OrderKind.LaborAllocation or OrderKind.SectorAllocation
                 or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement or OrderKind.CancelConstruction
-                or OrderKind.CancelConstructionEntry or OrderKind.Explore or OrderKind.Prospect)) continue;
+                or OrderKind.CancelConstructionEntry or OrderKind.Explore or OrderKind.Prospect
+                or OrderKind.RecruitFormation)) continue;
             // D-056: an identity cancel whose identity names TWO OR MORE of the settlement's entries, none at its recorded
             // slot, cannot name one entry (ConstructionQuery.CancelTargetIndex). Live play never issues one (an entry keeps
             // its slot for its life, so the recorded slot holds the entry), so it means the replayed world is not the

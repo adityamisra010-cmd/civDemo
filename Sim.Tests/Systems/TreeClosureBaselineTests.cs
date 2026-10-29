@@ -20,14 +20,24 @@ namespace Sim.Tests.Systems;
 /// </summary>
 public sealed class TreeClosureBaselineTests
 {
-    // tree-closure.md §2 records these values and the commit they were taken at.
-    internal const string StructureSha256 = "918502844849f4378fe8a0e06c118bd1c59c476e61400909e852ed12e4b9d1d0";
+    // tree-closure.md §2 records these values and the commit they were taken at; §5 records each approved change.
+    // TC-2 (RC-1, Director-authorized 2026-10-27, docs/m7-plan/aviation-progression.md §10): `aircraft` content Age A9 -> A8,
+    // its only STRUCTURE field that moved (TEXT unchanged; its cost is outside both hashes). TC-1 STRUCTURE was
+    // 918502844849f4378fe8a0e06c118bd1c59c476e61400909e852ed12e4b9d1d0 (AircraftAgeA9_ReproducesTheTc1Structure proves the
+    // attribution: restoring that one field restores the TC-1 hash).
+    internal const string Tc1StructureSha256 = "918502844849f4378fe8a0e06c118bd1c59c476e61400909e852ed12e4b9d1d0";
+    internal const string StructureSha256 = "489dc44e73c6de6b2a1419abf609371e6a0110a84d6e24e6c66af17f446fa702";
     internal const string TextSha256 = "de341a8eb3a7770ef36ee2585342a2baadf9c131b602b93f8af19a054d1e6c39";
 
     internal static (string Structure, string Text) Hashes()
     {
         JsonObject doc;
         using (var s = Sim.Data.DataFiles.OpenResearch()) doc = JsonNode.Parse(s)!.AsObject();
+        return Hashes(doc);
+    }
+
+    internal static (string Structure, string Text) Hashes(JsonObject doc)
+    {
         var structure = new JsonArray();
         var text = new JsonArray();
         foreach (string tree in new[] { "technologies", "civics" })
@@ -47,6 +57,21 @@ public sealed class TreeClosureBaselineTests
     public void ShippedTrees_MatchTheClosureBaseline_Structure()
     {
         Assert.Equal(StructureSha256, Hashes().Structure);
+    }
+
+    /// <summary>TC-2 attribution: the shipped content with `aircraft` back at content Age A9 (its cost and cost rationale are
+    /// outside the hash) reproduces the TC-1 STRUCTURE hash, so RC-1's Age retag is the ONE structural change.</summary>
+    [Fact]
+    public void AircraftAgeA9_ReproducesTheTc1Structure_RC1IsTheOnlyStructuralChange()
+    {
+        JsonObject doc;
+        using (var s = Sim.Data.DataFiles.OpenResearch()) doc = JsonNode.Parse(s)!.AsObject();
+        JsonNode aircraft = doc["technologies"]!.AsArray().Single(n => (string?)n!["id"] == "aircraft")!;
+        Assert.Equal("A8", (string?)aircraft["age"]);
+        Assert.Equal("internal_combustion AND glider", (string?)aircraft["prereq"]);   // RC-1 changes no prerequisite
+        aircraft["age"] = "A9";
+        Assert.Equal(Tc1StructureSha256, Hashes(doc).Structure);
+        Assert.Equal(TextSha256, Hashes(doc).Text);
     }
 
     [Fact]

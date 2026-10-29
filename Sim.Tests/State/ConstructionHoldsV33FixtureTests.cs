@@ -186,7 +186,7 @@ public class ConstructionHoldsV33FixtureTests
     [Fact]
     public void MigrationCD_TheLoadedAndTheResavedWorlds_ContinueAsThePreReservationsWorldAtK_UnderTheShippedExecutor()
     {
-        SimConfig shipped = TestConfigs.PreDiscovery(TestConfigs.Sim()), off = TestConfigs.PreReservations(shipped);
+        SimConfig shipped = TestConfigs.PreDiscovery(TestConfigs.PrePerTurnCivics(TestConfigs.Sim())), off = TestConfigs.PreReservations(shipped);
         OrderLog orders = SessionOrders();
         WorldState atK = Executor(off, orders).Run(Found(off), (int)K);
 
@@ -205,8 +205,9 @@ public class ConstructionHoldsV33FixtureTests
         // M6 merge (2026-10-22): and the four EMPTY M6 EX discovery tables (sections 63–66) — SIX empty prefixes in all.
         // ADR-049 (v36): and the EMPTY ResearchLevels (section 67) — SEVEN empty prefixes in all.
         // ADR-051 (v37): and the EMPTY ResearchReserves (section 68) — EIGHT empty prefixes in all.
-        Assert.Equal(v33.Length + 32, v34.Length);
-        byte[] expected = [.. v33[..8], .. BitConverter.GetBytes(CanonicalSchema.Version), .. v33[12..^4], .. new byte[32], .. v33[^4..]];
+        // ADR-054 (v38): and the EMPTY ResearchPopulations (section 69) — NINE empty prefixes in all.
+        Assert.Equal(v33.Length + 52, v34.Length);   // ADR-055 (v39): + sections 70–73
+        byte[] expected = [.. v33[..8], .. BitConverter.GetBytes(CanonicalSchema.Version), .. v33[12..^4], .. new byte[52], .. v33[^4..]];
         Assert.Equal(expected, v34);
         WorldState reloaded = Snapshot.Load(new MemoryStream(v34), Terrain());
 
@@ -263,7 +264,7 @@ public class ConstructionHoldsV33FixtureTests
     [Fact]
     public void PremiseII_TheShippedReplay_FirstDiffersFromTheTraceAtW_WhereS2DrawsLessStoneByExactlySzerosSetAside()
     {
-        SimConfig shipped = TestConfigs.PreDiscovery(TestConfigs.Sim());   // M6 EX: the D-055 shipped world (discovery off, R4)
+        SimConfig shipped = TestConfigs.PreDiscovery(TestConfigs.PrePerTurnCivics(TestConfigs.Sim()));   // M6 EX; ADR-054 off by the R4 rule: the D-055 shipped world (discovery off, R4)
         string[] trace = TraceHashes();
         TurnExecutor exec = Executor(shipped, SessionOrders());
         WorldState w = Found(shipped), before = w;
@@ -305,7 +306,7 @@ public class ConstructionHoldsV33FixtureTests
     [Fact]
     public void MigrationE_TheShippedContinuation_DiffersFromTheAllPreReservationsContinuationAtW_BecauseAHoldBinds()
     {
-        SimConfig shipped = TestConfigs.PreDiscovery(TestConfigs.Sim()), off = TestConfigs.PreReservations(shipped);
+        SimConfig shipped = TestConfigs.PreDiscovery(TestConfigs.PrePerTurnCivics(TestConfigs.Sim())), off = TestConfigs.PreReservations(shipped);
         OrderLog orders = SessionOrders();
         string[] trace = TraceHashes();
         WorldState loaded = LoadFixture();
@@ -346,8 +347,12 @@ public class ConstructionHoldsV33FixtureTests
             string manifest = Path.Combine(dir, "session-" + Stamp + ".json");
             (int exit, string stdout, string stderr) = CliProcess.Run(Limit, "inspect", "--manifest", manifest);
             Assert.Equal((0, ""), (exit, stderr));
-            Assert.Contains(SessionSchemaNotice.CheckedInRecordedForm(33, W - 1, W, LastTurn), CliProcess.Lines(stdout));
-            Assert.Contains("the replay matches the recorded game through turn 2 and differs from turn 3 on", stdout, StringComparison.Ordinal);
+            // ADR-054 (2026-10-27) RE-PIN: the CLI replays under the SHIPPED content, where the AI's Research Points read the
+            // average population from each holder's second step (tuning.populationAverageTurns 2) — so the replay now first
+            // differs at turn 2, one turn before W (premise (ii)'s reservation turn, which premise (ii) still pins on the
+            // ADR-054-off world). The check is still made in the v33 form; only the first divergent turn moved.
+            Assert.Contains(SessionSchemaNotice.CheckedInRecordedForm(33, W - 2, W - 1, LastTurn), CliProcess.Lines(stdout));
+            Assert.Contains("the replay matches the recorded game through turn 1 and differs from turn 2 on", stdout, StringComparison.Ordinal);
             Assert.DoesNotContain(SessionSchemaNotice.NotChecked(33), stdout, StringComparison.Ordinal);
             Assert.DoesNotContain("reproduction VERIFIED", stdout, StringComparison.Ordinal);
             Assert.DoesNotContain("REPRODUCTION FAILED", stdout, StringComparison.Ordinal);
@@ -371,7 +376,8 @@ public class ConstructionHoldsV33FixtureTests
         WorldState loaded = SaveFiles.Load(fixture, 256, out string? note);
         // ADR-043 + ADR-044 (2026-10-22) RE-PIN of the note: v35 adds CivicsPoints and the four discovery tables empty.
         Assert.Equal("note: " + fixture + ": migrated from save schema v33: ConstructionHolds, CivicsPoints and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; "
-            + "the hash printed is the v37 hash (SchemaProjection.V33 gives the v33 build's). ResearchLevels (no repeatable research level existed before v36) was added empty too. ResearchReserves (no research reserve existed before v37) was added empty too.", note);   // ADR-049 (v36), ADR-051 (v37) re-pins
+            + "the hash printed is the v39 hash (SchemaProjection.V33 gives the v33 build's). ResearchLevels (no repeatable research level existed before v36) was added empty too. ResearchReserves (no research reserve existed before v37) was added empty too. ResearchPopulations (no stored turn-start population existed before v38; each holder's first step reads its current population) was added empty too."
+            + " The four military tables (FormationPersonnel, Reequips, ReequipEscrow, ReequipLog) were added empty (every saved formation stays a token that holds no one) and any formation of a rehomed identity was moved to its new family (ADR-055).", note);   // ADR-049 (v36), ADR-051 (v37), ADR-054 (v38), ADR-055 (v39) re-pins
         Assert.Equal(V33SaveHash, SchemaProjection.V33(loaded));       // what the note claims
 
         (int exit, string stdout, string stderr) = CliProcess.Run(Limit, "hash", fixture, "--size", "256");

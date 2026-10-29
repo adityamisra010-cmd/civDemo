@@ -136,3 +136,17 @@ was already stale before this change (its turn-1 population 5 245 against 5 118 
 **Schedule price.** One schema bump (shared with Track EX at v35), five golden re-pins with attribution, and a slower
 civics pace in the late eras (CP per sim-year shrinks per turn as turns shorten) — to be watched in calibration; the
 coefficient is a tunable, not a ruling.
+
+## Dated note — 2026-10-27 (D-065 R6; ADR-054; appended, the text above is unchanged)
+
+**§3 is superseded in part.** The Director's binding rule D-065 R6 ("Every Research Point (RP) and Civics Point (CP)
+calculation is per turn and based on average population") resolves CR-026. With `tuning.civicsPoints.perTurn` (shipped on),
+CP are generated **per turn** by the Research Point base function — `cpMilli(step) = floor(1000 × pace × c' × P^β)`, with
+c' the holder's `research.civicsPointsCoefficient` benefit applied to `rpPerTurn.coefficient` and β = `rpPerTurn.exponent` —
+**never multiplied by `dtYears`**, and P is the holder's AVERAGE population (`ResearchQuery.KnowledgePopulation`,
+`tuning.populationAverageTurns` 2). The block's own `coefficientPerYear` and `exponent` are removed (the loader refuses them
+beside `perTurn`). The statement in the header that CP "is per sim-year — law 3 as written, so no second exception is
+created" no longer describes the shipped model: ADR-054 creates that second scoped per-turn exception, as ADR-030 §3
+requires. Everything else in this record (two lanes, the bank, the order of operations, the accounting identity, schema
+v35) stands. The §3 per-sim-year form remains reachable as the attribution twin (`perTurn` absent;
+`TestConfigs.PrePerTurnCivics`).

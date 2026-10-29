@@ -213,7 +213,7 @@ public class UnitTokenDetailTests : IDisposable
                 Assert.True(seen.Add((f.Key, i + 1)), "two identities share an emblem: " + ident.Id);
             }
         }
-        Assert.Equal(66, seen.Count);
+        Assert.Equal(80, seen.Count);   // ADR-055 (D-065 R8–R14): 66 identities of the twelve ADR-031 families + 14 in families 14, 17–23
         Assert.Equal(UnitEmblem.MaxPips, longest);   // the longest line draws every pip
         // An identity the content does not know: the row's family mark alone, no pip guessed.
         Assert.Equal(new UnitEmblem(4242, 3, 0), UnitEmblem.Of(Families, 3, 4242));
@@ -456,7 +456,8 @@ public class UnitTokenDetailTests : IDisposable
     [Fact]
     public void TheCard_NamesEachGap_AndTheLockedMovementLine_AndShowsNoNumberTheRowDoesNotHold()
     {
-        Assert.Equal(["Strength", "Health", "Attack", "Action points", "Headcount"],
+        // ADR-055: the headcount is simulated now (FormationPersonnelRow) — the card's Personnel line, not a gap.
+        Assert.Equal(["Strength", "Health", "Attack", "Action points"],
             UnitCardModel.NotSimulatedLines.Select(l => l[..l.IndexOf(':')]).ToList());
         foreach (string line in UnitCardModel.NotSimulatedLines)
         {

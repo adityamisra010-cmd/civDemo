@@ -1,0 +1,1 @@
+{"_doc": "RC-1 option measurement only: aircraft magnitude 8.5 -> 6.0 (content cost 33,450 -> 5,910; A8 effective about 4,585 RP, the pre-RC-1 A9 effective 4,559)", "nodes": {"aircraft": {"magnitudeStep": -2.5}}}

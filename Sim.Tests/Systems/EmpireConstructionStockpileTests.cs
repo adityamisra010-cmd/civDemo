@@ -1213,7 +1213,9 @@ public class EmpireConstructionStockpileTests
         // agree up to the first construction order the purse changes, and the worlds agree exactly until that order's
         // delivery (an order stamped T applies in the step T → T+1). MEASURED on this tree: the AI's first granary is
         // ordered at turn 4 from its Empire's purse (turn 9 from its own stock with the purse off), worlds first differ at 5.
-        (_, OrderLog onLog, List<string> onHashes) = RunAi(Cfg);
+        // ADR-055/056 (the R4 rule): the purse twin is an older layer's twin — it strips the newer military layer and switches the
+        // economy packets off — so the ON arm is the military-off, pre-packet world too; the per-layer proof compares like with like.
+        (_, OrderLog onLog, List<string> onHashes) = RunAi(TestConfigs.PreEconomyTrack(TestConfigs.PreMilitary(Cfg)));
         (_, OrderLog offLog, List<string> offHashes) = RunAi(Off);
         long firstDifferent = -1;
         for (int t = 0; t < 300 && firstDifferent < 0; t++) if (onHashes[t] != offHashes[t]) firstDifferent = t + 1;

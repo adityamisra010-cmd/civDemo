@@ -21,17 +21,17 @@
     0.068141
    ],
    "civics": [
-    0.645983,
-    0.989987,
-    0.715481,
-    0.9204,
-    1.504901,
-    1.729102,
-    1.479361,
-    0.044319,
-    0.016684
+    0.740297,
+    1.979974,
+    1.50251,
+    3.073267,
+    5.35,
+    7.0,
+    10.218397,
+    0.633717,
+    0.33368
    ],
-   "_doc": "Calibrated trial scale (pass 8) with civics Age 7 = 1.479361, selected by the bounded procedure with aiCivicsGateGoals on and every other scale frozen (pacing-recalibration.md \u00a77)."
+   "_doc": "Calibrated trial scale (pass 8) with civics Age 7 = 1.479361, selected by the bounded procedure with aiCivicsGateGoals on and every other scale frozen (pacing-recalibration.md \u00a77). ADR-054 (2026-10-27, D-065 R6): CP became per turn from the RP base, so the CIVICS scale was recalibrated on this candidate (technology unchanged; research-cost-pass/per-turn-cp-recalibration.md, pass c5a): every civics Age multiplied by the CP-weighted 10/dtYears of its completion window in the pre-ADR-054 candidate runs, then the pincer-only procedure with A1 held; A2-A3 kept at pass 1 (at lower A2-A3 scales seed 2 misses technology Age 9 within 1,630 turns)."
   }
  }
 }

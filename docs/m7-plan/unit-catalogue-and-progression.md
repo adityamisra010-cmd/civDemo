@@ -31,6 +31,17 @@ The facts in §3 were re-read from that tree. Previous reports were treated as s
 
 Its culture policy is carried into §1 and §6.10 unchanged in substance.
 
+**Revision of 2026-10-27 (charter review; still PROPOSED).** This revision records the Director's rulings in
+[D-065](../d065-m7-charter-rulings.md):
+- **R1** manual re-equipment is a permitted, distinct order (§6.6). ADR-031 is unchanged.
+- **R2** EC-1 to EC-3 are separate M7 packets (§13, §14).
+- **R3** aviation is staged across Ages (§7.18–§7.22, §12.5; detail in
+  [aviation-progression.md](aviation-progression.md)).
+- **R4** the energy owner stays open (Q8).
+
+Open questions are dispositioned in §16.4 under the [gap-resolution standard](gap-resolution-standard.md). Verified base
+for this revision: head `0bf7626`.
+
 ---
 
 ## Contents
@@ -70,10 +81,15 @@ Its culture policy is carried into §1 and §6.10 unchanged in substance.
 3. **ADR-031 is preserved exactly.**
    - Modernization is automatic and free at Age transition, follows the mainline only, and has a no-successor rule.
    - D-047 ruling 18 forbids Civ VI-style paid manual upgrades.
-   - This charter introduces **no paid upgrade of any kind**.
-   - What the earlier brief called "transformations" are defined in §6.6. Moving a formation into a *different role* is
-     a re-equipping (a new recruitment that consumes the new role's inputs and keeps people and experience). It needs
-     your ruling that it is not a disguised paid upgrade (§16, Q1).
+   - This charter introduces **no Civ VI-style paid upgrade**: no same-line conversion bought for a price. The
+     re-equip order below changes role or moves to a branch, as D-065 R1 permits.
+   - What the earlier brief called "transformations" are defined in §6.6.
+   - **Manual re-equipment is permitted (D-065 R1)** as a distinct order, specified in §6.6. It covers a change of
+     role (another family) or a change to a branch identity. It has explicit costs, conserved personnel, explicit
+     experience handling, and deterministic resolution and replay.
+   - It is not the Age-transition modernization, which stays automatic and free.
+   - A same-line "catch-up" to the current mainline identity is not covered by either ruling. It is not permitted
+     here and is raised as an open decision (§16.4, OD-2).
 4. **Formation-level battle stays.** D-011 is unchanged:
    - formations are atomic;
    - battles are WEGO command pulses;
@@ -90,11 +106,24 @@ Its culture policy is carried into §1 and §6.10 unchanged in substance.
    - Every identity or building whose realization needs one is marked **blocked by missing goods/system** until a
      separate, reviewed economic-content change adds the goods, deposits, recipes, transport, consumption and
      conservation tests (§14, EC packets).
+   - **EC-1 (metals), EC-2 (mounts) and EC-3 (gunpowder) are separate, individually reviewed packets inside M7**
+     (D-065 R2). They are never combined.
 7. **Declarations are not mechanics.**
    - Spies, unrest, cultural influence, nuclear weapons, power grids, cyber and space assets each get an owning
      milestone and the state they require (§13).
    - Writing them into data without that owner implements nothing, and this charter does not pretend otherwise.
-8. **No precise balance numbers.**
+8. **Controllable units only where there is a controllable lifecycle (D-065 R8–R14).**
+   - An entity is a unit family only when its instances are independently controllable formations, with a map
+     position, independent command, persistence and their own state.
+   - Military relevance alone is not enough.
+   - Five categories are ratified:
+     - **A** formations;
+     - **B** abstract military support;
+     - **C** mobile and garrisoned air defence;
+     - **D** one-shot actions;
+     - **E** implicit economic and transport systems.
+   - §4.5 classifies every concept in this charter.
+9. **No precise balance numbers.**
    - Stats are normalized provisional bands (§4.3).
    - Each family names the matchup and calibration evidence that must exist before a number is chosen (§15.6).
 
@@ -105,7 +134,8 @@ Its culture policy is carried into §1 and §6.10 unchanged in substance.
 | Source | What it fixes | How this charter complies |
 |---|---|---|
 | D-011 (battle layer) | Formation-level command; WEGO pulses; AutoResolver/TacticalResolver contract and parity; casualties debited from real cohorts through the Ledger; era scaling "as data + a few new verbs" | All military units are formations inside Army MobileAgents, or MobileAgents. There are no per-soldier stats. Verbs stay era-constant (move, attack, hold/entrench, screen, flank, commit reserve, withdraw; later bombard and air strike). |
-| ADR-031 + D-047 ruling 18 | Automatic, free modernization at Age transition; mainline only; branches never targeted; `noSuccessor` preserve/generic; unknown identities preserved; preview equals applied; no paid manual upgrades | Unchanged. §6.6 adds only what ruling 18 permits: separate recruitment of branch identities, and re-equipping as a new recruitment (Q1). |
+| ADR-031 + D-047 ruling 18 | Automatic, free modernization at Age transition; mainline only; branches never targeted; `noSuccessor` preserve/generic; unknown identities preserved; preview equals applied; no paid manual upgrades | Unchanged. §6.6 adds separate recruitment of branch identities and the re-equip order D-065 R1 permits, scoped to role and branch changes. The same-line case stays excluded (OD-2). |
+| D-065 R1–R4 (2026-10-27) | Re-equipment permitted as a distinct order; EC-1 to EC-3 separate M7 packets; staged aviation; energy owner open | §6.6; §13–§14; §7.18–§7.22 and §12.5; Q8 left open (§16.4) |
 | D-043 B1–B8 | Universal MobileAgent (stable id, owner, position, movement capability, Action Capacity, action state, domain/type, capabilities, lifecycle). Action Capacity is universal; the action set is agent-specific. Special people are temporary MobileAgents. Armies have internal composition. Cultural groups are MobileAgents. Off-road movement with terrain/infrastructure cost. War Pulse. | §6.1 entity types; §6.3 Action Capacity (D-052 §4's "Action Points"); §9 special people; §9.6 cultural groups. |
 | D-047 rulings 15–17 | Special people have finite charges, owner = recruiter, lifecycle ends. Recruitment model A (institutions generate points; civilizations compete). Zones of Control are geometric over continuous x/y, not hex. | §9; §6.4. |
 | D-037 A1, E3, E4 | **Nothing spawns:** every actor originates from simulated population. Insurgency runs on population support. **Espionage accelerates; it does not create** (ratio of existing grievance; M10+, with hooks earlier). | §10 derives partisans, rioters and rebel formations from population segments. Espionage amplifies existing grievance only. |
@@ -203,10 +233,78 @@ number.
 ### 4.4 Identifier conventions
 
 - Existing family keys 1–12 and identity keys (101…1202) are **never reused or renumbered**.
-- Proposed new military families carry a **proposed, unallocated** key (13–22). Proposed identities show
+- Proposed new military families carry a **proposed, unallocated** key (14, 17–23).
+  - Keys 13, 15 and 16 were proposed for combat engineers, military supply and field medical. They are
+    **withdrawn** (D-065 R10: category B) and stay unallocated.
+  - Proposed identities show
   `(new)` and no key. Keys are allocated only when the reviewed content change lands, append-only.
 - Reconnaissance (22) is a `MilitaryUnits` family with composition `mobile_agent`, like the naval families. The other
   agents in §8–§10 are not `MilitaryUnits` families; they get their own tables and id spaces.
+
+### 4.5 The architecture rule and categories A–E (D-065 R8–R14, ratified)
+
+**Rule.** A thing belongs in the controllable unit tree only when its instances have a meaningful lifecycle as
+independently controllable formations. **Military relevance alone is not sufficient.** Ask:
+1. Does it have a meaningful map position?
+2. Can the player select, command or move it independently?
+3. Does it persist as a formation across turns?
+4. Does it need its own identity, location, visibility and movement state?
+
+**Applying the rule:**
+- Mostly "no" means it is not a unit. A justified exception needs an approved design that documents it.
+- Classify by simulation semantics, never by name or visuals.
+- An abstract quantity can still be a first-class, deterministic, persisted value that panels, battle screens or
+  city screens display.
+
+**Every new entity proposal states:**
+- its category (A–E);
+- lifecycle and ownership;
+- controllable or abstract;
+- authoritative state and persistence (row type, schema and populated-table test);
+- the consuming system;
+- whether it needs map location or visibility;
+- how the player sees it;
+- its interactions with other categories, and the rule that prevents counting it twice.
+
+`docs/m7-plan/gap-resolution-standard.md` §2 carries this as a checklist item.
+
+| Category | What it is | Lives in | Consumed by |
+|---|---|---|---|
+| **A Controllable formation** | an independently commanded military formation with map state and a lifecycle | `unit-families.json` families; `MilitaryUnits` rows (formation) or MobileAgent rows | movement, orders, battle, fog, persistence (as each lands) |
+| **B Abstract military support** | a persisted quantity or allocation (engineers, supply, field medical; command support where no individual is needed) | an allocation row per army or war, designed with the battle system | battle and war resolution; rules defined when implemented, no invented buffs (R10) |
+| **C Air defence, two states** | a mobile formation (A) **or** a garrisoned/installed capability at an eligible city, settlement or installation | the formation row, or a garrison/installation row; never both (R11) | battle and local defence; city and battle panels |
+| **D One-shot action** | an order with eligibility, cost and resolution, and at most a pending action state | the order log plus the owning system's pending-action row | the owning system (Discovery for Prospect) |
+| **E Implicit economic and transport system** | flows and capacities: trade, commercial shipping, convoys, transport capacity | the existing trade, transport and production tables | Trade, Transport, Production |
+
+**The resulting classification** (status is separate from category):
+
+| Concept | Category | Status |
+|---|---|---|
+| Infantry, spear, light infantry, ranged infantry, cavalry (light, heavy/armour, ranged), siege | A | existing (data); recruitment M7 candidate |
+| Naval combat (9); naval raiders (17); submarines (18); carriers (19) | A | existing (9) / proposed |
+| Fixed-wing aviation (11), strike aviation (23), rotary-wing (20), unmanned aircraft (21) | A | existing (11) / proposed; realization blocked (EC goods) |
+| Mobile reconnaissance (22: scouts, survey patrols) | A: scouts move, observe and shadow under orders (D-039 B) | proposed |
+| Air defence (14) | **C**: mobile = A; garrisoned/installed = city-level capability | proposed (mobile); garrisoning **approved requirement**, work item GA (§14) |
+| **Snipers** | A **or** an attached specialist capability: **open (Q10)** | **approved design requirement**, not implemented, form unresolved |
+| Combat engineers (was 13) | **B** | approved design; the allocation model is designed with the battle system |
+| Military supply (was 15) | **B** | approved design; with the supply/upkeep row (SU) |
+| Field medical: surgeons, hospital corps, ambulance corps (was 16) | **B** | approved design |
+| Generals and admirals | individuals owned by the special-people system (§9); their command effect is a battle input. **Not** a formation family. | M7 candidate (command subset) |
+| Prospecting (§8.4) | **D** (R12) | existing (Prospect order, kind 15); no prospector unit |
+| Exploration (the Explore order, kind 14) | D today; replaced by the A scouts when M7.5 lands | existing |
+| Founding a settlement (order 9); settler transit | D today. Transit as an A agent is **not approved** (deferred). | existing / deferred |
+| Builders and field work crews (§8.3) | D (construction orders) and E (settlement labour) | existing / design-only |
+| Traders, commercial ships, trade convoys, shipping capacity, trade volume and saturation (§8.5) | **E** (R13) | existing (flows); controllable convoys deferred, needing an approved design |
+| Naval transport (10) | **under reconsideration (R13)**: default E (commercial) and B (military lift). An A family only if controllable transport is approved. | existing **data** unchanged; ADR-031 amendment and migration pending |
+| Diplomats, spies, special people, cultural groups (§8.6–§10) | MobileAgents under D-043 B1/B3/B6 (independent movement intended); their milestones are unchanged | M8+ |
+| Riots, revolts; partisans | population state; insurgent formations (A) only when organized | existing / M8+ |
+
+**No double counting.** One capability is counted in exactly one category at a time:
+- a garrisoned air-defence unit is not also a mobile formation;
+- an engineer allocation is not also a formation;
+- commercial shipping capacity is not military lift.
+
+A transition between states is an explicit, logged, conserved state change. It never creates a second asset.
 
 ---
 
@@ -226,16 +324,17 @@ Every class the brief names appears below exactly once, with its home and status
 | | Heavy cavalry → **armour** | `heavy_cavalry` (6): chariots … tanks | army_formation | blocked (mounts; tanks: steel, fuel) |
 | | Ranged cavalry | `ranged_cavalry` (7) | army_formation | blocked (mounts) |
 | | Siege / artillery | `siege` (8) | army_formation | M7 candidate (A4–A5); blocked A6 (iron fittings), A7+ (gunpowder) |
-| | **Engineers** (combat) | `combat_engineers` (proposed 13) | army_formation | M7 candidate (A4–A7); blocked A8+ (explosives) |
+| | **Engineers** (combat) | **category B** allocation (key 13 withdrawn, D-065 R10) | allocation (not a formation) | approved design |
 | | **Air defence** | `air_defence` (proposed 14) | army_formation | blocked |
-| | **Logistics** (military supply) | `military_supply` (proposed 15) | army_formation | M7 candidate after the draught ruling (Q-C); blocked A8+ |
-| | **Medical** (field) | `field_medical` (proposed 16) | army_formation | M7 candidate (A5–A7); blocked A8+ |
+| | **Logistics** (military supply) | **category B** allocation (key 15 withdrawn, D-065 R10) | allocation (not a formation) | approved design (with row SU, after Q-C) |
+| | **Medical** (field) | **category B** allocation (key 16 withdrawn, D-065 R10) | allocation (not a formation) | approved design |
 | B. Naval | Naval surface combat | `naval_combat` (9) | mobile_agent | M7 candidate (A4–A6); blocked A7+ (cast-iron cannon) |
-| | Naval transport | `naval_transport` (10) | mobile_agent | M7 candidate (A1–A7); blocked A8+ |
+| | Naval transport | `naval_transport` (10): **under reconsideration (D-065 R13)**, default category E / B lift | mobile_agent (data) | existing data unchanged; no new identities |
 | | **Naval raiders** | `naval_raiders` (proposed 17) | mobile_agent | M7 candidate (A5–A6); blocked A7+ |
 | | Submarines | `submarines` (proposed 18; rehomes identity 907) | mobile_agent | blocked |
 | | Carriers | `carriers` (proposed 19; rehomes identity 908) | mobile_agent | blocked |
-| C. Air, missile, space | Fixed-wing aviation | `air` (11): military aircraft, stealth branch | mobile_agent | blocked |
+| C. Air, missile, space | Fixed-wing aviation | `air` (11): military aircraft (A8, Flight I), advanced piston aircraft (A9), jet and stealth branches | mobile_agent | blocked |
+| | **Bombers** (strike aviation) | `strike_aviation` (proposed 23): light bombers (A8) → strategic bombers (A9); stealth bomber branch | mobile_agent | blocked |
 | | Rotary-wing | `rotary_wing` (proposed 20; rehomes 1102) | mobile_agent | blocked |
 | | Unmanned aircraft | `unmanned_aircraft` (proposed 21; rehomes 1104) | mobile_agent | blocked |
 | | Strategic missiles | `strategic_missile` (12) | mobile_agent | blocked (realization M11+; governance M10) |
@@ -244,8 +343,8 @@ Every class the brief names appears below exactly once, with its home and status
 | D. Exploration and territory | Scouts | `reconnaissance` (proposed 22; rehomes identity 101) | mobile_agent | existing (Explore order) → M7 candidate |
 | | Settlers | colonization party (agent table) | mobile_agent | existing (order 9) → M7 candidate (transit) |
 | | Builders | settlement labour (existing); field work crews | — / mobile_agent | existing (labour) / design-only (crews) |
-| | Prospectors | prospecting party (agent table) | mobile_agent | existing (order 15) → M7 candidate |
-| E. Economic and support | Traders | trade flows (existing); trade convoys | mobile_agent | existing (flows) / M8+ (convoys) |
+| | Prospectors | **category D**: the Prospect action (no unit, D-065 R12) | order | existing (order 15) |
+| E. Economic and support | Traders | **category E**: trade flows; controllable convoys only with an approved design (D-065 R13) | flows | existing (flows) / deferred (convoys) |
 | | Diplomats | envoys and embassies | mobile_agent | M8+ (M8) |
 | | Researchers | scientists (special people) and field expeditions | special_person | M8+ (row SP) |
 | | Medical / logistics agents | army-attached families 15–16; civil relief teams | army_formation / mobile_agent | M7 candidate / M8+ (M9) |
@@ -272,8 +371,8 @@ Every class the brief names appears below exactly once, with its home and status
 | 7 | `ranged_cavalry` | Keep unchanged | Line end after A7 → `light_cavalry` |
 | 8 | `siege` | Keep. Review rams at A4 against `siege_ram` (A4): consistent. | Its consumer is fortification (D-039 D1) |
 | 9 | `naval_combat` | **Keep for surface combat.** Rehome branch 907 `nuclear_submarines` → `submarines` (18) and branch 908 `aircraft_carriers` → `carriers` (19). | A submarine and a carrier are not same-role branches of a destroyer |
-| 10 | `naval_transport` | Keep unchanged | Logistics role, not combat |
-| 11 | `air` | **Keep for fixed-wing combat aviation.** `military_aircraft` (1101) mainline, `stealth_aircraft` (1103) branch. Rehome 1102 `helicopters` → `rotary_wing` (20) and 1104 `combat_drones` → `unmanned_aircraft` (21). | Rotary-wing and unmanned aircraft differ in basing, range, cost and risk |
+| 10 | `naval_transport` | Data kept unchanged. **Reconsidered under D-065 R13:** commercial shipping is category E, military lift category B, and a family exists only if controllable transport is approved. Reclassifying it needs an ADR-031 amendment and a migration. | Logistics role, not combat |
+| 11 | `air` | **Keep for fixed-wing reconnaissance and air superiority.** `military_aircraft` (1101) mainline, proposed retag A9 → A8 (Flight I). Advanced piston aircraft (new) are the A9 mainline. Jet fighters (new) and `stealth_aircraft` (1103) are A9 branches. Rehome 1102 `helicopters` → `rotary_wing` (20) and 1104 `combat_drones` → `unmanned_aircraft` (21). Bombers go to `strike_aviation` (23). | Rotary-wing and unmanned aircraft differ in basing, range, cost and risk. Bombers as branches of `air` would be converted into fighters at A9 (ADR-031 §3 rule 2). |
 | 12 | `strategic_missile` | Keep. `icbm_forces` (1202) stays a same-Age branch, recruited not upgraded. | Strategic delivery, not conventional combat |
 
 **No identity is duplicated:**
@@ -447,25 +546,39 @@ attributed golden move.
 | **Modernization** | The owner's Age transition (ADR-031) | **Free.** Creates and destroys no stock. Equipment is declarative. | existing |
 | **Branch recruitment** | An ordinary recruitment of a branch identity (longbowmen, stealth aircraft, ICBM forces) | Its own recruitment inputs | M7 candidate (branches blocked where their goods are) |
 | **Line end** | Age transition past `lineEndsAfterAge` | Free, per `noSuccessor` | existing |
-| **Re-equip (role change)** | An explicit order converting a formation to a different family, keeping its people and experience (for example spearmen → ranged infantry) | The target identity's recruitment **materials** only. People are not re-drawn. | **Not proposed until ruled (Q1).** Default: disband and recruit anew. |
+| **Re-equip** (D-065 R1) | An explicit order changing a formation's identity to another family's identity (a role change, for example spearmen → ranged infantry) or to a branch identity (for example military aircraft → jet fighters) | The target's recruitment **materials and labour**. People are kept; only a size difference is drawn or returned. | **M7 candidate** (mechanism; targets blocked where their goods are) |
+| **Same-line catch-up** to the current mainline identity within an Age | — | — | **Not permitted.** Neither D-065 R1 nor D-047 ruling 18 covers it explicitly (§16.4, OD-2). |
 | **Same-role, same-Age paid upgrade** | — | — | **Not proposed** (D-047 ruling 18) |
 
-**The tension behind Q1.**
-- Modernization consumes nothing, while recruitment of the same identity consumes goods. A polity therefore gets free
-  modernized formations, which is the ruled intent.
-- The charter keeps that.
-- The calibration consequence: standing armies modernize for free, so upkeep, not re-equipment, is the long-run
-  military cost.
+**Why re-equipment matters most in A9.** A9 is the last Age, so ADR-031 never fires inside it. Every progression within
+A9 is a branch recruitment or a re-equipment:
+- piston aircraft → jets → stealth;
+- early carriers → jet-capable carriers.
 
-**Requirements on the re-equip order, if ruled:**
-- source and target identities;
-- legality;
-- inputs;
-- location;
-- state preservation (owner, location, people, experience, army membership, supply);
-- atomicity and cancellation;
-- replay;
-- a turn-exact delivery pin.
+That is the use D-065 R1 enables (`aviation-progression.md` §3).
+
+**The re-equip order: specification (proposed for M7.3).**
+
+| Element | Rule |
+|---|---|
+| **Order** | `ReequipFormation(formation id, target identity key)`: a new order kind, appended to the order log like every player and AI order |
+| **Legality** | All of these must hold at delivery: (1) the issuer owns the formation; (2) the formation exists and is not in battle, siege, transit, embarkation or rout; (3) it stands at a legal recruitment location for the target (§6.5 item 3); (4) the target passes §6.5 items 1, 3, 4, 6 and 7 (knowledge, location, materials, support, rule support); (5) the transition class is permitted (next row); (6) source and target have the same composition type (`army_formation` ↔ `army_formation`; `mobile_agent` ↔ `mobile_agent`). A change of composition is a disband followed by a recruitment. |
+| **Transition classes** | Permitted: (a) a different family (a role change); (b) the same family to a branch identity whose predicate holds; (c) branch to branch in the same family. Refused: the same family to a mainline identity (OD-2). Refused: any target identical to the source. |
+| **Materials** | The target identity's full recruitment materials. They are reserved at acceptance (the D-055 reservation pattern) and consumed through `Ledger.Flow` at completion. There is no salvage credit for the old equipment in v1: salvage would be a recovery flow needing its own conservation tests, and it invites arbitrage. |
+| **Labour** | The target's recruitment labour, as person-years drawn through the location's production labour account. Duration = target recruitment time, a rate × dtYears (Law 3). The formation is non-operational while re-equipping: it cannot move, fight or sortie. If attacked, it defends at its source identity with a declared readiness penalty band. |
+| **Personnel** | The same people are kept: no adults move for the people already in the formation. If the target's strength differs, the extra adults are drawn from the settlement buckets by `Ledger.Transfer` (refused atomically if unavailable), or the surplus returns to them. Exact conservation (`long`). |
+| **Experience** | Kept in full for transition classes (b) and (c). For class (a), multiplied by a declared role-transfer fraction (a `TUNE` band, 0.25–0.5). Never increased. |
+| **Identity and state** | Id, owner, position, army membership and supply state are preserved bit for bit. Family and identity change at completion. A re-equip log row records source, target, turn and cause = order. It is kept separate from `UnitConversions`, so ADR-031's log keeps its meaning. |
+| **Interaction with ADR-031** | Until completion the formation is its source identity. If an Age transition happens first, ADR-031 plans and applies on the source (logged as usual), then the re-equipment completes onto the target. Turn order: Age transition, then re-equip completion in the military phase. The target is re-checked at completion (knowledge is never lost; materials are reserved), so completion cannot fail after acceptance except by the formation's destruction. Destruction releases the reservation. |
+| **Cancellation** | By order before completion. The reservation is released and the labour already spent is not refunded (it was a flow). |
+| **Ordering and ties** | Orders are applied in log order; the first valid re-equip for a formation in a turn wins (the AdvanceAge precedent). Competing reservations resolve in log order. |
+| **Delivery and replay** | A turn-exact delivery pin (issued turn → accepted turn → completion turn), separate from replay equality (the T1.9 precedent) |
+| **AI** | Uses the same predicate. Re-equips only when the target is legal and its policy key, `(score, formation id)` with a tie-dense test, prefers it over recruiting anew. |
+| **UI** | The preview equals the applied result: target, materials, labour, duration, experience after, and the refusal reason by predicate item. |
+| **Tests** | People and goods conservation; refusal of each excluded class; Age-transition-during-re-equip pin; cancellation releases the reservation; a populated-table round trip for pending re-equip rows; a switch-off twin. |
+
+**The calibration consequence (unchanged).** Modernization stays free, so upkeep, not re-equipment, is the long-run
+military cost. Re-equipment is a deliberate expense for a role or branch the free modernization never reaches.
 
 ### 6.7 Command, supply and upkeep
 
@@ -615,6 +728,15 @@ A blocked identity must say which good or system it waits for, in the "not simul
 | Modernization / branch | Mainline converts 404 → 406. A 405 unit converts to the next mainline identity, 406 (ADR-031 rule 2). |
 | Educational text | Explain the trade-off: training time (longbow) against mechanical draw (crossbow) |
 
+**Snipers (D-065 R14): an approved design requirement, not implemented.**
+- Snipers are a specialist precision-targeting role, distinct from `sharpshooters` (407), the A8 ranged-infantry
+  identity. They are not merged unless a historical or gameplay analysis justifies it.
+- **Open (Q10):** an independent controllable formation (category A, with its own identity and gate), or a specialist
+  capability attached to another formation (category B).
+- **Depends on:** the battle model's targeting and precision terms (D-011 §3, M7.4), formation composition (D-043 B5)
+  and the recruitment model (§6.5).
+- No statistics are set here.
+
 ### 7.5 Light cavalry — `light_cavalry` (key 5)
 
 | Field | Content |
@@ -691,7 +813,12 @@ A blocked identity must say which good or system it waits for, in the "not simul
 | Modernization / branch | Mainline |
 | Educational text | Must say that most sieges ended by starvation or negotiation, not by breach (D-039 D5) |
 
-### 7.9 Combat engineers — `combat_engineers` (proposed key 13, new family)
+### 7.9 Combat engineers — `combat_engineers` (key 13 withdrawn: category B abstract support, D-065 R10)
+
+> **Reclassified (D-065 R10): category B, abstract military support, not a unit family.** Key 13 is withdrawn.
+> The table below is kept as design input for the allocation model: inputs, eras and counters. Its movement, Action
+> Capacity, ZOC and formation fields no longer apply. The battle system will define how combat engineers quantities are
+> recruited or allocated in a war pulse or battle, and what they change, explicitly and without invented buffs.
 
 | Field | Content |
 |---|---|
@@ -716,8 +843,8 @@ A blocked identity must say which good or system it waits for, in the "not simul
 |---|---|
 | Status | **Blocked** (steel, explosives, electronics; also no air threat exists until the `air` family is realizable) |
 | Role | Deny the air over a formation or site |
-| Progression | A1–A8 — (a counter cannot precede its threat: `air` begins at A9) · A9 anti-aircraft artillery (new) [branch: surface-to-air missile batteries (new)] |
-| Prerequisites | AA artillery: `rifled_artillery` AND `aircraft`. SAM: `guided_missile` AND `radar`. Strategic missile defence: `missile_defence` (building-charter strategic site). |
+| Progression | A1–A7 — (a counter cannot precede its threat) · A8 anti-aircraft artillery (new; Flight I, needs RC-1) · A9 = (radar direction is a capability once `radar` is known, not a new identity) [branch: surface-to-air missile batteries (new; Flight III)] |
+| Prerequisites | AA artillery: `rifled_artillery` AND `aircraft` (both A8 once RC-1 retags `aircraft`). SAM: `guided_missile` AND `radar`. Strategic missile defence: `missile_defence` (building-charter strategic site). |
 | Actions / movement | Motor (×2.5–4.0, blocked by fuel) or emplaced. AC 1. Intercept (a reaction against strike missions on the battle map, D-011 §5). |
 | Stats | Integrity M · Anti-air VH · Ground L · Range long (air) |
 | Inputs | Steel, explosives, electronics (**missing**) |
@@ -729,7 +856,24 @@ A blocked identity must say which good or system it waits for, in the "not simul
 | Modernization / branch | SAM is a recruited branch, not an upgrade |
 | Educational text | Detection precedes interception (radar) |
 
-### 7.11 Military supply — `military_supply` (proposed key 15, new family)
+**Two states (D-065 R11, category C).**
+- **Mobile:** this family's formations, which move and redeploy.
+- **Garrisoned / installed:** air defence assigned to an eligible city, settlement or installation, as a city-level
+  capability.
+
+Garrisoning is an **approved future feature** (work item GA, §14).
+- The transition is an explicit order, in both directions.
+- A garrisoned unit does not move.
+- The capability is counted once, in exactly one state.
+
+Until GA lands, only the mobile state is designed.
+
+### 7.11 Military supply — `military_supply` (key 15 withdrawn: category B abstract support, D-065 R10)
+
+> **Reclassified (D-065 R10): category B, abstract military support, not a unit family.** Key 15 is withdrawn.
+> The table below is kept as design input for the allocation model: inputs, eras and counters. Its movement, Action
+> Capacity, ZOC and formation fields no longer apply. The battle system will define how military supply quantities are
+> recruited or allocated in a war pulse or battle, and what they change, explicitly and without invented buffs.
 
 | Field | Content |
 |---|---|
@@ -748,7 +892,12 @@ A blocked identity must say which good or system it waits for, in the "not simul
 | Modernization / branch | Mainline |
 | Educational text | "Armies march on their stomachs": show the capacity limit |
 
-### 7.12 Field medical — `field_medical` (proposed key 16, new family)
+### 7.12 Field medical — `field_medical` (key 16 withdrawn: category B abstract support, D-065 R10)
+
+> **Reclassified (D-065 R10): category B, abstract military support, not a unit family.** Key 16 is withdrawn.
+> The table below is kept as design input for the allocation model: inputs, eras and counters. Its movement, Action
+> Capacity, ZOC and formation fields no longer apply. The battle system will define how field medical support quantities are
+> recruited or allocated in a war pulse or battle, and what they change, explicitly and without invented buffs.
 
 | Field | Content |
 |---|---|
@@ -787,6 +936,14 @@ A blocked identity must say which good or system it waits for, in the "not simul
 | Educational text | Galley vs sail: oar endurance against wind independence |
 
 ### 7.14 Naval transport — `naval_transport` (key 10)
+
+> **Under reconsideration (D-065 R13).** The existing data is unchanged.
+> - Commercial and transport shipping is **category E** (implicit capacity).
+> - Military amphibious lift is a **category B** capability.
+> - A controllable transport family is kept only if an approved design gives transport vessels independent movement
+>   and control.
+>
+> No new identities. Any reclassification needs an ADR-031 amendment and a save migration.
 
 | Field | Content |
 |---|---|
@@ -848,9 +1005,9 @@ A blocked identity must say which good or system it waits for, in the "not simul
 |---|---|
 | Status | **Blocked** (steel, fuel, air basing) |
 | Role | A mobile air base: projects aviation |
-| Progression | A9 `aircraft_carriers` (908) |
-| Prerequisites | `unit.aircraft_carrier` (`aircraft` AND `steam_turbine`) |
-| Actions / movement | Water edges. Hosts N air wings (capacity). Launch sortie. |
+| Progression | A9 `aircraft_carriers` (908; Flight II; knowledge-reachable in late A8 once RC-1 lands, as HMS Argus was in 1918) [branch: jet-capable fleet carriers (new; Flight III)] |
+| Prerequisites | 908 `unit.aircraft_carrier` (`aircraft` AND `steam_turbine`). Jet-capable carriers: `jet_engine` AND `steam_turbine` (steam catapult). |
+| Actions / movement | Water edges. Hosts N air wings (capacity). Launch sortie. Embarks only carrier-capable identities (aviation-progression §9.1). |
 | Stats | Integrity H · own combat L · Air capacity VH |
 | Inputs, upkeep | Steel, fuel (**missing**) |
 | Counters | Enable air strikes |
@@ -864,19 +1021,19 @@ A blocked identity must say which good or system it waits for, in the "not simul
 
 | Field | Content |
 |---|---|
-| Status | **Blocked** (fuel, aluminium, engines; air-basing system). Also Q3: the family begins at A9 although military aviation is historically Industrial (A8). |
-| Role | Air superiority, strike, reconnaissance: strike missions on the battle map, never dogfight simulation (D-011 §5) |
-| Progression | A9 `military_aircraft` (1101) [branch `stealth_aircraft` (1103)] |
-| Prerequisites | 1101 `unit.military_aircraft` (`aircraft`). 1103 `unit.stealth_aircraft` (`stealth`). Requires `building.airfield` or a carrier. |
-| Actions / movement | Range from base (sortie radius). AC 1 sortie per refresh. Strike, intercept, reconnoitre. |
-| Stats | Integrity L–M · Strike H · Air combat H · Sight VH |
-| Inputs, upkeep | Aluminium, engines, fuel (**missing**) |
-| Counters | Beat armour, fleets, supply |
+| Status | **Blocked.** Flight I: engines, fuel. Flight II: also aluminium. Flight III: also electronics, composites. Also the air-basing system. Staged across Ages by D-065 R3 (Q3 resolved). |
+| Role | Reconnaissance and air superiority, with a light-attack action. Strike missions on the battle map, never dogfight simulation (D-011 §5). Bombing is `strike_aviation` (§7.22). |
+| Progression | A8 `military_aircraft` (1101, proposed retag from A9; Flight I) · A9 advanced piston aircraft (new; Flight II) [branches: jet fighters (new; Flight II), `stealth_aircraft` (1103; Flight III)] |
+| Prerequisites | 1101 `unit.military_aircraft` (`aircraft`, retagged A8 by RC-1). Advanced piston: per-identity `requires` `aircraft_metal`. Jet fighters: `jet_engine`. 1103 `unit.stealth_aircraft` (`stealth`). All require `building.airfield` (the tier fits the identity) or a carrier for carrier-capable identities. |
+| Actions / movement | Range from base (sortie radius). AC 1 sortie per refresh. Intercept, reconnoitre (VISIBLE at the target; with `aerial_reconnaissance`, extends REMEMBERED extent), light attack. |
+| Stats | Integrity L–M · Light strike L–M · Air combat H · Sight VH |
+| Inputs, upkeep | Flight I: timber, cloth, tools (existing) + engines (**missing**); fuel upkeep (**missing**). Flight II–III: + aluminium, electronics, composites (**missing**). |
+| Counters | Beat bombers, reconnaissance aircraft and helicopters; spot for artillery |
 | Vulnerabilities | Air defence, fighters, base destruction |
 | Logistics | Fuel and munitions at the base |
-| AI use | Strike the highest-value targets within range |
-| Modernization / branch | Stealth is a recruited branch, not an upgrade (ruling 18) |
-| Educational text | Separate reconnaissance (the first military use) from bombing |
+| AI use | Air superiority over own operations; reconnaissance of observed rival armies |
+| Modernization / branch | 1101 → advanced piston at A9 (ADR-031). Jets and stealth are recruited branches or re-equipment targets (D-065 R1), never modernization targets. |
+| Educational text | Separate reconnaissance (the first military use) from air combat and from bombing |
 
 ### 7.19 Rotary-wing — `rotary_wing` (proposed key 20; rehomes 1102)
 
@@ -932,6 +1089,27 @@ A blocked identity must say which good or system it waits for, in the "not simul
 | Modernization / branch | ICBM is a branch |
 | Educational text | Conventional and nuclear payloads are separate decisions |
 
+### 7.22 Strike aviation — `strike_aviation` (proposed key 23, new family)
+
+| Field | Content |
+|---|---|
+| Status | **Blocked** (engines, fuel; aluminium from Flight II; composites and electronics for the branch) |
+| Role | Bombing: tactical bombing of formations and works (Flight I), then strategic bombing of production, infrastructure and depots (Flight II) |
+| Progression | A1–A7 — · A8 light bombers (new; Flight I) · A9 strategic bombers (new; Flight II) [branch: stealth bombers (new; Flight III)] |
+| Prerequisites | Light bombers: `aircraft` (retagged A8 by RC-1). Strategic bombers: `aircraft_metal`. Stealth bombers: `stealth` AND `aircraft_metal`. All require `building.airfield` of the fitting tier. Strategic bombers are not carrier-capable. |
+| Actions / movement | Sortie radius from base (short for light, long for strategic). AC 1. Strike: on the battle map (D-011 §5) or against a structure, as a construction-state debit (building charter §4.6), never a flat output penalty. |
+| Stats | Integrity L–M · Strike H (light) / VH (strategic) · Air combat L · Sight M |
+| Inputs, upkeep | As `air` for the same Flight; munitions (EC-3) per strike |
+| Counters | Beat fortifications, depots, production and formations in the open |
+| Vulnerabilities | Fighters, air defence, base destruction |
+| Logistics | Fuel and munitions at the base; escort by `air` |
+| AI use | Strike the highest-value structure within range, key `(value, structure id)`. A policy for bombing population centres needs a reviewed rule (M8/M10 governance). |
+| Modernization / branch | Light → strategic at A9 (ADR-031 mainline). Stealth bombers are a recruited branch or re-equipment target. |
+| Educational text | Bombing predates the jet; strategic bombing targets production, not armies |
+
+**Why a separate family.** As branches of `air`, bombers would modernize into fighters at A9 (ADR-031 §3 rule 2). The
+role persists from A8 to A9, so it meets the split test of §5.2.
+
 ---
 
 ## 8. Exploration, economic and civil agents
@@ -945,7 +1123,7 @@ not; each has its own table and owner.
 |---|---|
 | Status | **existing** as the Explore order (kind 14, no unit). Agent: **M7 candidate** (slice M7.5). |
 | Role | Reveal and maintain knowledge of terrain, deposits and rivals: fog VISIBLE and REMEMBERED (ADR-044) |
-| Progression | A1 `scouts` (101) · A2 = · A3 = (outriders, mounted scouts, are **deferred**: added to the line only with EC-2 mounts, because ADR-031 would otherwise convert scouts to a mounted identity for free) · A4–A6 = · A7 survey patrols (new: map, compass and survey) · A8–A9 = (aerial and satellite reconnaissance belong to `unmanned_aircraft` and to space assets) |
+| Progression | A1 `scouts` (101) · A2 = · A3 = (outriders, mounted scouts, are **deferred**: added to the line only with EC-2 mounts, because ADR-031 would otherwise convert scouts to a mounted identity for free) · A4–A6 = · A7 survey patrols (new: map, compass and survey) · A8–A9 = (aerial reconnaissance is an action of the air families from Flight I, drones belong to `unmanned_aircraft`, and satellites are space assets; scouts are never converted into aircraft: aviation-progression §9.2) |
 | Prerequisites | 101 baseline (`baseline.exploration`). Outriders (with EC-2): `horse_domestication`. Survey patrols: `cartography` AND `state_exploration` (cA7). |
 | Actions / movement | Foot ×1.1–1.3 (mounted ×1.8–2.2 once outriders exist). AC 2. Observe (VISIBLE radius). Shadow (a lagging position report, D-039 B). Survey (extends the explored extent permanently, D-040 B). |
 | Stats | Integrity VL · combat — · Sight H · Concealment M |
@@ -966,7 +1144,7 @@ not; each has its own table and owner.
 | Status | **existing** (order kind 9; the party is drawn from buckets). As a moving agent in transit: **M7 candidate**. |
 | Role | Found a new settlement at a legal site (ADR-036) |
 | Progression | One agent type for all Ages. Its capacity, speed and range change with transport (roads, boats, rail) rather than by identity. |
-| Prerequisites | `baseline.settlement_founding`. Overseas founding requires a `naval_transport` agent. |
+| Prerequisites | `baseline.settlement_founding`. Overseas founding requires naval transport capacity (category E or B under D-065 R13; a controllable transport agent only if approved). |
 | Actions / movement | Path cost ×0.7–0.9 (families with goods). AC 1. Found (kind 9 semantics at the agent's position). Turn back. |
 | Inputs | People (`orderPartyFraction`, existing), food and timber carried |
 | Vulnerabilities | Interception. Starvation in transit (people debited, never deleted). |
@@ -984,6 +1162,13 @@ not; each has its own table and owner.
 
 ### 8.4 Prospectors and geologists
 
+> **Reclassified (D-065 R12): category D, a one-shot action.**
+> - The player starts a Prospect order (kind 15). It applies its eligibility, cost and resolution.
+> - One completed operation reveals one resource, under the existing discovery mechanics.
+> - The discovery becomes persistent knowledge, and no prospector stays on the map.
+>
+> The "party" and "team" below are the action's tiers, not units.
+
 | Field | Content |
 |---|---|
 | Status | **existing** as the Prospect order (kind 15, at an own settlement). As an agent: **M7 candidate**. Geophysical and radiometric teams: **blocked** (instruments, electronics; uranium chain). |
@@ -995,6 +1180,9 @@ not; each has its own table and owner.
 | Educational text | Distinguish knowing that ore exists from being able to use it (EC packets) |
 
 ### 8.5 Traders and trade convoys
+
+> **Category E (D-065 R13):** trade, commercial shipping and convoys stay abstract flows and capacities. Controllable
+> convoys need an explicitly approved design.
 
 | Field | Content |
 |---|---|
@@ -1299,7 +1487,7 @@ A chain is live only when every step is.
 
 | # | Step | Knowledge | Realization | Owner | Required state | Status |
 |---|---|---|---|---|---|---|
-| 1 | Find oil | `percussion_drilling` (A6), `geophysical_prospecting` (A9) | prospecting agent (§8.4) finds oil deposits | Discovery (exists) + EC-4 (M11+) | oil as a geological deposit channel | **blocked** (no oil good) |
+| 1 | Find oil | `percussion_drilling` (A6), `geophysical_prospecting` (A9) | the Prospect action (§8.4, category D) finds oil deposits | Discovery (exists) + EC-4 (M11+) | oil as a geological deposit channel | **blocked** (no oil good) |
 | 2 | Extract | `percussion_drilling`, `internal_combustion` | onshore well, offshore rig (new) | Production + EC-4 (M11+) | crude good; deposit depletion | **blocked** |
 | 3 | Move crude | `railway`, pipelines (no node), tankers (`steamboat`) | pipeline network, rail, ships | Transport (M11+; rail with EC-1) | bulk edges; pipeline capacity | **blocked** |
 | 4 | Refine | `petroleum_refining` (A8) | `building.refinery` | Production (M11+, EC-4) | recipe crude → fuels | **blocked** |
@@ -1313,7 +1501,7 @@ A chain is live only when every step is.
 | # | Step | Knowledge | Realization | Owner | Status |
 |---|---|---|---|---|---|
 | 1 | Radioactivity → physics | `radioactivity` (A8), `nuclear_physics`, `nuclear_fission` | — | Research | existing (nodes) |
-| 2 | Find uranium | `radiometric_prospecting` | prospecting agent | Discovery + EC-6 (M10/M11+, Q5) | **blocked** (no uranium good) |
+| 2 | Find uranium | `radiometric_prospecting` | the Prospect action (category D) | Discovery + EC-6 (M10/M11+, Q5) | **blocked** (no uranium good) |
 | 3 | Mine and mill | `uranium_milling` | uranium mine and mill (new) | Production + EC-6 (M10/M11+) | **blocked** |
 | 4 | Enrich / fabricate fuel | `uranium_enrichment` | enrichment plant (new) | Production + EC-6 (M10/M11+) | **blocked** |
 | 5 | Reactor | `nuclear_power` | `building.nuclear_power_station` | Energy system (M11+, Q8) | **blocked** |
@@ -1341,13 +1529,16 @@ authority, interception and consequences.
 
 | # | Step | Knowledge | Realization | Owner | Status |
 |---|---|---|---|---|---|
-| 1 | Flight | `balloon` (A8), `aircraft` (A9), `aircraft_metal`, `jet_engine` | — | Research | existing (nodes) |
-| 2 | Materials | aluminium (EC-5), engines, fuel (EC-4) | factories (motor works) | Production (M11+, EC-4/EC-5) | **blocked** |
-| 3 | Bases | `aircraft` | `building.airfield`, carriers | Construction (M11+) | **blocked** |
-| 4 | Air units | — | `air`, `rotary_wing`, `unmanned_aircraft` | designed M7; realized M11+ | **blocked** |
-| 5 | Sortie and strike | — | strike missions on the battle map (D-011 §5) | M7 resolver verb | M7 candidate (verb), **blocked** (units) |
-| 6 | Air defence and detection | `radar`, `guided_missile` | `air_defence`, radar sites | designed M7; realized M11+ | **blocked** |
-| 7 | Civil aviation | `jet_airliner`, `air_navigation_agreements` | airports (building charter §5.19) | Transport (M11+) + M8 agreements | **blocked** |
+| 1 | Flight I knowledge | `balloon`, `glider`, `internal_combustion` (A8) → `aircraft` (A9 today; A8 under proposal RC-1, which removes an Age-sweep gate measured at 89–121 turns of A8) | — | Research (M6; RC-1 is a TC-1 change) | existing (nodes); RC-1 proposed |
+| 2 | Flight I materials | timber, cloth, tools (existing); engines and light fuel (EC-4a) | aircraft works (recruitment), motor works (engines), `building.refinery` | Production + EC-4a (owner open, OD-3) | **blocked** |
+| 3 | Flight I bases | `aircraft` | `building.airfield` tier 1 (landing strip) | Construction (existing mechanism) | **blocked** (no consumer until air units exist) |
+| 4 | Flight I units | `aircraft`; `rifled_artillery` | 1101 (A8), light bombers (`strike_aviation`), AA artillery (`air_defence`) | designed M7; realized with EC-4a | **blocked** |
+| 5 | Flight II | `aircraft_metal` (needs `aluminium`), `aerial_reconnaissance`, `helicopter`, `radar`, `jet_engine` | advanced piston aircraft, strategic bombers, jet branch, 1102, 908; air base tier 2; forward airfields | designed M7; realized M11+ (EC-5a waits on Q8) | **blocked** |
+| 6 | Flight III | `stealth`, `combat_drone`, `guided_missile`, `computer` | 1103, stealth bombers, drones, SAM, jet-capable carriers | M11+ (EC-5b/5c; digital networks) | **blocked** |
+| 7 | Sortie and strike | — | strike missions on the battle map (D-011 §5); reconnaissance sortie (fog) | M7 resolver verb | M7 candidate (verb), **blocked** (units) |
+| 8 | Civil aviation | `jet_airliner`, `air_navigation_agreements` | airports (building charter §5.19) | Transport (M11+) + M8 agreements | **blocked** |
+
+**Detail and dependency matrix:** [aviation-progression.md](aviation-progression.md) §3–§4.
 
 ### 12.6 Covert unrest
 
@@ -1403,20 +1594,28 @@ conservation tests. Each needs its own approval and is not part of M7's battle s
 | NV | Water edges, ports, embark | M7 slice 6 + transport packet (Q-A/Q-C/Q-E) | water edge types; port nodes | 9, 10, 17 | harbour, lighthouse, naval yard |
 | SP | Special-people system | **unassigned**. Proposed: command subset M7, full M9. | person + ability definitions; charges; model A points | generals, scientists, artists, writers, musicians, cultural groups | universities, academies, venues |
 | DP | Diplomacy | M8 | proposals, incidents, recognition | diplomats, convoys, interconnection | embassies |
-| IN | Intelligence and counterintelligence | M8 (gathering), M10 (subversion) | agent detection streams; information channels | spies, infiltrators, saboteurs | bureaus, police |
+| IN | Intelligence and counterintelligence | M8 hooks only: the information channel and counterintelligence detection. M10: operations, gathering and subversion alike (D-037 E4; Q9 dispositioned, §16.4). | agent detection streams; information channels | spies, infiltrators, saboteurs | bureaus, police |
 | UL | Unrest ladder | M8 (D-037 B2) | segment organization; ladder states | agitators, rebels, partisans | police, services |
 | CU | Culture and influence | M9 | culture equation; venues; works | artists, writers, musicians, bands | theatres, museums, stadiums |
 | HE | Health | M9 | disease model | relief teams | hospitals, sanitation |
-| EC-1 | Metals: iron ore, iron, steel; charcoal/coal | separate EC packet before A4+ recruitment | goods, deposits, smelting recipes, transport bulk, consumption | Iron/steel: 202–204, 303–305, 307–308, 103, 105, 407–408, 506, 602–605, 803, 805–806, 904–906, 1005–1006; privateers, commerce raiders (17); 13 (A9); 14; 15 (A8 rail); 18; 19 | `building.blast_furnace`, `building.steelworks`, `infra.railway`, `building.skyscraper`; the smithy's iron mode (`building.smithy` itself is design-only) |
-| EC-2 | Mounts (horses) | separate EC packet | a mount stock distinct from livestock; breeding; fodder | 501–505, 601–604, 701–703; outriders (22, deferred); 16 (A8 horse ambulance); 15 if Q-C rules draught needs mounts | stables; `infra.courier_relay` |
-| EC-3 | Gunpowder and explosives (saltpetre, sulphur) | separate EC packet | goods, recipe (`saltpetre_refining`, `gunpowder`, `dynamite`) | 104–105, 204, 306–307, 406–408, 504–505, 604, 703, 804–806, 904–906; privateers, commerce raiders (17); 13 (A8); 14 | arsenal, powder works |
-| EC-4 | Petroleum and fuels | separate EC packet (late) | oil deposit channel, crude, fuels, pipelines | 308, 506, 605, 806, 906, 1006, 1101, 1103; 12; 13 (A9); 14; 15 (A9); 16 (A8 motor ambulance); 18–21 | wells, offshore rigs, `building.refinery`, pipelines, fuel depots, `building.airfield`, `building.spaceport` |
-| EC-5 | Light metals and electronics; copper metal | separate EC packet (late) | aluminium, copper, silicon/electronics goods | 105 (radios), 1101, 1103, 1102, 1104, 12 (guidance), 14, 21 (recon drones) | `infra.power_grid`, `infra.telegraph_line`, `infra.telephone_network`, `infra.submarine_cable`, `building.radio_transmitter`, `infra.mobile_network`, `infra.internet_backbone`, `building.semiconductor_fab`, `building.data_centre`, radar sites |
+| EC-1 | Metals: iron ore, iron, steel; charcoal/coal | **M7, separate reviewed packet (D-065 R2)**, before A4+ recruitment | goods, deposits, smelting recipes, transport bulk, consumption | Iron/steel: 202–204, 303–305, 307–308, 103, 105, 407–408, 506, 602–605, 803, 805–806, 904–906, 1005–1006; privateers, commerce raiders (17); 13 (A9); 14; 15 (A8 rail); 18; 19 | `building.blast_furnace`, `building.steelworks`, `infra.railway`, `building.skyscraper`; the smithy's iron mode (`building.smithy` itself is design-only) |
+| EC-2 | Mounts (horses) | **M7, separate reviewed packet (D-065 R2)** | a mount stock distinct from livestock; breeding; fodder | 501–505, 601–604, 701–703; outriders (22, deferred); 16 (A8 horse ambulance); 15 if Q-C rules draught needs mounts | stables; `infra.courier_relay` |
+| EC-3 | Gunpowder and explosives (saltpetre, sulphur) | **M7, separate reviewed packet (D-065 R2)** | goods, recipe (`saltpetre_refining`, `gunpowder`, `dynamite`) | 104–105, 204, 306–307, 406–408, 504–505, 604, 703, 804–806, 904–906; privateers, commerce raiders (17); 13 (A8); 14 | arsenal, powder works |
+| EC-4a | Light fuels and engines (proposed split of EC-4; aviation-progression §11) | separate packet; owner **open** (OD-3: M10 recommended, not M7) | oil deposit channel, crude, a light-fuel refinery recipe, an engines recipe (steel from EC-1 + tools) in motor works, fuel stock rows | 308, 506, 605, 806, 906, 1006, 1101 (Flight I), light bombers (23), 1103; 12; 13 (A9); 14; 15 (A9); 16 (A8 motor ambulance); 18–21 | wells, offshore rigs, `building.refinery`, pipelines, fuel depots, `building.airfield`, `building.spaceport` |
+| EC-4b | Heavy and aviation fuels; pipelines | separate packet (late, M11+) | heavier refinery fractions; pipeline and tanker bulk | jet fighters (11 branch), strategic bombers (23), SAM (14 branch), civil aviation | pipelines, offshore rigs, civil airports |
+| EC-5a | Aluminium (proposed split of EC-5) | separate packet (late, M11+); its electricity input waits on Q8 (D-065 R4) | bauxite/alumina deposit; electrolytic smelting with an electricity input | Flight II: advanced piston aircraft (11), strategic bombers (23), jet fighters, 1102, 1103 | `building.airfield` tier 2 (with EC-1) |
+| EC-5b | Electronics; copper metal | separate packet (late, M11+) | copper, silicon/electronics goods | 105 (radios), 1103, 1104, 12 (guidance), 14 (SAM), 21 (recon drones) | `infra.power_grid`, `infra.telegraph_line`, `infra.telephone_network`, `infra.submarine_cable`, `building.radio_transmitter`, `infra.mobile_network`, `infra.internet_backbone`, `building.semiconductor_fab`, `building.data_centre`, radar sites |
+| EC-5c | Composites (proposed, new) | separate packet (late, M11+) | a `plastics`-derived composites good | 1103, stealth bombers (23) | — |
 | EC-6 | Uranium fuel cycle | separate EC packet (late) + M10 | uranium deposits, milling, enrichment | 907, warheads | `building.nuclear_power_station`, enrichment, waste repository |
-| EN | Energy and power system | M11+ (proposed; could be M10 if the Director wants electrified A8–A9 in the integrated validation) | generation, network flow, losses, outages | electric traction, radar | §7.1 |
+| EN | Energy and power system | **Open** (Q8 / B5; D-065 R4 keeps it unruled). Candidates: M10 (electrified A8–A9 in the integrated validation) or M11+. | generation, network flow, losses, outages | electric traction, radar | §7.1 |
 | SV | Strategic weapons governance | M10 | stockpile, authority, interception, consequences | 12, warheads | silos, launch sites |
 | DN | Digital networks | M11+ | network nodes and edges; services | cyber agents, drones (datalinks) | data centres, backbone, mobile |
 | SA | Space | M11+ | launch campaigns, orbital assets | — | spaceport, satellites |
+
+| GA | **Garrisoning** (D-065 R11; approved requirement) | M7, slice M7.8: state model and land/air-defence garrisons. Air-defence garrisons are realized with `air_defence` (blocked by goods). | formation location and state, orders, battle and local-defence terms (BR, FT), city/installation state, save/load | air defence (14); any formation the GA design admits | cities, eligible installations |
+
+Cells listing 13, 15 or 16 in the rows above name the **category B allocations'** inputs, not unit families
+(D-065 R10).
 
 **Rule.** A unit or building whose row is not live stays at its status class. Nothing advances to "M7 candidate"
 because a later row is assumed.
@@ -1431,19 +1630,20 @@ has an owner and an exit test.
 | Stage | Content | Owner | Precondition | Exit evidence |
 |---|---|---|---|---|
 | **S0** (this file) | Charters proposed; nothing changes | docs | — | Director review |
-| **M7.0** | Rulings first: CR-017 §3 (AC refresh vs Law 3) and §5 (graph vs off-road); D-012 grid; D-013 pulse budget; Q1 re-equip; Q2 splits; Q4 notables vs special people | Director | M7 spec drafted with the S8 §4.1 four items (foundations audit, dimensional declaration, corridor independence, coupling map) | rulings recorded |
+| **M7.0** | Rulings first: CR-017 §3 (AC refresh vs Law 3) and §5 (graph vs off-road); D-012 grid; D-013 pulse budget; Q4 notables vs special people (escalated, §16.4). Already ruled: Q1 re-equip (D-065 R1). Design resolved here: Q2 splits, with the data change ratified in M7.1. | Director | M7 spec drafted with the S8 §4.1 four items (foundations audit, dimensional declaration, corridor independence, coupling map) | rulings recorded |
 | **M7.1** | Ratify the family catalogue and schema in data: splits with migration map; per-identity `requires`; validation (orphans, duplicate roles, missing prerequisites, unsupported effects); MobileAgent table design | M7 | M7.0 | loader validation tests; migration no-op on existing saves (measured); goldens unmoved or attributed |
 | **M7.2** | Movement + Action Capacity + ZOC for one agent type (Army), then scouts | M7 | M7.1 | turn-exact delivery pins; path-cost tests; wraparound and boundaries; replay; save/load populated tables |
-| **M7.3** | Recruitment + personnel + upkeep for A1–A3 land identities from existing goods (301, 309, 302, 201, 401, 402, 102); founding-warband personnel reconciliation | M7 | M7.2 | conservation (people and goods exact); atomic refusal; AI legal-only; golden moves attributed with switch-off twins |
+| **M7.3** | Recruitment + personnel + upkeep for A1–A3 land identities from existing goods (301, 309, 302, 201, 401, 402, 102); founding-warband personnel reconciliation; the re-equip order (§6.6, D-065 R1) | M7 | M7.2 | conservation (people and goods exact); atomic refusal; AI legal-only; golden moves attributed with switch-off twins |
 | **M7.4** | AutoResolver + TacticalResolver v1, counters, fortification term, siege (A4–A5 timber engines), starvation path | M7 (D-011, D-039) | M7.3 | parity battery; counter-matrix tests (§15.6); siege difficulty shown = resolver input |
-| **M7.5** | Agents: reconnaissance replaces Explore; prospecting party; settler transit; generals as commanders (command subset of SP); engineers; supply (after Q-C); field medical | M7 | M7.2–7.4; Q-C draught ruling for supply | Explore removal only when the agent path is green; fog tests; notable debit on death |
+| **M7.5** | Agents: reconnaissance replaces Explore; generals as commanders (command subset of SP). Category B allocations as battle inputs: engineers, supply (after Q-C), field medical. Prospecting stays an action (category D); settler transit is deferred (not approved). | M7 | M7.2–7.4; Q-C draught ruling for supply | Explore removal only when the agent path is green; fog tests; notable debit on death |
 | **M7.6** | Water edges, ports, naval transport A1–A7, surface combat A4–A6, raiders A5–A6 (auto-resolve) | M7 + transport packet | Q-A/Q-C/Q-E/sea edges ruled together (D-040 B4) | embark/disembark conservation; loss-at-sea debits |
 | **M7.7** | Military buildings with live consumers only (barracks, depot, siege workshop, harbour/naval yard); calibration over seeds 1, 2, 42, 7 | M7 | M7.3–7.6 | §15 suite green; CI green |
-| **EC-1 … EC-3** | Metals, mounts, gunpowder: each a separate reviewed content change. Unblocks A4–A8 recruitment of the listed identities. | separate packets (can run in M7 or after) | Director approval each | goods conservation; deposits; recipes; transport bulk; golden attribution |
+| **M7.8 GA** | **Garrisoning** (D-065 R11; approved requirement, not yet designed). (1) Architecture and state model: one capability, one state, with a logged and conserved transition. (2) Eligibility and transitions: eligible locations and required infrastructure; deploy and withdraw orders with turn-exact delivery; no movement while garrisoned. (3) City and installation interface: the city panel and battle screen show the garrison from simulation state. (4) Battle and local-defence integration: the garrison as an explicit term in the local-defence and battle inputs (BR, FT); no free bonus. (5) Persistence and deterministic replay: a populated-table test, save/load, replay, a delivery pin. (6) Duplicate counting and exploit prevention: one capability never counted mobile and garrisoned at once, or twice in one battle. (7) Targeted tests, integration tests, manual UI validation. | M7 (proposed placement; the Director confirms) | M7.2 (location, orders), M7.4 (battle, fortification term), M7.7 (city buildings); air-defence garrisons also need `air_defence` realized (goods) | all seven parts green; air-defence garrisons stay blocked until the family is realizable |
+| **EC-1, EC-2, EC-3** | Metals, mounts, gunpowder: three separate reviewed content changes, never combined. Unblocks A4–A8 recruitment of the listed identities. | **M7** (D-065 R2), one packet each | Director approval each | goods conservation; deposits; recipes; transport bulk; golden attribution |
 | **M8** | Diplomats; intelligence gathering and counterintelligence; unrest ladder; rebel formations; partisans; trade convoys; launch authority hooks | M8 | M7 movement live | ratio-of-grievance test (§12.6) |
 | **M9** | Special-people system in full (scientists, artists, writers, musicians); cultural groups and rock bands; culture venues; health | M9 | SP rows designed | revenue conservation; diminishing returns; Law 2 audit of every ability |
 | **M10** | Integrated validation across A1–A9; subversion (infiltration, sabotage, agitation); strategic weapons governance; EC-6 if approved | M10 | M8, M9 | whole-ladder seeds; no Age-specific architecture |
-| **M11+** | Energy system and grids; EC-4/EC-5; aviation, submarines and carriers realized; digital networks and cyber; space; wonders and megaprojects; heroes; culture-specific variants | M11+ (sequence open) | each row of §13 | per-row tests |
+| **M11+** | Energy system and grids (unless Q8 rules M10); EC-4a (unless OD-3 rules M10), EC-4b, EC-5a–c; aviation Flights II–III (Flight I with EC-4a), submarines and carriers realized; digital networks and cyber; space; wonders and megaprojects; heroes; culture-specific variants | M11+ (sequence open) | each row of §13 | per-row tests |
 
 ---
 
@@ -1527,17 +1727,19 @@ has an owner and an exit test.
 | # | Conflict | Sources | Charter position |
 |---|---|---|---|
 | C1 | The brief's Age table places rifles, machine guns, ironclads and early aircraft at A7, and tanks and helicopters at A8. The repository puts muskets at A7, rifles, machine guns and ironclads at A8, and tanks and aircraft at A9. | brief vs `ages.json`, `unit-families.json`, `research.json` node ages | The charter follows the repository. The brief's labels are about one Age early. |
-| C2 | "Upgrade paths and transformations" vs "no paid manual upgrades" | brief vs D-047 ruling 18 | No paid upgrades. Re-equip is defined as re-recruitment and needs a ruling (Q1). |
+| C2 | "Upgrade paths and transformations" vs "no paid manual upgrades" | brief vs D-047 ruling 18 | **Resolved by D-065 R1**: re-equipment is a permitted, distinct order (§6.6), scoped to role and branch changes. The Civ VI paid upgrade stays barred. The same-line boundary is OD-2. |
 | C3 | Continuous off-road movement vs network-graph armies | D-043 B7 vs D-009/D-010; CR-017 §5 OPEN | Path-cost model compatible with both. Ruling needed before M7.2. |
 | C4 | Special people "do not require allegiance" vs "a notable is a person" | D-043 B3 vs M4 R-1 (F14); D-037 A1 (F13) | Person from population + ability record (Q4) |
 | C5 | Espionage at M10+ (including degraded information quality) vs a spy class in the first unit charter | D-037 E4; D-039 B5 | Hooks only in M8 (information channel, counterintelligence detection); operations M10. Raised as Q9, not settled here. |
 | C6 | Sea travel as network edges vs naval MobileAgents at continuous x/y | D-040 B4 vs D-043 B1 (F12) | Naval agents move on water edges; one transport conversation |
 | C7 | Builder units vs real settlement labour | brief vs D-054/D-055 construction | No builder charges; field crews design-only |
 | C8 | "Armour" as its own class vs the existing heavy-cavalry line | brief vs `unit-families.json` | Armour = `heavy_cavalry` A9 identity; no new family |
-| C9 | Air begins at A9 vs military aviation historically Industrial | gap audit vs history | Not changed (Q3) |
+| C9 | Air begins at A9 vs military aviation historically Industrial | gap audit vs history | **Resolved by D-065 R3**: Flight I at A8 (§7.18, §7.22). Its research change RC-1 is a proposal (OD-1). |
 | C10 | Some identities are realizable only with goods beyond the brief's list (horses, gunpowder, copper metal, electronics) | `goods.json` | Marked blocked with EC-2/EC-3/EC-5 |
 
 ### 16.2 Open questions for the Director
+
+*(Kept as asked on 2026-10-26. Their dispositions after D-065 are in §16.4.)*
 
 1. **Q1 — Re-equip.** Is converting a formation to a different family, consuming the target's recruitment materials and
    keeping its people and experience, a permitted *new recruitment*, or is it barred by ruling 18?
@@ -1561,10 +1763,44 @@ has an owner and an exit test.
    M11+?
 9. **Q9 — Espionage milestone.** D-037 E4 places espionage at M10+, with hooks earlier. Should M8 carry only the hooks
    (the information channel and counterintelligence detection), or also intelligence-gathering operations?
+10. **Q10 — Snipers (D-065 R14).** Is the sniper an independent controllable formation or a specialist capability
+    attached to another formation? Kept distinct from `sharpshooters` (407). Depends on the battle model's targeting terms.
 
 ### 16.3 TC-1 note
 
 This charter adds no node and no entity. TC-1 remains **PROPOSED**; its confirmation is a separate Director decision.
+
+One tree change is **proposed, not applied**: RC-1 retags `aircraft` A9 → A8 with an ADR-045 re-score
+(aviation-progression §10). If approved, it goes through the TC-1 change process (an attributed STRUCTURE re-pin and the
+E1–E3 evidence).
+
+### 16.4 Dispositions after D-065 (2026-10-27)
+
+Each item was handled by the [gap-resolution standard](gap-resolution-standard.md):
+- an item answered by a binding ruling is applied, not reopened;
+- a routine design choice is resolved here and can be overturned by the Director;
+- a genuine conflict between ratified decisions, or a material scope or cost trade-off, is escalated with the evidence
+  it needs.
+
+| Item | Disposition | Basis | What remains |
+|---|---|---|---|
+| Q1 re-equip | **Resolved by ruling**: permitted as a distinct order (§6.6) | D-065 R1 | OD-2 (same-line catch-up) |
+| Q2 splits | **Resolved (design)**: the five rehomings and families 14 and 17–23. Families 13, 15 and 16 were withdrawn by D-065 R10 (category B). | A routine taxonomy choice. Each split meets the §5.2 test (a persistent, distinct role), and ADR-031 forces the bomber split (§7.22). | The data change and migration are ratified in M7.1 with the §5.3 tests |
+| Q3 aviation Age | **Resolved by ruling**: staged Flights I–III from A8 | D-065 R3 | OD-1 (RC-1 approval) |
+| Q4 special people | **Escalated**: a genuine conflict between two ratified decisions | D-043 B3 ("do not require allegiance") vs M4 R-1 / D-037 A1 (a notable is a person from the population) | A Director ruling, or a CR under the constitution's conflict rule, at M7.0. Evidence: the M4 R-1 notable-row contract; a list of every ability that reads allegiance. |
+| Q5 EC packets | **Resolved by ruling** for order and scope: EC-1, EC-2 and EC-3 are separate M7 packets. The ADR-031 sub-question (free modernization past material blockers) is **preserved unchanged**: D-065 R1 says preserve ADR-031 unless a separate ruling changes it. | D-065 R2, R1 | Each packet's own approval |
+| Q6 tree gaps | **Resolved (design)**: keep the existing proxies; no new nodes | TC-1 allows tree changes only for a material defect. A flavour gap is not one. | none |
+| Q7 founding warband | **Resolved (design)**: draw its personnel at founding when M7.3 lands, as an attributed golden move | D-037 A1 (nothing spawns) leaves no lawful alternative | the M7.3 attribution twin |
+| Q8 energy owner | **Open by ruling** | D-065 R4 | evidence listed in aviation-progression §13 (OD-4) |
+| Q9 espionage | **Resolved (design)**: M8 carries hooks only (the information channel, counterintelligence detection); operations, including gathering, are M10 | D-037 E4 (espionage M10+, hooks earlier); the brief keeps espionage operations out of the wrong milestone | none. Row IN of §13 is aligned. |
+| OD-1 | **Escalated**: approve RC-1 | A TC-1 tree change | E1–E3 (aviation-progression §10) |
+| OD-2 | **Escalated**: same-line catch-up re-equipment | It lies between D-065 R1 and D-047 ruling 18 | the ruling; a material-fallback frequency measurement if permitted |
+| OD-3 | **Escalated**: when EC-4a (light fuels and engines) lands | A material scope and cost trade-off for M10 | a sized packet plan |
+| CR-017 §3, §5 | **Stays open** (an existing CR) | — | its own ruling before M7.2 |
+| Taxonomy (D-065 R8–R14) | **Ruled.** §4.5 classifies every concept. | Director, 2026-10-27 | the data follow-ups below |
+| Q10 snipers | **Open**: an independent formation (A) or an attached specialist capability (B) | D-065 R14 | the battle model's targeting terms (M7.4) and formation composition; then a design note with the chosen form and its gate |
+| Naval transport (family 10) | **Open data change**: reclassify under R13 (E/B), or keep a controllable transport family only if one is approved | D-065 R13 vs the ADR-031 data | an ADR-031 amendment and a save migration (rows of family 10, if any), or a ruling to keep it |
+| GA garrisoning | **Approved requirement**, not designed or implemented | D-065 R11 | the work breakdown in §14; the Director confirms the M7.8 placement |
 
 ---
 
@@ -1583,7 +1819,12 @@ The charter is ready to drive M7 when:
 - every chain step in §12 has an owner and a status;
 - nothing is labelled implemented without its system;
 - §15's tests are listed in each implementing packet's acceptance criteria;
-- culture-specific variants stay deferred.
+- culture-specific variants stay deferred;
+- every entity is classified A–E under §4.5, with no category B, D or E concept listed as a unit family, and the
+  no-double-counting rule is stated for every state transition;
+- the re-equip order meets every row of §6.6, including the excluded classes and the Age-transition pin;
+- no aviation identity is gated on a node of a later Age than the identity (RC-1 is needed for the A8 identities);
+- every aviation item in `aviation-progression.md` §4 has a named consumer or is marked blocked or deferred.
 
 ---
 
@@ -1599,5 +1840,7 @@ The charter is ready to drive M7 when:
 - `docs/deferred-entity-realization-plan.md`; `docs/research-gameplay-unlock-audit.md`
 - `docs/m6-plan/knowledge-redesign/tree-closure.md` (TC-1, PROPOSED)
 - Companion: [`building-and-infrastructure-charter.md`](building-and-infrastructure-charter.md)
+- Rulings: [`docs/d065-m7-charter-rulings.md`](../d065-m7-charter-rulings.md)
+- Aviation: [`aviation-progression.md`](aviation-progression.md); method: [`gap-resolution-standard.md`](gap-resolution-standard.md)
 - Civilization VI was used as a pattern reference only (common baseline plus unique variants; Great People; the Rock
   Band). No movement rules, statistics or upgrade costs were copied.

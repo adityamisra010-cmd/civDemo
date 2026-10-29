@@ -107,6 +107,11 @@ public static class WorldStates
         if (!TableEquals(a.SettlementSurveys, b.SettlementSurveys)) return false;         // v35 (M6 EX)
         if (!TableEquals(a.ResearchLevels, b.ResearchLevels)) return false;               // v36 (ADR-049)
         if (!TableEquals(a.ResearchReserves, b.ResearchReserves)) return false;           // v37 (ADR-051)
+        if (!TableEquals(a.ResearchPopulations, b.ResearchPopulations)) return false;     // v38 (ADR-054)
+        if (!TableEquals(a.FormationPersonnel, b.FormationPersonnel)) return false;       // v39 (ADR-055)
+        if (!TableEquals(a.Reequips, b.Reequips)) return false;                           // v39 (ADR-055)
+        if (!TableEquals(a.ReequipEscrow, b.ReequipEscrow)) return false;                 // v39 (ADR-055)
+        if (!TableEquals(a.ReequipLog, b.ReequipLog)) return false;                       // v39 (ADR-055)
         return true;
     }
 

@@ -519,6 +519,11 @@ public sealed class PathBuildSystem(SimConfig cfg) : ISimSystem<PathBuildTables>
         public IReadOnlyTable<SettlementSurveyRow> SettlementSurveys => prev.SettlementSurveys;
         public IReadOnlyTable<ResearchLevelRow> ResearchLevels => prev.ResearchLevels;
         public IReadOnlyTable<ResearchReserveRow> ResearchReserves => prev.ResearchReserves;
+        public IReadOnlyTable<ResearchPopulationRow> ResearchPopulations => prev.ResearchPopulations;
+        public IReadOnlyTable<FormationPersonnelRow> FormationPersonnel => prev.FormationPersonnel;
+        public IReadOnlyTable<ReequipRow> Reequips => prev.Reequips;
+        public IReadOnlyTable<ReequipEscrowRow> ReequipEscrow => prev.ReequipEscrow;
+        public IReadOnlyTable<ReequipLogRow> ReequipLog => prev.ReequipLog;
     }
 
     private static void Upsert(Table<SectorAllocationRow> allocations, SectorAllocationRow row)

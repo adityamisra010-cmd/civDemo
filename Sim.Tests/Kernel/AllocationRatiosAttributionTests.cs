@@ -28,7 +28,9 @@ public class AllocationRatiosAttributionTests
     [Fact]
     public void WithNoSplitOrder_TheAiWorldIsByteIdenticalWithTheSwitchOnAndOff_OnEveryTurn()
     {
-        SimConfig on = TestConfigs.Sim(), off = TestConfigs.PreAllocationRatios(on);
+        // ADR-055/056 (the R4 rule): PreAllocationRatios is an older twin — it strips the newer military layer and switches the
+        // economy packets off — so the ON arm is the military-off, pre-packet world too.
+        SimConfig on = TestConfigs.PreEconomyTrack(TestConfigs.PreMilitary(TestConfigs.Sim())), off = TestConfigs.PreAllocationRatios(on);
         Assert.True(ResourceAllocation.Enabled(on));
         Assert.False(ResourceAllocation.Enabled(off));
         WorldgenConfig wg = TestConfigs.DevWorldgen() with { AiEmpires = 1 };

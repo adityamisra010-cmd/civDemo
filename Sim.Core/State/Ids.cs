@@ -237,6 +237,21 @@ public static class ReasonIds
     // answers, and neither is construction.
     public static readonly ReasonId Prospecting = new(17);
     public static readonly ReasonId Expedition = new(18);
+
+    // ADR-055 (M7 recruitment) — the three military goods sinks. Recruitment: a new formation's equipment (its identity's
+    // recruitment inputs). FormationUpkeep: the grain a formation's people eat (they left the buckets, so Consumption no
+    // longer feeds them). Reequipment: a completed re-equipment's escrowed materials. Separate reasons: "why did the bronze
+    // go?" has three different answers.
+    public static readonly ReasonId Recruitment = new(19);
+    public static readonly ReasonId FormationUpkeep = new(20);
+    public static readonly ReasonId Reequipment = new(21);
+    // ADR-056 §3 (EC-2, mounts) — the herd's two sinks. A foal or a captured head enters through Produced (8), like every
+    // other produced unit. HerdLosses: the herd's NET decline over a turn (deaths beyond foaling — a herd above its pasture
+    // and fodder capacity, or without keepers), a sink on the herd good. Fodder: the grain the herd eats, a sink on the
+    // fodder good. Separate from Eaten (4): "what did the people eat?" and "what did the horses eat?" are different
+    // questions, and food accounting keys on Eaten.
+    public static readonly ReasonId HerdLosses = new(22);
+    public static readonly ReasonId Fodder = new(23);
 }
 
 /// <summary>Identifies a culture registry entry (T2.1, D-026/D-027 — one placeholder at M2).</summary>

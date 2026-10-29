@@ -410,7 +410,7 @@ public class ClassSystemTests
     /// not the presence, conservation holds. Returns (latch turn, first-present turn, artisans at first presence).</summary>
     internal static (int Latch, int FirstPresent, long ArtisansAtFirstPresent) ArtisanPresenceRun(WorldgenConfig dev, SimConfig? cfgOverride = null)
     {
-        SimConfig cfg = cfgOverride ?? TestConfigs.Sim();
+        SimConfig cfg = cfgOverride ?? TestConfigs.PreMilitary(TestConfigs.Sim());   // ADR-055 (the R4 rule): the rig predates the military layer
         TurnExecutor exec = ProductionExecutor(cfg);
         WorldState world = WorldFounding.Found(dev, cfg, 3);
         Assert.Equal(dev.Topology is { WrapX: true }, world.Terrain!.WrapX);

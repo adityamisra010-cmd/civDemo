@@ -89,8 +89,12 @@ public class IncrementalConstructionUiTests(CanonicalTurnOneFixture fx) : IClass
             ActionHitKind.Build, ActionHitKind.RoadSlot, ActionHitKind.RoadApply, ActionHitKind.TaxSlot, ActionHitKind.TaxApply,
             ActionHitKind.PrevSettlement, ActionHitKind.NextSettlement, ActionHitKind.FoundSettlement, ActionHitKind.CancelConstruction,
             ActionHitKind.Explore, ActionHitKind.Prospect, ActionHitKind.Assay,   // M6 EX (ADR-044) + ADR-046: the Actions menu
+            ActionHitKind.MilitaryOrder,   // ADR-055: the roster's order buttons (A1's founding warband; ActionSurfaceTests' A1 set)
         ];
         foreach (ActionHit h in screen.Hits) Assert.Contains(h.Kind, allowed);
+        // ADR-055: exactly one button per military order entry the model lists — no stray military control.
+        Assert.Equal(model.Military!.Orders.Length, screen.Hits.Count(h => h.Kind == ActionHitKind.MilitaryOrder));
+        Assert.NotEmpty(model.Military.Orders);
         ActionHit cancel = Assert.Single(screen.Hits, h => h.Kind == ActionHitKind.CancelConstruction);
         Assert.Equal((capital.Value, 0), (cancel.A, cancel.B));
     }

@@ -36,6 +36,7 @@ public class PopulationTests
     {
         long total = 0;
         for (int i = 0; i < world.Buckets.Count; i++) total += world.Buckets[i].Count.Value;
+        for (int i = 0; i < world.FormationPersonnel.Count; i++) total += world.FormationPersonnel[i].Count.Value;   // ADR-055: serving people
         return total;
     }
 
@@ -134,7 +135,13 @@ public class PopulationTests
         // is zero (Leontief labor side), path labor is zero, food is static,
         // the audit stays exact, and nothing goes NaN — forever. Driven the way
         // the director actually did it: a 0%-farm order.
-        SimConfig cfg = TestConfigs.Sim();
+        // ADR-055 R4 RE-RIG (units track, 2026-10-28; MEASURED on the combined tree): the subject (M1 dead-world
+        // cleanliness) is older than the military layer, so it runs on the military-off twin. On the shipped config the
+        // world never dies: ADR-055 §4 — "People in a formation do not age, die or give birth while serving (stated
+        // simplification)", and the upkeep shortfall "accumulates in UnfedUnits (no consumer yet — attrition/desertion is
+        // the M7.4 supply slice)" — so the founding warband's 20 people outlive the settlement.
+        // DeadWorld_OnTheShippedConfig_TheWarbandOutlivesTheSettlement pins that, its audit exact.
+        SimConfig cfg = TestConfigs.PreMilitary(TestConfigs.Sim());
         var orders = new OrderLog();
         orders.Append(new OrderRecord(1, ActorId: 1, OrderKind.LaborAllocation, TargetId: 0, Amount: 0.0));
         using var stream = Sim.Data.DataFiles.OpenPipeline();
@@ -153,6 +160,7 @@ public class PopulationTests
             if (TotalPop(world) == 0) extinctionTurn = t;
         }
         Assert.True(extinctionTurn > 0, "0% farm never drove extinction in 80 turns");
+        Assert.Equal(DeadWorldExtinctionTurnMilitaryOff, extinctionTurn);
 
         long foodAtDeath = world.GoodStocks[0].Amount.Value;
         double bankAtDeath = world.PathProgress.Count > 0 ? world.PathProgress[0].Banked : 0.0;
@@ -180,6 +188,68 @@ public class PopulationTests
             }
         }
     }
+
+    /// <summary>ADR-055 ATTRIBUTION TWIN of <see cref="DeadWorld_StaysDeadCleanly_Forever"/> (MEASURED, combined tree,
+    /// 2026-10-28): the same 0%-farm one-settlement world on the SHIPPED config (military on). The warband eats its upkeep
+    /// (FormationUpkeep, 200 grain a turn) while the store lasts; once the store is empty, the grain it cannot be given is
+    /// counted in UnfedUnits (never sunk) and its 20 people do not die — ADR-055 §4: "People in a formation do not age, die
+    /// or give birth while serving (stated simplification)" and the shortfall "accumulates in UnfedUnits (no consumer yet —
+    /// attrition/desertion is the M7.4 supply slice)". Every SETTLEMENT person still dies, at turn 18 (11 military-off: the
+    /// draw and the upkeep move the last survivors' tail). The audit stays exact and nothing goes negative or NaN on every
+    /// turn. When M7.4's attrition lands this twin is the one that moves.</summary>
+    [Fact]
+    public void DeadWorld_OnTheShippedConfig_TheWarbandOutlivesTheSettlement()
+    {
+        SimConfig cfg = TestConfigs.Sim();
+        Assert.True(cfg.Military is { Enabled: true });
+        var orders = new OrderLog();
+        orders.Append(new OrderRecord(1, ActorId: 1, OrderKind.LaborAllocation, TargetId: 0, Amount: 0.0));
+        using var stream = Sim.Data.DataFiles.OpenPipeline();
+        var exec = new TurnExecutor(CanonicalEra(), PipelineLoader.Load(stream, SystemCatalog.All(cfg)), orders);
+        WorldState world = Founded(cfg, settlements: 1);
+        long serving = 0;
+        for (int i = 0; i < world.FormationPersonnel.Count; i++) serving += world.FormationPersonnel[i].Count.Value;
+        Assert.Equal(20, serving);
+
+        int settlementExtinction = -1;
+        long unfed = 0, upkeepSunk = 0;
+        bool storeWasEmpty = false;
+        for (int t = 1; t <= 110; t++)
+        {
+            world = exec.Step(world);
+            AssertRowsSaneAndAuditExact(world, t);
+            long inSettlements = 0, nowServing = 0, nowUnfed = 0;
+            for (int i = 0; i < world.Buckets.Count; i++) inSettlements += world.Buckets[i].Count.Value;
+            for (int i = 0; i < world.FormationPersonnel.Count; i++)
+            {
+                nowServing += world.FormationPersonnel[i].Count.Value;
+                nowUnfed += world.FormationPersonnel[i].UnfedUnits;
+            }
+            Assert.Equal(serving, nowServing);                     // ADR-055 §4: no one serving dies
+            long nowUpkeep = 0;
+            for (int i = 0; i < world.LedgerFlows.Count; i++)
+                if (world.LedgerFlows[i].Reason == ReasonIds.FormationUpkeep) nowUpkeep += world.LedgerFlows[i].TotalSunk;
+            if (storeWasEmpty)
+            {
+                Assert.True(nowUnfed > unfed, "turn " + t + ": a starving warband's shortfall is counted every turn");
+                Assert.Equal(upkeepSunk, nowUpkeep);               // nothing to eat: no grain is sunk for it
+            }
+            else Assert.True(nowUnfed >= unfed);
+            unfed = nowUnfed;
+            upkeepSunk = nowUpkeep;
+            long grain = 0;
+            for (int i = 0; i < world.GoodStocks.Count; i++) if (world.GoodStocks[i].Good.Value == 1) grain += world.GoodStocks[i].Amount.Value;
+            storeWasEmpty = grain == 0;
+            if (inSettlements == 0 && settlementExtinction < 0) settlementExtinction = t;
+        }
+        Assert.Equal(18, settlementExtinction);
+        Assert.True(storeWasEmpty);
+        Assert.True(upkeepSunk > 0, "the warband ate through the Ledger while the store lasted");
+        Assert.True(unfed > 0, "the starving warband's shortfall is counted (UnfedUnits), not hidden");
+    }
+
+    /// <summary>MEASURED (combined tree, 2026-10-28): the military-off 0%-farm one-settlement world dies at turn 11.</summary>
+    private const int DeadWorldExtinctionTurnMilitaryOff = 11;
 
     [Fact]
     public void Pyramid_FormsWideBase_UnderDefaultRates()
@@ -482,7 +552,7 @@ public class PopulationTests
         for (int t = 1; t <= 1000; t++) world = exec.Step(world);
 
         long popEndow = 0, births = 0, deaths = 0, starved = 0;
-        long foodEndow = 0, harvest = 0, eaten = 0, spoiled = 0, granaryOverflow = 0;
+        long foodEndow = 0, harvest = 0, eaten = 0, spoiled = 0, granaryOverflow = 0, military = 0;
         for (int i = 0; i < world.LedgerFlows.Count; i++)
         {
             LedgerFlowRow row = world.LedgerFlows[i];
@@ -508,12 +578,15 @@ public class PopulationTests
                 // ledger reasons, not a weakening of the identity below.
                 else if (row.Reason == ReasonIds.Spoilage) spoiled = row.TotalSunk;
                 else if (row.Reason == ReasonIds.GranaryOverflow) granaryOverflow = row.TotalSunk;
+                // ADR-055: the founding warband's people eat (FormationUpkeep) — food leaving the ledger by its own reason.
+                else if (row.Reason == ReasonIds.FormationUpkeep || row.Reason == ReasonIds.Recruitment || row.Reason == ReasonIds.Reequipment)
+                    military += row.TotalSunk;
                 else Assert.Fail($"unexpected Food flow reason {row.Reason.Value}");
             }
         }
 
         long popFromLedger = checked(popEndow + births - deaths - starved);
-        long foodFromLedger = checked(foodEndow + harvest - eaten - spoiled - granaryOverflow);
+        long foodFromLedger = checked(foodEndow + harvest - eaten - spoiled - granaryOverflow - military);
         Assert.Equal(TotalPop(world), popFromLedger);        // person-exact
         long storeTotal = 0;
         for (int i = 0; i < world.GoodStocks.Count; i++) storeTotal += world.GoodStocks[i].Amount.Value;

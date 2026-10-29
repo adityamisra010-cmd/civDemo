@@ -252,7 +252,9 @@ public sealed class AllocationScenarioRun
     {
         Cfg = cfg;
         const long p = AllocationScenario.P, h = AllocationScenario.H;
-        TurnZero = HeadlessFounding.Found(AllocationScenario.Seed);
+        // ADR-055: founded under the scenario's own military switch (off — the R4 rule): the warband a token, as the CLI leg
+        // founds it under --without-discovery.
+        TurnZero = HeadlessFounding.Found(AllocationScenario.Seed, withoutMilitary: !RecruitmentQuery.Enabled(cfg));
         OrderValidation.ValidateAgainstWorld(Log, TurnZero);
         OrderValidation.ValidateAgainstWorld(ControlLog, TurnZero);
         Hashes = new string[h + 1];

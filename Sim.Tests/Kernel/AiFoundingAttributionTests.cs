@@ -101,13 +101,36 @@ public class AiFoundingAttributionTests
     // AiWorldTurn300_WithTranche2Off_IsThePreTranche2World — TestConfigs.PreTranche2 returns OLD byte for byte.
     // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD d6b4a3cfddea59d0… -> NEW 2a6a61d3dbd26dac… — the empty section-68
     // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
-    internal const string S1cTurn300 = "2a6a61d3dbd26dac52cc94e309924622c28b17dac2a2c94bca929812ac216e74";
+    // ADR-054 (schema v38; the Director's binding rule D-065 R6, 2026-10-27) RE-PIN, VALUE + LAYOUT: OLD 2a6a61d3dbd26dac… -> NEW 02500b4afbddc2ef…. CAUSE: CP per turn from the RP base and the
+    // average population (research.json tuning.civicsPoints.perTurn, tuning.populationAverageTurns 2) — the research holders'
+    // RP/CP move from turn 1 and section 69 (ResearchPopulations) carries their turn-start populations. CONTROL: Adr054AttributionTests.AiWorldSeed42Turn300_…
+    // (TestConfigs.PrePerTurnCivics returns OLD through SchemaProjection.V37, MEASURED).
+    // ADR-055 (schema v39, M7 recruitment slice) RE-PIN (VALUE + LAYOUT; MEASURED on the combined research + units tree by
+    // the agent writing this line, in-test harness): OLD 02500b4afbddc2ef… -> NEW 3153b7e3214ecd21…. CAUSE: the military layer —
+    // both founding warbands draw 20 people each from their capitals and eat grain, and the AI recruits under
+    // military.aiRecruitment; plus the four v39 sections. CONTROL: MilitaryAttributionTests.AiWorldSeed42Turn300_…
+    // (TestConfigs.PreMilitary returns OLD through SchemaProjection.V38).
+    // M7 MERGE (research + units + economy) RE-PIN (MEASURED on the fully combined tree by the agent writing this line):
+    // research 02500b4afbddc2ef… -> units 3153b7e3214ecd21… (ADR-055, the military layer; above) and research+econ 56e8e8671880ab95…
+    // (ADR-056, the economy packets' inert content rows) -> COMBINED ac4554bfdcd3d5b6…. TWO CONTROLS, both exact: (a) packets off —
+    // EconomyProjection.HashWithout(live), the packet rows removed and ASSERTED inert, asserted FIRST in the pin test — is the
+    // units pin (S1cTurn300PreEconomy); (b) military off — MilitaryAttributionTests: TestConfigs.PreMilitary's world is the
+    // research+econ pin through SchemaProjection.V38KeepingPackets and the research pin through SchemaProjection.V38.
+    internal const string S1cTurn300 = "ac4554bfdcd3d5b61bf92cebca1acf56289700d7cc5510f8e7891a85d8356ebc";
+
+    /// <summary>ADR-056 §13: <see cref="S1cTurn300"/> with the economy packets off — the units track's pin (control (a)).</summary>
+    internal const string S1cTurn300PreEconomy = "3153b7e3214ecd21925e679dd6d0f1c4042c39358e97c5a40d9e5073618eb3a3";
 
     /// <summary>D-063: the live AI world at turn 300 BEFORE tranche 2 (the S1cTurn300 value at 86800d9) — what the
     /// pre-tranche-2 twin (TestConfigs.PreTranche2) must return.</summary>
     // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD 80ace28280e268fd… -> NEW b8646444d555ae50… — the empty section-68
     // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
-    internal const string PreTranche2Turn300 = "b8646444d555ae50acf64acda63e6abd8cc184af658a35b10e1b533c0d9b59f2";
+    // ADR-054 (schema v38) RE-PIN, LAYOUT ALONE: OLD b8646444d555ae50… -> NEW 51b33ea0b49cd92c… — the empty section-69
+    // (ResearchPopulations) count prefix (no ADR-054 switch acts on this world). CONTROL: ResearchLevelsLayoutAttributionTests.AiWorldSeed42Turn300_… (SchemaProjection.V37 is OLD).
+    // ADR-055 (schema v39) RE-PIN, LAYOUT ALONE (MEASURED on the combined tree): OLD 51b33ea0b49cd92c… -> NEW 5fb6aa9e83493ed7… —
+    // the four empty section 70–73 count prefixes (the older twin strips the military layer, the R4 rule);
+    // MilitaryAttributionTests.ThePreM6AndPreTranche2Worlds_… proves SchemaProjection.V38 is OLD.
+    internal const string PreTranche2Turn300 = "5fb6aa9e83493ed7907fc440df1a5edda6a9ec021bd1a8f626c878c107f57686";
 
     /// <summary>The batch-2 (e91d10b) AI world at turn 300: the value both batch-3 twins off must return.</summary>
     internal const string E91d10bTurn300 = "2e4759ac494d946126624fec584e26fdce323a8018877987b26b2ecc08b98be8";
@@ -186,8 +209,11 @@ public class AiFoundingAttributionTests
             live = liveExec.Step(live);
         }
         Assert.True(live.Terrain!.WrapX);
+        Assert.Equal(S1cTurn300PreEconomy, EconomyProjection.HashWithout(live, TestConfigs.Sim()));   // ADR-056 control (first)
         Assert.Equal(S1cTurn300, WorldHash.ComputeHex(live));
-        ResearchReserveLayoutAttributionTests.LayoutAlone(live, ResearchReserveLayoutAttributionTests.V36AiTurn300, S1cTurn300);   // ADR-051 (v37)
+        // ADR-054 (v38): the live world now moves by VALUE (ResearchPopulations rows, per-turn CP), so the v37 layout link is
+        // asserted on its switch-off twin: Adr054AttributionTests.AiWorldSeed42Turn300_… (LayoutAlone with V36AiTurn300).
+        Assert.True(live.ResearchPopulations.Count > 0);
         // ADR-043 (2026-10-22) CAUSE BLOCK: the live world now carries Civics Points accounts and the AI's civics lane
         // (behaviour, not layout), so the batch-3 cylinder-alone link is asserted on the pre-CP live world instead:
         // ReservationsLayoutAttributionTests.AiWorldSeed42Turn300_MovedForTheV34LayoutAlone (SchemaProjection.V32 of the
@@ -264,7 +290,7 @@ public class AiFoundingAttributionTests
         }
         Assert.Equal(DiscoveryLayoutAttributionTests.PreM6AiTurn300, WorldHash.ComputeHex(w));
         ResearchReserveLayoutAttributionTests.LayoutAlone(w, ResearchReserveLayoutAttributionTests.V36PreM6AiTurn300,
-            DiscoveryLayoutAttributionTests.PreM6AiTurn300);   // ADR-051 (v37)
+            Adr054AttributionTests.V37PreM6AiTurn300);   // ADR-051 (v37); ADR-054 (v38): through the v37 projection
         Assert.Equal(CivicsPointsAttributionTests.V34AiTurn300, SchemaProjection.V34(w));
         Assert.Equal(S1cTurn300AtV32, SchemaProjection.V32(w));
         Assert.NotEqual(CivicsPointsAttributionTests.V34AiTurn300, S1cTurn300);

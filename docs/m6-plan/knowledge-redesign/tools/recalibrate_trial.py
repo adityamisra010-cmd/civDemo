@@ -19,8 +19,16 @@ Two guards, added after pass 1 (research-cost-pass/pacing-recalibration.md §2):
                  bought only after every cheaper one, so raising the Age-7 civics scale delays Age 6 too (pass 3:
                  caliphate 277 turns after the rest of Age 6 in seed 2). Frozen residuals are reported, not chased.
 
+  --pincer-only  (ADR-054 per-turn CP recalibration, 2026-10-27) the TARGET term is dropped and each non-frozen scale
+                 is moved by the FULL pincer toward the OTHER tree's completion turn (geometric mean over the seeds of
+                 inc(t_other) / inc(t_own), damped, bounded by --max-step). For a change that alters ONE lane's point flow
+                 (per-turn CP) with the other tree's scales frozen: the frozen tree keeps its calibrated pace (its target
+                 residuals are what they were) and the changed lane is re-aligned to it, so the two trees again finish each
+                 Age together. The standard (half-pincer + target) step would pull the changed lane toward the targets
+                 instead and open the pincer the frozen tree cannot close.
+
 Usage: python3 -I tools/recalibrate_trial.py <run-dir> <label> <overlay.json> [--damp 0.7] [--max-step 1.5]
-       [--freeze 1] [--write]
+       [--freeze 1] [--pincer-only] [--write]
 """
 import csv
 import json
@@ -69,6 +77,7 @@ def main(argv):
             frozen.add((a.split(":")[0], int(a.split(":")[1])))
         elif a:
             frozen |= {("technology", int(a)), ("civics", int(a))}
+    pincer_only = "--pincer-only" in argv
     seeds = {s: load(run_dir, label, s) for s in SEEDS}
     turns = min(len(c["rp"]) - 1 for _, c in seeds.values())
     ov = json.load(open(overlay_path, encoding="utf-8"))
@@ -95,7 +104,23 @@ def main(argv):
             rt = min(r_target)
             rp = math.exp(sum(math.log(q) for q in r_pincer) / len(r_pincer)) if r_pincer else 1.0
             old = pace[tree][x - 1]
-            step = min(max(rt ** damp * rp, 1.0 / max_step), max_step)
+            if pincer_only:
+                # the full pincer: inc(t_other) / inc(t_own) = (inc(t_mid) / inc(t_own))^2 approximately; computed exactly
+                full = []
+                for s in SEEDS:
+                    done, series = seeds[s]
+                    ser = series[col]
+                    t_own = done[tree].get(x, -1)
+                    t_other = done["civics" if tree == "technology" else "technology"].get(x, -1)
+                    if t_own < 0 or t_other < 0:
+                        continue
+                    t0 = done[tree].get(x - 1, 0) if x > 1 else 0
+                    base = cum(ser, max(t0, 0))
+                    full.append(max(cum(ser, t_other) - base, 1e-9) / max(cum(ser, t_own) - base, 1e-9))
+                rp = math.exp(sum(math.log(q) for q in full) / len(full)) if full else 1.0
+                step = min(max(rp ** damp, 1.0 / max_step), max_step)
+            else:
+                step = min(max(rt ** damp * rp, 1.0 / max_step), max_step)
             new = old if (tree, x) in frozen else round(min(max(old * step, 1e-6), 16.0), 6)
             pace[tree][x - 1] = new
             obs = " ".join(f"{seeds[s][0][tree].get(x, -1):5d}" for s in SEEDS)

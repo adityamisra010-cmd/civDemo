@@ -416,7 +416,7 @@ public static class SystemCatalog
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ResearchTables>(
                 prev, new ResearchTables(next.ResearchTargets, next.ResearchProgress,
                     next.ResearchCompleted, next.ResearchEurekas, next.ResearchCredits, next.CivicsPoints,
-                    next.ResearchLevels, next.ResearchReserves),
+                    next.ResearchLevels, next.ResearchReserves, next.ResearchPopulations),
                 rng, ResearchSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
     }
 
@@ -502,6 +502,28 @@ public static class SystemCatalog
             Reservations.Enabled(cfg) ? [Systems.Construction.ConstructionSystem.Name] : null);
     }
 
+    /// <summary>ADR-055 (SystemId 30): recruitment, formation personnel and upkeep, re-equipment and disbandment. SOLE OWNER of
+    /// FormationPersonnel, Reequips, ReequipEscrow and ReequipLog (schema v39 §70–§73). SANCTIONED SHARED TABLE MilitaryUnits,
+    /// split by field and pipeline order (agetransition → military): AgeTransitionSystem rewrites Family and Identity of
+    /// existing rows at an Age transition; MilitarySystem APPENDS rows (recruitment), REMOVES rows (disbandment) and rewrites
+    /// Family, Identity and Experience at a re-equipment's completion — after the modernization of the same step, as §6.6
+    /// rules. The EIGHTH holder of the GoodStocks share: Ledger.Flow SINKS (reasons Recruitment, FormationUpkeep, Reequipment)
+    /// drawn through EmpireStockpile beyond construction's set-asides, and Ledger.TRANSFERS into and out of its escrow rows;
+    /// never a source, no remainder field. A holder of the Buckets share: Ledger.TRANSFERS of adults between buckets and its
+    /// personnel rows (recruitment, a re-equipment's strength difference, disbandment); it touches no remainder field. Like
+    /// discovery it is handed construction's NEXT ConstructionHolds READ-ONLY — a declared same-step edge whenever the hold
+    /// rule applies. Inert with sim.json military off.</summary>
+    public static SystemRegistration Military(SimConfig cfg)
+    {
+        var system = new Systems.Military.MilitarySystem(cfg);
+        return new SystemRegistration(Systems.Military.MilitarySystem.WellKnownId, Systems.Military.MilitarySystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Military.MilitaryTables>(
+                prev, new Systems.Military.MilitaryTables(next.MilitaryUnits, next.FormationPersonnel, next.Reequips,
+                    next.ReequipEscrow, next.ReequipLog, next.Buckets, next.GoodStocks, next.ConstructionHolds),
+                rng, Systems.Military.MilitarySystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))),
+            Reservations.Enabled(cfg) ? [Systems.Construction.ConstructionSystem.Name] : null);
+    }
+
     /// <summary>
     /// All systems that exist at the current milestone — M1 production systems
     /// first, retired T0.x toys last (still registered: the toy preset and the
@@ -510,6 +532,6 @@ public static class SystemCatalog
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Disaster(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
          Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Discovery(cfg), Revolt(cfg), Governance(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
-         Research(cfg), AgeEligibility(cfg), AgeTransition(cfg), RoadDevelopment(cfg), Institutions(cfg),
+         Research(cfg), AgeEligibility(cfg), AgeTransition(cfg), Military(cfg), RoadDevelopment(cfg), Institutions(cfg),
          Weather(), Growth(), Trade()];
 }

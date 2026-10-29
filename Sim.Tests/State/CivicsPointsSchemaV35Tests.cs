@@ -39,7 +39,7 @@ public class CivicsPointsSchemaV35Tests
     [Fact]
     public void SchemaV35_PopulatedCivicsPoints_ExpectedLengthBitExactRoundTripAndHashEquality()
     {
-        Assert.Equal(37, CanonicalSchema.Version);   // v36 (ADR-049 ResearchLevels): the schema bump alone (v37: ADR-051 ResearchReserves — the schema bump alone)
+        Assert.Equal(39, CanonicalSchema.Version);   // v36 (ADR-049 ResearchLevels): the schema bump alone (v37: ADR-051 ResearchReserves — the schema bump alone) (v39: ADR-055 the four military tables — the schema bump alone) (v38: ADR-054 ResearchPopulations — the schema bump alone)
         WorldState world = Populated();
         Assert.Null(ResearchQuery.CivicsPointsInvariantViolation(world.CivicsPoints));   // a table the rule could write
         byte[] bytes = SchemaProjection.Serialize(world);
@@ -49,7 +49,7 @@ public class CivicsPointsSchemaV35Tests
         // Section 62 was the LAST block: its count prefix, then each row as Polity, Balance, Generated, Spent (little-endian).
         // M6 merge (2026-10-22) CAUSE BLOCK: Track EX's four discovery tables (sections 63–66, EMPTY here) follow it — every
         // tail offset moves by their four 4-byte zero count prefixes (`ex`). The layout alone.
-        const int ex = 4 * 4 + 4 + 4;   // + ADR-049's empty section-67 prefix (v36) + ADR-051's empty section-68 prefix (v37)
+        const int ex = 4 * 4 + 4 + 4 + 4 + 16;   // + ADR-049's empty section-67 prefix (v36) + ADR-051's empty section-68 prefix (v37) + ADR-054's section-69 (v38) + ADR-055's sections 70–73 (v39)
         for (int i = bytes.Length - ex; i < bytes.Length; i++) Assert.Equal(0, bytes[i]);
         int start = bytes.Length - ex - 4 - 4 * 28;
         Assert.Equal(4, BitConverter.ToInt32(bytes, start));
@@ -102,7 +102,7 @@ public class CivicsPointsSchemaV35Tests
         byte[] v35 = Saved(w);
         // header (8 magic + 4 version + 8 seed + 8 turn) | stream | 4-byte topology trailer
         // M6 merge: drop the five empty v35 count prefixes (sections 62–66, 20 bytes) before the trailer.
-        byte[] v34 = [.. v35[..^32], .. v35[^4..]];   // v36 (ADR-049): and section 67's empty prefix; v37 (ADR-051): and 68's
+        byte[] v34 = [.. v35[..^52], .. v35[^4..]];   // v36 (ADR-049): and section 67's empty prefix; v37 (ADR-051): and 68's; v38 (ADR-054): and 69's
         BitConverter.GetBytes(34).CopyTo(v34, 8);
         WorldState loaded = Snapshot.Load(new MemoryStream(v34));
         Assert.Equal(0, loaded.CivicsPoints.Count);
@@ -110,8 +110,8 @@ public class CivicsPointsSchemaV35Tests
         byte[] v34Stream = v34[(8 + 4 + 8 + 8)..^4];
         Assert.Equal(Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(v34Stream)), SchemaProjection.V34(loaded));
         Assert.Equal(SchemaProjection.V34(loaded), WorldHash.ComputeHexAsSchema(loaded, 34));
-        Assert.Equal(7 * 4, CanonicalSchema.BytesAppendedSince(loaded, 34));                 // M6 merge: sections 62–66; v36: 67; v37: 68
-        Assert.Equal(7 * 4 + 4 + 16, CanonicalSchema.BytesAppendedSince(loaded, 33));       // + section 61 with its one 16-byte row
+        Assert.Equal(12 * 4, CanonicalSchema.BytesAppendedSince(loaded, 34));   // M6 merge: sections 62–66; v36: 67; v37: 68; v38: 69
+        Assert.Equal(12 * 4 + 4 + 16, CanonicalSchema.BytesAppendedSince(loaded, 33));   // + section 61 with its one 16-byte row
         Assert.NotNull(SaveFiles.MigrationNote("x", 34));
         Assert.Contains("CivicsPoints (every Civics Points bank starts at zero)", SaveFiles.MigrationNote("x", 34));
     }
@@ -119,26 +119,26 @@ public class CivicsPointsSchemaV35Tests
     [Fact]
     public void TheReadableSet_Is32_33_34_35_ThroughOneHelper_AndEveryReaderAgrees()
     {
-        foreach (int v in new[] { 32, 33, 34, 35, 36, 37 }) Assert.True(CanonicalSchema.IsReadable(v));   // v36: ADR-049; v37: ADR-051
-        foreach (int v in new[] { 31, 38, 0, 27, -1, int.MaxValue }) Assert.False(CanonicalSchema.IsReadable(v));
-        foreach (int v in new[] { 31, 38, 0 })
+        foreach (int v in new[] { 32, 33, 34, 35, 36, 37, 38, 39 }) Assert.True(CanonicalSchema.IsReadable(v));   // v36: ADR-049; v37: ADR-051; v38: ADR-054; v39: ADR-055
+        foreach (int v in new[] { 31, 40, 0, 27, -1, int.MaxValue }) Assert.False(CanonicalSchema.IsReadable(v));
+        foreach (int v in new[] { 31, 40, 0 })
             Assert.Throws<ArgumentOutOfRangeException>(() => CanonicalSchema.Read(new BinaryReader(new MemoryStream(new byte[64])), v, out _));
-        Assert.Equal(SnapshotDiff.Layout.Length - 2, SnapshotDiff.LayoutFor(35).Length);   // v36 (ADR-049): section 67; v37 (ADR-051): 68
-        Assert.Equal("CivicsPoints", SnapshotDiff.Layout[^7].Name);          // M6 merge: sections 63–66 follow it; v36: and 67; v37: and 68
+        Assert.Equal(SnapshotDiff.Layout.Length - 7, SnapshotDiff.LayoutFor(35).Length);   // v36 (ADR-049): section 67; v37 (ADR-051): 68; v38 (ADR-054): 69
+        Assert.Equal("CivicsPoints", SnapshotDiff.Layout[^12].Name);   // M6 merge: sections 63–66 follow it; v36: and 67; v37: and 68; v38: and 69
         Assert.Equal("SettlementSurveys", SnapshotDiff.LayoutFor(35)[^1].Name);
         Assert.Equal("ConstructionHolds", SnapshotDiff.LayoutFor(34)[^1].Name);
         Assert.Equal("ResourceAllocations", SnapshotDiff.LayoutFor(33)[^1].Name);
         Assert.Equal("TaxGrievance", SnapshotDiff.LayoutFor(32)[^1].Name);
-        Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(38));
-        foreach (int v in new[] { 32, 33, 34, 35, 36 }) Assert.NotNull(SaveFiles.MigrationNote("x", v));
-        foreach (int v in new[] { 37, 31, 38 }) Assert.Null(SaveFiles.MigrationNote("x", v));
+        Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(40));
+        foreach (int v in new[] { 32, 33, 34, 35, 36, 37, 38 }) Assert.NotNull(SaveFiles.MigrationNote("x", v));
+        foreach (int v in new[] { 39, 31, 40 }) Assert.Null(SaveFiles.MigrationNote("x", v));
 
         // A populated v35 stream walks to its end with the CP table's row count read back.
         byte[] bytes = SchemaProjection.Serialize(Populated());
         SnapshotDiff.Result self = SnapshotDiff.CompareStreams(bytes, CanonicalSchema.Version, bytes, CanonicalSchema.Version);
         Assert.True(self.Identical);
         Assert.Equal(bytes.Length, self.BytesWalkedA);
-        Assert.Equal(("CivicsPoints", 4), (self.Tables[^7].Table, self.Tables[^7].RowsA));   // M6 merge: 63–66 follow it; v36: 67; v37: 68
+        Assert.Equal(("CivicsPoints", 4), (self.Tables[^12].Table, self.Tables[^12].RowsA));   // M6 merge: 63–66 follow it; v36: 67; v37: 68; v38: 69
     }
 
     private static string Refusal(params CivicsPointsRow[] rows)

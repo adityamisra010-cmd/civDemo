@@ -40,10 +40,12 @@ public sealed record AgeTransitionTables(
 /// WHY ONE SYSTEM OWNS BOTH AGE AND FORMATIONS: modernization is a consequence of the Age
 /// transition the Director ruled into the same instant (ruling 13: the click "triggers the
 /// appropriate automatic unit modernization"). Splitting it into a second system that read
-/// PREV AgeStates would modernize one turn LATE. No other writer of MilitaryUnits exists;
-/// when recruitment or movement arrives its ownership is re-split under a reviewed record
-/// (the SystemCatalog shared-stock precedent). Formations hold no people and no goods, so the
-/// free conversion moves no conserved stock (law 1; CR-017 §4).
+/// PREV AgeStates would modernize one turn LATE. ADR-055 re-split MilitaryUnits under a reviewed
+/// record (SystemCatalog: a SANCTIONED SHARED TABLE): this system rewrites only Family and Identity
+/// of existing rows; MilitarySystem, after it in the pipeline, appends (recruitment), removes
+/// (disbandment) and completes re-equipments. A formation's people live in FormationPersonnel
+/// (MilitarySystem's) and are untouched here, so the free conversion still moves no conserved stock
+/// (law 1; CR-017 §4).
 ///
 /// Irreversible (ledger §10.1): an order can only name current + 1. No dt (a discrete event,
 /// law 3 does not apply); no calendar input (law 4); no RNG; no Ledger. Inert without Age

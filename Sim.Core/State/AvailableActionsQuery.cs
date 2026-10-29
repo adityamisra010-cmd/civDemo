@@ -77,6 +77,8 @@ public enum ActionTargetKind
     Route = 6,
     /// <summary>A military formation (Id = MilitaryUnitRow.Id).</summary>
     Formation = 7,
+    /// <summary>ADR-055: a unit identity to recruit or re-equip to (Id = its unit-families.json key).</summary>
+    UnitIdentity = 8,
 }
 
 /// <summary>
@@ -177,7 +179,10 @@ public sealed record ActionQueryContext(IReadOnlyList<OrderRecord>? Queued = nul
 /// <item><b>Roads</b> (OrderKind 8) — <see cref="RoadDevelopmentQuery.Plan(IReadOnlyWorldState, ResearchContent, RoadsConfig, GoodsConfig, PolityId, double)"/>,
 ///   the selection RoadDevelopmentSystem applies (transport is FROZEN: read only).</item>
 /// <item><b>Military</b> (Standing) — <see cref="MilitaryQuery"/>: the roster, its family lines and Age
-///   identities. No military order exists, so none is offered.</item>
+///   identities. ADR-055 (Order): per controlled settlement, Recruit (OrderKind 16) with every KNOWN recruitable identity as a
+///   target and <see cref="RecruitmentQuery.CheckRecruit"/>'s refusal as its blocker; per own formation, Re-equip (OrderKind 17)
+///   with every known identity of its composition as a target (<see cref="RecruitmentQuery.CheckReequip"/>'s refusal —
+///   OD-2 included — as its blocker), Cancel re-equipment while one is pending, and Disband (OrderKind 18).</item>
 /// <item><b>Governance</b> (OrderKind 5) — the tax edict, iff the predicate GovernanceSystem applies holds
 ///   (<see cref="Governance.CanLevyTax"/>: the Taxation knowledge AND the minimum Age, H2; <see cref="Governance"/>).</item>
 /// <item><b>Institutions</b> (OrderKind 4, ADR-033 D6) — found a specialized university of type T at settlement
@@ -219,6 +224,7 @@ public static class AvailableActionsQuery
         Construction(world, cfg, polity, context, actions);
         Roads(world, cfg, polity, context, actions);
         Military(world, cfg, polity, actions);
+        Recruitment(world, cfg, polity, context, actions);
         Governance(world, cfg, polity, actions);
         Institutions(world, cfg, polity, context, actions);
         Standing(cfg, actions);
@@ -604,7 +610,129 @@ public static class AvailableActionsQuery
         into.Add(new ActionDescriptor(
             ActionDomain.Military, 1, ActionKind.Standing, "military.basic-fighting", "Basic fighting", null,
             targets.MoveToImmutable(), null, ActionProvenance.None,
-            $"{Inv(units.Length)} formation(s); recruitment, movement and battle are not yet simulated"));
+            RecruitmentQuery.Enabled(cfg)
+                ? $"{Inv(units.Length)} formation(s); movement and battle are not yet simulated"
+                : $"{Inv(units.Length)} formation(s); recruitment, movement and battle are not yet simulated"));
+    }
+
+    // ------------------------------------------------------------------ Recruitment and re-equipment (ADR-055, Order)
+
+    /// <summary>The descriptor id spaces of the ADR-055 military orders (domain Military; Id 1 is Basic fighting).</summary>
+    public const long RecruitIdBase = 1L << 32, ReequipIdBase = 2L << 32, CancelReequipIdBase = 3L << 32, DisbandIdBase = 4L << 32;
+
+    /// <summary>
+    /// ADR-055 — THE MILITARY ORDERS, judged by THE predicates MilitarySystem applies on the world's own published stocks less
+    /// its set-asides (one predicate, every caller):
+    /// <list type="bullet">
+    /// <item>RECRUIT (OrderKind 16; Id = <see cref="RecruitIdBase"/> + settlement): per settlement the issuer controls, every
+    ///   identity the issuer KNOWS (§6.5 item 1; an unknown identity is a locked future action and is not listed) that carries
+    ///   recruitment data, in content order, each target's blocker the refusal reason (a planned good names its EC packet; a
+    ///   superseded mainline names the identity that supersedes it), or "already ordered this turn".</item>
+    /// <item>RE-EQUIP (OrderKind 17; Id = <see cref="ReequipIdBase"/> + formation): per formation of the issuer's that is not
+    ///   re-equipping, every known identity of its composition other than its own, each with <see cref="RecruitmentQuery.CheckReequip"/>'s
+    ///   refusal (the transition policy's OD-2 refusal included) as its blocker.</item>
+    /// <item>CANCEL RE-EQUIPMENT (OrderKind 17, Amount 0; Id = <see cref="CancelReequipIdBase"/> + formation) while one is pending.</item>
+    /// <item>DISBAND (OrderKind 18; Id = <see cref="DisbandIdBase"/> + formation) for a formation stationed at a settlement.</item>
+    /// </list>
+    /// Nothing is listed with the military layer off. The Age is not read.
+    /// </summary>
+    public static void Recruitment(
+        IReadOnlyWorldState world, SimConfig cfg, PolityId polity, ActionQueryContext context, List<ActionDescriptor> into)
+    {
+        if (!RecruitmentQuery.Enabled(cfg)) return;
+        UnitFamilyContent families = cfg.UnitFamilies!;
+        MilitaryView view = RecruitmentQuery.ViewOf(world);
+        bool[]? completed = cfg.Research is { } research ? ResearchQuery.CompletedMask(world, research, polity) : null;
+
+        for (int s = 0; s < world.Settlements.Count; s++)
+        {
+            SettlementId id = world.Settlements[s].Id;
+            if (!EmpireQuery.ControlsSettlement(world, polity, id)) continue;
+            var targets = ImmutableArray.CreateBuilder<ActionTarget>();
+            bool any = false;
+            for (int f = 0; f < families.Families.Count; f++)
+            {
+                UnitFamily family = families.Families[f];
+                for (int i = 0; i < family.Line.Count; i++)
+                {
+                    UnitIdentity identity = family.Line[i];
+                    if (identity.Recruitment is null || !RecruitmentQuery.KnowledgeMet(cfg.Research, completed, identity)) continue;
+                    bool queued = context.Queued is { } q && QueuedRecruit(q, polity, id, identity.Key);
+                    RecruitCheck check = RecruitmentQuery.CheckRecruit(world, cfg, view, polity, id, identity.Key, completed);
+                    string? blocker = queued ? "already ordered this turn" : check.Ok ? null : check.Reason;
+                    any |= blocker is null;
+                    targets.Add(new ActionTarget(ActionTargetKind.UnitIdentity, identity.Key, identity.Name,
+                        Detail: family.Name + " · " + BillText(identity.Recruitment), Blocker: blocker));
+                }
+            }
+            if (targets.Count == 0) continue;
+            into.Add(new ActionDescriptor(
+                ActionDomain.Military, RecruitIdBase + id.Value, ActionKind.Order, $"military.recruit.{Inv(id.Value)}",
+                "Recruit a formation", OrderKind.RecruitFormation, targets.ToImmutable(),
+                any ? null : "no identity can be recruited here now", ActionProvenance.None,
+                "at settlement " + Inv(id.Value)));
+        }
+
+        MilitaryUnitRow[] units = MilitaryQuery.Units(world, polity);
+        foreach (MilitaryUnitRow u in units)
+        {
+            if (RecruitmentQuery.PendingReequip(world, u.Id) is { } pending)
+            {
+                string to = families.IdentityByKey(pending.TargetIdentity)?.Name ?? "identity " + Inv(pending.TargetIdentity);
+                into.Add(new ActionDescriptor(
+                    ActionDomain.Military, CancelReequipIdBase + u.Id, ActionKind.Order, $"military.reequip-cancel.{Inv(u.Id)}",
+                    "Cancel re-equipment", OrderKind.ReequipFormation, [new ActionTarget(ActionTargetKind.Formation, u.Id, "Formation " + Inv(u.Id))],
+                    null, ActionProvenance.None,
+                    $"re-equipping to {to}: {Inv(pending.ElapsedDays)} of {Inv(pending.RequiredDays)} days; the escrowed materials return, the work done is lost"));
+            }
+            else if (u.Location.Value >= 0 && families.IdentityByKey(u.Identity) is { } source)
+            {
+                var targets = ImmutableArray.CreateBuilder<ActionTarget>();
+                for (int f = 0; f < families.Families.Count; f++)
+                {
+                    UnitFamily family = families.Families[f];
+                    UnitFamily? from = families.FamilyByKey(source.FamilyKey);
+                    if (from is null || family.Composition != from.Composition) continue;
+                    for (int i = 0; i < family.Line.Count; i++)
+                    {
+                        UnitIdentity target = family.Line[i];
+                        if (target.Key == source.Key || target.Recruitment is null
+                            || !RecruitmentQuery.KnowledgeMet(cfg.Research, completed, target)) continue;
+                        RecruitCheck check = RecruitmentQuery.CheckReequip(world, cfg, view, polity, u.Id, target.Key, out _, completed);
+                        targets.Add(new ActionTarget(ActionTargetKind.UnitIdentity, target.Key, target.Name,
+                            Detail: family.Name + " · " + BillText(target.Recruitment), Blocker: check.Ok ? null : check.Reason));
+                    }
+                }
+                if (targets.Count > 0)
+                    into.Add(new ActionDescriptor(
+                        ActionDomain.Military, ReequipIdBase + u.Id, ActionKind.Order, $"military.reequip.{Inv(u.Id)}",
+                        "Re-equip " + source.Name, OrderKind.ReequipFormation, targets.ToImmutable(), null, ActionProvenance.None,
+                        "formation " + Inv(u.Id) + "; another role, or a branch of its own line (never a same-line catch-up: OD-2)"));
+            }
+            if (u.Location.Value >= 0)
+                into.Add(new ActionDescriptor(
+                    ActionDomain.Military, DisbandIdBase + u.Id, ActionKind.Order, $"military.disband.{Inv(u.Id)}",
+                    "Disband", OrderKind.DisbandFormation, [new ActionTarget(ActionTargetKind.Formation, u.Id, "Formation " + Inv(u.Id))],
+                    null, ActionProvenance.None,
+                    Inv(RecruitmentQuery.PersonnelOf(world.FormationPersonnel, u.Id)) + " people return to settlement " + Inv(u.Location.Value)));
+        }
+    }
+
+    /// <summary>"20 adults; 10 bronze, 5 timber" — an identity's recruitment bill.</summary>
+    public static string BillText(UnitRecruitment r)
+    {
+        var parts = new List<string>(r.Inputs.Count);
+        for (int i = 0; i < r.Inputs.Count; i++) parts.Add(Inv(r.Inputs[i].Qty) + " " + r.Inputs[i].Good);
+        string bill = Inv(r.Personnel) + " adults" + (parts.Count > 0 ? "; " + string.Join(", ", parts) : "");
+        return r.Building is { } b ? bill + "; at a " + b : bill;
+    }
+
+    private static bool QueuedRecruit(IReadOnlyList<OrderRecord> queued, PolityId polity, SettlementId settlement, int identity)
+    {
+        for (int i = 0; i < queued.Count; i++)
+            if (queued[i].Kind == OrderKind.RecruitFormation && queued[i].ActorId == polity.Value
+                && queued[i].TargetId == settlement.Value && queued[i].Amount == identity) return true;
+        return false;
     }
 
     // ------------------------------------------------------------------ extension points

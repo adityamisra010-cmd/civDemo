@@ -28,12 +28,22 @@ Read `docs/current-state.md` first, then **verify its claims against Git state a
 - Never write or modify specs beyond the current milestone + 1. Never implement ahead of the ratified spec.
 - Every milestone spec from M4 onward carries the four S8 §4.1 items — FOUNDATIONS AUDIT as packet one, dimensional declaration, corridor independence, coupling map (`docs/spine-s8-governance-freeze.md` §4.1, ADR-014). If you are writing a milestone spec, §4.1 is mandatory reading first.
 - Tuning data files and `TUNE` parameters is always allowed.
+- **Entity proposals:** a unit family is a controllable formation only (D-065 R8). Classify every new entity A–E per `docs/m7-plan/unit-catalogue-and-progression.md` §4.5 before designing it.
 
 ## Workflow per session
 - Execute ONE task packet. Do not exceed its scope, even to "help."
 - Definition of done = the packet's stated acceptance criteria. Your own unit tests are additive, never a substitute.
 - Touched a contract? Write an ADR (`docs/adr/adr-NNN-title.md`). The kernel is frozen after M0 acceptance without director sign-off.
-- Before finishing: run the banned-constructs grep, `dotnet build`, `dotnet test`; if you touched hot paths, `sim bench`. Show the results, then a one-paragraph summary of what now exists.
+- **Validation is tiered and change-aware.** The canonical rules are in `docs/validation-policy.md`. The entry point is `scripts/validate.sh {targeted|integration|full}`; add `--plan` to see what it selects and why.
+  - Tier 1 (targeted): once per batch of edits, not after every edit. It skips the tests recorded as slow (≥15 s, `scripts/test-durations.json`); those run at Tier 2 and 3. Wording-only changes need no tests.
+  - Tier 2 (integration): when a feature is coherent.
+  - Tier 3 (full): at milestone exit, before any merge or release, and whenever the kernel, schema, persistence, `sim.json` or worldgen change. Never rely on targeted tests alone for those.
+  - Run one full suite at a time per machine. If you touched hot paths, add `--heavy` (bench) at Tier 3.
+- Before finishing, report:
+  - what ran (tier, command, counts);
+  - what was selected but NOT RUN, and why;
+  - what you deferred, and to which checkpoint.
+  The run's `summary.md` table is enough. A skipped, deferred or NOT RUN check is never reported as passing; a cached pass is labelled cached. Then give a one-paragraph summary of what now exists.
 - Any ordering or argmax over double-valued scores uses a composite key with a stable integer tie-break (score, id) — and ships a tie-dense test proving it.
 - Every new serialized row type ships a POPULATED-table test: exact ExpectedLength, bit-exact round-trip, hash equality. Empty-table coverage proves nothing (T1.1/T1.3 precedent).
 - Replay equality proves reproducibility, not semantics. Every order-delivery semantic (when an order applies relative to when it was issued) gets its own turn-exact pin — live-vs-replay comparison alone cannot see stamping drift (T1.9 precedent).

@@ -885,6 +885,17 @@ public record struct ResearchLevelRow(PolityId Polity, ResearchNodeId Node, int 
 public record struct ResearchReserveRow(PolityId Polity, long ReserveMilli);
 
 /// <summary>
+/// ADR-054 (schema v38 section 69; the Director's binding rule of 2026-10-27, behind research.json
+/// <c>tuning.populationAverageTurns</c> = 2) — ONE KNOWLEDGE HOLDER'S POPULATION AT THE START OF ITS LAST RESEARCH STEP: the
+/// earlier end of the trapezoid the Research Point and Civics Point bases read (ResearchQuery.KnowledgePopulation =
+/// (this + the population at this turn's start) / 2). Rebuilt by ResearchSystem every step — one row per holder the step
+/// processed (a roster Empire, or a city-state's reserved local key), strictly ascending Polity, Population ≥ 0 — so a
+/// holder absent from the previous step (founded, released, or a save from before v38) has no row and its first step reads
+/// its current population. A people count, but an OBSERVATION, not a stock: nothing is transferred (no Ledger).
+/// </summary>
+public record struct ResearchPopulationRow(PolityId Polity, long Population);
+
+/// <summary>
 /// M4-D — a completed structure, counted per (settlement, project).
 ///
 /// NOT a Conserved stock, and that is a considered choice rather than an
@@ -1066,12 +1077,13 @@ public record struct AgeTransitionRow(
 /// IDENTITY (unit-families.json keys), location (the settlement it is stationed at,
 /// or -1 in the field) and continuous position (terrain pixel coordinates, the
 /// D-047 ruling 17 x/y frame), experience and army membership (<c>Army</c> 0 = none).
-/// NOT A CONSERVED CARRIER: a formation holds no people and no goods (the
-/// population stays in Buckets; equipment is declarative), so free modernization
-/// conjures nothing (law 1; CR-017 §4). Owned by AgeTransitionSystem, the only
-/// writer, which converts formations on Age transition (ruling 18). Founded by
-/// worldgen (baseline.basic_military). Recruitment, movement, supply and combat are
-/// later milestones (D-011).
+/// NOT A CONSERVED CARRIER ITSELF: a formation's people (ADR-055) live in its companion
+/// <see cref="FormationPersonnelRow"/> (schema v39 §70 — kept apart so this row's v28 layout, and every older
+/// stream's byte prefix, is unchanged); equipment is declarative, so free modernization conjures nothing (law 1;
+/// CR-017 §4). A SANCTIONED SHARED TABLE (ADR-055, SystemCatalog's record): AgeTransitionSystem rewrites Family and
+/// Identity of existing rows at an Age transition (ruling 18); MilitarySystem, after it in the pipeline, APPENDS rows
+/// (recruitment), REMOVES rows (disbandment) and rewrites Family, Identity and Experience at a re-equipment's
+/// completion. Founded by worldgen (baseline.basic_military). Movement, supply and combat are later milestones (D-011).
 /// </summary>
 public record struct MilitaryUnitRow(
     int Id, PolityId Owner, int Family, int Identity, SettlementId Location,
@@ -1088,6 +1100,78 @@ public record struct MilitaryUnitRow(
 public record struct UnitConversionRow(
     long Turn, int Unit, PolityId Owner, int FromFamily, int FromIdentity, int ToFamily, int ToIdentity,
     int FromAge, int ToAge, int Outcome);
+
+/// <summary>
+/// ADR-055 (schema v39 §70; unit charter §6.1, §6.5; Q7) — THE PEOPLE OF ONE FORMATION: a CONSERVED Population carrier,
+/// like <see cref="NotableRow"/>. <c>Count</c> adults left their settlement's buckets by Ledger.Transfer when the formation
+/// was raised (recruitment, or the founding warband's draw at founding) and return to buckets by Ledger.Transfer when it is
+/// disbanded; ConservationAuditor counts them in the population total. <c>UpkeepRemainder</c> is the D-004 sub-unit
+/// carry of the formation's food upkeep (a per-person-year rate × dtYears, MilitarySystem); <c>UnfedUnits</c> the
+/// cumulative grain the purse could not supply (no consumer yet: supply attrition is the M7.4 slice). One row per manned
+/// formation, strictly ascending <c>Unit</c>; a formation without a row is a token that holds no one (an ADR-031 world, or
+/// the military switch off). Owned by MilitarySystem.
+/// </summary>
+public struct FormationPersonnelRow(int unit, Conserved count, double upkeepRemainder, long unfedUnits)
+    : IEquatable<FormationPersonnelRow>
+{
+    public int Unit = unit;
+
+    /// <summary>The PEOPLE. A FIELD, not a property: the Ledger moves it by <c>ref</c>.</summary>
+    public Conserved Count = count;
+    public double UpkeepRemainder = upkeepRemainder;
+    public long UnfedUnits = unfedUnits;
+
+    public readonly bool Equals(FormationPersonnelRow other) =>
+        Unit == other.Unit && Count == other.Count && UpkeepRemainder.Equals(other.UpkeepRemainder) && UnfedUnits == other.UnfedUnits;
+    public override readonly bool Equals(object? obj) => obj is FormationPersonnelRow other && Equals(other);
+    public override readonly int GetHashCode() => Unit; // gate:allow-gethashcode — equality plumbing, never logic input
+    public static bool operator ==(FormationPersonnelRow a, FormationPersonnelRow b) => a.Equals(b);
+    public static bool operator !=(FormationPersonnelRow a, FormationPersonnelRow b) => !a.Equals(b);
+}
+
+/// <summary>
+/// ADR-055 (schema v39 §71; unit charter §6.6, D-065 R1) — ONE PENDING RE-EQUIPMENT of a formation. Accepted (materials
+/// in escrow, the personnel difference moved) in the step of the order stamped <c>IssuedTurn</c>; the state of
+/// <c>AcceptedTurn</c> = IssuedTurn + 1 is the first that holds it. From the next step on it accrues <c>dtDays</c> of work
+/// per step into <c>ElapsedDays</c> (a duration in years × the year length — Law 3, integer so completion is exact) and
+/// completes in the first step whose accrual reaches <c>RequiredDays</c>. Until then the formation is its source identity
+/// (non-operational). <c>PersonnelDelta</c>: the adults drawn (&gt; 0) or returned (&lt; 0) at acceptance to match the
+/// target's strength. At most one row per formation, strictly ascending <c>Unit</c>. Owned by MilitarySystem.
+/// </summary>
+public record struct ReequipRow(
+    int Unit, PolityId Owner, int TargetFamily, int TargetIdentity, long IssuedTurn, long AcceptedTurn,
+    long RequiredDays, long ElapsedDays, long PersonnelDelta);
+
+/// <summary>
+/// ADR-055 (schema v39 §72) — the materials ONE pending re-equipment holds IN ESCROW: <c>Units</c> of good <c>Good</c>
+/// taken out of the empire stockpile by Ledger.Transfer at acceptance (so no other consumer can spend them — the D-055
+/// reservation made physical), sunk by Ledger.Flow (reason Reequipment) at completion, or transferred back to the
+/// formation's settlement on cancellation or disbandment. A CONSERVED goods carrier: ConservationAuditor counts it in the
+/// good's total. Strictly ascending (Unit, Good); Units &gt; 0 while the row exists. Owned by MilitarySystem.
+/// </summary>
+public struct ReequipEscrowRow(int unit, int good, Conserved units) : IEquatable<ReequipEscrowRow>
+{
+    public int Unit = unit;
+    public int Good = good;
+    public Conserved Units = units;
+
+    public readonly bool Equals(ReequipEscrowRow other) => Unit == other.Unit && Good == other.Good && Units == other.Units;
+    public override readonly bool Equals(object? obj) => obj is ReequipEscrowRow other && Equals(other);
+    public override readonly int GetHashCode() => Unit * 64 + Good; // gate:allow-gethashcode — equality plumbing, never logic input
+    public static bool operator ==(ReequipEscrowRow a, ReequipEscrowRow b) => a.Equals(b);
+    public static bool operator !=(ReequipEscrowRow a, ReequipEscrowRow b) => !a.Equals(b);
+}
+
+/// <summary>
+/// ADR-055 (schema v39 §73) — ONE RE-EQUIPMENT OUTCOME (Glass Box log, append-only), kept apart from
+/// <see cref="UnitConversionRow"/> so ADR-031's modernization log keeps its meaning. <c>Cause</c>: 1 completed (the formation
+/// became ToFamily/ToIdentity in the state of <c>Turn</c>), 2 cancelled by order, 3 ended by disbandment. From* is the
+/// formation's identity when the outcome was written (after any modernization of the same step). <c>PersonnelDelta</c> the
+/// adults drawn (&gt; 0) or returned (&lt; 0) at acceptance; the experience before and after. Owned by MilitarySystem.
+/// </summary>
+public record struct ReequipLogRow(
+    long Turn, int Unit, PolityId Owner, int FromFamily, int FromIdentity, int ToFamily, int ToIdentity, int Cause,
+    long PersonnelDelta, double ExperienceBefore, double ExperienceAfter);
 
 /// <summary>
 /// ADR-032 — ONE PHYSICAL INTER-SETTLEMENT TRANSPORT ROUTE (an edge of the built multigraph).
@@ -1351,6 +1435,22 @@ public interface IReadOnlyWorldState
 
     /// <summary>ADR-051 (v37 §68): each knowledge holder's technology-lane RP reserve — owned by ResearchSystem.</summary>
     IReadOnlyTable<ResearchReserveRow> ResearchReserves { get; }
+
+    /// <summary>ADR-054 (v38 §69): each knowledge holder's population at the start of its last research step — owned by
+    /// ResearchSystem.</summary>
+    IReadOnlyTable<ResearchPopulationRow> ResearchPopulations { get; }
+
+    /// <summary>ADR-055 (v39 §70): the people of each manned formation (a conserved Population carrier) — MilitarySystem.</summary>
+    IReadOnlyTable<FormationPersonnelRow> FormationPersonnel { get; }
+
+    /// <summary>ADR-055 (v39 §71): pending re-equipments — MilitarySystem.</summary>
+    IReadOnlyTable<ReequipRow> Reequips { get; }
+
+    /// <summary>ADR-055 (v39 §72): materials pending re-equipments hold in escrow (a conserved goods carrier) — MilitarySystem.</summary>
+    IReadOnlyTable<ReequipEscrowRow> ReequipEscrow { get; }
+
+    /// <summary>ADR-055 (v39 §73): the re-equipment log — MilitarySystem.</summary>
+    IReadOnlyTable<ReequipLogRow> ReequipLog { get; }
 }
 
 /// <summary>
@@ -1577,6 +1677,17 @@ public sealed class WorldState : IReadOnlyWorldState
     /// <summary>ADR-051 (v37 §68): each knowledge holder's technology-lane RP reserve — owned by ResearchSystem.</summary>
     public Table<ResearchReserveRow> ResearchReserves { get; }
 
+    /// <summary>ADR-054 (v38 §69): each knowledge holder's population at the start of its last research step — owned by
+    /// ResearchSystem.</summary>
+    public Table<ResearchPopulationRow> ResearchPopulations { get; }
+
+    /// <summary>ADR-055 (v39 §70–§73): formation personnel, pending re-equipments, their escrow and the re-equipment log —
+    /// owned by MilitarySystem.</summary>
+    public Table<FormationPersonnelRow> FormationPersonnel { get; }
+    public Table<ReequipRow> Reequips { get; }
+    public Table<ReequipEscrowRow> ReequipEscrow { get; }
+    public Table<ReequipLogRow> ReequipLog { get; }
+
     IReadOnlyTable<RegionRow> IReadOnlyWorldState.Regions => Regions;
     IReadOnlyTable<RngStreamRow> IReadOnlyWorldState.RngStreams => RngStreams;
     IReadOnlyTable<RainfallRow> IReadOnlyWorldState.Rainfall => Rainfall;
@@ -1645,6 +1756,11 @@ public sealed class WorldState : IReadOnlyWorldState
     IReadOnlyTable<SettlementSurveyRow> IReadOnlyWorldState.SettlementSurveys => SettlementSurveys;
     IReadOnlyTable<ResearchLevelRow> IReadOnlyWorldState.ResearchLevels => ResearchLevels;
     IReadOnlyTable<ResearchReserveRow> IReadOnlyWorldState.ResearchReserves => ResearchReserves;
+    IReadOnlyTable<ResearchPopulationRow> IReadOnlyWorldState.ResearchPopulations => ResearchPopulations;
+    IReadOnlyTable<FormationPersonnelRow> IReadOnlyWorldState.FormationPersonnel => FormationPersonnel;
+    IReadOnlyTable<ReequipRow> IReadOnlyWorldState.Reequips => Reequips;
+    IReadOnlyTable<ReequipEscrowRow> IReadOnlyWorldState.ReequipEscrow => ReequipEscrow;
+    IReadOnlyTable<ReequipLogRow> IReadOnlyWorldState.ReequipLog => ReequipLog;
 
     public WorldState(ulong seed = 0UL)
     {
@@ -1717,6 +1833,11 @@ public sealed class WorldState : IReadOnlyWorldState
         SettlementSurveys = new Table<SettlementSurveyRow>();
         ResearchLevels = new Table<ResearchLevelRow>();
         ResearchReserves = new Table<ResearchReserveRow>();
+        ResearchPopulations = new Table<ResearchPopulationRow>();
+        FormationPersonnel = new Table<FormationPersonnelRow>();
+        Reequips = new Table<ReequipRow>();
+        ReequipEscrow = new Table<ReequipEscrowRow>();
+        ReequipLog = new Table<ReequipLogRow>();
     }
 
     private WorldState(
@@ -1755,7 +1876,10 @@ public sealed class WorldState : IReadOnlyWorldState
         Table<ConstructionHoldRow> constructionHolds, Table<CivicsPointsRow> civicsPoints,
         Table<KnownExtentRow> knownExtents, Table<ExplorationRow> explorations,
         Table<SettlementSightingRow> settlementSightings, Table<SettlementSurveyRow> settlementSurveys,
-        Table<ResearchLevelRow> researchLevels, Table<ResearchReserveRow> researchReserves)
+        Table<ResearchLevelRow> researchLevels, Table<ResearchReserveRow> researchReserves,
+        Table<ResearchPopulationRow> researchPopulations,
+        Table<FormationPersonnelRow> formationPersonnel, Table<ReequipRow> reequips,
+        Table<ReequipEscrowRow> reequipEscrow, Table<ReequipLogRow> reequipLog)
     {
         Seed = seed;
         Clock = clock;
@@ -1827,6 +1951,11 @@ public sealed class WorldState : IReadOnlyWorldState
         SettlementSurveys = settlementSurveys;
         ResearchLevels = researchLevels;
         ResearchReserves = researchReserves;
+        ResearchPopulations = researchPopulations;
+        FormationPersonnel = formationPersonnel;
+        Reequips = reequips;
+        ReequipEscrow = reequipEscrow;
+        ReequipLog = reequipLog;
     }
 
     /// <summary>
@@ -1855,7 +1984,8 @@ public sealed class WorldState : IReadOnlyWorldState
             ConstructionProgress.Clone(), ResourceAllocations.Clone(), ConstructionHolds.Clone(),
             CivicsPoints.Clone(),
             KnownExtents.Clone(), Explorations.Clone(), SettlementSightings.Clone(), SettlementSurveys.Clone(),
-            ResearchLevels.Clone(), ResearchReserves.Clone())
+            ResearchLevels.Clone(), ResearchReserves.Clone(), ResearchPopulations.Clone(),
+            FormationPersonnel.Clone(), Reequips.Clone(), ReequipEscrow.Clone(), ReequipLog.Clone())
         {
             Terrain = Terrain, // ADR-008: immutable — reference shared, never copied
         };

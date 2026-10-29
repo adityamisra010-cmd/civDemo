@@ -1,0 +1,29 @@
+{
+ "_doc": "candidate pass 4: pass 3 with civics A5 5.479->5.35 and A6 7.312746->7.0 (seed 2 civics A6 held the A8 technology sweep; its technology A9 missed 1,630 by one turn)",
+ "tuning": {
+  "pacingScale": {
+   "technology": [
+    0.395862,
+    0.943333,
+    0.959209,
+    2.66088,
+    6.005702,
+    9.786664,
+    7.007961,
+    0.926249,
+    0.068141
+   ],
+   "civics": [
+    0.740297,
+    1.67181,
+    1.182622,
+    3.073267,
+    5.35,
+    7.0,
+    10.218397,
+    0.633717,
+    0.33368
+   ]
+  }
+ }
+}

@@ -613,7 +613,7 @@ public class ResumeNoticeUiTests
             Assert.Equal(WorldHash.ComputeHex(live.World), WorldHash.ComputeHex(resumed.World));
             Assert.Equal(UiSession.SchemaMismatchNotice(33, CanonicalSchema.Version), resumed.ResumeNotice);
             Assert.Equal(4, resumed.ResumeNotice.Count);
-            Assert.Equal("Recorded under save schema v33; this build is v37.", resumed.ResumeNotice[0]);   // ADR-043 (2026-10-22): v35 (was v34); ADR-049: v36; ADR-051: v37 — the schema bump alone
+            Assert.Equal("Recorded under save schema v33; this build is v39.", resumed.ResumeNotice[0]);   // ADR-043 (2026-10-22): v35 (was v34); ADR-049: v36; ADR-051: v37; ADR-054: v38 — the schema bump alone
             Assert.Equal("Resumed by replaying its seed and orders (D-008).", resumed.ResumeNotice[1]);
             Assert.Equal("The saved trace was not checked against this replay.", resumed.ResumeNotice[2]);
             using (var h = Sim.Ui.Headless.UiFrameHarness.Start(resumed, Path.Combine(dir, "ui-v33"), Assets()))

@@ -102,7 +102,18 @@ public class AiAgeAdvancementIntegrationTests
     }
 
     /// <summary>D-063 (tranche 2): the A2 advance turns on the shipped tranche-2 content (effects, sweep, routing, pacing).</summary>
-    private static readonly (long, long) Tranche2Advance = (413L, 227L);
+    /// ADR-055 RE-PIN (M7 recruitment slice; VALUE, MEASURED on the combined research + units tree by the agent writing this
+    /// line): (413, 227) -> (420, 230) — both still reach A2 through the same order shape, applied the next turn. CAUSE: the
+    /// military layer (the founding warbands' people leave their capitals' adults and eat grain). CONTROL:
+    /// FoundedAiEmpire_WithTheMilitaryLayerOff_AdvancesAtTheResearchTrackTurns (TestConfigs.PreMilitary) returns (413, 227).
+    private static readonly (long, long) Tranche2Advance = (420L, 230L);
+
+    /// <summary>ADR-055 ATTRIBUTION CONTROL: the military layer off — the pre-ADR-055 turns hold byte for byte.</summary>
+    [Fact]
+    public void FoundedAiEmpire_WithTheMilitaryLayerOff_AdvancesAtTheResearchTrackTurns()
+    {
+        Assert.Equal((413L, 227L), AdvanceRun(TestConfigs.DevWorldgen(), TestConfigs.PreMilitary(TestConfigs.Sim())));
+    }
 
     /// <summary>D-063 ATTRIBUTION CONTROL: the tranche-2 research content off — the ADR-045 turns hold byte for byte.</summary>
     [Fact]

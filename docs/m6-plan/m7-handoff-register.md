@@ -36,3 +36,15 @@ column says what M6 delivers, the other what M7 builds; nothing is shared.
 
 - Unchanged by M6.1. The spec (`docs/m6-spec.md` §3.5 H, §4 T6.12, T6.19) binds M6 to this register's boundary rules;
   D-E/D-F are ruled (option 1). H7-10: the spec recommends no scout class in M6 (D-J), so M7 creates the first MobileAgent.
+
+## Dated note — 2026-10-27 (D-065 Addendum 3; appended, the text above is unchanged)
+
+- **Unit taxonomy ratified** (D-065 R8–R14): the controllable unit tree holds category A formations only. Combat
+  engineers, military supply and field medical are category B allocations, consumed by the battle system. Prospecting
+  is a category D action. Trade and shipping are category E. Naval transport (family 10) is under reconsideration
+  (ADR-031 amendment pending). Snipers are required; their form is open (Q10). Classification:
+  `docs/m7-plan/unit-catalogue-and-progression.md` §4.5.
+- **New M7 work item GA, garrisoning** (approved requirement, not yet designed): unit charter §14 stage M7.8,
+  building charter §5.16a. It depends on M7.2 (location, orders), M7.4 (battle, fortification term), M7.7 (city
+  buildings) and save/load. Air-defence garrisons also wait on `air_defence` realization. The Director confirms the
+  placement.

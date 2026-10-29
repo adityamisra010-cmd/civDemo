@@ -29,7 +29,8 @@ internal static class TestTranche2
     private static readonly Lazy<SimConfig> PreTranche2PreDiscoveryConfig = new(() => TestFog.Off(PreTranche2Config.Value));
 
     /// <summary><paramref name="cfg"/> with the research content replaced by the pre-tranche-2 file (the CLI's recipe).</summary>
-    public static SimConfig Off(SimConfig cfg) => cfg with { Research = PreTranche2Research.Value };
+    // ADR-056: the pre-tranche-2 world predates the economy packets too (the R4 rule).
+    public static SimConfig Off(SimConfig cfg) => Sim.Core.State.EconomyKnowledge.WithoutEconomy(cfg with { Research = PreTranche2Research.Value });
 
     /// <summary>The production config on the pre-tranche-2 research content.</summary>
     public static SimConfig PreTranche2 => PreTranche2Config.Value;

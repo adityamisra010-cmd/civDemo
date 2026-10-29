@@ -56,8 +56,10 @@ public class CliConstructionLifecycleTests
     // without the switch: the replay of the v33 session diverges from its trace at the first hash; `run` refuses the
     // turn-3 order naming settlement 12 ("none was" founded); the v33/v34 diff gains LedgerFlows rows (the expedition
     // sinks). The discovery twin (R4); `hash` and `diff` read files only.
+    // ADR-056: and `--without-economy` — the same sessions and saves predate the economy packets (their goods add stock and
+    // deposit rows from turn 0, so the v33/v34 diff would gain GoodStocks and Deposits rows and every hash would move).
     private static (int Exit, string Out, string Err) Sim(params string[] args) =>
-        CliProcess.Run(Limit, args.Length > 0 && args[0] is "run" or "replay" or "inspect" ? [args[0], "--without-discovery", .. args[1..]] : args);
+        CliProcess.Run(Limit, args.Length > 0 && args[0] is "run" or "replay" or "inspect" ? [args[0], "--without-discovery", "--without-economy", .. args[1..]] : args);
 
     /// <summary>ADR-045 (D-062, 2026-10-22): `sim run` with <see cref="Founded"/> and `--orders <paramref name="ordersPath"/>`
     /// IN PROCESS under <paramref name="cfg"/> — the CLI's recipe (Sim.Cli Program: before each step the loaded log's rows for
@@ -296,7 +298,8 @@ public class CliConstructionLifecycleTests
             // ADR-043 + ADR-044 (2026-10-22) RE-PIN of the note: v35 adds CivicsPoints and the four discovery tables empty, and
             // the hash printed is v35's.
             Assert.Equal(new[] { "note: " + v33 + ": migrated from save schema v33: ConstructionHolds, CivicsPoints and the four M6 discovery tables (KnownExtents, Explorations, SettlementSightings, SettlementSurveys) were added empty; "
-                + "the hash printed is the v37 hash (SchemaProjection.V33 gives the v33 build's). ResearchLevels (no repeatable research level existed before v36) was added empty too. ResearchReserves (no research reserve existed before v37) was added empty too." },
+                + "the hash printed is the v39 hash (SchemaProjection.V33 gives the v33 build's). ResearchLevels (no repeatable research level existed before v36) was added empty too. ResearchReserves (no research reserve existed before v37) was added empty too. ResearchPopulations (no stored turn-start population existed before v38; each holder's first step reads its current population) was added empty too."
+                + " The four military tables (FormationPersonnel, Reequips, ReequipEscrow, ReequipLog) were added empty (every saved formation stays a token that holds no one) and any formation of a rehomed identity was moved to its new family (ADR-055)." },
                 CliProcess.Lines(stderr));   // ADR-049 (v36) RE-PIN of the note: ResearchLevels is added empty too; ADR-051 (v37): ResearchReserves too
             string[] lines = CliProcess.Lines(stdout);
             int first = Array.IndexOf(lines, "FIRST DIVERGENT FIELD");

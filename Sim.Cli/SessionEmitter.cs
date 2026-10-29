@@ -106,7 +106,8 @@ public sealed class SessionEmitter : IDisposable
             TelemetryFile: "telemetry-" + _stem + ".jsonl",
             Platform: platform,
             ForensicFile: "forensic-" + _stem + ".jsonl",
-            AiEmpires: aiEmpires);
+            AiEmpires: aiEmpires,
+            EconomyPackets: SessionManifest.EnabledEconomyPackets(cfg.Goods));   // ADR-056
         using (FileStream file = File.Create(Path.Combine(_dir, "session-" + _stem + ".json")))
             manifest.Write(file);
 

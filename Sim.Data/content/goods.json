@@ -1,6 +1,23 @@
 {
   "schema": "goods/v1",
-  "_doc": "D-031 goods roster (14, data-driven) + recipes. Categories: food | raw | processed. Grain is the numeraire (D-030: prices are grain-equivalent ratios; price of grain == 1 by definition). bulkPerUnit is the D-034 transport bulk (grain-equivalent volume/mass per unit; TUNE). depositChannel names the terrain field a settlement's founding deposit roll derives from (T3.2; extraction is endowment-bound, m3-spec 3): moisture (forests/pasture), elevation (quarries/ore), water (clay pits, fish grounds); ores add depositSpread - a wide seeded spread that makes ore geography uneven, the precondition for comparative advantage. Recipes are data (T3.2 registers + validates; T3.3 executes). DIMENSIONAL DECLARATION, corrected at T3.3 (S8 4.1 requirement 2): inputs and laborPerOutput are PER EXECUTION of the recipe, and one execution yields output.qty units. T3.2 wrote inputs-per-output-unit, which contradicts the data it shipped - toolmaking declares bronze 1.0 with qty 2, so under a per-unit reading qty would be decorative and the value-add of toolmaking would vanish. The per-execution reading is what T3.3 implements and what ProductionTests.Recipe_InputsAndLabor_ArePerEXECUTION_NotPerOutputUnit pins exactly (2 tools per bronze). laborPerOutput is person-years per execution, an optional D-020 availability predicate ('requires') - a knowledge gate over published variables, never a calendar date (law 4).",
+  "_doc": "D-031 goods roster (14, data-driven) + recipes. Categories: food | raw | processed. Grain is the numeraire (D-030: prices are grain-equivalent ratios; price of grain == 1 by definition). bulkPerUnit is the D-034 transport bulk (grain-equivalent volume/mass per unit; TUNE). depositChannel names the terrain field a settlement's founding deposit roll derives from (T3.2; extraction is endowment-bound, m3-spec 3): moisture (forests/pasture), elevation (quarries/ore), water (clay pits, fish grounds); ores add depositSpread - a wide seeded spread that makes ore geography uneven, the precondition for comparative advantage. Recipes are data (T3.2 registers + validates; T3.3 executes). DIMENSIONAL DECLARATION, corrected at T3.3 (S8 4.1 requirement 2): inputs and laborPerOutput are PER EXECUTION of the recipe, and one execution yields output.qty units. T3.2 wrote inputs-per-output-unit, which contradicts the data it shipped - toolmaking declares bronze 1.0 with qty 2, so under a per-unit reading qty would be decorative and the value-add of toolmaking would vanish. The per-execution reading is what T3.3 implements and what ProductionTests.Recipe_InputsAndLabor_ArePerEXECUTION_NotPerOutputUnit pins exactly (2 tools per bronze). laborPerOutput is person-years per execution, an optional D-020 availability predicate ('requires') - a knowledge gate over published variables, never a calendar date (law 4). ADR-056 (the M7 economy packets, D-065 R2): packets[] is THE SWITCH per packet - a good or recipe naming a disabled packet is removed at load, so the switch-off twin is the pre-packet world byte for byte; packet goods take ids after the base fourteen. A good's or recipe's optional 'knowledge' is a node expression over EXISTING research.json node ids (AND/OR, no NOT; TC-1 adds no entity): on a recipe it joins the entity gate; on a deposit good it gates WORKING the deposit (no extraction labour until the settlement knows it). The same per-execution declaration holds for every packet recipe. EC-1 metals: iron-ore and coal are raw deposit goods (elevation channel, spreads 0.7 and 0.9; worked from iron_bloomery and coke), iron and steel processed; '_doc' on each packet recipe states its inputs per execution. EC-2 mounts: horses (category 'mount' - not food, not extracted, not crafted) carry a 'herd' block: the herd breeds from itself on the settlement's pasture (the livestock deposit) under its herding workers once horse_domestication is known; capacity K = herders x headPerHerder x pasture; the turn's change is the closed-form solution of dH/dt = (c + rH)(1 - H/K) over dtYears (excess above K lost at r), and the grain fodder is fodderPerHeadPerYear x the exact head-years of the turn - all per sim-year, integrated exactly (law 3). EC-3 gunpowder: saltpetre and sulphur are raw deposit goods (elevation channel - nitre caves and volcanic sulphur stand in for the aridity and volcanism channels worldgen does not have, ADR-056 section 9 - spreads 0.9 and 0.95; worked from saltpetre_refining), gunpowder and explosives processed; recipe inputs per execution as their '_doc' state.",
+  "packets": [
+    {
+      "id": "ec1",
+      "enabled": true,
+      "_doc": "ADR-056 / D-065 R2: EC-1 METALS (iron-ore, coal, iron, steel; bloomery and coke smelting, cementation and converter steel, iron toolmaking). THE SWITCH: enabled false removes the packet's goods and recipes at load (GoodsConfigLoader), so the world founds and steps exactly as before the packet, byte for byte (the switch-off twin, TestConfigs.PreEc1). A separately reviewed packet: it shares no good or recipe with EC-2 or EC-3."
+    },
+    {
+      "id": "ec2",
+      "enabled": true,
+      "_doc": "ADR-056 / D-065 R2: EC-2 MOUNTS (horses: a breeding herd on pasture with a grain fodder draw - a stock distinct from livestock, and not food). THE SWITCH: enabled false removes the packet's good at load, so the world founds and steps exactly as before the packet, byte for byte (TestConfigs.PreEc2). Shares no good or recipe with EC-1 or EC-3."
+    },
+    {
+      "id": "ec3",
+      "enabled": true,
+      "_doc": "ADR-056 / D-065 R2: EC-3 GUNPOWDER (saltpetre and sulphur deposits; gunpowder milling; explosives). THE SWITCH: enabled false removes the packet's goods and recipes at load, so the world founds and steps exactly as before the packet, byte for byte (TestConfigs.PreEc3). Shares no good or recipe with EC-1 or EC-2: its charcoal is timber, as the bloomery's is."
+    }
+  ],
   "goods": [
     {
       "id": 1,
@@ -97,6 +114,91 @@
       "name": "cloth",
       "category": "processed",
       "bulkPerUnit": 1.0
+    },
+    {
+      "id": 15,
+      "name": "iron-ore",
+      "category": "raw",
+      "bulkPerUnit": 8.0,
+      "depositChannel": "elevation",
+      "depositSpread": 0.7,
+      "packet": "ec1",
+      "knowledge": "iron_bloomery"
+    },
+    {
+      "id": 16,
+      "name": "coal",
+      "category": "raw",
+      "bulkPerUnit": 7.0,
+      "depositChannel": "elevation",
+      "depositSpread": 0.9,
+      "packet": "ec1",
+      "knowledge": "coke"
+    },
+    {
+      "id": 17,
+      "name": "iron",
+      "category": "processed",
+      "bulkPerUnit": 2.0,
+      "packet": "ec1"
+    },
+    {
+      "id": 18,
+      "name": "steel",
+      "category": "processed",
+      "bulkPerUnit": 2.0,
+      "packet": "ec1"
+    },
+    {
+      "id": 19,
+      "name": "horses",
+      "category": "mount",
+      "bulkPerUnit": 4.0,
+      "packet": "ec2",
+      "knowledge": "horse_domestication",
+      "herd": {
+        "pastureGood": "livestock",
+        "headPerHerder": 2.0,
+        "capturePerHerderPerYear": 0.2,
+        "breedingRatePerYear": 0.12,
+        "fodderGood": "grain",
+        "fodderPerHeadPerYear": 0.2,
+        "_doc": "EC-2, ALL TUNE (chosen, not derived; bands stated, none calibrated). headPerHerder 2.0 [1-5]: horses one herding worker keeps beside the flocks at full pasture. capturePerHerderPerYear 0.2 [0.05-0.5]: wild head brought in per herder-year at full pasture (domestication seeds a herd from labour on land). breedingRatePerYear 0.12 [0.08-0.2]: net increase at low density - a mare foals about every second year from age four, less deaths; also the rate an excess above capacity is lost. fodderPerHeadPerYear 0.2 [0.1-0.5] grain units (person-years of food) per head-year: the winter supplement; grazing supplies the rest. bulkPerUnit 4.0: livestock's, a driven animal."
+      }
+    },
+    {
+      "id": 20,
+      "name": "saltpetre",
+      "category": "raw",
+      "bulkPerUnit": 3.0,
+      "depositChannel": "elevation",
+      "depositSpread": 0.9,
+      "packet": "ec3",
+      "knowledge": "saltpetre_refining"
+    },
+    {
+      "id": 21,
+      "name": "sulphur",
+      "category": "raw",
+      "bulkPerUnit": 4.0,
+      "depositChannel": "elevation",
+      "depositSpread": 0.95,
+      "packet": "ec3",
+      "knowledge": "saltpetre_refining"
+    },
+    {
+      "id": 22,
+      "name": "gunpowder",
+      "category": "processed",
+      "bulkPerUnit": 1.5,
+      "packet": "ec3"
+    },
+    {
+      "id": 23,
+      "name": "explosives",
+      "category": "processed",
+      "bulkPerUnit": 1.5,
+      "packet": "ec3"
     }
   ],
   "recipes": [
@@ -175,6 +277,164 @@
       "output": {
         "good": "tools",
         "qty": 2
+      },
+      "requires": "artisan_share > 0.05"
+    },
+    {
+      "name": "iron-smelting",
+      "packet": "ec1",
+      "knowledge": "iron_bloomery",
+      "_doc": "EC-1 bloomery: ore reduced with charcoal (timber) in a small furnace, the bloom hammered into wrought iron. TUNE: 3 ore and 4 timber per unit, 0.4 person-years - dearer in labour than bronze per unit of metal, but from an ore far commoner than tin.",
+      "inputs": [
+        {
+          "good": "iron-ore",
+          "perOutput": 3.0
+        },
+        {
+          "good": "timber",
+          "perOutput": 4.0
+        }
+      ],
+      "laborPerOutput": 0.4,
+      "output": {
+        "good": "iron",
+        "qty": 1
+      },
+      "requires": "artisan_share > 0.05"
+    },
+    {
+      "name": "coke-smelting",
+      "packet": "ec1",
+      "knowledge": "coke",
+      "_doc": "EC-1 coke blast furnace: ore smelted with coked coal, no charcoal (the timber constraint lifted). TUNE: 3 ore and 2 coal per 2 units, 0.3 person-years per execution.",
+      "inputs": [
+        {
+          "good": "iron-ore",
+          "perOutput": 3.0
+        },
+        {
+          "good": "coal",
+          "perOutput": 2.0
+        }
+      ],
+      "laborPerOutput": 0.3,
+      "output": {
+        "good": "iron",
+        "qty": 2
+      },
+      "requires": "artisan_share > 0.05"
+    },
+    {
+      "name": "steel-cementation",
+      "packet": "ec1",
+      "knowledge": "steel_carburized",
+      "_doc": "EC-1 carburized steel: wrought iron packed in charcoal (timber) and held hot until its surface takes up carbon - small batches, labour-dear. TUNE: 2 iron and 2 timber per unit, 0.5 person-years.",
+      "inputs": [
+        {
+          "good": "iron",
+          "perOutput": 2.0
+        },
+        {
+          "good": "timber",
+          "perOutput": 2.0
+        }
+      ],
+      "laborPerOutput": 0.5,
+      "output": {
+        "good": "steel",
+        "qty": 1
+      },
+      "requires": "artisan_share > 0.05"
+    },
+    {
+      "name": "steel-converting",
+      "packet": "ec1",
+      "knowledge": "bessemer",
+      "_doc": "EC-1 converter steel (Bessemer; open hearth requires it): pig iron refined in bulk with coal-fired heat. TUNE: 5 iron and 2 coal per 4 units (a fifth of the iron lost to slag), 0.2 person-years per execution.",
+      "inputs": [
+        {
+          "good": "iron",
+          "perOutput": 5.0
+        },
+        {
+          "good": "coal",
+          "perOutput": 2.0
+        }
+      ],
+      "laborPerOutput": 0.2,
+      "output": {
+        "good": "steel",
+        "qty": 4
+      },
+      "requires": "artisan_share > 0.05"
+    },
+    {
+      "name": "iron-toolmaking",
+      "packet": "ec1",
+      "knowledge": "iron_farm_tools",
+      "_doc": "EC-1 iron tools: the same tools good as bronze toolmaking, the same 2 tools per execution - a SUBSTITUTION through availability (iron ore is common where tin is rare), never a better tool and never a yield modifier (law 2; the tool factor reads the tools stock alone).",
+      "inputs": [
+        {
+          "good": "iron",
+          "perOutput": 1.0
+        },
+        {
+          "good": "timber",
+          "perOutput": 1.0
+        }
+      ],
+      "laborPerOutput": 0.2,
+      "output": {
+        "good": "tools",
+        "qty": 2
+      },
+      "requires": "artisan_share > 0.05"
+    },
+    {
+      "name": "gunpowder-milling",
+      "packet": "ec3",
+      "knowledge": "saltpetre_refining",
+      "_doc": "EC-3 black powder: refined saltpetre, sulphur and charcoal (timber) incorporated wet and corned - roughly 75/10/15 by mass. TUNE: 3 saltpetre, 0.5 sulphur and 2 timber (about half a unit of charcoal) per 4 units, 0.3 person-years per execution. Gated on saltpetre_refining (which requires gunpowder): the refined nitre that makes powder in quantity, and the prerequisite of every gunpowder weapon node (cannon_early, matchlock).",
+      "inputs": [
+        {
+          "good": "saltpetre",
+          "perOutput": 3.0
+        },
+        {
+          "good": "sulphur",
+          "perOutput": 0.5
+        },
+        {
+          "good": "timber",
+          "perOutput": 2.0
+        }
+      ],
+      "laborPerOutput": 0.3,
+      "output": {
+        "good": "gunpowder",
+        "qty": 4
+      },
+      "requires": "artisan_share > 0.05"
+    },
+    {
+      "name": "explosives-making",
+      "packet": "ec3",
+      "knowledge": "dynamite",
+      "_doc": "EC-3 high explosives (dynamite): nitration with nitric acid (from saltpetre) and sulphuric acid (from sulphur). Not made from gunpowder. TUNE: 2 saltpetre and 2 sulphur per unit, 0.5 person-years. The glycerine and the absorbent (kieselguhr) have no good and are not invented; the acids carry the cost.",
+      "inputs": [
+        {
+          "good": "saltpetre",
+          "perOutput": 2.0
+        },
+        {
+          "good": "sulphur",
+          "perOutput": 2.0
+        }
+      ],
+      "laborPerOutput": 0.5,
+      "output": {
+        "good": "explosives",
+        "qty": 1
       },
       "requires": "artisan_share > 0.05"
     }

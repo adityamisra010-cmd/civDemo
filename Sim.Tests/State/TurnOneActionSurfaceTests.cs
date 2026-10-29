@@ -121,7 +121,12 @@ public class TurnOneActionSurfaceTests
         Assert.Contains(construction, a => a.Blocker == "needs 40 timber (empire has 0), 20 stone (empire has 0)");
 
         // MILITARY: basic fighting — the founding warband — a standing capability with no order.
-        ActionDescriptor military = Assert.Single(Of(actions, ActionDomain.Military));
+        ActionDescriptor military = Assert.Single(Of(actions, ActionDomain.Military), a => a.Kind == ActionKind.Standing);
+        // ADR-055: and the military ORDERS — Recruit at each of the 12 settlements (the warband, the one identity known) and
+        // Disband for the warband; no Re-equip target is known at turn 1.
+        Assert.Equal(12, Of(actions, ActionDomain.Military).Count(a => a.Order == OrderKind.RecruitFormation));
+        Assert.Equal(1, Of(actions, ActionDomain.Military).Count(a => a.Order == OrderKind.DisbandFormation));
+        Assert.Equal(0, Of(actions, ActionDomain.Military).Count(a => a.Order == OrderKind.ReequipFormation));
         Assert.Equal((ActionKind.Standing, (OrderKind?)null, "Basic fighting"), (military.Kind, military.Order, military.Label));
         ActionTarget warband = Assert.Single(military.Targets);
         Assert.Equal("Warband", warband.Label);
@@ -168,7 +173,7 @@ public class TurnOneActionSurfaceTests
         Assert.All(surveys, a => Assert.True(a.Blocker is null || a.Blocker.StartsWith("not enough in store (", StringComparison.Ordinal)
             && a.Blocker.Contains("stone", StringComparison.Ordinal) && !a.Blocker.Contains("grain", StringComparison.Ordinal), a.Blocker));
         // ADR-048 (tranche 2, routing on): + 1 — the research destination action beside the target action (132 -> 133).
-        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 36 + 1, actions.Length);
+        Assert.Equal(12 * 5 + 1 + 12 + 1 + 8 + 2 + 12 + 36 + 1 + 12 + 1, actions.Length);   // ADR-055: + 12 Recruit (one per settlement) + 1 Disband (133 -> 146)
     }
 
     // ------------------------------------------------------------------ Farming replaces Gathering (step 7)

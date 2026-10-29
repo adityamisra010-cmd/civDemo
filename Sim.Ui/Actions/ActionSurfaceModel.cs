@@ -235,9 +235,18 @@ public sealed record GovernanceBlock(
 /// <summary>One formation on the roster card.</summary>
 public sealed record FormationEntry(long Id, string Identity, string Family, int IdentityAge, string Where, string Line);
 
-/// <summary>"Basic fighting": the roster card — information only, because no military order exists (ADR-033 D7).</summary>
+/// <summary>"Basic fighting": the roster card (ADR-033 D7). ADR-055: <c>Orders</c> — the military orders the query lists
+/// (recruit at the target settlement, re-equip, cancel a re-equipment, disband), each a button (enabled exactly when the
+/// descriptor's target carries no blocker) and its text (the bill, and the refusal reason when there is one).</summary>
 public sealed record MilitaryBlock(
-    ImmutableArray<FormationEntry> Formations, string? NextAgeName, ImmutableArray<string> Modernization, string Note, ActionDescriptor Capability);
+    ImmutableArray<FormationEntry> Formations, string? NextAgeName, ImmutableArray<string> Modernization, string Note, ActionDescriptor Capability)
+{
+    public ImmutableArray<MilitaryOrderEntry> Orders { get; init; } = [];
+}
+
+/// <summary>ADR-055: one military order on the roster card: what the button does (<c>Kind</c> with its two arguments: the
+/// settlement or formation, and the identity), its label, its text, and whether the predicate admits it now.</summary>
+public sealed record MilitaryOrderEntry(ActionCommandKind Kind, int A, int B, string Label, string Text, bool Enabled);
 
 /// <summary>One crafting recipe the civilization knows (R1): its name, inputs → output, where it runs now (or its
 /// content condition when it runs nowhere yet), and the research it was learned from.</summary>
@@ -1142,8 +1151,61 @@ public static class ActionSurface
             foreach (ModernizationLine l in flow.Modernization)
                 modern.Add(Inv(l.Count) + " x " + l.From + (l.Changes ? " -> " + l.To : " - " + AdvanceFlowModel.OutcomeText(l.Outcome)));
         }
+        bool orders = RecruitmentQuery.Enabled(input.Config);
         return new MilitaryBlock(formations.ToImmutable(), next, modern.ToImmutable(),
-            "Recruitment, movement and battle arrive with the Battle Layer (M7): there is no military order yet.", fighting);
+            orders ? "Movement and battle arrive with the Battle Layer (M7): formations can be recruited, re-equipped and disbanded."
+                   : "Recruitment, movement and battle arrive with the Battle Layer (M7): there is no military order yet.", fighting)
+        {
+            Orders = MilitaryOrders(input, actions),
+        };
+    }
+
+    /// <summary>ADR-055: the military order entries, read from the query's descriptors only (no rule here): recruitment at
+    /// the target settlement (the selection, else the capital, else the first listed) — every known identity with its bill
+    /// and, when refused, why; each re-equipment target the predicate admits; cancel and disband.</summary>
+    private static ImmutableArray<MilitaryOrderEntry> MilitaryOrders(ActionSurfaceInput input, ImmutableArray<ActionDescriptor> actions)
+    {
+        var result = ImmutableArray.CreateBuilder<MilitaryOrderEntry>();
+        ActionDescriptor? recruit = null, first = null, capital = null;
+        bool hasCap = EmpireQuery.TryGetCapital(input.World, input.Player, out SettlementId cap);
+        foreach (ActionDescriptor a in actions)
+        {
+            if (a.Domain != ActionDomain.Military || a.Order != OrderKind.RecruitFormation) continue;
+            int s = (int)(a.Id - AvailableActionsQuery.RecruitIdBase);
+            first ??= a;
+            if (s == input.Selected) recruit = a;
+            if (hasCap && s == cap.Value) capital = a;
+        }
+        if ((recruit ?? capital ?? first) is { } r)
+        {
+            int s = (int)(r.Id - AvailableActionsQuery.RecruitIdBase);
+            foreach (ActionTarget t in r.Targets)
+                result.Add(new MilitaryOrderEntry(ActionCommandKind.Recruit, s, (int)t.Id, "Recruit",
+                    t.Label + " at " + input.Name(s) + " (" + t.Detail + ")" + (t.Blocker is { } b ? " - not now: " + b : ""), t.Blocker is null));
+        }
+        foreach (ActionDescriptor a in actions)
+        {
+            if (a.Domain != ActionDomain.Military) continue;
+            if (a.Order == OrderKind.ReequipFormation && a.Id >= AvailableActionsQuery.CancelReequipIdBase && a.Id < AvailableActionsQuery.DisbandIdBase)
+            {
+                int unit = (int)(a.Id - AvailableActionsQuery.CancelReequipIdBase);
+                result.Add(new MilitaryOrderEntry(ActionCommandKind.CancelReequip, unit, 0, "Cancel", a.Label + ": " + a.Detail, true));
+            }
+            else if (a.Order == OrderKind.ReequipFormation)
+            {
+                int unit = (int)(a.Id - AvailableActionsQuery.ReequipIdBase);
+                foreach (ActionTarget t in a.Targets)
+                    if (t.Blocker is null)
+                        result.Add(new MilitaryOrderEntry(ActionCommandKind.Reequip, unit, (int)t.Id, "Re-equip",
+                            a.Label + " (formation " + Inv(unit) + ") as " + t.Label + " (" + t.Detail + ")", true));
+            }
+            else if (a.Order == OrderKind.DisbandFormation)
+            {
+                int unit = (int)(a.Id - AvailableActionsQuery.DisbandIdBase);
+                result.Add(new MilitaryOrderEntry(ActionCommandKind.Disband, unit, 0, "Disband", "Formation " + Inv(unit) + ": " + a.Detail, true));
+            }
+        }
+        return result.ToImmutable();
     }
 
     /// <summary>The family's mainline from the formation's current identity: "Warband -> Axe warriors -> Bronze swordsmen".</summary>

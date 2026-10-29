@@ -59,7 +59,8 @@ public class IncrementalConstructionTelemetryTests
                 GoodAccount a = turn.Goods[g];
                 Assert.True(a.Reconciles && a.Discrepancy == 0, $"turn {turn.Turn}: {a.Name} discrepancy {a.Discrepancy}");
                 // ADR-046 §2: − Discovery — the survey's timber and stone (and the assay's bronze) are sunk under reason 17.
-                Assert.Equal(a.Closing, a.Opening + a.Produced - a.InputsConsumed - a.ToolWear - a.Eaten - a.HousingMaterials - a.ConstructionMaterials - a.Discovery);
+                // ADR-055: − Military — recruitment inputs, formation upkeep and completed re-equipment (reasons 19–21).
+                Assert.Equal(a.Closing, a.Opening + a.Produced - a.InputsConsumed - a.ToolWear - a.Eaten - a.HousingMaterials - a.ConstructionMaterials - a.Discovery - a.Military);
                 constructionSunk += a.ConstructionMaterials;
             }
 

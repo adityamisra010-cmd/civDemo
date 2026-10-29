@@ -23,9 +23,11 @@ public static class UiFounding
     /// StrideWorldsFixture world, which exists to exercise the orphan terrain columns). The manifest does not record
     /// it, so a session founded with it is not resumable from its log — like <see cref="UiSession.StartFrom(WorldState, ulong, int?, int?)"/>,
     /// it is never written as a playable session.</param>
+    /// <param name="goodsOverride">ADR-056: found with this goods roster instead of the shipped one — a session recorded
+    /// before the economy packets is re-founded without their goods (UiSession.Resume). Null: the shipped roster.</param>
     public static WorldState Found(
         ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null,
-        bool? wrapXOverride = null)
+        bool? wrapXOverride = null, bool withoutMilitary = false, Sim.Core.Systems.GoodsConfig? goodsOverride = null)
     {
         WorldgenConfig worldgenCfg;
         using (var stream = Sim.Data.DataFiles.OpenWorldgen())
@@ -36,7 +38,13 @@ public static class UiFounding
         if (aiEmpiresOverride is { } ai) worldgenCfg = worldgenCfg with { AiEmpires = ai };
         if (wrapXOverride is { } wrap) worldgenCfg = worldgenCfg with { Topology = new TopologyConfig(wrap) };
 
-        return WorldFounding.Found(worldgenCfg, ProductionConfig(), seed, settlementsOverride);
+        // ADR-055: withoutMilitary founds with sim.json's military layer off (the warband the ADR-031 token that holds no
+        // one) — UiSession.StartWith under a config whose military layer is off, so its turn-0 world is that config's.
+        // ADR-056: goodsOverride founds with that goods roster (the economy packets add stock and deposit rows from turn 0).
+        SimConfig cfg = ProductionConfig();
+        if (withoutMilitary) cfg = RecruitmentQuery.WithoutMilitary(cfg);
+        if (goodsOverride is not null) cfg = EconomyKnowledge.WithGoods(cfg, goodsOverride);
+        return WorldFounding.Found(worldgenCfg, cfg, seed, settlementsOverride);
     }
 
     /// <summary>

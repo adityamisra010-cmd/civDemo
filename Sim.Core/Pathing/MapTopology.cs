@@ -139,6 +139,14 @@ public static class MapTopology
     }
 
     /// <summary>
+    /// ADR-055 — a raster cell's continuous map position (column, row) on a <paramref name="size"/>-wide raster: the column
+    /// normalised through <see cref="WrapCoord"/>, the row as is. The position a formation stationed at a settlement takes
+    /// (MilitarySystem), so its X is written exactly as WorldFounding writes the founding warband's.
+    /// </summary>
+    public static (double X, double Y) CellPosition(int cell, int size) =>
+        (WrapCoord(cell % size, size), cell / size);
+
+    /// <summary>
     /// The copy of <paramref name="x"/> (x + k·size, k an integer) nearest to <paramref name="refX"/> — so the shortest
     /// wrapped path from refX to x is the straight segment refX → result. At an exact half-world tie the eastern copy wins
     /// (the <see cref="Dx"/> convention).

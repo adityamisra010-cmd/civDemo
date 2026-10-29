@@ -54,7 +54,9 @@ public class DiscoveryTests
         {
             SettlementId s = w.Settlements[i].Id;
             if (!EmpireQuery.ControlsSettlement(w, Player, s)) continue;
-            int[] concealed = DepositConcealment.ConcealedGoods(w.Deposits, w.Seed, cfg, s);
+            // ADR-056: a base-pool ore — an economy packet's ore (iron-ore, coal) is not WORKED until its knowledge gate is
+            // met, so it would not produce after the survey either way.
+            int[] concealed = Array.FindAll(DepositConcealment.ConcealedGoods(w.Deposits, w.Seed, cfg, s), g => cfg.Goods!.ById(g).Packet is null);
             if (concealed.Length > 0) return (s, new GoodId(concealed[0]));
         }
         throw new InvalidOperationException("no player settlement carries a concealed deposit");
@@ -68,7 +70,10 @@ public class DiscoveryTests
     [Fact]
     public void Classification_IsReproducible_Stateless_AndLeavesTheDepositTableAndTheFoundedWorldByteIdentical()
     {
-        SimConfig on = TestConfigs.Sim(), off = TestConfigs.PreDiscovery(on);
+        // ADR-055/056: the discovery switch ALONE on the military-off world (TestConfigs.PreDiscovery, an older twin, also
+        // strips the military layer and switches the economy packets off by the R4 rule, which would change the founded world
+        // and the deposit table this test compares) — the subject here is the discovery layer's founding.
+        SimConfig on = TestConfigs.PreMilitary(TestConfigs.Sim()), off = DiscoveryQuery.WithoutDiscovery(on);
         WorldState a = Dev(on), b = Dev(on), c = Dev(off);
         Assert.True(WorldStates.TableEquals(a.Deposits, c.Deposits));
         Assert.Equal(WorldHash.ComputeHex(a), WorldHash.ComputeHex(c));   // concealment draws no stream and writes nothing at founding
@@ -146,13 +151,23 @@ public class DiscoveryTests
         Assert.InRange(concealed300 / (double)eligible300, 0.20, 0.30);
     }
 
+    /// <summary>ADR-056: over the BASE pool (copper-ore, tin-ore — the goods no economy packet adds; each packet's ores are
+    /// their own pool, pinned by the packet's tests), so the M6 pins below hold with the packets on.</summary>
     private static (int Concealed, int Eligible) ConcealedShare(IReadOnlyWorldState w, SimConfig cfg)
     {
         int eligible = 0, concealed = 0;
+        bool[] mask = DepositConcealment.ConcealableMask(cfg);
         for (int i = 0; i < w.Settlements.Count; i++)
         {
-            eligible += DepositConcealment.EligibleCount(w, cfg, w.Settlements[i].Id);
-            concealed += DepositConcealment.ConcealedGoods(w.Deposits, w.Seed, cfg, w.Settlements[i].Id).Length;
+            SettlementId s = w.Settlements[i].Id;
+            for (int d = 0; d < w.Deposits.Count; d++)
+            {
+                DepositRow row = w.Deposits[d];
+                if (row.Settlement == s && row.Abundance > 0.0 && row.Good.Value < mask.Length && mask[row.Good.Value]
+                    && cfg.Goods!.ById(row.Good.Value).Packet is null) eligible++;
+            }
+            concealed += Array.FindAll(DepositConcealment.ConcealedGoods(w.Deposits, w.Seed, cfg, s),
+                g => cfg.Goods!.ById(g).Packet is null).Length;
         }
         return (concealed, eligible);
     }

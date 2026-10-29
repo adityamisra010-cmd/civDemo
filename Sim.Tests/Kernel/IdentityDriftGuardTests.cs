@@ -245,9 +245,13 @@ public class IdentityDriftGuardTests
     private static (OrderLog Log, List<WorldState> Worlds, Plan Plan) Record(WorldgenConfig colonization, Plan? plan,
         SettlementId first = default, SettlementId second = default, SimConfig? rules = null)
     {
-        SimConfig cfg = rules ?? TestConfigs.PreDiscovery(TestConfigs.Sim());
+        // ADR-056: the discovery switch and (ADR-055, R4) the military layer — the economy packets stay as founded (the manifest
+        // names them), the military layer goes (a v33-labelled session is replayed without it).
+        SimConfig cfg = rules ?? RecruitmentQuery.WithoutMilitary(DiscoveryQuery.WithoutDiscovery(TestConfigs.Sim()));
         WorldgenConfig wg = TestConfigs.Worldgen();
-        WorldState w = Sim.Cli.HeadlessFounding.Found(42);
+        // ADR-055: founded under the rules' own military switch — a v33-labelled session is replayed founded and stepped without
+        // the military layer (RecruitmentQuery.RecordedWithoutMilitary), and PreDiscovery strips it (the R4 rule).
+        WorldState w = Sim.Cli.HeadlessFounding.Found(42, withoutMilitary: !RecruitmentQuery.Enabled(cfg));
         var log = new OrderLog();
         TurnExecutor exec = CylinderAttributionRig.Pipeline(cfg, colonization, log);
         SettlementId a = plan?.First ?? first, b = plan?.Second ?? second;
@@ -325,7 +329,8 @@ public class IdentityDriftGuardTests
         }
         File.WriteAllText(Path.Combine(dir, "trace-" + Stamp + ".csv"), string.Join("\n", lines) + "\n");
         var manifest = new SessionManifest(42, null, null, schema, "older-build", "2026-10-15", "2026-10-18 12:00:00",
-            "orders-" + Stamp + ".bin", "chronicle-" + Stamp + ".txt", "trace-" + Stamp + ".csv");
+            "orders-" + Stamp + ".bin", "chronicle-" + Stamp + ".txt", "trace-" + Stamp + ".csv",
+            EconomyPackets: EconomyRigs.RecordedPackets(worlds[0]));   // ADR-056: the packets the recording was founded with
         string path = Path.Combine(dir, "session-" + Stamp + ".json");
         using (FileStream f = File.Create(path)) manifest.Write(f);
         return path;

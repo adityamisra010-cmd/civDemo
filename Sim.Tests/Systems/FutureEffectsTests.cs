@@ -294,7 +294,7 @@ public class FutureEffectsTests
         WorldState baseMid = RunAi(w.Clone(), preAudit, 20), newMid = RunAi(w.Clone(), shipped, 20);
         byte[] baseSave = Saved(baseMid), newSave = Saved(newMid);
         Assert.Equal(CanonicalSchema.Version, BitConverter.ToInt32(baseSave, 8));
-        Assert.Equal(37, CanonicalSchema.Version);
+        Assert.Equal(39, CanonicalSchema.Version);   // v39: ADR-055 the four military tables — the schema bump alone (v38: ADR-054 ResearchPopulations — the schema bump alone)
         Assert.Equal(baseSave, newSave);
 
         WorldState fromBase = Snapshot.Load(new MemoryStream(baseSave), w.Terrain);

@@ -2,6 +2,7 @@ using Sim.Core.Kernel;
 using Sim.Core.Observability;
 using Sim.Core.Observability.Explain;
 using Sim.Core.State;
+using Sim.Core.Systems;
 using Sim.Core.Systems.Consumption;
 using Sim.Ui.ViewModel;
 using Xunit;
@@ -39,12 +40,15 @@ public class GlassBoxUiTests
 
     /// <summary>Settlement 0 starved through the UI's order path; returns the
     /// session on the turn AFTER the first positive deficit.</summary>
-    private static Sim.Ui.UiSession Starved(out int firstDeficitTurn, bool? wrapXOverride = null)
+    private static Sim.Ui.UiSession Starved(out int firstDeficitTurn, bool? wrapXOverride = null, SimConfig? config = null)
     {
         // D-053 §2: N = 1, a polity with no spare grain by construction (class header).
         // Batch 3 (D-054): wrapXOverride is UiSession.Start's topology seam — null is the shipped world (the cylinder); the
         // grievance pin's attribution twin passes false (the flat world).
-        var session = Sim.Ui.UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 1, wrapXOverride: wrapXOverride);
+        // ADR-055 R4: config (null = shipped) is StartWith's attribution seam — the grievance pins run on the military-off twin.
+        Sim.Ui.UiSession session = config is null
+            ? Sim.Ui.UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 1, wrapXOverride: wrapXOverride)
+            : Sim.Ui.UiSession.StartWith(config, 42, sizeOverridePx: 256, settlementsOverride: 1, wrapXOverride: wrapXOverride);
         int target = session.World.Settlements[0].Id.Value;
         int[] weights = [0, 0, 45, 45, 10];
         Assert.True(session.EmitSectorOrders(weights, target));
@@ -502,7 +506,30 @@ public class GlassBoxUiTests
         // 256-px one-settlement world regenerates x-periodic, so the starved settlement runs down one turn more slowly).
         // ATTRIBUTION: Grievance_WithTheCylinderOff_EmptiesAtTheBatch2Turn (UiSession.Start(..., wrapXOverride: false), the
         // flat world, everything else shipped) returns 10.
-        GrievanceShownByPrevMembership(wrapXOverride: null, expectedEmptyingTurn: 11);
+        // ADR-055 R4 RE-RIG (units track, 2026-10-28; MEASURED on the combined research + units + economy tree by the agent
+        // writing this line): this pin and its cylinder control now run on the MILITARY-OFF twin
+        // (RecruitmentQuery.WithoutMilitary(ProductionConfig)), where they read 11 and 10 exactly as before. CAUSE of the move on
+        // the shipped config: the founding warband draws its 20 people from the one settlement (458 -> 438 in settlements), so
+        // the starved settlement has fewer mouths and Peasants empty at turn 12 on BOTH topologies — which would erase the
+        // cylinder attribution this pair exists for. The subject (PREV membership decides what is shown) is older than the
+        // military layer; Grievance_OnTheShippedConfig_TheRuleHolds_AndTheWarbandsDrawMovesTheEmptyingTurn pins it there.
+        GrievanceShownByPrevMembership(wrapXOverride: null, expectedEmptyingTurn: 11, config: MilitaryOff.Value);
+    }
+
+    /// <summary>ADR-055 — the military-off twin of the shipped production config (the grievance pins' R4 rig).</summary>
+    private static readonly Lazy<SimConfig> MilitaryOff = new(() => RecruitmentQuery.WithoutMilitary(UiFounding.ProductionConfig()));
+
+    /// <summary>ADR-055 ATTRIBUTION TWIN of the grievance pins (MEASURED, combined tree, 2026-10-28): on the SHIPPED config —
+    /// the military layer on, the founding warband holding 20 of the one settlement's people — the same starved session
+    /// empties Peasants at turn 12 on the cylinder AND on the flat world (vs 11 / 10 military-off), and the PREV-membership
+    /// rule holds there with every assert.</summary>
+    [Fact]
+    public void Grievance_OnTheShippedConfig_TheRuleHolds_AndTheWarbandsDrawMovesTheEmptyingTurn()
+    {
+        Assert.True(RecruitmentQuery.Enabled(UiFounding.ProductionConfig()));
+        Assert.False(RecruitmentQuery.Enabled(MilitaryOff.Value));
+        GrievanceShownByPrevMembership(wrapXOverride: null, expectedEmptyingTurn: 12);
+        GrievanceShownByPrevMembership(wrapXOverride: false, expectedEmptyingTurn: 12);
     }
 
     /// <summary>BATCH 3 / D-054 ATTRIBUTION CONTROL (integration R1, 2026-10-14) for the emptying-turn pin of
@@ -511,9 +538,9 @@ public class GlassBoxUiTests
     /// rule holds there too.</summary>
     [Fact]
     public void Grievance_WithTheCylinderOff_EmptiesAtTheBatch2Turn() =>
-        GrievanceShownByPrevMembership(wrapXOverride: false, expectedEmptyingTurn: 10);
+        GrievanceShownByPrevMembership(wrapXOverride: false, expectedEmptyingTurn: 10, config: MilitaryOff.Value);   // ADR-055 R4 (see the caller above)
 
-    private static void GrievanceShownByPrevMembership(bool? wrapXOverride, long expectedEmptyingTurn)
+    private static void GrievanceShownByPrevMembership(bool? wrapXOverride, long expectedEmptyingTurn, SimConfig? config = null)
     {
         // The starved settlement runs down: stepped past the Starved rig, its
         // Peasants go 1 -> 0. The needs system iterated PREV's member to write
@@ -528,7 +555,7 @@ public class GlassBoxUiTests
         // ADR-026's effective deficit — the settlement runs down more slowly —
         // and the loop's 12-turn ceiling still contains it. The rule this test
         // pins (PREV membership decides what is shown) is untouched.
-        Sim.Ui.UiSession session = Starved(out _, wrapXOverride);
+        Sim.Ui.UiSession session = Starved(out _, wrapXOverride, config);
         Assert.Equal(wrapXOverride ?? true, session.World.Terrain!.WrapX);
         int target = session.World.Settlements[0].Id.Value;
         var id = new SettlementId(target);
@@ -667,7 +694,12 @@ public class GlassBoxUiTests
     [Fact]
     public void Trends_ReturnASeriesPerSeriesKey_WithOneValuePerObservedTurn()
     {
-        Sim.Ui.UiSession session = Played(6);
+        // ADR-055: the people serving in the founding warband (FormationPersonnel, a population carrier in no settlement),
+        // measured on the turn-0 world before any step.
+        var session = Sim.Ui.UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        long foundingInFormations = 0;
+        for (int i = 0; i < session.World.FormationPersonnel.Count; i++) foundingInFormations += session.World.FormationPersonnel[i].Count.Value;
+        for (int t = 0; t < 6; t++) session.EndTurn();
         IObservationHistory history = session.Observations;
         int first = session.World.Settlements[0].Id.Value;
         Sim.Core.Systems.ClassEntry[] classes = session.Config.Registries.Classes;
@@ -704,10 +736,18 @@ public class GlassBoxUiTests
         // World population through the seam: turn 0 is the first TurnRecord's
         // OPENING (the founding carrier sum) and every later turn equals the
         // TurnRecord's closing population — the sum is the ledger carrier's sum.
+        // ADR-055 RE-RIG (units track, 2026-10-28; MEASURED on the combined tree): the premise "every person lives in a
+        // settlement" no longer holds — the founding warband's 20 people are a population carrier (FormationPersonnel) in
+        // no settlement's record, so the settlement-summed series falls short of the carrier sum by exactly the people in
+        // formations (1574 vs 1554 at the opening). The identity is kept EXACT with that term: the closing side by the
+        // record's own InFormations, the opening side by the founding world's FormationPersonnel, measured above. The
+        // series stays a settlement sum on purpose: the P7-filtered world view cannot add a formation's people without
+        // reading another polity's formations.
+        Assert.True(foundingInFormations > 0, "the founding warband holds people (ADR-055) — else this term is vacuous");
         double[] pop = TrendsModel.World(history, SeriesKey.Population, -1);
-        Assert.Equal(history.Observations[0].Turn.Population.Opening, pop[0]);
+        Assert.Equal(history.Observations[0].Turn.Population.Opening, pop[0] + foundingInFormations);
         for (int t = 0; t < 6; t++)
-            Assert.Equal(history.Observations[t].Turn.Population.Closing, pop[t + 1]);
+            Assert.Equal(history.Observations[t].Turn.Population.Closing, pop[t + 1] + history.Observations[t].Turn.Population.InFormations);
         double[] grain = TrendsModel.World(history, SeriesKey.Food, -1);
         Assert.Equal(history.Observations[0].Turn.Grain.Opening, grain[0]);
         double[] dwellings = TrendsModel.World(history, SeriesKey.Dwellings, -1);

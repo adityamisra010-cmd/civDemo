@@ -27,6 +27,12 @@ jobs:
       - name: Research → gameplay unlock audit is current (R1 — every node's content-declared consequence)
         run: python3 scripts/research-gameplay-unlock-audit.py --check
 
+      - name: Validation selector self-test and map consistency (docs/validation-policy.md)
+        run: python3 -m unittest scripts/test_tiered_validation.py
+
+      - name: Documentation links resolve (docs/validation-policy.md)
+        run: python3 scripts/check-doc-links.py --all
+
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
@@ -218,7 +224,16 @@ jobs:
           # DiscoveryLayoutAttributionTests (TestConfigs.PreM6 returns 0f29efc7… through SchemaProjection.V34) and
           # CivicsPointsAttributionTests (the CP part on the EX-off, tranche-off world).
           # ADR-051 (schema v37): re-pinned for the empty section-68 prefix alone (OLD 35bb235f…, its v36 projection; ResearchReserveLayoutAttributionTests).
-          FOUNDED_GOLDEN=8abc32b0d85ef6fc00d0b7476d976953e34f16d6a7e900bdbdd07e5c49f61e28
+          # ADR-054 (schema v38; D-065 R6): re-pinned for per-turn CP and the average population (OLD 8abc32b0…, the v37
+          # projection of the switch-off twin; Adr054AttributionTests).
+          # ADR-055 (schema v39): 1f9f3d4f… -> bb825342… — the military layer (the founding warband's 20 people and their grain
+          # upkeep) plus sections 70–73. CONTROL: MilitaryAttributionTests (TestConfigs.PreMilitary returns 1f9f3d4f… through SchemaProjection.V38).
+          # ADR-056 (the M7 economy packets, D-065 R2): on the research tree 1f9f3d4f… -> bd8a343b… for the packets' inert content
+          # rows alone. M7 MERGE (research + units + economy): bb825342… / bd8a343b… -> d5ebd0b2c642ec5c…. TWO CONTROLS, both exact:
+          # (a) packets off — SnapshotTests.FoundedGoldenHashPreEconomy: the live world's packet rows removed (asserted inert)
+          # is the units pin bb825342…; (b) military off — MilitaryAttributionTests: TestConfigs.PreMilitary's world is the
+          # research+econ pin bd8a343b… (SchemaProjection.V38KeepingPackets) and the research pin 1f9f3d4f… (SchemaProjection.V38).
+          FOUNDED_GOLDEN=d5ebd0b2c642ec5ce92fb6aade3efcffcd2eee1364f19d0548f5f5c306f93501
           if [ "$(tail -n 1 f-run-a.log)" != "$FOUNDED_GOLDEN" ]; then
             echo "FOUNDED RUN DIVERGED FROM PINNED GOLDEN:"
             echo "  expected $FOUNDED_GOLDEN"
@@ -342,7 +357,10 @@ jobs:
           # the run log holds 394 orders; the kind set is unchanged.
           # ADR-046 §6–§7 RE-MEASUREMENT (batch 3, 2026-10-23, run locally from this tree): 391 orders; 13 Explore (first at 35),
           # 17 Prospect, all surveys, the first at turn 9 (the AI builds its first granaries before it surveys); kinds unchanged.
-          expected = set(range(3, 10)) | {12, 13, 14, 15}   # 10 is reserved (MoveFormation, M7); 11 is legacy (D-056)
+          # ADR-055 (M7 recruitment, 2026-10-28; MEASURED on the combined research + units + economy tree by the coordinator):
+          # the AI recruits (kind 16, RecruitFormation) exactly once in 600 turns, at turn 243 (skirmishers; every later
+          # identity's bill needs an EC good its knowledge does not yet reach). The run log holds 365 orders.
+          expected = set(range(3, 10)) | {12, 13, 14, 15, 16}   # 10 is reserved (MoveFormation, M7); 11 is legacy (D-056)
           print(f"run log: {n} orders, kinds {sorted(kinds)}")
           if kinds != expected:
               sys.exit(f"order kinds never issued: {sorted(expected - kinds)}; unexpected kinds: {sorted(kinds - expected)}")
@@ -380,6 +398,8 @@ jobs:
           # Re-checked 2026-10-23 with stone no longer concealed: under the shipped rules `split-check alloc-b.rep
           # --expect-hold-at 131` FAILS P5 and P7 (road works lend building work their share only at 128; competing heads only
           # at 117-119), so the switch stays; AllocationScenarioTests runs the same rules in process. OPEN: re-derive.
+          # ADR-056 (the M7 economy packets): and --without-economy — the scenario predates the packets, and its in-process run
+          # (AllocationScenarioRun on TestConfigs.PreTranche2, an older twin) switches them off by the R4 rule.
           # D-063 (tranche 2, 2026-10-24): every run and replay also takes --without-tranche2 (the pre-tranche-2 research
           # content, DataFiles.OpenResearchPreTranche2 — the TestConfigs.PreTranche2 twin). MEASURED in process on the
           # shipped tranche-2 research: split-check FAILS P5 (no step where building work's claim above its share used road
@@ -397,11 +417,11 @@ jobs:
           SHA
 
           # A0: founding -> the pre-split world P (one process).
-          $CLI run --without-discovery --without-tranche2 --founded --seed 42 --turns 116 --orders alloc.bin --hash-log alloc-a0.log --save-at 116 --save alloc-116.civsnap
+          $CLI run --without-discovery --without-tranche2 --without-economy --founded --seed 42 --turns 116 --orders alloc.bin --hash-log alloc-a0.log --save-at 116 --save alloc-116.civsnap
           # A: P -> H in a NEW process from that save, with the split report; it writes save_K.
-          $CLI run --without-discovery --without-tranche2 --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a.log --split-report alloc-a.rep --save-at 130 --save alloc-130.civsnap
+          $CLI run --without-discovery --without-tranche2 --without-economy --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a.log --split-report alloc-a.rep --save-at 130 --save alloc-130.civsnap
           # A': the same WITHOUT --split-report: the observer changes no hash and no save.
-          $CLI run --without-discovery --without-tranche2 --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a1.log --save-at 130 --save alloc-130-a1.civsnap
+          $CLI run --without-discovery --without-tranche2 --without-economy --from-save alloc-116.civsnap --turns 24 --orders alloc.bin --hash-log alloc-a1.log --save-at 130 --save alloc-130-a1.civsnap
           if ! cmp alloc-a.log alloc-a1.log || ! cmp alloc-130.civsnap alloc-130-a1.civsnap; then
             echo "ALLOCATION: --split-report CHANGED A HASH OR THE SAVE"
             exit 1
@@ -409,16 +429,16 @@ jobs:
           cat alloc-a0.log alloc-a.log > alloc-full.log          # line n = world n, 1..140
           # B: K -> H from save_K in another process; it writes the save at kind 12's issue turn (136). Its hash log and
           # its split report must be A's tail (rows from step 130 -> 131: what B's own walk published from the loaded world).
-          $CLI run --without-discovery --without-tranche2 --from-save alloc-130.civsnap --turns 10 --orders alloc.bin --hash-log alloc-b.log --split-report alloc-b.rep --save-at 136 --save alloc-136.civsnap
+          $CLI run --without-discovery --without-tranche2 --without-economy --from-save alloc-130.civsnap --turns 10 --orders alloc.bin --hash-log alloc-b.log --split-report alloc-b.rep --save-at 136 --save alloc-136.civsnap
           if ! diff alloc-b.log <(sed -n 131,140p alloc-full.log) > alloc-b.diff || ! diff alloc-b.rep <(tail -n 10 alloc-a.rep) >> alloc-b.diff; then
             echo "ALLOCATION: THE CONTINUATION FROM save_K IS NOT A's TAIL:"
             head -n 5 alloc-b.diff
             exit 1
           fi
           # The control: the b = 100 twin (no kind 12) branched from the SAME pre-split world.
-          $CLI run --without-discovery --without-tranche2 --from-save alloc-116.civsnap --turns 24 --orders alloc-ctl.bin --hash-log alloc-c.log --split-report alloc-c.rep
+          $CLI run --without-discovery --without-tranche2 --without-economy --from-save alloc-116.civsnap --turns 24 --orders alloc-ctl.bin --hash-log alloc-c.log --split-report alloc-c.rep
           # sim replay of the generated log equals A0 + A (no AI polity by H, so no AI order is missing from the log).
-          $CLI replay --without-discovery --without-tranche2 --founded --seed 42 --turns 140 --orders alloc.bin --hash-log alloc-replayed.log
+          $CLI replay --without-discovery --without-tranche2 --without-economy --founded --seed 42 --turns 140 --orders alloc.bin --hash-log alloc-replayed.log
           if ! diff alloc-full.log alloc-replayed.log > alloc-replay.diff; then
             echo "ALLOCATION REPLAY DIVERGENCE -- first divergent turn:"
             head -n 5 alloc-replay.diff
@@ -438,9 +458,9 @@ jobs:
           fi
           # Kinds 13 and 12, turn-exact: the save at each issue turn hashes to its line, and a twin run without the order
           # equals the run through that turn and differs at the next.
-          $CLI run --without-discovery --without-tranche2 --from-save alloc-130.civsnap --turns 2 --orders alloc.bin --hash-log alloc-v.log --save-at 132 --save alloc-132.civsnap
-          $CLI run --without-discovery --without-tranche2 --from-save alloc-130.civsnap --turns 3 --orders alloc-no13.bin --hash-log alloc-t13.log
-          $CLI run --without-discovery --without-tranche2 --from-save alloc-130.civsnap --turns 7 --orders alloc-no12.bin --hash-log alloc-t12.log --split-report alloc-t12.rep
+          $CLI run --without-discovery --without-tranche2 --without-economy --from-save alloc-130.civsnap --turns 2 --orders alloc.bin --hash-log alloc-v.log --save-at 132 --save alloc-132.civsnap
+          $CLI run --without-discovery --without-tranche2 --without-economy --from-save alloc-130.civsnap --turns 3 --orders alloc-no13.bin --hash-log alloc-t13.log
+          $CLI run --without-discovery --without-tranche2 --without-economy --from-save alloc-130.civsnap --turns 7 --orders alloc-no12.bin --hash-log alloc-t12.log --split-report alloc-t12.rep
           if [ "$(cat alloc-v.log)" != "$(sed -n 131,132p alloc-full.log)" ] \
              || [ "$($CLI hash alloc-132.civsnap)" != "$(sed -n 132p alloc-full.log)" ] \
              || [ "$($CLI hash alloc-136.civsnap)" != "$(sed -n 136p alloc-full.log)" ]; then

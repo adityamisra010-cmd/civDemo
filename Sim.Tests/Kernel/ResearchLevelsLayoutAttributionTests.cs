@@ -1,5 +1,6 @@
 using Sim.Core.Kernel;
 using Sim.Core.State;
+using Sim.Core.Systems;
 using Sim.Tests.Systems;
 using Sim.Tests.TestUtil;
 
@@ -20,34 +21,39 @@ public class ResearchLevelsLayoutAttributionTests
     internal const string V35AiTurn300 = "b2201d255f74f4778af17bafe413345d186fca43f4360ba9fc43fea5c74d56e7";
 
     /// <summary>ADR-051 (schema v37): the same worlds also carry the v37 attribution — <paramref name="v36"/> is the raw pin
-    /// before v37, reached through SchemaProjection.V36 (ResearchReserveLayoutAttributionTests.LayoutAlone).</summary>
-    private static void Layout(WorldState live, string v35, string v36, string raw)
+    /// before v37, reached through SchemaProjection.V36 (ResearchReserveLayoutAttributionTests.LayoutAlone).
+    /// ADR-054 (schema v38): and <paramref name="v37"/>, the raw pin before v38, through SchemaProjection.V37. The shipped
+    /// research worlds (first reign, driven, founded) move by VALUE under ADR-054, so their older layout links are asserted on
+    /// the ADR-054 switch-off twin (TestConfigs.PrePerTurnCivics), which is the v37 world byte for byte.</summary>
+    private static void Layout(WorldState world, string v35, string v36, string v37)
     {
-        Assert.Equal(0, live.ResearchLevels.Count);
-        Assert.Equal(v35, SchemaProjection.V35(live));
-        ResearchReserveLayoutAttributionTests.LayoutAlone(live, v36, raw);
+        Assert.Equal(0, world.ResearchLevels.Count);
+        Assert.Equal(v35, SchemaProjection.V35(world));
+        ResearchReserveLayoutAttributionTests.LayoutAlone(world, v36, v37);
     }
+
+    private static SimConfig Twin() => TestConfigs.PrePerTurnCivics(TestConfigs.Sim());
 
     [Fact]
     public void ToyGoldenSeed42Turn200_MovedForTheV36LayoutAlone() =>
-        Layout(SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200), V35ToyGolden, ResearchReserveLayoutAttributionTests.V36ToyGolden, SnapshotTests.ToyGoldenHash);
+        Layout(SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 200), V35ToyGolden, ResearchReserveLayoutAttributionTests.V36ToyGolden, Adr054AttributionTests.V37ToyGolden);
 
     [Fact]
     public void FirstReignTurn40_MovedForTheV36LayoutAlone() =>
-        Layout(FirstReignTests.Replay(40, out _), V35FirstReignGolden, ResearchReserveLayoutAttributionTests.V36FirstReignGolden, FirstReignTests.PostR1Golden);
+        Layout(FirstReignTests.Replay(40, out _, Twin()), V35FirstReignGolden, ResearchReserveLayoutAttributionTests.V36FirstReignGolden, Adr054AttributionTests.V37FirstReignGolden);
 
     [Fact]
     public void DrivenGoldenSeed42Turn300_MovedForTheV36LayoutAlone() =>
-        Layout(DrivenGoldenTests.RunDriven(300).World, V35DrivenGolden, ResearchReserveLayoutAttributionTests.V36DrivenGolden, DrivenGoldenTests.Golden);
+        Layout(DrivenGoldenTests.RunDriven(300, Twin()).World, V35DrivenGolden, ResearchReserveLayoutAttributionTests.V36DrivenGolden, Adr054AttributionTests.V37DrivenGolden);
 
     [Fact]
     public void FoundedGoldenSeed42Turn300_MovedForTheV36LayoutAlone() =>
-        Layout(SnapshotTests.RunFoundedGolden(), V35FoundedGolden, ResearchReserveLayoutAttributionTests.V36FoundedGolden, SnapshotTests.FoundedGoldenHash);
+        Layout(SnapshotTests.RunFoundedGolden(Twin()), V35FoundedGolden, ResearchReserveLayoutAttributionTests.V36FoundedGolden, Adr054AttributionTests.V37FoundedGolden);
 
     // D-063: tranche 2 moves the live AI world by VALUE (AiFoundingAttributionTests.S1cTurn300's re-pin), so the v36 layout
     // link is asserted on the pre-tranche-2 world (TestConfigs.PreTranche2), whose raw hash is the v36 pin before tranche 2.
     [Fact]
     public void AiWorldSeed42Turn300_MovedForTheV36LayoutAlone() =>
         Layout(CivicsPointsAttributionTests.RunAiWorld(TestConfigs.PreTranche2(TestConfigs.Sim())), V35AiTurn300,
-            ResearchReserveLayoutAttributionTests.V36PreTranche2AiTurn300, AiFoundingAttributionTests.PreTranche2Turn300);
+            ResearchReserveLayoutAttributionTests.V36PreTranche2AiTurn300, Adr054AttributionTests.V37PreTranche2AiTurn300);
 }

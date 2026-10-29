@@ -90,29 +90,91 @@ public static class DepositConcealment
     /// <summary>
     /// THE CLASSIFICATION: the goods of <paramref name="settlement"/>'s CONCEALED deposit rows over
     /// <paramref name="deposits"/> (the stored table, or a scratch roll for a site not yet founded under the id it would get),
-    /// ascending by the composite key. Empty when concealment is off.
+    /// ascending by the composite key within each pool. Empty when concealment is off.
+    ///
+    /// <para>ADR-056 §2 — CONCEALMENT POOLS. The k = floor(n × s + u) rule runs separately over each POOL of concealable
+    /// goods: the base pool (goods with no goods.json <c>packet</c> — copper-ore and tin-ore) with exactly the offset u
+    /// above, and one pool per economy packet (EC-1: iron-ore and coal; EC-3: saltpetre and sulphur) with its own offset
+    /// <see cref="PoolFraction"/>. A packet's ores therefore never change how many — or which — of the base ores are
+    /// concealed: the base pool is classified over the same rows with the same u whether or not any packet is enabled
+    /// (the switch-off twin is byte-identical, and an enabled packet cannot perturb the M6 classification).</para>
     /// </summary>
     public static int[] ConcealedGoods(IReadOnlyTable<DepositRow> deposits, ulong seed, SimConfig? cfg, SettlementId settlement)
     {
         if (!Enabled(cfg)) return [];
         bool[] mask = ConcealableMask(cfg!);
+        int[] pool = PoolOf(cfg!);
+        int pools = PoolCount(cfg!);
+        int[]? result = null;
+        for (int p = 0; p < pools; p++)
+        {
+            int[] concealed = ConcealedInPool(deposits, seed, cfg!, settlement, mask, pool, p);
+            if (concealed.Length == 0) continue;
+            if (result is null) { result = concealed; continue; }
+            var merged = new int[result.Length + concealed.Length];
+            Array.Copy(result, merged, result.Length);
+            Array.Copy(concealed, 0, merged, result.Length, concealed.Length);
+            result = merged;
+        }
+        return result ?? [];
+    }
+
+    /// <summary>The classification of ONE pool (pool 0: the base goods, the pre-ADR-056 rule verbatim).</summary>
+    private static int[] ConcealedInPool(IReadOnlyTable<DepositRow> deposits, ulong seed, SimConfig cfg,
+        SettlementId settlement, bool[] mask, int[] pool, int p)
+    {
         int n = 0;
         for (int i = 0; i < deposits.Count; i++)
         {
             DepositRow d = deposits[i];
-            if (d.Settlement.Value == settlement.Value && d.Abundance > 0.0 && In(mask, d.Good.Value)) n++;
+            if (d.Settlement.Value == settlement.Value && d.Abundance > 0.0 && In(mask, d.Good.Value) && PoolIs(pool, d.Good.Value, p)) n++;
         }
-        int k = ConcealedCount(n, cfg!.Discovery!.ConcealedShare, Fraction(seed, settlement.Value));
+        double u = p == 0 ? Fraction(seed, settlement.Value) : PoolFraction(seed, settlement.Value, PoolPacket(cfg, p));
+        int k = ConcealedCount(n, cfg.Discovery!.ConcealedShare, u);
         if (k == 0) return [];
         var keys = new (ulong Key, int Good)[n];
         int j = 0;
         for (int i = 0; i < deposits.Count; i++)
         {
             DepositRow d = deposits[i];
-            if (d.Settlement.Value == settlement.Value && d.Abundance > 0.0 && In(mask, d.Good.Value))
+            if (d.Settlement.Value == settlement.Value && d.Abundance > 0.0 && In(mask, d.Good.Value) && PoolIs(pool, d.Good.Value, p))
                 keys[j++] = (RowKey(seed, settlement.Value, d.Good.Value), d.Good.Value);
         }
         return LowestByKey(keys, k);
+    }
+
+    private static bool PoolIs(int[] pool, int good, int p) => ((uint)good < (uint)pool.Length ? pool[good] : 0) == p;
+
+    /// <summary>ADR-056 §2: the pool of every good id — 0 for a base good, 1 + the index of its packet in goods.json
+    /// <c>packets</c> for a packet good.</summary>
+    public static int[] PoolOf(SimConfig cfg)
+    {
+        if (cfg.Goods is not { } goods) return [];
+        int max = -1;
+        foreach (GoodEntry g in goods.Goods) if (g.Id > max) max = g.Id;
+        var pool = new int[max + 1];
+        PacketEntry[] packets = goods.Packets ?? [];
+        foreach (GoodEntry g in goods.Goods)
+        {
+            if (g.Packet is not { } id) continue;
+            for (int i = 0; i < packets.Length; i++)
+                if (string.Equals(packets[i].Id, id, StringComparison.Ordinal)) { pool[g.Id] = 1 + i; break; }
+        }
+        return pool;
+    }
+
+    private static int PoolCount(SimConfig cfg) => 1 + (cfg.Goods?.Packets?.Length ?? 0);
+
+    private static string PoolPacket(SimConfig cfg, int p) => cfg.Goods!.Packets![p - 1].Id;
+
+    /// <summary>ADR-056 §2: a packet pool's offset — <see cref="Fraction"/> over the seed salted by the packet id (64-bit
+    /// FNV-1a of its ordinal characters: a pure function of the text, never GetHashCode), so each pool's realized share
+    /// stays near s on its own low-discrepancy sequence, independent of the base pool's.</summary>
+    public static double PoolFraction(ulong seed, int settlement, string packet)
+    {
+        ulong h = 14695981039346656037UL;
+        foreach (char c in packet) { h ^= c; h *= 1099511628211UL; }
+        return Fraction(seed ^ h, settlement);
     }
 
     /// <summary>THE ORDERING of the classification: the goods of the <paramref name="k"/> entries lowest by the composite key

@@ -19,7 +19,7 @@ public class PipelineLoaderTests
         // The M2 production preset (m2 spec §3; classmobility added at T2.2).
         using var stream = Sim.Data.DataFiles.OpenPipeline();
         var pipeline = PipelineLoader.Load(stream, Available);
-        Assert.Equal(24, pipeline.Length);   // M6 EX `discovery`; ADR-033 D6 `institutions`; ADR-033 D4 `governance`; ADR-032 `roaddevelopment`; ADR-031 `ageeligibility`, `agetransition`; T4.5 `appropriation`; T4.4 `colonization`; M4-D `construction`; T4.13 `revolt`; T4.21-1 `disaster`; ADR-029 `research`
+        Assert.Equal(25, pipeline.Length);   // ADR-055 `military` (after agetransition); M6 EX `discovery`; ADR-033 D6 `institutions`; ADR-033 D4 `governance`; ADR-032 `roaddevelopment`; ADR-031 `ageeligibility`, `agetransition`; T4.5 `appropriation`; T4.4 `colonization`; M4-D `construction`; T4.13 `revolt`; T4.21-1 `disaster`; ADR-029 `research`
         Assert.Equal("catchment", pipeline[0].Name);
         // T3.4b: weather is published BEFORE production reads it. Production
         // reads PREV either way (the §3.2 lag), so this is legibility rather
@@ -103,12 +103,14 @@ public class PipelineLoaderTests
         // ADR-032: road development last. It reads only PREV (plus its own NEXT edge table) and
         // draws materials from GoodStocks after every other holder has acted, so a road never
         // spends the stone a same-turn construction or housing draw already counted on.
-        Assert.Equal("roaddevelopment", pipeline[22].Name);
+        // ADR-055: military right after agetransition (a re-equipment completes after the same step's modernization).
+        Assert.Equal("military", pipeline[22].Name);
+        Assert.Equal("roaddevelopment", pipeline[23].Name);
         // ADR-033 D6: institutions LAST. It reads only PREV (Structures, Controls, Buckets, Variables, the roster)
         // and writes only Institutions and ResearchCostModifiers, which no system reads in the same step (research
         // reads the factors from PREV), so its slot changes no other system's result; appending it keeps every
         // earlier slot pinned unchanged.
-        Assert.Equal("institutions", pipeline[23].Name);
+        Assert.Equal("institutions", pipeline[24].Name);
     }
 
     [Fact]
@@ -129,7 +131,7 @@ public class PipelineLoaderTests
         var e = LoadFails("""{ "pipeline": ["weather", "wether"] }""");
         Assert.Contains("pipeline[1] 'wether' is not a registered system", e.Message);
         Assert.Contains(
-            "known systems: catchment, harvestweather, disaster, production, appropriation, consumption, price, trade, housing, construction, classmobility, migration, colonization, discovery, revolt, governance, demographics, needsgrievance, pathbuild, research, ageeligibility, agetransition, roaddevelopment, institutions, weather, growth, toytrade",
+            "known systems: catchment, harvestweather, disaster, production, appropriation, consumption, price, trade, housing, construction, classmobility, migration, colonization, discovery, revolt, governance, demographics, needsgrievance, pathbuild, research, ageeligibility, agetransition, military, roaddevelopment, institutions, weather, growth, toytrade",
             e.Message);
     }
 

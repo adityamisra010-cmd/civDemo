@@ -95,7 +95,7 @@ public class StoreLossTests
                 }
                 if (r.Food.StoreLosses > 0) spoiling++;
             }
-            Assert.Equal(o.Turn.Grain.Spoilage + o.Turn.Grain.Overflow, losses);
+            Assert.Equal(o.Turn.Grain.Spoilage + o.Turn.Grain.Overflow + o.Turn.Grain.Military, losses);
             // No raid on these worlds, and relief is not one: the appropriation label is never set (relief turns included).
             Assert.False(o.Turn.Flows.UnattributedGrainTransfer);
             // The READ terms the residual leans on sum to the ledger's legs.
@@ -162,8 +162,8 @@ public class StoreLossTests
             sum += o.Settlements[s].Food.StoreLosses;
             if (s > 0) { siblings += o.Settlements[s].Food.StoreLosses; Assert.True(o.Settlements[s].Food.StoreLosses >= 0); }
         }
-        Assert.Equal(o.Turn.Grain.Spoilage + o.Turn.Grain.Overflow, sum);
-        Assert.Equal(o.Turn.Grain.Spoilage + o.Turn.Grain.Overflow + required, siblings);   // the donors carry the grant
+        Assert.Equal(o.Turn.Grain.Spoilage + o.Turn.Grain.Overflow + o.Turn.Grain.Military, sum);
+        Assert.Equal(o.Turn.Grain.Spoilage + o.Turn.Grain.Overflow + o.Turn.Grain.Military + required, siblings);   // the donors carry the grant
     }
 
     /// <summary>
@@ -237,11 +237,11 @@ public class StoreLossTests
         }
         long provisions = o.Settlements[12].Food.GrainClosing;
         Assert.True(provisions > 0);
-        Assert.Equal(o.Turn.Grain.Spoilage + o.Turn.Grain.Overflow, losses);
+        Assert.Equal(o.Turn.Grain.Spoilage + o.Turn.Grain.Overflow + o.Turn.Grain.Military, losses);
         // Without the founding record the prev settlements over-count by exactly
         // the provisions that left the source — which is why the founding record
         // carries them as a negative loss.
-        Assert.Equal(o.Turn.Grain.Spoilage + o.Turn.Grain.Overflow + provisions, prevOnly);
+        Assert.Equal(o.Turn.Grain.Spoilage + o.Turn.Grain.Overflow + o.Turn.Grain.Military + provisions, prevOnly);
         Assert.True(o.Turn.Grain.Spoilage > 0, "no spoilage on the founding turn");
         Assert.False(o.Turn.Flows.UnattributedGrainTransfer);
         for (long turn = 3; turn <= 6; turn++)
@@ -249,7 +249,7 @@ public class StoreLossTests
             TurnObservation later = log.At(turn)!;
             long sum = 0;
             for (int s = 0; s < later.Settlements.Length; s++) sum += later.Settlements[s].Food.StoreLosses;
-            Assert.Equal(later.Turn.Grain.Spoilage + later.Turn.Grain.Overflow, sum);
+            Assert.Equal(later.Turn.Grain.Spoilage + later.Turn.Grain.Overflow + later.Turn.Grain.Military, sum);
         }
     }
 

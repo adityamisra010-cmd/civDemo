@@ -31,6 +31,7 @@ public static class TestConfigs
     /// the links returns the pre-R1 pins byte for byte.</summary>
     public static SimConfig PreRecipeKnowledge(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         cfg = PreForager(cfg);
         GoodsConfig goods = cfg.Goods ?? throw new ArgumentException("no goods content", nameof(cfg));
         var recipes = new RecipeEntry[goods.Recipes.Length];
@@ -47,12 +48,13 @@ public static class TestConfigs
     /// <summary>R2b weather layer stripped: the harvest-weather kernel reads the road-aware travel costs
     /// again (harvestVariance.spatialDistance "travelCost").</summary>
     public static SimConfig PreWeatherGeography(SimConfig cfg) =>
-        cfg with { HarvestVariance = cfg.HarvestVariance with { SpatialDistance = "travelCost" } };
+        PreEconomyTrack(PreMilitary(cfg with { HarvestVariance = cfg.HarvestVariance with { SpatialDistance = "travelCost" } }));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>R2b unrest layer stripped: Dignity unbound again and no unrest section — grievance drives
     /// nothing and the tax injures no need (the pre-R2b needs.json).</summary>
     public static SimConfig PreUnrest(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         NeedsConfig needs = cfg.Needs ?? throw new ArgumentException("no needs content", nameof(cfg));
         var entries = new NeedEntry[needs.Needs.Length];
         for (int i = 0; i < entries.Length; i++)
@@ -64,6 +66,7 @@ public static class TestConfigs
     /// founding warband line satisfies every Age's military milestone, as before R2b).</summary>
     public static SimConfig PreAgeMilitary(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         global::Sim.Core.Systems.Ages.AgeContent ages = cfg.Ages ?? throw new ArgumentException("no age content", nameof(cfg));
         var defs = new global::Sim.Core.Systems.Ages.AgeDefinition[ages.Ages.Count];
         for (int a = 0; a < defs.Length; a++)
@@ -89,7 +92,8 @@ public static class TestConfigs
     }
 
     /// <summary>Every R2b layer stripped (weather geography, unrest/Dignity, Age military realization).</summary>
-    public static SimConfig PreR2b(SimConfig cfg) => PreAgeMilitary(PreUnrest(PreWeatherGeography(PreForager(cfg))));
+    public static SimConfig PreR2b(SimConfig cfg) =>
+        PreEconomyTrack(PreMilitary(PreAgeMilitary(PreUnrest(PreWeatherGeography(PreForager(cfg))))));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>H2 (2026-10-05) — THE TAX AGE GATE STRIPPED: sim.json governance.taxationMinAge removed, so the tax
     /// edict is gated by the Taxation knowledge alone (the R5 gate). The AI-world attribution control
@@ -97,6 +101,7 @@ public static class TestConfigs
     /// than H2) is stripped with it (<see cref="PreD053"/>) — the R4 rule: an older layer twin strips EVERY newer layer.</summary>
     public static SimConfig PreTaxAge(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         cfg = PreD053(cfg);
         return cfg.Governance is { } g ? cfg with { Governance = g with { TaxationMinAge = null } } : cfg;
     }
@@ -114,6 +119,7 @@ public static class TestConfigs
     /// batch off returns de86ace), with the per-layer turn-exact divergence beside it.</summary>
     public static SimConfig PreForager(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         cfg = PreD053(cfg);
         return cfg.Farming.PreCultivation is { } pre
             ? cfg with { Farming = cfg.Farming with { PreCultivation = pre with { Enabled = false } } }
@@ -128,7 +134,7 @@ public static class TestConfigs
     /// (<see cref="PreD053"/>), the R4 rule: an older layer twin strips every newer layer — so the 1(b) controls are
     /// 1(b) plus the batch, and the batch-only link is each D-053 track's switch-off control.</summary>
     public static SimConfig PreTimeAveragedHarvest(SimConfig cfg) =>
-        PreD053(cfg) with { HarvestVariance = cfg.HarvestVariance with { TimeAveragedHarvest = false } };
+        PreEconomyTrack(PreMilitary(PreD053(cfg) with { HarvestVariance = cfg.HarvestVariance with { TimeAveragedHarvest = false } }));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>M5 S1c (2026-10-11) — THE AI FOUNDING POLICY SWITCHED OFF: sim.json colonization.aiFounding.enabled
     /// false, so no AI polity issues a Found Settlement order. On its own it returns every pre-S1c AI pin byte for byte
@@ -137,6 +143,7 @@ public static class TestConfigs
     /// stripped with it (<see cref="PreD053"/>), the R4 rule: an older layer twin strips every newer layer.</summary>
     public static SimConfig PreAiFounding(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         cfg = PreD053(cfg);
         return cfg.Colonization?.AiFounding is { } ai
             ? cfg with { Colonization = cfg.Colonization with { AiFounding = ai with { Enabled = false } } }
@@ -152,7 +159,7 @@ public static class TestConfigs
     /// measures a PER-SETTLEMENT food rule (abandonment famine, the starved explain rigs, the revolt harness):
     /// relief removes those regimes only while the polity has spare grain.</summary>
     public static SimConfig PreEmpireFoodAllocation(SimConfig cfg) =>
-        cfg with { Consumption = cfg.Consumption with { EmpireFoodAllocation = false } };
+        PreEconomyTrack(PreMilitary(cfg with { Consumption = cfg.Consumption with { EmpireFoodAllocation = false } }));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>D-051 §6 applied to construction (D-053 §1, the Director's 2026-10-13 instruction, item 1) — THE CONSTRUCTION PURSE SWITCHED OFF:
     /// sim.json construction.empireStockpile false, so a construction project is checked against and paid from its own
@@ -162,7 +169,7 @@ public static class TestConfigs
     /// first differs exactly at the delivery of the first construction order the purse changes (the per-layer proof). Roads
     /// are not switched by it (they drew on the civilization's purse before, ADR-032).</summary>
     public static SimConfig PreEmpireConstructionStockpile(SimConfig cfg) =>
-        cfg.Construction is { } c ? cfg with { Construction = c with { EmpireStockpile = false } } : cfg;
+        PreEconomyTrack(PreMilitary(cfg.Construction is { } c ? cfg with { Construction = c with { EmpireStockpile = false } } : cfg));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>M5 item 5 (2026-10-13) — THE GRANARY EFFECTS SWITCHED OFF: sim.json granaries.enabled false, so the local
     /// farm-output factor and the empire-wide famine-intensity factor are the literal 1.0 and neither ProductionSystem nor
@@ -171,7 +178,7 @@ public static class TestConfigs
     /// combined world against this twin first differs exactly one step after a granary first acts (the per-layer proof).
     /// A world with no granary is untouched by the switch either way.</summary>
     public static SimConfig PreGranaryEffects(SimConfig cfg) =>
-        cfg.Granaries is { } g ? cfg with { Granaries = g with { Enabled = false } } : cfg;
+        PreEconomyTrack(PreMilitary(cfg.Granaries is { } g ? cfg with { Granaries = g with { Enabled = false } } : cfg));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>D-053 (2026-10-13) — THE BATCH OFF: all three of its layers switched off at once —
     /// <see cref="PreEmpireConstructionStockpile"/> (§1, the construction purse), <see cref="PreEmpireFoodAllocation"/> (§2,
@@ -183,7 +190,7 @@ public static class TestConfigs
     /// at the turn that layer first acts. By the same R4 rule it strips the NEWER D-054 batch too (<see cref="PreD054Sim"/>:
     /// incremental construction, WS1), so every pre-D-053 twin is a pre-D-054 twin as well.</summary>
     public static SimConfig PreD053(SimConfig cfg) =>
-        PreGranaryEffects(PreEmpireFoodAllocation(PreEmpireConstructionStockpile(PreD054Sim(cfg))));
+        PreEconomyTrack(PreMilitary(PreGranaryEffects(PreEmpireFoodAllocation(PreEmpireConstructionStockpile(PreD054Sim(cfg))))));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>D-054 WS1 (2026-10-14) — INCREMENTAL CONSTRUCTION SWITCHED OFF: sim.json construction.incremental false, so
     /// the queue head resolves by M4-D's whole-or-nothing gate exactly as in batch 2 (ConstructionSystem's "THE SWITCH OFF"),
@@ -195,6 +202,7 @@ public static class TestConfigs
     /// still returns them exactly as before.</summary>
     public static SimConfig PreIncrementalConstruction(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         cfg = PreM6(cfg);   // M6 (2026-10-22): the R4 rule — every newer M6 layer off (Track EX discovery, Track CP, the TREE tranche)
         return cfg.Construction is { } c
             ? cfg with { Construction = c with { Incremental = false, AllocationRatios = false, Reservations = false, ContinueWithinTurn = false } }
@@ -211,6 +219,7 @@ public static class TestConfigs
     /// and every twin built on it).</summary>
     public static SimConfig PreDiscovery(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         if (cfg.Discovery is { } d) cfg = cfg with { Discovery = d with { Enabled = false } };
         if (cfg.Fog is { } f) cfg = cfg with { Fog = f with { Enabled = false } };
         return cfg;
@@ -220,7 +229,7 @@ public static class TestConfigs
     /// discovery.aiBuildFirst false): the AI prospects whenever a bill is affordable, as at e91d10b. A single-layer twin;
     /// every older discovery twin (PreDiscovery switches the whole layer off) leaves it inert.</summary>
     public static SimConfig PreAiBuildFirst(SimConfig cfg) =>
-        cfg.Discovery is { AiBuildFirst: true } d ? cfg with { Discovery = d with { AiBuildFirst = false } } : cfg;
+        PreEconomyTrack(PreMilitary(cfg.Discovery is { AiBuildFirst: true } d ? cfg with { Discovery = d with { AiBuildFirst = false } } : cfg));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>M6 (D-062; 2026-10-22) — THE WHOLE M6 SLICE OFF: Track EX (<see cref="PreDiscovery"/>: sections 63–66 stay
     /// empty), Track CP (section 62 stays empty) and Track TREE (the research-content tranche, ADR-045): the research content
@@ -232,9 +241,24 @@ public static class TestConfigs
     /// attribution rig runs on it. Any rig research content is replaced (as <see cref="PreTrackCp"/> did).</summary>
     public static SimConfig PreM6(SimConfig cfg)
     {
-        cfg = NoAssay(PreDiscovery(cfg));
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
+        cfg = NoAssay(PreDiscovery(PreMilitary(cfg)));   // ADR-055 (M7): the R4 rule — the newer military layer off too
         return cfg.Research is null ? cfg : cfg with { Research = PreAdr045.Value };
     }
+
+    /// <summary>ADR-055 (M7 recruitment slice, 2026-10-27) — THE MILITARY LAYER OFF: sim.json military.enabled false, so the
+    /// founding warband stays the ADR-031 token (no personnel drawn), no formation eats, MilitarySystem writes nothing and
+    /// every RecruitFormation / ReequipFormation / DisbandFormation order is refused — sections 70–73 stay EMPTY. A world
+    /// stepped under it is the v38 world plus four empty count prefixes, so its v38 projection
+    /// (<see cref="SchemaProjection.V38"/>) is the v38 hash byte for byte: every pin the slice moves is attributed through it.
+    /// The NEWEST layer, so every older twin strips it (the R4 rule: <see cref="PreM6"/>, and through it every chained twin).</summary>
+    public static SimConfig PreMilitary(SimConfig cfg) =>
+        cfg.Military is { Enabled: true } m ? cfg with { Military = m with { Enabled = false } } : cfg;
+
+    /// <summary>ADR-055 §7 — THE AI RECRUITMENT POLICY OFF (sim.json military.aiRecruitment false), the military layer
+    /// otherwise on: the attribution control of the AI's recruitment orders (a single-layer twin).</summary>
+    public static SimConfig PreAiRecruitment(SimConfig cfg) =>
+        cfg.Military is { AiRecruitment: true } m ? cfg with { Military = m with { AiRecruitment = false } } : cfg;
 
     /// <summary>ADR-046: the assay (discovery.assayCost / assayRequires) removed — the survey stays. Its requirement names
     /// ore_prospecting, a node of the research-content tranche (ADR-045), so every twin that installs pre-tranche content
@@ -251,7 +275,7 @@ public static class TestConfigs
     /// every world with no kind-12 order) is byte-identical with it on or off: the default b = 100 cannot bind. D-055: it
     /// keeps reservations ON — the recorded R4 exception (the class header).</summary>
     public static SimConfig PreAllocationRatios(SimConfig cfg) =>
-        cfg.Construction is { } c ? cfg with { Construction = c with { AllocationRatios = false } } : cfg;
+        PreEconomyTrack(PreMilitary(cfg.Construction is { } c ? cfg with { Construction = c with { AllocationRatios = false } } : cfg));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>D-055 (2026-10-16; the Director's batch-4 instruction, item 1) — RESERVATIONS SWITCHED OFF: sim.json
     /// construction.reservations false, so construction clears ConstructionHolds every step and publishes nothing, building
@@ -263,6 +287,7 @@ public static class TestConfigs
     /// still batch 3's byte for byte.</summary>
     public static SimConfig PreReservations(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         cfg = PreM6(cfg);   // M6 (2026-10-22): the R4 rule — both newer M6 layers off (Track EX discovery, Track CP)
         return cfg.Construction is { } c ? cfg with { Construction = c with { Reservations = false, ContinueWithinTurn = false } } : cfg;
     }
@@ -276,12 +301,13 @@ public static class TestConfigs
     // with the live run (AllocationScenarioD058AttributionTests: hash-identical through world 118), so only its own switch
     // may differ. The chained twins (PreReservations, PreIncrementalConstruction and older) strip Track CP.
     public static SimConfig PreContinueWithinTurn(SimConfig cfg) =>
-        cfg.Construction is { } c ? cfg with { Construction = c with { ContinueWithinTurn = false } } : cfg;
+        PreEconomyTrack(PreMilitary(cfg.Construction is { } c ? cfg with { Construction = c with { ContinueWithinTurn = false } } : cfg));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>D-054 (2026-10-14) — THE SIMCONFIG HALF OF THE BATCH OFF: WS1 and WS2 switched off. The worldgen half (the
     /// cylinder, WS3) is <see cref="PreD054Worldgen(WorldgenConfig)"/>: PreD054 is a PAIR, and a control that founds a world
     /// uses both (<see cref="FoundPreD054"/>). Every older SimConfig twin strips this half (<see cref="PreD053"/>).</summary>
-    public static SimConfig PreD054Sim(SimConfig cfg) => PreAllocationRatios(PreIncrementalConstruction(cfg));
+    public static SimConfig PreD054Sim(SimConfig cfg) =>
+        PreEconomyTrack(PreMilitary(PreAllocationRatios(PreIncrementalConstruction(cfg))));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>R1: completes, for EVERY polity of <paramref name="w"/>, the knowledge closure (the named nodes
     /// and all their prerequisite ancestors) of every research-gated goods.json recipe — the world of a
@@ -323,13 +349,15 @@ public static class TestConfigs
     /// <summary>ADR-043 — CIVICS POINTS SWITCHED OFF: research.json tuning.civicsPoints removed, so the engine is the v34
     /// ONE-POOL model (one target in either tree, funded by RP; no CivicsPoints row is ever written). A single-layer twin:
     /// the stage gate stays as shipped.</summary>
-    public static SimConfig PreCivicsPoints(SimConfig cfg) => cfg.Research is null ? cfg
-        : cfg with { Research = IsPreTranche(cfg.Research) ? NoCivicsPointsPreTranche.Value : NoCivicsPoints.Value };
+    public static SimConfig PreCivicsPoints(SimConfig cfg) =>
+        PreEconomyTrack(PreMilitary(cfg.Research is null ? cfg
+        : cfg with { Research = IsPreTranche(cfg.Research) ? NoCivicsPointsPreTranche.Value : NoCivicsPoints.Value }));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>ADR-043 — THE OLD RESEARCH STAGE: researchStage.requires with the civic atom legal_code_roman restored
     /// (the v34 gate). A single-layer twin: Civics Points stay on.</summary>
-    public static SimConfig PreStageGate(SimConfig cfg) => cfg.Research is null ? cfg
-        : cfg with { Research = IsPreTranche(cfg.Research) ? OldStagePreTranche.Value : OldStage.Value };
+    public static SimConfig PreStageGate(SimConfig cfg) =>
+        PreEconomyTrack(PreMilitary(cfg.Research is null ? cfg
+        : cfg with { Research = IsPreTranche(cfg.Research) ? OldStagePreTranche.Value : OldStage.Value }));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>ADR-043 — TRACK CP OFF: both layers at once. A single-layer twin: on the shipped content it undoes CP's two
     /// edits and keeps the research-content tranche (ADR-045); on the pre-tranche content (<see cref="PreTreeTranche"/>) it
@@ -337,8 +365,9 @@ public static class TestConfigs
     /// PreTrackCp ∘ PreTreeTranche = PreTreeTranche ∘ PreTrackCp, and on the discovery-off world that is <see cref="PreM6"/>:
     /// the v34 world plus the empty v35 count prefixes, its v34 projection (SchemaProjection.V34) the v34 hash. Every OLDER
     /// chained twin strips it (the R4 rule, through PreM6).</summary>
-    public static SimConfig PreTrackCp(SimConfig cfg) => cfg.Research is null ? cfg
-        : cfg with { Research = IsPreTranche(cfg.Research) ? PreAdr045.Value : V34Research.Value };
+    public static SimConfig PreTrackCp(SimConfig cfg) =>
+        PreEconomyTrack(PreMilitary(cfg.Research is null ? cfg
+        : cfg with { Research = IsPreTranche(cfg.Research) ? PreAdr045.Value : V34Research.Value }));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>The v34 stage expression (ADR-043 dropped its last atom).</summary>
     public const string V34StageRequires = "medicine_hippocratic AND (geometry_axiomatic OR algebra) AND stamp_seal AND legal_code_roman";
@@ -395,7 +424,76 @@ public static class TestConfigs
     /// this twin the pre-tranche-2 pin holds. Only the SHIPPED research is swapped (a rig's own content or an older twin's
     /// is returned unchanged).</summary>
     public static SimConfig PreTranche2(SimConfig cfg) =>
-        cfg.Research is { } r && ReferenceEquals(r, CanonicalResearch.Value) ? cfg with { Research = PreTranche2Research.Value } : cfg;
+        PreEconomyTrack(PreMilitary(cfg.Research is { } r && ReferenceEquals(r, CanonicalResearch.Value) ? cfg with { Research = PreTranche2Research.Value } : cfg));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
+
+    // ======================================================================
+    // ADR-054 (the Director's binding rule of 2026-10-27) — PER-TURN CIVICS POINTS FROM THE SHARED BASE, AND THE AVERAGE
+    // POPULATION. Two switches of research.json, each with its own single-switch twin, and the pair (the pre-ADR-054
+    // research content in behaviour: the v37 world, its v37 projection — SchemaProjection.V37 — the v37 hash).
+    // ======================================================================
+
+    /// <summary>ADR-054: the ADR-043 §3 civicsPoints block the shipped content carried before ADR-054 (per sim-year).</summary>
+    public static System.Text.Json.Nodes.JsonObject PerYearCivicsPointsBlock() => new()
+    {
+        ["enabled"] = true,
+        ["coefficientPerYear"] = 0.008,
+        ["exponent"] = 0.699,
+        ["unit"] = "Civics Points per sim-year, integrated over dtYears (law 3) and banked in integer milli-CP: generated per step = floor(1000 x coefficientPerYear x population^exponent x dtYears); a city-state's is x cityStatePaceFraction",
+        ["status"] = "PROPOSED (ADR-043; D-062) \u2014 tunable",
+    };
+
+    /// <summary>ADR-054: the shipped civics pacingScale before the per-turn CP recalibration (0bf7626).</summary>
+    public static readonly double[] PreAdr054CivicsScale = [0.645983, 0.998856, 0.907987, 1.306316, 1.396621, 1.791944, 0.757433, 0.070609, 0.008686];
+
+    /// <summary>ADR-054: undoes the binding rule's research.json changes on a parsed document — <paramref name="perTurn"/>
+    /// restores the per-sim-year civicsPoints block (when the document has one) AND the civics pacingScale it was calibrated
+    /// with (the recalibration is per-turn CP's consequence, research-cost-pass/per-turn-cp-recalibration.md);
+    /// <paramref name="average"/> removes tuning.populationAverageTurns (the turn-start population).</summary>
+    public static void UndoAdr054(System.Text.Json.Nodes.JsonObject doc, bool perTurn = true, bool average = true)
+    {
+        var tuning = doc["tuning"]!.AsObject();
+        if (perTurn && tuning["civicsPoints"] is System.Text.Json.Nodes.JsonObject cp && (bool?)cp["perTurn"] == true)
+        {
+            tuning["civicsPoints"] = PerYearCivicsPointsBlock();
+            var civics = new System.Text.Json.Nodes.JsonArray();
+            foreach (double s in PreAdr054CivicsScale) civics.Add(s);
+            tuning["pacingScale"]!["civics"] = civics;
+        }
+        if (average)
+        {
+            tuning.Remove("populationAverageTurns");
+            tuning.Remove("_populationAverageTurns");
+        }
+    }
+
+    private static global::Sim.Core.Systems.Research.ResearchContent LoadShippedWithoutAdr054(bool perTurn, bool average)
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenResearch();
+        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        UndoAdr054(doc, perTurn, average);
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
+    }
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> NoAdr054 = new(() => LoadShippedWithoutAdr054(true, true));
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> NoPerTurnCivics = new(() => LoadShippedWithoutAdr054(true, false));
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> NoPopulationAverage = new(() => LoadShippedWithoutAdr054(false, true));
+
+    /// <summary>ADR-054 — THE BINDING RULE OFF (both switches): the shipped research content with the per-sim-year CP block
+    /// of ADR-043 §3 restored and tuning.populationAverageTurns removed — the pre-ADR-054 engine in behaviour, so a world
+    /// stepped under it writes no ResearchPopulations row and its v37 projection (SchemaProjection.V37) is the v37 pin. The
+    /// attribution control of every pin ADR-054 moves. Defined on the shipped research content only (anything else is
+    /// returned unchanged).</summary>
+    public static SimConfig PrePerTurnCivics(SimConfig cfg) =>
+        PreEconomyTrack(PreMilitary(cfg.Research is { } r && ReferenceEquals(r, CanonicalResearch.Value) ? cfg with { Research = NoAdr054.Value } : cfg));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
+
+    /// <summary>ADR-054 single-switch twin: CP per sim-year × dtYears again (ADR-043 §3), the average population kept.</summary>
+    public static SimConfig PrePerTurnCivicsOnly(SimConfig cfg) =>
+        PreEconomyTrack(PreMilitary(cfg.Research is { } r && ReferenceEquals(r, CanonicalResearch.Value) ? cfg with { Research = NoPerTurnCivics.Value } : cfg));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
+
+    /// <summary>ADR-054 single-switch twin: the turn-start population again (populationAverageTurns absent), CP per turn kept.</summary>
+    public static SimConfig PrePopulationAverageOnly(SimConfig cfg) =>
+        PreEconomyTrack(PreMilitary(cfg.Research is { } r && ReferenceEquals(r, CanonicalResearch.Value) ? cfg with { Research = NoPopulationAverage.Value } : cfg));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>ADR-047: removes tuning.knowledgeEffects (every operand reads its base).</summary>
     public static void UndoKnowledgeEffects(System.Text.Json.Nodes.JsonObject doc)
@@ -410,6 +508,7 @@ public static class TestConfigs
     /// (KnowledgeEffectsTests pins it). Defined on the shipped research content only.</summary>
     public static SimConfig PreKnowledgeEffects(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         if (cfg.Research is not { Tuning.KnowledgeEffects: true } r) return cfg;
         if (!ReferenceEquals(r, CanonicalResearch.Value))
             throw new NotSupportedException("PreKnowledgeEffects is defined on the shipped research content only");
@@ -430,6 +529,7 @@ public static class TestConfigs
     /// e91d10b. Defined on the shipped research content only.</summary>
     public static SimConfig PreAiSupporting(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         if (cfg.Research is not { Tuning.AiSupportingMilestones: true } r) return cfg;
         if (!ReferenceEquals(r, CanonicalResearch.Value) && !ReferenceEquals(r, PreTranche2Research.Value))
             throw new NotSupportedException("PreAiSupporting is defined on the shipped research content only");
@@ -449,6 +549,7 @@ public static class TestConfigs
     /// of ADR-033 B. Every older research twin already strips it (UndoTrackCp; the pre-tranche fixture never had it).</summary>
     public static SimConfig PreAiRoutes(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         if (cfg.Research is not { Tuning.AiCheapestOrRoute: true } r) return cfg;
         if (!ReferenceEquals(r, CanonicalResearch.Value) && !ReferenceEquals(r, PreTranche2Research.Value))
             throw new NotSupportedException("PreAiRoutes is defined on the shipped research content only");
@@ -476,7 +577,7 @@ public static class TestConfigs
     private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> V34Research = new(() => LoadResearchVariant(true, true));
 
     public static SimConfig PreTradeKnowledge(SimConfig cfg) =>
-        PreForager(cfg) with { Research = PreR2aResearch.Value, Trade = PreForager(cfg).Trade with { Entity = null } };
+        PreEconomyTrack(PreMilitary(PreForager(cfg) with { Research = PreR2aResearch.Value, Trade = PreForager(cfg).Trade with { Entity = null } }));   // ADR-055/056 R4: an older twin strips the newer military layer and the economy packets
 
     /// <summary>ADR-043: the pre-R2a research content WITH Track CP kept as shipped — what a SINGLE-LAYER trade twin of a
     /// two-lane config carries (SingleSwitchTwins.PreTradeKnowledgeOnly), so only the R2a layer differs.</summary>
@@ -519,6 +620,7 @@ public static class TestConfigs
     /// pre-tranche family (the shipped content with CP undone → the fixture). The whole-slice twin is <see cref="PreM6"/>.</remarks>
     public static SimConfig PreTreeTranche(SimConfig cfg)
     {
+        cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         if (cfg.Research is not { } r) return cfg;
         cfg = NoAssay(cfg);   // ADR-046's assay names ore_prospecting, a tranche node: the R4 rule strips it with the tranche
         if (ReferenceEquals(r, CanonicalResearch.Value) || ReferenceEquals(r, PreTranche2Research.Value))
@@ -598,6 +700,31 @@ public static class TestConfigs
         return w;
     }
 
+    // ======================================================================
+    // ADR-056 (D-065 R2) — THE M7 ECONOMY PACKETS' SWITCH-OFF TWINS. Each packet is a goods.json content switch
+    // (packets[].enabled); disabling it removes its goods and recipes exactly as the load does (GoodsConfig.WithoutPacket),
+    // so the twin founds and steps the pre-packet world byte for byte.
+    // ======================================================================
+
+    /// <summary>ADR-056 — EC-1 (metals) switched off: <paramref name="cfg"/> without the ec1 goods and recipes.</summary>
+    public static SimConfig PreEc1(SimConfig cfg) => WithoutPacket(cfg, "ec1");
+
+    /// <summary>ADR-056 — EC-2 (mounts) switched off: <paramref name="cfg"/> without the ec2 good (horses).</summary>
+    public static SimConfig PreEc2(SimConfig cfg) => WithoutPacket(cfg, "ec2");
+
+    /// <summary>ADR-056 — EC-3 (gunpowder) switched off: <paramref name="cfg"/> without the ec3 goods and recipes.</summary>
+    public static SimConfig PreEc3(SimConfig cfg) => WithoutPacket(cfg, "ec3");
+
+    /// <summary>ADR-056 — every economy packet switched off: the world before the M7 economy track.</summary>
+    public static SimConfig PreEconomyTrack(SimConfig cfg)
+    {
+        foreach (PacketEntry p in cfg.Goods?.Packets ?? []) cfg = WithoutPacket(cfg, p.Id);
+        return cfg;
+    }
+
+    private static SimConfig WithoutPacket(SimConfig cfg, string packet) =>
+        cfg.Goods is { } goods && goods.IsPacketEnabled(packet) ? global::Sim.Core.State.EconomyKnowledge.WithGoods(cfg, goods.WithoutPacket(packet)) : cfg;
+
     public static SimConfig Sim()
     {
         using var stream = global::Sim.Data.DataFiles.OpenSim();
@@ -657,6 +784,14 @@ public static class TestConfigs
     public static string SimJson()
     {
         using var stream = global::Sim.Data.DataFiles.OpenSim();
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
+
+    /// <summary>ADR-056: the raw canonical goods.json text (for loader-rejection tests).</summary>
+    public static string GoodsJson()
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenGoods();
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }

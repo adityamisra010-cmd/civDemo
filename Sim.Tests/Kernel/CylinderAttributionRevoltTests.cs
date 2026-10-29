@@ -149,7 +149,7 @@ public class CylinderAttributionRevoltTests : IClassFixture<CylinderAttributionR
             Assert.Equal(t.Population.Closing,
                 t.Population.Opening + t.Population.Births - t.Population.NaturalDeaths - t.Population.Starvation);
             Assert.Equal(t.Grain.Closing,
-                t.Grain.Opening + t.Grain.Endowment + t.Grain.Harvest - t.Grain.Eaten - t.Grain.Spoilage - t.Grain.Overflow);
+                t.Grain.Opening + t.Grain.Endowment + t.Grain.Harvest - t.Grain.Eaten - t.Grain.Spoilage - t.Grain.Overflow - t.Grain.Military);   // ADR-055: − Military
             Assert.Equal(t.Dwellings.Closing, t.Dwellings.Opening + t.Dwellings.Built - t.Dwellings.Decayed);
             if (t.Turn < FirstDecay) Assert.Equal(0, t.Dwellings.Decayed);
             if (t.Dwellings.Decayed > 0) { decayTurns++; decayed += t.Dwellings.Decayed; }

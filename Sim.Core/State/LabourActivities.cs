@@ -284,12 +284,33 @@ public static class LabourActivities
             {
                 int livestock = goods.IdOf("livestock"), fish = goods.IdOf("fish");
                 bool food = sector == Sectors.Herding;
+                bool[]? knowledge = null;
+                bool knowledgeRead = false;
                 foreach (GoodEntry g in goods.Goods)
                 {
                     bool isFood = g.Id == livestock || g.Id == fish;   // IsHerded's rule, the ids hoisted out of the loop
                     if (isFood != food) continue;
-                    if (DepositConcealment.KnownAbundance(world, cfg, settlement, g.Id) > 0.0) ids.Add(g.Id);
+                    if (!(DepositConcealment.KnownAbundance(world, cfg, settlement, g.Id) > 0.0)) continue;
+                    // ADR-056: ProductionSystem puts no labour on a deposit the settlement's knowledge cannot work.
+                    if (g.Knowledge is not null)
+                    {
+                        ResearchContent? content = research ?? cfg?.Research;
+                        if (!knowledgeRead) { knowledge = CraftingQuery.KnowledgeOf(world, content, settlement); knowledgeRead = true; }
+                        if (!EconomyKnowledge.IsWorkable(goods, content, g.Id, knowledge)) continue;
+                    }
+                    ids.Add(g.Id);
                 }
+                // ADR-056 §5 (EC-2): the herding sector also keeps the herd goods (horses) its knowledge can breed, on a
+                // settlement with known pasture — what ProductionSystem.Breed grows (capacity = herders × pasture).
+                if (food)
+                    foreach (GoodEntry g in goods.Goods)
+                    {
+                        if (g.Herd is not { } herd) continue;
+                        if (!(DepositConcealment.KnownAbundance(world, cfg, settlement, goods.IdOf(herd.PastureGood)) > 0.0)) continue;
+                        ResearchContent? content = research ?? cfg?.Research;
+                        if (!knowledgeRead) { knowledge = CraftingQuery.KnowledgeOf(world, content, settlement); knowledgeRead = true; }
+                        if (EconomyKnowledge.Met(content, g.Knowledge, knowledge)) ids.Add(g.Id);
+                    }
                 break;
             }
             case Sectors.Crafting:

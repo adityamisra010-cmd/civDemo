@@ -58,7 +58,8 @@ namespace Sim.Cli
                           [--hash-log PATH] [--split-report PATH]
                   (run, replay and inspect take --without-discovery: sim.json discovery and fog off —
                    the attribution twin of the M6 discovery layer, for legs measured before it; ADR-044;
-                   and --without-tranche2: the pre-tranche-2 research content, the D-063 twin)
+                   and --without-tranche2: the pre-tranche-2 research content, the D-063 twin;
+                   and --without-economy: every goods.json economy packet off, the ADR-056 twin)
                   sim split-check REPORT [--control CONTROL] [--expect-hold-at K]
                                   [--twin TWIN --order-at T:B]
                   sim hash SAVEFILE [--size PX]
@@ -176,7 +177,9 @@ namespace Sim.Cli
         /// <summary>M6 Track EX (ADR-044 §12): `--without-discovery` (run, replay) — the shipped rules with sim.json discovery and
         /// fog switched off (DiscoveryQuery.WithoutDiscovery, the attribution twin TestConfigs.PreDiscovery's switch), so a
         /// scripted leg whose premises predate the discovery layer (the D-055 allocation leg, the --from-save rigs) runs the
-        /// world those premises were measured on. A session emitted under it replays only under it.</summary>
+        /// world those premises were measured on. A session emitted under it replays only under it. ADR-055 (the R4 rule, as
+        /// TestConfigs.PreDiscovery): the newer military layer is off under it too — in the rules and at the founding (the
+        /// warband stays the ADR-031 token), so a `--without-discovery` leg is the in-process PreDiscovery twin's world.</summary>
         internal static bool DiscoveryOff { get; private set; }
 
         /// <summary>D-063 (tranche 2): `--without-tranche2` (run, replay, inspect) — the shipped rules with the research
@@ -185,12 +188,27 @@ namespace Sim.Cli
         /// runs the world those premises were measured on. A session emitted under it replays only under it.</summary>
         internal static bool Tranche2Off { get; private set; }
 
-        /// <summary>Removes `--without-discovery` and `--without-tranche2` from <paramref name="args"/> and records them.</summary>
+        /// <summary>ADR-056 (the M7 economy packets): `--without-economy` (run, replay, inspect) — the shipped rules with every
+        /// goods.json economy packet disabled (GoodsConfig.WithoutPacket, the attribution twin TestConfigs.PreEconomyTrack's
+        /// switch), applied at founding too (the packets add stock and deposit rows), so a session or save recorded before the
+        /// packets — or a scripted leg whose premises predate them — runs the world it was recorded on. A session emitted
+        /// under it replays only under it.</summary>
+        internal static bool EconomyOff { get; private set; }
+
+        /// <summary>Removes `--without-discovery`, `--without-tranche2` and `--without-economy` from <paramref name="args"/>
+        /// and records them.</summary>
         internal static string[] TakeDiscoverySwitch(string[] args)
         {
             if (Array.IndexOf(args, "--without-discovery") >= 0) DiscoveryOff = true;
             if (Array.IndexOf(args, "--without-tranche2") >= 0) Tranche2Off = true;
-            return Array.FindAll(args, a => a != "--without-discovery" && a != "--without-tranche2");
+            if (Array.IndexOf(args, "--without-economy") >= 0) EconomyOff = true;
+            return Array.FindAll(args, a => a != "--without-discovery" && a != "--without-tranche2" && a != "--without-economy");
+        }
+
+        /// <summary>ADR-056: <paramref name="cfg"/> with every economy packet disabled when `--without-economy` was given.</summary>
+        internal static Sim.Core.Systems.SimConfig ApplyEconomySwitch(Sim.Core.Systems.SimConfig cfg)
+        {
+            return EconomyOff ? Sim.Core.State.EconomyKnowledge.WithoutEconomy(cfg) : cfg;
         }
 
         internal static Sim.Core.Systems.SimConfig SimCfg() => ApplyLayerSwitches(ShippedSimCfg());
@@ -198,6 +216,7 @@ namespace Sim.Cli
         /// <summary>The recorded layer switches applied to <paramref name="cfg"/>: tranche 2 first (content), then discovery.</summary>
         internal static Sim.Core.Systems.SimConfig ApplyLayerSwitches(Sim.Core.Systems.SimConfig cfg)
         {
+            cfg = ApplyEconomySwitch(cfg);   // ADR-056 `--without-economy`
             if (Tranche2Off)
             {
                 using var goods = Sim.Data.DataFiles.OpenGoods();
@@ -209,7 +228,8 @@ namespace Sim.Cli
                         Sim.Core.Systems.GoodsConfigLoader.Load(goods)),
                 };
             }
-            return DiscoveryOff ? Sim.Core.State.DiscoveryQuery.WithoutDiscovery(cfg) : cfg;
+            return DiscoveryOff
+                ? Sim.Core.State.RecruitmentQuery.WithoutMilitary(Sim.Core.State.DiscoveryQuery.WithoutDiscovery(cfg)) : cfg;
         }
 
         private static Sim.Core.Systems.SimConfig ShippedSimCfg()
@@ -251,11 +271,13 @@ namespace Sim.Cli
 
         /// <summary>The starting world: M0 toy genesis, or the founded production world. <paramref name="wrapXOverride"/>
         /// (D-054): <see cref="HeadlessFounding.Found"/>'s topology override — `sim inspect` founds a session recorded
-        /// before v33 flat.</summary>
+        /// before v33 flat. <paramref name="withoutMilitary"/> (ADR-055): found with the military layer off (the warband a
+        /// token) — `sim inspect` of a session recorded before v39; `--without-discovery` implies it.</summary>
         internal static WorldState StartWorld(
             ulong seed, bool founded, int? sizeOverridePx = null, int? settlementsOverride = null,
-            int? aiEmpiresOverride = null, bool? wrapXOverride = null) =>
-            founded ? HeadlessFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride, wrapXOverride) : Genesis(seed);
+            int? aiEmpiresOverride = null, bool? wrapXOverride = null, bool withoutMilitary = false) =>
+            founded ? HeadlessFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride, wrapXOverride,
+                withoutMilitary || DiscoveryOff) : Genesis(seed);
 
         internal static int? AiEmpiresOpt(Options opts, bool founded)
         {
@@ -685,11 +707,15 @@ namespace Sim.Cli
             Console.WriteLine(SessionSchemaNotice.Reproduce(manifest, Path.GetFileName(manifestPath), turns));
 
             OrderLog orders = LoadSessionOrders(Path.Combine(dir, manifest.OrdersFile));
+            // ADR-056: a session whose manifest records no economy packet (every session recorded before them) is rebuilt
+            // and replayed with every packet off — founded and stepped as it was played (UiSession.Resume's rule).
+            if (manifest.RecordedWithoutEconomy) EconomyOff = true;
             // Fix round 1 (D-054, verifier F1): a session recorded before v33 was played on a FLAT map, so it is rebuilt
             // flat (TopologyFlags.RecordedFlat — UiSession.Resume's rule); before, it was rebuilt on the shipped cylinder.
             WorldState world = StartWorld(
                 manifest.Seed, founded: true, manifest.SizePx, manifest.Settlements, manifest.AiEmpires,
-                wrapXOverride: TopologyFlags.RecordedFlat(manifest.SchemaVersion) ? false : null);
+                wrapXOverride: TopologyFlags.RecordedFlat(manifest.SchemaVersion) ? false : null,
+                withoutMilitary: Sim.Core.State.RecruitmentQuery.RecordedWithoutMilitary(manifest.SchemaVersion));
             OrderValidation.ValidateAgainstWorld(orders, world);
             WorldState turnZero = world;
 
@@ -697,6 +723,9 @@ namespace Sim.Cli
             // (DiscoveryQuery.RecordedWithoutDiscovery — UiSession.Resume's rule).
             Sim.Core.Systems.SimConfig cfg = Sim.Core.State.DiscoveryQuery.RecordedWithoutDiscovery(manifest.SchemaVersion)
                 ? Sim.Core.State.DiscoveryQuery.WithoutDiscovery(SimCfg()) : SimCfg();
+            // ADR-055: a session recorded before v39 was played without the military layer (its warband a token).
+            if (Sim.Core.State.RecruitmentQuery.RecordedWithoutMilitary(manifest.SchemaVersion))
+                cfg = Sim.Core.State.RecruitmentQuery.WithoutMilitary(cfg);
             var executor = Executor(orders, founded: true, cfg);
             int grain = cfg.Goods?.GrainId ?? 0;
 
@@ -1450,9 +1479,12 @@ namespace Sim.Cli
         /// <param name="wrapXOverride">D-054 (fix round 1): found the world with this east-west topology instead of
         /// worldgen.json's <c>topology.wrapX</c> — UiFounding.Found's seam, the same override. `sim inspect` sets it false
         /// for a session recorded before v33 (TopologyFlags.RecordedFlat); no command line sets it.</param>
+        /// <param name="withoutMilitary">ADR-055: found with sim.json's military layer off (RecruitmentQuery.WithoutMilitary) —
+        /// the founding warband stays the ADR-031 token that holds no one. `sim inspect` sets it for a session recorded before
+        /// v39 (RecruitmentQuery.RecordedWithoutMilitary); `--without-discovery` sets it (the R4 rule).</param>
         public static WorldState Found(
             ulong seed, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null,
-            bool? wrapXOverride = null)
+            bool? wrapXOverride = null, bool withoutMilitary = false)
         {
             Sim.Core.Worldgen.WorldgenConfig wgCfg;
             using (var stream = Sim.Data.DataFiles.OpenWorldgen())
@@ -1473,6 +1505,8 @@ namespace Sim.Cli
             {
                 simCfg = Sim.Core.Systems.SimConfigLoader.Load(stream, needs, goods, research, ages, families);
             }
+            if (withoutMilitary) simCfg = Sim.Core.State.RecruitmentQuery.WithoutMilitary(simCfg);
+            simCfg = Cli.ApplyEconomySwitch(simCfg);   // ADR-056: `--without-economy` founds the pre-packet roster
             return Sim.Core.Worldgen.WorldFounding.Found(wgCfg, simCfg, seed, settlementsOverride);
         }
     }

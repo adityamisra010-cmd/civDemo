@@ -80,6 +80,8 @@ public static class AiOrders
             else if (AiDiscoveryPolicy.WantsSites(world, cfg, polity) && AiDiscoveryPolicy.Explore(world, cfg, polity) is { } explore)
                 result.Add(explore);
             if (AiDiscoveryPolicy.Prospect(world, cfg, polity) is { } prospect) result.Add(prospect);
+            // ADR-055 §7: one legal recruitment when the next Age's formation milestone is unmet (military.aiRecruitment).
+            if (Systems.Military.AiMilitaryPolicy.Decide(world, cfg, polity) is { } recruit) result.Add(recruit);
         }
         Governance(world, cfg, result);
         return [.. result];

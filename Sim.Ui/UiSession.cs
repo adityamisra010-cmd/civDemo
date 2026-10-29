@@ -365,7 +365,8 @@ public sealed class UiSession
     /// M6 Track EX (ADR-044) — TEST SEAM: a session founded as <see cref="Start"/> founds it, but run, previewed and read
     /// under an explicit <paramref name="config"/> — an attribution twin such as TestConfigs.PreDiscovery, for a test whose
     /// subject is an older layer and whose premise the fog or concealment would change. The founding does not depend on
-    /// the discovery sections, so the turn-0 world is Start's. Never a playable session: a save of it resumes under the
+    /// the discovery sections, so the turn-0 world is Start's — except the military layer's (ADR-055): under a config whose
+    /// military layer is off the warband is founded as the token that holds no one. Never a playable session: a save of it resumes under the
     /// production config (the manifest names no config), so a test that resumes uses <see cref="Start"/>.
     /// </summary>
     public static UiSession StartWith(
@@ -375,7 +376,9 @@ public sealed class UiSession
         ArgumentNullException.ThrowIfNull(config);
         var orders = new OrderLog();
         return new UiSession(
-            UiFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride, wrapXOverride),
+            // ADR-056: founded with the config's goods roster (the economy packets add stock and deposit rows from turn 0).
+            UiFounding.Found(seed, sizeOverridePx, settlementsOverride, aiEmpiresOverride, wrapXOverride,
+                withoutMilitary: !RecruitmentQuery.Enabled(config), goodsOverride: config.Goods),
             new TurnExecutor(ProductionEra(), PipelineFor(config), orders), orders,
             seed, sizeOverridePx, settlementsOverride, config, aiEmpiresOverride);
     }
@@ -631,6 +634,62 @@ public sealed class UiSession
     }
 
     /// <summary>
+    /// ADR-055: ONE RecruitFormation order (kind 16) for the player's Empire — identity <paramref name="identityKey"/> at
+    /// settlement <paramref name="settlementId"/>, stamped with the CURRENT turn, built by <see cref="MilitaryOrderFactory"/> and
+    /// appended only when THE predicate MilitarySystem applies admits it on this world and the same recruitment is not already
+    /// queued this turn. Appends nothing (false) otherwise.
+    /// </summary>
+    public bool EmitRecruit(int settlementId, int identityKey)
+    {
+        PolityId me = UiPlayer.Empire;
+        IReadOnlyList<OrderRecord> queued = QueuedOrders();
+        for (int i = 0; i < queued.Count; i++)
+            if (queued[i].Kind == OrderKind.RecruitFormation && queued[i].ActorId == me.Value
+                && queued[i].TargetId == settlementId && queued[i].Amount == identityKey) return false;
+        if (MilitaryOrderFactory.Recruit(World, Config, Knowledge, new SettlementId(settlementId), identityKey, out _) is not { } order) return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>ADR-055: ONE ReequipFormation order (kind 17) for formation <paramref name="unitId"/> to identity
+    /// <paramref name="targetKey"/> (the §6.6 predicate admits it; one per formation per turn). False otherwise.</summary>
+    public bool EmitReequip(int unitId, int targetKey)
+    {
+        if (QueuedForFormation(unitId, OrderKind.ReequipFormation)) return false;
+        if (MilitaryOrderFactory.Reequip(World, Config, Knowledge, unitId, targetKey, out _) is not { } order) return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>ADR-055: cancel formation <paramref name="unitId"/>'s pending re-equipment (kind 17, Amount 0). False when
+    /// nothing is pending or a re-equip order for it is already queued this turn.</summary>
+    public bool EmitCancelReequip(int unitId)
+    {
+        if (QueuedForFormation(unitId, OrderKind.ReequipFormation)) return false;
+        if (MilitaryOrderFactory.CancelReequip(World, Config, Knowledge, unitId, out _) is not { } order) return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    /// <summary>ADR-055: disband formation <paramref name="unitId"/> (kind 18). False when it is not the player's, not
+    /// stationed, or already queued this turn.</summary>
+    public bool EmitDisband(int unitId)
+    {
+        if (QueuedForFormation(unitId, OrderKind.DisbandFormation)) return false;
+        if (MilitaryOrderFactory.Disband(World, Config, Knowledge, unitId, out _) is not { } order) return false;
+        Orders.Append(order);
+        return true;
+    }
+
+    private bool QueuedForFormation(int unitId, OrderKind kind)
+    {
+        IReadOnlyList<OrderRecord> queued = QueuedOrders();
+        for (int i = 0; i < queued.Count; i++)
+            if (queued[i].Kind == kind && queued[i].ActorId == UiPlayer.Empire.Value && queued[i].TargetId == unitId) return true;
+        return false;
+    }
+
+    /// <summary>
     /// M6 Track EX (D-062 D9; ADR-044): ONE Prospect order (kind 15) for the player's Empire at settlement
     /// <paramref name="settlementId"/>, stamped with the CURRENT turn, appended only when THE predicate DiscoverySystem
     /// applies (<see cref="DiscoveryQuery.CheckProspect(IReadOnlyWorldState, SimConfig, PolityId, SettlementId, ProspectMethod, bool?)"/>)
@@ -876,7 +935,8 @@ public sealed class UiSession
             Platform: System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier,
             ForensicFile: Path.GetFileName(ForensicPath(sessionLogPath)),
             AiEmpires: _aiEmpires,
-            Display: display);
+            Display: display,
+            EconomyPackets: SessionManifest.EnabledEconomyPackets(_simCfg.Goods));   // ADR-056
 
     /// <summary>Writes the manifest beside the order log (with the display the game opens on, when the host knows it).</summary>
     public void ExportManifest(string startedAt, string sessionLogPath, SessionDisplay? display = null)
@@ -1168,6 +1228,13 @@ public sealed class UiSession
         bool? wrap = TopologyFlags.RecordedFlat(manifest.SchemaVersion) ? false : null;
         SimConfig? rules = configOverride
             ?? (DiscoveryQuery.RecordedWithoutDiscovery(manifest.SchemaVersion) ? DiscoveryQuery.WithoutDiscovery(UiFounding.ProductionConfig()) : null);
+        // ADR-055: a session recorded before v39 was played without the military layer (RecruitmentQuery.RecordedWithoutMilitary).
+        if (configOverride is null && RecruitmentQuery.RecordedWithoutMilitary(manifest.SchemaVersion))
+            rules = RecruitmentQuery.WithoutMilitary(rules ?? UiFounding.ProductionConfig());
+        // ADR-056: a session whose manifest records no economy packet (every session recorded before them) was founded and
+        // played without their goods, so it is re-founded and replayed without them (`sim inspect` too).
+        if (configOverride is null && manifest.RecordedWithoutEconomy)
+            rules = EconomyKnowledge.WithoutEconomy(rules ?? UiFounding.ProductionConfig());
         UiSession session = rules is not null
             ? StartWith(rules, manifest.Seed, manifest.SizePx, manifest.Settlements, manifest.AiEmpires, wrapXOverride: wrap)
             : Start(manifest.Seed, manifest.SizePx, manifest.Settlements, manifest.AiEmpires, wrapXOverride: wrap);

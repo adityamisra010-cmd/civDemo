@@ -204,7 +204,20 @@ public class MerchantTests
         // 138 -> 39. CAUSE: the tranche-2 research content — the realized knowledge effects raise production and population
         // from the first Ages, so the trade-volume series this predicate reads crosses its threshold a century sooner.
         // ATTRIBUTION: MerchantsEmerge_OnThePreTranche2Content_AtTheM6Turn (TestConfigs.PreTranche2) returns 138.
-        Assert.Equal(39, firstActive);   // moves with the trajectory; re-measured per packet
+        // ADR-055 RE-PIN (M7 recruitment slice; VALUE, MEASURED on the combined research + units tree by the agent writing this
+        // line): first active 39 -> 120. CAUSE: the military layer — the founding warband's 20 people leave the capital's
+        // adults and eat grain per person-year, which moves the production and trade-volume series this predicate reads.
+        // CONTROL: MerchantsEmerge_WithTheMilitaryLayerOff_AtTheResearchTrackTurn (TestConfigs.PreMilitary) returns 39.
+        Assert.Equal(120, firstActive);   // moves with the trajectory; re-measured per packet
+    }
+
+    /// <summary>ADR-055 ATTRIBUTION CONTROL: the live run with the military layer off returns the pre-ADR-055 turn, 39.</summary>
+    [Fact]
+    public void MerchantsEmerge_WithTheMilitaryLayerOff_AtTheResearchTrackTurn()
+    {
+        (int firstActive, int activeTurns) = MerchantLatch(TestConfigs.Worldgen(), TestConfigs.PreMilitary(TestConfigs.Sim()));
+        Assert.True(activeTurns > 0);
+        Assert.Equal(39, firstActive);
     }
 
     /// <summary>D-063 ATTRIBUTION CONTROL: the live run on the pre-tranche-2 research content returns the M6 turn, 138.</summary>

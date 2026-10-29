@@ -96,7 +96,9 @@ public class ResearchPointDisplayTests(SteppedWorldFixture fx) : IClassFixture<S
         WorldState next = research.Step(w);
         Assert.Equal(accruedMilli,
             ResearchQuery.CivicsPointsAccount(next, Me).GeneratedMilli - ResearchQuery.CivicsPointsAccount(w, Me).GeneratedMilli);
-        Assert.True(staleMilli > accruedMilli);
+        // ADR-054 (2026-10-27) RE-RIG: Civics Points are now PER TURN (tuning.civicsPoints.perTurn), so the stale dt-10 figure
+        // and the next step's dt-5 accrual are the same number; the surfaces must still show the accrual the next step makes.
+        Assert.Equal(staleMilli, accruedMilli);
 
         // The progression screen (its snapshot, and a civic's "~N turns").
         ProgressionScreen screen = Screen(c, w);

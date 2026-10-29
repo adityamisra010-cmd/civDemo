@@ -207,14 +207,35 @@ public static class CanonicalSchema
     /// appended after section 67. No existing row changed width. A world with no reserve carries one empty count prefix and
     /// nothing else. THE READABLE VERSIONS ARE THE SET {32, 33, 34, 35, 36, 37}: a v36 stream stops after section 67 and its
     /// ResearchReserves table is left EMPTY — the migration rule "empty tables", exact because no reserve existed under v36.
-    public const int Version = 37;
+    /// v38 (ADR-054, per-turn Civics Points and average population — the Director's binding rule of 2026-10-27, behind
+    /// research.json tuning.populationAverageTurns, absent or 1 = off): ResearchPopulations (section 69: Polity, Population;
+    /// 12 bytes — each knowledge holder's total population at the start of its LAST research step, the earlier end of the
+    /// trapezoid the RP and CP bases read; rebuilt by ResearchSystem every step with the switch at 2, one row per holder that
+    /// step processed, strictly ascending Polity) appended after section 68. No existing row changed width. A world with the
+    /// switch off carries one empty count prefix and nothing else. THE READABLE VERSIONS ARE THE SET {32, …, 38}: a v37
+    /// stream stops after section 68 and its ResearchPopulations table is left EMPTY — the migration rule "empty tables": a
+    /// migrated holder's first step reads its current population (ADR-054 §3, the first-step rule).
+    /// v39 (ADR-055, M7 recruitment, personnel and re-equipment): FormationPersonnel (section 70: Unit, Count, UpkeepRemainder bits, UnfedUnits; 28 bytes — the people of
+    /// each manned formation, a conserved Population carrier), Reequips (section 71: Unit, Owner, TargetFamily, TargetIdentity,
+    /// IssuedTurn, AcceptedTurn, RequiredDays, ElapsedDays, PersonnelDelta; 56 bytes — pending re-equipments), ReequipEscrow (section 72:
+    /// Unit, Good, Units; 16 bytes — the materials a pending re-equipment holds, a conserved goods carrier) and ReequipLog
+    /// (section 73: Turn, Unit, Owner, FromFamily, FromIdentity, ToFamily, ToIdentity, Cause, PersonnelDelta, ExperienceBefore
+    /// bits, ExperienceAfter bits; 60 bytes) appended after section 69. No existing row changed width: MilitaryUnitRow keeps
+    /// its v28 layout (its people live in section 70), so every readable older stream stays a byte prefix. THE READABLE
+    /// VERSIONS ARE THE SET {32, …, 39}: a v38 stream stops after section 69 and the four tables are left
+    /// EMPTY (exact: before v39 a formation held no one and no re-equipment existed). THE UNIT-FAMILY MIGRATION (ADR-055;
+    /// unit charter §5.3): a stream OLDER than v39 was written under the 12-family taxonomy, so every MilitaryUnits row of a
+    /// rehomed identity is remapped at load by <see cref="State.UnitFamilyMigration"/> (a pure (Family, Identity) map: 101
+    /// 1→22, 907 9→18, 908 9→19, 1102 11→20, 1104 11→21; keys unchanged); a row naming a rehomed identity under any other
+    /// family is refused. UnitConversions (history) is never rewritten.
+    public const int Version = 39;
 
     /// <summary>The oldest member of the readable set (<see cref="IsReadable"/>): v32, the last version without the v33
     /// tables. Gates never compare with it directly — they ask <see cref="IsReadable"/>.</summary>
     public const int OldestReadableVersion = 32;
 
     /// <summary>
-    /// D-055 (v34) — THE READABLE STREAM VERSIONS, as ONE predicate: the set {32, 33, 34, 35} (v35: ADR-043 + ADR-044) — this
+    /// D-055 (v34) — THE READABLE STREAM VERSIONS, as ONE predicate: the set {32, …, 39} (v35: ADR-043 + ADR-044; v38: ADR-054; v39: ADR-055) — this
     /// build's <see cref="Version"/> and the older streams it migrates (v34: CivicsPoints and the four M6 EX discovery tables
     /// left empty; v33: ConstructionHolds left empty too; v32: the v33 tables left empty too). Every reader that decides
     /// whether it can take a stream asks this, so the
@@ -222,12 +243,11 @@ public static class CanonicalSchema
     /// SaveFiles.MigrationNote and SnapshotDiff.LayoutFor. Any other version is refused (Snapshot.Load with the D-008
     /// message: seed + order-log replay is the recovery path).
     /// </summary>
-    public static bool IsReadable(int version) => version is 32 or 33 or 34 or 35 or 36 or Version;
+    public static bool IsReadable(int version) => version is 32 or 33 or 34 or 35 or 36 or 37 or 38 or Version;
 
     /// <summary>
     /// D-056 — THE BYTES A READABLE OLDER SCHEMA DID NOT WRITE: the length of the sections this build's stream appends
-    /// after the last section of schema <paramref name="version"/> — 0 for <see cref="Version"/>; section 68
-    /// (ResearchReserves, v37) for v36; sections 67–68 for v35; sections 62–67 for v34; sections 61–62 for v33; sections 59–62 for v32. Exact because every table a readable version lacks was
+    /// after the last section of schema <paramref name="version"/> — 0 for <see cref="Version"/>; sections 70–73 (ADR-055, v39) for v38; sections 69–73 for v37; sections 68–69 for v36; sections 67–68 for v35; sections 62–67 for v34; sections 61–62 for v33; sections 59–62 for v32. Exact because every table a readable version lacks was
     /// APPENDED after every table it has (v33 and v34 changed no existing row), so the canonical stream a v
     /// <paramref name="version"/> build wrote for the same tables is this build's stream less this many trailing bytes.
     /// <see cref="WorldHash.ComputeHexAsSchema"/> hashes that prefix. Throws for a version outside the readable set.
@@ -236,7 +256,12 @@ public static class CanonicalSchema
     {
         if (!IsReadable(version))
             throw new ArgumentOutOfRangeException(nameof(version), version,
-                $"this build reads canonical streams of version 32, 33, 34, 35, 36 and {Version} only.");
+                $"this build reads canonical streams of version 32, 33, 34, 35, 36, 37, 38 and {Version} only.");
+        int v38Tables = CountPrefixWidth + world.ResearchPopulations.Count * ResearchPopulationRowWidth;
+        int v39Tables = CountPrefixWidth + world.FormationPersonnel.Count * FormationPersonnelRowWidth
+            + CountPrefixWidth + world.Reequips.Count * ReequipRowWidth
+            + CountPrefixWidth + world.ReequipEscrow.Count * ReequipEscrowRowWidth
+            + CountPrefixWidth + world.ReequipLog.Count * ReequipLogRowWidth;
         int v37Tables = CountPrefixWidth + world.ResearchReserves.Count * ResearchReserveRowWidth;
         int v36Tables = CountPrefixWidth + world.ResearchLevels.Count * ResearchLevelRowWidth;
         int v35Tables = CountPrefixWidth + world.CivicsPoints.Count * CivicsPointsRowWidth
@@ -250,11 +275,13 @@ public static class CanonicalSchema
         return version switch
         {
             Version => 0,
-            36 => v37Tables,
-            35 => v37Tables + v36Tables,
-            34 => v37Tables + v36Tables + v35Tables,
-            33 => v37Tables + v36Tables + v35Tables + holds,
-            _ => v37Tables + v36Tables + v35Tables + holds + v33Tables,
+            38 => v39Tables,
+            37 => v39Tables + v38Tables,
+            36 => v39Tables + v38Tables + v37Tables,
+            35 => v39Tables + v38Tables + v37Tables + v36Tables,
+            34 => v39Tables + v38Tables + v37Tables + v36Tables + v35Tables,
+            33 => v39Tables + v38Tables + v37Tables + v36Tables + v35Tables + holds,
+            _ => v39Tables + v38Tables + v37Tables + v36Tables + v35Tables + holds + v33Tables,
         };
     }
 
@@ -329,6 +356,11 @@ public static class CanonicalSchema
     private const int SettlementSurveyRowWidth = 4 + 4 + 8;         // Polity, Settlement, Turn (v35 §66)
     private const int ResearchLevelRowWidth = 4 + 4 + 4;            // Polity, Node, Level (v36 §67)
     private const int ResearchReserveRowWidth = 4 + 8;              // Polity, ReserveMilli (v37 §68)
+    private const int ResearchPopulationRowWidth = 4 + 8;           // Polity, Population (v38 §69)
+    private const int FormationPersonnelRowWidth = 4 + 8 + 8 + 8;   // Unit, Count, UpkeepRemainder bits, UnfedUnits (v39 §70)
+    private const int ReequipRowWidth = 4 * 4 + 8 * 5;              // Unit, Owner, TargetFamily, TargetIdentity, IssuedTurn, AcceptedTurn, RequiredDays, ElapsedDays, PersonnelDelta (v39 §71)
+    private const int ReequipEscrowRowWidth = 4 + 4 + 8;            // Unit, Good, Units (v39 §72)
+    private const int ReequipLogRowWidth = 8 + 4 * 7 + 8 + 8 + 8;   // Turn, Unit, Owner, FromFamily, FromIdentity, ToFamily, ToIdentity, Cause, PersonnelDelta, ExperienceBefore bits, ExperienceAfter bits (v39 §73)
     private const int SeedWidth = 8;
     private const int ClockWidth = 8 + 8 + 8;            // Turn, SimDays, DtDays
 
@@ -1099,6 +1131,70 @@ public static class CanonicalSchema
             writer.Write(row.Polity.Value);
             writer.Write(row.ReserveMilli);
         }
+
+        // 69. ResearchPopulations (v38, ADR-054: each knowledge holder's population at the start of its last research step)
+        writer.Write(world.ResearchPopulations.Count);
+        for (int i = 0; i < world.ResearchPopulations.Count; i++)
+        {
+            ResearchPopulationRow row = world.ResearchPopulations[i];
+            writer.Write(row.Polity.Value);
+            writer.Write(row.Population);
+        }
+
+        // 70. FormationPersonnel (v39, ADR-055: the people of each manned formation — a conserved Population carrier)
+        writer.Write(world.FormationPersonnel.Count);
+        for (int i = 0; i < world.FormationPersonnel.Count; i++)
+        {
+            FormationPersonnelRow row = world.FormationPersonnel[i];
+            writer.Write(row.Unit);
+            writer.Write(row.Count.Value);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.UpkeepRemainder));
+            writer.Write(row.UnfedUnits);
+        }
+
+        // 71. Reequips (v39, ADR-055: pending re-equipments)
+        writer.Write(world.Reequips.Count);
+        for (int i = 0; i < world.Reequips.Count; i++)
+        {
+            ReequipRow row = world.Reequips[i];
+            writer.Write(row.Unit);
+            writer.Write(row.Owner.Value);
+            writer.Write(row.TargetFamily);
+            writer.Write(row.TargetIdentity);
+            writer.Write(row.IssuedTurn);
+            writer.Write(row.AcceptedTurn);
+            writer.Write(row.RequiredDays);
+            writer.Write(row.ElapsedDays);
+            writer.Write(row.PersonnelDelta);
+        }
+
+        // 72. ReequipEscrow (v39, ADR-055: materials held by pending re-equipments — a conserved goods carrier)
+        writer.Write(world.ReequipEscrow.Count);
+        for (int i = 0; i < world.ReequipEscrow.Count; i++)
+        {
+            ReequipEscrowRow row = world.ReequipEscrow[i];
+            writer.Write(row.Unit);
+            writer.Write(row.Good);
+            writer.Write(row.Units.Value);
+        }
+
+        // 73. ReequipLog (v39, ADR-055: the re-equipment log)
+        writer.Write(world.ReequipLog.Count);
+        for (int i = 0; i < world.ReequipLog.Count; i++)
+        {
+            ReequipLogRow row = world.ReequipLog[i];
+            writer.Write(row.Turn);
+            writer.Write(row.Unit);
+            writer.Write(row.Owner.Value);
+            writer.Write(row.FromFamily);
+            writer.Write(row.FromIdentity);
+            writer.Write(row.ToFamily);
+            writer.Write(row.ToIdentity);
+            writer.Write(row.Cause);
+            writer.Write(row.PersonnelDelta);
+            writer.Write(BitConverter.DoubleToInt64Bits(row.ExperienceBefore));
+            writer.Write(BitConverter.DoubleToInt64Bits(row.ExperienceAfter));
+        }
     }
 
     /// <summary>Reads a state stream written by <see cref="Write"/> (same order, field by field).</summary>
@@ -1106,7 +1202,9 @@ public static class CanonicalSchema
 
     /// <summary>
     /// THE MIGRATING READER (v33, ADR-039; v34, D-055): reads a stream of schema <paramref name="version"/>, any member of
-    /// the readable set (<see cref="IsReadable"/>: 32, 33, 34, 35, 36, 37). A v36 stream ends after section 67: ResearchReserves
+    /// the readable set (<see cref="IsReadable"/>: 32, 33, 34, 35, 36, 37, 38). A v37 stream ends after section 68:
+    /// ResearchPopulations is left EMPTY (ADR-054: a holder without a row reads its current population on its first step).
+    /// A v36 stream ends after section 67: ResearchReserves
     /// is left EMPTY (ADR-051: no reserve existed under v36). A v35 stream ends after section 66: ResearchLevels is
     /// left EMPTY (ADR-049: no level existed under v35). A v34 stream ends after section 61: CivicsPoints is left
     /// EMPTY (ADR-043: the bank starts at zero; v34 had no CP) and so are the four M6 EX discovery tables (ADR-044 §7). A v33 stream ends after section 60: ConstructionHolds is
@@ -1116,12 +1214,20 @@ public static class CanonicalSchema
     /// Empire had a split; a queued entry with no progress row reads p = 0, ordered as EnqueuedTurn = −1). Any other
     /// version is refused (Snapshot.Load names the D-008 recovery path first).
     /// </summary>
-    public static WorldState Read(BinaryReader reader, int version, out byte[]? expectedTerrainHash)
+    public static WorldState Read(BinaryReader reader, int version, out byte[]? expectedTerrainHash) =>
+        Read(reader, version, out expectedTerrainHash, migrateUnitFamilies: true);
+
+    /// <summary>As <see cref="Read(BinaryReader, int, out byte[])"/>; <paramref name="migrateUnitFamilies"/> false skips the
+    /// ADR-055 unit-family migration of a pre-v39 stream — THE SWITCH-OFF TWIN of the migration's attribution test, never a
+    /// load path (Snapshot.Load always migrates).</summary>
+    public static WorldState Read(BinaryReader reader, int version, out byte[]? expectedTerrainHash, bool migrateUnitFamilies)
     {
         if (!IsReadable(version))
             throw new ArgumentOutOfRangeException(nameof(version), version,
-                $"this build reads canonical streams of version 32, 33, 34, 35, 36 and {Version} only.");
-        return ReadStream(reader, version, out expectedTerrainHash);
+                $"this build reads canonical streams of version 32, 33, 34, 35, 36, 37, 38 and {Version} only.");
+        WorldState world = ReadStream(reader, version, out expectedTerrainHash);
+        if (migrateUnitFamilies && version < 39) UnitFamilyMigration.Apply(world.MilitaryUnits);
+        return world;
     }
 
     /// <summary>
@@ -1753,6 +1859,41 @@ public static class CanonicalSchema
         for (int i = 0; i < reserveCount; i++)
             world.ResearchReserves.Add(new ResearchReserveRow(new PolityId(reader.ReadInt32()), reader.ReadInt64()));
 
+        // v37 streams end here (the v37 → v38 migration: ResearchPopulations stays empty — ADR-054).
+        if (version < 38) return world;
+
+        int populationCount = ReadCount(reader);
+        for (int i = 0; i < populationCount; i++)
+            world.ResearchPopulations.Add(new ResearchPopulationRow(new PolityId(reader.ReadInt32()), reader.ReadInt64()));
+
+        // v38 streams end here (the v38 → v39 migration: the four ADR-055 tables stay empty — a formation held no one and no
+        // re-equipment existed before v39).
+        if (version < 39) return world;
+
+        int personnelCount = ReadCount(reader);
+        for (int i = 0; i < personnelCount; i++)
+            world.FormationPersonnel.Add(new FormationPersonnelRow(
+                reader.ReadInt32(), Conserved.FromSnapshot(reader.ReadInt64()),
+                BitConverter.Int64BitsToDouble(reader.ReadInt64()), reader.ReadInt64()));
+
+        int reequipCount = ReadCount(reader);
+        for (int i = 0; i < reequipCount; i++)
+            world.Reequips.Add(new ReequipRow(
+                reader.ReadInt32(), new PolityId(reader.ReadInt32()), reader.ReadInt32(), reader.ReadInt32(),
+                reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt64(), reader.ReadInt64()));
+
+        int escrowCount = ReadCount(reader);
+        for (int i = 0; i < escrowCount; i++)
+            world.ReequipEscrow.Add(new ReequipEscrowRow(
+                reader.ReadInt32(), reader.ReadInt32(), Conserved.FromSnapshot(reader.ReadInt64())));
+
+        int reequipLogCount = ReadCount(reader);
+        for (int i = 0; i < reequipLogCount; i++)
+            world.ReequipLog.Add(new ReequipLogRow(
+                reader.ReadInt64(), reader.ReadInt32(), new PolityId(reader.ReadInt32()),
+                reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32(),
+                reader.ReadInt64(), BitConverter.Int64BitsToDouble(reader.ReadInt64()), BitConverter.Int64BitsToDouble(reader.ReadInt64())));
+
         return world;
     }
 
@@ -1831,5 +1972,10 @@ public static class CanonicalSchema
         + CountPrefixWidth + (long)world.SettlementSightings.Count * SettlementSightingRowWidth
         + CountPrefixWidth + (long)world.SettlementSurveys.Count * SettlementSurveyRowWidth
         + CountPrefixWidth + (long)world.ResearchLevels.Count * ResearchLevelRowWidth
-        + CountPrefixWidth + (long)world.ResearchReserves.Count * ResearchReserveRowWidth;
+        + CountPrefixWidth + (long)world.ResearchReserves.Count * ResearchReserveRowWidth
+        + CountPrefixWidth + (long)world.ResearchPopulations.Count * ResearchPopulationRowWidth
+        + CountPrefixWidth + (long)world.FormationPersonnel.Count * FormationPersonnelRowWidth
+        + CountPrefixWidth + (long)world.Reequips.Count * ReequipRowWidth
+        + CountPrefixWidth + (long)world.ReequipEscrow.Count * ReequipEscrowRowWidth
+        + CountPrefixWidth + (long)world.ReequipLog.Count * ReequipLogRowWidth;
 }

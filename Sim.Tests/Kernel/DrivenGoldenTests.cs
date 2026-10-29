@@ -100,7 +100,25 @@ public class DrivenGoldenTests
     // SchemaProjection.V34).
     // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD 96ddd58124bcbe8a… -> NEW af5be6a12fd1391d… — the empty section-68
     // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
-    internal const string Golden = "af5be6a12fd1391d89b51602080bdda338b6cc1ba618c41a24b2928eb14f13b5";
+    // ADR-054 (schema v38; the Director's binding rule D-065 R6, 2026-10-27) RE-PIN, VALUE + LAYOUT: OLD af5be6a12fd1391d… -> NEW f23e0dcd49b012d0…. CAUSE: CP per turn from the RP base and the
+    // average population (research.json tuning.civicsPoints.perTurn, tuning.populationAverageTurns 2) — the research holders'
+    // RP/CP move from turn 1 and section 69 (ResearchPopulations) carries their turn-start populations. CONTROL: Adr054AttributionTests.DrivenGoldenSeed42Turn300_…
+    // (TestConfigs.PrePerTurnCivics returns OLD through SchemaProjection.V37, MEASURED).
+    // ADR-055 (schema v39, M7 recruitment slice) RE-PIN (VALUE + LAYOUT; MEASURED on the combined research + units tree by
+    // the agent writing this line, in-test harness, RunDriven(300)): OLD f23e0dcd49b012d0… -> NEW f320440fba3da9eb…. CAUSE: the
+    // military layer — the founding warband's 20 people leave the capital's adults (Ledger.Transfer, section 70) and eat grain
+    // per person-year × dtYears; plus the four v39 sections. CONTROL: MilitaryAttributionTests.DrivenGoldenSeed42Turn300_…
+    // (TestConfigs.PreMilitary returns OLD through SchemaProjection.V38).
+    // M7 MERGE (research + units + economy) RE-PIN (MEASURED on the fully combined tree by the agent writing this line):
+    // research f23e0dcd49b012d0… -> units f320440fba3da9eb… (ADR-055, the military layer; above) and research+econ d6862db037272aa3…
+    // (ADR-056, the economy packets' inert content rows) -> COMBINED 55afd498a326ab2a…. TWO CONTROLS, both exact: (a) packets off —
+    // EconomyProjection.HashWithout(live), the packet rows removed and ASSERTED inert, asserted FIRST in the pin test — is the
+    // units pin (GoldenPreEconomy); (b) military off — MilitaryAttributionTests: TestConfigs.PreMilitary's world is the
+    // research+econ pin through SchemaProjection.V38KeepingPackets and the research pin through SchemaProjection.V38.
+    internal const string Golden = "55afd498a326ab2a623e203e5ba6ea38be0417295883e2a1fd2e67692c0624e0";
+
+    /// <summary>ADR-056 §13: <see cref="Golden"/> with the economy packets off — the units track's pin (control (a)).</summary>
+    internal const string GoldenPreEconomy = "f320440fba3da9eb2aa87bd659f592021879c659e5e6f37fe0094a8401e1a318";
 
     /// <summary>Batch 3 (D-054, integration R1, 2026-10-14): THE CYLINDER-ALONE LINK — the driven golden's world through the
     /// v32 projection (SchemaProjection.V32: the two v33 tables dropped, asserted EMPTY). It equals the driven golden the W1
@@ -649,6 +667,7 @@ public class DrivenGoldenTests
         //   CONTROL CivicsPointsAttributionTests.DrivenGoldenSeed42Turn300_MovedForCivicsPointsAlone (Track CP off and CP
         //         off alone return OLD through SchemaProjection.V34).
         (WorldState world, _) = RunDriven(300);
+        Assert.Equal(GoldenPreEconomy, EconomyProjection.HashWithout(world, TestConfigs.Sim()));   // ADR-056 control (first)
         Assert.Equal(golden, WorldHash.ComputeHex(world));
         // M6 merge (2026-10-22): Track EX moves this world by behaviour (concealed deposits), so the batch-3 cylinder-alone link
         // is read on the PreM6 twin (both M6 tracks off; DiscoveryLayoutAttributionTests is the attribution).

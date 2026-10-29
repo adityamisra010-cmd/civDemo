@@ -99,7 +99,10 @@ public sealed class DiscoverySystem(SimConfig cfg) : ISimSystem<DiscoveryTables>
             foreach (int p in polities)
             {
                 var polity = new PolityId(p);
-                ulong[] bits = DiscoveryQuery.KnownBits(prev, f, polity) ?? new ulong[words];
+                // The SAME union PolityKnowledge.Of answers: formation sight at the polity's research-improved radius
+                // (fog.formationSightNodes, ADR-047). Read at the content radius, the ring between the two was known only
+                // while the formation stood there and was forgotten when it left (D-040 B2; M7 audit 2026-10-27).
+                ulong[] bits = DiscoveryQuery.KnownBits(prev, f, polity, _cfg.Research) ?? new ulong[words];
                 foreach ((int who, int origin, int radius) in revealed)
                     if (who == p) DiscoveryQuery.OrDisc(bits, l, wrap, origin, radius);
                 for (int w = 0; w < bits.Length; w++)

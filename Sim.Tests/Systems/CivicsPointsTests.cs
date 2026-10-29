@@ -24,15 +24,21 @@ namespace Sim.Tests.Systems;
 /// The rig (ResearchRigs.Standard with CivicsPoints on): one player settlement of 10 000 people — 1 000 RP a turn
 /// (10 × P^0.5) and, at the rig CP calibration 1.0 × P^0.5 per sim-year, 100 CP a sim-year = 1 000 000 milli-CP a dt-10
 /// turn. Every expected value is exact (law 1's no-epsilon discipline applied to the CP bank).
+///
+/// ADR-054 (2026-10-27, D-065 R6) RE-RIG: the rig now carries the SHIPPED form, tuning.civicsPoints.perTurn — CP per turn from
+/// the RP base (10 × P^0.5), never × dtYears — so 10 000 people accrue 1 000 CP (1 000 000 milli-CP) a turn at EVERY dt. At
+/// the dt-10 turns these tests step, that is the number the per-year rig gave, so every expectation and property is kept;
+/// the dt theory now pins the per-turn accrual, and its per-sim-year twin (ADR-043 §3, perTurn absent) is pinned beside it.
 /// </summary>
 public class CivicsPointsTests
 {
     private static readonly PolityId P1 = new(Player);
 
-    private static ResearchContent TwoLaneRig(bool enabled = true)
+    private static ResearchContent TwoLaneRig(bool enabled = true, bool perTurn = true)
     {
         Spec spec = Standard();
-        spec.CivicsPoints = (enabled, 1.0, 0.5);
+        if (enabled && perTurn) spec.CivicsPerTurn = true;   // ADR-054: the shipped form
+        else spec.CivicsPoints = (enabled, 1.0, 0.5);       // ADR-043 §3 (per sim-year), or the switch off
         return spec.Load();
     }
 
@@ -173,17 +179,32 @@ public class CivicsPointsTests
     // ------------------------------------------------------------------ dimension (law 3) and exactness
 
     [Theory]
-    [InlineData(10.0, 1_000_000L)]
-    [InlineData(5.0, 500_000L)]
-    [InlineData(1.0, 100_000L)]
-    [InlineData(0.5, 50_000L)]
-    public void CpAccrual_IsPerSimYear_IntegratedOverDtYears_UnlikeRp(double dtYears, long expectedMilli)
+    [InlineData(10.0)]
+    [InlineData(5.0)]
+    [InlineData(1.0)]
+    [InlineData(0.5)]
+    public void CpAccrual_IsPerTurn_IdenticalAtEveryDt_LikeRp(double dtYears)
     {
         var orders = new OrderLog();
         orders.Append(Target(0, 2));
         WorldState w = Executor(Rig.Value, orders, dtYears).Step(WithCompleted(PlayerWorld(), 1));
-        Assert.Equal(expectedMilli, Account(w).GeneratedMilli);   // law 3: 100 CP a sim-year × dt
+        Assert.Equal(1_000_000L, Account(w).GeneratedMilli);        // ADR-054: CP per turn, the RP base
         Assert.Equal(1000.0, Progress(w, 2));                       // ADR-030: RP per turn, identical at every dt
+    }
+
+    /// <summary>The ADR-043 §3 twin (perTurn absent): CP per sim-year, integrated over dtYears.</summary>
+    [Theory]
+    [InlineData(10.0, 1_000_000L)]
+    [InlineData(5.0, 500_000L)]
+    [InlineData(1.0, 100_000L)]
+    [InlineData(0.5, 50_000L)]
+    public void CpAccrual_TheTwin_IsPerSimYear_IntegratedOverDtYears_UnlikeRp(double dtYears, long expectedMilli)
+    {
+        var orders = new OrderLog();
+        orders.Append(Target(0, 2));
+        WorldState w = Executor(TwoLaneRig(perTurn: false), orders, dtYears).Step(WithCompleted(PlayerWorld(), 1));
+        Assert.Equal(expectedMilli, Account(w).GeneratedMilli);   // law 3: 100 CP a sim-year × dt
+        Assert.Equal(1000.0, Progress(w, 2));
     }
 
     [Fact]
@@ -243,7 +264,7 @@ public class CivicsPointsTests
     {
         // Every available node costs 2 500 (bit-equal): technology b(2), d(4), w(11); civics law(1001), x(1003), y(1004).
         Spec spec = Standard();
-        spec.CivicsPoints = (true, 1.0, 0.5);
+        spec.CivicsPerTurn = true;   // ADR-054: the shipped per-turn form (the AI choice does not read the accrual)
         spec.Civics.AddRange([new Node(1003, "x", "a"), new Node(1004, "y", "a")]);
         ResearchContent content = spec.Load();
         SimConfig cfg = TestConfigs.Sim() with

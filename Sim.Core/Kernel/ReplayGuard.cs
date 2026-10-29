@@ -31,7 +31,7 @@ namespace Sim.Core.Kernel;
 public static class ReplayGuard
 {
     /// <summary>The readable schemas, newest first: the forms <see cref="MatchesRecorded"/> tries.</summary>
-    private static readonly int[] ReadableNewestFirst = [CanonicalSchema.Version, 36, 35, 34, 33, CanonicalSchema.OldestReadableVersion];
+    private static readonly int[] ReadableNewestFirst = [CanonicalSchema.Version, 38, 37, 36, 35, 34, 33, CanonicalSchema.OldestReadableVersion];
 
     /// <summary>The kind-11 orders in <paramref name="batch"/>.</summary>
     public static int LegacyCancels(OrderBatch batch)

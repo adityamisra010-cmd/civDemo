@@ -47,11 +47,12 @@
   "_cityStatePaceFraction": "R2a (docs/city-state-progression.md; Director decisions 4 and 12). TUNE, CHOSEN (L6): an UNCONTROLLED settlement researches autonomously with RP = cityStatePaceFraction x rpPerTurn(its own population). Reference: Civ VI city-states do not research at all; the Director rules ours progress slowly. 0.25 of the organized rate (before the sublinearity penalty of being one settlement) keeps a city-state substantially slower than a civilization of the same population. 0 disables city-state research.",
   "civicsPoints": {
    "enabled": true,
-   "coefficientPerYear": 0.008,
-   "exponent": 0.699,
-   "unit": "Civics Points per sim-year, integrated over dtYears (law 3) and banked in integer milli-CP: generated per step = floor(1000 x coefficientPerYear x population^exponent x dtYears); a city-state's is x cityStatePaceFraction",
-   "status": "PROPOSED (ADR-043; D-062) \u2014 tunable"
+   "perTurn": true,
+   "unit": "Civics Points per strategic turn from the SAME base function as Research Points (rpPerTurn.coefficient x population^rpPerTurn.exponent of the average population), never multiplied by dt (ADR-054, the Director's binding rule of 2026-10-27; ADR-043 section 3 superseded in part); banked in integer milli-CP: generated per step = floor(1000 x pace x c' x P^exponent), c' = rpPerTurn.coefficient improved by research.civicsPointsCoefficient; a city-state's pace is cityStatePaceFraction",
+   "status": "RULED (ADR-054; D-065 R5 / CR-026 resolved) \u2014 the base is shared by construction; the benefit operands are tunable"
   },
+  "populationAverageTurns": 2,
+  "_populationAverageTurns": "ADR-054 (the Director's binding rule of 2026-10-27: every RP and CP calculation is per turn and based on average population). STATED ASSUMPTION: a holder's average population is the trapezoid mean over the turn just lived, (its population at the previous research step's start + its population now) / 2, the previous value stored in ResearchPopulations (schema v38); on a holder's first step (no stored value) its current population. 2 = that mean (shipped); 1 (or absent) = the turn-start population exactly, no stored row - the attribution switch. Only 1 and 2 are accepted.",
   "aiCheapestOrRoute": true,
   "aiSupportingMilestones": true,
   "ageSweep": true,
@@ -78,17 +79,17 @@
     0.068141
    ],
    "civics": [
-    0.645983,
-    0.998856,
-    0.907987,
-    1.306316,
-    1.396621,
-    1.791944,
-    0.757433,
-    0.070609,
-    0.008686
+    0.70283,
+    1.867397,
+    1.970853,
+    4.071051,
+    4.535408,
+    6.21533,
+    4.016667,
+    0.666521,
+    0.172235
    ],
-   "_doc": "D-063 R6 (tranche 2): BaseCost = content cost (U x K^magnitude) x pacingScale[tree][Age-1]. Calibrated from measured AI empires (Sim.Tests PacingReferenceMeasurement, seeds 1, 2, 42, 7): a first pass by tools/calibrate_pacing.py, then tools/recalibrate_observed.py passes against observed Age-completion turns (targets: Age x complete by the midpoint of E[x+1] and E[x+2]; the slowest seed binds; each tree pulled to the pair's midpoint, the pincer). The scale is a recorded per-(tree, Age) number, never per node. Measurements and residuals: docs/m6-plan/knowledge-redesign/tranche2-balance-report.md."
+   "_doc": "D-063 R6 (tranche 2): BaseCost = content cost (U x K^magnitude) x pacingScale[tree][Age-1]. Calibrated from measured AI empires (Sim.Tests PacingReferenceMeasurement, seeds 1, 2, 42, 7): a first pass by tools/calibrate_pacing.py, then tools/recalibrate_observed.py passes against observed Age-completion turns (targets: Age x complete by the midpoint of E[x+1] and E[x+2]; the slowest seed binds; each tree pulled to the pair's midpoint, the pincer). The scale is a recorded per-(tree, Age) number, never per node. Measurements and residuals: docs/m6-plan/knowledge-redesign/tranche2-balance-report.md. ADR-054 (2026-10-27, D-065 R6): CP became per turn from the RP base, so the CIVICS scale was recalibrated (technology unchanged): pass 1 multiplied each civics Age by the CP-weighted mean of 10/dtYears over its completion window in the pre-ADR-054 runs; passes 2-3 by tools/recalibrate_trial.py --pincer-only (technology frozen) with civics A1 held and civics A7 and A9 held at the pass-1 value (order- and throughput-bound). docs/m6-plan/knowledge-redesign/research-cost-pass/per-turn-cp-recalibration.md."
   }
  },
  "baseline": [
@@ -21546,7 +21547,7 @@
    "id": "aircraft",
    "name": "Powered heavier-than-air flight",
    "desc": "Wright 1903 \u2014 three-axis control. The reconnaissance revolution.",
-   "age": "A9",
+   "age": "A8",
    "frontier": false,
    "emerged": "1903 CE",
    "branch": "engineering",
@@ -21555,7 +21556,7 @@
     "military"
    ],
    "depth": 21,
-   "cost": 66900.0,
+   "cost": 33450.0,
    "prereq": "internal_combustion AND glider",
    "eurekas": [
     {
@@ -21618,16 +21619,16 @@
     "tier": "T4",
     "factors": {
      "novelty": 2.0,
-     "difficulty": 3.0,
+     "difficulty": 2.5,
      "material": 0.0,
-     "institutional": 2.5,
+     "institutional": 2.0,
      "breadth": 1.5,
      "prereq_complexity": 0.5
     },
-    "magnitude": 9.5,
-    "content_cost": 66900,
+    "magnitude": 8.5,
+    "content_cost": 33450,
     "calibration_adjustment": 0,
-    "note": "ADR-045 (D-062) re-score: novelty 2.0, difficulty 3.0 (A9 prior), material 0.0, institutional 2.5 (A9 prior), breadth 1.5 \u2014 unchanged; prereq_complexity 0.0 -> 0.5: two requirements. Old 47,310 -> new 66,900 (closure +29,540 with glider)."
+    "note": "ADR-045 (D-062) re-score: novelty 2.0, difficulty 3.0 (A9 prior), material 0.0, institutional 2.5 (A9 prior), breadth 1.5 \u2014 unchanged; prereq_complexity 0.0 -> 0.5: two requirements. Old 47,310 -> new 66,900 (closure +29,540 with glider). | RC-1 (Director-authorized 2026-10-27, docs/m7-plan/aviation-progression.md \u00a710): content Age A9 -> A8, so the Age sweep (D-063 R2) no longer holds powered flight for most of A8; ADR-045 re-score with the A8 priors: difficulty 3.0 -> 2.5, institutional 2.5 -> 2.0 (novelty 2.0, material 0.0, breadth 1.5, prereq_complexity 0.5 unchanged). Magnitude 9.5 -> 8.5: 66,900 -> 33,450 (U x 2^8.5 = 33,452.4, rounded to tens). Prerequisites unchanged."
    }
   },
   {

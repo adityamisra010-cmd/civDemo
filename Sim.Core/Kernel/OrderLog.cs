@@ -245,6 +245,61 @@ public enum OrderKind
     /// so the first output from a discovered deposit lands in the step t+1 → t+2).
     /// </summary>
     Prospect = 15,
+
+    /// <summary>
+    /// ADR-055 (M7 recruitment slice; unit charter §6.5) — RECRUIT A FORMATION at a settlement the issuing Empire controls.
+    /// TargetId = the settlement's id; Amount = the unit-families.json IDENTITY KEY to raise, a whole number ≥ 1 carried exactly
+    /// by the double. THE §6.5 PREDICATE (State.RecruitmentQuery.CheckRecruit — one predicate for the system, the UI and the
+    /// AI; the Age is NOT read): (1) knowledge — the identity's realizedBy entity and/or requires expression, or its baseline;
+    /// (2) the latest realizable mainline identity of its family in line order (a later mainline whose own predicate holds
+    /// supersedes it), or a branch whose own predicate holds; (3) an own settlement, with the identity's required building;
+    /// (4) its recruitment inputs drawn from the empire stockpile beyond construction's set-asides (a PLANNED good not yet in
+    /// goods.json blocks it, naming the good and its EC packet); (5) personnel adults at the settlement (at least one adult
+    /// stays); (6) support — the purse's free grain covers military.supportYears of upkeep for every formation of the owner,
+    /// the new one included; (7) rule support — the family has a live consumer (army_formation; a mobile_agent family has no
+    /// movement or basing in this build), and no blockedBy names a missing system. ATOMIC: all of it, or nothing is drawn.
+    /// Applied: the inputs are SUNK (reason Recruitment), the personnel move from the settlement's adult buckets to the new
+    /// formation's FormationPersonnelRow by Ledger.Transfer, and a MilitaryUnitRow is appended (id = one past the highest id
+    /// the table holds; stationed at the settlement's site; experience 0; army 0). Load-validated ranges: TargetId ≥ 0, Amount
+    /// a whole number in [1, int.MaxValue]; the settlement and the issuer's control of it in OrderValidation; everything else
+    /// at delivery. DELIVERY: stamped turn t → the formation first appears in the state of turn t+1. Orders apply in log
+    /// order, each against what earlier ones left.
+    /// </summary>
+    RecruitFormation = 16,
+
+    /// <summary>
+    /// ADR-055 (unit charter §6.6; D-065 R1) — RE-EQUIP a formation to another identity, or CANCEL its pending
+    /// re-equipment. TargetId = the formation's id (MilitaryUnitRow.Id); Amount = the TARGET identity key (a whole number ≥ 1),
+    /// or exactly 0 to cancel. LEGALITY (State.RecruitmentQuery.CheckReequip): the issuer owns the formation; it is stationed at
+    /// a settlement the issuer controls and is not already re-equipping; the target passes §6.5 items 1, 3, 4, 6 and 7 there;
+    /// the transition class is PERMITTED — (a) another family of the same composition (a role change), (b) the same family to
+    /// a branch identity, (c) branch to branch — and never the identity it already is, a change of composition, or the same
+    /// family to a MAINLINE identity (refused: "OD-2: same-line catch-up is not ruled", RecruitmentQuery.TransitionPolicy).
+    /// ACCEPTED (in the delivery step, atomically): the target's full recruitment inputs move into ESCROW (ReequipEscrowRow, by
+    /// Ledger.Transfer — reserved: no other consumer can spend them); the personnel difference to the target's strength is
+    /// drawn from (or returned to) the settlement's adult buckets by Ledger.Transfer; a ReequipRow records the duration
+    /// (the target's recruitment years × the year length, in days). From the next step it accrues dtDays per step and
+    /// COMPLETES in the first step whose accrual reaches the duration — AFTER that step's Age transition (pipeline:
+    /// agetransition, then military), so a modernization of the source is applied and logged first: the escrow is SUNK
+    /// (reason Reequipment), family and identity become the target, experience is kept (b, c) or × military.reequipExperienceTransfer
+    /// (a), and a ReequipLogRow is written (never UnitConversions). CANCEL (Amount 0): the escrow returns to the formation's
+    /// settlement by Ledger.Transfer; the personnel difference is not reversed (people already moved stay where they are) and
+    /// the labour already spent is not refunded; a cancel delivered in the step a completion would reach wins (MilitarySystem
+    /// applies orders before progress). The first valid ReequipFormation for a formation in a step wins. DELIVERY:
+    /// stamped turn t → the ReequipRow first appears in the state of t+1. Load-validated: TargetId ≥ 1, Amount a whole number in
+    /// [0, int.MaxValue].
+    /// </summary>
+    ReequipFormation = 17,
+
+    /// <summary>
+    /// ADR-055 — DISBAND a formation the issuer owns. TargetId = the formation's id; Amount is reserved and must be 0. Its
+    /// people return to the adult buckets of the settlement it is stationed at by Ledger.Transfer (proportionally to their
+    /// current adult counts, RecruitmentQuery.AllocateReturn), a pending re-equipment's escrow returns to that settlement (log
+    /// cause 3), and its MilitaryUnits and FormationPersonnel rows are removed (the id is never reissued: ids are one past the
+    /// highest ever recorded in UnitConversions, ReequipLog or the table). Refused when the formation is not the issuer's or is
+    /// not stationed at a settlement. DELIVERY: stamped turn t → gone from the state of t+1.
+    /// </summary>
+    DisbandFormation = 18,
 }
 
 /// <summary>
@@ -557,6 +612,33 @@ public sealed class OrderLog
                         (record.Kind == OrderKind.Explore ? "is reserved and must be 0" : "is the method and must be 0 (survey) or 1 (assay)") +
                         $", got {record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
                 break;
+            case OrderKind.RecruitFormation:
+                if (record.TargetId < 0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): RecruitFormation settlement id must be >= 0, got {record.TargetId}.");
+                if (!(record.Amount >= 1.0) || record.Amount != Math.Floor(record.Amount) || record.Amount > int.MaxValue)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): RecruitFormation identity key must be a whole number >= 1 " +
+                        $"carried exactly by Amount, got {record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                break;
+            case OrderKind.ReequipFormation:
+                if (record.TargetId < 1)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): ReequipFormation formation id must be >= 1, got {record.TargetId}.");
+                if (!(record.Amount >= 0.0) || record.Amount != Math.Floor(record.Amount) || record.Amount > int.MaxValue)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): ReequipFormation target identity key must be a whole number >= 1 " +
+                        $"(or 0 to cancel) carried exactly by Amount, got {record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                break;
+            case OrderKind.DisbandFormation:
+                if (record.TargetId < 1)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): DisbandFormation formation id must be >= 1, got {record.TargetId}.");
+                if (record.Amount != 0.0)
+                    throw new SnapshotFormatException(
+                        $"order[{index}] (turn {record.Turn}): DisbandFormation Amount is reserved and must be 0, got " +
+                        $"{record.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture)}.");
+                break;
             case OrderKind.SetResourceAllocation:
                 if (record.TargetId < 0)
                     throw new SnapshotFormatException(
@@ -574,7 +656,8 @@ public sealed class OrderLog
                     "this build understands kinds 1 (SetRainBias), 2 (LaborAllocation), 3 (SectorAllocation), " +
                     "4 (EnqueueConstruction), 5 (SetTaxRate), 6 (SetResearchTarget), 7 (AdvanceAge), 8 (DevelopRoads), " +
                     "9 (FoundSettlement), 11 (CancelConstruction), 12 (SetResourceAllocation), " +
-                    "13 (CancelConstructionEntry), 14 (Explore) and 15 (Prospect); kind 10 is reserved for MoveFormation " +
+                    "13 (CancelConstructionEntry), 14 (Explore), 15 (Prospect), 16 (RecruitFormation), 17 (ReequipFormation) and " +
+                    "18 (DisbandFormation); kind 10 is reserved for MoveFormation " +
                     "(M7), and kind 11 is legacy (read, no longer written: D-056).");
         }
     }

@@ -1908,7 +1908,9 @@ public static class InfoQuery
         if (c.R is not { } r) { b.Inert("research content"); return; }
         b.Title = "Research";
         b.Kind = "Knowledge - one pool of research points a turn, spent on one target";
-        b.What = "Your people's research points come from your population each turn; they go to one research target, and progress is never lost when you stop or switch.";
+        // ADR-054: with tuning.populationAverageTurns 2 the points of a turn come from the population averaged over the turn just lived.
+        b.What = "Your people's research points come from your population each turn" + (r.Tuning.PopulationAverageTurns >= 2 ? " (averaged over the last turn)" : "")
+            + "; they go to one research target, and progress is never lost when you stop or switch.";
         b.Effect = InfoEffect.Simulated;
         b.RealizedBy = "ResearchSystem spends the pool on the target you set (SetResearchTarget).";
         double rp = ResearchQuery.ResearchPointPool(c.W, r, c.P);

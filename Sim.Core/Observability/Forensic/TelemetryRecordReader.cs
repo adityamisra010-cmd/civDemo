@@ -16,7 +16,7 @@ public readonly record struct OrderRow(int Index, long Turn, int Actor, string K
 /// which DIFFERENCED them from the ledger's own cumulative rows.</summary>
 public readonly record struct GrainTotals(
     long Opening, long Endowment, long Harvest, long Eaten, long Spoilage, long Overflow, long Closing,
-    bool Reconciles, long Discrepancy);
+    bool Reconciles, long Discrepancy, long Military = 0);   // ADR-055: the military grain sinks ("military", absent = 0)
 
 /// <summary>The step's cross-settlement movement totals (READ).</summary>
 public readonly record struct FlowsTotals(
@@ -238,7 +238,7 @@ public sealed class TelemetryRecordFile
             Grain: new GrainTotals(
                 Lng(grain, "opening"), Lng(grain, "endowment"), Lng(grain, "harvest"), Lng(grain, "eaten"),
                 Lng(grain, "spoilage"), Lng(grain, "overflow"), Lng(grain, "closing"),
-                Bln(grain, "reconciles"), Lng(grain, "discrepancy")),
+                Bln(grain, "reconciles"), Lng(grain, "discrepancy"), Lng(grain, "military")),
             Flows: new FlowsTotals(
                 Lng(flows, "migrantsMoved"), (int)Lng(flows, "settlementsFounded"), (int)Lng(flows, "controlLost"),
                 Lng(flows, "tradeUnits"), (int)Lng(flows, "tradeFlowCount"), Bln(flows, "unattributedGrainTransfer")),

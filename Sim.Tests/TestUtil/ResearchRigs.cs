@@ -68,6 +68,11 @@ internal static class ResearchRigs
         /// rig test pins. Rig calibration when on: CP per sim-year = 1.0 × P^0.5, so 10 000 people accrue EXACTLY
         /// 100 CP a sim-year — 1 000 CP (1 000 000 milli-CP) a dt-10 turn.</summary>
         public (bool Enabled, double Coefficient, double Exponent)? CivicsPoints { get; set; }
+        /// <summary>ADR-054: tuning.civicsPoints {enabled true, perTurn true} — CP per turn from the RP base function (the
+        /// shipped form). Overrides <see cref="CivicsPoints"/> (whose coefficient and exponent the per-turn form refuses).</summary>
+        public bool CivicsPerTurn { get; set; }
+        /// <summary>ADR-054: tuning.populationAverageTurns (null = absent, the turn-start population).</summary>
+        public int? PopulationAverageTurns { get; set; }
         /// <summary>ADR-046: tuning.aiCheapestOrRoute — false (the default) = absent, the union-over-OR AI goal closures.</summary>
         public bool AiCheapestOrRoute { get; set; }
         /// <summary>R2a: tuning.cityStatePaceFraction — null (the default) = absent (city-state research off).</summary>
@@ -242,7 +247,9 @@ internal static class ResearchRigs
                         ["formula"] = "BaseCost = U × K^magnitude", ["U"] = CostU, ["U_basis"] = "rig", ["K"] = CostK,
                         ["K_basis"] = "rig", ["magnitude"] = "sum of factors", ["status"] = "rig",
                     },
-                    ["civicsPoints"] = CivicsPoints is { } cp
+                    ["civicsPoints"] = CivicsPerTurn
+                        ? new JsonObject { ["enabled"] = true, ["perTurn"] = true, ["unit"] = "CP per turn", ["status"] = "rig calibration" }
+                        : CivicsPoints is { } cp
                         ? new JsonObject
                         {
                             ["enabled"] = cp.Enabled, ["coefficientPerYear"] = cp.Coefficient, ["exponent"] = cp.Exponent,
@@ -262,6 +269,7 @@ internal static class ResearchRigs
                         : null,
                     ["aiGateAwareGoals"] = AiGateAwareGoals ? true : null,
                     ["aiCivicsGateGoals"] = AiCivicsGateGoals ? true : null,
+                    ["populationAverageTurns"] = PopulationAverageTurns,
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject

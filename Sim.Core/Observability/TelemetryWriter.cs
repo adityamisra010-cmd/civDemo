@@ -130,6 +130,11 @@ public static class TelemetryWriter
         json.WriteNumber("eaten", t.Grain.Eaten);
         json.WriteNumber("spoilage", t.Grain.Spoilage);
         json.WriteNumber("overflow", t.Grain.Overflow);
+        // ADR-055: the military grain sinks (formation upkeep, recruitment, re-equipment), written only when a step has any —
+        // a line of a world without the military layer is byte-identical to before; a reader takes the absent field as 0.
+        if (t.Grain.Military != 0) json.WriteNumber("military", t.Grain.Military);
+        // ADR-056 (EC-2): a herd's grain (Fodder, reason 23), on the same rule — absent on a line of a world without herds.
+        if (t.Grain.Fodder != 0) json.WriteNumber("fodder", t.Grain.Fodder);
         json.WriteNumber("closing", t.Grain.Closing);
         json.WriteBoolean("reconciles", t.Grain.Reconciles);
         json.WriteNumber("discrepancy", t.Grain.Discrepancy);

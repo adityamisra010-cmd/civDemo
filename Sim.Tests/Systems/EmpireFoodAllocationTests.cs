@@ -210,7 +210,8 @@ public class EmpireFoodAllocationTests
 
     // ================================================================== THE SYSTEM
 
-    private static readonly SimConfig Shipped = TestConfigs.Sim();
+    // ADR-055 (the R4 rule): the relief twins strip the newer military layer, so the ON arm is the military-off world too.
+    private static readonly SimConfig Shipped = TestConfigs.PreMilitary(TestConfigs.Sim());
 
     /// <summary>The shipped config with spoilage and the granary bound off, so grants read exactly.</summary>
     private static SimConfig Exact(bool on = true)

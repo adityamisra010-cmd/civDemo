@@ -35,9 +35,11 @@ public class IncrementalConstructionTests
     internal static readonly PolityId Rival = new(2);
     internal static readonly SettlementId S0 = new(0), S1 = new(1), S2 = new(2), S3 = new(3);
 
-    private static readonly Lazy<WorldState> DevSolo = new(() => WorldFounding.Found(TestConfigs.DevWorldgen(), Cfg, 42));
+    // ADR-055 (the R4 rule): the construction rigs predate the military layer — founded with the warband the ADR-031 token, as
+    // every v33/v34 save they migrate was.
+    private static readonly Lazy<WorldState> DevSolo = new(() => WorldFounding.Found(TestConfigs.DevWorldgen(), TestConfigs.PreMilitary(Cfg), 42));
     private static readonly Lazy<WorldState> DevDuo = new(() =>
-        WorldFounding.Found(TestConfigs.DevWorldgen() with { AiEmpires = 1 }, Cfg, 42));
+        WorldFounding.Found(TestConfigs.DevWorldgen() with { AiEmpires = 1 }, TestConfigs.PreMilitary(Cfg), 42));
 
     // ================================================================== rig
 

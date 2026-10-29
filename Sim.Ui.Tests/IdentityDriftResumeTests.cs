@@ -89,7 +89,7 @@ public class IdentityDriftResumeTests
     {
         SimConfig production = TestFog.PreDiscovery;
         WorldgenConfig wg = UiSession.ProductionWorldgen();
-        WorldState w = UiFounding.Found(42);
+        WorldState w = UiFounding.Found(42, withoutMilitary: true, goodsOverride: TestFog.PreDiscovery.Goods);   // ADR-055/056: the twin config is military-off and pre-packet (R4)
         var log = new OrderLog();
         TurnExecutor exec = Production(colonization, log);
         SettlementId a = plan?.First ?? first, b = plan?.Second ?? second;
@@ -118,7 +118,7 @@ public class IdentityDriftResumeTests
     /// lower-scored of the two sites first (so that a stricter floor refuses the first and keeps the second).</summary>
     private static Recording ThisBuildsGame()
     {
-        WorldState w = UiFounding.Found(42);
+        WorldState w = UiFounding.Found(42, withoutMilitary: true, goodsOverride: TestFog.PreDiscovery.Goods);   // ADR-055/056: the twin config is military-off and pre-packet (R4)
         SettlementId small = w.Settlements[0].Id, big = w.Settlements[0].Id;
         for (int i = 1; i < w.Settlements.Count; i++)
         {
@@ -140,7 +140,7 @@ public class IdentityDriftResumeTests
     private static WorldgenConfig OtherBuild(Plan plan)
     {
         WorldgenConfig wg = UiSession.ProductionWorldgen();
-        WorldState w = UiFounding.Found(42);
+        WorldState w = UiFounding.Found(42, withoutMilitary: true, goodsOverride: TestFog.PreDiscovery.Goods);   // ADR-055/056: the twin config is military-off and pre-packet (R4)
         double[] scores = FoundingQuery.Frontier(w, TestFog.PreDiscovery, wg)!.Scores;
         var positive = new List<double>();
         foreach (double v in scores) if (v > 0.0) positive.Add(v);

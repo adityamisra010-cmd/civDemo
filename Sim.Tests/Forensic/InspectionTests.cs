@@ -255,7 +255,7 @@ public class InspectionTests
             // The identity itself, restated and checked as EXACT long equality.
             Assert.Equal(
                 g.Closing,
-                g.Opening + g.Endowment + g.Harvest - g.Eaten - g.Spoilage - g.Overflow);
+                g.Opening + g.Endowment + g.Harvest - g.Eaten - g.Spoilage - g.Overflow - g.Military);   // ADR-055: − Military
             Assert.True(t.PopReconciles, $"turn {t.Turn} population account does not reconcile");
             Assert.Equal(
                 t.PopClosing,

@@ -175,7 +175,10 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
 
         WorldState at80 = SaveFiles.Load(s80, 256);
         SettlementRow colony = at80.Settlements.Rows().Single(s => s.Id.Value == 4);
-        Assert.Equal(73L, colony.FoundedTurn);
+        // ADR-055 RE-PIN (MEASURED on the combined research + units tree): 73 -> 76 — the founding warbands' people and their
+        // grain upkeep move the AI's founding cadence; the premise (founded before the save at 80, above the founding world's
+        // highest id) is unchanged.
+        Assert.Equal(76L, colony.FoundedTurn);
         Assert.True(EmpireQuery.TryGetController(at80, colony.Id, out PolityId ruler) && ruler.Value == 2, "the colony is the AI's");
 
         (exit, _, stderr) = FromSaveRuns.Run("--from-save", s80, "--size", "256", "--turns", "4", "--orders", log,

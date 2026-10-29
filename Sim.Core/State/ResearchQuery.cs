@@ -772,6 +772,67 @@ public static class ResearchQuery
         return population;
     }
 
+    // ------------------------------------------------------------------ the knowledge population and base (ADR-054)
+
+    /// <summary>
+    /// ADR-054 — THE AVERAGE POPULATION every Research Point and Civics Point calculation reads (the Director's binding rule
+    /// of 2026-10-27: "every RP and CP calculation is per turn and based on average population"). STATED ASSUMPTION (ADR-054
+    /// §3): the holder's population averaged over the most recent turn interval — the trapezoid mean of the population at the
+    /// start of its previous research step (its ResearchPopulations row) and at the start of this one
+    /// (<see cref="Population"/>): (prev + now) / 2. A holder with no stored row (its first step; a city state just released;
+    /// a save from before v38) reads its current population. With tuning.populationAverageTurns 1 (or absent — the
+    /// attribution switch) it is <see cref="Population"/> exactly, so every reader computes what it computed before ADR-054.
+    /// The ONE input of <see cref="ResearchPointPool"/>, <see cref="CityStateResearchPoints"/> and
+    /// <see cref="CivicsPointsMilli"/> — the same function for both lanes.
+    /// </summary>
+    public static double KnowledgePopulation(IReadOnlyWorldState world, ResearchContent content, PolityId holder)
+    {
+        long now = Population(world, holder);
+        if (content.Tuning.PopulationAverageTurns < 2 || !TryGetStoredPopulation(world, holder, out long previous)) return now;
+        return ((double)previous + (double)now) * 0.5;
+    }
+
+    /// <summary>ADR-054: the holder's population at the start of its last research step (its ResearchPopulations row), or
+    /// false without a row.</summary>
+    public static bool TryGetStoredPopulation(IReadOnlyWorldState world, PolityId holder, out long population)
+    {
+        for (int i = 0; i < world.ResearchPopulations.Count; i++)
+            if (world.ResearchPopulations[i].Polity.Value == holder.Value)
+            {
+                population = world.ResearchPopulations[i].Population;
+                return true;
+            }
+        population = 0L;
+        return false;
+    }
+
+    /// <summary>
+    /// ADR-054 — the ResearchPopulations table as only ResearchSystem writes it, or null: rows in strictly ascending Polity
+    /// (so no holder twice) and every population ≥ 0. Snapshot.Load refuses a save that breaks it.
+    /// </summary>
+    public static string? PopulationsInvariantViolation(IReadOnlyTable<ResearchPopulationRow> rows)
+    {
+        for (int i = 0; i < rows.Count; i++)
+        {
+            string at = "ResearchPopulations[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]";
+            if (i > 0 && rows[i - 1].Polity.Value >= rows[i].Polity.Value)
+                return at + ": rows are not in strictly ascending Polity order";
+            if (rows[i].Population < 0) return at + ": a population is negative";
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// ADR-054 — THE SHARED BASE: knowledge points per turn for a population, rpPerTurn.coefficient ×
+    /// population^rpPerTurn.exponent, with no benefit of any kind (no realized research effect, no university, building,
+    /// buff, penalty or espionage). Research Points AND per-turn Civics Points are this function of the same
+    /// <see cref="KnowledgePopulation"/>, so base RP = base CP at every turn length by construction (ADR-054 §2). Each lane's
+    /// holder-specific benefit (research.researchPointsCoefficient / research.civicsPointsCoefficient, ADR-047) multiplies
+    /// the coefficient on top; at no benefit the lane equals this bit for bit.
+    /// </summary>
+    public static double BaseKnowledgePointsPerTurn(ResearchTuning tuning, double population) =>
+        ResearchPoints(tuning.RpCoefficient, tuning.RpExponent, population);
+
     /// <summary>
     /// Research Points per strategic turn for a population: rpPerTurn.coefficient ×
     /// population^rpPerTurn.exponent (0.08 × P^0.699; anchors 100 → 2, 1,000 → 10). Sublinear by
@@ -779,63 +840,87 @@ public static class ResearchQuery
     /// reading is the ruling (ADR-030). Population is the only input — literacy, education,
     /// universities and the rest are FUTURE modifiers, not part of this base curve.
     /// </summary>
-    public static double ResearchPoints(ResearchTuning tuning, double population) =>
-        population <= 0.0 ? 0.0 : tuning.RpCoefficient * Math.Pow(population, tuning.RpExponent);
+    public static double ResearchPoints(ResearchTuning tuning, double population) => BaseKnowledgePointsPerTurn(tuning, population);
 
     /// <summary>
     /// The polity's ONE shared Research Point pool for this turn (D-044 R2; finalization
     /// terminology ruling): the RP the active target receives, whichever tree it is in. Per turn,
     /// NOT multiplied by dtYears — ADR-030's scoped exception to law 3; the system's throughput
-    /// line is the only place it is spent.
+    /// line is the only place it is spent. ADR-054: of the polity's <see cref="KnowledgePopulation"/> (the average population).
     /// </summary>
     public static double ResearchPointPool(IReadOnlyWorldState world, ResearchContent content, PolityId polity) =>
-        ResearchPoints(ResearchPointsCoefficient(world, content, polity), content.Tuning.RpExponent, Population(world, polity));
+        ResearchPoints(ResearchPointsCoefficient(world, content, polity), content.Tuning.RpExponent, KnowledgePopulation(world, content, polity));
 
     /// <summary>ADR-047 — research.researchPointsCoefficient for <paramref name="holder"/>: rpPerTurn.coefficient improved by
     /// the holder's realized research (KnowledgeEffects; the base exactly without an effect).</summary>
     public static double ResearchPointsCoefficient(IReadOnlyWorldState world, ResearchContent content, PolityId holder) =>
         KnowledgeEffects.Apply(world, content, holder, KnowledgeOperand.ResearchResearchPointsCoefficient, content.Tuning.RpCoefficient);
 
-    /// <summary>The RP curve with an explicit coefficient (ADR-047: the holder's) — <see cref="ResearchPoints(ResearchTuning,
-    /// double)"/>'s arithmetic, which it equals bit for bit at the content coefficient.</summary>
+    /// <summary>The knowledge-point curve with an explicit coefficient (ADR-047: the holder's) — <see
+    /// cref="BaseKnowledgePointsPerTurn"/>'s arithmetic, which it equals bit for bit at the content coefficient. Both lanes
+    /// call it (ADR-054).</summary>
     private static double ResearchPoints(double coefficient, double exponent, double population) =>
         population <= 0.0 ? 0.0 : coefficient * Math.Pow(population, exponent);
 
     /// <summary>R2a: the RP an UNCONTROLLED settlement (a city-state) generates this turn —
     /// tuning.cityStatePaceFraction × the content's RP curve of the settlement's own population. Per turn,
-    /// never × dtYears (ADR-030 §2, as <see cref="ResearchPointPool"/>).</summary>
+    /// never × dtYears (ADR-030 §2, as <see cref="ResearchPointPool"/>). ADR-054: of its <see cref="KnowledgePopulation"/>.</summary>
     public static double CityStateResearchPoints(IReadOnlyWorldState world, ResearchContent content, SettlementId settlement) =>
         content.Tuning.CityStatePaceFraction * ResearchPoints(
             ResearchPointsCoefficient(world, content, SettlementKnowledge.LocalHolder(settlement)), content.Tuning.RpExponent,
-            Population(world, SettlementKnowledge.LocalHolder(settlement)));
+            KnowledgePopulation(world, content, SettlementKnowledge.LocalHolder(settlement)));
 
     // ------------------------------------------------------------------ Civics Points (ADR-043)
 
     /// <summary>
     /// ADR-043 — Civics Points per SIM-YEAR for a population: civicsPoints.coefficientPerYear × population^exponent
-    /// (0.008 × P^0.699, PROPOSED). 0 when the two-lane model is off or the population is empty. Unlike RP this is a
-    /// rate per sim-year (law 3 as written): the step integrates it over dtYears (<see cref="CivicsPointsMilli"/>).
+    /// (0.008 × P^0.699). 0 when the two-lane model is off, when CP are per turn (ADR-054: there is no per-year rate — see
+    /// <see cref="CivicsPointsPerTurn"/>) or the population is empty. The ADR-043 §3 form, kept as the attribution twin.
     /// </summary>
     public static double CivicsPointsPerYear(ResearchTuning tuning, double population) =>
-        tuning.CivicsPoints is not { Enabled: true } cp || population <= 0.0
+        tuning.CivicsPoints is not { Enabled: true, PerTurn: false } cp || population <= 0.0
             ? 0.0 : cp.CoefficientPerYear * Math.Pow(population, cp.Exponent);
 
     /// <summary>
-    /// ADR-043 — THE CP ACCRUAL OF ONE STEP, in integer milli-CP: floor(1000 × pace × CivicsPointsPerYear(P) × dtYears),
-    /// where pace is 1 for an Empire and tuning.cityStatePaceFraction for a city-state's reserved local key (the same
-    /// factor its RP carries). P is <see cref="Population"/> — the input RP reads. The one function ResearchSystem
-    /// accrues with and the Glass Box / UI show.
+    /// ADR-054 — BASE Civics Points per turn for a population, with no benefit: <see cref="BaseKnowledgePointsPerTurn"/>
+    /// itself when tuning.civicsPoints.perTurn (base CP = base RP by construction), 0 when the two-lane model is off or CP are
+    /// per sim-year (the ADR-043 twin: its per-turn amount depends on the step's dtYears — <see cref="CivicsPointsMilli"/>).
+    /// </summary>
+    public static double CivicsPointsPerTurn(ResearchTuning tuning, double population) =>
+        tuning.CivicsPoints is { Enabled: true, PerTurn: true } ? BaseKnowledgePointsPerTurn(tuning, population) : 0.0;
+
+    /// <summary>
+    /// THE CP ACCRUAL OF ONE STEP, in integer milli-CP — the one function ResearchSystem accrues with and the Glass Box / UI
+    /// show. pace is 1 for an Empire and tuning.cityStatePaceFraction for a city-state's reserved local key (the same factor
+    /// its RP carries); P is <see cref="KnowledgePopulation"/> — the input RP reads.
+    /// <para>ADR-054 (tuning.civicsPoints.perTurn, shipped): floor(1000 × pace × c' × P^rpPerTurn.exponent), PER TURN — NOT
+    /// multiplied by <paramref name="dtYears"/> (ADR-054's scoped per-turn exception for Civics Points, beside ADR-030's for
+    /// RP; this is its one code site). c' is research.civicsPointsCoefficient, the holder's realized benefit on
+    /// rpPerTurn.coefficient (ADR-047), so with no benefit the accrual is floor(1000 × pace × base RP) at every turn length.
+    /// <paramref name="dtYears"/> only gates a non-positive step.</para>
+    /// <para>ADR-043 §3 (perTurn absent — the attribution twin): floor(1000 × pace × c' × P^β × dtYears), c' the holder's
+    /// civicsPoints.coefficientPerYear.</para>
     /// </summary>
     public static long CivicsPointsMilli(IReadOnlyWorldState world, ResearchContent content, PolityId holder, double dtYears)
     {
         if (!content.Tuning.TwoLanes || !(dtYears > 0.0)) return 0L;
         double pace = SettlementKnowledge.IsLocalHolder(holder) ? content.Tuning.CityStatePaceFraction : 1.0;
-        // ADR-047: research.civicsPointsCoefficient, the holder's (the content coefficient exactly without an effect).
         CivicsPointsTuning cp = content.Tuning.CivicsPoints!;
-        double coefficient = KnowledgeEffects.Apply(world, content, holder, KnowledgeOperand.ResearchCivicsPointsCoefficient, cp.CoefficientPerYear);
-        double population = Population(world, holder);
-        double perYear = population <= 0.0 ? 0.0 : coefficient * Math.Pow(population, cp.Exponent);
-        double milli = Math.Floor(1000.0 * pace * perYear * dtYears);
+        double population = KnowledgePopulation(world, content, holder);
+        double milli;
+        if (cp.PerTurn)
+        {
+            // ADR-054 §2: per turn, the shared base function — never × dtYears.
+            double coefficient = KnowledgeEffects.Apply(world, content, holder, KnowledgeOperand.ResearchCivicsPointsCoefficient, content.Tuning.RpCoefficient);
+            milli = Math.Floor(1000.0 * pace * ResearchPoints(coefficient, content.Tuning.RpExponent, population));
+        }
+        else
+        {
+            // ADR-047: research.civicsPointsCoefficient, the holder's (the content coefficient exactly without an effect).
+            double coefficient = KnowledgeEffects.Apply(world, content, holder, KnowledgeOperand.ResearchCivicsPointsCoefficient, cp.CoefficientPerYear);
+            double perYear = population <= 0.0 ? 0.0 : coefficient * Math.Pow(population, cp.Exponent);
+            milli = Math.Floor(1000.0 * pace * perYear * dtYears);
+        }
         return milli > 0.0 ? (long)milli : 0L;
     }
 

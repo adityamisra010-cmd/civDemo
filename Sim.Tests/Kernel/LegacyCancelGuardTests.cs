@@ -196,17 +196,25 @@ public class LegacyCancelGuardTests
     /// batch (nothing is built, both wait at p = 0), and at turn 3 a cancel of s0's slot 1 — <paramref name="legacy"/> the slot-only kind 11 an older build
     /// wrote, else the kind 13 this build's factory writes (ConstructionQuery.CancelOrder, read from the world it is issued
     /// in). <paramref name="noBuildersAt"/> moves the builders order (another log: another world).</summary>
-    private static (OrderLog Log, WorldState[] Worlds) Record(bool legacy, int turns = 6, long noBuildersAt = 0, bool preDiscovery = false)
+    private static (OrderLog Log, WorldState[] Worlds) Record(bool legacy, int turns = 6, long noBuildersAt = 0, bool preDiscovery = false,
+        bool preMilitary = false)
     {
         var log = new OrderLog();
-        WorldState w = Sim.Cli.HeadlessFounding.Found(42, 256, 4);
+        // ADR-055: <paramref name="preMilitary"/> — a session labelled with a pre-v39 schema is replayed without the military
+        // layer (RecruitmentQuery.RecordedWithoutMilitary: founded with the warband a token, stepped without upkeep), so it is
+        // recorded without it, as such a build played it. The discovery twin strips the military layer too (the R4 rule).
+        bool militaryOff = preMilitary || preDiscovery;
+        WorldState w = Sim.Cli.HeadlessFounding.Found(42, 256, 4, withoutMilitary: militaryOff);
         // M6 Track EX (2026-10-22): <paramref name="preDiscovery"/> — a session labelled with a pre-v35 schema is replayed
         // without the discovery layer (DiscoveryQuery.RecordedWithoutDiscovery), so it is recorded without it, as such a build
         // played it.
         Sim.Core.Kernel.SystemRegistration[] pipeline = Sim.Cli.CliRecipes.ProductionPipeline();
         if (preDiscovery)
             using (var pipe = Sim.Data.DataFiles.OpenPipeline())
-                pipeline = Sim.Core.Kernel.PipelineLoader.Load(pipe, Sim.Core.SystemCatalog.All(TestConfigs.PreDiscovery(TestConfigs.Sim()), Sim.Cli.CliRecipes.Worldgen()));
+                pipeline = Sim.Core.Kernel.PipelineLoader.Load(pipe, Sim.Core.SystemCatalog.All(TestConfigs.PreMilitary(DiscoveryQuery.WithoutDiscovery(TestConfigs.Sim())), Sim.Cli.CliRecipes.Worldgen()));   // ADR-056: the discovery switch (and, R4, the military layer) — the packets stay on, as recorded
+        else if (militaryOff)
+            using (var pipe = Sim.Data.DataFiles.OpenPipeline())
+                pipeline = Sim.Core.Kernel.PipelineLoader.Load(pipe, Sim.Core.SystemCatalog.All(TestConfigs.PreMilitary(TestConfigs.Sim()), Sim.Cli.CliRecipes.Worldgen()));
         var executor = new TurnExecutor(Sim.Cli.CliRecipes.Era(), pipeline, log);
         var worlds = new List<WorldState> { w };
         for (int t = 0; t < turns; t++)
@@ -412,7 +420,8 @@ public class LegacyCancelGuardTests
         }
         File.WriteAllText(Path.Combine(dir, "trace-" + stamp + ".csv"), string.Join("\n", lines) + "\n");
         var manifest = new SessionManifest(42, 256, 4, schema, "older-build", "2026-10-15", "2026-10-18 12:00:00",
-            "orders-" + stamp + ".bin", "chronicle-" + stamp + ".txt", "trace-" + stamp + ".csv");
+            "orders-" + stamp + ".bin", "chronicle-" + stamp + ".txt", "trace-" + stamp + ".csv",
+            EconomyPackets: EconomyRigs.RecordedPackets(worlds[0]));   // ADR-056: the packets the recording was founded with
         string path = Path.Combine(dir, "session-" + stamp + ".json");
         using (FileStream f = File.Create(path)) manifest.Write(f);
         return path;
@@ -427,7 +436,7 @@ public class LegacyCancelGuardTests
         })
         {
             // M6 EX: the v33-labelled arm is recorded without the discovery layer (it replays without it).
-            (OrderLog legacy, WorldState[] worlds) = Record(legacy: true, preDiscovery: schema < 35);
+            (OrderLog legacy, WorldState[] worlds) = Record(legacy: true, preDiscovery: schema < 35, preMilitary: schema < 39);
             string dir = TempDir();
             try
             {
@@ -450,11 +459,12 @@ public class LegacyCancelGuardTests
     {
         // The recorded world kept its builders until turn 2; the saved log takes them at turn 0: from turn 1 the replay is
         // another world (what another build's rules, or another platform, makes of the same log).
-        (_, WorldState[] recorded) = Record(legacy: true, noBuildersAt: 2);
-        (OrderLog saved, WorldState[] replayed) = Record(legacy: true);
-        Assert.NotEqual(WorldHash.ComputeHex(recorded[3]), WorldHash.ComputeHex(replayed[3]));
         foreach (int schema in new[] { CanonicalSchema.Version, 33 })
         {
+            // ADR-055: the v33-labelled arm is recorded without the military layer (it replays without it).
+            (_, WorldState[] recorded) = Record(legacy: true, noBuildersAt: 2, preMilitary: schema < 39);
+            (OrderLog saved, WorldState[] replayed) = Record(legacy: true, preMilitary: schema < 39);
+            Assert.NotEqual(WorldHash.ComputeHex(recorded[3]), WorldHash.ComputeHex(replayed[3]));
             string dir = TempDir();
             try
             {

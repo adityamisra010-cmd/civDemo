@@ -86,8 +86,18 @@ public sealed record SessionManifest(
     // is per machine, never in the simulation, the save or the replay). An ADDITIVE key inside v2 (the ForensicFile
     // argument above), written only when present, so a manifest without it is byte-identical to before; older
     // binaries ignore it, and an older manifest reads back with null.
-    SessionDisplay? Display = null)
+    SessionDisplay? Display = null,
+    // ADR-056 (the M7 economy packets): the goods.json economy packets ENABLED when the session was founded ("ec1,ec2").
+    // Part of the world's identity — a packet adds goods, deposit and stock rows from turn 0 — so a session replays only
+    // into a world with the same packets. An ADDITIVE key inside v2 (the ForensicFile argument above), written only when
+    // at least one packet was enabled; ABSENT means the session was recorded with none — every manifest written before
+    // the packets existed — and a reader (sim inspect, UiSession.Resume) replays it with every packet off.
+    string? EconomyPackets = null)
 {
+    /// <summary>ADR-056: whether the session was recorded with no economy packet (the key absent or empty). The packets
+    /// are one comma-separated string ("ec1,ec2"), so the record compares by value.</summary>
+    public bool RecordedWithoutEconomy => string.IsNullOrEmpty(EconomyPackets);
+
     /// <summary>The schema tag, so a reader can tell which vintage produced a
     /// file it did not write. v2 added `platform`.</summary>
     public const string Schema = "session-manifest/v2";
@@ -191,6 +201,7 @@ public sealed record SessionManifest(
         json.WriteString("telemetryFile", TelemetryFile);
         json.WriteString("platform", Platform);
         json.WriteString("forensicFile", ForensicFile);
+        if (EconomyPackets is { Length: > 0 } packets) json.WriteString("economyPackets", packets);
         if (Display is { } dsp)
         {
             json.WriteStartObject("display");
@@ -248,7 +259,20 @@ public sealed record SessionManifest(
             // worldgen.json's own count.
             AiEmpires: Nullable(root, "aiEmpires"),
             // Absent on every manifest written before M5 polish UR-7 (and wherever the host could not read it).
-            Display: root.TryGetProperty("display", out JsonElement de) && de.ValueKind == JsonValueKind.Object ? ReadDisplay(de) : null);
+            Display: root.TryGetProperty("display", out JsonElement de) && de.ValueKind == JsonValueKind.Object ? ReadDisplay(de) : null,
+            // ADR-056: absent on every manifest written before the economy packets (and on a session with none enabled).
+            EconomyPackets: root.TryGetProperty("economyPackets", out JsonElement ep) && ep.ValueKind == JsonValueKind.String
+                ? ep.GetString() : null);
+    }
+
+    /// <summary>ADR-056: the economy packets <paramref name="goods"/> has ENABLED, goods.json order — what a session
+    /// founded with it records, comma-separated (null when none is enabled, so the key is not written).</summary>
+    public static string? EnabledEconomyPackets(Sim.Core.Systems.GoodsConfig? goods)
+    {
+        var list = new List<string>();
+        foreach (Sim.Core.Systems.PacketEntry p in goods?.Packets ?? [])
+            if (p.Enabled) list.Add(p.Id);
+        return list.Count == 0 ? null : string.Join(",", list);
     }
 
     private static SessionDisplay ReadDisplay(JsonElement d) => new(

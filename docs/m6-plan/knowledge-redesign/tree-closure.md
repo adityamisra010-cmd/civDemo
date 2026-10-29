@@ -81,4 +81,4 @@ hash unchanged, and a prerequisite edit moves it.
 
 | Date | Change | Kind (defect / approved) | New STRUCTURE / TEXT hash |
 |---|---|---|---|
-| — | — | — | — |
+| 2026-10-27 | **TC-2 — RC-1:** `aircraft` (key 299) content Age A9 → A8; ADR-045 re-score with the A8 priors (difficulty 3.0 → 2.5, institutional 2.5 → 2.0; magnitude 9.5 → 8.5; content cost 66,900 → 33,450 = round(92.4 × 2^8.5 / 10) × 10); `costRationale.note` extended. No prerequisite, unlock, effect, name or description changed. Reason: under the Age sweep (D-063 R2) the A9 tag held powered flight back for 89–121 turns of A8 (`docs/m7-plan/aviation-progression.md` §2.1). | **approved** — Director-authorized RC-1, 2026-10-27 (`docs/m7-plan/aviation-progression.md` §10) | STRUCTURE `489dc44e73c6de6b2a1419abf609371e6a0110a84d6e24e6c66af17f446fa702` (was `918502844849f437…`); TEXT unchanged `de341a8eb3a7770e…`. Attribution: `TreeClosureBaselineTests.AircraftAgeA9_ReproducesTheTc1Structure_RC1IsTheOnlyStructuralChange` (the Age restored → the TC-1 hash). Integrity: `tools/tree_closure_check.py` no FAIL (525 technologies, 480 civics, 135 entities). |

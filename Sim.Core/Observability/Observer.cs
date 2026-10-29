@@ -45,8 +45,9 @@ public static class Observer
         "GrainOpening + Harvest - Eaten - GrainClosing; absorbs spoilage + granary overflow "
         + "(unsplit per settlement) AND any appropriation transfer AND colony provisions "
         + "AND intra-polity grain relief (D-053 s2: grain a settlement sent to a hungry sibling of its "
-        + "own polity counts here at the donor; grain it received and ate counts here NEGATIVE); "
-        + "sum over all records == ledger spoilage + overflow on every turn; negative means "
+        + "own polity counts here at the donor; grain it received and ate counts here NEGATIVE) "
+        + "AND military grain (ADR-055: formation upkeep, recruitment and re-equipment grain sunk from its stores); "
+        + "sum over all records == ledger spoilage + overflow + military on every turn; negative means "
         + "grain ARRIVED by an unrecorded transfer (provisions on a founding record; otherwise a raid, "
         + "or relief from its own polity, which leaves the recipient's granary empty)";
 
@@ -200,7 +201,7 @@ public static class Observer
         long deaths = Leg(pop.Sinks, ReasonIds.Deaths);
         long starvation = Leg(pop.Sinks, ReasonIds.Starvation);
         var population = Account(pop.Opening, pop.Closing, births - deaths - starvation,
-            (o, c, r, d) => new PopulationAccount(o, births, deaths, starvation, c, r, d));
+            (o, c, r, d) => new PopulationAccount(o, births, deaths, starvation, c, r, d, InFormations(next)));
 
         long endowment = Leg(grainStock.Sources, ReasonIds.InitialEndowment);
         long harvest = Leg(grainStock.Sources, ReasonIds.Harvest);
@@ -209,9 +210,13 @@ public static class Observer
         long overflow = Leg(grainStock.Sinks, ReasonIds.GranaryOverflow);
         // M6 EX (ADR-044): the discovery provisions — Explore's (Expedition) and Prospect's survey party (Prospecting).
         long expedition = Leg(grainStock.Sinks, ReasonIds.Expedition) + Leg(grainStock.Sinks, ReasonIds.Prospecting);
+        // ADR-055: the military sinks — a formation's food (FormationUpkeep), a recruitment's grain input, a completed
+        // re-equipment's escrowed grain.
+        long military = Military(grainStock.Sinks);
+        long fodder = Leg(grainStock.Sinks, ReasonIds.Fodder);   // ADR-056 (EC-2): a herd's grain
         var grainAccount = Account(grainStock.Opening, grainStock.Closing,
-            endowment + harvest - eaten - spoilage - overflow - expedition,
-            (o, c, r, d) => new GrainAccount(o, endowment, harvest, eaten, spoilage, overflow, c, r, d, expedition));
+            endowment + harvest - eaten - spoilage - overflow - expedition - military - fodder,
+            (o, c, r, d) => new GrainAccount(o, endowment, harvest, eaten, spoilage, overflow, c, r, d, expedition, military, fodder));
 
         long built = Leg(dwell.Sources, ReasonIds.HousingBuilt);
         long decayed = Leg(dwell.Sinks, ReasonIds.HousingDecayed);
@@ -231,10 +236,12 @@ public static class Observer
             long housingMat = Leg(st.Sinks, ReasonIds.HousingMaterials);
             long constructionMat = Leg(st.Sinks, ReasonIds.ConstructionMaterials);
             long discovery = Leg(st.Sinks, ReasonIds.Prospecting) + Leg(st.Sinks, ReasonIds.Expedition);   // M6 EX (ADR-044)
+            long militaryUse = Military(st.Sinks);   // ADR-055
+            long herdLosses = Leg(st.Sinks, ReasonIds.HerdLosses) + Leg(st.Sinks, ReasonIds.Fodder);      // ADR-056 (EC-2)
             goodAccounts.Add(Account(st.Opening, st.Closing,
-                produced - inputs - wear - ate - housingMat - constructionMat - discovery,
+                produced - inputs - wear - ate - housingMat - constructionMat - discovery - militaryUse - herdLosses,
                 (o, c, r, d) => new GoodAccount(good.Id, good.Name, o, produced, inputs, wear, ate,
-                    housingMat, constructionMat, c, r, d, discovery)));
+                    housingMat, constructionMat, c, r, d, discovery, militaryUse, herdLosses)));
         }
 
         long migrants = 0;
@@ -263,7 +270,7 @@ public static class Observer
 
         var causes = new CausesRecord(
             pop.Closing - pop.Opening, births - deaths - starvation,
-            grainStock.Closing - grainStock.Opening, endowment + harvest - eaten - spoilage - overflow - expedition);
+            grainStock.Closing - grainStock.Opening, endowment + harvest - eaten - spoilage - overflow - expedition - military - fodder);
 
         return new TurnRecord(
             next.Clock.Turn, next.Clock.WorldDateYears, next.Clock.DtYears,
@@ -350,6 +357,7 @@ public static class Observer
         {
             for (int i = 0; i < w.Buckets.Count; i++) { sum += w.Buckets[i].Count.Value; any = true; }
             for (int i = 0; i < w.Notables.Count; i++) { sum += w.Notables[i].Count.Value; any = true; }
+            for (int i = 0; i < w.FormationPersonnel.Count; i++) { sum += w.FormationPersonnel[i].Count.Value; any = true; }   // ADR-055
         }
         else if (q == ConservedQuantityIds.Dwellings)
         {
@@ -360,6 +368,8 @@ public static class Observer
             GoodId good = ConservedQuantityIds.GoodOf(q);
             for (int i = 0; i < w.GoodStocks.Count; i++)
                 if (w.GoodStocks[i].Good == good) { sum += w.GoodStocks[i].Amount.Value; any = true; }
+            for (int i = 0; i < w.ReequipEscrow.Count; i++)   // ADR-055: goods a pending re-equipment holds in escrow
+                if (w.ReequipEscrow[i].Good == good.Value) { sum += w.ReequipEscrow[i].Units.Value; any = true; }
         }
         return sum;
     }
@@ -371,6 +381,18 @@ public static class Observer
         // reconciles trivially and is reported as such (0 == 0 is not a hope).
         return new StockRecord(q.Value, "absent", 0, 0, [], [], true, 0);
     }
+
+    /// <summary>ADR-055: the people serving in formations — counted in the world's population, in no settlement's record.</summary>
+    private static long InFormations(IReadOnlyWorldState w)
+    {
+        long n = 0;
+        for (int i = 0; i < w.FormationPersonnel.Count; i++) n += w.FormationPersonnel[i].Count.Value;
+        return n;
+    }
+
+    /// <summary>ADR-055: the three military sinks of a quantity — Recruitment, FormationUpkeep, Reequipment.</summary>
+    private static long Military(FlowLeg[] sinks) =>
+        Leg(sinks, ReasonIds.Recruitment) + Leg(sinks, ReasonIds.FormationUpkeep) + Leg(sinks, ReasonIds.Reequipment);
 
     private static long Leg(FlowLeg[] legs, ReasonId reason)
     {

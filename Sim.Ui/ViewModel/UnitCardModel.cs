@@ -34,6 +34,13 @@ public sealed record UnitCard(
     /// <summary>P11: the locked movement line (<see cref="UnitCardModel.MovementText"/>): non-interactive — no control on
     /// the card moves the formation, and no right-click on the map orders it.</summary>
     public string Movement { get; init; } = "";
+
+    /// <summary>ADR-055: the formation's people as its FormationPersonnelRow records them ("Personnel: 20 adults"), or the
+    /// token line when it holds no one; a rival's reads as not known (D-060). Formatting a row field only.</summary>
+    public string Personnel { get; init; } = "";
+
+    /// <summary>ADR-055: its pending re-equipment as its ReequipRow records it ("Re-equipping to X: 90 of 180 days"), or "".</summary>
+    public string Reequip { get; init; } = "";
 }
 
 /// <summary>
@@ -71,8 +78,11 @@ public static class UnitCardModel
         "Health: not simulated",
         "Attack: not simulated",
         "Action points: not simulated",
-        "Headcount: not simulated - no count",
     ];
+
+    /// <summary>ADR-055: the headcount line of a formation with no personnel row (the military layer off, or a formation
+    /// saved before v39): a token that holds no one. No number.</summary>
+    public const string TokenPersonnelText = "Personnel: none - a token formation that holds no one";
 
     /// <summary>P11: the locked movement line (pending the Director's ruling on the workstream's movement issue: M7 and
     /// CR-017). It is text only: the card offers no Move control and the map reads no right-click.</summary>
@@ -86,6 +96,12 @@ public static class UnitCardModel
     public const string LimitationText =
         "Movement and battle arrive with the Battle Layer (milestone M7). This formation cannot be moved or given "
         + "orders yet: it stays where it is stationed, and it modernizes for free when its civilization enters a new Age.";
+
+    /// <summary>ADR-055: the limitation with the military layer on — it still cannot move, but at its station it can be
+    /// re-equipped or disbanded (from the Policy surface's roster).</summary>
+    public const string LimitationWithOrdersText =
+        "Movement and battle arrive with the Battle Layer (milestone M7). This formation cannot be moved yet: at its "
+        + "station it can be re-equipped or disbanded (Policy), and it modernizes for free at each new Age.";
 
     /// <summary>The card for formation <paramref name="unitId"/>, or null when no such formation exists — or (P7) when the
     /// player does not know it (<paramref name="knowledge"/>; null = <see cref="PlayerKnowledge.Of(IReadOnlyWorldState, PolityId)"/>,
@@ -122,8 +138,20 @@ public static class UnitCardModel
             }
             else next = "Final Age: no further modernization.";
         }
-        return new UnitCard(unit.Id, title, owner, mine, familyName, line, ageForm, station, next, LimitationText)
+        bool orders = RecruitmentQuery.Enabled(cfg);
+        string personnel = !mine ? "Personnel: not known to you - it is not your formation"
+            : RecruitmentQuery.PersonnelIndex(world.FormationPersonnel, unit.Id) is int pi and >= 0
+                ? "Personnel: " + world.FormationPersonnel[pi].Count.Value.ToString(CultureInfo.InvariantCulture) + " adults"
+                : TokenPersonnelText;
+        string reequip = "";
+        if (mine && RecruitmentQuery.PendingReequip(world, unit.Id) is { } pending)
+            reequip = "Re-equipping to " + (families?.IdentityByKey(pending.TargetIdentity)?.Name ?? "identity " + pending.TargetIdentity.ToString(CultureInfo.InvariantCulture))
+                + ": " + pending.ElapsedDays.ToString(CultureInfo.InvariantCulture) + " of " + pending.RequiredDays.ToString(CultureInfo.InvariantCulture)
+                + " days (it fights as " + title + " until then)";
+        return new UnitCard(unit.Id, title, owner, mine, familyName, line, ageForm, station, next, orders ? LimitationWithOrdersText : LimitationText)
         {
+            Personnel = personnel,
+            Reequip = reequip,
             Position = PositionText(unit),
             PositionAddsToStation = !AtStationSite(world, unit),
             // D-060: a formation's recorded experience and army membership are its owner's books — a rival's card names the

@@ -76,7 +76,11 @@ public class ResearchOrderTests
         // 14 -> 16 (cause: the two new kinds; both round-trip in DiscoveryOrderLogTests).
         Assert.Contains("14 (Explore)", e.Message);
         Assert.Contains("15 (Prospect)", e.Message);
-        var sixteen = Assert.Throws<SnapshotFormatException>(() => RoundTrip(new OrderRecord(3, 1, (OrderKind)16, 0, 0.0)));
-        Assert.Contains("unknown order kind 16", sixteen.Message);
+        // ADR-055: kinds 16 (RecruitFormation), 17 (ReequipFormation) and 18 (DisbandFormation) are new, so the first kind past the
+        // end moved 16 -> 19 (cause: the three new kinds; each round-trips in MilitaryOrderLogTests).
+        Assert.Contains("16 (RecruitFormation)", e.Message);
+        Assert.Contains("18 (DisbandFormation)", e.Message);
+        var nineteen = Assert.Throws<SnapshotFormatException>(() => RoundTrip(new OrderRecord(3, 1, (OrderKind)19, 0, 0.0)));
+        Assert.Contains("unknown order kind 19", nineteen.Message);
     }
 }

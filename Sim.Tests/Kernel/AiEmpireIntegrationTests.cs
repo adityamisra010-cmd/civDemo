@@ -305,7 +305,9 @@ public class AiEmpireIntegrationTests
         // from turn 0. CONTROL: OneAiEmpire_WithTranche2Off_EveryPinReturnsItsPreTranche2Value (TestConfigs.PreTranche2)
         // returns every OLD value.
         Assert.Equal(["cereal_cultivation", "oral_tradition"], p.FirstTargets!);
-        Assert.Equal((0L, 2L, 65L, 66L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        // ADR-055 RE-PIN (M7 recruitment slice; MEASURED on the combined research + units tree): advance 65/66 -> 66/67 — the
+        // founding warbands' people and their grain upkeep. CONTROL: OneAiEmpire_WithTheMilitaryLayerOff_… returns 65/66.
+        Assert.Equal((0L, 2L, 66L, 67L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
         // R1 RE-PIN (2026-10-03; research-gated recipes — no pottery or bronze before their nodes — move the
         // population and research-point trajectory): levy 547/548 -> 537/538; targets, granary, road, Age unchanged.
         // R4 RE-PIN (2026-10-04, the forager layer; MEASURED): road 141/142 -> 143/144, levy 537/538 -> 546/547.
@@ -348,8 +350,18 @@ public class AiEmpireIntegrationTests
         // none of them.
         // D-063 RE-PIN (2026-10-24, tranche 2; MEASURED, cause and control as above): road 185/186 -> 132/133, levy 416/417 ->
         // 376/377, A3 416 -> 341 (the levy is no longer on the AI's first A3 turn: it reaches the tax gate 35 turns after A3).
-        Assert.Equal((132L, 133L, 376L, 377L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
-        Assert.Equal(341L, p.A3At);                          // the AI entered A3 (ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422; CP: 422 -> 440; M6 merged: 440 -> 579; ADR-046: 579 -> 407; §6: 407 -> 416; D-063: 416 -> 341)
+        // ADR-054 RE-PIN (2026-10-27, D-065 R6; MEASURED on this tree by the agent writing this line, in-test harness): road
+        // 132/133 -> 134/135, levy 376/377 -> 379/380, A3 341 -> 343; targets, first build and advance unchanged. CAUSE: CP per
+        // turn from the RP base with the recalibrated civics pacing scale (per-turn-cp-recalibration.md) and the average
+        // population. ATTRIBUTION: OneAiEmpire_WithAdr054Off_EveryPinReturnsItsPreAdr054Value (TestConfigs.PrePerTurnCivics:
+        // both switches off and the pre-ADR-054 civics scale) returns 132/133, 376/377, A3 341.
+        // ADR-055 RE-PIN (M7 recruitment slice; MEASURED on the combined research + units tree by the agent writing this line,
+        // in-test harness): road 134/135 -> 135/136, levy 379/380 -> 380/381, A3 343 -> 345; targets, first build, the foundings
+        // and the holdings unchanged. CAUSE: the military layer — the founding warbands' people leave their capitals' adults and
+        // eat grain (with military.aiRecruitment off: 135/136, 380/381, A3 344, MEASURED — the AI's one recruitment moves A3 by
+        // one turn). CONTROL: OneAiEmpire_WithTheMilitaryLayerOff_EveryPinReturnsItsPreAdr055Value returns 134/135, 379/380, 343.
+        Assert.Equal((135L, 136L, 380L, 381L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(345L, p.A3At);                          // the AI entered A3 (ADR-055: 343 -> 345; (ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422; CP: 422 -> 440; M6 merged: 440 -> 579; ADR-046: 579 -> 407; §6: 407 -> 416; D-063: 416 -> 341; ADR-054: 341 -> 343)
 
         // S1c (ADR-036 §8): the AI EXPANDS through the player's Found Settlement order — one per 350 years at most, each
         // a colony it controls. MEASURED on this tree: eight orders by the first levy, the polity holding 6 + 8 = 14
@@ -362,6 +374,22 @@ public class AiEmpireIntegrationTests
         // finds none it explores (OrderKind 14) and founds a few turns later; the run ends at the first levy (579).
         // ADR-046 RE-PIN (2026-10-23; MEASURED): the run ends at the first levy (407), so the foundings stamped 438 and 509 no
         // longer stand before it: ten orders -> eight (the cadence unchanged), 16 settlements -> 14.
+        // ADR-054 (2026-10-27; MEASURED): the foundings and holdings are unchanged (eight orders, 14 settlements).
+        Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L], p.Founds);
+        Assert.Equal(14, p.Controlled);
+    }
+
+    /// <summary>ADR-054 (2026-10-27; D-065 R6) — THE ATTRIBUTION CONTROL of the ADR-054 re-pins above: the same run with both
+    /// ADR-054 switches off (TestConfigs.PrePerTurnCivics: CP per sim-year, the turn-start population) returns every pre-ADR-054
+    /// value, so per-turn CP and the average population are the whole of their move.</summary>
+    [Fact]
+    public void OneAiEmpire_WithAdr054Off_EveryPinReturnsItsPreAdr054Value()
+    {
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.Worldgen(), TestConfigs.PrePerTurnCivics(Cfg));
+        Assert.Equal(["cereal_cultivation", "oral_tradition"], p.FirstTargets!);
+        Assert.Equal((0L, 2L, 65L, 66L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        Assert.Equal((132L, 133L, 376L, 377L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(341L, p.A3At);
         Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L], p.Founds);
         Assert.Equal(14, p.Controlled);
     }
@@ -397,6 +425,21 @@ public class AiEmpireIntegrationTests
         Assert.Equal(579L, p.A3At);
         Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L, 438L, 509L], p.Founds);
         Assert.Equal(16, p.Controlled);
+    }
+
+    /// <summary>ADR-055 (M7 recruitment slice) — THE ATTRIBUTION CONTROL of the military re-pins of the live test: the same run
+    /// with the military layer off (TestConfigs.PreMilitary: the warbands tokens, no upkeep, no AI recruitment) returns every
+    /// pre-ADR-055 value, so the military layer is the whole of their move.</summary>
+    [Fact]
+    public void OneAiEmpire_WithTheMilitaryLayerOff_EveryPinReturnsItsPreAdr055Value()
+    {
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.Worldgen(), TestConfigs.PreMilitary(Cfg));
+        Assert.Equal(["cereal_cultivation", "oral_tradition"], p.FirstTargets!);
+        Assert.Equal((0L, 2L, 65L, 66L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        Assert.Equal((134L, 135L, 379L, 380L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));   // the research track's (ADR-054) values
+        Assert.Equal(343L, p.A3At);
+        Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L], p.Founds);
+        Assert.Equal(14, p.Controlled);
     }
 
     /// <summary>ADR-046 §6–§7 (M6 review batch 3, 2026-10-23) — THE ATTRIBUTION CONTROL of the batch-3 moves above: the same

@@ -226,7 +226,10 @@ public static partial class ConstructionQuery
         bool[]? knowledge, bool[] visiting)
     {
         if ((IsCrafted(goods, id) ? purse.Free(id) : purse.Pooled(id)) > 0) return true;
-        if (goods.ById(id).DepositChannel is not null) return DepositConcealment.KnownAbundance(world, cfg, settlement, id) > 0.0;
+        // ADR-056: a deposit the settlement's knowledge cannot work (goods.json knowledge) yields nothing there.
+        if (goods.ById(id).DepositChannel is not null)
+            return DepositConcealment.KnownAbundance(world, cfg, settlement, id) > 0.0
+                && EconomyKnowledge.IsWorkable(goods, cfg.Research, id, knowledge);
         return MadeByAvailableRecipe(world, cfg, goods, settlement, purse, id, knowledge, visiting);
     }
 

@@ -14,15 +14,18 @@ public sealed record ResearchTables(
     Table<ResearchCreditRow> Credits,
     Table<CivicsPointsRow> CivicsPoints,
     Table<ResearchLevelRow> Levels,
-    Table<ResearchReserveRow> Reserves);
+    Table<ResearchReserveRow> Reserves,
+    Table<ResearchPopulationRow> Populations);
 
 /// <summary>
 /// ADR-029 — THE RESEARCH ENGINE (D-044; addendum A; ADR-030; ADR-043).
 ///
 /// ADR-043 (D-062, 2026-10-22) — TWO LANES. With research.json tuning.civicsPoints.enabled (the shipped content), a
 /// polity holds up to TWO targets, one per tree (the lane is the node's tree): Research Points (RP, per turn, ADR-030)
-/// fund only the Technology target, and Civics Points (CP, per sim-year × dtYears, banked in the CivicsPoints table)
-/// fund only the Civics target. A civic order no longer displaces the technology target. Order kind 6 keeps its shape:
+/// fund only the Technology target, and Civics Points (CP, banked in the CivicsPoints table) fund only the Civics target.
+/// ADR-054 (the Director's binding rule of 2026-10-27): with tuning.civicsPoints.perTurn (shipped) CP are generated PER TURN
+/// by the same base function as RP (never × dtYears); without it, per sim-year × dtYears (ADR-043 §3, the twin). With
+/// tuning.populationAverageTurns 2 (shipped) both read the holder's AVERAGE population (ResearchQuery.KnowledgePopulation). A civic order no longer displaces the technology target. Order kind 6 keeps its shape:
 /// the node key selects the lane, −1 clears the Technology lane and −2 the Civics lane. The fixed order inside a step
 /// is: directives → credits → RP throughput → CP accrual → CP spend → completions → persist. With civicsPoints off
 /// (or absent) the engine is the v34 ONE-POOL model below exactly — one target in either tree, funded by RP, and no
@@ -138,6 +141,12 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
         for (int si = 0; si < prev.Settlements.Count; si++)
             if (SettlementKnowledge.ResearchesLocally(prev, content, prev.Settlements[si].Id))
                 holders.Add(SettlementKnowledge.LocalHolder(prev.Settlements[si].Id));
+
+        // ADR-054 (tuning.populationAverageTurns 2): every RP and CP figure of this step reads ResearchQuery.KnowledgePopulation
+        // — the mean of PREV's stored turn-start population (the previous step's) and PREV's population now. The table is
+        // then REBUILT to hold each holder's population at the start of THIS step, read by the next step: one row per holder
+        // processed here, strictly ascending Polity. Off (1, absent): no row is ever written (the attribution switch).
+        RecordTurnStartPopulations(prev, content, holders, owned.Populations);
 
         for (int hi = 0; hi < holders.Count; hi++)
         {
@@ -332,8 +341,10 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                 }
             }
 
-            // 3b. ADR-043 — CP accrual, then CP spend (two-lane model only). Accrual is a per-SIM-YEAR rate integrated
-            //    over dtYears (law 3; NOT the ADR-030 exception) in integer milli-CP; it is BANKED without cap or loss.
+            // 3b. ADR-043 — CP accrual, then CP spend (two-lane model only). ADR-054 (tuning.civicsPoints.perTurn): accrual is
+            //    PER TURN — the shared RP base function of the average population, NOT multiplied by dtYears (the scoped
+            //    per-turn exception for CP; ResearchQuery.CivicsPointsMilli is its one code site). Without perTurn (the twin)
+            //    it is ADR-043 §3's per-sim-year rate integrated over dtYears. Integer milli-CP, BANKED without cap or loss.
             //    The Civics target then draws min(Balance, remaining cost) from the bank. Audit identity, every step:
             //    Balance == Generated − Spent.
             if (twoLanes)
@@ -409,6 +420,25 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
 
         RemoveRows(owned.Progress, progressRemovals);
         RemoveRows(owned.Targets, targetRemovals);
+    }
+
+    /// <summary>ADR-054: rebuilds ResearchPopulations as each holder's population at the start of this step (PREV), one row
+    /// per distinct holder in strictly ascending Polity — with tuning.populationAverageTurns 2; otherwise the table is left
+    /// empty (cleared, a no-op on every world the switch-off engine wrote).</summary>
+    private static void RecordTurnStartPopulations(IReadOnlyWorldState prev, ResearchContent content, List<PolityId> holders,
+        Table<ResearchPopulationRow> populations)
+    {
+        populations.Clear();
+        if (content.Tuning.PopulationAverageTurns < 2) return;
+        var keys = new int[holders.Count];
+        for (int i = 0; i < keys.Length; i++) keys[i] = holders[i].Value;
+        Array.Sort(keys);   // distinct int keys: the sort is total, so the order is canonical
+        for (int i = 0; i < keys.Length; i++)
+        {
+            if (i > 0 && keys[i] == keys[i - 1]) continue;   // a doubled roster row is one Empire
+            var holder = new PolityId(keys[i]);
+            populations.Add(new ResearchPopulationRow(holder, ResearchQuery.Population(prev, holder)));
+        }
     }
 
     /// <summary>ADR-050 (tuning.researchOverflow): the node <paramref name="lane"/> funds next in this step once the nodes

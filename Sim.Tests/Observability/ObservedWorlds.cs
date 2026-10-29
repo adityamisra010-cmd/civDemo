@@ -37,8 +37,10 @@ internal static class ObservedWorlds
 {
     internal sealed record Run(ObservationLog Log, WorldState Final, SimConfig Cfg);
 
-    internal static WorldState Founded(ulong seed = 42UL, WorldgenConfig? worldgen = null) =>
-        WorldFounding.Found(worldgen ?? TestConfigs.Worldgen(), TestConfigs.Sim(), seed);
+    /// <param name="cfg">ADR-055: the config the world is founded under (default the shipped one) — a twin whose military layer
+    /// is off founds the warband as the token, as it steps.</param>
+    internal static WorldState Founded(ulong seed = 42UL, WorldgenConfig? worldgen = null, SimConfig? cfg = null) =>
+        WorldFounding.Found(worldgen ?? TestConfigs.Worldgen(), cfg ?? TestConfigs.Sim(), seed);
 
     internal static TurnExecutor Executor(SimConfig cfg, OrderLog? orders)
     {
@@ -145,7 +147,7 @@ internal static class ObservedWorlds
 
     internal static Run DrivenRun(int turns, SimConfig? cfg = null, WorldgenConfig? worldgen = null)
     {
-        WorldState world = Founded(worldgen: worldgen);
+        WorldState world = Founded(worldgen: worldgen, cfg: cfg);
         OrderLog orders = DrivenGoldenTests.DrivingOrders(world.Settlements.Count);
         OrderValidation.ValidateAgainstWorld(orders, world);
         return Observed(world, orders, turns, cfg);

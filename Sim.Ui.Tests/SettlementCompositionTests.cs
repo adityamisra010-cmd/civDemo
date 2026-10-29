@@ -696,7 +696,8 @@ public class SettlementCompositionTests(InstitutionWorldFixture fx) : IClassFixt
             WorldProjection pl = WorldProjection.Build(live.World, live.Config, i => live.Names.Name(i), Me);
             WorldProjection pr = WorldProjection.Build(resumed.World, resumed.Config, i => resumed.Names.Name(i), Me);
             AssertSameCompositions(pl, pr);
-            Assert.Equal(PinnedCanonicalDigest, Digest(pl));
+            string digest = Digest(pl);
+            Assert.True(PinnedCanonicalDigest == digest, "the canonical composition digest is " + digest);
         }
         finally
         {
@@ -718,7 +719,14 @@ public class SettlementCompositionTests(InstitutionWorldFixture fx) : IClassFixt
     /// composition digest, not a WorldHash, so the v33 layout cannot reach it; WS1/WS2 do not act in 4 order-less turns.
     /// ATTRIBUTION: Composition_WithTheCylinderOff_IsTheBatch2Digest (UiSession.Start(42, wrapXOverride: false), the flat
     /// world, 4 End Turns) returns <see cref="Batch2CanonicalDigest"/> byte for byte.</summary>
-    private const string PinnedCanonicalDigest = "31a160dc6f1d36d9349f0ce0538ccb33aa6c0087aae1e10cc0c13528e6e8a33a";
+    /// ADR-055 (M7 recruitment slice) RE-PIN (MEASURED on this tree by the agent writing this line): 31a160dc6f1d36d9… -> ed95b7f7159056be….
+    /// CAUSE: the military layer — the founding warband's 20 people leave the capital's adults (and eat), so the capital's
+    /// size and parts after 4 turns differ. ATTRIBUTION: Composition_WithTheMilitaryLayerOff_IsTheV37Digest returns
+    /// <see cref="V37CanonicalDigest"/> byte for byte.</summary>
+    private const string PinnedCanonicalDigest = "ed95b7f7159056bec7c1e50eeeb074bc424b3f79d18394b98e0c8ad6a8f80ac6";
+
+    /// <summary>The value of <see cref="PinnedCanonicalDigest"/> before ADR-055 (the military layer off).</summary>
+    private const string V37CanonicalDigest = "31a160dc6f1d36d9349f0ce0538ccb33aa6c0087aae1e10cc0c13528e6e8a33a";
 
     /// <summary>The batch-2 value of <see cref="PinnedCanonicalDigest"/> — the flat (pre-cylinder) canonical world.</summary>
     private const string Batch2CanonicalDigest = "d8fbf5692a457c716fc5b2b001b4eb80b6ba740f5b2cc786946bc6e5531f6769";
@@ -729,11 +737,24 @@ public class SettlementCompositionTests(InstitutionWorldFixture fx) : IClassFixt
     [Fact]
     public void Composition_WithTheCylinderOff_IsTheBatch2Digest()
     {
-        UiSession flat = UiSession.Start(42, wrapXOverride: false);
+        // ADR-055 (the R4 rule): the batch-2 world had no military layer, so the control runs with it off too.
+        UiSession flat = UiSession.StartWith(RecruitmentQuery.WithoutMilitary(UiFounding.ProductionConfig()), 42, wrapXOverride: false);
         Assert.False(flat.World.Terrain!.WrapX);
         for (int t = 0; t < 4; t++) flat.EndTurn();
         WorldProjection p = WorldProjection.Build(flat.World, flat.Config, i => flat.Names.Name(i), Me);
         Assert.Equal(Batch2CanonicalDigest, Digest(p));
+    }
+
+    /// <summary>ADR-055 ATTRIBUTION CONTROL for <see cref="PinnedCanonicalDigest"/>: the same 4 End Turns with the military layer
+    /// off (the warband the ADR-031 token, no upkeep) compose every settlement as the v37 build did.</summary>
+    [Fact]
+    public void Composition_WithTheMilitaryLayerOff_IsTheV37Digest()
+    {
+        UiSession off = UiSession.StartWith(RecruitmentQuery.WithoutMilitary(UiFounding.ProductionConfig()), 42);
+        for (int t = 0; t < 4; t++) off.EndTurn();
+        WorldProjection p = WorldProjection.Build(off.World, off.Config, i => off.Names.Name(i), Me);
+        Assert.Equal(V37CanonicalDigest, Digest(p));
+        Assert.NotEqual(V37CanonicalDigest, PinnedCanonicalDigest);
     }
 
     /// <summary>The institution fixture capital's parts and their lots (ring.index).</summary>

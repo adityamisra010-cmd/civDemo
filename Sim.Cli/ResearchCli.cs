@@ -109,9 +109,13 @@ internal static class ResearchCli
         Console.WriteLine($"research report: seed {seed}, turn {world.Clock.Turn} (sim-year {Year(world)}), polity {polity.Value}, {orderCount} order(s)");
         long population = ResearchQuery.Population(world, polity);
         ResearchTuning tu = content.Tuning;
+        // ADR-054: with tuning.populationAverageTurns 2 both pools read the AVERAGE population (the trapezoid over the last turn).
+        string from = tu.PopulationAverageTurns >= 2
+            ? $"average population {F(ResearchQuery.KnowledgePopulation(world, content, polity))} (turn-start {population}; ADR-054)"
+            : $"population {population}";
         if (!tu.TwoLanes)
         {
-            Console.WriteLine($"Research Points: {F(ResearchQuery.ResearchPointPool(world, content, polity))} RP this turn from population {population} " +
+            Console.WriteLine($"Research Points: {F(ResearchQuery.ResearchPointPool(world, content, polity))} RP this turn from {from} " +
                               $"(calibration: {F(tu.RpCoefficient)} x P^{F(tu.RpExponent)} per turn, never x dt — ADR-030); one shared pool for both trees");
             if (ResearchQuery.TryGetTarget(world, polity, out ResearchNodeId target))
             {
@@ -128,11 +132,17 @@ internal static class ResearchCli
         {
             CivicsPointsTuning cp = tu.CivicsPoints!;
             CivicsPointsRow account = ResearchQuery.CivicsPointsAccount(world, polity);
-            Console.WriteLine($"Research Points: {F(ResearchQuery.ResearchPointPool(world, content, polity))} RP this turn from population {population} " +
+            Console.WriteLine($"Research Points: {F(ResearchQuery.ResearchPointPool(world, content, polity))} RP this turn from {from} " +
                               $"(calibration: {F(tu.RpCoefficient)} x P^{F(tu.RpExponent)} per turn, never x dt — ADR-030); funds the Technology target only");
-            Console.WriteLine($"Civics Points: {F(ResearchQuery.CivicsPointsPerYear(tu, population))} CP per sim-year " +
-                              $"({F(cp.CoefficientPerYear)} x P^{F(cp.Exponent)} x dtYears — ADR-043); funds the Civics target only; " +
-                              $"banked {F(account.BalanceMilli / 1000.0)} CP (generated {F(account.GeneratedMilli / 1000.0)}, spent {F(account.SpentMilli / 1000.0)})");
+            string banked = $"banked {F(account.BalanceMilli / 1000.0)} CP (generated {F(account.GeneratedMilli / 1000.0)}, spent {F(account.SpentMilli / 1000.0)})";
+            if (cp.PerTurn)
+                // ADR-054: per turn, the Research Point base function of the same average population (dt only gates a step).
+                Console.WriteLine($"Civics Points: {F(ResearchQuery.CivicsPointsMilli(world, content, polity, 1.0) / 1000.0)} CP this turn " +
+                                  $"from the same base as RP ({F(tu.RpCoefficient)} x P^{F(tu.RpExponent)} per turn, never x dt — ADR-054); " +
+                                  "funds the Civics target only; " + banked);
+            else
+                Console.WriteLine($"Civics Points: {F(ResearchQuery.CivicsPointsPerYear(tu, ResearchQuery.KnowledgePopulation(world, content, polity)))} CP per sim-year " +
+                                  $"({F(cp.CoefficientPerYear)} x P^{F(cp.Exponent)} x dtYears — ADR-043); funds the Civics target only; " + banked);
             foreach (ResearchTree lane in (ResearchTree[])[ResearchTree.Technology, ResearchTree.Civics])
             {
                 string unit = lane == ResearchTree.Civics ? "CP" : "RP";

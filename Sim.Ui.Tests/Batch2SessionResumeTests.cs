@@ -62,8 +62,19 @@ public class Batch2SessionResumeTests
         Assert.Equal(0, c.ResearchLevels.Count);
         // ADR-051 (v37): section 68 (ResearchReserves) follows, asserted empty — 40 bytes of empty prefixes in all.
         Assert.Equal(0, c.ResearchReserves.Count);
-        for (int i = full.Length - 40; i < full.Length; i++) Assert.Equal(0, full[i]);
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 40)));
+        // ADR-054 (v38): section 69 (ResearchPopulations) follows. The replay stores each Empire's turn-start population from
+        // its first step (tuning.populationAverageTurns 2); on this 8-turn world no research target is set, so the rows are
+        // ADR-054's whole footprint (the trace still matches in its v32 form) — cleared like the CP accounts; 44 bytes in all.
+        // ADR-055 (v39): sections 70–73 (the military tables) follow, asserted empty — a pre-v39 session replays (and this rig
+        // runs) without the military layer (RecruitmentQuery.RecordedWithoutMilitary) — 16 more bytes.
+        Assert.Equal((0, 0, 0, 0), (c.FormationPersonnel.Count, c.Reequips.Count, c.ReequipEscrow.Count, c.ReequipLog.Count));
+        WorldState d = c.Clone();
+        d.ResearchPopulations.Clear();
+        using var buffer2 = new MemoryStream();
+        using (var writer2 = new BinaryWriter(buffer2, System.Text.Encoding.UTF8, leaveOpen: true)) CanonicalSchema.Write(d, writer2);
+        full = buffer2.ToArray();
+        for (int i = full.Length - 60; i < full.Length; i++) Assert.Equal(0, full[i]);
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 60)));
     }
 
     [Fact]

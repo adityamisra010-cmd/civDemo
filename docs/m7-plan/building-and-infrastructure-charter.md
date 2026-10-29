@@ -23,6 +23,15 @@ They are referenced here, not duplicated. This file adds:
 
 **Verified base:** branch `claude/new-session-yavghm`, head `b769933`.
 
+**Revision of 2026-10-27 (charter review; still PROPOSED).** This revision records [D-065](../d065-m7-charter-rulings.md)
+and changes four places:
+- the staged airfields and forward airfields (§5.19);
+- aircraft works (§5.11);
+- the B1–B6 dispositions (§12), with B5 left **open** by ruling R4;
+- the base-rate direction R5, routed to [CR-026](../adr/cr-026-research-and-civics-base-rate-parity.md).
+
+Aviation detail: [aviation-progression.md](aviation-progression.md). Verified base for this revision: head `0bf7626`.
+
 ---
 
 ## Contents
@@ -361,14 +370,14 @@ A blocked building names the good or system it waits for.
 
 | Field | Content |
 |---|---|
-| Status | Barracks, logistics depot, siege workshop: **M7 candidate** (M7.7, only with live consumers). Stables: **blocked** (mounts, EC-2). Foundry: bronze **M7 candidate**, iron **blocked** (EC-1). Arsenal/powder works: **blocked** (EC-3). Motor works: **blocked** (EC-4/EC-1). Military academy: **M7 candidate** as a command-capability term. |
-| Entities | none in `research.json` except `building.dry_dock` (§5.13). Barracks, stables, siege workshop, arsenal, foundry, motor works, depot, academy are new types (content gated by existing nodes). |
+| Status | Barracks, logistics depot, siege workshop: **M7 candidate** (M7.7, only with live consumers). Stables: **blocked** (mounts, EC-2). Foundry: bronze **M7 candidate**, iron **blocked** (EC-1). Arsenal/powder works: **blocked** (EC-3). Motor works: **blocked** (EC-4a/EC-1). Aircraft works: **blocked** (engines and fuel, EC-4a). Military academy: **M7 candidate** as a command-capability term. |
+| Entities | none in `research.json` except `building.dry_dock` (§5.13). Barracks, stables, siege workshop, arsenal, foundry, motor works, aircraft works, depot, academy are new types (content gated by existing nodes; aircraft works by `aircraft`). |
 | Progression | training ground (`standing_army`, cA4) → barracks → military academy (`military_academies`, cA7) → joint command (`general_staff`, cA8; `integrated_alliance_command`, cA9) |
 | Siting | settlement; the depot sits on a road/rail node |
 | Construction | stone, timber, tools |
 | Maintenance | wear |
 | Operating inputs | staff; the depot holds a supply stock (food, ammunition) |
-| Outputs / services | recruitment location and capacity (unit charter §6.5 item 3); training → starting experience band; depot → supply throughput and reach (unit charter §6.7); academy → command latency / staff capacity term (D-039 A4) |
+| Outputs / services | recruitment location and capacity (unit charter §6.5 item 3); training → starting experience band; depot → supply throughput and reach (unit charter §6.7); academy → command latency / staff capacity term (D-039 A4); aircraft works → the only recruitment location for air formations, with capacity as a rate × dtYears. This is Flight I's industrial realization: no global multiplier (aviation-progression §7). |
 | Coverage | depot reach by travel cost |
 | Upgrades / replacement | tiered |
 | Damage / repair | raid and siege target |
@@ -464,6 +473,21 @@ A blocked building names the good or system it waits for.
 | Damage / repair | sabotage |
 | AI placement | settlements with observed covert activity or high grievance |
 
+### 5.16a Garrisoned air defence (D-065 R11; approved requirement, work item GA)
+
+A city, settlement or eligible installation can host air defence as a **garrisoned or installed capability**:
+category C, the city-level state of the `air_defence` family.
+
+| Field | Content |
+|---|---|
+| Status | **approved requirement; not designed or implemented.** Unit charter §14 stage M7.8 GA; realized with `air_defence` (blocked by goods). |
+| Siting and eligibility | to be designed: which locations qualify, and what infrastructure is required (for example radar coverage, §5.17) |
+| Transitions | deploy and withdraw orders between the mobile formation and the garrison. While garrisoned the unit does not move. Each transition is explicit, logged and conserved; it never creates a second asset. |
+| Outputs | an explicit term in local-defence and battle inputs, consumed by the battle system. No flat city bonus. |
+| Presentation | the city panel and battle screen show the garrison from simulation state |
+| Persistence | a populated-table test, save/load, replay, a turn-exact delivery pin |
+| No double counting | the same capability is never counted as both a mobile formation and a garrison, nor twice in one battle. A separately built installation is a separate asset only when it is explicitly constructed and accounted for. |
+
 ### 5.17 Detection (radar and sensor sites)
 
 | Field | Content |
@@ -502,18 +526,19 @@ A blocked building names the good or system it waits for.
 
 | Field | Content |
 |---|---|
-| Status | **blocked** (fuel, aluminium; air basing) |
-| Entities | `building.airfield`; civil airport (new) |
-| Progression | airfields (`aircraft`) → air bases → civil airports (`jet_airliner`, `air_navigation_agreements`) |
-| Siting | flat land (slope), settlement or field site; road connection |
-| Construction | cement, steel (**missing**) |
+| Status | **blocked**. Tier 1 is buildable from existing goods but has no consumer until air units exist; tiers 2–3 also need steel and cement; all tiers need a fuel stock. Staged by D-065 R3. |
+| Entities | `building.airfield` (tiers); forward airfield (new positioned site); civil airport (new) |
+| Progression | Flight I: tier 1 landing strip (`aircraft`, A8 once RC-1 lands) at an eligible controlled settlement → Flight II: tier 2 air base: paved runway, hangars, fuel store (`aircraft_metal`); forward airfields outside the settlement network → Flight III: tier 3, hardened shelters and datalink (`stealth` or `combat_drone`, with digital networks) → civil airports (`jet_airliner`, `air_navigation_agreements`) |
+| Siting | flat land (slope), settlement (tiers 1–3) or a positioned site (forward); road connection; not inside an enemy ZOC |
+| Construction | Tier 1: timber, tools, labour (existing goods). Tiers 2–3 and civil: + cement, steel (**missing**). Forward: built by an army formation present at the site, drawing on its engineer allocation (category B, D-065 R10; aviation-progression §8). |
 | Maintenance | fuel stock, staff |
-| Operating inputs | fuel |
-| Outputs / services | air-unit basing (sortie capacity); civil air edges (M11+) |
+| Operating inputs | fuel (**missing**, EC-4a/EC-4b) |
+| Outputs / services | air-unit basing (sortie capacity by tier; the tier fits the identity); civil air edges (M11+) |
 | Coverage | sortie radius |
-| Upgrades / replacement | tiered |
+| Upgrades / replacement | tier replacement is ordinary construction (B1) |
 | Damage / repair | strike target; runway repair |
-| AI placement | the frontier within sortie range of targets |
+| Forward airfields | Territorial permission: own control, wartime occupation, or an allied access agreement (M8). Supplied along the travel-cost path. Owned by the builder, conferring no territory. Captured when occupied with no defender, its stock moving by `Ledger.Transfer`. Abandoned by order or by integrity decay while unsupplied, with an explicit loss flow and never a silent deletion. Full rules: aviation-progression §8. |
+| AI placement | the frontier within sortie range of targets (key: target value, then site id) |
 
 ### 5.20 Power generation
 
@@ -936,3 +961,16 @@ In addition to unit charter §15:
 
 Also see unit charter §16 for the conflicts list (C1–C10) and questions Q1–Q9. TC-1 remains PROPOSED; this charter adds
 no node or entity.
+
+### 12.1 Dispositions after D-065 (2026-10-27)
+
+These follow the [gap-resolution standard](gap-resolution-standard.md). The questions above are kept as asked.
+
+| Item | Disposition | Basis |
+|---|---|---|
+| B1 building upgrades | **Resolved (design):** tier replacement is ordinary construction with a declared material-reuse share (a `TUNE` band; the reuse is a Ledger credit) | ADR-031 covers units only. A paid "upgrade" button would invent a new mechanism with no ruling. |
+| B2 hinterland sites | **Resolved (design):** improvements tied to a deposit attach to its deposit row, the smallest change. Positioned works (offshore rigs, pipelines, forward airfields, substations) use a positioned-site table owned by Construction, introduced with the first realized consumer and not before. | The consumer rule; ADR-044 deposit rows |
+| B3 environmental channels | **Deferred with owner:** a worldgen change packet, scheduled with whichever system first consumes the channel (energy for wind and solar, Q8; space for launch latitude) | No consumer exists yet |
+| B4 oil and uranium deposits | **Resolved (design):** deposit channels inside EC-4a (oil) and EC-6 (uranium); offshore through the B2 positioned-site table | Already the packets' scope |
+| B5 energy owner | **Open by ruling** (D-065 R4) | Evidence needed: aviation-progression §13, OD-4 |
+| B6 wonders | **Resolved (design):** world wonders are one per world, national projects one per polity. No refund: materials already consumed through `Ledger.Flow` are spent, and a rival's completion ends the race with the progress lost. Nothing is created back. | Conservation; no ruling says otherwise |

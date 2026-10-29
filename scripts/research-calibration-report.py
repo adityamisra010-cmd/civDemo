@@ -122,9 +122,19 @@ def build():
     cp = tuning.get("civicsPoints")
     if cp and cp.get("enabled"):
         civic_cost = sum(n["cost"] for n in content["civics"])
-        w(f"- **Civics Points (ADR-043, PROPOSED):** CP per sim-year = {cp['coefficientPerYear']} × "
-          f"population^{cp['exponent']}, integrated over dtYears (law 3) and banked in integer milli-CP without cap or")
-        w(f"  loss; CP fund the Civics target only. The {len(content['civics'])} civics ({rl.fmt_int(civic_cost)} in all) "
+        if cp.get("perTurn"):
+            avg = tuning.get("populationAverageTurns", 1)
+            w(f"- **Civics Points (ADR-054; ADR-043):** CP per turn = the Research Point base, {rp['coefficient']} × "
+              f"population^{rp['exponent']} — the SAME function of the same population, never multiplied by dtYears (the")
+            w("  Director's binding rule of 2026-10-27: base RP = base CP at every turn length); banked in integer milli-CP")
+            w(f"  without cap or loss. Both read the average population (populationAverageTurns {avg}: "
+              + ("the mean of the previous and the current turn-start population" if avg == 2 else "the turn-start population")
+              + ").")
+        else:
+            w(f"- **Civics Points (ADR-043, PROPOSED):** CP per sim-year = {cp['coefficientPerYear']} × "
+              f"population^{cp['exponent']}, integrated over dtYears (law 3) and banked in integer milli-CP without cap or")
+            w("  loss.")
+        w(f"  CP fund the Civics target only. The {len(content['civics'])} civics ({rl.fmt_int(civic_cost)} in all) "
           "are paid in CP, not RP: the RP workloads below still list them by Age, so they overstate the RP")
         w("  workload by exactly that amount.")
     w(f"- **Cost:** BaseCost = U × K^magnitude, U = {U}, K = {K}; EffectiveCost = max({floor} × BaseCost, BaseCost ×")

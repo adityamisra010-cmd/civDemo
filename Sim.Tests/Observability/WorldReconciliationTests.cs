@@ -26,7 +26,10 @@ namespace Sim.Tests.Observability;
 /// </summary>
 public class WorldReconciliationTests
 {
-    private static void AssertEveryTurnReconciles(ObservationLog log, string world)
+
+    // ADR-056: rosterGoods = the run's own roster (the economy packets append goods after the D-031 fourteen; a historical
+    // twin, e.g. the per-settlement-stores run, switches them off).
+    private static void AssertEveryTurnReconciles(ObservationLog log, string world, int rosterGoods)
     {
         Assert.Equal(300, log.Observations.Count);
         for (int i = 0; i < log.Observations.Count; i++)
@@ -46,7 +49,7 @@ public class WorldReconciliationTests
             Assert.True(t.Population.Reconciles, $"{world} turn {t.Turn}: population discrepancy {t.Population.Discrepancy}");
             Assert.True(t.Grain.Reconciles, $"{world} turn {t.Turn}: grain discrepancy {t.Grain.Discrepancy}");
             Assert.True(t.Dwellings.Reconciles, $"{world} turn {t.Turn}: dwellings discrepancy {t.Dwellings.Discrepancy}");
-            Assert.Equal(13, t.Goods.Length);   // 14 goods, grain excluded
+            Assert.Equal(rosterGoods - 1, t.Goods.Length);   // every roster good, grain excluded (ADR-056: packets append)
             for (int g = 0; g < t.Goods.Length; g++)
                 Assert.True(t.Goods[g].Reconciles, $"{world} turn {t.Turn}: {t.Goods[g].Name} discrepancy {t.Goods[g].Discrepancy}");
 
@@ -54,7 +57,8 @@ public class WorldReconciliationTests
             Assert.Equal(t.Population.Closing,
                 t.Population.Opening + t.Population.Births - t.Population.NaturalDeaths - t.Population.Starvation);
             Assert.Equal(t.Grain.Closing,
-                t.Grain.Opening + t.Grain.Endowment + t.Grain.Harvest - t.Grain.Eaten - t.Grain.Spoilage - t.Grain.Overflow);
+                t.Grain.Opening + t.Grain.Endowment + t.Grain.Harvest - t.Grain.Eaten - t.Grain.Spoilage - t.Grain.Overflow
+                - t.Grain.Expedition - t.Grain.Military - t.Grain.Fodder);   // ADR-055: − Military; ADR-056 (EC-2): a herd's fodder
             Assert.Equal(t.Dwellings.Closing, t.Dwellings.Opening + t.Dwellings.Built - t.Dwellings.Decayed);
             Assert.Equal(0, t.Grain.Endowment);   // endowment is a founding-time source, never a step's
 
@@ -62,8 +66,8 @@ public class WorldReconciliationTests
             Assert.Equal(t.Causes.PopulationDelta, t.Causes.PopulationExplained);
             Assert.Equal(t.Causes.GrainDelta, t.Causes.GrainExplained);
 
-            // Population, dwellings and all 14 goods are present; the toy stocks are not.
-            Assert.Equal(16, t.Stocks.Length);
+            // Population, dwellings and every roster good are present; the toy stocks are not.
+            Assert.Equal(2 + rosterGoods, t.Stocks.Length);
             Assert.Equal(ConservedQuantityIds.Population.Value, t.Stocks[0].Quantity);
             Assert.Equal(ConservedQuantityIds.Dwellings.Value, t.Stocks[1].Quantity);
             for (int s = 1; s < t.Stocks.Length; s++)
@@ -75,7 +79,7 @@ public class WorldReconciliationTests
     public void Founded_Seed42_300Turns_EveryQuantityReconcilesEveryTurn()
     {
         ObservationLog log = ObservedWorlds.Founded300.Value.Log;
-        AssertEveryTurnReconciles(log, "founded");
+        AssertEveryTurnReconciles(log, "founded", ObservedWorlds.Founded300.Value.Cfg.Goods!.Goods.Length);
 
         // NON-VACUITY, MEASURED ON THE MERGED T4.21-2 + T4.21-3 TREE: turn 2
         // carries four of the five flows and turn 3 the fifth.
@@ -131,7 +135,7 @@ public class WorldReconciliationTests
     public void Driven_Seed42_300Turns_EveryQuantityReconcilesEveryTurn()
     {
         ObservationLog log = ObservedWorlds.Driven300.Value.Log;
-        AssertEveryTurnReconciles(log, "driven");
+        AssertEveryTurnReconciles(log, "driven", ObservedWorlds.Driven300.Value.Cfg.Goods!.Goods.Length);
 
         TurnRecord t2 = log.At(2)!.Turn;
         // THE AIM IS UNCHANGED — the driven world must exercise all five flows
@@ -165,7 +169,8 @@ public class WorldReconciliationTests
         // keeps its positive coverage. (The dwelling-decay sample below moves with it,
         // for the same measured reason.)
         ObservationLog perSettlementStores = ObservedWorlds.DrivenPerSettlementStores300.Value.Log;
-        AssertEveryTurnReconciles(perSettlementStores, "driven, per-settlement stores");
+        AssertEveryTurnReconciles(perSettlementStores, "driven, per-settlement stores",
+            ObservedWorlds.DrivenPerSettlementStores300.Value.Cfg.Goods!.Goods.Length);
         Assert.True(perSettlementStores.At(8)!.Turn.Population.Starvation > 0, "no starvation on turn 8 (per-settlement stores)");
         // R2a (2026-10-03): trade between settlements is a research unlock and this run researches nothing, so NO
         // TRADE OCCURS in 300 driven turns (MEASURED on this tree by the agent writing this line; first trade was

@@ -36,12 +36,15 @@ public class UnitModernizationTests
     // ------------------------------------------------------------------ the family graph
 
     [Fact]
-    public void Content_TwelveFamilies_EveryRequiredRole_EachWithSchemaFields()
+    public void Content_TwentyFamilies_EveryRequiredRole_EachWithSchemaFields()
     {
         string[] expected =
         [
             "light_infantry", "spear_anti_cavalry", "heavy_infantry", "ranged_infantry", "light_cavalry", "heavy_cavalry",
             "ranged_cavalry", "siege", "naval_combat", "naval_transport", "air", "strategic_missile",
+            // ADR-055 / D-065 R8–R10: the M7 taxonomy's families 14 and 17–23 (13, 15, 16 withdrawn; rehomed identities keep their keys)
+            "air_defence", "naval_raiders", "submarines", "carriers",
+            "rotary_wing", "unmanned_aircraft", "reconnaissance", "strike_aviation",
         ];
         Assert.Equal(expected, Families.Families.Select(f => f.Id));
         foreach (UnitFamily f in Families.Families)
@@ -84,7 +87,8 @@ public class UnitModernizationTests
         UnitFamily ranged = Families.FamilyById("ranged_infantry")!;
         Assert.Equal("arquebusiers", ranged.Successor(Id("longbowmen"))!.Id); // a branch rejoins the mainline
         Assert.Equal("crossbowmen", ranged.RealizationAt(6)!.Id);             // the mainline, never the branch
-        Assert.Null(Families.FamilyById("air")!.RealizationAt(8));            // not yet realized
+        Assert.Null(Families.FamilyById("air")!.RealizationAt(7));            // not yet realized
+        Assert.Equal("military_aircraft", Families.FamilyById("air")!.RealizationAt(8)!.Id); // D-065 R3: Flight I is staged at A8
         Assert.Null(Families.FamilyById("spear_anti_cavalry")!.RealizationAt(8)); // line ended
     }
 
@@ -93,7 +97,7 @@ public class UnitModernizationTests
     {
         string json = FamiliesJson();
         var e1 = Assert.Throws<UnitFamilyContentException>(() => UnitFamilyContentLoader.Load(
-            json.Replace("\"id\": \"skirmishers\", \"name\": \"Skirmishers\", \"age\": 3", "\"id\": \"skirmishers\", \"name\": \"Skirmishers\", \"age\": 1"),
+            json.Replace("\"id\": \"light_auxiliaries\", \"name\": \"Light auxiliaries\", \"age\": 5", "\"id\": \"light_auxiliaries\", \"name\": \"Light auxiliaries\", \"age\": 1"),
             Research));
         Assert.Contains("strictly increasing", e1.Message);
         var e2 = Assert.Throws<UnitFamilyContentException>(() => UnitFamilyContentLoader.Load(
@@ -114,7 +118,8 @@ public class UnitModernizationTests
     [InlineData("warband", 5, "legion", ModernizationOutcome.Converted)]             // several Ages at once: the realization AT the new Age
     [InlineData("men_at_arms", 7, "musketeers", ModernizationOutcome.Converted)]
     [InlineData("musketeers", 8, "line_infantry", ModernizationOutcome.Converted)]
-    [InlineData("scouts", 3, "skirmishers", ModernizationOutcome.Converted)]
+    [InlineData("scouts", 7, "survey_patrols", ModernizationOutcome.Converted)]     // ADR-055: scouts are rehomed to reconnaissance (22)
+    [InlineData("military_aircraft", 9, "advanced_piston_aircraft", ModernizationOutcome.Converted)] // D-065 R3: staged aviation
     [InlineData("spearmen", 4, "phalanx", ModernizationOutcome.Converted)]
     [InlineData("phalanx", 6, "pikemen", ModernizationOutcome.Converted)]
     [InlineData("slingers", 2, "archers", ModernizationOutcome.Converted)]
@@ -135,11 +140,12 @@ public class UnitModernizationTests
     }
 
     [Theory]
-    [InlineData("scouts", 2)]             // documented gap: scouts remain the Neolithic light-infantry realization
+    [InlineData("scouts", 2)]             // documented gap: scouts remain the Neolithic reconnaissance realization
+    [InlineData("scouts", 3)]             // ADR-055: no longer light infantry, so never converted to skirmishers
     [InlineData("shore_craft", 2)]        // documented gap: dugouts and hide boats remain Neolithic water transport
     [InlineData("cuirassiers", 8)]        // no Industrial heavy cavalry: kept until tanks exist at A9
     [InlineData("archers", 3)]            // archers persist through the Bronze Age
-    [InlineData("military_aircraft", 9)]  // already the newest realization
+    [InlineData("advanced_piston_aircraft", 9)] // already the newest realization
     [InlineData("nuclear_submarines", 9)] // a branch is never converted onto the mainline at its own Age
     public void Modernization_NoSuccessorYet_PreservesTheUnitUnchanged(string identity, int toAge)
     {
@@ -171,7 +177,7 @@ public class UnitModernizationTests
     public void FamilyLineChanges_AreTheGraphTheUiDraws_ComputedByTheSameRule()
     {
         FamilyLineChange[] a6to7 = MilitaryQuery.FamilyLineChanges(Families, 6, 7);
-        Assert.Equal(12, a6to7.Length);
+        Assert.Equal(20, a6to7.Length);
         FamilyLineChange spear = a6to7.Single(c => c.Family.Id == "spear_anti_cavalry");
         Assert.Equal(("pikemen", "pike_and_shot"), (spear.From!.Id, spear.To!.Id));
         FamilyLineChange air = a6to7.Single(c => c.Family.Id == "air");

@@ -1600,14 +1600,18 @@ public class ConstructionReservationTests
         Assert.Equal(0, empty.KnownExtents.Count + empty.Explorations.Count + empty.SettlementSightings.Count + empty.SettlementSurveys.Count);
         Assert.Equal(0, empty.ResearchLevels.Count);   // ADR-049 (v36): section 67 follows too — seven prefixes (28 bytes) in all
         Assert.Equal(0, empty.ResearchReserves.Count); // ADR-051 (v37): and section 68 — eight prefixes (32 bytes)
+        Assert.Equal(0, empty.ResearchPopulations.Count); // ADR-054 (v38): and section 69 — nine prefixes (36 bytes)
+        // ADR-055 (v39): and sections 70–73 — thirteen prefixes (52 bytes). A v33 file holds no formation's people (the founding
+        // warband loads as the token), so the rig's personnel row is cleared with the rest of the post-v33 sections.
+        SchemaProjection.StripV39(empty);
         byte[] v34;
         using (var ms = new MemoryStream()) { Snapshot.Save(empty, ms); v34 = ms.ToArray(); }
         Assert.Equal(CanonicalSchema.Version, BinaryPrimitives.ReadInt32LittleEndian(v34.AsSpan(8)));   // the header's version (35)
-        for (int k = 1; k <= 8; k++)                                                                // sections 68 … 61: 0 rows
+        for (int k = 1; k <= 13; k++)                                                               // sections 73 … 61: 0 rows
             Assert.Equal(0, BinaryPrimitives.ReadInt32LittleEndian(v34.AsSpan(v34.Length - 4 - 4 * k)));
-        var v33 = new byte[v34.Length - 32];
-        v34.AsSpan(0, v34.Length - 36).CopyTo(v33);
-        v34.AsSpan(v34.Length - 4).CopyTo(v33.AsSpan(v34.Length - 36));                          // the topology trailer
+        var v33 = new byte[v34.Length - 52];
+        v34.AsSpan(0, v34.Length - 56).CopyTo(v33);
+        v34.AsSpan(v34.Length - 4).CopyTo(v33.AsSpan(v34.Length - 56));                          // the topology trailer
         BinaryPrimitives.WriteInt32LittleEndian(v33.AsSpan(8), 33);
         return Snapshot.Load(new MemoryStream(v33), w.Terrain);
     }

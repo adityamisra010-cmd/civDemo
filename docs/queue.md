@@ -1706,3 +1706,34 @@
   hash in the message.
 - 2026-10-26 (final trial): cost batch b2 (technology A6–A9 increases) is sound on pricing but consumes seed 2's technology Age 9
   slack. Revisit with D4 (final-Age throughput). Batch b5 should be re-cut without its A5–A7 civics before any re-measure.
+- 2026-10-27 (ADR-054; per-turn CP recalibration): technology Age 9 throughput (D4) diagnosed
+  (`research-cost-pass/per-turn-cp-recalibration.md` §5): the lane completes at most ONE finite A9 node a step (the AI's
+  end-game destination is the cheapest AVAILABLE node, so the route ends at it), and on ~65–69 of the ~141–145 turns after
+  Age 8 that cheapest node is a final-Age repeatable level, so no finite node completes. Neither RP (84–87 % of the window's
+  RP is lost), cost, the sweep nor the prerequisite depth (9) binds. Two AI-policy corrections proposed, not implemented
+  (new AI behaviour needs its own ADR and switch, the ADR-052/053 precedent): (a) finite nodes before repeatable levels while
+  the lane's finite tree is unfinished (modelled: +77–79 turns after A8 instead of +141–145); (b) an end-game destination
+  whose route covers the remaining available nodes, so route overflow pays every affordable one a step (modelled: +22–30).
+- 2026-10-27 (ADR-054): the civics/technology pincer is not cost-reachable in three places on the shipped content (A6 —
+  the `caliphate` order stall without ADR-053; A7 — order-bound to A6; A9 — throughput-bound like technology A9). Measured and
+  recorded; the A6/A7 fix is ADR-053's civics gate rule (candidate only), A9 waits on D4.
+- 2026-10-27 (ADR-056, M7 economy track, EC-1): crafting labour still splits EQUALLY across every available recipe (the T3.3
+  flat-price case; the T3.4 price weighting the ProductionSystem header promises never landed), and extraction labour splits by
+  abundance whatever the demand. So every economy-packet recipe dilutes the base crafts once its knowledge is met (measured,
+  EC-1 granted-knowledge arm: cloth and pottery −3 to −5 %), and coal piles up unused (seed 1: 60,560 mined, 60,446 held).
+  A price- or input-aware split would fix both; proceeding as specified.
+- 2026-10-28 (M7 integration, Tier 3): the research tool tests (`docs/m6-plan/knowledge-redesign/tools/test_validate.py`,
+  `test_sourcing_queue.py`) FAIL on `0bf7626` as well: 0/25 validator fixtures, sourcing-queue t8, and `validate.py` reports
+  341 errors. The M6 proposal package has drifted from the shipped `research.json` (T2/CR-025/ADR-054 changes), and no CI job
+  runs these tools. Reconcile the package or retire the tools; until then `research-tool-tests` is a known red in
+  `scripts/validate.sh full` (docs/validation-policy.md §6).
+- 2026-10-28 (M7 integration, ADR-056): `scripts/research-gameplay-unlock-audit.py` reports the seven economy recipes
+  (iron-smelting, coke-smelting, steel-cementation, steel-converting, iron-toolmaking, gunpowder-milling, explosives-making) as
+  "unlinked: goods.json recipe without a knowledge entity". They ARE knowledge-gated, through goods.json's new `knowledge`
+  field (existing research node ids), which the audit does not read. Teach the audit the `knowledge` gate so these rows
+  close; the audit was regenerated as is.
+- 2026-10-28 (M7 integration, ADR-055 §4): formation people never die while serving, and an unfed formation's shortfall
+  only accumulates in `UnfedUnits` (no consumer until the M7.4 supply slice). Measured: in a 0%-farm world the founding
+  warband's 20 people outlive the settlement (extinction turn 18 shipped vs 11 military-off). Pinned by
+  `PopulationTests.DeadWorld_OnTheShippedConfig_TheWarbandOutlivesTheSettlement`. Director decision: accept until M7.4, or
+  amend ADR-055 so attrition/desertion lands with this slice.

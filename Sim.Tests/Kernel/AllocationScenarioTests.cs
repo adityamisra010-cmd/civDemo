@@ -341,7 +341,8 @@ public class AllocationScenarioTests(AllocationScenarioRun run)
             using (FileStream f = File.Create(orders)) run.Log.Save(f);
             // M6 EX: the scenario runs with the discovery layer off (AllocationScenarioRun, R4) — so does the CLI (ADR-044 §12).
             // D-063: and on the pre-tranche-2 research (TestConfigs.PreTranche2) — so does the CLI (--without-tranche2).
-            (int exit, string stdout, string stderr) = CliProcess.Run(Limit, "run", "--without-discovery", "--without-tranche2", "--from-save", save, "--turns", $"{H - K}",
+            // ADR-056: and without the economy packets (PreTranche2 is an older twin, R4) — so does the CLI (--without-economy).
+            (int exit, string stdout, string stderr) = CliProcess.Run(Limit, "run", "--without-discovery", "--without-tranche2", "--without-economy", "--from-save", save, "--turns", $"{H - K}",
                 "--orders", orders, "--hash-log", Path.Combine(dir, "b.log"), "--split-report", Path.Combine(dir, "b.rep"));
             Assert.True(exit == 0, stdout + stderr);
             Assert.Equal(run.Hashes[(int)(K + 1)..], File.ReadAllLines(Path.Combine(dir, "b.log")));

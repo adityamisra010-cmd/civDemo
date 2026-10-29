@@ -75,7 +75,9 @@ public class FamineScenarioTests
 
     private static SimConfig ArmedRig()
     {
-        SimConfig shipped = TestConfigs.Sim();
+        // ADR-055 (the R4 rule): the rig predates the military layer — the founding warband's people and their upkeep move the
+        // famine trajectory this determinism leg needs (MEASURED with it on: 1 FAMINE settlement-turn, a vacuous leg).
+        SimConfig shipped = TestConfigs.PreMilitary(TestConfigs.Sim());
         Assert.Equal(0.0, shipped.Disaster.HazardPerYear);   // CR-016: inert, one data edit from live
         return WithHazard(shipped, ArmedLambda);
     }

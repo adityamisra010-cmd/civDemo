@@ -10,6 +10,8 @@ import json, re, sys, os
 root = sys.argv[1]
 U = os.path.join(root, 'docs/m7-plan/unit-catalogue-and-progression.md')
 B = os.path.join(root, 'docs/m7-plan/building-and-infrastructure-charter.md')
+AV = os.path.join(root, 'docs/m7-plan/aviation-progression.md')
+GS = os.path.join(root, 'docs/m7-plan/gap-resolution-standard.md')
 r = json.load(open(os.path.join(root, 'Sim.Data/content/research.json')))
 uf = json.load(open(os.path.join(root, 'Sim.Data/content/unit-families.json')))
 nodes = {n['id']: int(n['age'][1:]) for t in ('technologies', 'civics') for n in r[t]}
@@ -19,8 +21,8 @@ idents = {i['id']: (i['key'], i['age'], f['id']) for f in uf['families'] for i i
 ikeys = {v[0]: (k, v[1], v[2]) for k, v in idents.items()}
 baseline = {l.split('`')[1] for l in open(os.path.join(root, 'docs/research-gameplay-unlock-audit.md')) if l.startswith('| `baseline.')}
 fails = []
-proposed = set('combat_engineers air_defence military_supply field_medical naval_raiders submarines carriers rotary_wing unmanned_aircraft reconnaissance outriders'.split())
-texts = {p: open(p).read() for p in (U, B)}
+proposed = set('combat_engineers air_defence military_supply field_medical naval_raiders submarines carriers rotary_wing unmanned_aircraft reconnaissance outriders strike_aviation'.split())
+texts = {p: open(p).read() for p in (U, B, AV, GS)}
 # 1. backticked tokens that look like ids
 allowed_prefix = ('docs/', 'Sim.', 'sim.json', 'goods.json', 'research.json', 'unit-families.json', 'ages.json')
 known_other = set('''MilitaryUnits UnitConversions ConstructionProgress Ledger.Flow Ledger.Transfer RngRegistry WorldState Structures Dictionary HashSet GetHashCode long dtYears
@@ -29,11 +31,21 @@ colonization.orderPartyFraction transport.riverCostFactor governance.authorityDe
 sim.json roads.classes sim.json trade WorldFounding.FoundInitialFormations MilitaryQuery.PlanFor NotableRow 5382b85 b769933 6e51a3e 997824b main
 army_formation mobile_agent special_person cultural_group population_state asset UnitModernizationTests Sim.Core/State/WorldState.cs
 entities Family historicalEmergence livestock dwellings orderPartyFraction deferred-entity-realization-plan milestones.md building-and-infrastructure-charter.md — ++ + 0 – ––
-unit.* building.* infra.* project.* inst.* branch branches[]'''.split())
+unit.* building.* infra.* project.* inst.* branch branches[]
+0bf7626 TUNE aviation-progression.md gap-resolution-standard.md era-pacing.json tuning.ageSweep ResearchQuery.SweepSatisfied
+AiResearchPolicy UnitFamily.Successor fog.formationSightNodes pacingScale.technology[7] minIdentityAge aN_formation *'''.split())
+# milestone ids from ages.json (e.g. a8_formation) are valid references
+for _a in json.load(open(os.path.join(root, 'Sim.Data/content/ages.json')))['ages']:
+    for _m in (_a.get('entry') or {}).get('core', []) + (_a.get('entry') or {}).get('supporting', []):
+        known_other.add(_m['id'])
+# hypothetical ids named only as REJECTED alternatives; each must appear next to the word "rejected"
+hypothetical = {'powered_flight'}
 for p, t in texts.items():
     for tok in re.findall(r'`([^`\n]+)`', t):
         tok = tok.strip()
         if tok in known_other or tok.startswith(allowed_prefix) or ' ' in tok or '/' in tok or '(' in tok or '=' in tok or '→' in tok:
+            continue
+        if tok in hypothetical and 'ejected' in t[max(0, t.find('`' + tok + '`') - 400):t.find('`' + tok + '`')]:
             continue
         if tok in proposed or tok in nodes or tok in ents or tok in fams or tok in idents or tok in baseline:
             continue

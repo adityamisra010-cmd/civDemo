@@ -1,5 +1,45 @@
 # CURRENT STATE — the routing document
 
+> **2026-10-28 (latest): M7 EXECUTION PASS IMPLEMENTED (uncommitted, awaiting Director review)** on
+> `claude/new-session-yavghm`, working tree over `0bf7626`. Report: `docs/m7-plan/m7-execution-pass-report.md`.
+> - **RP/CP (D-065 R6, ADR-054):** one shared base function; CP per turn (never × dtYears); both lanes read the average
+>   of the previous and current research-step population (schema v38 `ResearchPopulations`). CR-026 RESOLVED. Civics
+>   pacing recalibrated for shipped content and for the research-economy candidate (kept separate).
+> - **RC-1 (ADR-054 §8):** `aircraft` retagged A9 → A8; it now completes 80–107 turns after A9 entry (Director decision).
+> - **Units (ADR-055, schema v39):** 20 families / 80 identities (13/15/16 withdrawn per D-065 R10); Recruit (16),
+>   Reequip (17), Disband (18) orders; founding warband draws real personnel; AI recruits legally.
+> - **Economy (ADR-056):** EC-1 metals, EC-2 mounts, EC-3 gunpowder as separately switchable packets; no schema change.
+> - **Validation:** Tier 3 on the final tree. Sim.Tests 3,219/3,219 run (36 skipped), Sim.Ui.Tests 1,126/1,126,
+>   determinism and cross-process legs locally. `research-tool-tests` is red on `0bf7626` too (pre-existing, queue).
+> - Nothing committed, pushed, merged, tagged or released.
+>
+> **2026-10-27 (earlier): UNIT TAXONOMY RATIFIED (docs only, uncommitted).** D-065 Addendum 3 (R8–R14) records the
+> rule that only independently controllable formations are unit families, and five categories: A formations;
+> B abstract military support (engineers, supply, medical); C mobile and garrisoned air defence; D one-shot actions
+> (prospecting); E implicit economic and transport systems.
+> - Classification: unit charter §4.5.
+> - Garrisoning is an approved requirement (work item GA, M7.8 proposed; building charter §5.16a).
+> - Open: snipers' form (Q10); the family-10 naval transport reclassification (ADR-031 amendment).
+> - No code, content, schema or test changed for this.
+>
+> **2026-10-27 (later): M7 CHARTER REVIEW: RULINGS RECORDED, AVIATION STAGED (docs only, uncommitted)** on
+> `claude/new-session-yavghm`, working tree over `0bf7626`. Nothing in code, content, schema, tests, defaults, `main`,
+> tags or releases changed; TC-1 stays PROPOSED.
+> - **Rulings:** `docs/d065-m7-charter-rulings.md`.
+>   - R1 re-equipment permitted as a distinct order;
+>   - R2 EC-1, EC-2 and EC-3 as separate M7 packets;
+>   - R3 staged aviation;
+>   - R4 energy owner open;
+>   - R5 equal base RP/CP: not yet true; routed to `docs/adr/cr-026-research-and-civics-base-rate-parity.md`, OPEN.
+> - **Aviation:** `docs/m7-plan/aviation-progression.md`. Flights I–III, a dependency matrix, the systems that realize
+>   each item, forward airfields, carriers and reconnaissance reconciled. Proposals:
+>   - RC-1: retag `aircraft` A9 → A8 with a re-score. The Age sweep blocks it for 89–121 turns of A8, measured.
+>   - Resource packets EC-4a/4b and EC-5a/b/c.
+>   - Open decisions OD-1 to OD-5.
+> - **Charters revised:** unit charter §6.6 (the re-equip order), §7.10, §7.17, §7.18, a new §7.22 `strike_aviation`,
+>   §12.5, §13, §14, and the §16.4 dispositions of Q1–Q9; building charter §5.11, §5.19 and §12.1 (B1–B6).
+> - **Method:** `docs/m7-plan/gap-resolution-standard.md` (a reusable checklist and the bounded audit G-1…G-11).
+>
 > **2026-10-27: M7 UNIT CHARTER AND BUILDING CHARTER PROPOSED (docs only)** on `claude/new-session-yavghm`. Nothing in
 > code, content, schema, tests, defaults, `main`, tags or releases changed; TC-1 stays PROPOSED.
 > - **Unit charter:** `docs/m7-plan/unit-catalogue-and-progression.md`. Contents:

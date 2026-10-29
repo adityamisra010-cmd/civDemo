@@ -142,24 +142,38 @@ public static class SaveFiles
         const string v36Table = " ResearchLevels (no repeatable research level existed before v36) was added empty too.";
         // ADR-051 (v37): ResearchReserves joins every older version's list of tables added empty.
         const string v37Table = " ResearchReserves (no research reserve existed before v37) was added empty too.";
+        // ADR-054 (v38): ResearchPopulations joins every older version's list of tables added empty.
+        const string v38Table = " ResearchPopulations (no stored turn-start population existed before v38; each holder's first"
+                                + " step reads its current population) was added empty too.";
+        // ADR-055 (v39): the four military tables join every older version's list of tables added empty, and the unit-family
+        // migration rehomes any formation of a moved identity.
+        const string v39Tables = " The four military tables (FormationPersonnel, Reequips, ReequipEscrow, ReequipLog) were added"
+            + " empty (every saved formation stays a token that holds no one) and any formation of a rehomed identity was moved to"
+            + " its new family (ADR-055).";
         return version switch
         {
             32 => "note: " + path + ": migrated from save schema v32: the four tables added since v32 (ConstructionProgress,"
                   + " ResourceAllocations, ConstructionHolds, CivicsPoints) and the four" + v35Tables + " were added empty; the"
                   + " hash printed is the v" + current + " hash (SchemaProjection.V32 gives the v32 build's). Its terrain was"
                   + " regenerated flat (no v32 world was a cylinder) and its queued entries are at progress 0, ordered as enqueued"
-                  + " on turn -1." + v36Table + v37Table,
+                  + " on turn -1." + v36Table + v37Table + v38Table + v39Tables,
             33 => "note: " + path + ": migrated from save schema v33: ConstructionHolds, CivicsPoints and the four" + v35Tables
                   + " were added empty; the hash printed is the v" + current + " hash (SchemaProjection.V33 gives the v33 build's)."
-                  + v36Table + v37Table,
+                  + v36Table + v37Table + v38Table + v39Tables,
             34 => "note: " + path + ": migrated from save schema v34: CivicsPoints (every Civics Points bank starts at zero) and"
                   + " the four" + v35Tables + " were added empty; the first step re-derives each polity's seed extent; the hash"
-                  + " printed is the v" + current + " hash (SchemaProjection.V34 gives the v34 build's)." + v36Table + v37Table,
+                  + " printed is the v" + current + " hash (SchemaProjection.V34 gives the v34 build's)." + v36Table + v37Table + v38Table + v39Tables,
             35 => "note: " + path + ": migrated from save schema v35: ResearchLevels was added empty (no repeatable research level"
                   + " existed before v36; a repeatable completed under v35 reads level 1); the hash printed is the v" + current
-                  + " hash (SchemaProjection.V35 gives the v35 build's)." + v37Table,
-            _ => "note: " + path + ": migrated from save schema v36: ResearchReserves was added empty (no research reserve"
-                  + " existed before v37); the hash printed is the v" + current + " hash (SchemaProjection.V36 gives the v36 build's).",
+                  + " hash (SchemaProjection.V35 gives the v35 build's)." + v37Table + v38Table + v39Tables,
+            36 => "note: " + path + ": migrated from save schema v36: ResearchReserves was added empty (no research reserve"
+                  + " existed before v37); the hash printed is the v" + current + " hash (SchemaProjection.V36 gives the v36 build's)."
+                  + v38Table + v39Tables,
+            37 => "note: " + path + ": migrated from save schema v37: ResearchPopulations was added empty (no stored turn-start"
+                  + " population existed before v38; each holder's first step reads its current population); the hash printed is"
+                  + " the v" + current + " hash (SchemaProjection.V37 gives the v37 build's)." + v39Tables,
+            _ => "note: " + path + ": migrated from save schema v38: the hash printed is the v" + current
+                  + " hash (SchemaProjection.V38 gives the v38 build's)." + v39Tables,
         };
     }
 

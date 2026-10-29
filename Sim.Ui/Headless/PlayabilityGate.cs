@@ -1602,6 +1602,37 @@ public static partial class PlayabilityGate
             else Row("policy: actions", "Actions (Explore, Prospect, Assay)", GateResult.NotOffered,
                 "the fog and concealment are off (sim.json fog / discovery), so the Actions menu is absent");
 
+            // ADR-055: the roster's military order buttons (Recruit / Re-equip / Cancel / Disband). Each goes through its guarded
+            // emitter: a disabled entry (the predicate's refusal drawn beside it) appends nothing; an enabled one appends exactly
+            // ONE order of its kind. The gate prefers a disabled entry, then any but Disband, so the formation stays for the
+            // rows that read it.
+            OpenPolicy();
+            if (Ui.Actions.Model?.Military is { Orders.Length: > 0 })
+                Check("policy: military", "military order button", () =>
+                {
+                    OpenPolicy();
+                    if (Ui.Actions.Model?.Military is not { } mil || mil.Orders.Length == 0) return (GateResult.Fail, "the roster's orders vanished");
+                    int pick = -1;
+                    for (int i = 0; i < mil.Orders.Length && pick < 0; i++) if (!mil.Orders[i].Enabled) pick = i;
+                    for (int i = 0; i < mil.Orders.Length && pick < 0; i++) if (mil.Orders[i].Kind != ActionCommandKind.Disband) pick = i;
+                    if (pick < 0) pick = 0;
+                    MilitaryOrderEntry entry = mil.Orders[pick];
+                    int q = Queued;
+                    if (!ClickAction(ActionHitKind.MilitaryOrder, pick)) return (GateResult.Fail, "not drawn");
+                    if (!entry.Enabled) return Expect(Queued == q, "a refused " + entry.Label + " (\"" + entry.Text + "\") appended an order");
+                    if (Queued != q + 1) return (GateResult.Fail, "SILENT: no order appended by " + entry.Label);
+                    OrderRecord last = S.QueuedOrders()[^1];
+                    OrderKind want = entry.Kind switch
+                    {
+                        ActionCommandKind.Recruit => OrderKind.RecruitFormation,
+                        ActionCommandKind.Disband => OrderKind.DisbandFormation,
+                        _ => OrderKind.ReequipFormation,
+                    };
+                    return Expect(last.Kind == want && last.TargetId == entry.A, "the order appended is not " + want + " for " + entry.A.ToString(CultureInfo.InvariantCulture));
+                });
+            else Row("policy: military", "military order button", GateResult.NotOffered,
+                "the military layer is off (sim.json military), or the player has no settlement or formation to order");
+
             // The tax edict.
             OpenPolicy();
             if (Ui.Actions.Model?.Governance is not null)

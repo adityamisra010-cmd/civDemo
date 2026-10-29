@@ -26,10 +26,20 @@ public class DiscoveryLayoutAttributionTests
     // The worlds under TestConfigs.PreM6, RAW (the v34 stream plus the five empty v35 count prefixes, sections 62–66).
     // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD b84449737c9fd909… -> NEW 9ec11ace4ca354f4… — the empty section-68
     // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
-    internal const string PreM6FoundedGolden = "9ec11ace4ca354f4a70ad5b57831cc2f69ccbea3a00c9c17754b88856031c918";
+    // ADR-054 (schema v38) RE-PIN, LAYOUT ALONE: OLD 9ec11ace4ca354f4… -> NEW 0dadbdfa26c8adc8… — the empty section-69
+    // (ResearchPopulations) count prefix (no ADR-054 switch acts on this world). CONTROL: DiscoveryLayoutAttributionTests.FoundedGoldenSeed42Turn300_… (SchemaProjection.V37 is OLD).
+    // ADR-055 (schema v39) RE-PIN, LAYOUT ALONE (MEASURED on the combined tree): OLD 0dadbdfa26c8adc8… -> NEW bb9cc22dba2ceb5c… — the four empty
+    // section 70–73 count prefixes (the older twin strips the military layer, the R4 rule);
+    // MilitaryAttributionTests.ThePreM6AndPreTranche2Worlds_… proves SchemaProjection.V38 is OLD.
+    internal const string PreM6FoundedGolden = "bb9cc22dba2ceb5cf903bbef073f57cf205fe69ae56c6283ac67b5ad91213382";
     // ADR-051 (schema v37) RE-PIN, LAYOUT ALONE: OLD 994e3d1022d608b2… -> NEW b4f6616cd8ce23db… — the empty section-68
     // (ResearchReserves) count prefix; ResearchReserveLayoutAttributionTests proves SchemaProjection.V36 of the live world is OLD.
-    internal const string PreM6AiTurn300 = "b4f6616cd8ce23dbde6ca84668b94eab8793f665f2d5981823fa76fd2455a582";
+    // ADR-054 (schema v38) RE-PIN, LAYOUT ALONE: OLD b4f6616cd8ce23db… -> NEW 5258fe169be0f096… — the empty section-69
+    // (ResearchPopulations) count prefix (no ADR-054 switch acts on this world). CONTROL: AiFoundingAttributionTests (the PreM6 arm) (SchemaProjection.V37 is OLD).
+    // ADR-055 (schema v39) RE-PIN, LAYOUT ALONE (MEASURED on the combined tree): OLD 5258fe169be0f096… -> NEW 55fbce7ebad47d1d… — the four empty
+    // section 70–73 count prefixes (the older twin strips the military layer, the R4 rule);
+    // MilitaryAttributionTests.ThePreM6AndPreTranche2Worlds_… proves SchemaProjection.V38 is OLD.
+    internal const string PreM6AiTurn300 = "55fbce7ebad47d1d5fead99bc621588a08315a38603ebd13de8b4bbe072195d5";
 
     private static SimConfig Off() => TestConfigs.PreM6(TestConfigs.Sim());
     private static SimConfig ExAlone() => TestConfigs.PreTrackCp(TestConfigs.PreTreeTranche(TestConfigs.Sim()));
@@ -52,7 +62,7 @@ public class DiscoveryLayoutAttributionTests
     {
         WorldState twin = SnapshotTests.RunFoundedGolden(Off());
         AssertExMoves(twin, SnapshotTests.RunFoundedGolden(ExAlone()), CivicsPointsAttributionTests.V34FoundedGolden, PreM6FoundedGolden);
-        ResearchReserveLayoutAttributionTests.LayoutAlone(twin, ResearchReserveLayoutAttributionTests.V36PreM6FoundedGolden, PreM6FoundedGolden);   // ADR-051 (v37)
+        ResearchReserveLayoutAttributionTests.LayoutAlone(twin, ResearchReserveLayoutAttributionTests.V36PreM6FoundedGolden, Adr054AttributionTests.V37PreM6FoundedGolden);   // ADR-054 (v38)   // ADR-051 (v37)
         // The older links, reached through the twin (they were asserted on the live world before v35).
         Assert.Equal(ReservationsLayoutAttributionTests.Batch3FoundedGolden, SchemaProjection.V33(twin));
         Assert.Equal(SnapshotTests.FoundedGoldenHashAtV32, SchemaProjection.V32(twin));
@@ -65,6 +75,7 @@ public class DiscoveryLayoutAttributionTests
         Assert.Equal(CivicsPointsAttributionTests.V34ToyGolden, SchemaProjection.V34(live));
         Assert.Equal(new byte[4 * SchemaProjection.V35TableCount], SchemaProjection.Serialize(live)[^(4 * SchemaProjection.V35TableCount)..]);
         Assert.Equal(SnapshotTests.ToyGoldenHash, WorldHash.ComputeHex(live));
+        Assert.Equal(Sim.Tests.Military.MilitaryAttributionTests.V38ToyGolden, SchemaProjection.V38(live));   // ADR-055: the toy moves for the v39 layout alone
     }
 
     [Fact]

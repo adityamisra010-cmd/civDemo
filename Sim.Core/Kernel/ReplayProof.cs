@@ -115,7 +115,7 @@ public sealed class ReplayProof
     {
         OrderKind.LaborAllocation or OrderKind.EnqueueConstruction or OrderKind.FoundSettlement
             or OrderKind.CancelConstruction or OrderKind.CancelConstructionEntry
-            or OrderKind.Explore or OrderKind.Prospect => order.TargetId,
+            or OrderKind.Explore or OrderKind.Prospect or OrderKind.RecruitFormation => order.TargetId,
         OrderKind.SectorAllocation => order.TargetId >> 3,
         _ => -1,
     };

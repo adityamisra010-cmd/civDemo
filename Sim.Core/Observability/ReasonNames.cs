@@ -31,6 +31,9 @@ public static class ReasonNames
         16 => "constructionMaterials",
         17 => "prospecting",
         18 => "expedition",
+        19 => "recruitment",
+        20 => "formationUpkeep",
+        21 => "reequipment",
         _ => "reason-" + reason.ToString(System.Globalization.CultureInfo.InvariantCulture),
     };
 }

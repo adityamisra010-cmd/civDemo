@@ -268,7 +268,10 @@ public class CylinderOverlayTests(CanonicalOverlayFixture fx, SeamCrossingOverla
         var on = new bool[b.Layers.Count];
         Array.Fill(on, true);
         WorldProjection full = WorldProjection.Build(s.World, s.Config, s.Names.Name, Me, knowledge: s.Knowledge);
-        SettlementLensView sv = full.Settlements.First(x => x.IsPlayer && b.MarkerText(on, st, x.Id).Length > 0);
+        // ADR-056: the economy packets' ores roll on the elevation channel too, so a marker can carry more rolls; the rig takes
+        // the player settlement with the SHORTEST marker (then the lowest id) so its plate leaves room for the east copy.
+        SettlementLensView sv = full.Settlements.Where(x => x.IsPlayer && b.MarkerText(on, st, x.Id).Length > 0)
+            .OrderBy(x => b.MarkerText(on, st, x.Id).Length).ThenBy(x => x.Id).First();
         string text = b.MarkerText(on, st, sv.Id);
         var map = new RectD(0, 52, 1280, 688);
         var window = new RectD(0, 0, 1280, 800);

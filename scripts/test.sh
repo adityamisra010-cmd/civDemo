@@ -3,7 +3,9 @@
 # failure whose name was lost): every run logs a trx; on failure the failed
 # test names and any FsCheck replay seed are printed and preserved. FsCheck
 # seeds are deliberately NOT pinned — random exploration is the value; capture
-# is the fix. Use this for all local runs instead of bare `dotnet test`.
+# is the fix. This is the FULL-solution Debug runner (Tier 3 locally). For everyday
+# change-aware runs use scripts/validate.sh (docs/validation-policy.md), which also
+# keeps a trx per run and prints the failed test names.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 

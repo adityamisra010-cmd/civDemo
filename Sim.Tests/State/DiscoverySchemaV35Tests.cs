@@ -42,7 +42,7 @@ public class DiscoverySchemaV35Tests
     [Fact]
     public void SchemaV35_PopulatedDiscoveryTables_ExpectedLengthBitExactRoundTripAndHashEquality()
     {
-        Assert.Equal(37, CanonicalSchema.Version);   // (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone)
+        Assert.Equal(39, CanonicalSchema.Version);   // (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone) (v39: ADR-055 the four military tables — the schema bump alone) (v38: ADR-054 ResearchPopulations — the schema bump alone)
         WorldState world = Populated();
         Assert.Null(DiscoveryQuery.InvariantViolation(world));
         byte[] bytes = SchemaProjection.Serialize(world);
@@ -52,7 +52,7 @@ public class DiscoverySchemaV35Tests
         // Sections 63–66 are the last four blocks before section 67 (v36, ADR-049: ResearchLevels, EMPTY here — its 4-byte
         // count prefix ends the stream; the layout alone): (count, rows) each, little-endian, in declaration order.
         // ADR-051 (v37): section 68 (ResearchReserves, EMPTY) follows 67 — two 4-byte prefixes end the stream now.
-        const int v36 = 8;
+        const int v36 = 12 + 16;   // ADR-054 (v38): and section 69 (ResearchPopulations, EMPTY) — three prefixes; ADR-055 (v39): + sections 70–73, empty
         Assert.Equal(0, BitConverter.ToInt32(bytes, bytes.Length - v36));
         int surveys = bytes.Length - v36 - (4 + 2 * 16);
         int sightings = surveys - (4 + 2 * 16);
@@ -127,12 +127,12 @@ public class DiscoverySchemaV35Tests
     [Fact]
     public void TheReadableSet_Is32To35_AndTheDiffLayoutAndMigrationNoteAgree()
     {
-        foreach (int v in new[] { 32, 33, 34, 35, 36, 37 }) Assert.True(CanonicalSchema.IsReadable(v));   // v36: ADR-049; v37: ADR-051
-        foreach (int v in new[] { 31, 38, 0 }) Assert.False(CanonicalSchema.IsReadable(v));
-        Assert.Equal(SnapshotDiff.Layout.Length - 2, SnapshotDiff.LayoutFor(35).Length);   // v36: section 67 follows; v37: 68
+        foreach (int v in new[] { 32, 33, 34, 35, 36, 37, 38, 39 }) Assert.True(CanonicalSchema.IsReadable(v));   // v36: ADR-049; v37: ADR-051; v38: ADR-054; v39: ADR-055
+        foreach (int v in new[] { 31, 40, 0 }) Assert.False(CanonicalSchema.IsReadable(v));
+        Assert.Equal(SnapshotDiff.Layout.Length - 7, SnapshotDiff.LayoutFor(35).Length);   // v36: section 67 follows; v37: 68; v38: 69; v39: 70–73
         Assert.Equal("SettlementSurveys", SnapshotDiff.LayoutFor(35)[^1].Name);
-        Assert.Equal(SnapshotDiff.Layout.Length - 7, SnapshotDiff.LayoutFor(34).Length);   // M6 merge: v35 = section 62 + 63–66; v36: 67; v37: 68
-        Assert.Equal("CivicsPoints", SnapshotDiff.Layout[^7].Name);   // v37 (ADR-051): section 68 follows too
+        Assert.Equal(SnapshotDiff.Layout.Length - 12, SnapshotDiff.LayoutFor(34).Length);   // M6 merge: v35 = section 62 + 63–66; v36: 67; v37: 68; v38: 69
+        Assert.Equal("CivicsPoints", SnapshotDiff.Layout[^12].Name);   // v37 (ADR-051): section 68 follows too; v38 (ADR-054): and 69
         Assert.Equal("ConstructionHolds", SnapshotDiff.LayoutFor(34)[^1].Name);
         Assert.Equal("ResourceAllocations", SnapshotDiff.LayoutFor(33)[^1].Name);
         Assert.Equal("TaxGrievance", SnapshotDiff.LayoutFor(32)[^1].Name);
@@ -140,13 +140,16 @@ public class DiscoverySchemaV35Tests
         Assert.Contains("KnownExtents", SaveFiles.MigrationNote("x", 34)!);
         Assert.Contains("ResearchLevels", SaveFiles.MigrationNote("x", 35)!);   // v36 (ADR-049): a v35 save now migrates
         Assert.Contains("ResearchReserves", SaveFiles.MigrationNote("x", 36)!);   // v37 (ADR-051): a v36 save now migrates
-        Assert.Null(SaveFiles.MigrationNote("x", 37));
+        Assert.Contains("ResearchPopulations", SaveFiles.MigrationNote("x", 37)!);   // v38 (ADR-054): a v37 save now migrates
+        Assert.Contains("FormationPersonnel", SaveFiles.MigrationNote("x", 37)!);    // v39 (ADR-055): and so does a v38 save
+        Assert.Contains("FormationPersonnel", SaveFiles.MigrationNote("x", 38)!);
+        Assert.Null(SaveFiles.MigrationNote("x", 39));
         // A populated v35 stream walks to its end.
         byte[] bytes = SchemaProjection.Serialize(Populated());
         SnapshotDiff.Result self = SnapshotDiff.CompareStreams(bytes, CanonicalSchema.Version, bytes, CanonicalSchema.Version);
         Assert.True(self.Identical);
         Assert.Equal(bytes.Length, self.BytesWalkedA);
-        Assert.Equal(2, self.Tables[^3].RowsA);   // v36: section 67 (empty) follows; v37: and section 68
+        Assert.Equal(2, self.Tables[^8].RowsA);   // v36: section 67 (empty) follows; v37: and section 68; v38: and 69   // ADR-055 (v39): + the four military tables (sections 70–73)
     }
 
     /// <summary>THE v34 → v35 MIGRATION on a real fogged world: a v34 save of it (the same header, the stream to section 61,
@@ -178,6 +181,10 @@ public class DiscoverySchemaV35Tests
         Assert.Equal(WorldHash.ComputeHexAsSchema(w2, 34), WorldHash.ComputeHexAsSchema(migrated, 34));   // the v34 build's hash
         WorldState stripped = w2.Clone();
         SchemaProjection.StripV35(stripped);
+        // ADR-054 (v38): the stored turn-start populations (section 69, written from step 1 with the shipped
+        // populationAverageTurns 2) are not in a v34 stream either — the migration leaves them empty too.
+        Assert.True(SchemaProjection.StripV38(stripped) > 0);
+        SchemaProjection.StripV39(stripped);   // ADR-055: a v34 save has no personnel row (the warband loads as the token)
         Assert.Equal(WorldHash.ComputeHex(stripped), WorldHash.ComputeHex(migrated));
 
         // Before any step the seam still knows the seed (rule E2, applied at query time), and the explored ring is gone.

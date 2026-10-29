@@ -298,7 +298,9 @@ public class PlayabilityGateTests : IDisposable
         Assert.StartsWith("At the next Age (", card.NextAge, StringComparison.Ordinal);
         Assert.EndsWith("becomes Axe warriors", card.NextAge, StringComparison.Ordinal);
         Assert.Contains("Battle Layer (milestone M7)", card.Limitation, StringComparison.Ordinal);
-        Assert.Contains("cannot be moved or given orders yet", card.Limitation, StringComparison.Ordinal);
+        // ADR-055: it can be re-equipped or disbanded at its station (the Policy surface), but not moved.
+        Assert.Contains("cannot be moved yet", card.Limitation, StringComparison.Ordinal);
+        Assert.Equal("Personnel: 20 adults", card.Personnel);
 
         // The card's ONLY control is its close button: no control pretends to move the formation.
         var onCard = new List<string>();

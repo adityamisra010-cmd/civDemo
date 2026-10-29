@@ -58,8 +58,8 @@ public class SettlementIdentityTests
             Assert.Equal(o.Turn.Population.NaturalDeaths + o.Turn.Population.Starvation, deaths);
             Assert.Equal(inflow, outflow);
             Assert.Equal(o.Turn.Flows.MigrantsMoved, inflow);
-            Assert.Equal(o.Turn.Population.Closing, closing);
-            Assert.Equal(o.Turn.Population.Opening, opening);
+            Assert.Equal(o.Turn.Population.Closing, closing + o.Turn.Population.InFormations);   // ADR-055: people in formations are in no settlement
+            Assert.Equal(o.Turn.Population.Opening, opening + o.Turn.Population.InFormations);   // ADR-055: no recruitment or disbandment on these order-less worlds, so the serving count is the same at both ends
         }
         Assert.True(nonTrivial > 1000, $"{world}: only {nonTrivial} settlement-turns carried births, deaths AND migration");
     }

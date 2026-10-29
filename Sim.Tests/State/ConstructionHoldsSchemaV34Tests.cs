@@ -45,7 +45,7 @@ public class ConstructionHoldsSchemaV34Tests
     [Fact]
     public void SchemaV34_PopulatedHolds_ExpectedLengthBitExactRoundTripAndHashEquality()
     {
-        Assert.Equal(37, CanonicalSchema.Version);   // v35 (ADR-043 CivicsPoints, 2026-10-22): the schema bump alone (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone)
+        Assert.Equal(39, CanonicalSchema.Version);   // v35 (ADR-043 CivicsPoints, 2026-10-22): the schema bump alone (v36: ADR-049 ResearchLevels — the schema bump alone) (v37: ADR-051 ResearchReserves — the schema bump alone) (v39: ADR-055 the four military tables — the schema bump alone) (v38: ADR-054 ResearchPopulations — the schema bump alone)
         WorldState world = Populated();
         Assert.Null(Reservations.InvariantViolation(world.ConstructionHolds));   // a table a rule could write
         byte[] bytes = SchemaProjection.Serialize(world);
@@ -57,7 +57,7 @@ public class ConstructionHoldsSchemaV34Tests
         // here) follow it — every offset below moves by their five 4-byte zero count prefixes (`tail`). The layout alone.
         // ADR-049 (v36) CAUSE BLOCK: section 67 (ResearchLevels, EMPTY) follows too — six prefixes. The layout alone.
         // ADR-051 (v37) CAUSE BLOCK: section 68 (ResearchReserves, EMPTY) follows too — seven prefixes. The layout alone.
-        const int tail = 7 * 4;
+        const int tail = 12 * 4;   // ADR-054 (v38): + section 69 (ResearchPopulations, EMPTY) — eight prefixes   // ADR-055 (v39): + sections 70–73
         for (int i = bytes.Length - tail; i < bytes.Length; i++) Assert.Equal(0, bytes[i]);
         int start = bytes.Length - tail - 4 - 4 * 16;
         Assert.Equal(4, BitConverter.ToInt32(bytes, start));
@@ -180,10 +180,10 @@ public class ConstructionHoldsSchemaV34Tests
     {
         // M6 EX (v35, 2026-10-22): the set is {32, 33, 34, 35} now (DiscoverySchemaV35Tests pins 35).
         foreach (int v in new[] { 32, 33, 34, 35 }) Assert.True(CanonicalSchema.IsReadable(v));
-        foreach (int v in new[] { 31, 38, 0, 27, -1, int.MaxValue }) Assert.False(CanonicalSchema.IsReadable(v));
+        foreach (int v in new[] { 31, 40, 0, 27, -1, int.MaxValue }) Assert.False(CanonicalSchema.IsReadable(v));   // v39: ADR-055
 
         // CanonicalSchema.Read: the four read; the rest are refused.
-        foreach (int v in new[] { 31, 38, 0, 27 })
+        foreach (int v in new[] { 31, 40, 0, 27 })
             Assert.Throws<ArgumentOutOfRangeException>(() => CanonicalSchema.Read(new BinaryReader(new MemoryStream(new byte[64])), v, out _));
 
         // Snapshot.Load: v32 (the batch-2 fixture), v33 (the batch-3 fixture) and v34 (a save of this build) load.
@@ -198,20 +198,20 @@ public class ConstructionHoldsSchemaV34Tests
 
         // SnapshotDiff.LayoutFor: v34 the layout less the five v35 blocks (62–66), v33 less six, v32 less eight; the rest refused.
         // ADR-049 (v36) and ADR-051 (v37) each appended one more block: one more for every older version.
-        Assert.Equal(SnapshotDiff.Layout.Length - 7, SnapshotDiff.LayoutFor(34).Length);
+        Assert.Equal(SnapshotDiff.Layout.Length - 12, SnapshotDiff.LayoutFor(34).Length);   // ADR-054 (v38): one more block   // ADR-055 (v39): + sections 70–73
         Assert.Equal("ConstructionHolds", SnapshotDiff.LayoutFor(34)[^1].Name);
-        Assert.Equal(SnapshotDiff.Layout.Length - 8, SnapshotDiff.LayoutFor(33).Length);
+        Assert.Equal(SnapshotDiff.Layout.Length - 13, SnapshotDiff.LayoutFor(33).Length);
         Assert.Equal("ResourceAllocations", SnapshotDiff.LayoutFor(33)[^1].Name);
-        Assert.Equal(SnapshotDiff.Layout.Length - 10, SnapshotDiff.LayoutFor(32).Length);
+        Assert.Equal(SnapshotDiff.Layout.Length - 15, SnapshotDiff.LayoutFor(32).Length);
         Assert.Equal("TaxGrievance", SnapshotDiff.LayoutFor(32)[^1].Name);
-        foreach (int v in new[] { 31, 38, 0, 27 })
+        foreach (int v in new[] { 31, 40, 0, 27 })
             Assert.Throws<ArgumentOutOfRangeException>(() => SnapshotDiff.LayoutFor(v));
 
         // SaveFiles.MigrationNote: a note for each older member, none for this build's or any refused version.
         Assert.NotNull(SaveFiles.MigrationNote("x", 32));
         Assert.NotNull(SaveFiles.MigrationNote("x", 33));
         Assert.NotNull(SaveFiles.MigrationNote("x", 34));
-        foreach (int v in new[] { 37, 31, 38, 0, 27 }) Assert.Null(SaveFiles.MigrationNote("x", v));
+        foreach (int v in new[] { 40, 31, 39, 0, 27 }) Assert.Null(SaveFiles.MigrationNote("x", v));   // 39 is this build's (ADR-055)
     }
 
     /// <summary>The ConstructionHolds block's layout widths sum to the row width: a populated v34 stream walks to EXACTLY
@@ -225,8 +225,8 @@ public class ConstructionHoldsSchemaV34Tests
         SnapshotDiff.Result self = SnapshotDiff.CompareStreams(bytes, CanonicalSchema.Version, bytes, CanonicalSchema.Version);
         Assert.True(self.Identical);
         Assert.Equal(bytes.Length, self.BytesWalkedA);
-        Assert.Equal(4, self.Tables[^8].RowsA);   // the five v35 blocks, v36 section 67 and v37 section 68 follow section 61
-        Assert.Equal("ConstructionHolds", self.Tables[^8].Table);
+        Assert.Equal(4, self.Tables[^13].RowsA);   // the five v35 blocks, v36 section 67, v37 section 68 and v38 section 69 follow section 61   // ADR-055 (v39): + the four military tables (sections 70–73)
+        Assert.Equal("ConstructionHolds", self.Tables[^13].Table);
 
         byte[] v33File = ConstructionHoldsV33FixtureTests.FixtureFile();
         byte[] v33Stream = v33File[(8 + 4 + 8 + 8)..^4];
@@ -237,7 +237,7 @@ public class ConstructionHoldsSchemaV34Tests
         Assert.Equal(v33Stream.Length, cross.BytesWalkedA);
         Assert.Equal(v34Stream.Length, cross.BytesWalkedB);
         Assert.Equal((0, 0), (cross.Tables[^1].RowsA, cross.Tables[^1].RowsB));
-        Assert.Equal(v33Stream.Length + 4 + 5 * 4 + 4 + 4, v34Stream.Length);   // ADR-049 (v36): + section 67; ADR-051 (v37): + 68
+        Assert.Equal(v33Stream.Length + 4 + 5 * 4 + 4 + 4 + 4 + 16, v34Stream.Length);   // ADR-049 (v36): + section 67; ADR-051 (v37): + 68; ADR-054 (v38): + 69; ADR-055 (v39): + 70–73
     }
 
     // ================================================================== the switch

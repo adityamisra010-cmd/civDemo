@@ -1,6 +1,6 @@
 # Research → gameplay unlock audit
 
-**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `0e8fb9897eec23f4…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
+**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `f18295e9a85e5c2e…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
 
 ## 1. How a node's consequence is realized (per consumer type)
 
@@ -77,6 +77,13 @@ Node→consequence links by consumer type: activity 10, age 41, building 15, def
 | fixed | `sim.json trade` | R2a: trade between settlements was an M4 system with no research node | FIXED (R2a): node `trade` → entity `activity.trade` → sim.json trade.entity; TradeArbitrageSystem enforces TradeQuery.CanTrade; LIVE |
 | baseline-claim | `recipe.toolmaking` | declared BASELINE, but node capability strings mention `tools`: `copper_native`, `copper_smelting`, `arsenical_bronze`, `casting_closed`, `iron_bloomery`, `cast_iron`, `crucible_cast_steel`, `systematic_theology` | KEPT BASELINE — ownership matrix classifies it A; D-047 left recipe gating to the Director ("no blanket gate"); the directive named pottery and bronze casting only. Director decision. |
 | baseline-claim | `recipe.weaving` | declared BASELINE, but node capability strings mention `cloth`: `hide_working`, `sewing`, `loom_warp_weighted`, `dyeing`, `silk`, `fulling_mill`, `horizontal_loom`, `power_loom` | KEPT BASELINE — ownership matrix classifies it A; D-047 left recipe gating to the Director ("no blanket gate"); the directive named pottery and bronze casting only. Director decision. |
+| unlinked | `recipe coke-smelting` | goods.json recipe without a knowledge entity | OPEN |
+| unlinked | `recipe explosives-making` | goods.json recipe without a knowledge entity | OPEN |
+| unlinked | `recipe gunpowder-milling` | goods.json recipe without a knowledge entity | OPEN |
+| unlinked | `recipe iron-smelting` | goods.json recipe without a knowledge entity | OPEN |
+| unlinked | `recipe iron-toolmaking` | goods.json recipe without a knowledge entity | OPEN |
+| unlinked | `recipe steel-cementation` | goods.json recipe without a knowledge entity | OPEN |
+| unlinked | `recipe steel-converting` | goods.json recipe without a knowledge entity | OPEN |
 | deferred | `activity.caravans` | activity entity requires `donkey OR camel`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `activity.coastal_shipping` | activity entity requires `sail_square`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `activity.ocean_shipping` | activity entity requires `carrack OR caravel OR polynesian_canoe OR ocean_junk`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
@@ -497,7 +504,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `antisepsis` | tech | A8 | C | germ_theory AND anaesthesia | abdominal surgery; survival of wounds | — | — | n/a | — |
 | `photography` | tech | A8 | C | chemistry_quantitative AND glass_lead | visual record; D-039 reconnaissance by camera (later) | — | — | n/a | — |
 | `evolution` | tech | A8 | C | selective_breeding AND taxonomy AND stratigraphy | biology as a science; breeding theory | — | — | n/a | — |
-| `aircraft` | tech | A9 | F (FJ) | internal_combustion AND glider | aerial reconnaissance (D-039 B: reconnaissance no longer walks); bombing; air transport | `building.airfield` → no realizing system<br>`unit.aircraft_carrier` → no realizing system<br>`unit.military_aircraft` → no realizing system | yes | deferred | — |
+| `aircraft` | tech | A8 | F (FJ) | internal_combustion AND glider | aerial reconnaissance (D-039 B: reconnaissance no longer walks); bombing; air transport | `building.airfield` → no realizing system<br>`unit.aircraft_carrier` → no realizing system<br>`unit.military_aircraft` → no realizing system | yes | deferred | — |
 | `aircraft_metal` | tech | A9 | C | aircraft AND aluminium | airliners; strategic bombers | — | — | n/a | — |
 | `jet_engine` | tech | A9 | C | aircraft_metal AND steam_turbine | jet aircraft; global air travel | — | — | n/a | — |
 | `steam_turbine` | tech | A8 | F | steam_high_pressure AND open_hearth AND thermodynamics | efficient generation; Dreadnought speed | `unit.aircraft_carrier` → no realizing system | yes | deferred | — |

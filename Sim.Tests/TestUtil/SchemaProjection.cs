@@ -45,6 +45,25 @@ namespace Sim.Tests.TestUtil;
 /// reported. A reserve row is BEHAVIOUR (tuning.researchReserve on), never layout, so <see cref="V36"/> asserts the strip
 /// removed nothing — with the switch off (shipped) every v36 pin is reached through it unchanged. Every older projection now
 /// also drops section 68 and asserts it empty.
+///
+/// ADR-054 (schema v38) — THE v37 PROJECTION, the same construction one schema later. v38 APPENDED one table after section 68
+/// (section 69 ResearchPopulations) and changed no existing row, so a world with no stored turn-start population serializes
+/// to the v37 stream plus one empty count prefix; <see cref="HashAtSchemaV37(WorldState, out int)"/> drops it and returns the
+/// hash the v37 build reported. A population row is BEHAVIOUR (tuning.populationAverageTurns 2), never layout, so
+/// <see cref="V37"/> asserts the strip removed nothing — with the ADR-054 switches off (TestConfigs.PrePerTurnCivics) every
+/// v37 pin is reached through it unchanged. Every older projection now also drops section 69 and asserts it empty.
+/// ADR-055 (schema v39) — THE v38 PROJECTION, the same construction one schema later. v39 APPENDED four tables after section
+/// 69 (sections 70–73: FormationPersonnel, Reequips, ReequipEscrow, ReequipLog) and changed no existing row, so a world with
+/// no military row serializes to the v38 stream plus four empty count prefixes; <see cref="HashAtSchemaV38(WorldState, out int)"/>
+/// drops them. A military row is BEHAVIOUR (sim.json military on — the founding warband's people), never layout, so
+/// <see cref="V38"/> asserts the strip removed nothing — every v38 pin is reached through it under TestConfigs.PreMilitary.
+/// Every older projection now also drops sections 70–73 and asserts them empty.
+///
+/// ADR-056 (the M7 economy packets) — every projection first removes the shipped economy packets' INERT rows
+/// (<see cref="EconomyProjection.StripShipped"/>: goods 15+ that were never made, worked, priced away from rest or traded —
+/// asserted, so a packet that acted is never hidden). Every pin these projections reach predates the packets; a packet
+/// adds rows and changes no existing row, so a world in which no packet gate was ever met projects to its pre-packet
+/// stream byte for byte.
 /// </summary>
 public static class SchemaProjection
 {
@@ -63,6 +82,12 @@ public static class SchemaProjection
 
     /// <summary>The table v37 appended: ResearchReserves (section 68, ADR-051).</summary>
     public const int V37TableCount = 1;
+
+    /// <summary>The table v38 appended: ResearchPopulations (section 69, ADR-054).</summary>
+    public const int V38TableCount = 1;
+
+    /// <summary>The tables v39 appended (ADR-055): FormationPersonnel, Reequips, ReequipEscrow, ReequipLog (sections 70–73).</summary>
+    public const int V39TableCount = 4;
 
     /// <summary>Bytes one empty table contributes to the stream: its count prefix.</summary>
     private const int EmptyTableBytes = 4;
@@ -113,13 +138,80 @@ public static class SchemaProjection
         return removed;
     }
 
-    /// <summary>The world's hash at schema v36: a Clone with the v37 table stripped, re-serialized, its empty count prefix
-    /// dropped (asserted zero), hashed. <paramref name="v37RowsRemoved"/> counts what the strip removed.</summary>
-    public static string HashAtSchemaV36(WorldState world, out int v37RowsRemoved)
+    /// <summary>Clears the v38 table IN PLACE (its entire footprint in the stream). Returns the rows removed.</summary>
+    public static int StripV38(WorldState stripped)
+    {
+        int removed = stripped.ResearchPopulations.Count;
+        stripped.ResearchPopulations.Clear();
+        return removed;
+    }
+
+    /// <summary>Clears the four v39 tables IN PLACE (their entire footprint in the stream). Returns the rows removed.</summary>
+    public static int StripV39(WorldState stripped)
+    {
+        int removed = stripped.FormationPersonnel.Count + stripped.Reequips.Count + stripped.ReequipEscrow.Count + stripped.ReequipLog.Count;
+        stripped.FormationPersonnel.Clear();
+        stripped.Reequips.Clear();
+        stripped.ReequipEscrow.Clear();
+        stripped.ReequipLog.Clear();
+        return removed;
+    }
+
+    /// <summary>The world's hash at schema v38: a Clone with the four v39 tables stripped, re-serialized, their empty count
+    /// prefixes dropped (asserted zero), hashed. <paramref name="v39RowsRemoved"/> counts what the strip removed.</summary>
+    public static string HashAtSchemaV38(WorldState world, out int v39RowsRemoved)
+    {
+        WorldState stripped = EconomyProjection.StripShipped(world);   // ADR-056: inert packet rows are content, not schema
+        v39RowsRemoved = StripV39(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V39TableCount);
+    }
+
+    /// <summary>ADR-056 §13 (the M7 merge): the v38 hash of a world with NO military row (asserted) that KEEPS the economy
+    /// packets' rows — the comparison form of a research+economy pin (the v38 pins the economy track measured before the
+    /// military layer existed: TestConfigs.PreMilitary of the shipped rules reaches them through it). <see cref="V38"/>
+    /// strips the packet rows first, the comparison form of a pin older than both.</summary>
+    public static string V38KeepingPackets(WorldState world)
     {
         WorldState stripped = world.Clone();
-        v37RowsRemoved = StripV37(stripped);
-        return HashDroppingTrailer(Serialize(stripped), V37TableCount);
+        int removed = StripV39(stripped);
+        Xunit.Assert.Equal(0, removed);
+        return HashDroppingTrailer(Serialize(stripped), V39TableCount);
+    }
+
+    /// <summary>A v38 pin's comparison form: the v38 hash of a world with NO military row (asserted — a personnel, re-equipment
+    /// or log row is sim.json military's behaviour, never layout).</summary>
+    public static string V38(WorldState world)
+    {
+        string hash = HashAtSchemaV38(world, out int removed);
+        Xunit.Assert.Equal(0, removed);
+        return hash;
+    }
+
+    /// <summary>The world's hash at schema v37: a Clone with the v39 and v38 tables stripped, re-serialized, their empty count
+    /// prefixes dropped (asserted zero), hashed. <paramref name="v38RowsRemoved"/> counts what the strip removed.</summary>
+    public static string HashAtSchemaV37(WorldState world, out int v38RowsRemoved)
+    {
+        WorldState stripped = EconomyProjection.StripShipped(world);   // ADR-056: inert packet rows are content, not schema
+        v38RowsRemoved = StripV39(stripped) + StripV38(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V38TableCount + V39TableCount);
+    }
+
+    /// <summary>A v37 pin's comparison form: the v37 hash of a world with NO stored turn-start population and NO military row
+    /// (asserted — either is behaviour, never layout).</summary>
+    public static string V37(WorldState world)
+    {
+        string hash = HashAtSchemaV37(world, out int removed);
+        Xunit.Assert.Equal(0, removed);
+        return hash;
+    }
+
+    /// <summary>The world's hash at schema v36: a Clone with the v38 and v37 tables stripped, re-serialized, their empty count
+    /// prefixes dropped (asserted zero), hashed. <paramref name="v37RowsRemoved"/> counts what the strip removed.</summary>
+    public static string HashAtSchemaV36(WorldState world, out int v37RowsRemoved)
+    {
+        WorldState stripped = EconomyProjection.StripShipped(world);   // ADR-056: inert packet rows are content, not schema
+        v37RowsRemoved = StripV39(stripped) + StripV38(stripped) + StripV37(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V37TableCount + V38TableCount + V39TableCount);
     }
 
     /// <summary>A v36 pin's comparison form: the v36 hash of a world with NO research reserve (asserted — a reserve row is
@@ -135,9 +227,9 @@ public static class SchemaProjection
     /// prefixes dropped (asserted zero), hashed. <paramref name="v36RowsRemoved"/> counts what the strip removed.</summary>
     public static string HashAtSchemaV35(WorldState world, out int v36RowsRemoved)
     {
-        WorldState stripped = world.Clone();
-        v36RowsRemoved = StripV37(stripped) + StripV36(stripped);
-        return HashDroppingTrailer(Serialize(stripped), V36TableCount + V37TableCount);
+        WorldState stripped = EconomyProjection.StripShipped(world);   // ADR-056: inert packet rows are content, not schema
+        v36RowsRemoved = StripV39(stripped) + StripV38(stripped) + StripV37(stripped) + StripV36(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V36TableCount + V37TableCount + V38TableCount + V39TableCount);
     }
 
     /// <summary>A v35 pin's comparison form: the v35 hash of a world with NO repeatable level (asserted — a level row is
@@ -153,9 +245,9 @@ public static class SchemaProjection
     /// count prefixes dropped (asserted zero), hashed. <paramref name="v35RowsRemoved"/> counts what the strip removed.</summary>
     public static string HashAtSchemaV34(WorldState world, out int v35RowsRemoved)
     {
-        WorldState stripped = world.Clone();
-        v35RowsRemoved = StripV37(stripped) + StripV36(stripped) + StripV35(stripped);
-        return HashDroppingTrailer(Serialize(stripped), V35TableCount + V36TableCount + V37TableCount);
+        WorldState stripped = EconomyProjection.StripShipped(world);   // ADR-056: inert packet rows are content, not schema
+        v35RowsRemoved = StripV39(stripped) + StripV38(stripped) + StripV37(stripped) + StripV36(stripped) + StripV35(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V35TableCount + V36TableCount + V37TableCount + V38TableCount + V39TableCount);
     }
 
     /// <summary>A v34 pin's comparison form: the v34 hash of a world with NO Civics Points account (asserted — an account
@@ -171,9 +263,9 @@ public static class SchemaProjection
     /// prefix dropped (asserted zero), hashed. <paramref name="v34RowsRemoved"/> counts what the strip removed.</summary>
     public static string HashAtSchemaV33(WorldState world, out int v34RowsRemoved)
     {
-        WorldState stripped = world.Clone();
-        v34RowsRemoved = StripV37(stripped) + StripV36(stripped) + StripV35(stripped) + StripV34(stripped);
-        return HashDroppingTrailer(Serialize(stripped), V34TableCount + V35TableCount + V36TableCount + V37TableCount);
+        WorldState stripped = EconomyProjection.StripShipped(world);   // ADR-056: inert packet rows are content, not schema
+        v34RowsRemoved = StripV39(stripped) + StripV38(stripped) + StripV37(stripped) + StripV36(stripped) + StripV35(stripped) + StripV34(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V34TableCount + V35TableCount + V36TableCount + V37TableCount + V38TableCount + V39TableCount);
     }
 
     /// <summary>A batch-3 (v33) pin's comparison form: the v33 hash of a world with NO hold row (asserted — a published
@@ -190,9 +282,9 @@ public static class SchemaProjection
     /// removed from all three tables.</summary>
     public static string HashAtSchemaV32(WorldState world, out int v33RowsRemoved)
     {
-        WorldState stripped = world.Clone();
-        v33RowsRemoved = StripV37(stripped) + StripV36(stripped) + StripV35(stripped) + StripV34(stripped) + StripV33(stripped);
-        return HashDroppingTrailer(Serialize(stripped), V33TableCount + V34TableCount + V35TableCount + V36TableCount + V37TableCount);
+        WorldState stripped = EconomyProjection.StripShipped(world);   // ADR-056: inert packet rows are content, not schema
+        v33RowsRemoved = StripV39(stripped) + StripV38(stripped) + StripV37(stripped) + StripV36(stripped) + StripV35(stripped) + StripV34(stripped) + StripV33(stripped);
+        return HashDroppingTrailer(Serialize(stripped), V33TableCount + V34TableCount + V35TableCount + V36TableCount + V37TableCount + V38TableCount + V39TableCount);
     }
 
     /// <summary>A pre-v33 pin's comparison form: the v32 hash of a world with NO v33 or v34 row (asserted — a world with

@@ -296,11 +296,38 @@ public class DiscoveryActionsUiTests
 /// do not assume all-known).</summary>
 internal static class TestFog
 {
-    public static SimConfig Off(SimConfig cfg) =>
-        cfg with { Fog = cfg.Fog! with { Enabled = false }, Discovery = cfg.Discovery! with { Enabled = false } };
+    // ADR-056: a pre-discovery config predates the economy packets too (the R4 rule: every older twin switches newer layers off).
+    public static SimConfig Off(SimConfig cfg) => Sim.Core.State.EconomyKnowledge.WithoutEconomy(
+        cfg with { Fog = cfg.Fog! with { Enabled = false }, Discovery = cfg.Discovery! with { Enabled = false } });
 
-    private static readonly Lazy<SimConfig> PreDiscoveryConfig = new(() => Off(UiFounding.ProductionConfig()));
+    // ADR-055 (the R4 rule, as TestConfigs.PreDiscovery): the newer military layer is off too — a session recorded before
+    // v35 is a session recorded before v39, replayed without both (DiscoveryQuery / RecruitmentQuery.RecordedWithout…).
+    private static readonly Lazy<SimConfig> PreDiscoveryConfig = new(() => RecruitmentQuery.WithoutMilitary(Off(UiFounding.ProductionConfig())));
 
-    /// <summary>The production config with the discovery layer off.</summary>
+    /// <summary>The production config with the discovery layer off (and, the R4 rule, the newer military layer).</summary>
     public static SimConfig PreDiscovery => PreDiscoveryConfig.Value;
+
+    /// <summary>ADR-054 (2026-10-27) OFF — Sim.Tests' TestConfigs.PrePerTurnCivics restated (this project does not reference
+    /// Sim.Tests): the shipped research.json with the ADR-043 §3 per-sim-year civicsPoints block restored and
+    /// tuning.populationAverageTurns removed, on <paramref name="cfg"/>. The R4 twin for sessions recorded before ADR-054.</summary>
+    public static SimConfig PreAdr054(SimConfig cfg)
+    {
+        System.Text.Json.Nodes.JsonObject doc;
+        using (var s = Sim.Data.DataFiles.OpenResearch()) doc = System.Text.Json.Nodes.JsonNode.Parse(s)!.AsObject();
+        var tuning = doc["tuning"]!.AsObject();
+        tuning["civicsPoints"] = new System.Text.Json.Nodes.JsonObject
+        {
+            ["enabled"] = true, ["coefficientPerYear"] = 0.008, ["exponent"] = 0.699,
+            ["unit"] = "Civics Points per sim-year (ADR-043 section 3)", ["status"] = "pre-ADR-054",
+        };
+        tuning.Remove("populationAverageTurns");
+        tuning.Remove("_populationAverageTurns");
+        // and the civics pacingScale the per-sim-year CP was calibrated with (0bf7626)
+        var civics = new System.Text.Json.Nodes.JsonArray();
+        foreach (double s in new[] { 0.645983, 0.998856, 0.907987, 1.306316, 1.396621, 1.791944, 0.757433, 0.070609, 0.008686 }) civics.Add(s);
+        tuning["pacingScale"]!["civics"] = civics;
+        // ADR-055/056: an older twin strips the newer military layer and switches the economy packets off too (R4).
+        return RecruitmentQuery.WithoutMilitary(Sim.Core.State.EconomyKnowledge.WithoutEconomy(
+            cfg with { Research = Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), cfg.Goods) }));
+    }
 }

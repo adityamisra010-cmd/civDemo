@@ -1,5 +1,5 @@
 {
-  "schema": 1,
+  "schema": 2,
   "status": "PROVISIONAL",
   "_doc": [
     "ADR-031 (D-047 Parts 2-3, ruling 18; D-043 A8, B5). Civilization-wide generic UNIT FAMILIES. A family is a military ROLE that persists across Ages; each Age changes how the role is REALIZED (the identity). Civ VI upgrade lines and Age of Empires II unit lines are referenced for the PATTERN only (role persists, realization changes); no list or statistic is copied.",
@@ -8,27 +8,45 @@
     "MODERNIZATION (ruling 18 - automatic and free at Age transition): a unit of identity I in family F converts, when its owner enters Age A, to F's realization at A when that is a later identity than I. If F has no later identity by A the unit is PRESERVED unchanged until one exists. If F's line has ENDED (lineEndsAfterAge < A) the noSuccessor rule applies: preserve, or convert to the named generic family's realization at A. Location, ownership, experience and army membership are preserved.",
     "equipment is DECLARATIVE: what a realization historically required. It is consumed by nothing - free modernization creates and destroys no conserved stock (law 1; CR-017 §4). realizedBy names the research.json unit entity whose knowledge requirement the identity corresponds to, where one exists; it gates nothing here.",
     "GAP AUDIT (ADR-031 addendum). An Age at which a family's realization does not change is intentional, never an omission: the earlier identity remains the historically appropriate realization. Families absent before their first identity do not exist yet (no unit can hold them). light_infantry: scouts A1-A2, skirmishers A3-A4, light auxiliaries A5-A6, rangers A7-A8 (each a long-lived skirmish tradition). spear_anti_cavalry: begins A2 (composite-hafted spears); spearmen A2-A3 (bronze heads do not change the formation), phalanx A4-A5 (the Macedonian phalanx is Classical); line ends after A7 -> heavy_infantry. heavy_infantry: complete A1-A9 (A2 axe warriors close the founding warband's Neolithic gap). ranged_infantry: archers A2-A3, composite archers A4-A5. light_cavalry: begins A3 (no ridden horse before the Bronze Age); light horse A4-A5. heavy_cavalry: begins A3; chariots A3-A4; cuirassiers A7-A8 (cuirassier regiments served until 1914; no Industrial heavy-cavalry identity is invented). ranged_cavalry: begins A4 (steppe horse archery); horse archers A4-A5; line ends after A7 -> light_cavalry. siege: begins A4, complete A4-A9. naval_combat: begins A4 (the ram galley), complete A4-A9. naval_transport: shore craft A1-A2 (dugouts and hide boats remain Neolithic water transport), plank boats A3-A5. air and strategic_missile: begin A9 (no pre-industrial predecessor).",
-    "composition: army_formation = internal composition of an Army MobileAgent (B5: one banner, internal formations); mobile_agent = itself a MobileAgent token (fleets, air wings, strategic forces). Recruitment, movement, supply and Action Capacity are NOT implemented (later milestones)."
+    "composition: army_formation = internal composition of an Army MobileAgent (B5: one banner, internal formations); mobile_agent = itself a MobileAgent token (fleets, air wings, strategic forces). Recruitment, movement, supply and Action Capacity are NOT implemented (later milestones).",
+    "M7 RECRUITMENT (ADR-055; unit charter 6.5-6.6, D-065). schema 2. Every identity declares a KNOWLEDGE GATE - realizedBy (a research.json entity), requires (an expression of research.json node ids, parsed by the research dialect; for identities with no realizedBy, and ANDed with it where both appear) or baseline (a research.json baseline capability: known from the start) - and RECRUITMENT DATA: personnel (adults transferred from the location's buckets by Ledger.Transfer), years (the recruitment time, read as the re-equipment duration: a rate x dtYears), inputs (goods by name and whole quantity, drawn from the empire stockpile and sunk by Ledger.Flow), optional building (a research.json building entity a completed structure at the location must realize), optional blockedBy (a named missing system or ruling; the identity is blocked while it is set). carrierCapable (air families: no / any / jet_deck) and jetDeck (carriers) form the one embark predicate (aviation-progression 9.1). A goods name must be in goods.json or in plannedGoods, which names the EC packet that will add it: an identity needing a planned good is BLOCKED and says which good and which packet. Quantities and personnel are PROVISIONAL bands, TUNE, never calibrated (charter 15.6).",
+    "TAXONOMY (charter 5.2-5.3, Q2 resolved 16.4; aviation-progression 3, 9.3): families 14 and 17-23 appended (D-065 R8-R10, Addendum 3: combat engineers, military supply and field medical are ABSTRACT military support capabilities, category B - not unit families; keys 13, 15 and 16 are withdrawn, unallocated and never reused; no prospector (R12: a one-shot action), sniper (R14: open, Q10) or trade/shipping family (R13); naval_transport (10) is unchanged pending an ADR-031 amendment); identities 101 -> reconnaissance (22), 907 -> submarines (18), 908 -> carriers (19, now its mainline), 1102 -> rotary_wing (20, now its mainline), 1104 -> unmanned_aircraft (21) - keys unchanged, never reused; a saved MilitaryUnits row of a rehomed identity is remapped at load (CanonicalSchema family migration). military_aircraft (1101) is the Flight I identity at A8; advanced piston aircraft (1105) the A9 mainline; jet fighters (1106) and stealth aircraft (1103) A9 branches. The identity Age is modernization metadata: recruitment never reads the Age (charter 6.5)."
   ],
   "founding": {
     "identity": "warband",
     "formationsPerPolity": 1,
-    "basis": "research.json baseline.basic_military ('Basic military (clubmen or equivalent)') is BASELINE: every founded Empire fields one warband at its capital. A formation token only - no personnel are drawn from the population (people stay conserved in Buckets), no goods are consumed, no combat exists (D-011 deferred)."
+    "basis": "research.json baseline.basic_military ('Basic military (clubmen or equivalent)') is BASELINE: every founded Empire fields one warband at its capital. ADR-055 (Q7, unit charter 6.5 'nothing spawns'): with sim.json military on, its recruitment.personnel adults are drawn from the capital's adult buckets by Ledger.Transfer at founding (people stay conserved: they move into the formation's FormationPersonnel row); no goods are consumed; no combat exists (D-011 deferred). With the switch off it is the ADR-031 token, no personnel drawn."
   },
+  "plannedGoods": [
+    { "good": "iron-ore", "packet": "EC-1", "note": "metals (D-065 R2)" },
+    { "good": "coal", "packet": "EC-1", "note": "metals (D-065 R2)" },
+    { "good": "iron", "packet": "EC-1", "note": "metals (D-065 R2)" },
+    { "good": "steel", "packet": "EC-1", "note": "metals (D-065 R2)" },
+    { "good": "horses", "packet": "EC-2", "note": "mounts, a stock distinct from livestock (D-065 R2)" },
+    { "good": "saltpetre", "packet": "EC-3", "note": "gunpowder (D-065 R2)" },
+    { "good": "sulphur", "packet": "EC-3", "note": "gunpowder (D-065 R2)" },
+    { "good": "gunpowder", "packet": "EC-3", "note": "gunpowder (D-065 R2)" },
+    { "good": "explosives", "packet": "EC-3", "note": "gunpowder and explosives (D-065 R2)" },
+    { "good": "engines", "packet": "EC-4a", "note": "light fuels and engines; owner open, M10 recommended (OD-3) - provisional" },
+    { "good": "fuel", "packet": "EC-4a", "note": "light fuels and engines; owner open, M10 recommended (OD-3) - provisional" },
+    { "good": "aluminium", "packet": "EC-5a", "note": "aluminium; its electricity input waits on Q8 (D-065 R4)" },
+    { "good": "electronics", "packet": "EC-5b", "note": "electronics and copper metal" },
+    { "good": "composites", "packet": "EC-5c", "note": "composites" },
+    { "good": "uranium", "packet": "EC-6", "note": "uranium fuel cycle (late) and M10" }
+  ],
   "families": [
     {
-      "key": 1, "id": "light_infantry", "name": "Light Infantry / Scout",
-      "role": "Reconnaissance, screening and skirmishing ahead of the main force.",
+      "key": 1, "id": "light_infantry", "name": "Light Infantry / Skirmishers",
+      "role": "Screening and skirmishing ahead of the main force (scouting is the reconnaissance agent, family 22).",
       "historicalEmergence": "Prehistoric hunting parties; formalized skirmishers in the Bronze and Iron Ages.",
       "composition": "army_formation", "autoModernize": true,
       "branches": [],
       "noSuccessor": { "rule": "preserve" },
       "line": [
-        { "key": 101, "id": "scouts", "name": "Scouts", "age": 1, "historicalEmergence": "hunter-scouts", "equipment": ["light spears or throwing sticks"], "reference": "Civ VI Scout" },
-        { "key": 102, "id": "skirmishers", "name": "Skirmishers", "age": 3, "historicalEmergence": "Bronze Age javelin skirmishers", "equipment": ["javelins", "light shields"], "reference": "Civ VI Skirmisher" },
-        { "key": 103, "id": "light_auxiliaries", "name": "Light auxiliaries", "age": 5, "historicalEmergence": "Classical auxilia and peltasts", "equipment": ["javelins", "iron weapons"] },
-        { "key": 104, "id": "rangers", "name": "Rangers", "age": 7, "historicalEmergence": "Early modern rangers and jagers", "equipment": ["rifled firearms"], "reference": "Civ VI Ranger" },
-        { "key": 105, "id": "special_forces", "name": "Special forces", "age": 9, "historicalEmergence": "Twentieth-century special operations", "equipment": ["automatic weapons", "radios"], "reference": "Civ VI Spec Ops" }
+        { "key": 102, "id": "skirmishers", "name": "Skirmishers", "age": 3, "historicalEmergence": "Bronze Age javelin skirmishers", "equipment": ["javelins", "light shields"], "requires": "sling OR bow_simple", "reference": "Civ VI Skirmisher", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "hides", "qty": 5}, {"good": "timber", "qty": 5}]} },
+        { "key": 103, "id": "light_auxiliaries", "name": "Light auxiliaries", "age": 5, "historicalEmergence": "Classical auxilia and peltasts", "equipment": ["javelins", "iron weapons"], "requires": "iron_bloomery", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "iron", "qty": 5}, {"good": "hides", "qty": 5}]} },
+        { "key": 104, "id": "rangers", "name": "Rangers", "age": 7, "historicalEmergence": "Early modern rangers and jagers", "equipment": ["rifled firearms"], "requires": "flintlock", "reference": "Civ VI Ranger", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "iron", "qty": 5}, {"good": "gunpowder", "qty": 5}]} },
+        { "key": 105, "id": "special_forces", "name": "Special forces", "age": 9, "historicalEmergence": "Twentieth-century special operations", "equipment": ["automatic weapons", "radios"], "requires": "radio AND machine_gun", "reference": "Civ VI Spec Ops", "recruitment": {"personnel": 40, "years": 2.0, "inputs": [{"good": "steel", "qty": 5}, {"good": "electronics", "qty": 5}, {"good": "gunpowder", "qty": 5}]} }
       ]
     },
     {
@@ -40,10 +58,10 @@
       "lineEndsAfterAge": 7,
       "noSuccessor": { "rule": "generic", "family": "heavy_infantry", "note": "The socket bayonet made the pike obsolete: from the Industrial Age the anti-cavalry role is absorbed by line infantry." },
       "line": [
-        { "key": 201, "id": "spearmen", "name": "Spearmen", "age": 2, "historicalEmergence": "composite-hafted spears", "equipment": ["hafted spears"], "realizedBy": "unit.spearmen", "reference": "Civ VI Spearman; AoE II Spearman" },
-        { "key": 202, "id": "phalanx", "name": "Phalanx", "age": 4, "historicalEmergence": "Iron Age hoplite phalanx", "equipment": ["iron spearheads", "large shields", "armour"] },
-        { "key": 203, "id": "pikemen", "name": "Pikemen", "age": 6, "historicalEmergence": "medieval pike squares", "equipment": ["pikes"], "reference": "Civ VI Pikeman; AoE II Pikeman" },
-        { "key": 204, "id": "pike_and_shot", "name": "Pike and shot", "age": 7, "historicalEmergence": "tercio pike blocks", "equipment": ["pikes", "matchlocks"], "reference": "Civ VI Pike and Shot" }
+        { "key": 201, "id": "spearmen", "name": "Spearmen", "age": 2, "historicalEmergence": "composite-hafted spears", "equipment": ["hafted spears"], "realizedBy": "unit.spearmen", "reference": "Civ VI Spearman; AoE II Spearman", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "timber", "qty": 10}, {"good": "stone", "qty": 5}]} },
+        { "key": 202, "id": "phalanx", "name": "Phalanx", "age": 4, "historicalEmergence": "Iron Age hoplite phalanx", "equipment": ["iron spearheads", "large shields", "armour"], "requires": "iron_bloomery", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "iron", "qty": 10}, {"good": "timber", "qty": 5}, {"good": "hides", "qty": 5}]} },
+        { "key": 203, "id": "pikemen", "name": "Pikemen", "age": 6, "historicalEmergence": "medieval pike squares", "equipment": ["pikes"], "requires": "iron_bloomery", "reference": "Civ VI Pikeman; AoE II Pikeman", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "iron", "qty": 10}, {"good": "timber", "qty": 10}]} },
+        { "key": 204, "id": "pike_and_shot", "name": "Pike and shot", "age": 7, "historicalEmergence": "tercio pike blocks", "equipment": ["pikes", "matchlocks"], "requires": "matchlock", "reference": "Civ VI Pike and Shot", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "iron", "qty": 10}, {"good": "gunpowder", "qty": 5}, {"good": "timber", "qty": 5}]} }
       ]
     },
     {
@@ -54,15 +72,15 @@
       "branches": [],
       "noSuccessor": { "rule": "preserve" },
       "line": [
-        { "key": 301, "id": "warband", "name": "Warband", "age": 1, "historicalEmergence": "the founding fighting men (baseline.basic_military)", "equipment": ["clubs", "stone-tipped weapons"], "reference": "Civ VI Warrior; AoE II Militia" },
-        { "key": 309, "id": "axe_warriors", "name": "Axe warriors", "age": 2, "historicalEmergence": "Neolithic farming-community fighters armed with ground- and polished-stone axes, adzes and mace-heads (LBK massacre sites such as Talheim, c. 5000 BC; later stone battle-axes)", "equipment": ["polished stone axes and adzes", "stone mace-heads"] },
-        { "key": 302, "id": "bronze_swordsmen", "name": "Bronze-armed infantry", "age": 3, "historicalEmergence": "Bronze Age armoured infantry", "equipment": ["bronze weapons", "shields"], "reference": "Civ VI Swordsman" },
-        { "key": 303, "id": "iron_infantry", "name": "Iron-armed heavy infantry", "age": 4, "historicalEmergence": "Iron Age heavy infantry", "equipment": ["iron weapons", "mail"] },
-        { "key": 304, "id": "legion", "name": "Legionary infantry", "age": 5, "historicalEmergence": "Classical professional heavy infantry", "equipment": ["iron weapons", "armour", "standardized kit"] },
-        { "key": 305, "id": "men_at_arms", "name": "Men-at-arms", "age": 6, "historicalEmergence": "medieval armoured infantry", "equipment": ["steel weapons", "plate or mail"], "reference": "Civ VI Man-at-Arms; AoE II Man-at-Arms" },
-        { "key": 306, "id": "musketeers", "name": "Musket infantry", "age": 7, "historicalEmergence": "early modern musket infantry", "equipment": ["matchlocks or flintlocks", "gunpowder"], "realizedBy": "unit.musketeers", "reference": "Civ VI Musketman" },
-        { "key": 307, "id": "line_infantry", "name": "Rifle line infantry", "age": 8, "historicalEmergence": "industrial rifle infantry", "equipment": ["rifles", "bayonets"], "reference": "Civ VI Line Infantry" },
-        { "key": 308, "id": "mechanized_infantry", "name": "Mechanized infantry", "age": 9, "historicalEmergence": "twentieth-century infantry", "equipment": ["automatic rifles", "motor transport"], "reference": "Civ VI Infantry / Mechanized Infantry" }
+        { "key": 301, "id": "warband", "name": "Warband", "age": 1, "historicalEmergence": "the founding fighting men (baseline.basic_military)", "equipment": ["clubs", "stone-tipped weapons"], "baseline": "baseline.basic_military", "reference": "Civ VI Warrior; AoE II Militia", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "timber", "qty": 5}, {"good": "stone", "qty": 5}]} },
+        { "key": 309, "id": "axe_warriors", "name": "Axe warriors", "age": 2, "historicalEmergence": "Neolithic farming-community fighters armed with ground- and polished-stone axes, adzes and mace-heads (LBK massacre sites such as Talheim, c. 5000 BC; later stone battle-axes)", "equipment": ["polished stone axes and adzes", "stone mace-heads"], "requires": "hafting", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "stone", "qty": 10}, {"good": "timber", "qty": 10}]} },
+        { "key": 302, "id": "bronze_swordsmen", "name": "Bronze-armed infantry", "age": 3, "historicalEmergence": "Bronze Age armoured infantry", "equipment": ["bronze weapons", "shields"], "requires": "arsenical_bronze OR tin_bronze", "reference": "Civ VI Swordsman", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "bronze", "qty": 10}, {"good": "timber", "qty": 5}, {"good": "hides", "qty": 5}]} },
+        { "key": 303, "id": "iron_infantry", "name": "Iron-armed heavy infantry", "age": 4, "historicalEmergence": "Iron Age heavy infantry", "equipment": ["iron weapons", "mail"], "requires": "iron_bloomery", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "iron", "qty": 10}, {"good": "hides", "qty": 5}]} },
+        { "key": 304, "id": "legion", "name": "Legionary infantry", "age": 5, "historicalEmergence": "Classical professional heavy infantry", "equipment": ["iron weapons", "armour", "standardized kit"], "requires": "iron_bloomery AND standing_army", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "iron", "qty": 15}, {"good": "hides", "qty": 5}, {"good": "cloth", "qty": 5}]} },
+        { "key": 305, "id": "men_at_arms", "name": "Men-at-arms", "age": 6, "historicalEmergence": "medieval armoured infantry", "equipment": ["steel weapons", "plate or mail"], "requires": "steel_carburized AND plate_armour", "reference": "Civ VI Man-at-Arms; AoE II Man-at-Arms", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "steel", "qty": 15}, {"good": "iron", "qty": 5}]} },
+        { "key": 306, "id": "musketeers", "name": "Musket infantry", "age": 7, "historicalEmergence": "early modern musket infantry", "equipment": ["matchlocks or flintlocks", "gunpowder"], "realizedBy": "unit.musketeers", "reference": "Civ VI Musketman", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "iron", "qty": 10}, {"good": "gunpowder", "qty": 5}]} },
+        { "key": 307, "id": "line_infantry", "name": "Rifle line infantry", "age": 8, "historicalEmergence": "industrial rifle infantry", "equipment": ["rifles", "bayonets"], "requires": "breech_loading_rifle", "reference": "Civ VI Line Infantry", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "steel", "qty": 10}, {"good": "gunpowder", "qty": 5}, {"good": "cloth", "qty": 5}]} },
+        { "key": 308, "id": "mechanized_infantry", "name": "Mechanized infantry", "age": 9, "historicalEmergence": "twentieth-century infantry", "equipment": ["automatic rifles", "motor transport"], "requires": "internal_combustion", "reference": "Civ VI Infantry / Mechanized Infantry", "recruitment": {"personnel": 60, "years": 2.0, "inputs": [{"good": "steel", "qty": 20}, {"good": "engines", "qty": 5}, {"good": "fuel", "qty": 10}]} }
       ]
     },
     {
@@ -75,14 +93,14 @@
       ],
       "noSuccessor": { "rule": "preserve" },
       "line": [
-        { "key": 401, "id": "slingers", "name": "Slingers", "age": 1, "historicalEmergence": "the sling", "equipment": ["slings"], "realizedBy": "unit.slingers", "reference": "Civ VI Slinger" },
-        { "key": 402, "id": "archers", "name": "Archers", "age": 2, "historicalEmergence": "the simple bow", "equipment": ["simple bows"], "realizedBy": "unit.archers", "reference": "Civ VI Archer; AoE II Archer" },
-        { "key": 403, "id": "composite_archers", "name": "Composite-bow archers", "age": 4, "historicalEmergence": "the composite bow", "equipment": ["composite bows"] },
-        { "key": 404, "id": "crossbowmen", "name": "Crossbowmen", "age": 6, "historicalEmergence": "the crossbow", "equipment": ["crossbows"], "realizedBy": "unit.crossbowmen", "reference": "Civ VI Crossbowman; AoE II Crossbowman" },
-        { "key": 405, "id": "longbowmen", "name": "Longbowmen", "age": 6, "branch": true, "historicalEmergence": "the longbow (regional branch)", "equipment": ["longbows"], "realizedBy": "unit.longbowmen" },
-        { "key": 406, "id": "arquebusiers", "name": "Arquebusiers", "age": 7, "historicalEmergence": "early firearms as missile troops", "equipment": ["arquebuses", "gunpowder"] },
-        { "key": 407, "id": "sharpshooters", "name": "Sharpshooters", "age": 8, "historicalEmergence": "rifled marksmen", "equipment": ["rifles"] },
-        { "key": 408, "id": "machine_gun_teams", "name": "Machine-gun teams", "age": 9, "historicalEmergence": "crew-served automatic weapons", "equipment": ["machine guns"], "reference": "Civ VI Machine Gun" }
+        { "key": 401, "id": "slingers", "name": "Slingers", "age": 1, "historicalEmergence": "the sling", "equipment": ["slings"], "realizedBy": "unit.slingers", "reference": "Civ VI Slinger", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "stone", "qty": 5}, {"good": "fiber", "qty": 5}]} },
+        { "key": 402, "id": "archers", "name": "Archers", "age": 2, "historicalEmergence": "the simple bow", "equipment": ["simple bows"], "realizedBy": "unit.archers", "reference": "Civ VI Archer; AoE II Archer", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "timber", "qty": 10}, {"good": "fiber", "qty": 5}]} },
+        { "key": 403, "id": "composite_archers", "name": "Composite-bow archers", "age": 4, "historicalEmergence": "the composite bow", "equipment": ["composite bows"], "requires": "composite_bow", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "timber", "qty": 5}, {"good": "hides", "qty": 10}, {"good": "fiber", "qty": 5}]} },
+        { "key": 404, "id": "crossbowmen", "name": "Crossbowmen", "age": 6, "historicalEmergence": "the crossbow", "equipment": ["crossbows"], "realizedBy": "unit.crossbowmen", "reference": "Civ VI Crossbowman; AoE II Crossbowman", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "timber", "qty": 10}, {"good": "bronze", "qty": 5}]} },
+        { "key": 405, "id": "longbowmen", "name": "Longbowmen", "age": 6, "branch": true, "historicalEmergence": "the longbow (regional branch)", "equipment": ["longbows"], "realizedBy": "unit.longbowmen", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "timber", "qty": 15}, {"good": "fiber", "qty": 5}]} },
+        { "key": 406, "id": "arquebusiers", "name": "Arquebusiers", "age": 7, "historicalEmergence": "early firearms as missile troops", "equipment": ["arquebuses", "gunpowder"], "requires": "matchlock", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "iron", "qty": 10}, {"good": "gunpowder", "qty": 5}]} },
+        { "key": 407, "id": "sharpshooters", "name": "Sharpshooters", "age": 8, "historicalEmergence": "rifled marksmen", "equipment": ["rifles"], "requires": "breech_loading_rifle", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "steel", "qty": 10}, {"good": "gunpowder", "qty": 5}]} },
+        { "key": 408, "id": "machine_gun_teams", "name": "Machine-gun teams", "age": 9, "historicalEmergence": "crew-served automatic weapons", "equipment": ["machine guns"], "requires": "machine_gun", "reference": "Civ VI Machine Gun", "recruitment": {"personnel": 60, "years": 2.0, "inputs": [{"good": "steel", "qty": 15}, {"good": "gunpowder", "qty": 10}]} }
       ]
     },
     {
@@ -93,12 +111,12 @@
       "branches": [],
       "noSuccessor": { "rule": "preserve" },
       "line": [
-        { "key": 501, "id": "horse_scouts", "name": "Mounted scouts", "age": 3, "historicalEmergence": "early riders", "equipment": ["horses"] },
-        { "key": 502, "id": "light_horse", "name": "Light horse", "age": 4, "historicalEmergence": "Iron Age cavalry", "equipment": ["horses", "iron weapons"], "reference": "Civ VI Horseman; AoE II Scout Cavalry" },
-        { "key": 503, "id": "light_lancers", "name": "Light lancers", "age": 6, "historicalEmergence": "medieval light cavalry", "equipment": ["horses", "lances"], "reference": "AoE II Light Cavalry" },
-        { "key": 504, "id": "hussars", "name": "Hussars", "age": 7, "historicalEmergence": "early modern light cavalry", "equipment": ["horses", "sabres", "pistols"], "reference": "AoE II Hussar" },
-        { "key": 505, "id": "carbine_cavalry", "name": "Carbine cavalry", "age": 8, "historicalEmergence": "industrial light cavalry", "equipment": ["horses", "carbines"], "reference": "Civ VI Cavalry" },
-        { "key": 506, "id": "armoured_reconnaissance", "name": "Armoured reconnaissance", "age": 9, "historicalEmergence": "armoured cars and reconnaissance vehicles", "equipment": ["armoured vehicles", "fuel"] }
+        { "key": 501, "id": "horse_scouts", "name": "Mounted scouts", "age": 3, "historicalEmergence": "early riders", "equipment": ["horses"], "requires": "horse_domestication", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "horses", "qty": 20}, {"good": "hides", "qty": 5}]} },
+        { "key": 502, "id": "light_horse", "name": "Light horse", "age": 4, "historicalEmergence": "Iron Age cavalry", "equipment": ["horses", "iron weapons"], "requires": "cavalry", "reference": "Civ VI Horseman; AoE II Scout Cavalry", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "horses", "qty": 40}, {"good": "iron", "qty": 5}]} },
+        { "key": 503, "id": "light_lancers", "name": "Light lancers", "age": 6, "historicalEmergence": "medieval light cavalry", "equipment": ["horses", "lances"], "requires": "stirrup", "reference": "AoE II Light Cavalry", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "horses", "qty": 40}, {"good": "iron", "qty": 10}]} },
+        { "key": 504, "id": "hussars", "name": "Hussars", "age": 7, "historicalEmergence": "early modern light cavalry", "equipment": ["horses", "sabres", "pistols"], "requires": "flintlock", "reference": "AoE II Hussar", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "horses", "qty": 60}, {"good": "iron", "qty": 5}, {"good": "gunpowder", "qty": 5}]} },
+        { "key": 505, "id": "carbine_cavalry", "name": "Carbine cavalry", "age": 8, "historicalEmergence": "industrial light cavalry", "equipment": ["horses", "carbines"], "requires": "breech_loading_rifle", "reference": "Civ VI Cavalry", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "horses", "qty": 60}, {"good": "steel", "qty": 5}, {"good": "gunpowder", "qty": 5}]} },
+        { "key": 506, "id": "armoured_reconnaissance", "name": "Armoured reconnaissance", "age": 9, "historicalEmergence": "armoured cars and reconnaissance vehicles", "equipment": ["armoured vehicles", "fuel"], "requires": "internal_combustion", "recruitment": {"personnel": 60, "years": 2.0, "inputs": [{"good": "steel", "qty": 10}, {"good": "engines", "qty": 5}, {"good": "fuel", "qty": 10}]} }
       ]
     },
     {
@@ -109,11 +127,11 @@
       "branches": [],
       "noSuccessor": { "rule": "preserve" },
       "line": [
-        { "key": 601, "id": "chariots", "name": "Chariots", "age": 3, "historicalEmergence": "the war chariot", "equipment": ["spoked-wheel chariots", "horses"], "realizedBy": "unit.chariot", "reference": "Civ VI Heavy Chariot" },
-        { "key": 602, "id": "cataphracts", "name": "Cataphracts", "age": 5, "historicalEmergence": "armoured cavalry", "equipment": ["horses", "scale armour"] },
-        { "key": 603, "id": "knights", "name": "Knights", "age": 6, "historicalEmergence": "stirrup-borne shock cavalry", "equipment": ["horses", "stirrups", "plate armour"], "realizedBy": "unit.heavy_cavalry", "reference": "Civ VI Knight; AoE II Knight" },
-        { "key": 604, "id": "cuirassiers", "name": "Cuirassiers", "age": 7, "historicalEmergence": "armoured pistol cavalry", "equipment": ["horses", "cuirasses", "pistols"], "reference": "Civ VI Cuirassier" },
-        { "key": 605, "id": "tanks", "name": "Tanks", "age": 9, "historicalEmergence": "the tank", "equipment": ["armoured vehicles", "fuel"], "realizedBy": "unit.tank", "reference": "Civ VI Tank" }
+        { "key": 601, "id": "chariots", "name": "Chariots", "age": 3, "historicalEmergence": "the war chariot", "equipment": ["spoked-wheel chariots", "horses"], "realizedBy": "unit.chariot", "reference": "Civ VI Heavy Chariot", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "horses", "qty": 10}, {"good": "bronze", "qty": 5}, {"good": "timber", "qty": 10}]} },
+        { "key": 602, "id": "cataphracts", "name": "Cataphracts", "age": 5, "historicalEmergence": "armoured cavalry", "equipment": ["horses", "scale armour"], "requires": "cavalry AND iron_bloomery", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "horses", "qty": 40}, {"good": "iron", "qty": 15}]} },
+        { "key": 603, "id": "knights", "name": "Knights", "age": 6, "historicalEmergence": "stirrup-borne shock cavalry", "equipment": ["horses", "stirrups", "plate armour"], "realizedBy": "unit.heavy_cavalry", "reference": "Civ VI Knight; AoE II Knight", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "horses", "qty": 40}, {"good": "steel", "qty": 10}]} },
+        { "key": 604, "id": "cuirassiers", "name": "Cuirassiers", "age": 7, "historicalEmergence": "armoured pistol cavalry", "equipment": ["horses", "cuirasses", "pistols"], "requires": "flintlock", "reference": "Civ VI Cuirassier", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "horses", "qty": 60}, {"good": "iron", "qty": 10}, {"good": "gunpowder", "qty": 5}]} },
+        { "key": 605, "id": "tanks", "name": "Tanks", "age": 9, "historicalEmergence": "the tank", "equipment": ["armoured vehicles", "fuel"], "realizedBy": "unit.tank", "reference": "Civ VI Tank", "recruitment": {"personnel": 60, "years": 2.0, "inputs": [{"good": "steel", "qty": 30}, {"good": "engines", "qty": 10}, {"good": "fuel", "qty": 20}]} }
       ]
     },
     {
@@ -125,9 +143,9 @@
       "lineEndsAfterAge": 7,
       "noSuccessor": { "rule": "generic", "family": "light_cavalry", "note": "Mounted missile troops became carbine-armed light cavalry; from the Industrial Age the role is absorbed by the light-cavalry line." },
       "line": [
-        { "key": 701, "id": "horse_archers", "name": "Horse archers", "age": 4, "historicalEmergence": "steppe horse archery", "equipment": ["horses", "composite bows"], "realizedBy": "unit.horse_archers", "reference": "AoE II Cavalry Archer" },
-        { "key": 702, "id": "mounted_crossbowmen", "name": "Mounted crossbowmen", "age": 6, "historicalEmergence": "medieval mounted missile troops", "equipment": ["horses", "crossbows"] },
-        { "key": 703, "id": "dragoons", "name": "Dragoons", "age": 7, "historicalEmergence": "mounted firearm infantry", "equipment": ["horses", "muskets"] }
+        { "key": 701, "id": "horse_archers", "name": "Horse archers", "age": 4, "historicalEmergence": "steppe horse archery", "equipment": ["horses", "composite bows"], "realizedBy": "unit.horse_archers", "reference": "AoE II Cavalry Archer", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "horses", "qty": 40}, {"good": "timber", "qty": 5}, {"good": "hides", "qty": 10}]} },
+        { "key": 702, "id": "mounted_crossbowmen", "name": "Mounted crossbowmen", "age": 6, "historicalEmergence": "medieval mounted missile troops", "equipment": ["horses", "crossbows"], "requires": "crossbow AND stirrup", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "horses", "qty": 40}, {"good": "iron", "qty": 5}, {"good": "timber", "qty": 5}]} },
+        { "key": 703, "id": "dragoons", "name": "Dragoons", "age": 7, "historicalEmergence": "mounted firearm infantry", "equipment": ["horses", "muskets"], "requires": "flintlock", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "horses", "qty": 60}, {"good": "iron", "qty": 5}, {"good": "gunpowder", "qty": 5}]} }
       ]
     },
     {
@@ -138,32 +156,28 @@
       "branches": [],
       "noSuccessor": { "rule": "preserve" },
       "line": [
-        { "key": 801, "id": "siege_rams", "name": "Rams and siege towers", "age": 4, "historicalEmergence": "the battering ram and siege tower", "equipment": ["timber"], "realizedBy": "unit.siege_engine", "reference": "Civ VI Battering Ram; AoE II Battering Ram" },
-        { "key": 802, "id": "torsion_engines", "name": "Torsion engines", "age": 5, "historicalEmergence": "catapults and ballistae", "equipment": ["timber", "sinew cord"], "reference": "Civ VI Catapult" },
-        { "key": 803, "id": "trebuchets", "name": "Trebuchets", "age": 6, "historicalEmergence": "counterweight trebuchet", "equipment": ["timber", "iron fittings"], "reference": "Civ VI Trebuchet; AoE II Trebuchet" },
-        { "key": 804, "id": "bombards", "name": "Bombards", "age": 7, "historicalEmergence": "gunpowder siege artillery", "equipment": ["cast cannon", "gunpowder"], "realizedBy": "unit.artillery", "reference": "Civ VI Bombard" },
-        { "key": 805, "id": "field_artillery", "name": "Field artillery", "age": 8, "historicalEmergence": "industrial rifled artillery", "equipment": ["steel guns", "shells"], "reference": "Civ VI Field Cannon / Artillery" },
-        { "key": 806, "id": "rocket_artillery", "name": "Rocket artillery", "age": 9, "historicalEmergence": "self-propelled and rocket artillery", "equipment": ["rockets", "vehicles"], "reference": "Civ VI Rocket Artillery" }
+        { "key": 801, "id": "siege_rams", "name": "Rams and siege towers", "age": 4, "historicalEmergence": "the battering ram and siege tower", "equipment": ["timber"], "realizedBy": "unit.siege_engine", "reference": "Civ VI Battering Ram; AoE II Battering Ram", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "timber", "qty": 40}, {"good": "hides", "qty": 10}, {"good": "fiber", "qty": 10}]} },
+        { "key": 802, "id": "torsion_engines", "name": "Torsion engines", "age": 5, "historicalEmergence": "catapults and ballistae", "equipment": ["timber", "sinew cord"], "requires": "torsion_artillery", "reference": "Civ VI Catapult", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "timber", "qty": 40}, {"good": "fiber", "qty": 10}, {"good": "hides", "qty": 10}]} },
+        { "key": 803, "id": "trebuchets", "name": "Trebuchets", "age": 6, "historicalEmergence": "counterweight trebuchet", "equipment": ["timber", "iron fittings"], "requires": "trebuchet", "reference": "Civ VI Trebuchet; AoE II Trebuchet", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "timber", "qty": 50}, {"good": "iron", "qty": 10}]} },
+        { "key": 804, "id": "bombards", "name": "Bombards", "age": 7, "historicalEmergence": "gunpowder siege artillery", "equipment": ["cast cannon", "gunpowder"], "realizedBy": "unit.artillery", "reference": "Civ VI Bombard", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "iron", "qty": 30}, {"good": "gunpowder", "qty": 20}]} },
+        { "key": 805, "id": "field_artillery", "name": "Field artillery", "age": 8, "historicalEmergence": "industrial rifled artillery", "equipment": ["steel guns", "shells"], "requires": "rifled_artillery", "reference": "Civ VI Field Cannon / Artillery", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "steel", "qty": 30}, {"good": "explosives", "qty": 10}]} },
+        { "key": 806, "id": "rocket_artillery", "name": "Rocket artillery", "age": 9, "historicalEmergence": "self-propelled and rocket artillery", "equipment": ["rockets", "vehicles"], "requires": "rocket", "reference": "Civ VI Rocket Artillery", "recruitment": {"personnel": 60, "years": 2.0, "inputs": [{"good": "steel", "qty": 20}, {"good": "explosives", "qty": 20}, {"good": "engines", "qty": 5}, {"good": "fuel", "qty": 10}]} }
       ]
     },
     {
       "key": 9, "id": "naval_combat", "name": "Naval Combat",
       "role": "Fighting ships: control of rivers, coasts and seas.",
-      "historicalEmergence": "Ram-armed war galleys (Iron Age); sailing warships; steam ironclads; modern navies.",
+      "historicalEmergence": "Ram-armed war galleys (Iron Age); sailing warships; steam ironclads; modern surface navies (submarines and carriers are their own families).",
       "composition": "mobile_agent", "autoModernize": true,
-      "branches": [
-        { "atAge": 9, "identities": ["destroyers", "nuclear_submarines", "aircraft_carriers"], "rule": "The Modern line branches into surface, submarine and carrier forces; automatic conversion follows the mainline (destroyers)." }
-      ],
+      "branches": [],
       "noSuccessor": { "rule": "preserve" },
       "line": [
-        { "key": 901, "id": "war_galleys", "name": "War galleys", "age": 4, "historicalEmergence": "the naval ram", "equipment": ["timber hulls", "rams"], "realizedBy": "unit.war_galley", "reference": "Civ VI Galley" },
-        { "key": 902, "id": "quinqueremes", "name": "Heavy galleys", "age": 5, "historicalEmergence": "Classical heavy galleys", "equipment": ["timber hulls", "rams", "boarding bridges"], "reference": "Civ VI Quadrireme" },
-        { "key": 903, "id": "war_cogs", "name": "War cogs", "age": 6, "historicalEmergence": "medieval sailing warships", "equipment": ["timber hulls", "sails"] },
-        { "key": 904, "id": "ships_of_the_line", "name": "Ships of the line", "age": 7, "historicalEmergence": "the broadside sailing warship", "equipment": ["timber hulls", "cast cannon"], "realizedBy": "unit.ship_of_the_line", "reference": "Civ VI Frigate" },
-        { "key": 905, "id": "ironclads", "name": "Steam warships", "age": 8, "historicalEmergence": "screw-driven iron warships", "equipment": ["iron hulls", "steam engines", "coal"], "realizedBy": "unit.ironclad", "reference": "Civ VI Ironclad" },
-        { "key": 906, "id": "destroyers", "name": "Destroyers", "age": 9, "historicalEmergence": "modern surface combatants", "equipment": ["steel hulls", "turbines", "fuel"], "reference": "Civ VI Destroyer" },
-        { "key": 907, "id": "nuclear_submarines", "name": "Nuclear submarines", "age": 9, "branch": true, "historicalEmergence": "nuclear submarines (branch)", "equipment": ["reactors"], "realizedBy": "unit.nuclear_submarine" },
-        { "key": 908, "id": "aircraft_carriers", "name": "Aircraft carriers", "age": 9, "branch": true, "historicalEmergence": "carrier aviation (branch)", "equipment": ["steel hulls", "aircraft"], "realizedBy": "unit.aircraft_carrier" }
+        { "key": 901, "id": "war_galleys", "name": "War galleys", "age": 4, "historicalEmergence": "the naval ram", "equipment": ["timber hulls", "rams"], "realizedBy": "unit.war_galley", "reference": "Civ VI Galley", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "timber", "qty": 60}, {"good": "bronze", "qty": 10}, {"good": "fiber", "qty": 10}]} },
+        { "key": 902, "id": "quinqueremes", "name": "Heavy galleys", "age": 5, "historicalEmergence": "Classical heavy galleys", "equipment": ["timber hulls", "rams", "boarding bridges"], "requires": "naval_ram AND state_navy", "reference": "Civ VI Quadrireme", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "timber", "qty": 80}, {"good": "bronze", "qty": 15}, {"good": "fiber", "qty": 10}]} },
+        { "key": 903, "id": "war_cogs", "name": "War cogs", "age": 6, "historicalEmergence": "medieval sailing warships", "equipment": ["timber hulls", "sails"], "requires": "sail_square AND state_navy", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "timber", "qty": 80}, {"good": "cloth", "qty": 20}, {"good": "fiber", "qty": 10}]} },
+        { "key": 904, "id": "ships_of_the_line", "name": "Ships of the line", "age": 7, "historicalEmergence": "the broadside sailing warship", "equipment": ["timber hulls", "cast cannon"], "realizedBy": "unit.ship_of_the_line", "reference": "Civ VI Frigate", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "timber", "qty": 100}, {"good": "cloth", "qty": 30}, {"good": "iron", "qty": 30}, {"good": "gunpowder", "qty": 20}]} },
+        { "key": 905, "id": "ironclads", "name": "Steam warships", "age": 8, "historicalEmergence": "screw-driven iron warships", "equipment": ["iron hulls", "steam engines", "coal"], "realizedBy": "unit.ironclad", "reference": "Civ VI Ironclad", "recruitment": {"personnel": 60, "years": 2.0, "inputs": [{"good": "iron", "qty": 60}, {"good": "coal", "qty": 20}]} },
+        { "key": 906, "id": "destroyers", "name": "Destroyers", "age": 9, "historicalEmergence": "modern surface combatants", "equipment": ["steel hulls", "turbines", "fuel"], "requires": "steam_turbine", "reference": "Civ VI Destroyer", "recruitment": {"personnel": 60, "years": 2.0, "inputs": [{"good": "steel", "qty": 80}, {"good": "engines", "qty": 10}, {"good": "fuel", "qty": 30}]} }
       ]
     },
     {
@@ -174,28 +188,28 @@
       "branches": [],
       "noSuccessor": { "rule": "preserve" },
       "line": [
-        { "key": 1001, "id": "shore_craft", "name": "Shore craft", "age": 1, "historicalEmergence": "primitive riverine and coastal craft (baseline.primitive_water_transport)", "equipment": ["timber or reed"] },
-        { "key": 1002, "id": "plank_boats", "name": "Plank-built boats", "age": 3, "historicalEmergence": "plank-built hulls and the square sail", "equipment": ["timber hulls", "sails"] },
-        { "key": 1003, "id": "seagoing_transports", "name": "Seagoing transports", "age": 6, "historicalEmergence": "cogs and seagoing cargo hulls", "equipment": ["timber hulls", "sails"] },
-        { "key": 1004, "id": "oceanic_transports", "name": "Oceanic transports", "age": 7, "historicalEmergence": "carracks and galleons (the oceanic transport class)", "equipment": ["timber hulls", "full rig"] },
-        { "key": 1005, "id": "steam_transports", "name": "Steam transports", "age": 8, "historicalEmergence": "steamships", "equipment": ["iron hulls", "steam engines", "coal"] },
-        { "key": 1006, "id": "amphibious_transports", "name": "Amphibious transports", "age": 9, "historicalEmergence": "motor transports and landing ships", "equipment": ["steel hulls", "diesel"] }
+        { "key": 1001, "id": "shore_craft", "name": "Shore craft", "age": 1, "historicalEmergence": "primitive riverine and coastal craft (baseline.primitive_water_transport)", "equipment": ["timber or reed"], "baseline": "baseline.primitive_water_transport", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "timber", "qty": 20}, {"good": "hides", "qty": 5}]} },
+        { "key": 1002, "id": "plank_boats", "name": "Plank-built boats", "age": 3, "historicalEmergence": "plank-built hulls and the square sail", "equipment": ["timber hulls", "sails"], "requires": "plank_boat", "recruitment": {"personnel": 20, "years": 0.5, "inputs": [{"good": "timber", "qty": 40}, {"good": "fiber", "qty": 10}, {"good": "cloth", "qty": 5}]} },
+        { "key": 1003, "id": "seagoing_transports", "name": "Seagoing transports", "age": 6, "historicalEmergence": "cogs and seagoing cargo hulls", "equipment": ["timber hulls", "sails"], "requires": "sail_square AND portolan", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "timber", "qty": 60}, {"good": "cloth", "qty": 15}, {"good": "fiber", "qty": 10}]} },
+        { "key": 1004, "id": "oceanic_transports", "name": "Oceanic transports", "age": 7, "historicalEmergence": "carracks and galleons (the oceanic transport class)", "equipment": ["timber hulls", "full rig"], "requires": "caravel OR carrack", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "timber", "qty": 80}, {"good": "cloth", "qty": 20}, {"good": "fiber", "qty": 10}]} },
+        { "key": 1005, "id": "steam_transports", "name": "Steam transports", "age": 8, "historicalEmergence": "steamships", "equipment": ["iron hulls", "steam engines", "coal"], "requires": "steamboat", "recruitment": {"personnel": 40, "years": 2.0, "inputs": [{"good": "iron", "qty": 40}, {"good": "coal", "qty": 20}]} },
+        { "key": 1006, "id": "amphibious_transports", "name": "Amphibious transports", "age": 9, "historicalEmergence": "motor transports and landing ships", "equipment": ["steel hulls", "diesel"], "requires": "diesel", "recruitment": {"personnel": 40, "years": 2.0, "inputs": [{"good": "steel", "qty": 40}, {"good": "engines", "qty": 5}, {"good": "fuel", "qty": 20}]} }
       ]
     },
     {
       "key": 11, "id": "air", "name": "Air / Aviation",
-      "role": "Air reconnaissance, air superiority and strike.",
-      "historicalEmergence": "Military aviation (early twentieth century).",
+      "role": "Air reconnaissance and air superiority, with a light-attack action (bombing is strike_aviation).",
+      "historicalEmergence": "Military aviation in stages: powered flight (Flight I, Industrial Age), advanced aviation (Flight II), networked and stealth aviation (Flight III).",
       "composition": "mobile_agent", "autoModernize": true,
       "branches": [
-        { "atAge": 9, "identities": ["helicopters", "stealth_aircraft", "combat_drones"], "rule": "Rotary-wing, stealth and unmanned branches are realized separately (unit.helicopter, unit.stealth_aircraft, unit.combat_drone); automatic conversion follows the mainline (military aircraft)." }
+        { "atAge": 9, "identities": ["advanced_piston_aircraft", "jet_fighters", "stealth_aircraft"], "rule": "Flight II-III: jet fighters and stealth aircraft are recruited branches or re-equipment targets (D-065 R1), never modernization targets; automatic conversion follows the mainline (advanced piston aircraft)." }
       ],
       "noSuccessor": { "rule": "preserve" },
       "line": [
-        { "key": 1101, "id": "military_aircraft", "name": "Military aircraft", "age": 9, "historicalEmergence": "powered flight", "equipment": ["aircraft", "fuel"], "realizedBy": "unit.military_aircraft", "reference": "Civ VI Biplane / Fighter" },
-        { "key": 1102, "id": "helicopters", "name": "Helicopters", "age": 9, "branch": true, "historicalEmergence": "rotary-wing aviation", "equipment": ["helicopters", "fuel"], "realizedBy": "unit.helicopter" },
-        { "key": 1103, "id": "stealth_aircraft", "name": "Stealth aircraft", "age": 9, "branch": true, "historicalEmergence": "low-observable aircraft", "equipment": ["composites", "fuel"], "realizedBy": "unit.stealth_aircraft" },
-        { "key": 1104, "id": "combat_drones", "name": "Combat drones", "age": 9, "branch": true, "historicalEmergence": "unmanned combat aircraft", "equipment": ["drones", "datalinks"], "realizedBy": "unit.combat_drone" }
+        { "key": 1101, "id": "military_aircraft", "name": "Military aircraft", "age": 8, "historicalEmergence": "powered flight (Flight I)", "equipment": ["aircraft", "fuel"], "realizedBy": "unit.military_aircraft", "reference": "Civ VI Biplane / Fighter", "carrierCapable": "any", "recruitment": {"personnel": 20, "years": 2.0, "inputs": [{"good": "timber", "qty": 10}, {"good": "cloth", "qty": 10}, {"good": "tools", "qty": 5}, {"good": "engines", "qty": 2}, {"good": "fuel", "qty": 5}], "building": "building.airfield"} },
+        { "key": 1105, "id": "advanced_piston_aircraft", "name": "Advanced piston aircraft", "age": 9, "historicalEmergence": "all-metal monoplane fighters and reconnaissance aircraft (Flight II)", "equipment": ["aluminium airframes", "piston engines", "fuel"], "requires": "aircraft_metal", "carrierCapable": "any", "recruitment": {"personnel": 20, "years": 2.0, "inputs": [{"good": "aluminium", "qty": 10}, {"good": "tools", "qty": 5}, {"good": "engines", "qty": 2}, {"good": "fuel", "qty": 10}], "building": "building.airfield"} },
+        { "key": 1106, "id": "jet_fighters", "name": "Jet fighters", "age": 9, "branch": true, "historicalEmergence": "the first jet fighters (Flight II branch)", "equipment": ["jet engines", "aluminium airframes", "fuel"], "requires": "jet_engine", "carrierCapable": "jet_deck", "recruitment": {"personnel": 20, "years": 2.0, "inputs": [{"good": "aluminium", "qty": 15}, {"good": "engines", "qty": 3}, {"good": "fuel", "qty": 20}], "building": "building.airfield"} },
+        { "key": 1103, "id": "stealth_aircraft", "name": "Stealth aircraft", "age": 9, "branch": true, "historicalEmergence": "low-observable aircraft", "equipment": ["composites", "fuel"], "realizedBy": "unit.stealth_aircraft", "carrierCapable": "no", "recruitment": {"personnel": 20, "years": 2.0, "inputs": [{"good": "aluminium", "qty": 10}, {"good": "composites", "qty": 10}, {"good": "electronics", "qty": 10}, {"good": "engines", "qty": 3}, {"good": "fuel", "qty": 20}], "building": "building.airfield"} }
       ]
     },
     {
@@ -206,8 +220,116 @@
       "branches": [],
       "noSuccessor": { "rule": "preserve" },
       "line": [
-        { "key": 1201, "id": "ballistic_missiles", "name": "Ballistic missile forces", "age": 9, "historicalEmergence": "the rocket", "equipment": ["rockets"], "realizedBy": "unit.missile" },
-        { "key": 1202, "id": "icbm_forces", "name": "Intercontinental missile forces", "age": 9, "branch": true, "historicalEmergence": "the ICBM (branch)", "equipment": ["rockets", "guidance"], "realizedBy": "unit.icbm" }
+        { "key": 1201, "id": "ballistic_missiles", "name": "Ballistic missile forces", "age": 9, "historicalEmergence": "the rocket", "equipment": ["rockets"], "realizedBy": "unit.missile", "recruitment": {"personnel": 40, "years": 2.0, "inputs": [{"good": "steel", "qty": 20}, {"good": "fuel", "qty": 20}, {"good": "explosives", "qty": 10}], "blockedBy": "launch facility (building charter 5.23) and strategic governance (M10)"} },
+        { "key": 1202, "id": "icbm_forces", "name": "Intercontinental missile forces", "age": 9, "branch": true, "historicalEmergence": "the ICBM (branch)", "equipment": ["rockets", "guidance"], "realizedBy": "unit.icbm", "recruitment": {"personnel": 40, "years": 2.0, "inputs": [{"good": "steel", "qty": 30}, {"good": "fuel", "qty": 30}, {"good": "explosives", "qty": 10}, {"good": "electronics", "qty": 20}], "blockedBy": "launch facility (building charter 5.23) and strategic governance (M10)"} }
+      ]
+    },
+    {
+      "key": 14, "id": "air_defence", "name": "Air Defence",
+      "role": "Deny the air over a formation or site.",
+      "historicalEmergence": "Anti-aircraft artillery (First World War); radar-directed guns; surface-to-air missiles.",
+      "composition": "army_formation", "autoModernize": true,
+      "branches": [
+        { "atAge": 9, "identities": ["anti_aircraft_artillery", "sam_batteries"], "rule": "Surface-to-air missile batteries are a recruited branch, never a modernization target; radar direction is a capability of the AA identity once radar is known, not a new identity." }
+      ],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 1401, "id": "anti_aircraft_artillery", "name": "Anti-aircraft artillery", "age": 8, "historicalEmergence": "anti-aircraft guns (Flight I; a counter never precedes its threat)", "equipment": ["steel guns", "shells"], "requires": "rifled_artillery AND aircraft", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "steel", "qty": 20}, {"good": "explosives", "qty": 10}]} },
+        { "key": 1402, "id": "sam_batteries", "name": "Surface-to-air missile batteries", "age": 9, "branch": true, "historicalEmergence": "surface-to-air missiles (Flight III branch)", "equipment": ["missiles", "radar", "electronics"], "requires": "guided_missile AND radar", "recruitment": {"personnel": 40, "years": 2.0, "inputs": [{"good": "steel", "qty": 10}, {"good": "electronics", "qty": 10}, {"good": "explosives", "qty": 10}, {"good": "fuel", "qty": 10}]} }
+      ]
+    },
+    {
+      "key": 17, "id": "naval_raiders", "name": "Naval Raiders",
+      "role": "Commerce raiding and coastal raids; avoids battle fleets.",
+      "historicalEmergence": "Raiding galleys; privateers; commerce raiders.",
+      "composition": "mobile_agent", "autoModernize": true,
+      "branches": [],
+      "lineEndsAfterAge": 8,
+      "noSuccessor": { "rule": "generic", "family": "submarines", "note": "From the Modern Age commerce war passes to the submarine." },
+      "line": [
+        { "key": 1701, "id": "raiding_galleys", "name": "Raiding galleys", "age": 5, "historicalEmergence": "Classical and early-medieval raiding galleys", "equipment": ["timber hulls", "sails"], "requires": "plank_boat AND sail_square", "recruitment": {"personnel": 40, "years": 1.0, "inputs": [{"good": "timber", "qty": 50}, {"good": "cloth", "qty": 10}, {"good": "fiber", "qty": 10}]} },
+        { "key": 1702, "id": "privateers", "name": "Privateers", "age": 7, "historicalEmergence": "licensed private warships", "equipment": ["timber hulls", "cast cannon", "gunpowder"], "requires": "caravel AND cannon_cast_iron", "recruitment": {"personnel": 60, "years": 1.0, "inputs": [{"good": "timber", "qty": 60}, {"good": "cloth", "qty": 20}, {"good": "iron", "qty": 20}, {"good": "gunpowder", "qty": 10}]} },
+        { "key": 1703, "id": "commerce_raiders", "name": "Commerce raiders", "age": 8, "historicalEmergence": "steam commerce raiders", "equipment": ["iron hulls", "steam engines", "coal"], "requires": "steamboat AND iron_hull", "recruitment": {"personnel": 60, "years": 2.0, "inputs": [{"good": "iron", "qty": 40}, {"good": "coal", "qty": 20}]} }
+      ]
+    },
+    {
+      "key": 18, "id": "submarines", "name": "Submarines",
+      "role": "Hidden sea denial and commerce war.",
+      "historicalEmergence": "Diesel-electric submarines; nuclear submarines.",
+      "composition": "mobile_agent", "autoModernize": true,
+      "branches": [
+        { "atAge": 9, "identities": ["diesel_submarines", "nuclear_submarines"], "rule": "Nuclear submarines are a recruited branch (unit.nuclear_submarine); automatic conversion follows the mainline (diesel-electric submarines)." }
+      ],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 1801, "id": "diesel_submarines", "name": "Submarines", "age": 9, "historicalEmergence": "diesel-electric submarines", "equipment": ["steel hulls", "diesel-electric drive"], "requires": "submarine", "recruitment": {"personnel": 40, "years": 2.0, "inputs": [{"good": "steel", "qty": 60}, {"good": "engines", "qty": 10}, {"good": "fuel", "qty": 20}]} },
+        { "key": 907, "id": "nuclear_submarines", "name": "Nuclear submarines", "age": 9, "branch": true, "historicalEmergence": "nuclear submarines (branch)", "equipment": ["reactors"], "realizedBy": "unit.nuclear_submarine", "recruitment": {"personnel": 60, "years": 2.0, "inputs": [{"good": "steel", "qty": 80}, {"good": "electronics", "qty": 10}, {"good": "uranium", "qty": 5}]} }
+      ]
+    },
+    {
+      "key": 19, "id": "carriers", "name": "Carriers",
+      "role": "A mobile air base: projects aviation.",
+      "historicalEmergence": "Early aircraft carriers (Flight II); jet-capable fleet carriers (Flight III).",
+      "composition": "mobile_agent", "autoModernize": true,
+      "branches": [
+        { "atAge": 9, "identities": ["aircraft_carriers", "jet_capable_carriers"], "rule": "Jet-capable fleet carriers (angled deck, steam catapult) are a recruited branch; automatic conversion follows the mainline (aircraft carriers)." }
+      ],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 908, "id": "aircraft_carriers", "name": "Aircraft carriers", "age": 9, "historicalEmergence": "carrier aviation (branch)", "equipment": ["steel hulls", "aircraft"], "realizedBy": "unit.aircraft_carrier", "recruitment": {"personnel": 60, "years": 2.0, "inputs": [{"good": "steel", "qty": 120}, {"good": "engines", "qty": 20}, {"good": "fuel", "qty": 40}]} },
+        { "key": 1901, "id": "jet_capable_carriers", "name": "Jet-capable fleet carriers", "age": 9, "branch": true, "historicalEmergence": "angled-deck carriers with steam catapults (Flight III branch)", "equipment": ["steel hulls", "steam catapults", "fuel"], "requires": "jet_engine AND steam_turbine", "jetDeck": true, "recruitment": {"personnel": 60, "years": 2.0, "inputs": [{"good": "steel", "qty": 150}, {"good": "engines", "qty": 30}, {"good": "fuel", "qty": 60}, {"good": "electronics", "qty": 10}]} }
+      ]
+    },
+    {
+      "key": 20, "id": "rotary_wing", "name": "Rotary-Wing Aviation",
+      "role": "Air mobility, close support and medevac.",
+      "historicalEmergence": "Helicopters (mid twentieth century).",
+      "composition": "mobile_agent", "autoModernize": true,
+      "branches": [],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 1102, "id": "helicopters", "name": "Helicopters", "age": 9, "historicalEmergence": "rotary-wing aviation", "equipment": ["helicopters", "fuel"], "realizedBy": "unit.helicopter", "carrierCapable": "no", "recruitment": {"personnel": 20, "years": 2.0, "inputs": [{"good": "aluminium", "qty": 10}, {"good": "engines", "qty": 2}, {"good": "fuel", "qty": 10}], "building": "building.airfield"} }
+      ]
+    },
+    {
+      "key": 21, "id": "unmanned_aircraft", "name": "Unmanned Aircraft",
+      "role": "Persistent reconnaissance, later precision strike.",
+      "historicalEmergence": "Reconnaissance drones; combat drones.",
+      "composition": "mobile_agent", "autoModernize": true,
+      "branches": [
+        { "atAge": 9, "identities": ["reconnaissance_drones", "combat_drones"], "rule": "Combat drones are a recruited branch (unit.combat_drone); automatic conversion follows the mainline (reconnaissance drones)." }
+      ],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 2101, "id": "reconnaissance_drones", "name": "Reconnaissance drones", "age": 9, "historicalEmergence": "remotely piloted reconnaissance aircraft", "equipment": ["drones", "datalinks"], "requires": "aerial_reconnaissance AND computer", "carrierCapable": "no", "recruitment": {"personnel": 10, "years": 2.0, "inputs": [{"good": "electronics", "qty": 10}, {"good": "aluminium", "qty": 5}, {"good": "fuel", "qty": 5}], "building": "building.airfield"} },
+        { "key": 1104, "id": "combat_drones", "name": "Combat drones", "age": 9, "branch": true, "historicalEmergence": "unmanned combat aircraft", "equipment": ["drones", "datalinks"], "realizedBy": "unit.combat_drone", "carrierCapable": "no", "recruitment": {"personnel": 10, "years": 2.0, "inputs": [{"good": "electronics", "qty": 15}, {"good": "aluminium", "qty": 5}, {"good": "explosives", "qty": 5}, {"good": "fuel", "qty": 5}], "building": "building.airfield"} }
+      ]
+    },
+    {
+      "key": 22, "id": "reconnaissance", "name": "Reconnaissance",
+      "role": "Reveal and keep current the knowledge of terrain, deposits and rivals (a MobileAgent, not a formation).",
+      "historicalEmergence": "Hunter-scouts; survey patrols with map and compass.",
+      "composition": "mobile_agent", "autoModernize": true,
+      "branches": [],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 101, "id": "scouts", "name": "Scouts", "age": 1, "historicalEmergence": "hunter-scouts", "equipment": ["light spears or throwing sticks"], "baseline": "baseline.exploration", "reference": "Civ VI Scout", "recruitment": {"personnel": 3, "years": 0.5, "inputs": [{"good": "grain", "qty": 5}]} },
+        { "key": 2201, "id": "survey_patrols", "name": "Survey patrols", "age": 7, "historicalEmergence": "survey patrols with map, compass and survey", "equipment": ["maps", "compasses"], "requires": "cartography AND state_exploration", "recruitment": {"personnel": 5, "years": 0.5, "inputs": [{"good": "grain", "qty": 10}, {"good": "tools", "qty": 2}]} }
+      ]
+    },
+    {
+      "key": 23, "id": "strike_aviation", "name": "Strike Aviation",
+      "role": "Bombing: tactical bombing of formations and works, then strategic bombing of production, infrastructure and depots.",
+      "historicalEmergence": "Light bombers (Flight I); strategic bombers (Flight II); stealth bombers (Flight III).",
+      "composition": "mobile_agent", "autoModernize": true,
+      "branches": [
+        { "atAge": 9, "identities": ["strategic_bombers", "stealth_bombers"], "rule": "Stealth bombers are a recruited branch or re-equipment target; automatic conversion follows the mainline (strategic bombers)." }
+      ],
+      "noSuccessor": { "rule": "preserve" },
+      "line": [
+        { "key": 2301, "id": "light_bombers", "name": "Light bombers", "age": 8, "historicalEmergence": "early bombers (Flight I)", "equipment": ["aircraft", "bombs", "fuel"], "requires": "aircraft", "carrierCapable": "any", "recruitment": {"personnel": 20, "years": 2.0, "inputs": [{"good": "timber", "qty": 15}, {"good": "cloth", "qty": 10}, {"good": "tools", "qty": 5}, {"good": "engines", "qty": 2}, {"good": "fuel", "qty": 10}], "building": "building.airfield"} },
+        { "key": 2302, "id": "strategic_bombers", "name": "Strategic bombers", "age": 9, "historicalEmergence": "four-engine strategic bombers (Flight II)", "equipment": ["aluminium airframes", "bombs", "fuel"], "requires": "aircraft_metal", "carrierCapable": "no", "recruitment": {"personnel": 40, "years": 2.0, "inputs": [{"good": "aluminium", "qty": 20}, {"good": "engines", "qty": 4}, {"good": "fuel", "qty": 30}], "building": "building.airfield"} },
+        { "key": 2303, "id": "stealth_bombers", "name": "Stealth bombers", "age": 9, "branch": true, "historicalEmergence": "low-observable bombers (Flight III branch)", "equipment": ["composites", "fuel"], "requires": "stealth AND aircraft_metal", "carrierCapable": "no", "recruitment": {"personnel": 40, "years": 2.0, "inputs": [{"good": "aluminium", "qty": 20}, {"good": "composites", "qty": 15}, {"good": "electronics", "qty": 10}, {"good": "engines", "qty": 4}, {"good": "fuel", "qty": 30}], "building": "building.airfield"} }
       ]
     }
   ]

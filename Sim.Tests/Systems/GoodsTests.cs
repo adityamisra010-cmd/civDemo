@@ -34,8 +34,14 @@ public class GoodsTests
             "timber", "stone", "clay", "copper-ore", "tin-ore", "fiber", "hides",
             "bronze", "tools", "pottery", "cloth",
         ];
-        Assert.Equal(expected, cfg.Goods.Select(g => g.Name).ToArray());
-        Assert.Equal(14, cfg.Goods.Length);
+        // ADR-056: the D-031 fourteen are the BASE roster — every good no economy packet adds, ids 1..14 in order. The
+        // shipped roster appends the enabled packets' goods after them (EconomyMetalsTests pins those); with every packet
+        // switched off it is the fourteen exactly.
+        Assert.Equal(expected, Array.ConvertAll(Array.FindAll(cfg.Goods, g => g.Packet is null), g => g.Name));
+        GoodsConfig baseOnly = cfg;
+        foreach (PacketEntry p in cfg.Packets ?? []) baseOnly = baseOnly.WithoutPacket(p.Id);
+        Assert.Equal(expected, baseOnly.Goods.Select(g => g.Name).ToArray());
+        for (int i = 0; i < expected.Length; i++) Assert.Equal(i + 1, cfg.Goods[i].Id);
         Assert.Equal(cfg.IdOf("grain"), cfg.GrainId);
     }
 

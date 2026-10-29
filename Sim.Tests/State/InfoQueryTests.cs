@@ -510,6 +510,9 @@ public class InfoQueryTests
             case ActionDomain.Age: return [InfoSubject.OfAge((int)a.Id)];
             case ActionDomain.Construction or ActionDomain.Institutions: return [InfoSubject.OfProject((int)a.Targets[1].Id, (int)a.Targets[0].Id)];
             case ActionDomain.Roads: return [InfoSubject.OfRoadClass((int)a.Id)];
+            // ADR-055: the military ORDERS (Recruit, Re-equip, Cancel, Disband) have no inspectable subject in this slice — their
+            // bill and refusal are on the roster row itself, as Discovery's; the standing Basic fighting maps to its formations.
+            case ActionDomain.Military when a.Kind == ActionKind.Order: return [];
             case ActionDomain.Military:
             {
                 var r = new List<InfoSubject>();

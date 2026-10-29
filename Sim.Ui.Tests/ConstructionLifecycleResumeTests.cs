@@ -83,11 +83,11 @@ public class ConstructionLifecycleResumeTests
 
     /// <summary>The production pipeline under <paramref name="reservations"/> (false: TestConfigs.PreReservations restated —
     /// this project does not reference Sim.Tests), delivering <paramref name="orders"/>.</summary>
-    private static TurnExecutor Twin(bool reservations, OrderLog orders)
+    private static TurnExecutor Twin(bool reservations, OrderLog orders, SimConfig? config = null)
     {
         // M6 EX (2026-10-22): the rig runs the pre-M6 economy (TestFog.PreDiscovery — a hidden stone deposit would move every
         // figure below), so its twins are built on the same config.
-        SimConfig c = TestFog.PreDiscovery;
+        SimConfig c = config ?? TestFog.PreDiscovery;
         // D-058 (2026-10-19) CAUSE BLOCK: TestConfigs.PreReservations now also switches off the newer continueWithinTurn
         // layer (the R4 rule: the batch-3 rule had no in-step continuation), so the restatement does too.
         return Production(reservations ? c : c with { Construction = c.Construction! with { Reservations = false, ContinueWithinTurn = false } }, orders);
@@ -169,8 +169,19 @@ public class ConstructionLifecycleResumeTests
         Assert.Equal(0, c.ResearchLevels.Count);
         // ADR-051 (v37): section 68 (ResearchReserves) follows too, asserted empty — 32 bytes of empty prefixes in all.
         Assert.Equal(0, c.ResearchReserves.Count);
-        for (int i = full.Length - 32; i < full.Length; i++) Assert.Equal(0, full[i]);
-        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 32)));
+        // ADR-054 (v38): section 69 (ResearchPopulations) follows. Every Empire stores its turn-start population from its first
+        // step (tuning.populationAverageTurns 2); on these ≤ 6-turn worlds that is ADR-054's footprint in the v33 tables'
+        // absence of any research spending that the average could move — cleared like the CP accounts; 36 bytes in all.
+        // ADR-055 (v39): sections 70–73 (the military tables) follow, asserted empty — a pre-v39 session replays (and this rig
+        // runs) without the military layer (RecruitmentQuery.RecordedWithoutMilitary) — 16 more bytes.
+        Assert.Equal((0, 0, 0, 0), (c.FormationPersonnel.Count, c.Reequips.Count, c.ReequipEscrow.Count, c.ReequipLog.Count));
+        WorldState d = c.Clone();
+        d.ResearchPopulations.Clear();
+        using var buffer2 = new MemoryStream();
+        using (var writer2 = new BinaryWriter(buffer2, System.Text.Encoding.UTF8, leaveOpen: true)) CanonicalSchema.Write(d, writer2);
+        full = buffer2.ToArray();
+        for (int i = full.Length - 52; i < full.Length; i++) Assert.Equal(0, full[i]);
+        return Convert.ToHexStringLower(SHA256.HashData(full.AsSpan(0, full.Length - 52)));
     }
 
     // ================================================================== kinds 11 and 12 pending across the save (M-C)
@@ -481,9 +492,13 @@ public class ConstructionLifecycleResumeTests
         Assert.Equal(SessionTrace.Header, trace[0]);
         string Hash(int turn) => trace[turn + 1].Split(',')[^1];
 
+        // ADR-054 (2026-10-27) CAUSE BLOCK: premises (i) and (ii) are the batch-3 / v34 rules, recorded before ADR-054 — by the
+        // R4 rule they run with the ADR-054 layer off too (TestFog.PreAdr054; with it on the AI's research reads the average
+        // population from its second step and the replay leaves the trace at turn 2). (iii) is this build's resume, as shipped.
+        SimConfig pre054 = TestFog.PreAdr054(TestFog.PreDiscovery);
         // (i)
-        WorldState w = UiFounding.Found(42, 256, 4, 1);
-        TurnExecutor pre = Twin(false, saved);
+        WorldState w = UiFounding.Found(42, 256, 4, 1, withoutMilitary: true, goodsOverride: TestFog.PreDiscovery.Goods);   // ADR-055/056: the twin config is military-off and pre-packet (R4)
+        TurnExecutor pre = Twin(false, saved, pre054);
         WorldState? preAt3 = null;
         for (int t = 0; t <= 6; t++)
         {
@@ -493,11 +508,11 @@ public class ConstructionLifecycleResumeTests
         }
 
         // (ii)
-        UiSession two = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+        UiSession two = UiSession.StartWith(pre054, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
         two.ReplayTo(saved, 2);
         Assert.Equal(Hash(2), HashAtSchemaV33(two.World, out int heldAt2));
         Assert.True(heldAt2 > 0, "anti-vacuity: set-asides are published at turn 2 (binding nothing yet)");
-        UiSession three = UiSession.StartWith(TestFog.PreDiscovery, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
+        UiSession three = UiSession.StartWith(pre054, 42, sizeOverridePx: 256, settlementsOverride: 4, aiEmpiresOverride: 1);
         three.ReplayTo(saved, 3);
         Assert.NotEqual(Hash(3), HashAtSchemaV33(three.World, out _));
         Assert.Equal((700_000L, 150_000L, 6L), (P(three.World, S0), P(three.World, S2), Held(three.World, StoneId(three))));
@@ -560,7 +575,7 @@ public class ConstructionLifecycleResumeTests
             SimConfig c = TestFog.PreDiscovery;
             // D-058 (2026-10-19) CAUSE BLOCK: the batch-3 rule had no in-step continuation either (ContinueWithinTurn false).
             SimConfig batch3 = c with { Construction = c.Construction! with { Reservations = false, ContinueWithinTurn = false } };
-            WorldState w = UiFounding.Found(42, 256, 4, 1);
+            WorldState w = UiFounding.Found(42, 256, 4, 1, withoutMilitary: true, goodsOverride: TestFog.PreDiscovery.Goods);   // ADR-055/056: the twin config is military-off and pre-packet (R4)
             var recorded = new OrderLog();
             TurnExecutor exec = Production(batch3, recorded);
             string V33Line(WorldState at)

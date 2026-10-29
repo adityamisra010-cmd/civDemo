@@ -204,6 +204,10 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
             // to `extraction` bit for bit whenever there is no drag).
             double foodExtraction = State.Governance.FoodOutputMultiplier(prev, settlement, _cfg);
 
+            // R1 / ADR-056: the settlement's knowledge mask, read ONCE (SettlementKnowledge.MaskOf on PREV) for the two
+            // knowledge gates of this step — a recipe's (Craft) and a deposit's (extraction, below). Null: nothing gates.
+            bool[]? knowledge = CraftingQuery.KnowledgeOf(prev, _cfg.Research, settlement);
+
             Farm(ctx, prev, stocks, settlement,
                 farmLabor: Sectors.Share(shares, Sectors.Farming) * adults,
                 foodMultiplier: foodMultiplier,
@@ -226,16 +230,23 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 perWorkerPerYear: fx.Apply(holder, KnowledgeOperand.ProductionOutputPerHerderPerYear, _cfg.Production.OutputPerHerderPerYear),
                 foodSector: true,
                 weather: foodMultiplier,
-                extraction: foodExtraction);
+                extraction: foodExtraction,
+                knowledge: knowledge);
+            // ADR-056 §5 (EC-2): the herds (horses) — after the harvest is in the store, before Consumption.
+            Breed(ctx, prev, stocks, goods, settlement,
+                herders: Sectors.Share(shares, Sectors.Herding) * adults,
+                knowledge: knowledge);
             FromDeposits(ctx, prev, stocks, settlement,
                 pool: Sectors.Share(shares, Sectors.Extraction) * adults,
                 perWorkerPerYear: fx.Apply(holder, KnowledgeOperand.ProductionOutputPerExtractorPerYear, _cfg.Production.OutputPerExtractorPerYear),
                 foodSector: false,
                 weather: 1.0,
-                extraction: extraction);
+                extraction: extraction,
+                knowledge: knowledge);
             Craft(ctx, prev, stocks, goods, settlement,
                 pool: Sectors.Share(shares, Sectors.Crafting) * adults,
-                extraction: extraction);
+                extraction: extraction,
+                knowledge: knowledge);
         }
     }
 
@@ -379,13 +390,17 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     private void FromDeposits(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
         Table<GoodStockRow> stocks, SettlementId settlement,
-        double pool, double perWorkerPerYear, bool foodSector, double weather, double extraction)
+        double pool, double perWorkerPerYear, bool foodSector, double weather, double extraction, bool[]? knowledge)
     {
         if (pool <= 0.0) return;
 
         // M6 EX (D-062, ADR-044): a concealed deposit its controller has not prospected reads as abundance 0 — the ONE
         // predicate (State.DepositConcealment) every consumer reads through; null (nothing hidden) with concealment off.
         int[]? hidden = DepositConcealment.HiddenGoods(prev, _cfg, settlement);
+        // ADR-056: a deposit good whose goods.json knowledge the settlement does not satisfy is NOT WORKED — it joins the
+        // hidden mask for this split (no labour goes there, so none is wasted on an ore nobody can smelt). Every base good
+        // has no gate, so with no packet good in the roster the mask is the concealment mask exactly.
+        hidden = Unworkable(_cfg.Goods!, hidden, knowledge);
 
         // Deposit rows are settlement-major, goods-registry order (T3.2) —
         // one pass collects this settlement's split weights deterministically.
@@ -429,6 +444,121 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     }
 
     /// <summary>
+    /// ADR-056 §5 (EC-2, mounts) — THE HERD: every goods.json good with a <c>herd</c> block (horses) breeds from itself on
+    /// the settlement's pasture, once the settlement's knowledge meets the good's <c>knowledge</c> gate
+    /// (horse_domestication). Without it the stock is inert (held or traded, never bred, never fed). Not food, not a
+    /// deposit good: nothing here touches the herding sector's livestock or fish output.
+    ///
+    /// <para><b>The mechanism.</b> Herders h = the herding sector's pool (the same workers who tend livestock; horses are
+    /// kept alongside the flocks, not instead of them). Pasture P = the known abundance of the herd's pastureGood deposit
+    /// (livestock's moisture-channel row). Capacity K = h × headPerHerder × P × fed. Capture c = h ×
+    /// capturePerHerderPerYear × P × fed (wild head taken into the herd — what seeds a herd from nothing). Over the turn
+    /// the herd follows dH/dt = (c + r·H)(1 − H/K) below K and loses its excess at the breeding rate above it,
+    /// r = breedingRatePerYear, integrated in CLOSED FORM over dtYears (<see cref="HerdAfter"/>): exact for any turn
+    /// length (law 3), never overshooting K. No keepers or no pasture (K = 0): the herd disperses at e^(−r·dt).</para>
+    ///
+    /// <para><b>Fodder.</b> Each head draws fodderPerHeadPerYear of the fodderGood (grain) — a Ledger SINK, reason Fodder,
+    /// on the EXACT head-years of the fed trajectory over the turn (<see cref="HeadYears"/>, the closed-form integral of
+    /// H), clamped to the stock. A shortfall
+    /// scales K (and c) by the fed share and the trajectory is recomputed: hungry horses do not breed, and a herd above
+    /// its fed capacity shrinks. The sub-unit fodder owed is banked in the HERD row's ConsumeRemainder (a herd good is no
+    /// recipe's input — the loader refuses one — so the field is otherwise unused); an unpaid whole unit is not carried.</para>
+    ///
+    /// <para><b>Conservation.</b> The herd's net change over the turn, H1 − H0 plus the herd row's banked ProduceRemainder,
+    /// enters as whole units: a gain through Produced (8), a loss through HerdLosses (22), the sub-unit rest banked. H1 ≥ 0
+    /// bounds every loss by the stock, so OverdrawPolicy.Throw is safe by construction. Runs after Farm (the harvest is
+    /// in the store) and before Consumption (the pipeline order).</para>
+    /// </summary>
+    private void Breed(
+        SimContext<ProductionTables> ctx, IReadOnlyWorldState prev, Table<GoodStockRow> stocks, GoodsConfig goods,
+        SettlementId settlement, double herders, bool[]? knowledge)
+    {
+        for (int gi = 0; gi < goods.Goods.Length; gi++)
+        {
+            GoodEntry g = goods.Goods[gi];
+            if (g.Herd is not { } herd) continue;
+            if (!EconomyKnowledge.Met(_cfg.Research, g.Knowledge, knowledge)) continue;   // unknown: an inert stock
+            var good = new GoodId(g.Id);
+            int row = GoodStockIndex.IndexOf(stocks, settlement, good);
+            if (row < 0) continue;
+
+            double keepers = herders > 0.0 ? herders : 0.0;   // NaN and negative read as no keepers
+            double pasture = DepositConcealment.KnownAbundance(prev, _cfg, settlement, goods.IdOf(herd.PastureGood));
+            double capacity = keepers * herd.HeadPerHerder * pasture;
+            double capture = keepers * herd.CapturePerHerderPerYear * pasture;
+            double r = herd.BreedingRatePerYear;
+            double dt = ctx.DtYears;
+            long h0 = stocks[row].Amount.Value;
+
+            // Fed trajectory first; the fodder it eats; then, on a shortfall, the trajectory the fed share allows.
+            double h1 = HerdAfter(h0, capacity, capture, r, dt);
+            var fodderGood = new GoodId(goods.IdOf(herd.FodderGood));
+            int fodderRow = GoodStockIndex.IndexOf(stocks, settlement, fodderGood);
+            double owedExact = HeadYears(h0, capacity, capture, r, dt) * herd.FodderPerHeadPerYear + stocks[row].ConsumeRemainder;
+            long owed = ConservedMath.WholeUnits(owedExact, $"herd fodder of good {g.Id} (settlement {settlement.Value})");
+            long eaten = 0;
+            if (owed > 0 && fodderRow >= 0)
+                eaten = ctx.Ledger.Flow(ref stocks.Ref(fodderRow).Amount, ConservedQuantityIds.OfGood(fodderGood),
+                    ReasonIds.Fodder, owed, FlowDirection.Sink, OverdrawPolicy.ClampToAvailable);
+            stocks.Ref(row).ConsumeRemainder = owedExact - owed;
+            if (eaten < owed)
+            {
+                double fed = (double)eaten / owed;
+                h1 = HerdAfter(h0, capacity * fed, capture * fed, r, dt);
+            }
+
+            ref GoodStockRow stock = ref stocks.Ref(row);
+            double exact = h1 - h0 + stock.ProduceRemainder;
+            long change = ConservedMath.WholeUnits(exact, $"herd change of good {g.Id} (settlement {settlement.Value})");
+            if (change > 0)
+                ctx.Ledger.Flow(ref stock.Amount, ConservedQuantityIds.OfGood(good), ReasonIds.Produced,
+                    change, FlowDirection.Source, OverdrawPolicy.Throw);
+            else if (change < 0)
+                ctx.Ledger.Flow(ref stock.Amount, ConservedQuantityIds.OfGood(good), ReasonIds.HerdLosses,
+                    -change, FlowDirection.Sink, OverdrawPolicy.Throw);
+            stock.ProduceRemainder = exact - change;
+            stock.LastProducedUnits = change > 0 ? change : 0;
+        }
+    }
+
+    /// <summary>
+    /// ADR-056 §5 — the head-years ∫H dt the herd lives through over <paramref name="dt"/> years on the trajectory of
+    /// <see cref="HerdAfter"/>, in closed form, so the fodder the turn draws is exact for any turn length (law 3). Below K,
+    /// with R(t) = Q(H0)·e^(λ·t) the trajectory is H = (R·K − c)/(r + R), and the integral reduces (λ = (c + r·K)/K makes
+    /// the coefficient (K + c/r)/λ exactly K/r) to (K/r)·ln((r + R1)/(r + R0)) − (c/r)·dt. At or above K:
+    /// K·dt + (H0 − K)(1 − e^(−r·dt))/r.
+    /// </summary>
+    public static double HeadYears(double h0, double capacity, double capture, double r, double dt)
+    {
+        double k = capacity > 0.0 ? capacity : 0.0;
+        if (h0 >= k) return k * dt + (h0 - k) * (1.0 - Math.Exp(-r * dt)) / r;
+        double q = (capture + r * h0) / (k - h0);
+        double big = q * Math.Exp((capture + r * k) * dt / k);
+        if (double.IsInfinity(big)) return k * dt;
+        double years = (k / r) * Math.Log((r + big) / (r + q)) - (capture / r) * dt;
+        return years > 0.0 ? years : 0.0;
+    }
+
+    /// <summary>
+    /// ADR-056 §5 — the herd after <paramref name="dt"/> years, in closed form (exact for any turn length, law 3).
+    /// BELOW capacity K: dH/dt = (c + r·H)(1 − H/K). With Q(H) = (c + r·H)/(K − H) it separates to
+    /// Q(H1) = Q(H0)·e^(λ·dt), λ = (c + r·K)/K, so H1 = (R·K − c)/(r + R), R = Q(H0)·e^(λ·dt): the herd rises toward K
+    /// and never crosses it. AT OR ABOVE K: the excess is lost at the breeding rate, dH/dt = −r·(H − K), so
+    /// H1 = K + (H0 − K)·e^(−r·dt) — continuous with the logistic at K, and with no keepers or pasture (K = 0) the herd
+    /// disperses as H0·e^(−r·dt). Pure; doubles only for the rate (law 7).
+    /// </summary>
+    public static double HerdAfter(double h0, double capacity, double capture, double r, double dt)
+    {
+        double k = capacity > 0.0 ? capacity : 0.0;
+        if (h0 >= k) return k + (h0 - k) * Math.Exp(-r * dt);
+        double q = (capture + r * h0) / (k - h0);
+        double big = q * Math.Exp((capture + r * k) * dt / k);
+        if (double.IsInfinity(big)) return k;
+        double h1 = (big * k - capture) / (r + big);
+        return h1 > 0.0 ? (h1 < k ? h1 : k) : 0.0;
+    }
+
+    /// <summary>
     /// This settlement's PREV harvest-weather multiplier, or 1.0 when no row
     /// exists. Extracted verbatim at T4.5 from Farm's own inline lookup — same
     /// scan order, same first-match break, same absent-row default — so that
@@ -468,8 +598,31 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         return 1.0;
     }
 
+    /// <summary>ADR-056: <paramref name="hidden"/> extended by the deposit goods the settlement may not work
+    /// (EconomyKnowledge.IsWorkable false). Returns <paramref name="hidden"/> itself — the same instance, untouched — when
+    /// no good is gated off, so the base roster's split is computed over exactly the pre-ADR-056 mask.</summary>
+    private int[]? Unworkable(GoodsConfig goods, int[]? hidden, bool[]? knowledge)
+    {
+        List<int>? extra = null;
+        foreach (GoodEntry g in goods.Goods)
+        {
+            if (g.Knowledge is null || g.DepositChannel is null) continue;
+            if (EconomyKnowledge.IsWorkable(goods, _cfg.Research, g.Id, knowledge)) continue;
+            if (DepositConcealment.Contains(hidden, g.Id)) continue;
+            (extra ??= []).Add(g.Id);
+        }
+        if (extra is null) return hidden;
+        var merged = new int[(hidden?.Length ?? 0) + extra.Count];
+        if (hidden is not null) Array.Copy(hidden, merged, hidden.Length);
+        for (int i = 0; i < extra.Count; i++) merged[(hidden?.Length ?? 0) + i] = extra[i];
+        return merged;
+    }
+
     private bool InSector(GoodId good, bool foodSector)
     {
+        // ADR-056: a deposit row of a good this config's roster does not hold (a disabled economy packet's ore, in a world
+        // founded with the packet on) is no sector's — never worked, never weighed in the split.
+        if (!_cfg.Goods!.Contains(good.Value)) return false;
         bool isFood = good == _livestock || good == _fish;
         return foodSector ? isFood : !isFood;
     }
@@ -479,7 +632,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     private void Craft(
         SimContext<ProductionTables> ctx, IReadOnlyWorldState prev,
         Table<GoodStockRow> stocks, GoodsConfig goods,
-        SettlementId settlement, double pool, double extraction)
+        SettlementId settlement, double pool, double extraction, bool[]? knowledge)
     {
         if (pool <= 0.0 || goods.Recipes.Length == 0) return;
 
@@ -488,7 +641,6 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
         // goods.json recipes[].entity; a null requirement is baseline) AND the D-020 gate against PREV
         // published variables (identical wiring to ClassMobility's emergence evaluation). The labour
         // and action surfaces call the same function, so they can never list a recipe this step refuses.
-        bool[]? knowledge = CraftingQuery.KnowledgeOf(prev, _cfg.Research, settlement);
         Span<bool> available = stackalloc bool[goods.Recipes.Length];
         int availableCount = 0;
         for (int r = 0; r < goods.Recipes.Length; r++)

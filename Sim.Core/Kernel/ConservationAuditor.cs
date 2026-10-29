@@ -55,6 +55,11 @@ public static class ConservationAuditor
                 int id = world.GoodStocks[i].Good.Value;
                 if (!goodIds.Contains(id)) goodIds.Add(id);
             }
+            for (int i = 0; i < world.ReequipEscrow.Count; i++)
+            {
+                int id = world.ReequipEscrow[i].Good;
+                if (!goodIds.Contains(id)) goodIds.Add(id);
+            }
             for (int i = 0; i < world.LedgerFlows.Count; i++)
             {
                 if (!ConservedQuantityIds.IsGood(world.LedgerFlows[i].Quantity)) continue;
@@ -111,6 +116,10 @@ public static class ConservationAuditor
                 // R-1 bought Option B precisely so the law-1 audit spans both.
                 for (int i = 0; i < world.Notables.Count; i++)
                     stocks += world.Notables[i].Count.Value;
+                // ADR-055: a formation's people are PEOPLE, held in a third carrier (they left the buckets by
+                // Ledger.Transfer when it was raised and return the same way when it is disbanded).
+                for (int i = 0; i < world.FormationPersonnel.Count; i++)
+                    stocks += world.FormationPersonnel[i].Count.Value;
             }
             else if (quantity == ConservedQuantityIds.Dwellings)
             {
@@ -123,6 +132,10 @@ public static class ConservationAuditor
                 for (int i = 0; i < world.GoodStocks.Count; i++)
                     if (world.GoodStocks[i].Good == good)
                         stocks += world.GoodStocks[i].Amount.Value;
+                // ADR-055: goods a pending re-equipment holds in escrow (moved out of the stockpile by Ledger.Transfer).
+                for (int i = 0; i < world.ReequipEscrow.Count; i++)
+                    if (world.ReequipEscrow[i].Good == good.Value)
+                        stocks += world.ReequipEscrow[i].Units.Value;
             }
 
             long sourced = 0, sunk = 0;

@@ -128,14 +128,29 @@ public class AgeProgressionTests
     [Fact]
     public void Founding_FormationsAreTokens_PopulationAndGoodsAreExactlyThoseOfAWorldWithoutUnitFamilies()
     {
-        // Law 1: founding a formation draws no person and no good. Same seed, same config minus the
-        // unit-family content: every conserved table is identical.
-        WorldState with = Solo();
-        WorldState without = WorldFounding.Found(TestConfigs.DevWorldgen(), Cfg with { UnitFamilies = null }, 42);
+        // Law 1: founding a TOKEN formation draws no person and no good. Same seed, same config minus the
+        // unit-family content: every conserved table is identical. ADR-055 §4: with the military layer on the
+        // founding warband has personnel, so the token law is the military switch-off twin's (TestConfigs.PreMilitary).
+        SimConfig tokens = TestConfigs.PreMilitary(Cfg);
+        WorldState with = WorldFounding.Found(TestConfigs.DevWorldgen(), tokens, 42);
+        WorldState without = WorldFounding.Found(TestConfigs.DevWorldgen(), tokens with { UnitFamilies = null }, 42);
         Assert.Equal(0, without.MilitaryUnits.Count);
+        Assert.NotEqual(0, with.MilitaryUnits.Count);
         Assert.True(WorldStates.TableEquals(with.Buckets, without.Buckets));
         Assert.True(WorldStates.TableEquals(with.GoodStocks, without.GoodStocks));
         Assert.True(WorldStates.TableEquals(with.LedgerFlows, without.LedgerFlows));
+
+        // The shipped (personnel) world: the warband's people are MOVED from the capital's adults by Ledger.Transfer —
+        // no good, no flow, the population total unchanged.
+        WorldState personnel = Solo();
+        Assert.True(WorldStates.TableEquals(personnel.GoodStocks, without.GoodStocks));
+        Assert.True(WorldStates.TableEquals(personnel.LedgerFlows, without.LedgerFlows));
+        long inBuckets = 0, inFormations = 0, before = 0;
+        for (int i = 0; i < personnel.Buckets.Count; i++) inBuckets += personnel.Buckets[i].Count.Value;
+        for (int i = 0; i < personnel.FormationPersonnel.Count; i++) inFormations += personnel.FormationPersonnel[i].Count.Value;
+        for (int i = 0; i < without.Buckets.Count; i++) before += without.Buckets[i].Count.Value;
+        Assert.True(inFormations > 0);
+        Assert.Equal(before, inBuckets + inFormations);
     }
 
     // ------------------------------------------------------------------ eligibility

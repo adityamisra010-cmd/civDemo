@@ -33,8 +33,13 @@ public static class CraftingQuery
         SettlementKnowledge.MaskOf(world, research, settlement);
 
     /// <summary>Whether the recipe's knowledge requirement is met by <paramref name="completed"/> (null = no gate).</summary>
+    /// <remarks>ADR-056: a recipe's goods.json <c>knowledge</c> expression (existing node ids; TC-1 adds no entity) must
+    /// hold as well (<see cref="EconomyKnowledge.Met"/> — met ONLY by knowledge: with no research content or no knowledge
+    /// mask it is not). Absent on every base recipe, so their reading — including "everything is known" where nothing
+    /// gates — is unchanged.</remarks>
     public static bool IsKnown(ResearchContent? research, RecipeEntry recipe, bool[]? completed)
     {
+        if (recipe.Knowledge is { } gate && !EconomyKnowledge.Met(research, gate, completed)) return false;
         if (research is null || completed is null || recipe.Entity is null) return true;
         int entity = research.EntityIndexOf(recipe.Entity);
         return entity >= 0 && ResearchQuery.IsKnowledgeEligible(research, entity, completed);
