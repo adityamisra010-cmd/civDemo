@@ -124,3 +124,11 @@ stage; D-051 carry-over is a conditional lane, not part of the chain.
 - The spec (`docs/m6-spec.md` §4) re-expresses this graph as packets T6.1–T6.21 with a gate the graph did not have:
   **D-061 ratification** between T6.2 and T6.3 (civics currency). Critical path: T6.1 → ratify → T6.2 → T6.3 → T6.4 →
   T6.5 → T6.6 → T6.15 → T6.17 → T6.18 → T6.20. Fog, export, E1, units, diffusion, universities are independent lanes.
+
+## Dated note — 2026-10-28 (D-067 R19; appended, the text above is unchanged)
+
+M6.24 (the edges-table row, the "Carry-over | Economy lane" row and the `M61 -. ruling R2 .-> M624` / `M624 --> M617`
+edges) is **deferred out of M6** by the Director ([D-067](../d067-m6-exit-gate-director-rulings.md) R19): until after the
+Director's M6 playtest, with no milestone named. M6.17's "(M6.24)" prerequisite is void. The critical path is unchanged
+(M6.24 was never on it). The known-extent restriction of claim, trade and road routing (part of M6.13's S2b) is deferred
+to M7 (D-067 R10).

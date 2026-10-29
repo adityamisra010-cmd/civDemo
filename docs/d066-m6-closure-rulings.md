@@ -112,3 +112,27 @@ same rows.
 **M6.24 (D-051 §2/§4 carry-over)** is added to §2's "Not decided here" list. D-N assigned these items to M6, but DW-036
 records that the Director deferred the §4 mechanism and milestone "until after the playtest", and the §2 richness classes
 have no ruled mechanism either. NOT IMPLEMENTED. A Director ruling is required.
+
+---
+## Dated note — 2026-10-28 (the Director's exit-gate rulings: D-067)
+
+The Director ruled on this record's ADOPTED items and on its open lines in [D-067](d067-m6-exit-gate-director-rulings.md).
+The text above is unchanged (gov-4 §6). Read it through the following:
+
+**§2 defaults: all nineteen settled.**
+- **CONFIRMED as adopted:** A1, A2, A5, A10, A11, A12, A15, A16, A17, A18 (D-067 R1).
+- **CONFIRMED with corrections:** A3, A4, A6, A13, A14 (D-067 R2–R6).
+  - A3: the era theme (ink, paper) is also Age-keyed presentation.
+  - A4: the eight-part cap is **provisional until the visual gate**. Eight kinds exist, so it has no headroom, and the frame-cost rationale is unsupported (D-067 R3).
+  - A6: the validator checks the rule; it does not prove it.
+  - A13: concerns criterion **3**, not 8.
+  - A14: the writer is the hand-written `StoredZip`, not `ZipArchive`.
+- **RULED explicitly:** A7, A8, A9, A19 (D-067 R7–R10).
+  - A7: trade contact only.
+  - A8: the formula is retained provisionally pending calibration.
+  - A9: only the law court is built; every other deferred entity is classified.
+  - A19: the known-extent restriction of claim, trade and road routing goes to M7, superseding DW-001's M6 assignment. E8 was a coordinator design, not a ratified ruling; D-067 R10 is the ruling.
+
+**"Not decided here" and the M6.24 note.** M6.24 (D-051 §2 remainder and §4) is now RULED: deferred until after the Director's M6 playtest, with no milestone named (D-067 R19). It is not an exit criterion, and the Director gate is discharged.
+
+**§1 R1–R8 stand.** D-067 adds the migration acceptance (R11–R14), the ratification of ADR-055 (R15), the separate ratification of EC-1/EC-2/EC-3 (R16–R18), and the commit order (R20).

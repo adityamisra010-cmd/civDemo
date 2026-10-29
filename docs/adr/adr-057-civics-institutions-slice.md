@@ -1,9 +1,12 @@
 # ADR-057 — The M6 civics and institutions vertical slice: content-driven institution types, the law court, the regime-module shape
 
-**Status: ADOPTED UNDER DELEGATION (D-066 A1, A2, A6, A10, A13; M6 closure track CIV, 2026-10-28; uncommitted; Director confirmation requested at the exit gate).** Implements the slice D-066 A2 adopted (register
+**Status: ACCEPTED — the Director CONFIRMED D-066 A1, A2 and A10 (D-067 R1), A6 (D-067 R4, with its correction: the
+validator checks optionality at load, it does not prove it) and A13 (D-067 R5), 2026-10-28.** First recorded as ADOPTED
+UNDER DELEGATION (M6 closure track CIV, 2026-10-28; uncommitted). Stale facts are corrected in place and listed in the
+amendment log at the end. Implements the slice D-066 A2 adopted (register
 D-P items 1–3 and 6–8) on the institution definition D-066 A1 adopted (register D-M option 1), with D-066 A6 (I-7
-wording), A10 (forms) and A13 (criterion 8 scope). Every item is reversible; the Director is asked to confirm at the exit
-gate, as D-066 §2 requires. Not in scope: government adoption and active political effects (M8, D-D / D-062), any
+wording), A10 (forms) and A13 (the government-form criterion's scope: m6-spec §5 criterion 3, per D-067 R5). Every item
+is reversible; the Director confirmed them at the exit gate (D-067 R1, R4, R5), as D-066 §2 required. Not in scope: government adoption and active political effects (M8, D-D / D-062), any
 research.json node, entity, cost or text (TC-1, D-066 R3), the research-economy candidate (R4), movement or M7 work (R5),
 D-P item 4 (the inert promotion entry — the unit-progression track's) and item 5 (recorded honestly by that track).
 
@@ -113,12 +116,24 @@ said "Adopted civics …" (`Lenses.cs`, `ProgressionScreen.cs`, `ProgressionPrev
 - MEASURED on this tree (base + CIV): the founded `d5ebd0b2…`, driven `55afd498…`, first-reign `064ed6b7…` and AI-world
   `S1cTurn300 ac4554bf…` pins are UNCHANGED with the court ON (their tests pass unmodified, including every older-twin arm
   of `AiFoundingAttributionTests`). Cause: in those worlds no court is ordered by turn 300. No pin moved; no re-pin.
-- MEASURED beyond the pins (canonical world, one AI Empire, 700 turns, ON vs `PreLawCourt`): seed 42 — the AI completes
+  *On the integrated M6 tree* the AI-world pin is `5458cb3d…`, moved by ADR-058 (KNOW) and D-066 A18 together, not by
+  the court (`docs/m6-plan/golden-attribution-register.md`, dated notes of 2026-10-28); `ac4554bf…` survives there as
+  `AiFoundingAttributionTests.PreA18Turn300`. The founded, driven and first-reign values above are the shipped ones.
+- MEASURED beyond the pins on the CIV track's own tree (base + CIV; canonical world, one AI Empire, 700 turns, ON vs
+  `PreLawCourt`) — historical, superseded for seed 42 by the integrated value below: seed 42 — the AI completes
   law_code at turn 506, orders a court that turn, the worlds first differ at state 507 (the delivery), the court is founded
   at 508; seed 1 — 500 / 500 / 501 / 502. Both AIs hold three courts by turn 600 (the saturation reading S(3) ≥ 0.95 stops
   a fourth) and read "law-giving chiefdom". Pinned turn-exactly for seed 42 by
   `LawCourtAiWorldAttributionTests.AiWorldSeed42_IdenticalToTheTwinUntilTheFirstCourtOrdersDelivery_…` (the attribution
   control: byte-identical before the delivery, different from it on).
+- **Current value, the integrated M6 tree (2026-10-28):** seed 42's first court order is stamped at turn **507** (CIV's
+  tree: 506), so the worlds first differ at state 508 and the court is founded at 509 (stamp + 2, asserted). Cause: D-066
+  A18, the AI's known-terrain valuation, which moves the AI's foundings and its research trajectory with them; with KNOW
+  off the stamp is still 507 (stated in the re-pin comment, not asserted by a test). Control: with only A18 off (`TestConfigs.PreAiKnownTerrain`) the stamp is 506
+  (`LawCourtAiWorldAttributionTests.FirstCourtOrder_WithTheKnownTerrainValuationOff_IsStampedAt506`). The test does not
+  assert the turn law_code completes on the integrated tree, and the seed-1 figures and the turn-600 court count above
+  were not re-measured there. This re-pin is recorded on the test (`LawCourtAiWorldAttributionTests.cs`), not in the
+  golden-attribution register.
 
 ## 7. Decisions taken under D-066's rules (new, recorded here)
 
@@ -133,3 +148,25 @@ said "Adopted civics …" (`Lenses.cs`, `ProgressionScreen.cs`, `ProgressionPrev
    civics route); widening them would move the AI's research path and every AI pin.
 7. Display "Unresearched" for the LOCKED stage of an institution type (the polity reading); the per-settlement lifecycle
    enum is unchanged.
+
+## Amendment log — 2026-10-28 (D-067)
+
+Authority: `docs/d067-m6-exit-gate-director-rulings.md` R1 (A1, A2, A10 CONFIRMED), R4 (A6), R5 (A13) and
+§7 ("status CONFIRMED, with stale facts corrected"). This ADR was uncommitted and not yet confirmed, so stale FACTS
+were corrected in place; no design decision is changed. Line numbers marked "was" are those of the staged pre-amendment
+text; evidence was read from the live tree on 2026-10-28. D-067 is cited by ruling and section, not by line: it is untracked and was being amended concurrently.
+
+| # | Where | Old | New | Evidence |
+|---|---|---|---|---|
+| 1 | Status line (was :3) | "Status: ADOPTED UNDER DELEGATION (D-066 A1, A2, A6, A10, A13; M6 closure track CIV, 2026-10-28; uncommitted; Director confirmation requested at the exit gate)." | "Status: ACCEPTED — the Director CONFIRMED D-066 A1, A2 and A10 (D-067 R1), A6 (D-067 R4, with its correction …) and A13 (D-067 R5), 2026-10-28." The original adoption is kept as history. | D-067 §1 (R1, R4, R5) |
+| 2 | Status paragraph (was :5) | "A13 (criterion 8 scope)" | "A13 (the government-form criterion's scope: m6-spec §5 criterion 3, per D-067 R5)" | D-067 §1 (R5); `docs/m6-spec.md:308` (criterion 3: "government forms are Available only (M8 adopts)"), `:317` (criterion 8: content validation) |
+| 3 | Status paragraph (was :5–6) | "the Director is asked to confirm at the exit gate, as D-066 §2 requires." | "the Director confirmed them at the exit gate (D-067 R1, R4, R5), as D-066 §2 required." | as #1 |
+| 4 | §6 second bullet (was :113–115) | AI-world `S1cTurn300 ac4554bf…` presented as the current pin | Kept as the CIV-tree measurement; added: on the integrated tree the AI-world pin is `5458cb3d…`, moved by ADR-058 + D-066 A18, not by the court; `ac4554bf…` survives as `PreA18Turn300` | `Sim.Tests/Kernel/AiFoundingAttributionTests.cs:129, :151`; `docs/m6-plan/golden-attribution-register.md:64, :74` |
+| 5 | §6 third bullet (was :116) | "MEASURED beyond the pins (canonical world, …)" | Labelled as the CIV track's own tree (base + CIV), historical, superseded for seed 42 by the integrated value; its figures (506 / 507 / 508; seed 1 500 / 500 / 501 / 502) are kept | `Sim.Tests/Systems/LawCourtAiWorldAttributionTests.cs:13–16` (the class summary records CIV's 506) |
+| 6 | §6, new bullet after the pinned-test sentence (was after :121) | AI first court order turn 506, worlds differ at 507, court founded 508 (as current) | Current integrated value: first court order stamped **507**; worlds first differ at state 508; court founded at 509 (stamp + 2). Cause D-066 A18; control `FirstCourtOrder_WithTheKnownTerrainValuationOff_IsStampedAt506` | `LawCourtAiWorldAttributionTests.cs:46–52` (`Assert.NotEqual` at `stamp + 1`; re-pin comment 506 → 507 attributing D-066 A18; `Assert.Equal(507, stamp)`), `:55` (`FoundedTurn == stamp + 2`), `:60–78` (control, `Assert.Equal(506, stamp)`) |
+
+**Attribution note.** The 506 → 507 re-pin is attributed to D-066 A18 by the test's own re-pin comment and control
+(`LawCourtAiWorldAttributionTests.cs:49–51`, `:60–78`). `docs/m6-plan/golden-attribution-register.md` does NOT record it
+(no entry for the court; checked 2026-10-28), so the test file is the only record. "KNOW off still gives 507" is stated in
+that comment and not asserted by a test. Not measured on the integrated tree: the turn law_code completes, the seed-1
+figures and the turn-600 court count.

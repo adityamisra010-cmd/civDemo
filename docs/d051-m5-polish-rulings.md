@@ -146,3 +146,14 @@ Battle Layer deferral (M7).
 ## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
 
 §2 (availability and richness classes, `:132-142`): D-062 R6/R7 make concealment (≈25 % of eligible geological deposits, revealed by prospecting) the first availability class in M6 (ADR-044). Richness classes stay as scheduled. Record: `docs/d062-m6-director-final-rulings.md`.
+
+## Dated note — 2026-10-28 (D-067 R19; appended, the text above is unchanged)
+
+§2 (the remaining parts: the §2(a) common-material floor and the §2(b) regional richness classes) and §4 (primitive
+stone-and-wood toolmaking and its unresolved CR-020 §A mechanism choice) are rescheduled: the 2026-10-20 R2 destination
+"→ M6" is superseded, and both are **deferred until after the Director's M6 playtest, with no milestone named**
+(`docs/d067-m6-exit-gate-director-rulings.md` R19). M10 is a content-mapped future possibility, not a commitment; the M7
+economy track is a coupled alternative, not an assignment. This changes scheduling only: **both rulings stay
+RATIFIED.** The Workshop guard (D-052 §11; `ConstructionQuery` → `InputUnobtainable`) and deposit concealment (§2's
+first availability class; D-062 R6/R7, ADR-044) are unchanged. Carried open: D-062 R6 ("randomly distributed") versus
+§2(b) ("geographically correlated … not a random site").

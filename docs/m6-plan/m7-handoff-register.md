@@ -95,3 +95,20 @@ the correction, and names one owner per side (what M6 delivered; what M7 builds)
 - **H7-11:** "Rulings owed: D-E" is stale. D-E is RULED (2026-10-20). M6.11's disposition note is `settler-special-character-disposition.md`.
 - **H7-01:** kind 10 is reserved at `Sim.Core/Kernel/OrderLog.cs:164` (was cited as `:157`).
 - **Register status as of 2026-10-28:** the M6 side of every row is COMPLETE or explicitly empty. The register is the M7 input. Its header "PROPOSED (planning input, 2026-10-20)" is historical.
+
+## Dated note — 2026-10-28 (D-067: the Director's exit-gate rulings)
+
+The rows above are unchanged. D-067 affects M7's inheritance in five places:
+- **Known-extent routing is M7 work by ruling** (D-067 R10). The known-extent restriction of claim, trade and road
+  routing, and the founding predicate's reads of unseen land (DW-002), are assigned to M7. This explicitly supersedes
+  DW-001's 2026-10-12 M6 assignment. It is a scheduling ruling; it authorizes no implementation now. Owner: the M7
+  route graph (H7-01 movement) with the fog rows of D-066 §3.
+- **ADR-055 is ratified** (D-067 R15), including the scope beyond D-065 R7's list: general Recruit and Disband orders,
+  soldier upkeep, and AI recruitment on. The accepted consequences are M7 inputs:
+  - soldiers have no attrition until **M7.4** (H7-04 battle resolution, and its supply attrition);
+  - the founding warband draws 20 people from the capital.
+- **EC-1, EC-2 and EC-3 are ratified separately** (D-067 R16–R18). They are mostly dormant until their knowledge gates
+  are reached. ADR-056 §10's AI research-progression finding stays open for the M7 economy track.
+- **D-051 §4 primitive toolmaking** is deferred until after the M6 playtest, with no milestone named (D-067 R19). The
+  M7 economy track (EC-1 toolmaking) is a coupled alternative, **not an assignment**.
+- **Migration policy is not M7 work.** M8 owns it (D-067 R13).

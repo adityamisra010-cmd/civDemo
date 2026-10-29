@@ -10,7 +10,7 @@ using static Sim.Tests.TestUtil.EconomyRigs;
 namespace Sim.Tests.Systems;
 
 /// <summary>
-/// ADR-056 §6 — EC-3 GUNPOWDER (D-065 R2: a separately reviewed M7 packet): saltpetre and sulphur deposits, black powder
+/// ADR-056 §9 — EC-3 GUNPOWDER (D-065 R2: a separately reviewed M7 packet): saltpetre and sulphur deposits, black powder
 /// milling and high explosives, gated on existing nodes (saltpetre_refining, dynamite — TC-1). The same acceptance
 /// shape as EC-1: exact roster, exact switch, knowledge-only gates, per-execution coefficients, untouched concealment
 /// pools of the packets before it, exact conservation over a run that exercises every good.

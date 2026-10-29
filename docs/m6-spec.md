@@ -461,3 +461,22 @@ display and scouts move to M7.
 - **Criterion 5's** visual gate and criterion 10's slice acceptance are the Director's.
 
 Evidence: `docs/m6-exit-inventory.md`.
+
+## Dated note — 2026-10-28 (D-067; appended, the text above is unchanged)
+
+The Director's exit-gate rulings are recorded in `docs/d067-m6-exit-gate-director-rulings.md`. Read §4 and §5 through
+them:
+- **Criterion readings.** D-066 A13 concerns **criterion 3** (the regime module; forms "Available — adoption in M8"),
+  not criterion 8; criterion 8 is judged on its own evidence (D-067 R5). The D-066 note's "criteria 7 and 8: read per
+  D-066 A11 and A13" is corrected accordingly.
+- **§4 T6.21 D-051 carry-over lane (M6.24): DEFERRED** until after the Director's M6 playtest, with no milestone named
+  (D-067 R19). It is **not an M6 exit criterion**; no §5 criterion reads it. D-051 §2 and §4 stay RATIFIED; §1(a) → M9
+  and §6-remainder → M10 are unchanged.
+- **Deferred entities** read as **classified, not realized**: only the law court is built in M6 (D-067 R9). The
+  research-modifier formula is ADR-033 D6, retained provisionally pending calibration (R8). Diffusion is trade contact
+  only (R7).
+- **Criterion 4's "settle/claim/trade respect extent":** the claim and trade (and road) parts are deferred to **M7**
+  (D-067 R10, ruling D-066 A19 and superseding DW-001's M6 assignment); founding on known land is the M6 part.
+- **Criterion 5:** the E1 eight-part cap is provisional until the Part G gate (R3).
+- D-067 also confirms the remaining D-066 defaults (R1–R6), accepts the lower migration baseline as design (R11–R14),
+  ratifies ADR-055 and EC-1/EC-2/EC-3 (R15–R18), and sets the commit order (R20). It does not close M6.

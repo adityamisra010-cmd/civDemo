@@ -1844,3 +1844,12 @@ The charter is ready to drive M7 when:
 - Aviation: [`aviation-progression.md`](aviation-progression.md); method: [`gap-resolution-standard.md`](gap-resolution-standard.md)
 - Civilization VI was used as a pattern reference only (common baseline plus unique variants; Great People; the Rock
   Band). No movement rules, statistics or upgrade costs were copied.
+
+## Dated note — 2026-10-28 (D-067 R16–R18)
+
+The EC-1, EC-2 and EC-3 rows of the economy-packet table (the rows naming families 13, 15 or 16) predate D-065 R9.
+R9's row states the withdrawal of the proposed family keys 13, 15 and 16, which stay unallocated; R10 defines the
+category B they move to (combat engineers, military supply, field medical). Earlier text in this charter and the M7
+execution-pass report cite the withdrawal as "R10"; both citations refer to the same pair of rulings. The ratified packets (D-067 R16–R18;
+[ADR-056](../adr/adr-056-economy-packets.md) §4 and §9, as amended) unblock families 14 and 17–19 only. The rows above
+are unchanged as the historical charter text.

@@ -10,7 +10,8 @@ namespace Sim.Tests.Systems;
 
 /// <summary>
 /// ADR-057 §6 — THE LAW COURT'S ATTRIBUTION IN THE SHIPPED AI WORLD (canonical worldgen, one AI Empire, seed 42), against
-/// its switch-off twin (TestConfigs.PreLawCourt). MEASURED (2026-10-28, this tree): the AI completes law_code at turn 506,
+/// its switch-off twin (TestConfigs.PreLawCourt). MEASURED (2026-10-28, on the CIV track's own tree, before D-066 A18;
+/// on the integrated tree the first order is stamped 507 — the A18 control below keeps 506): the AI completes law_code at turn 506,
 /// orders a court the same turn (stamp 506, through AiConstructionPolicy — the player's predicate and constructor), the
 /// building stands in the delivery step and InstitutionsSystem founds it the step after. The twin and the live world are
 /// byte-identical for every state before the first court order's delivery and differ from exactly that state on — the

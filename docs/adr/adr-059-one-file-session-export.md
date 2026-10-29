@@ -1,7 +1,10 @@
 # ADR-059: The one-file session export
 
-**Status: ADOPTED UNDER DELEGATION (D-066 A14–A17; Director confirmation requested at the exit gate).** This ADR records the M6 closure track EXPORT under the D-066 adoptions A14–A17, which the
-Director confirms at the exit gate. Every choice below is reversible: nothing in the simulation reads the workbook, and
+**Status: ACCEPTED — the Director CONFIRMED D-066 A14 (D-067 R6, with its correction: the container is the hand-written
+STORED writer `StoredZip`, not `ZipArchive`, and byte identity across operating systems is PREDICTED) and A15, A16 and
+A17 (D-067 R1), 2026-10-28.** First recorded as ADOPTED UNDER DELEGATION (D-066 A14–A17). Stale facts are corrected in
+place and listed in the amendment log at the end. This ADR records the M6 closure track EXPORT under the D-066 adoptions
+A14–A17, which the Director confirmed at the exit gate (D-067 R1, R6). Every choice below is reversible: nothing in the simulation reads the workbook, and
 the six session files stay the record.
 
 **Sources:**
@@ -81,7 +84,10 @@ store), a 1980-01-01 timestamp and zero external attributes. The field cannot be
 `System.IO.Compression.ZipArchive` still plays its part as the **reader**. The self-check reads the workbook back with
 it, which gives an independent implementation's opinion of every archive written.
 
-This keeps A14's intent: no package, stored entries, the same bytes on every OS. It departs from A14's letter on one
+This keeps A14's intent: no package, stored entries, the same bytes on every OS. **That last property is PREDICTED, not
+measured** (D-067 R6): the fields that would name the host OS are fixed by hand, but every workbook golden (§7) was exported
+on Linux (the Director's 68-turn session was recorded on Windows; its export was not run there), CI runs only on
+`ubuntu-latest`, and no export has run on Windows. It departs from A14's letter on one
 point, the container is not written by `ZipArchive`, and the measured field above is the reason. Reversal costs one
 class.
 
@@ -112,7 +118,10 @@ bytes, identical). It reads `telemetry/v2`, `v3` and `v4` lines, whose cell head
   as `reason-22` and `reason-23` (`ReasonNames.Of`), which the fallback reproduces.
 - **Goods:** 23 goods (15–23: iron-ore … explosives), so 25 stock rows, 22 turn-goods rows and 23 economy-goods rows. A
   new good's price default is `1`.
-- **Order kinds 14–18:** EX, PR, RF, RE and DF.
+- **Order kinds 14–18:** EX, PR, RF, RE and DF. Codebook v4 ends at kind 13 (CE), so all five are new to the
+  codebook. The writer's own note on v5 (`TelemetryWriter.cs`, the `ReadableSchemas` summary) says "order kinds 16–18":
+  kinds 14 and 15 (Explore and Prospect, ADR-044) were already written under `telemetry/v4`, and only 16–18 (ADR-055)
+  belong to the M7 line-shape change that A15 retagged. The two ranges describe different deltas; both are correct.
 - **Constant C2:** C2 (`food.storeLossesIdentity`) now carries the M7 pass's military-grain clause. This was found by
   measurement. The M7 pass changed the constant's text in `Observer.cs`, and without the new constant every settlement
   segment would carry the text as a 1,300-character `!` escape: the v5 session's cells measured 24,188 characters
@@ -128,9 +137,10 @@ every change under that folder.
 **The tag (A15).** `TelemetryWriter.Schema` is now `telemetry/v5`, and `ReadableSchemas` is
 `[v5, v4, v3, v2]`. This changes the telemetry text and the forensic run record's `schemas.telemetry` value. It changes
 no world state, no canonical schema and no hash. The run id's preimage does not cover the telemetry tag, as
-`runIdInputs` states. Six test pins that named `telemetry/v4` as the writer's tag now name v5:
+`runIdInputs` states. Five test pins, one test in each of five files, that named `telemetry/v4` as the writer's tag
+now name v5:
 - `SessionRecordTests`;
-- `InspectionTests` (the T4.21-5 test; v6 is now the unknown vintage);
+- `InspectionTests` (the T4.21-5 test, which also moves its readable set to include v5 and its unknown vintage to v6);
 - `ForensicIdentityTests`;
 - `TaxGlassBoxTests`;
 - `TelemetryTests`.
@@ -264,3 +274,17 @@ line endings.
 - **D9:** the generator of the current-tree fixture is a test method that does nothing unless
   `CIVSIM_WRITE_EXPORT_FIXTURE` is set, following the precedent of the `CIVSIM_*` measurement tools. It is a tool, not a
   check.
+
+## Amendment log — 2026-10-28 (D-067)
+
+Authority: `docs/d067-m6-exit-gate-director-rulings.md` R1 (A15, A16, A17 CONFIRMED), R6 (A14 CONFIRMED with
+corrections) and §7 ("status CONFIRMED, with stale facts corrected"). This ADR was uncommitted and not yet
+confirmed, so stale FACTS were corrected in place; no design decision is changed. Line numbers marked "was" are those of
+the staged pre-amendment text; evidence was read from the live tree on 2026-10-28. D-067 is cited by ruling and section, not by line: it is untracked and was being amended concurrently.
+
+| # | Where | Old | New | Evidence |
+|---|---|---|---|---|
+| 1 | Status line (was :3–4) | "Status: ADOPTED UNDER DELEGATION (D-066 A14–A17; Director confirmation requested at the exit gate). … which the Director confirms at the exit gate." | "Status: ACCEPTED — the Director CONFIRMED D-066 A14 (D-067 R6, with its correction …) and A15, A16 and A17 (D-067 R1), 2026-10-28." "… which the Director confirmed at the exit gate (D-067 R1, R6)." | D-067 §1 (R1, R6) |
+| 2 | §3 (was :84) | "This keeps A14's intent: no package, stored entries, the same bytes on every OS." (no evidential status) | Same sentence, plus: that property is PREDICTED, not measured; every workbook golden was exported on Linux, CI runs only on `ubuntu-latest`, no export has run on Windows | D-067 §1 (R6) ("Byte identity across operating systems is PREDICTED; nothing has run on Windows"); `.github/workflows/ci.yml:12, :85, :119, :536, :553` (every job `runs-on: ubuntu-latest`); `Sim.Ui.Tests/Fixtures/session-export/README.md:11` (the Director's session was recorded on Windows) |
+| 3 | §4 "Order kinds 14–18" (was :115) | "Order kinds 14–18: EX, PR, RF, RE and DF." (the writer's comment says "16–18") | Kept 14–18 for the codebook, and added why the writer's note says 16–18: codebook v4 ends at kind 13; kinds 14–15 (ADR-044) were already written under `telemetry/v4`; only 16–18 (ADR-055) are the M7 line-shape change A15 retagged | `docs/m6-session-export/codebook-telemetry-v4.tsv:325` (last kind `CE`); `codebook-telemetry-v5.tsv:353–357` (`EX`, `PR`, `RF`, `RE`, `DF`); `Sim.Core/Observability/TelemetryWriter.cs:47` ("order kinds 16–18"), `:460` (the kind is written by name); `Sim.Core/Kernel/OrderLog.cs:232, :247, :268, :292, :302` (kinds 14–18); at `0bf7626`, `OrderLog.cs:232, :247` already define `Explore = 14`, `Prospect = 15` and `TelemetryWriter.cs:35` is `telemetry/v4` (`git show HEAD:…`) |
+| 4 | §4 "The tag (A15)" (was :131) | "Six test pins that named `telemetry/v4` as the writer's tag now name v5:" followed by five files | "Five test pins, one test in each of five files, that named `telemetry/v4` as the writer's tag now name v5:"; the `InspectionTests` item now also says the test moves its readable set to include v5 | `git diff HEAD` of the five files: `Sim.Tests/Forensic/InspectionTests.cs:623` (writer tag; same test also `:679–684`, readable set and unknown vintage v6), `Sim.Tests/Forensic/ForensicIdentityTests.cs:149`, `Sim.Tests/Observability/TaxGlassBoxTests.cs:102`, `Sim.Tests/Observability/TelemetryTests.cs:192`, `Sim.Ui.Tests/SessionRecordTests.cs:121` |

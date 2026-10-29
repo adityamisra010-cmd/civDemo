@@ -1,6 +1,33 @@
 # CURRENT STATE — the routing document
 
-> **2026-10-28 (latest): M6 CLOSURE IMPLEMENTED — TECHNICALLY READY FOR THE EXIT GATE (uncommitted).**
+> **2026-10-28 (latest): DIRECTOR'S EXIT-GATE RULINGS RECORDED (D-067); FINAL TREE RE-VALIDATED; M6 NOT CLOSED (uncommitted).**
+> - **Rulings:** [D-067](d067-m6-exit-gate-director-rulings.md).
+>   - D-066 A1–A19: confirmed or ruled (A7, A8, A9 and A19 explicitly; A19 supersedes DW-001's M6 assignment).
+>   - Migration: the lower baseline is accepted as design, not as a cause; M8 owns migration policy.
+>   - ADR-055 ratified; EC-1, EC-2 and EC-3 ratified separately.
+>   - M6.24 / DW-034 / DW-036: deferred until after the M6 playtest, no milestone named.
+>   - Commit order: M7 first, then the M6 closure.
+> - **Changes this pass:**
+>   - documentation;
+>   - `sim.json` description strings only;
+>   - comment-only fixes of wrong ADR-056 section citations in four `Sim.Core` and three `Sim.Tests` files;
+>   - no behaviour or pin change.
+> - **Validation of the final tree** (`m6-exit-inventory.md` §8):
+>   - Sim.Tests 3,361 passed / 0 failed / 36 skipped; Sim.Ui.Tests 1,200 / 0 / 0;
+>   - T0.8 78/78; T0.9 and D-055 PASS; calibration battery 7/7;
+>   - 20-seed soak 20/20 to year 4500;
+>   - bench median 28.2 s;
+>   - automated smoke under a virtual display PASSED;
+>   - the workbook opens in LibreOffice with 0 cell mismatches.
+> - **Still open:**
+>   - the Director's playtest (plan: exit inventory §7);
+>   - the Part G visual gate;
+>   - opening the workbook in Excel;
+>   - Windows smoke and CI, which need commit and push authorization (procedure: exit inventory §6);
+>   - the exit ruling.
+> - **Not changed:** the CLAUDE.md milestone line. Nothing committed, pushed or merged.
+>
+> **2026-10-28 (earlier, same day): M6 CLOSURE IMPLEMENTED — TECHNICALLY READY FOR THE EXIT GATE (uncommitted).**
 > - **Records:** D-066 (`docs/d066-m6-closure-rulings.md`) holds the Director's fog deferral (R1) and "complete all other M6" (R2), plus the ADOPTED defaults A1–A19.
 > - **Delivered:**
 >   - the law-court civics slice (ADR-057);

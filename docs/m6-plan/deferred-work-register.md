@@ -191,3 +191,67 @@ The earlier note's attribution of claim/trade routing to "D-039 A/D/E" is correc
 friction, siege and campaign, not the route graph.
 
 DW-036 (D-051 §4) stays open and needs a Director ruling (D-066 dated note, M6.24).
+
+## Dated note — 2026-10-28 (D-067 exit-gate rulings R10–R14, R19; appended, the text above is unchanged)
+
+The Director's rulings in [D-067](../d067-m6-exit-gate-director-rulings.md), restated per row. Where a row above (or an
+earlier dated note) says otherwise, this note governs for the parts listed.
+
+**DW-034 and DW-036 (D-067 R19).** Both were swept on 2026-10-20 at `dc83a67`, before closure ruling R2 placed D-051 §2
+and §4 in M6 (`../m5-exit-inventory.md` §13; `m6-decision-register.md` D-N). The Director's words (2026-10-28): *"They are
+deferred until after the Director's M6 playtest, with no milestone named. M10 is a content-mapped future possibility,
+not a commitment. The M7 economy track is a coupled alternative, not an assignment."* The two are deferred together.
+
+| ID | Part | Disposition | Deferred by / when | Destination (verbatim) | Owner when scheduled | Dir. owed |
+|---|---|---|---|---|---|---|
+| DW-034 | D-051 §2(a) common-material floor; §2(b) regional richness classes; §2(c) the goal ("expansion must pay") | DEFERRED (D-067 R19); D-051 §2 stays RATIFIED, not built | Director 2026-10-28 (D-067 R19) | "until after the Director's M6 playtest, with no milestone named" | None assigned. M10 is a content-mapped future possibility, not a commitment; the M7 economy track is a coupled alternative, not an assignment | Y (milestone; and the contradiction below) |
+| DW-034 | §2 availability class: deposit concealment | DONE in M6 (D-062 R6/R7, ADR-044); unchanged by R19 | — | — | M6 | N |
+| DW-036 | D-051 §4 primitive stone-and-wood toolmaking, with its unresolved CR-020 §A mechanism choice | DEFERRED (D-067 R19); D-051 §4 stays RATIFIED; the Workshop guard stays (D-052 §11; `ConstructionQuery` → `InputUnobtainable`) | Director 2026-10-28 (D-067 R19) | "until after the Director's M6 playtest, with no milestone named" | As DW-034. The coupled M7 alternative is ADR-056 EC-1 toolmaking (see `queue.md` 2026-10-27, EC-1: crafting labour splits equally across available recipes) | Y (mechanism + milestone) |
+
+- **Which playtest.** The 2026-10-12 phrase "until after the playtest" (D-052 §10, §11; the DW-034/DW-036 rows above)
+  referred to the M5 playtest. R2 (2026-10-20) replaced it with "→ M6"; R19 supersedes R2 for these items and is a new
+  deferral.
+- **Carried open for whoever schedules DW-034:** D-062 R6 says deposits are "randomly distributed"; D-051 §2(b) says
+  richness is "geographically correlated … not a random site". Unresolved.
+- **Playtest disclosure:** stone-poor settlements and no Workshop before bronze (D-067 R19; `m6-playtest-checklist.md`
+  §2).
+- The earlier note's last line, "DW-036 (D-051 §4) stays open and needs a Director ruling", is answered by R19.
+
+**DW-001, DW-002, DW-006 (D-067 R10).** The known-extent restrictions on claim, trade and road routing are deferred to
+**M7**. This explicitly **supersedes DW-001's M6 assignment** (the Director's 2026-10-12 "the known-extent restriction of
+settle, claim and trade" as M6 work) for those parts. The D-066 A19 rows above already read M7; their stated basis
+("E8 ruled") is corrected: slice contract E8 is the coordinator's design document, not a Director ruling, and R10 is the
+ruling. The founding predicate's reads of unseen land (DW-002) stay **M7**, as recorded above. R10 authorizes no
+implementation now.
+
+**DW-038, migration part only (D-067 R11, R12).** The density band, D-054 Q8 and the D-059 dev-corridor reds are
+unchanged by this note.
+
+| ID | Part | Disposition | Record | Dir. owed |
+|---|---|---|---|---|
+| DW-038 | `migrationGrossPerDecade` corridor: the lower observed migration baseline | **ACCEPTED as an intentional design acceptance (D-067 R11). It is NOT a causal explanation.** The band [0.001, 0.01] and quarantine window [0.0009, 0.01] stay unchanged as **historical records, not tuning targets**; no migration constant, band or window is tuned or re-cut. The corridor keeps reporting and does not gate (T3.12). | D-067 §2 | N |
+| DW-038 | Causal attribution of the drop | **Optional; deferred; NOT an M6 exit gate (D-067 R12).** HYPOTHESIS (unmeasured on the corridor's canonical world): D-051 §1(b) time-averaged harvest is the leading suspect. The M4-era decline is unattributed. | D-067 §2 | N (optional work, unscheduled) |
+
+- **MEASURED (D-067 §2): the drop happened during M5**, between the M5 hardening reading of 2026-10-05 (0.000430–0.000914,
+  1/20 seeds in window; `../m5-hardening-measurements.md:227`) and the D-053/D-054 batch measurements (batch 3:
+  1.7256e-4–3.5233e-4; `../d054-batch3-incremental-construction-allocation-cylinder.md:680`). The integrated M6 tree reads
+  1.8083e-4–3.5084e-4 (20 seeds, 650 turns, `TestResults/validation/m6-soak/`), essentially the M5-exit envelope: the M6
+  integrated tree did not cause the drop.
+- **Stale owner string, left unedited:** the quarantine's `"owner": "M4 CR-002 packet (which is already re-deriving
+  corridors)"` (`Sim.Data/content/corridors.json:93`) is stale. It is not edited in this documentation pass; re-point it
+  when calibration is next scheduled.
+
+**DW-077 (new, D-067 R13, R14): migration-policy design (entry/exit controls, permits, treaties).**
+
+| ID | Item | Source | Deferred by / when | Destination (verbatim) | Cat | Dir. owed |
+|---|---|---|---|---|---|---|
+| DW-077 | Migration-policy design: who may cross a polity border, in which direction, under what permission or treaty. It is the policy side of D-021 valve 3, where "closing exits is a *policy choice*" (`../d021-stability-doctrine.md:28`; the valve itself is deferred to M8 in DW-026). Not to be confused with D-021's M5 "policy hooks" (`:39`, `:50`), which are class-mobility (promotion) levers and are not addressed here. Today migration is free between any two settlements across polity lines in every Age, and research effects can only raise movement (`Sim.Core/State/KnowledgeEffects.cs`; operand contract `KnowledgeOperands.cs`), so restriction needs a new mechanism and an ADR in M8. | `d021:28`; DW-026; D-067 §2 | Director 2026-10-28 (D-067 R13) | "M8 (Politics / Diplomacy) owns the future migration-policy design" | SIM/GOV | N (owner ruled; the design is M8's) |
+
+- **Design direction, NOT implemented behaviour** (D-067 R13; M8 starts from it and may change it; content Ages):
+  basic entry and exit controls from **A3** (where kingship first appears: `sacral_kingship`, `territorial_kingship`,
+  `overkingship`); richer policy options **A5–A7**; entry permits around **A8**; treaty regimes between civilizations
+  around **A9**.
+- **Misleading node text (D-067 R14):** nodes such as `frontier_fortresses`, `manorialism`, `marches` and `refugee_law`
+  describe movement controls the simulation does not have. The text is left for the M8 content/design pass; no migration
+  control is implemented in this pass.
+- Related row: DW-026 (D-021 valves 2 and 3, the unrest exit, → M8). DW-077 is the policy side of the same exit valve.

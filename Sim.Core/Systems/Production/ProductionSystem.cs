@@ -232,7 +232,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
                 weather: foodMultiplier,
                 extraction: foodExtraction,
                 knowledge: knowledge);
-            // ADR-056 §5 (EC-2): the herds (horses) — after the harvest is in the store, before Consumption.
+            // ADR-056 §8 (EC-2): the herds (horses) — after the harvest is in the store, before Consumption.
             Breed(ctx, prev, stocks, goods, settlement,
                 herders: Sectors.Share(shares, Sectors.Herding) * adults,
                 knowledge: knowledge);
@@ -444,7 +444,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     }
 
     /// <summary>
-    /// ADR-056 §5 (EC-2, mounts) — THE HERD: every goods.json good with a <c>herd</c> block (horses) breeds from itself on
+    /// ADR-056 §8 (EC-2, mounts) — THE HERD: every goods.json good with a <c>herd</c> block (horses) breeds from itself on
     /// the settlement's pasture, once the settlement's knowledge meets the good's <c>knowledge</c> gate
     /// (horse_domestication). Without it the stock is inert (held or traded, never bred, never fed). Not food, not a
     /// deposit good: nothing here touches the herding sector's livestock or fish output.
@@ -522,7 +522,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     }
 
     /// <summary>
-    /// ADR-056 §5 — the head-years ∫H dt the herd lives through over <paramref name="dt"/> years on the trajectory of
+    /// ADR-056 §8 — the head-years ∫H dt the herd lives through over <paramref name="dt"/> years on the trajectory of
     /// <see cref="HerdAfter"/>, in closed form, so the fodder the turn draws is exact for any turn length (law 3). Below K,
     /// with R(t) = Q(H0)·e^(λ·t) the trajectory is H = (R·K − c)/(r + R), and the integral reduces (λ = (c + r·K)/K makes
     /// the coefficient (K + c/r)/λ exactly K/r) to (K/r)·ln((r + R1)/(r + R0)) − (c/r)·dt. At or above K:
@@ -540,7 +540,7 @@ public sealed class ProductionSystem : ISimSystem<ProductionTables>
     }
 
     /// <summary>
-    /// ADR-056 §5 — the herd after <paramref name="dt"/> years, in closed form (exact for any turn length, law 3).
+    /// ADR-056 §8 — the herd after <paramref name="dt"/> years, in closed form (exact for any turn length, law 3).
     /// BELOW capacity K: dH/dt = (c + r·H)(1 − H/K). With Q(H) = (c + r·H)/(K − H) it separates to
     /// Q(H1) = Q(H0)·e^(λ·dt), λ = (c + r·K)/K, so H1 = (R·K − c)/(r + R), R = Q(H0)·e^(λ·dt): the herd rises toward K
     /// and never crosses it. AT OR ABOVE K: the excess is lost at the breeding rate, dH/dt = −r·(H − K), so

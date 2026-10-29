@@ -12,7 +12,7 @@ using static Sim.Tests.TestUtil.EconomyRigs;
 namespace Sim.Tests.Systems;
 
 /// <summary>
-/// ADR-056 §5 — EC-2 MOUNTS (D-065 R2: a separately reviewed M7 packet). Horses are a HERD: a conserved stock distinct
+/// ADR-056 §8 — EC-2 MOUNTS (D-065 R2: a separately reviewed M7 packet). Horses are a HERD: a conserved stock distinct
 /// from livestock, not food, that breeds from itself on the settlement's pasture under its herding workers once the
 /// settlement knows horse_domestication, and draws grain fodder. Each test pins one property with exact integers where
 /// the quantity is conserved.

@@ -1,8 +1,13 @@
 # ADR-058 — Contact-carried foreign exposure, and Eureka evaluability over deposits and site terrain
 
-**Status: ADOPTED UNDER DELEGATION (D-066 §2 A7; the Director's instructions of 2026-10-28 to complete M6), 2026-10-28.**
+**Status: ACCEPTED — D-067 R7 (2026-10-28) RULED the pathway: diffusion through trade contact only; conquest knowledge
+(DW-021) and every other pathway (espionage, proximity, migration-borne) stay deferred. D-067 §7 records this ADR's status
+as confirmed, with stale facts corrected (amendment log at the end).** First recorded as ADOPTED UNDER DELEGATION (D-066
+§2 A7; the Director's instructions of 2026-10-28 to complete M6), 2026-10-28. A7 adopted the CONTACT half of the spec's
+recommendation, which was contact AND conquest (m6-spec T6.10: "contact and conquest recommended"); D-066's "the spec's
+recommendation" is not literal, as D-067 R7 records.
 Reversible by one content switch (`research.json` `tuning.foreignExposure.enabled`) and by restoring seven Eureka
-conditions; confirmation requested at the M6 exit gate with the other D-066 ADOPTED items.
+conditions; confirmed at the M6 exit gate (D-067 R7, §7).
 
 **Touches contracts:** the ADR-029 addendum A input seam `ResearchExposureRow` gains its writer (a new system, SystemId
 31); the research dialect gains three quantity families. **No schema change** (the table is schema v26 section 47; the
@@ -118,9 +123,16 @@ implied-Eureka validators run on load and pass (they skip quantity conditions, w
 
 ## C. Goldens
 
-Both parts move every world that researches: the founded, driven, first-reign and AI-world pins. The attribution
-control is `TestConfigs.PreKnow` — the shipped research.json with `tuning.foreignExposure` removed and the seven
-conditions restored — under which every base-tree pin returns byte for byte (the inert diffusion slot writes nothing).
+MEASURED (KNOW tree; `KnowAttributionTests`, `AiFoundingAttributionTests`): **only the AI-world pin moves.** The founded
+(`d5ebd0b2…`), driven (`55afd498…`) and first-reign (`064ed6b7…`) pins are UNMOVED — their pin tests passed unchanged on the KNOW track's tree and are unchanged on the integrated tree: no
+foreign trade with a known partner and no newly evaluable Eureka acts in those worlds by their last turn. The AI world
+(seed 42, turn 300) moved `ac4554bf…` → `a519b5c9…` (economy projection `3153b7e3…` → `5edcc3e0…`), and the whole move is
+§B's Eurekas: three of the seven fire in that world by turn 300, while the exposure writer writes no row by then (the
+exposure-off twin `TestConfigs.PreForeignExposure` is the live world). On the integrated M6 tree, combined with D-066 A18,
+the shipped AI-world pin is `5458cb3d…` (`docs/m6-plan/golden-attribution-register.md`, dated notes of 2026-10-28). The
+attribution control is `TestConfigs.PreKnow` — the shipped research.json with `tuning.foreignExposure` removed and the
+seven conditions restored — under which the KNOW tree's base pins return byte for byte (the inert diffusion slot writes
+nothing); on the integrated tree `PreKnow` returns the A18-only ("FOG-only") pin `7aed09b9…`.
 By the R4 rule every older twin strips the layer (through `PreMilitary`, the packet twins, `PreAiRecruitment` and the
 shipped-JSON research twins). The measured old → new table is in the KNOW hand-back and on each pin's comment.
 
@@ -130,3 +142,20 @@ shipped-JSON research twins). The measured old → new table is in the KNOW hand
   (InstitutionRow). Groundable later with a ruled threshold: `irrigation_canal` (aridity), `terrace` (slope), `water_mill`
   (river gradient). Recorded in the register.
 - Exposure volume weighting; city-state receivers; every pathway other than trade contact.
+
+## Amendment log — 2026-10-28 (D-067)
+
+Authority: `docs/d067-m6-exit-gate-director-rulings.md` R7 (§1: "RULED: diffusion through trade contact only"; the
+correction "A7 adopted the contact half") and §7 ("status CONFIRMED, with stale facts corrected"). This ADR was
+uncommitted and not yet confirmed, so stale FACTS were corrected in place; no design decision is changed. Line numbers
+marked "was" are those of the staged pre-amendment text; evidence was read from the live tree on 2026-10-28. D-067 is cited by ruling and section, not by line: it is untracked and was being amended concurrently.
+
+| # | Where | Old | New | Evidence |
+|---|---|---|---|---|
+| 1 | Status line (was :3) | "Status: ADOPTED UNDER DELEGATION (D-066 §2 A7; the Director's instructions of 2026-10-28 to complete M6), 2026-10-28." | "Status: ACCEPTED — D-067 R7 (2026-10-28) RULED the pathway: diffusion through trade contact only; conquest knowledge (DW-021) and every other pathway … stay deferred. D-067 §7 records this ADR's status as confirmed …" The original adoption is kept as history. | D-067 §1 (R7) and §7 |
+| 2 | Status paragraph (new sentence) | (none) | A7 adopted the CONTACT half of the spec's contact-and-conquest recommendation; D-066's "the spec's recommendation" is not literal (D-067 R7) | `docs/m6-spec.md:215` ("contact and conquest recommended"); D-067 §1 (R7) |
+| 3 | Status paragraph (was :5) | "confirmation requested at the M6 exit gate with the other D-066 ADOPTED items." | "confirmed at the M6 exit gate (D-067 R7, §7)." | as #1 |
+| 4 | §C (was :121–123) | "Both parts move every world that researches: the founded, driven, first-reign and AI-world pins. … under which every base-tree pin returns byte for byte (the inert diffusion slot writes nothing)." | Only the AI-world pin moves. Founded `d5ebd0b2…`, driven `55afd498…`, first reign `064ed6b7…` UNMOVED. AI world `ac4554bf…` → `a519b5c9…` (projection `3153b7e3…` → `5edcc3e0…`), the whole move from §B's Eurekas (three of the seven fire by turn 300; no exposure row by turn 300). Integrated with D-066 A18: `5458cb3d…`. `PreKnow` returns the KNOW tree's base pins; on the integrated tree it returns the A18-only pin `7aed09b9…`. | `Sim.Tests/Kernel/KnowAttributionTests.cs:14–20` (founded, driven, first reign "UNMOVED"; AI world "MOVES"), `:44` (0 exposure rows), `:45` (3 more Eurekas than the twin), `:48–49` (`PreForeignExposure` = live); `Sim.Tests/Kernel/AiFoundingAttributionTests.cs:120–122` (cause: "three of the seven Eurekas … fire"), `:129` (`5458cb3d…`), `:132` (`a519b5c9…`), `:147` (`7aed09b9…`, what `PreKnow` returns); `SnapshotTests.cs:1184`, `DrivenGoldenTests.cs:118`, `FirstReignTests.cs:58`; `docs/m6-plan/golden-attribution-register.md:64, :70, :74` |
+
+**Not changed:** §A.4's pathway scope (conquest DW-021; other pathways later) and §D already match D-067 R7. D-067 names
+no separate ruling on §B (Eureka evaluability); its status rests on D-067 §7's listing of this ADR as confirmed.

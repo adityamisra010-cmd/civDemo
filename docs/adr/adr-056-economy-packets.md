@@ -1,8 +1,29 @@
 # ADR-056 — The M7 economy packets: EC-1 metals, EC-2 mounts, EC-3 gunpowder
 
-**Status: PROPOSED — three separately reviewed packets (D-065 R2), each behind its own content switch in
-`goods.json` `packets[]`, each shipped ON.** Every packet's switch-off twin is the pre-packet world byte for byte.
-Approval is per packet; nothing here combines them. Not in scope: fuels, engines, aluminium, electronics, composites
+**Status: RATIFIED PER PACKET — three separate Director rulings (D-067 §4, 2026-10-28), each after the amendments
+recorded in the amendment log at the end of this ADR:**
+- **EC-1, metals and tools (§4): RATIFIED** — D-067 R16.
+- **EC-2, mounts (horses) (§8): RATIFIED** — D-067 R17.
+- **EC-3, gunpowder and explosives (§9): RATIFIED** — D-067 R18.
+
+**Recorded with the rulings (D-067 R16–R18):**
+- **Mostly dormant content.** Each packet is mostly dormant until its knowledge gates are reached in play (§10): in
+  natural play no AI or city-state completes an EC-1 or EC-3 gate within the measured horizons (400 turns on seeds 1, 2,
+  42 and 7; 700 turns on seed 42), and EC-2's `horse_domestication` is first completed at turn 614 on seed 42 (§10, §12).
+  These horizons were measured on `0bf7626` and on the research integration base (§10, §12), not re-measured on the
+  integrated M6 tree.
+- **No research nodes are added.** The AI research-progression finding of §10 is unchanged and stays OPEN; it is not
+  fixed here.
+- **Known limitations, accepted as they stand:**
+  - **Pre-packet snapshots (§5):** a SAVE (snapshot) written before the packets loads with NO stock row for a packet good
+    at its founding settlements, so those settlements can never hold the packet's goods; colonies founded after the load
+    get rows. Recorded sessions are not affected: they replay with the packets off (§5).
+  - **Labour dilution (§5, §6):** crafting labour splits equally across available recipes, so a packet recipe dilutes
+    the base crafts once its knowledge is met (`docs/queue.md`).
+
+Three separately reviewed packets (D-065 R2), each behind its own content switch in `goods.json` `packets[]`, each
+shipped ON. Every packet's switch-off twin is the pre-packet world byte for byte. Approval is per packet; nothing here
+combines them. Not in scope: fuels, engines, aluminium, electronics, composites
 (EC-4a is provisionally M10, EC-5 later), military recruitment (the units track), and any new research.json node or
 entity (TC-1).
 
@@ -50,6 +71,9 @@ node (`SimConfigLoader.ValidateProjectsAgainstContent`).
 
 ## 4. EC-1 — metals
 
+**Ratification: EC-1 RATIFIED by D-067 R16 (2026-10-28), after the amendments logged at the end of this ADR. A
+separate ruling from EC-2 (R17) and EC-3 (R18) (D-065 R2).**
+
 All numbers TUNE (chosen, not derived; not calibrated).
 
 | Good | id | category | bulkPerUnit | deposit | gate (working) |
@@ -80,7 +104,8 @@ Recipes (inputs and labour PER EXECUTION, the T3.3 declaration; all also `artisa
   final consumer of iron and steel is military recruitment (the units track, M7.3), not built here; until it exists, steel
   accumulates and its price falls toward the band floor — measured, not hidden.
 - Unblocks (charter §13 EC-1): the material side of identities 202–204, 303–305, 307–308, 103, 105, 407–408, 506,
-  602–605, 803, 805–806, 904–906 and families 13–15, 17–19 (iron/steel requirements); `building.blast_furnace`,
+  602–605, 803, 805–806, 904–906 and families 14 and 17–19 (iron/steel requirements; keys 13 and 15, listed in the
+  charter's EC-1 row, were withdrawn by D-065 R9 and stay unallocated); `building.blast_furnace`,
   `building.steelworks`, `infra.railway`, `building.skyscraper` and the smithy's iron mode (charter §5.8; buildings are
   not built here). B2: an extraction improvement would attach to the deposit row (none is built here).
 
@@ -91,7 +116,9 @@ Recipes (inputs and labour PER EXECUTION, the T3.3 declaration; all also `artisa
   without it — every session recorded before the packets — is re-founded and replayed with every packet off, by
   `sim inspect` and `UiSession.Resume` alike (`SessionManifest.RecordedWithoutEconomy`,
   `EconomyKnowledge.WithoutEconomy`). `sim run|replay|inspect --without-economy` is the explicit switch (the
-  `--without-discovery` precedent), applied at founding too. No serialized table changes: the schema stays v37.
+  `--without-discovery` precedent), applied at founding too. No serialized table changes: the packets add no table.
+  (When this section was written, on bare `0bf7626`, that meant the schema stayed v37; the shipped schema is v39 —
+  ADR-054 v38, ADR-055 v39, `CanonicalSchema.Version`; §13.)
 - **The pre-packet projection** (`TestUtil/EconomyProjection`): removes the packets' rows (stocks, deposits, prices, price
   terms, trade flows, holds, ledger rows) and ASSERTS each was inert — never made, worked, consumed, priced away from 1.0
   or traded — so a packet that acted can never be projected away. `SchemaProjection` applies it first, so every
@@ -99,10 +126,13 @@ Recipes (inputs and labour PER EXECUTION, the T3.3 declaration; all also `artisa
   (`PreEconomyTrack`), since every earlier state predates them.
 - **A row of a good the config does not hold** (a world founded with a packet on, stepped with it off — a twin or a
   mismatched save) is no sector's: production never works a deposit of an unknown good (`ProductionSystem.InSector`).
-- **Known limits, not fixed here** (`docs/queue.md`): crafting labour splits equally across available recipes, and
-  extraction labour follows abundance whatever the demand — a packet recipe dilutes the base crafts once known.
-  A SAVE (snapshot) written before the packets loads with no stock row for a packet good at its founding settlements, so
-  those settlements cannot hold the packet's goods (colonies founded after the load get rows); sessions are covered above.
+- **Known limits, not fixed here:**
+  - **Labour split** (`docs/queue.md`): crafting labour splits equally across available recipes, and extraction labour
+    follows abundance whatever the demand — a packet recipe dilutes the base crafts once known.
+  - **Known limitation — pre-packet snapshots (accepted with the rulings, D-067 R16–R18):** a SAVE (snapshot) written
+    before the packets loads with no stock row for a packet good at its founding settlements, so those settlements cannot
+    hold the packet's goods (colonies founded after the load get rows); sessions are covered above. This item has no
+    `docs/queue.md` entry; it is recorded here and in D-067 §4.
 
 ## 6. Measured (EC-1)
 
@@ -134,6 +164,10 @@ price falls toward the band floor, 0.10–0.35); coal accumulates where no ore l
 
 ## 7. Moved pins (EC-1) — all CONTENT LAYOUT ALONE
 
+> **Historical — superseded (2026-10-28, D-067).** The NEW values in this section were measured on bare `0bf7626` and
+> never shipped. They are kept as the record of the measurement. The current pin values, and every move since, are in
+> `docs/m6-plan/golden-attribution-register.md` (§1 and §2 rows 13–14, with its dated notes).
+
 Each re-pinned value's pre-packet projection (`EconomyProjection.HashWithout`, rows asserted inert) is the OLD pin byte for
 byte, asserted beside the pin:
 
@@ -151,6 +185,13 @@ Every older pin (the attribution chains) is unmoved: each is reached through a h
 packets off, or through `SchemaProjection`, which strips the inert packet rows first. The toy golden does not move (no goods).
 
 ## 8. EC-2 — mounts (horses)
+
+**Ratification: EC-2 RATIFIED by D-067 R17 (2026-10-28), after the amendments logged at the end of this ADR. A
+separate ruling from EC-1 (R16) and EC-3 (R18) (D-065 R2).**
+
+This section, §8, is the EC-2 section (§3 is the shared knowledge gate and §5 the shared plumbing). Code comments that
+cited "ADR-056 §3" or "ADR-056 §5" for EC-2 and the herd were corrected to §8 in the same 2026-10-28 pass (comment-only
+edits; see the amendment log, #12).
 
 All numbers TUNE (chosen, not derived; not calibrated). `goods.json` packet `ec2`.
 
@@ -196,12 +237,18 @@ this horizon), so population, harvest, food eaten and grain held are byte-identi
 Horses have no consumer until recruitment (the units track): their price falls to the band floor. A food-short world would
 feel the fodder (it is drawn before people eat — Production precedes Consumption); not seen in these runs.
 
-**Moved pins (EC-2), CONTENT LAYOUT ALONE, NOT re-pinned here** (re-pin on the integrated base): the founded golden
+**Moved pins (EC-2), CONTENT LAYOUT ALONE, NOT re-pinned here** (re-pin on the integrated base). *Historical —
+superseded (2026-10-28, D-067): the values in this paragraph were measured on bare `0bf7626` and never shipped; they are
+absorbed by the combined pins of `docs/m6-plan/golden-attribution-register.md` row 14 (its §4 says so), and the current
+values are in that register.* The founded golden
 (f87e2cf06939fddb…), the driven golden (71fc678bb11807ec…), the first reign (c6b6963c63c6a3ba…) and the AI world (not
 measured). Each one's pre-packet projection is asserted equal to its 0bf7626 pin (asserted FIRST in each pin test, and
 passing): the horses row is inert where `horse_domestication` is unknown.
 
 ## 9. EC-3 — gunpowder and explosives
+
+**Ratification: EC-3 RATIFIED by D-067 R18 (2026-10-28), after the amendments logged at the end of this ADR. A
+separate ruling from EC-1 (R16) and EC-2 (R17) (D-065 R2).**
 
 All numbers TUNE (chosen, not derived; not calibrated). `goods.json` packet `ec3`.
 
@@ -228,7 +275,8 @@ All numbers TUNE (chosen, not derived; not calibrated). `goods.json` packet `ec3
 - No dependency on EC-1 or EC-2: the charcoal is timber. Each packet switches off alone (`SwitchOff_RemovesExactlyThePacket_AndEachPacketSwitchesAlone`).
 - Consumers: the recipes (saltpetre and sulphur); gunpowder and explosives await recruitment and the arsenal/powder works
   (units track; charter §5.11). Unblocks (charter §13 EC-3): the material side of identities 104–105, 204, 306–307,
-  406–408, 504–505, 604, 703, 804–806, 904–906, privateers and commerce raiders (17), 13 (A8) and 14.
+  406–408, 504–505, 604, 703, 804–806, 904–906, privateers and commerce raiders (17) and 14 (key 13, listed in the
+  charter's EC-3 row, was withdrawn by D-065 R9 and stays unallocated).
 
 Tests (`EconomyGunpowderTests`, 10): the roster and book; the switch (and each packet alone); milling only with its knowledge,
 consuming per execution exactly; explosives need `dynamite` and take no gunpowder; saltpetre is not worked without its
@@ -251,7 +299,9 @@ No starvation in either arm; trade 0 (not granted). The cost is again the diluti
 earlier in the recipe book, draws the shared saltpetre first (recipe order is input priority, T3.3), and saltpetre and
 sulphur seldom lie at one settlement. Gunpowder accumulates (no consumer yet) and its price falls (0.21–0.38).
 
-**Moved pins (EC-3), CONTENT LAYOUT ALONE, NOT re-pinned here:** founded (5ae5e241be8a6c53…), driven (65d092db2782decf…),
+**Moved pins (EC-3), CONTENT LAYOUT ALONE, NOT re-pinned here.** *Historical — superseded (2026-10-28, D-067): the
+values in this paragraph were measured on bare `0bf7626` and never shipped; the current values are in
+`docs/m6-plan/golden-attribution-register.md` (row 14 and its dated notes).* Founded (5ae5e241be8a6c53…), driven (65d092db2782decf…),
 first reign (4ea9df7139082bdc…); the AI world not measured. Every pre-packet projection equals its 0bf7626 pin (asserted
 first in each pin test, passing).
 
@@ -310,7 +360,9 @@ The economy track sits on research (ADR-054, v38) and units (ADR-055, v39). What
 - **The Observer keeps both sets of terms.** `GrainAccount` carries `Military` (ADR-055) and `Fodder`; `GoodAccount` carries
   `Military` and `HerdLosses` (herd losses and fodder); each closes its identity through both. Telemetry writes `military`
   and `fodder` in the grain object only when non-zero, so a line of a world without either layer is byte-identical to
-  before.
+  before. (Since then the line's tag has moved: the writer is `telemetry/v5` — D-066 A15, ADR-059 §4,
+  `TelemetryWriter.Schema` — so a line now differs from a pre-merge line in its `schema` tag; its other keys are as
+  stated here.)
 - **Planned goods.** unit-families.json lists the nine EC-1..EC-3 goods as `plannedGoods` under the names goods.json gives
   them. With a packet on, the loader resolves a recruitment input to the real good id; with it off at load (goods.json's
   `enabled`) the input is planned and the identity blocked, naming the good and its packet. A config whose packets are
@@ -344,7 +396,39 @@ live world with the packet rows removed (asserted inert) is the units pin, asser
 | `FirstReignTests.PostR1Golden` | df73d4f2b022107a… | 58f017059925b16e… (389e05266085018b…) | 064ed6b76374dea4… |
 | `AiFoundingAttributionTests.S1cTurn300` | 3153b7e3214ecd21… | 56e8e8671880ab95… (02500b4afbddc2ef…) | ac4554bfdcd3d5b6… |
 
+*AI world, since superseded (2026-10-28):* the COMBINED `S1cTurn300` value `ac4554bf…` above is the M7-merge value. The
+M6 integration (ADR-058 KNOW and D-066 A18 combined) moved it to `5458cb3d…` (`S1cTurn300PreEconomy` `3153b7e3…` →
+`a56313fc…`); `ac4554bf…` survives as `AiFoundingAttributionTests.PreA18Turn300`. The founded, driven and first-reign
+values above are the shipped ones. See `docs/m6-plan/golden-attribution-register.md`, dated notes of 2026-10-28.
+
 Control (a) was also measured the strong way, by stepping the packets-off twin (`TestConfigs.PreEconomyTrack`) itself: its
 raw hash is the units pin in all four worlds, so the projection and the twin agree. The layout-only pins (toy,
 `PreTranche2Turn300`, `PreM6FoundedGolden`, `PreM6AiTurn300`) do not move: every one of those worlds is under an older twin
 (packets off) or has no goods content.
+
+## Amendment log — 2026-10-28 (D-067)
+
+Authority: `docs/d067-m6-exit-gate-director-rulings.md` §4 (R16–R18: EC-1, EC-2, EC-3 each RATIFIED "after the ADR-056
+amendments") and §7. This ADR was uncommitted and not yet ratified, so stale FACTS were corrected in place; no design
+decision is changed. Every in-place change is listed here. Line numbers marked "was" are those of the staged pre-amendment
+text; evidence was read from the live tree on 2026-10-28. D-067 is cited by ruling and section, not by line: it is untracked and was being amended concurrently.
+
+| # | Where | Old | New | Evidence |
+|---|---|---|---|---|
+| 1 | Status line (was :3–5) | "Status: PROPOSED — three separately reviewed packets (D-065 R2), each behind its own content switch in `goods.json` `packets[]`, each shipped ON." | Three separate rulings, EC-1 RATIFIED (R16), EC-2 RATIFIED (R17), EC-3 RATIFIED (R18), each after these amendments; then "Recorded with the rulings": mostly dormant content until the knowledge gates are reached (§10); no research nodes added and the §10 AI-progression finding unchanged and OPEN; "Known limitations" bullets for the pre-packet snapshot (§5) and labour dilution. The original sentence is kept below the bullets. | D-067 §4 (R16–R18 and "Recorded with R16–R18") |
+| 2 | Head of §4, §8, §9 (was :51, :153, :204) | (no ratification line) | One "Ratification: EC-n RATIFIED by D-067 R16 / R17 / R18" line per packet | D-067 §4 (R16–R18) |
+| 3 | §4 "Unblocks" (was :83) | "families 13–15, 17–19" | "families 14 and 17–19 (… keys 13 and 15 … withdrawn by D-065 R9 and stay unallocated)" | `docs/d065-m7-charter-rulings.md:52` (R9: "The proposed keys 13, 15 and 16 are withdrawn"); `Sim.Data/content/unit-families.json` has keys 14 (:228), 17 (:242), 18 (:256), 19 (:270) and no key 13, 15 or 16 |
+| 4 | §5 replay bullet (was :94) | "No serialized table changes: the schema stays v37." | "No serialized table changes: the packets add no table. (When this section was written, on bare `0bf7626`, that meant the schema stayed v37; the shipped schema is v39 …)" | `Sim.Core/Kernel/CanonicalSchema.cs:231` (`Version = 39`); ADR-056 §8 (:175 was) and §13 |
+| 5 | §5 "Known limits" (was :102–105) | One bullet attributing both limits to `docs/queue.md` | Two sub-bullets: the labour split (`docs/queue.md`), and "Known limitation — pre-packet snapshots (accepted with the rulings, D-067 R16–R18)", text unchanged, noting it has no `docs/queue.md` entry | `docs/queue.md:1720` (the labour-split entry; no entry for the snapshot limit); D-067 §4 ("Known limitation") |
+| 6 | §7 (was :135) | (pins presented without a currency marker; §7 already said the NEW values were "void on the integrated base") | Block note: "Historical — superseded", with a pointer to the register. The values are NOT deleted. | `docs/m6-plan/golden-attribution-register.md:14–20` (§1), `:41–42` (rows 13–14), `:57–58` (§4: the EC-2 moves "absorbed by row 14") |
+| 7 | §8 "Moved pins (EC-2)" (was :199) | (no currency marker) | Inline "Historical — superseded" note with the register pointer; values kept | as #6 |
+| 8 | §9 "Moved pins (EC-3)" (was :254) | (no currency marker) | Inline "Historical — superseded" note with the register pointer; values kept | as #6 |
+| 9 | §9 consumers / unblocks (was :231) | "privateers and commerce raiders (17), 13 (A8) and 14." | "privateers and commerce raiders (17) and 14 (key 13 … withdrawn by D-065 R9 …)." | as #3 |
+| 10 | §13 "The Observer keeps both sets of terms" (was :312–313) | "… a line of a world without either layer is byte-identical to before." (no tag stated) | Same sentence, plus: the writer's tag is now `telemetry/v5` (D-066 A15, ADR-059 §4), so a line differs from a pre-merge line in its `schema` tag | `Sim.Core/Observability/TelemetryWriter.cs:35` (`Schema = "telemetry/v5"`); at `0bf7626` it was `telemetry/v4` (`git show HEAD:Sim.Core/Observability/TelemetryWriter.cs`, :35) |
+| 11 | §13, after the combined-pin table (was before :347) | AI world COMBINED `ac4554bf…`, `S1cTurn300PreEconomy` `3153b7e3…`, presented as current | Note: since superseded by the M6 integration (ADR-058 KNOW + D-066 A18): `5458cb3d…` / `a56313fc…`; `ac4554bf…` survives as `PreA18Turn300`. Founded, driven and first-reign values are the shipped ones. | `Sim.Tests/Kernel/AiFoundingAttributionTests.cs:129, :139, :151`; `SnapshotTests.cs:1184`; `DrivenGoldenTests.cs:118`; `FirstReignTests.cs:58`; register `:64`, `:74` |
+| 12 | Head of §8 (EC-2 citation) | (none in this ADR) | A sentence stating that §8 is the EC-2 section and that code comments citing "ADR-056 §3 (EC-2, mounts)" or "ADR-056 §5" for the herd mean §8 | `Sim.Core/State/Ids.cs:248` ("ADR-056 §3 (EC-2, mounts)"); `Sim.Core/State/LabourActivities.cs:303` and `Sim.Core/Systems/Production/ProductionSystem.cs:235, :447` ("ADR-056 §5 (EC-2 …)"); `ProductionSystem.cs:525, :543` ("ADR-056 §5", the herd's `HeadYears` / `HerdAfter`). The comments were then corrected to §8 in the same pass (comment-only, no code token changed): `Ids.cs:248`, `LabourActivities.cs:303`, `ProductionSystem.cs:235, :447, :525, :543`, `Sim.Core/Systems/GoodsConfig.cs:43, :271, :457`, `Sim.Tests/Systems/EconomyMountsTests.cs:15`; and the EC-3 test header `Sim.Tests/Systems/EconomyGunpowderTests.cs:13` ("§6" → "§9"). |
+
+**Checked and left unchanged:** every "§" cross-reference inside this ADR (§2, §5, §8, §10 and the charter's §5.8–§5.11,
+§12.1, §13) and its D-065 citation (R2, separate packets: `d065-m7-charter-rulings.md:17`). No incorrect EC-2 section
+citation was found inside this ADR; the incorrect ones were the code comments named in #12, corrected in this pass. The §12 values remain the
+research+economy control (b) values (register row 13) and are not superseded as controls.

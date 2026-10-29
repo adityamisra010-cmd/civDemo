@@ -40,7 +40,7 @@ public sealed record GoodEntry(
     [property: JsonPropertyName("herd")] HerdEntry? Herd = null);
 
 /// <summary>
-/// ADR-056 §5 (EC-2) — a HERD good's breeding mechanism: a conserved stock that grows from itself on the settlement's
+/// ADR-056 §8 (EC-2) — a HERD good's breeding mechanism: a conserved stock that grows from itself on the settlement's
 /// pasture, distinct from the herding sector's food output (livestock, fish), and not food. All rates are per sim-year,
 /// integrated EXACTLY over the turn's dtYears (law 3; ProductionSystem.Breed has the closed form).
 ///
@@ -268,7 +268,7 @@ public sealed record GoodsConfig(
 
 public static class GoodsConfigLoader
 {
-    /// <summary>ADR-056 §5 adds "mount" (EC-2 horses: neither food, nor raw extraction, nor a crafted good).</summary>
+    /// <summary>ADR-056 §8 adds "mount" (EC-2 horses: neither food, nor raw extraction, nor a crafted good).</summary>
     private static readonly string[] Categories = ["food", "raw", "processed", "mount"];
     private static readonly string[] Channels = ["moisture", "elevation", "water"];
 
@@ -454,7 +454,7 @@ public static class GoodsConfigLoader
                 if (string.Equals(input.Good, r.Output.Good, StringComparison.Ordinal))
                     throw new GoodsConfigException(
                         $"recipes[{i}] ({r.Name}) consumes its own output '{input.Good}'.");
-            // ADR-056 §5: a herd good banks its fodder in its stock row's ConsumeRemainder, so no recipe may consume it.
+            // ADR-056 §8: a herd good banks its fodder in its stock row's ConsumeRemainder, so no recipe may consume it.
             foreach (RecipeInput input in r.Inputs)
                 if (cfg.IdOf(input.Good) is var hid and >= 0 && cfg.ById(hid).Herd is not null)
                     throw new GoodsConfigException(

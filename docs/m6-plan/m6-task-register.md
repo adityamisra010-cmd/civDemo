@@ -339,3 +339,20 @@ not proof (gov-4). Every item below was re-verified against code and tests on th
 | M6.22 | DONE (formula = shipped ADR-033 D6 form, D-066 A8; law court realized; every entity classified) | `deferred-entity-dispositions.md`; `EntityDispositionRegisterTests` |
 | M6.23 | DONE (D-066 A18); founding-predicate residual assigned to M7 (DW-002) | `PolityKnowledgeTests` |
 | M6.24 | NOT IMPLEMENTED — BLOCKED on a Director ruling: D-N assigned D-051 §2/§4 to M6, but DW-036 records the §4 mechanism and milestone as "deferred until after the playtest"; §2 richness classes likewise unscheduled | DW-036; exit inventory known-open |
+
+## Dated note — 2026-10-28 (D-067 exit-gate rulings; appended, the text above is unchanged)
+
+The Director ruled on the items the rows above left open ([D-067](../d067-m6-exit-gate-director-rulings.md)). The
+2026-10-28 D-066 table above is read through the following; where they differ, this note governs.
+
+| ID | Status 2026-10-28 (D-067) | Evidence / remaining |
+|---|---|---|
+| M6.24 | **DEFERRED out of M6 (D-067 R19).** D-051 §2's remainder (the §2(a) common-material floor and the §2(b) regional richness classes) and D-051 §4 (primitive stone-and-wood toolmaking, with its unresolved CR-020 §A mechanism choice) are deferred until after the Director's M6 playtest; **no milestone is named**. Supersedes the D-066 row's "NOT IMPLEMENTED — BLOCKED on a Director ruling". **Not an M6 exit criterion**; the M6.24 Director gate (`m6-exit-inventory.md` §4 gate 6) is **discharged**. D-051 §2 and §4 stay RATIFIED. | D-067 §5 R19; `deferred-work-register.md` DW-034, DW-036 (dated note D-067) |
+| M6.21 | Director-owned pathway choice (detail "director for pathway choice"): **RULED** — diffusion through trade contact only; conquest knowledge (DW-021) and every other pathway stay deferred (D-067 R7, confirming D-066 A7). | D-067 R7; ADR-058 |
+| M6.22 | Director-owned formula decision and tier re-ruling: **RULED** — the shipped ADR-033 D6 university discount formula is retained **provisionally, pending calibration** (D-067 R8); only the law court is built in M6, every other deferred entity is classified with an owning system, and a disposition reading "unscheduled" means "owning system named; milestone unscheduled" (D-067 R9). | D-067 R8, R9; `deferred-entity-dispositions.md` |
+| M6.13 | The known-extent restriction of claim, trade and road routing: **RULED: deferred to M7** (D-067 R10). This explicitly supersedes DW-001's M6 assignment (the Director's 2026-10-12 "the known-extent restriction of settle, claim and trade") for claim, trade and road routing, and it replaces D-066 A19's basis: slice contract E8 is the coordinator's design document, not a Director ruling; R10 is the ruling. The founding predicate's reads of unseen land (DW-002) stay M7. It authorizes no implementation now. | D-067 R10; `deferred-work-register.md` (dated note D-067) |
+| M6.14 | Unchanged (Part G gate OPEN). The eight-part cap (D-066 A4) is **provisional until the D-038 Part G visual gate** (D-067 R3). | D-067 R3 |
+
+The other D-066 §2 defaults (A1–A6, A10–A18, including A18 cited in the M6.23 row) are CONFIRMED (D-067 R1–R6), with
+the corrections D-067 lists; A13 concerns m6-spec §5 criterion 3, not criterion 8 (R5). A7–A9 and A19 are ruled in the
+rows above (R7–R10).

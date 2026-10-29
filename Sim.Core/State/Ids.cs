@@ -245,7 +245,7 @@ public static class ReasonIds
     public static readonly ReasonId Recruitment = new(19);
     public static readonly ReasonId FormationUpkeep = new(20);
     public static readonly ReasonId Reequipment = new(21);
-    // ADR-056 §3 (EC-2, mounts) — the herd's two sinks. A foal or a captured head enters through Produced (8), like every
+    // ADR-056 §8 (EC-2, mounts) — the herd's two sinks. A foal or a captured head enters through Produced (8), like every
     // other produced unit. HerdLosses: the herd's NET decline over a turn (deaths beyond foaling — a herd above its pasture
     // and fodder capacity, or without keepers), a sink on the herd good. Fodder: the grain the herd eats, a sink on the
     // fodder good. Separate from Eaten (4): "what did the people eat?" and "what did the horses eat?" are different

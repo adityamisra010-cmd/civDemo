@@ -351,3 +351,11 @@ Authorized: commit the working tree on claude/new-session-yavghm, push, open a P
 validation policy (Tier 1 while iterating, one Tier 3 on the integrated tree), starting with the AI-policy ADR for
 D2 + D3. Record each ruling in docs/d065-m7-charter-rulings.md as Addendum 4.
 ```
+
+## Dated note — 2026-10-28 (D-067)
+
+Appended under gov-4 §6. The body of this report is historical and is not rewritten. The Director's M6 exit-gate rulings (`docs/d067-m6-exit-gate-director-rulings.md`) bear on it as follows:
+- **ADR-055 is RATIFIED (D-067 R15),** after the documentation amendments in its amendment log. The ratification explicitly includes the scope beyond D-065 R7's literal list: the general Recruit (16) and Disband (18) orders, soldier upkeep, and AI recruitment enabled. R15 accepts as they stand the two consequences this report raised as D4 (soldiers immortal until M7.4) and D6 (the founding warband's draw changes early history). No new behaviour is to be invented to remove them.
+- **ADR-056 EC-1, EC-2 and EC-3 are RATIFIED separately (D-067 R16, R17, R18),** each after the ADR-056 amendments.
+- **Commit order (D-067 R20):** the intended order is this M7 execution pass first, the M6 closure second. **No commit, push or merge is authorized yet.** §10 step 2 and the ready-to-copy prompt above are superseded on this point.
+- **Pins and telemetry in this report are historical.** The values in §3 (for example AI world `S1cTurn300` `ac4554bf…`; AI integration levy 380/381 and Age 3 at 345) are those of the M7 pass. The M6 closure moved some of them (AI world now `5458cb3d…`; levy 373/374, Age 3 at 344). Current values are in `docs/m6-plan/golden-attribution-register.md`. The telemetry line shape this pass introduced under the `telemetry/v4` tag is now written as `telemetry/v5` (D-066 A15, ADR-059).

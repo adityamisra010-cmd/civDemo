@@ -175,3 +175,22 @@ Scope changes recorded by `docs/d066-m6-closure-rulings.md`:
 - **Excluded:** M7 follow-ups (R5).
 - **Item status:** per `m6-task-register.md` dated note 2026-10-28.
 - **S-18 (D-051 carry-over):** still open, pending a Director mechanism ruling.
+
+## Dated note — 2026-10-28 (D-067 exit-gate rulings; appended, the text above is unchanged)
+
+Scope readings ruled by the Director in [D-067](../d067-m6-exit-gate-director-rulings.md):
+- **S-18 (D-051 carry-over): DEFERRED out of M6 (D-067 R19).** The 2026-10-20 note's "§2 and §4 are M6's" is
+  superseded for §2's remainder (the §2(a) floor and the §2(b) regional richness classes) and for §4 (primitive
+  toolmaking and its CR-020 §A mechanism). They are deferred until after the Director's M6 playtest, with no milestone
+  named; M10 is a content-mapped future possibility, not a commitment, and the M7 economy track is a coupled
+  alternative, not an assignment. Concealment, §2's first availability class, stays delivered (ADR-044). The D-066
+  note's "still open, pending a Director mechanism ruling" is answered. S-18 names no M6 exit criterion.
+- **S-08 (deferred research entities): read as "classified", not "realized" (D-067 R9).** Only the law court is built
+  in M6; every other deferred entity is classified with an owning system. A disposition reading "unscheduled" means
+  "owning system named; milestone unscheduled". The research-modifier formula is the shipped ADR-033 D6 form, retained
+  provisionally pending calibration (R8).
+- **S-07 (diffusion):** trade contact only; conquest knowledge (DW-021) and other pathways stay deferred (R7).
+- **S-12 (fog):** the known-extent restriction of claim, trade and road routing is deferred to M7 (R10), superseding
+  DW-001's M6 assignment; the founding predicate's unseen-land reads (DW-002) stay M7.
+- **S-13 (E1):** the eight-part cap is provisional until the D-038 Part G visual gate (R3).
+- **Migration policy** (out of M6 scope): owned by M8 (R13); the lower migration baseline is accepted as design (R11).

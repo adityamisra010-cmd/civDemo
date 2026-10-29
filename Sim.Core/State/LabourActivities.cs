@@ -300,7 +300,7 @@ public static class LabourActivities
                     }
                     ids.Add(g.Id);
                 }
-                // ADR-056 §5 (EC-2): the herding sector also keeps the herd goods (horses) its knowledge can breed, on a
+                // ADR-056 §8 (EC-2): the herding sector also keeps the herd goods (horses) its knowledge can breed, on a
                 // settlement with known pasture — what ProductionSystem.Breed grows (capacity = herders × pasture).
                 if (food)
                     foreach (GoodEntry g in goods.Goods)

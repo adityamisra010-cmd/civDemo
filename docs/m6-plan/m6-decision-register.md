@@ -265,3 +265,32 @@ D-062 (`docs/d062-m6-director-final-rulings.md`) records the Director's final M6
 ## Dated note — 2026-10-28 (D-066; appended, the text above is unchanged)
 
 D-L, D-M, D-P and D-Q were settled by ADOPTION under the Director's 2026-10-28 decision rules (D-066 §2 A3, A1, A2, A5), as were D-G (A14–A17) and the "optional" wording (A6). Each is reversible and listed for the Director's confirmation at the exit gate. They are not recorded as Director rulings.
+
+## Dated note — 2026-10-28 (D-067 exit-gate rulings; appended, the text above is unchanged)
+
+The Director ruled at the M6 exit gate ([D-067](../d067-m6-exit-gate-director-rulings.md)). The D-066 note above records
+D-L, D-M, D-P and D-Q as settled by ADOPTION, not by ruling; that status is now changed as follows.
+
+- **D-M — CONFIRMED** (D-067 R1; D-066 A1): an institution follows the university lifecycle, realized by construction
+  `founds`.
+- **D-P — CONFIRMED** (D-067 R1; D-066 A2): the slice as written.
+- **D-Q — CONFIRMED** (D-067 R1; D-066 A5): verb-granting civics are knowledge-only in M6.
+- **D-L — CONFIRMED with a correction** (D-067 R2; D-066 A3): the E1 style register is driven by realized state, but
+  "the Age banner is the only Age-keyed element" is too broad. The map's era theme (`MapInk.For(EraTheme)`) is also
+  Age-keyed, as pre-existing presentation that implies no capability. The ruled meaning: no E1 element implies a
+  capability the polity has not realized. Related: the D-038 H8 parts cap of eight (D-066 A4) is **provisional until the
+  D-038 Part G visual gate** (D-067 R3).
+- **D-G — CONFIRMED** (D-067 R6 for A14, with the correction that the writer is the hand-written STORED ZIP writer
+  `StoredZip`, not `ZipArchive`; cross-OS byte identity is PREDICTED; D-067 R1 for A15–A17).
+- **D-T** (what the AI assumes of unseen terrain): the A18 closure is **CONFIRMED** (D-067 R1).
+- **D-N — RE-RULED for D-051 §2 and §4 (D-067 R19).** The 2026-10-20 destination "§2 and §4 → M6 (M6.13 coordination;
+  M6.22 lane)" (closure ruling R2) is superseded for these items. D-051 §2's remainder (§2(a) floor, §2(b) regional
+  richness classes) and §4 (primitive toolmaking, with its unresolved CR-020 §A mechanism choice) are deferred until
+  after the Director's M6 playtest, with **no milestone named**. M10 is a content-mapped future possibility, not a
+  commitment; the M7 economy track (ADR-056 EC-1) is a coupled alternative, not an assignment. Concealment, §2's first
+  availability class, stays delivered (D-062 R6/R7, ADR-044). §1(a) → M9 and §6-remainder → M10 are unchanged. D-051 §2
+  and §4 stay RATIFIED. Carried open: D-062 R6 ("randomly distributed") versus D-051 §2(b) ("geographically correlated").
+- **Items without a lettered entry here, ruled by D-067:** the diffusion pathway (D-066 A7 → R7: trade contact only),
+  the research-modifier formula (A8 → R8: ADR-033 D6 retained provisionally, pending calibration), the deferred-entity
+  tiers (A9 → R9: only the law court built; the rest classified), and claim/trade/road routing on the known extent (A19 →
+  R10: M7, superseding DW-001's M6 assignment; D-K's stored-extent shape is unaffected).

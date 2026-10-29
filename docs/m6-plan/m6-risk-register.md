@@ -41,3 +41,11 @@ owner. Severity: H / M / L (impact × likelihood, judged, not measured).
 | E1 visual legibility (G2/G3) | OPEN until the Director's Part G gate. Frame cost: the self-set 2.0× budget is exceeded on near-empty maps only (≤ 2.8 ms). |
 | New content inert in normal play | OPEN. Contact exposure writes nothing in canonical worlds; the law court appears around turn 500+. This is a playtest observation, not a defect. |
 | Pre-existing red | `research-proposal-snapshot` (historical) is out of the gate; live research tool checks pass. |
+
+## Dated note — 2026-10-28 (D-067 exit-gate rulings; appended, the text above is unchanged)
+
+| Risk | Status (D-067) |
+|---|---|
+| R-18 (the D-051 carry-over dilutes a knowledge milestone) | **RETIRED for M6; transferred with the item.** The Director deferred M6.24 (D-051 §2 floor and richness classes; §4 primitive toolmaking) until after the M6 playtest, with no milestone named (D-067 R19). The risk moves with the item to whichever milestone schedules it (M10 a content-mapped possibility, not a commitment; the M7 economy track a coupled alternative, not an assignment). |
+| R-08 / E1 visual legibility (D-066 note) | **OPEN, plus one dependency.** The eight-part cap (`parts.maxParts` = 8, D-066 A4) is **provisional until the D-038 Part G visual gate** (D-067 R3). With eight part kinds it has no headroom, so the overflow fold does not trigger with today's content; the frame-cost rationale for the cap is unsupported (the frame overrun comes from terrain marks, not parts). Trigger: a ninth part kind, or the gate finding the composite illegible. |
+| Migration corridor (DW-038) | **ACCEPTED as design, not a causal explanation** (D-067 R11); attribution optional and not an exit gate (R12). Not an M6 risk. |

@@ -1,8 +1,12 @@
 # ADR-055 — M7 recruitment slice: taxonomy, formation personnel, recruitment, re-equipment and the family migration
 
-**Status: PROPOSED — implemented on the units-track feature worktree under D-065 R7 (the Director's direction to implement
-the family splits, staged aviation, permitted re-equipment and the founding warband's real personnel on the feature
-branch); not merged.**
+**Status: ACCEPTED — RATIFIED by the Director on 2026-10-28 (D-067 R15), after the documentation amendments recorded in
+the amendment log at the end of this ADR. Implemented under D-065 R7 (the Director's direction to implement the family
+splits, staged aviation, permitted re-equipment and the founding warband's real personnel on the feature branch); now
+integrated in the combined worktree (`wt-m6`, over `0bf7626`), uncommitted and unmerged — no commit, push or merge is
+authorized (D-067 R20: the intended order is this M7 pass first, the M6 closure second). The ratification explicitly
+covers scope beyond D-065 R7's literal list: the general Recruit (kind 16) and Disband (kind 18) orders, soldier upkeep,
+and AI recruitment enabled (`military.aiRecruitment` true).**
 Schema **v39**, after the research track's v38 (ADR-054, ResearchPopulations at section 69): the four tables of this ADR are sections **70–73** and the readable set is {32, …, 39}; a v38 or older stream loads with them empty. This ADR is integrated on top of the research track (int-base-r2). ADR number: the research track
 takes the first free number (054); this is the second.
 
@@ -129,7 +133,8 @@ TargetId = formation, Amount = target identity key, or **0 = cancel**.
 ## 7. AI (military.aiRecruitment)
 
 `AiMilitaryPolicy`: one RecruitFormation per AI polity per turn when its NEXT Age has an unmet `formations` milestone and a
-legal identity counted by that fact exists; composite integer key (identity Age, identity key, settlement id); uses only
+legal identity counted by that fact exists; the least composite integer key (identity Age ascending, identity key
+ascending, settlement id ascending — `AiMilitaryPolicy.Compare`; no family key); uses only
 the polity's own settlements, stocks, people and knowledge; tie-dense tests. Reading the next Age is AI goal-setting (the
 AgeAdvancePolicy precedent), never an input of the predicate.
 
@@ -185,22 +190,28 @@ warband's people), so switching it off must reach the founding too:
 The "old" column is the research track's pin (ADR-054, schema v38); the control is TestConfigs.PreMilitary (the research
 switches as shipped), whose SchemaProjection.V38 (sections 70–73 stripped, asserted empty) reproduces it byte for byte.
 
-| pin | old (v38, research) | new (v39) | cause | control |
-|---|---|---|---|---|
-| SnapshotTests.FoundedGoldenHash + ci.yml FOUNDED_GOLDEN | 1f9f3d4f… | bb825342… | value + layout | MilitaryAttributionTests: PreMilitary twin V38 = old |
-| DrivenGoldenTests.Golden | f23e0dcd… | f320440f… | value + layout | same |
-| FirstReignTests.PostR1Golden | 389e0526… | df73d4f2… | value + layout | same |
-| AiFoundingAttributionTests.S1cTurn300 | 02500b4a… | 3153b7e3… | value (personnel, upkeep, AI recruitment) + layout | same |
-| SnapshotTests.ToyGoldenHash | 175f55be… | ff4ea411… | layout alone | V38 of the live world = old |
-| AiFoundingAttributionTests.PreTranche2Turn300 | 51b33ea0… | 5fb6aa9e… | layout alone (older twin) | V38 = old |
-| DiscoveryLayoutAttributionTests.PreM6FoundedGolden | 0dadbdfa… | bb9cc22d… | layout alone (older twin) | V38 = old |
-| DiscoveryLayoutAttributionTests.PreM6AiTurn300 | 5258fe16… | 55fbce7e… | layout alone (older twin) | V38 = old |
-| AiEmpireIntegrationTests (canonical AI): advance / road / levy / A3 | 65/66, 134/135, 379/380, 343 | 66/67, 135/136, 380/381, 345 | value (aiRecruitment off alone: A3 344) | `OneAiEmpire_WithTheMilitaryLayerOff_…` returns old |
-| AiAgeAdvancementIntegrationTests (AI, player A2) | 413, 227 | 420, 230 | value | `FoundedAiEmpire_WithTheMilitaryLayerOff_…` |
-| MerchantTests first active merchant town | 39 | 120 | value | `MerchantsEmerge_WithTheMilitaryLayerOff_…` |
-| RunFromSaveCliTests AI colony founded turn (rig premise) | 73 | 76 | value | — (CLI rig) |
-| Sim.Ui SettlementCompositionTests.PinnedCanonicalDigest | 31a160dc… | ed95b7f7… | value (capital adults) | `Composition_WithTheMilitaryLayerOff_IsTheV37Digest` |
-| AvailableActions turn-one count (Sim.Tests + Sim.Ui) | 133 | 146 | + 12 Recruit, + 1 Disband | — (surface) |
+**Historical values (amended 2026-10-28, D-067 R15).** The "new (v39)" column holds the values at the time of the M7
+pass, on the combined research + units tree. They are not the live pins. The M7 merge (research + units + economy) and
+then the M6 closure moved several of them again. The current values and every later move, each with its control, are in
+`docs/m6-plan/golden-attribution-register.md` (rows 12 and 14, and its dated notes of 2026-10-28). The last column below
+gives the live value in the integrated tree as of 2026-10-28.
+
+| pin | old (v38, research) | new (v39, at the time of the M7 pass; historical) | cause | control | live 2026-10-28 (see the register) |
+|---|---|---|---|---|---|
+| SnapshotTests.FoundedGoldenHash + ci.yml FOUNDED_GOLDEN | 1f9f3d4f… | bb825342… | value + layout | MilitaryAttributionTests: PreMilitary twin V38 = old | d5ebd0b2… (M7 merge, register row 14; unchanged by the M6 closure) |
+| DrivenGoldenTests.Golden | f23e0dcd… | f320440f… | value + layout | same | 55afd498… (M7 merge, row 14; unchanged by the M6 closure) |
+| FirstReignTests.PostR1Golden | 389e0526… | df73d4f2… | value + layout | same | 064ed6b7… (M7 merge, row 14; unchanged by the M6 closure) |
+| AiFoundingAttributionTests.S1cTurn300 | 02500b4a… | 3153b7e3… | value (personnel, upkeep, AI recruitment) + layout | same | 5458cb3d… (M7 merge ac4554bf…, then the M6 closure; register dated note) |
+| SnapshotTests.ToyGoldenHash | 175f55be… | ff4ea411… | layout alone | V38 of the live world = old | ff4ea411… (unchanged) |
+| AiFoundingAttributionTests.PreTranche2Turn300 | 51b33ea0… | 5fb6aa9e… | layout alone (older twin) | V38 = old | 5fb6aa9e… (unchanged) |
+| DiscoveryLayoutAttributionTests.PreM6FoundedGolden | 0dadbdfa… | bb9cc22d… | layout alone (older twin) | V38 = old | bb9cc22d… (unchanged) |
+| DiscoveryLayoutAttributionTests.PreM6AiTurn300 | 5258fe16… | 55fbce7e… | layout alone (older twin) | V38 = old | 55fbce7e… (unchanged) |
+| AiEmpireIntegrationTests (canonical AI): advance / road / levy / A3 | 65/66, 134/135, 379/380, 343 | 66/67, 135/136, 380/381, 345 | value (aiRecruitment off alone: A3 344) | `OneAiEmpire_WithTheMilitaryLayerOff_…` returns old | 66/67, 135/136, 373/374, 344 (levy and A3 moved by the M6 closure) |
+| AiAgeAdvancementIntegrationTests (AI, player A2) | 413, 227 | 420, 230 | value | `FoundedAiEmpire_WithTheMilitaryLayerOff_…` | 420, 230 (unchanged) |
+| MerchantTests first active merchant town | 39 | 120 | value | `MerchantsEmerge_WithTheMilitaryLayerOff_…` | 120 (unchanged) |
+| RunFromSaveCliTests AI colony founded turn (rig premise) | 73 | 76 | value | — (CLI rig) | 77 (moved by the M6 closure) |
+| Sim.Ui SettlementCompositionTests.PinnedCanonicalDigest | 31a160dc… | ed95b7f7… | value (capital adults) | `Composition_WithTheMilitaryLayerOff_IsTheV37Digest` | ed95b7f7… (unchanged) |
+| AvailableActions turn-one count (Sim.Tests + Sim.Ui) | 133 | 146 | + 12 Recruit, + 1 Disband | — (surface) | 146 (unchanged) |
 
 Controls: `MilitaryAttributionTests` (every hash row), `Adr054AttributionTests` and the layout chain
 (`ResearchReserveLayoutAttributionTests.LayoutAlone`, `CivicsPointsAttributionTests`) now run their "live" arm as the
@@ -212,8 +223,11 @@ re-derives them with the same controls.
 
 **Observability.** TurnRecord's grain and good accounts carry `Military` (reasons 19–21); PopulationAccount carries
 `InFormations` (people in no settlement's record); the per-settlement store-loss identity absorbs military grain
-(`StoreLossesIdentity`); the telemetry grain object writes `military` only when non-zero (a military-off world's line is
-byte-identical; the reader takes it as 0).
+(`StoreLossesIdentity`); the telemetry grain object writes `military` only when non-zero (a military-off world's line body
+is byte-identical; the reader takes it as 0). **Tag (amended 2026-10-28):** the M7 pass shipped this line-shape change
+under the unchanged `telemetry/v4` tag; the M6 closure moved the writer to `telemetry/v5` (D-066 A15, ADR-059;
+`TelemetryWriter.Schema`); the reader reads v5 and v4 (`ReadableSchemas`). "Byte-identical" above therefore refers to the
+military term's absence from the line body only: every line written now carries the `telemetry/v5` tag.
 
 ## 10. What stays blocked / unresolved
 
@@ -228,3 +242,24 @@ byte-identical; the reader takes it as 0).
   future battle-system work, no buffs invented here.
 - **Deferred**: upkeep shortfall consequences (M7.4), salvage credit, re-equip labour from the production account, the
   aviation Age validator (after RC-1).
+
+## Amendment log — 2026-10-28 (D-067 R15)
+
+Authority: D-067 R15 (D-067 §3) ratifies this ADR after these documentation
+amendments. This ADR was PROPOSED and uncommitted, so the stale facts below were corrected in place (gov-4 §6 forbids
+rewriting history; each in-place change is listed here, old → new, with its evidence). **No design decision, value,
+mechanism or behaviour was changed.** Each fact was checked against the integrated worktree (`wt-m6`) on 2026-10-28.
+
+| # | Location | Old → new | Evidence |
+|---|---|---|---|
+| 1 | Status line | "PROPOSED — implemented on the units-track feature worktree under D-065 R7 (…); not merged." → "ACCEPTED — RATIFIED by the Director on 2026-10-28 (D-067 R15), after the amendments logged here", plus: integrated in the combined worktree, uncommitted and unmerged; no commit, push or merge authorized (R20: M7 pass first, M6 closure second); ratification explicitly covers scope beyond D-065 R7's literal list (Recruit 16, Disband 18, soldier upkeep, AI recruitment enabled). | `docs/d067-m6-exit-gate-director-rulings.md:77, 79–83, 138`; `docs/d065-m7-charter-rulings.md:41` (R7's list, "for these items only") |
+| 2 | §7, the AI's choice key | "composite integer key (identity Age, identity key, settlement id)" → "the least composite integer key (identity Age ascending, identity key ascending, settlement id ascending — `AiMilitaryPolicy.Compare`; no family key)". The order was already as the code has it; the change states the directions explicitly and rules out the family key that `sim.json`'s description had wrongly named (corrected the same day). "Identity key" is the identity's content key (`UnitIdentity.Key`, e.g. 102). | `Sim.Core/Systems/Military/AiMilitaryPolicy.cs:16–17, 44, 49, 64, 77–84`; tie-dense test `Sim.Tests/Military/AiMilitaryPolicyTests.cs:62`; `Sim.Data/content/sim.json:362` |
+| 3 | §9.1, pin table | The "new (v39)" column is relabelled "new (v39, at the time of the M7 pass; historical)"; its values are kept unchanged. A note above the table and a new last column "live 2026-10-28 (see the register)" are added. Changed live values: founded `bb825342…` → `d5ebd0b2…`, driven `f320440f…` → `55afd498…`, first reign `df73d4f2…` → `064ed6b7…` (all three by the M7 merge, register row 14; unchanged by the M6 closure); AI world `S1cTurn300` `3153b7e3…` → `ac4554bf…` (M7 merge) → `5458cb3d…` (M6 closure); AI integration levy / A3 `380/381, 345` → `373/374, 344`; CLI AI colony turn `76` → `77`. Every other row is unchanged. | `docs/m6-plan/golden-attribution-register.md:16–19, 40, 42, 64, 74`; `Sim.Tests/Kernel/SnapshotTests.cs:1184, 1201`; `.github/workflows/ci.yml:266`; `Sim.Tests/Kernel/DrivenGoldenTests.cs:118`; `Sim.Tests/Systems/FirstReignTests.cs:58`; `Sim.Tests/Kernel/AiFoundingAttributionTests.cs:129, 170`; `Sim.Tests/Kernel/DiscoveryLayoutAttributionTests.cs:34, 42`; `Sim.Tests/Kernel/AiEmpireIntegrationTests.cs:310, 374–375`; `Sim.Tests/Systems/AiAgeAdvancementIntegrationTests.cs:109`; `Sim.Tests/Systems/MerchantTests.cs:211`; `Sim.Tests/Kernel/RunFromSaveCliTests.cs:185`; `Sim.Ui.Tests/SettlementCompositionTests.cs:726`; `Sim.Tests/State/TurnOneActionSurfaceTests.cs:176`; `Sim.Ui.Tests/ActionSurfaceTests.cs:208` |
+| 4 | §9.1, "Observability" | "(a military-off world's line is byte-identical; the reader takes it as 0)" → "line body is byte-identical", plus a tag note: the pass shipped the line-shape change under the unchanged `telemetry/v4` tag; the writer now emits `telemetry/v5` (D-066 A15, ADR-059), and the reader reads v5 and v4. | `Sim.Core/Observability/TelemetryWriter.cs:35, 45, 51`; `docs/d066-m6-closure-rulings.md:60`; `docs/adr/adr-059-one-file-session-export.md:128` |
+
+**Accepted consequences (D-067 R15, D-067 §3).** Recorded, not changed:
+- **Soldiers are immortal until M7.4.** Formations have no attrition (§4: people in a formation do not age, die or give
+  birth; the upkeep shortfall accumulates in `UnfedUnits`, which has no consumer).
+- **The founding warband's draw changes early history.** Its 20 adults leave the capital by `Ledger.Transfer` at founding
+  (§4), which moves early pins (§9.1; for example the first merchant town, 39 → 120).
+- No new behaviour is introduced to remove either limitation.

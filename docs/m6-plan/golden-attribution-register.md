@@ -76,3 +76,18 @@ both together the base. Founded, driven and first-reign goldens unmoved. ci.yml 
   - Control: the in-process AI world's twins (`PreKnow` returns the FOG-only world, `PreAiKnownTerrain` the KNOW-only world, both exact) prove each layer's effect on the same AI.
   - The CLI path has no per-layer switch, so the 76 → 77 split between the two layers is NOT measured. This is recorded here, not hidden.
 - **`DiscoveryTests` realized concealed share, seed 1, turn 300: 9/38 → 9/36.** Cause: A18 changes the AI's foundings. Control: `RealizedConcealedShare_Seed1Turn300_WithTheKnownTerrainValuationOff_IsThePreA18Count`, recorded in the ADR-044 dated note.
+
+## Dated note — 2026-10-28 (D-067; documentation only, appended, the text above is unchanged)
+
+- **ADR-058 §C is corrected by this register's own measured rows.** ADR-058 §C ("Goldens") says both of its parts move
+  "the founded, driven, first-reign and AI-world pins". The measured record says otherwise: only the AI-world pins moved
+  (`S1cTurn300` `ac4554bf…` → `5458cb3d…`, `S1cTurn300PreEconomy` `3153b7e3…` → `a56313fc…`, with the AI decision turns
+  in the integration note above). The founded, driven and first-reign pins are unchanged at `d5ebd0b2`, `55afd498` and
+  `064ed6b7` (this register's two 2026-10-28 notes above; re-read on 2026-10-28 in `SnapshotTests.FoundedGoldenHash`,
+  `DrivenGoldenTests.Golden`, `FirstReignTests.PostR1Golden`, `AiFoundingAttributionTests.S1cTurn300` and ci.yml
+  `FOUNDED_GOLDEN`). ADR-058 §C was corrected to this record in the same pass (ADR-058 amendment log, 2026-10-28).
+- **No pin value is changed by D-067.** D-067 is governance, scheduling and documentation
+  (`docs/d067-m6-exit-gate-director-rulings.md`: "No gameplay behaviour is changed"); this note adds no row to §2. This
+  is read from the ruling, NOT measured: the pass that wrote this note ran no build or test. D-067 §7 also lists an edit
+  to the `military` description string in `Sim.Data/content/sim.json` (no value changes); whether any pinned hash reads
+  that string is for the validation run to confirm.
