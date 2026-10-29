@@ -1,4 +1,5 @@
 using System.Globalization;
+using Sim.Core.Chronicle;
 using Sim.Core.State;
 using Sim.Core.Systems;
 using Sim.Core.Systems.Ages;
@@ -21,13 +22,24 @@ namespace Sim.Ui.ViewModel;
 /// the step produced), an event is appended only when the player knows EVERY settlement and polity it names (a
 /// settlement the player does not know is never visited, its rows never read), and a re-equipment counts only the
 /// formations the player knows. All-known (or no knowledge given): every event, exactly as before.
+///
+/// ADR-059 amendment 2026-10-29 — THE CODED RECORD. With a <see cref="ChronicleCode.Record"/> (UiSession passes it for the
+/// session record only), every event appended to the annals is also appended there as its coded line, built from the
+/// same values the prose prints (never from the prose): <c>Y&lt;year&gt; &lt;EV&gt; &lt;fields&gt;</c>, a settlement as
+/// ST&lt;id&gt;, a polity as PL&lt;id&gt;, a content thing by its key (RN research node, AG Age, RC road class, PJ project,
+/// IN institution type, CL class, ID unit identity), each named once in the record's name table. The prose is unchanged.
 /// </summary>
 public sealed class StateChronicle
 {
     private static string Year(IReadOnlyWorldState w) =>
         ((long)Math.Round(w.Clock.WorldDateYears)).ToString(CultureInfo.InvariantCulture);
 
-    private static string Pct(double f) => (f * 100.0).ToString("0", CultureInfo.InvariantCulture) + "%";
+    private static string Pct(double f) => Whole(f) + "%";
+
+    /// <summary>A rate as the prose prints it, without the % (the coded record's TB / TN value).</summary>
+    private static string Whole(double f) => (f * 100.0).ToString("0", CultureInfo.InvariantCulture);
+
+    private static string Id(int v) => v.ToString(CultureInfo.InvariantCulture);
 
     /// <summary>"your empire" for the player's polity, "the empire of N" otherwise.</summary>
     public static string Polity(PolityId p) =>
@@ -44,13 +56,28 @@ public sealed class StateChronicle
     /// road built, a structure completed and an institution founded (each drawn on the map), a change of ruler, a
     /// re-equipment of formations the player knows.</summary>
     public void Observe(IReadOnlyWorldState prev, IReadOnlyWorldState next, SimConfig cfg, Func<int, string> name, List<string> annals,
-        PlayerKnowledge? knowledge = null, bool playerBooks = false)
+        PlayerKnowledge? knowledge = null, bool playerBooks = false, ChronicleCode.Record? coded = null)
     {
         ArgumentNullException.ThrowIfNull(prev);
         ArgumentNullException.ThrowIfNull(next);
         ArgumentNullException.ThrowIfNull(cfg);
         ArgumentNullException.ThrowIfNull(annals);
         string y = "In the year " + Year(next) + ", ";
+        string cy = "Y" + Year(next) + " ";
+        // One event: its prose to the annals and, for the session record, its coded line (same admission, same order).
+        void Tell(string prose, Func<string> code)
+        {
+            annals.Add(prose);
+            coded?.Add(cy + code());
+        }
+        // A named thing's code, its name noted in the record's name table.
+        string N(string code, string thing)
+        {
+            coded?.Note(code, thing);
+            return code;
+        }
+        string St(SettlementId s) => N(ChronicleCode.Settlement(s.Value), name(s.Value));
+        string Pl(PolityId p) => "PL" + Id(p.Value);
         // P7: the subjects an event names must all be known to the player.
         bool S(SettlementId s) => knowledge is null || !knowledge.IsHiddenSettlement(s.Value);
         bool P(PolityId p) => knowledge is null || knowledge.KnowsPolity(p.Value);
@@ -70,22 +97,28 @@ public sealed class StateChronicle
                 bool[] after = ResearchQuery.CompletedMask(next, research, p);
                 for (int n = 0; n < after.Length && n < research.Nodes.Count; n++)
                     if (after[n] && (n >= before.Length || !before[n]))
-                        annals.Add(y + "your scholars mastered " + research.Nodes[n].Name + ".");
+                    {
+                        ResearchNode node = research.Nodes[n];
+                        Tell(y + "your scholars mastered " + node.Name + ".",
+                            () => "RM " + Pl(p) + " " + N("RN" + Id(node.Key.Value), node.Name));
+                    }
             }
             // Age entered.
             if (cfg.Ages is { } ages)
             {
                 int a0 = AgeQuery.CurrentAge(prev, ages, p), a1 = AgeQuery.CurrentAge(next, ages, p);
                 if (a1 != a0)
-                    annals.Add(y + Polity(p) + " entered the " + AgeName(ages, a1) + " age.");
+                    Tell(y + Polity(p) + " entered the " + AgeName(ages, a1) + " age.",
+                        () => "AE " + Pl(p) + " " + N("AG" + Id(a1), AgeName(ages, a1)));
             }
             // Tax levy changed (D-060: a rival's levy is its own policy — not told in the player's view).
             if (!OwnPolicy(p)) continue;
             double r0 = Governance.HasPolicy(prev, p) ? Governance.NominalTaxRate(prev, p) : 0.0;
             double r1 = Governance.HasPolicy(next, p) ? Governance.NominalTaxRate(next, p) : 0.0;
             if (r1 != r0)
-                annals.Add(y + Cap(Polity(p)) + (r1 == 0.0 ? " abolished its tax." : r0 == 0.0
-                    ? " levied a tax of " + Pct(r1) + "." : " changed its tax from " + Pct(r0) + " to " + Pct(r1) + "."));
+                Tell(y + Cap(Polity(p)) + (r1 == 0.0 ? " abolished its tax." : r0 == 0.0
+                    ? " levied a tax of " + Pct(r1) + "." : " changed its tax from " + Pct(r0) + " to " + Pct(r1) + "."),
+                    () => "TL " + Pl(p) + " TB" + Whole(r0) + " TN" + Whole(r1));
         }
 
         // Roads built or modernized: travelled edges new to next, or of a higher class than in prev.
@@ -98,9 +131,10 @@ public sealed class StateChronicle
             if (TransportQuery.TryGetEdge(prev, e.Id, out TransportEdgeRow old) && RoadPerformance.IsTravelled(old)) oldType = old.EdgeType;
             if (oldType == e.EdgeType) continue;
             string cls = Sim.Ui.World.RoadLens.ClassName(cfg, e.EdgeType);
-            annals.Add(y + (oldType < 0
+            Tell(y + (oldType < 0
                 ? "a " + cls.ToLowerInvariant() + " was built between " + name(e.A.Value) + " and " + name(e.B.Value) + "."
-                : "the road between " + name(e.A.Value) + " and " + name(e.B.Value) + " became a " + cls.ToLowerInvariant() + "."));
+                : "the road between " + name(e.A.Value) + " and " + name(e.B.Value) + " became a " + cls.ToLowerInvariant() + "."),
+                () => (oldType < 0 ? "RD " : "RU ") + St(e.A) + " " + St(e.B) + " " + N("RC" + Id(e.EdgeType), cls));
         }
 
         // Construction completed: a structure count that rose.
@@ -112,8 +146,11 @@ public sealed class StateChronicle
             long was = ConstructionQuery.Built(prev, s.Settlement, s.ProjectId);
             if (s.Count <= was) continue;
             string pname = "a structure";
-            for (int k = 0; k < projects.Length; k++) if (projects[k].Id == s.ProjectId) { pname = "a " + projects[k].Name.ToLowerInvariant(); break; }
-            annals.Add(y + name(s.Settlement.Value) + " completed " + pname + ".");
+            string? proper = null;
+            for (int k = 0; k < projects.Length; k++) if (projects[k].Id == s.ProjectId) { pname = "a " + projects[k].Name.ToLowerInvariant(); proper = projects[k].Name; break; }
+            string pj = "PJ" + Id(s.ProjectId);
+            Tell(y + name(s.Settlement.Value) + " completed " + pname + ".",
+                () => "SC " + St(s.Settlement) + " " + (proper is null ? pj : N(pj, proper)));
         }
 
         // Institutions founded or matured.
@@ -121,14 +158,18 @@ public sealed class StateChronicle
         {
             InstitutionRow row = next.Institutions[i];
             if (!S(row.Settlement)) continue;
-            string type = InstitutionContent.Info(cfg, row.Type)?.Name ?? "an institution";
+            string? typeName = InstitutionContent.Info(cfg, row.Type)?.Name;
+            string type = typeName ?? "an institution";
+            string Inst() => typeName is null ? "IN" + Id(row.Type) : N("IN" + Id(row.Type), typeName);
             int at = -1;
             for (int k = 0; k < prev.Institutions.Count; k++) if (prev.Institutions[k].Id == row.Id) { at = k; break; }
             if (at < 0)
-                annals.Add(y + "the " + type + " was founded at " + name(row.Settlement.Value) + ".");
+                Tell(y + "the " + type + " was founded at " + name(row.Settlement.Value) + ".",
+                    () => "IF " + Inst() + " " + St(row.Settlement));
             else if (Books(row.Settlement) && InstitutionsQuery.Stage(cfg, row.Type, row.Maturity) == InstitutionLifecycle.Mature
                      && InstitutionsQuery.Stage(cfg, row.Type, prev.Institutions[at].Maturity) != InstitutionLifecycle.Mature)
-                annals.Add(y + "the " + type + " at " + name(row.Settlement.Value) + " came to maturity.");
+                Tell(y + "the " + type + " at " + name(row.Settlement.Value) + " came to maturity.",
+                    () => "IM " + Inst() + " " + St(row.Settlement));
         }
 
         // Control lost (revolt or capture) and merchants emerging, per settlement present in both worlds.
@@ -143,12 +184,13 @@ public sealed class StateChronicle
             bool had = EmpireQuery.TryGetController(prev, s, out PolityId was);
             bool has = EmpireQuery.TryGetController(next, s, out PolityId now);
             if (had && (!has || now.Value != was.Value) && P(was) && (!has || P(now)))
-                annals.Add(y + name(s.Value) + (has
+                Tell(y + name(s.Value) + (has
                     ? " passed from " + Polity(was) + " to " + Polity(now) + "."
-                    : " rose up and threw off the rule of " + Polity(was) + "."));
+                    : " rose up and threw off the rule of " + Polity(was) + "."),
+                    () => has ? "CP " + St(s) + " PF" + Id(was.Value) + " PT" + Id(now.Value) : "RV " + St(s) + " PF" + Id(was.Value));
             if (!Books(s)) continue;   // D-060: its classes and their risings are its books
             if (merchant >= 0 && ClassCount(prev, s, merchant) == 0 && ClassCount(next, s, merchant) > 0)
-                annals.Add(y + "a merchant class emerged in " + name(s.Value) + ".");
+                Tell(y + "a merchant class emerged in " + name(s.Value) + ".", () => "ME " + St(s));
 
             // H2 (Director 2026-10-05 §4/§18): a population SEGMENT (class) rising against the levy, or its rising
             // subsiding — the segment's own tipping point, read through the public Unrest reader on both worlds.
@@ -159,7 +201,9 @@ public sealed class StateChronicle
                 bool rose = Unrest.IsSegmentRisen(prev, s, cls, cfg), risen = Unrest.IsSegmentRisen(next, s, cls, cfg);
                 if (risen == rose) continue;
                 string who = "the " + classes[c].Name.ToLowerInvariant() + " of " + name(s.Value);
-                annals.Add(y + (risen ? who + " rose against the levy." : "the rising of " + who + " subsided."));
+                ClassEntry entry = classes[c];
+                Tell(y + (risen ? who + " rose against the levy." : "the rising of " + who + " subsided."),
+                    () => (risen ? "SR " : "SS ") + N("CL" + Id(entry.Id), entry.Name) + " " + St(s));
             }
         }
 
@@ -167,6 +211,8 @@ public sealed class StateChronicle
         int converted = 0;
         PolityId convOwner = default;
         string convTo = "";
+        int convKey = 0;
+        bool convNamed = false;
         for (int i = prev.UnitConversions.Count; i < next.UnitConversions.Count; i++)
         {
             UnitConversionRow c = next.UnitConversions[i];
@@ -175,15 +221,23 @@ public sealed class StateChronicle
             if (converted > 0 && c.Owner.Value != convOwner.Value) { Flush(); }
             converted++;
             convOwner = c.Owner;
-            convTo = cfg.UnitFamilies?.IdentityByKey(c.ToIdentity)?.Name ?? "a new formation";
+            string? identity = cfg.UnitFamilies?.IdentityByKey(c.ToIdentity)?.Name;
+            convTo = identity ?? "a new formation";
+            convKey = c.ToIdentity;
+            convNamed = identity is not null;
         }
         Flush();
 
         void Flush()
         {
             if (converted == 0) return;
-            annals.Add(y + Polity(convOwner) + " re-equipped " + (converted == 1 ? "a formation" : converted.ToString(CultureInfo.InvariantCulture) + " formations")
-                + " for the new age (" + convTo + ").");
+            int count = converted;
+            PolityId owner = convOwner;
+            string to = convTo, idCode = "ID" + Id(convKey);
+            bool named = convNamed;
+            Tell(y + Polity(convOwner) + " re-equipped " + (converted == 1 ? "a formation" : converted.ToString(CultureInfo.InvariantCulture) + " formations")
+                + " for the new age (" + convTo + ").",
+                () => "RQ " + Pl(owner) + " FC" + Id(count) + " " + (named ? N(idCode, to) : idCode));
             converted = 0;
         }
     }

@@ -1,6 +1,18 @@
 # CURRENT STATE — the routing document
 
-> **2026-10-28 (latest): DIRECTOR'S EXIT-GATE RULINGS RECORDED (D-067); FINAL TREE RE-VALIDATED; M6 NOT CLOSED (uncommitted).**
+> **2026-10-29 (latest): DIRECTOR PLAYTEST FIXES RULED (D-068); M6 NOT CLOSED.**
+> - **Rulings:** [D-068](d068-m6-playtest-fix-rulings.md), from the first playtest on `ebcaa0c`:
+>   - R1: separate Technology `[K]` and Civics `[C]` top-bar chips;
+>   - R2: roads drawn only over known land;
+>   - R3: raw telemetry log removed after a verified export, and the workbook deflated (folder 31.7× smaller);
+>   - R4: title "M6" and the explore-limit text;
+>   - R5: coded workbook sheets ("0 real words" outside README/Codebook) and a coded chronicle file;
+>   - R6: stronger Age panels, with the map background unchanged.
+> - **Moved pins:** the session-workbook content goldens only; no simulation hash moves.
+> - **Authorized:** one commit and push of this batch for the Windows playtest build. No merge, tag or release.
+> - **Still open:** the playtest on the new build, the Part G visual gate, opening the workbook in Excel, and the exit ruling.
+>
+> **2026-10-28 (earlier): DIRECTOR'S EXIT-GATE RULINGS RECORDED (D-067); FINAL TREE RE-VALIDATED; M6 NOT CLOSED (uncommitted).**
 > - **Rulings:** [D-067](d067-m6-exit-gate-director-rulings.md).
 >   - D-066 A1–A19: confirmed or ruled (A7, A8, A9 and A19 explicitly; A19 supersedes DW-001's M6 assignment).
 >   - Migration: the lower baseline is accepted as design, not as a cause; M8 owns migration policy.

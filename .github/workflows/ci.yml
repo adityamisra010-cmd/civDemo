@@ -71,7 +71,7 @@ jobs:
       - name: Unit-progression content validator (M6.9/M6.10 — inert promotion trees and the dormant training contract)
         run: dotnet test Sim.Tests --no-build --configuration Release --filter "FullyQualifiedName~UnitProgression"
 
-      - name: Session export golden (ADR-059 — the Director's 68-turn session and a current-tree session, byte for byte)
+      - name: Session export golden (ADR-059 — the Director's 68-turn session and a current-tree session, part contents byte for byte)
         run: dotnet test Sim.Ui.Tests --no-build --configuration Release --filter "FullyQualifiedName~SessionExportTests"
 
       - name: Test

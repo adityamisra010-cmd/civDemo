@@ -201,6 +201,7 @@ if (Sim.Ui.UiArgs.ResumePath(args) is { } resumeArg)
         Environment.ExitCode = refusal;
         return;
     }
+    resumed.KeepRawTelemetry = Sim.Ui.UiArgs.KeepRawTelemetry(args);   // ADR-059 amendment 2026-10-29
     Console.WriteLine($"resumed {manifestPath} at turn {resumed.TurnsPlayed}");
     foreach (string line in resumed.ResumeNotice) Console.WriteLine($"  {line}");
     using var resumedGame = new Sim.Ui.SimUiGame(resumed, resumedLog, Sim.Ui.UiArgs.Developer(args), Sim.Ui.UiArgs.UserScale(args));
@@ -218,6 +219,7 @@ if (session is null)
     Environment.ExitCode = startRefusal;
     return;
 }
+session.KeepRawTelemetry = Sim.Ui.UiArgs.KeepRawTelemetry(args);   // ADR-059 amendment 2026-10-29
 string sessionLogPath = Sim.Ui.UiSession.SessionLogPath(DateTime.Now, sizeOverride, settlementsOverride, aiEmpiresOverride);
 
 // UR-7 (M5 polish, 2026-10-06): the game is CONSTRUCTED first — its window exists but is not shown until Run — so the

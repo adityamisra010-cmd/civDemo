@@ -191,3 +191,9 @@ The separation procedure and its consequences are in `docs/m6-exit-inventory.md`
 - `Sim.Tests/Systems/EconomyMountsTests.cs`
 - `Sim.Tests/Systems/EconomyGunpowderTests.cs`
 - `Sim.Tests/Systems/LawCourtAiWorldAttributionTests.cs` (its class summary's 506, labelled as the pre-integration value)
+
+## Dated note — 2026-10-29 (D-068)
+
+[D-068](d068-m6-playtest-fix-rulings.md) R3 supersedes R6 (A14) **for the workbook container only**. The workbook is now
+deflated, so its `.xlsx` bytes are no longer a cross-runtime goal; the decoded part contents stay pinned. D-068 R5 also
+moves the workbook content goldens (coded sheets). R6's text above stays as written.

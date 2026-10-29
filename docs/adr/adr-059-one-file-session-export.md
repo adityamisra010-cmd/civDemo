@@ -288,3 +288,300 @@ the staged pre-amendment text; evidence was read from the live tree on 2026-10-2
 | 2 | §3 (was :84) | "This keeps A14's intent: no package, stored entries, the same bytes on every OS." (no evidential status) | Same sentence, plus: that property is PREDICTED, not measured; every workbook golden was exported on Linux, CI runs only on `ubuntu-latest`, no export has run on Windows | D-067 §1 (R6) ("Byte identity across operating systems is PREDICTED; nothing has run on Windows"); `.github/workflows/ci.yml:12, :85, :119, :536, :553` (every job `runs-on: ubuntu-latest`); `Sim.Ui.Tests/Fixtures/session-export/README.md:11` (the Director's session was recorded on Windows) |
 | 3 | §4 "Order kinds 14–18" (was :115) | "Order kinds 14–18: EX, PR, RF, RE and DF." (the writer's comment says "16–18") | Kept 14–18 for the codebook, and added why the writer's note says 16–18: codebook v4 ends at kind 13; kinds 14–15 (ADR-044) were already written under `telemetry/v4`; only 16–18 (ADR-055) are the M7 line-shape change A15 retagged | `docs/m6-session-export/codebook-telemetry-v4.tsv:325` (last kind `CE`); `codebook-telemetry-v5.tsv:353–357` (`EX`, `PR`, `RF`, `RE`, `DF`); `Sim.Core/Observability/TelemetryWriter.cs:47` ("order kinds 16–18"), `:460` (the kind is written by name); `Sim.Core/Kernel/OrderLog.cs:232, :247, :268, :292, :302` (kinds 14–18); at `0bf7626`, `OrderLog.cs:232, :247` already define `Explore = 14`, `Prospect = 15` and `TelemetryWriter.cs:35` is `telemetry/v4` (`git show HEAD:…`) |
 | 4 | §4 "The tag (A15)" (was :131) | "Six test pins that named `telemetry/v4` as the writer's tag now name v5:" followed by five files | "Five test pins, one test in each of five files, that named `telemetry/v4` as the writer's tag now name v5:"; the `InspectionTests` item now also says the test moves its readable set to include v5 | `git diff HEAD` of the five files: `Sim.Tests/Forensic/InspectionTests.cs:623` (writer tag; same test also `:679–684`, readable set and unknown vintage v6), `Sim.Tests/Forensic/ForensicIdentityTests.cs:149`, `Sim.Tests/Observability/TaxGlassBoxTests.cs:102`, `Sim.Tests/Observability/TelemetryTests.cs:192`, `Sim.Ui.Tests/SessionRecordTests.cs:121` |
+
+## Amendment — 2026-10-29 (Director playtest): the raw telemetry log is dropped after a verified export, and the workbook is deflated
+
+Authority: the Director's playtest findings of 2026-10-29, approved changes A and B. The governance record (a D-record)
+is the coordinator's; this section records what changed in the exporter and why. It supersedes the text above where
+the two disagree, and only there.
+
+**Why.** After quitting, the six session files stayed beside the workbook, and the Director wants less disk used.
+Measured on a 150-turn session: `telemetry-*.jsonl` 18.5 MB, the workbook 1.8 MB, trace 13 KB, forensic 11 KB, orders
+1.6 KB, manifest 575 B. The raw telemetry is 91% of the folder, and the workbook already holds all of it: the self-check
+(§6) decodes every Telemetry cell back to its line byte for byte before a byte is written. The STORED workbook also
+compressed about 3.4 times.
+
+### A. The raw telemetry log is removed after a verified export (the game, at session close)
+
+**At session close** (`GameUi.SaveOnExit`), the order of §2 is unchanged: `SaveSession`, `FinalizeTelemetry`,
+`ExportForensicClose`, then `UiSession.ExportWorkbook`. After the workbook is written, `ExportWorkbook` removes
+`telemetry-STAMP.jsonl` (`SessionWorkbook.RemoveRawTelemetry`). It does so only when all of the following hold:
+1. The export returned, so the self-check passed (§6: every cell read back, every telemetry cell decoded to its line
+   byte for byte).
+2. The export judged the log removable (`RawTelemetry.RemovedAfterExport`). The log was present. Its decoded lines,
+   each followed by a line feed, rebuild the file byte for byte (`TelemetryBytesOf`). The forensic close record lists the
+   file with the same sha256. Otherwise the export falls back to `RawTelemetry.Kept`, and its README says the log stays.
+3. The workbook on disk is, byte for byte, the workbook that was self-checked.
+4. The log on disk has the sha256 of the log the workbook holds.
+
+If any of these fails, or the export is refused or fails, nothing is removed, which is the behaviour before this
+amendment. A log that cannot be removed is kept and reported on stderr. The manifest, orders, trace, chronicle and
+forensic files are never touched, because resume reads them. The close record is not rewritten: it still lists the
+telemetry file with its sha256, and the Telemetry sheet holds exactly those bytes.
+
+**The README** still lists every file with its sha256, telemetry included. For telemetry it adds that the raw log was
+removed after the workbook was written and verified, that its whole content is the Telemetry sheet, and that the lines,
+each followed by a line feed, are the file. The README's first row then names the five files that stay the record. With
+`RawTelemetry.Kept`, the default and the headless command's mode, the README is exactly the README written before this
+amendment.
+
+**The switch (decision E1).** `sim-ui --keep-raw-telemetry` (`UiArgs.KeepRawTelemetry`, read into
+`UiSession.KeepRawTelemetry` for a new or a resumed session) keeps the raw log, for developers. By default the log is
+removed. It is a launch flag rather than a settings file, following `--dev`, and `UiArgsUsageTests` checks that it is
+listed. It is not part of the world, the log or the replay.
+
+**What else reads the telemetry file after close (checked against the tree):**
+- **`--resume`** (`UiSession.Resume` and `ReplayTo`) reads the manifest, the order log and the trace, and never the
+  telemetry. The replay re-observes every turn, so the first save after a resume writes the telemetry file again from
+  record zero (`ExportTelemetry` starts a path it has not written from the beginning). Pinned: a closed session whose
+  log was removed resumes with every turn checked against the trace (no resume notice), and the resumed session's
+  telemetry export has the sha256 the close record lists for the removed file
+  (`ASessionWhoseRawTelemetryWasRemoved_Resumes_AndRebuildsTheLogExactly`).
+- **The headless `sim-ui --export-session` (decision E2).** It never removes a file. When the manifest's telemetry file
+  is absent and a workbook is beside it, the telemetry is read back from that workbook: the Telemetry sheet's cells are
+  joined and decoded, and the lines rebuild the bytes. The result is used only if its sha256 equals the one the forensic
+  close record lists for the file. The README and the Forensic sheet then say "recovered from the earlier workbook's
+  Telemetry sheet"; every other sheet is identical. Otherwise the export is the named refusal `telemetry-unrecoverable`
+  (exit 2). The refusal covers a sheet that does not decode, a sha256 that differs, and a close record that is missing,
+  and it leaves the existing workbook untouched. A re-export can therefore never replace a workbook with one that lacks
+  the telemetry. This was chosen over a plain refusal because a re-export stays useful (a newer exporter, a damaged
+  workbook copy elsewhere) and the close record makes the read-back exact. The game's close path applies the same rule.
+- **`sim inspect`.** `SessionInspector.Open` (Sim.Core) reads the raw log if it is there. Without it, the topics that
+  need telemetry (settlements, polities, movements, resources, happiness and others) answer NOT RECORDED, naming the file.
+  They do not answer from a fresh run, as `SessionInspector` already guaranteed. Sim.Core cannot read the workbook,
+  because the codec is in Sim.Ui and Sim.Core may not reference it, and Sim.Core is unchanged here. To get those answers,
+  play with `--keep-raw-telemetry`, or rebuild the file by replay with the build that recorded the session:
+  `sim inspect --manifest M --telemetry DIR/telemetry-STAMP.jsonl`. `sim inspect` makes no forensic sha check of the
+  companions: the close record is read, not verified against the folder. The workbook's Forensic sheet compares the two,
+  and a recovered export shows "same".
+- **Test fixtures** are unaffected. They are file sets that the tests read through `SessionWorkbook.Build`, which never
+  removes anything.
+
+### B. The workbook is DEFLATE-compressed
+
+`OoxmlZip` (formerly `StoredZip`, in `Sim.Ui/Export/OoxmlWorkbook.cs`) now writes every entry as follows:
+- **DEFLATE** (method 8), raw deflate from `System.IO.Compression.DeflateStream` at `CompressionLevel.SmallestSize`;
+- the CRC-32 of the uncompressed bytes;
+- the compressed and uncompressed sizes in both the local header and the central directory.
+
+Everything else in §3 stays: the hand-written container, the fixed entry order, DOS time 00:00 1980-01-01, "version made
+by" and "version needed" 2.0 / MS-DOS, flags 0 (so no data descriptor), external attributes 0, no extra fields, no
+Zip64. The hand-written container is kept because `ZipArchive` would still stamp the host OS and the time of export into
+every entry. Keeping the headers fixed costs nothing. `OoxmlZip.WriteStored` keeps the STORED form of before this
+amendment, and the tests use it to re-derive the old goldens.
+
+**A14's "stored, byte-identical" is superseded for the container. The content stays pinned.** A runtime's zlib may
+deflate the same bytes differently, so the bytes of the `.xlsx` container are no longer a goal across runtimes. Two
+builds on one runtime still give the same bytes, and the tests check that. The goldens of §7 now compare the DECODED
+PART CONTENTS. A workbook's entries are inflated by `ZipArchive` (`OoxmlWorkbook.Entries`) and re-packed with
+`OoxmlZip.WriteStored`. That container is a pure function of the entry names, their order and their uncompressed bytes,
+and its sha256 must equal the golden (`ExportFixtures.ContentSha`). The goldens of §7 hold unchanged under this reading:
+
+| Workbook | sha256 of the decoded parts re-packed STORED (= the pre-amendment byte golden) |
+|---|---|
+| The Director's 68-turn session | `136e853c72d8596cb81785dd438dfeb6dbe527ca0e1ce53fd8532e8bf0c365e5` |
+| The current-tree session | `6d488a2c97bcbb143f274ddf97784cf4daf170d301b3e1e340718b532139560d` |
+| The small two-sheet escape workbook | `e65373b07c7eee9160c39bcbdad022f7c13d306fd399715be01cb883118a82b5` |
+
+So every byte of every part is exactly what the STORED exporter wrote. The container test now walks the ZIP by hand and
+checks the following for every entry:
+- method 8;
+- flags 0, time and date fixed, no extra field;
+- the version fields;
+- each entry inflates to exactly its stated size and CRC-32 and is smaller than its uncompressed size;
+- the central directory agrees with the local headers (method, CRC, both sizes, offset).
+
+The self-check of §6 is unchanged: `ZipArchive` inflates every entry, `XmlReader` parses it, and every cell and every
+telemetry line is compared.
+
+**Excel compatibility.** The container uses standard deflate (method 8, version needed 2.0) with a CRC-32 and correct
+sizes, which is what Excel, LibreOffice and Python write and read. Checked on 2026-10-29:
+1. **Python `zipfile`.** `testzip()` passed (it reads every entry and checks its CRC) on the deflated Director, current-tree
+   and 150-turn workbooks. Every entry's name, order, size and sha256 equal those of the STORED workbook of the same
+   files: 39 of 39 entries.
+2. **LibreOffice 24.2.7.2, headless.** `soffice --convert-to csv` was run with all sheets on four deflated workbooks: the
+   current-tree session, the Director's session, the 150-turn session, and that session's re-export recovered from its
+   workbook. Every cell of every sheet equals the inline-string text in the parts (8 of 8 sheets, all four workbooks).
+   LibreOffice's CSV of the current-tree workbook is byte-identical to its CSV of the STORED one.
+3. **The prototype on LibreOffice's cells.** The prototype's `decode.py`, run on the 150 Telemetry cells as LibreOffice
+   read them, gave back the 150-turn `telemetry-*.jsonl` byte for byte (18,551,061 bytes).
+
+Microsoft Excel and Google Sheets were not run, as in §8, and nothing is claimed for them.
+
+### Measured (2026-10-29, seed 42, 150 turns, one AI empire, `sim run --founded --emit-session`, then `sim-ui --export-session`)
+
+| | Before (STORED, all files kept) | After (deflated, raw telemetry removed) |
+|---|---|---|
+| workbook | 1,793,722 bytes | 615,866 bytes (2.9 times smaller) |
+| `telemetry-*.jsonl` | 18,551,061 bytes | removed (its 150 lines are the Telemetry sheet) |
+| manifest + orders + trace + forensic | 26,401 bytes | 26,401 bytes |
+| **folder** | **20,371,184 bytes** | **642,267 bytes (31.7 times smaller)** |
+
+A session the game writes also has a chronicle. That session has none (`sim run` writes no chronicle). Other workbooks,
+STORED then deflated: the Director's 887,862 → 274,855 bytes, and the current-tree session's 416,059 → 87,164 bytes.
+Removing the raw log was simulated on this CLI session by deleting the file, because only the game's close path removes
+it. The re-export then read the telemetry back from the workbook and matched the close record's sha256 `475bf0ec…`.
+Its Manifest through Codebook parts are identical to the first export's, and only the README and Forensic parts differ,
+which state the origin. The removal itself is pinned through the real `GameUi` by
+`AtSessionClose_TheWorkbookIsWrittenAfterTheForensicClose_AndTheRawTelemetryIsRemovedOnceVerified`.
+
+### Decisions made here
+
+- **E1:** the developer switch is the launch flag `--keep-raw-telemetry`. The default removes the log.
+- **E2:** the headless re-export of a session without its raw log reads the telemetry back from the existing workbook,
+  verified against the close record's sha256. Otherwise it refuses with `telemetry-unrecoverable` and never replaces the
+  workbook.
+- **E3:** removal requires the close record to list the log with the same sha256, which is what makes E2 exact. A
+  session closed without a forensic run record keeps its log.
+- **E4:** the hand-written container stays, with deflate. The goldens are content goldens, expressed as the
+  pre-amendment byte goldens of the decoded parts re-packed STORED.
+- **E5:** Sim.Core is unchanged. `sim inspect` answers NOT RECORDED for the telemetry topics once the log is removed, and
+  the remedy is `--keep-raw-telemetry` or a rebuild with `sim inspect --telemetry`. No simulation state, hash or pin moves.
+
+## Amendment — 2026-10-29 (Director): coded sheets, legend-only words
+
+Authority: the Director's request of 2026-10-29, verbatim: "the workbook should have 0 real words in anything that is
+not a key or a legend. For example the word settlement appears. it should be shortened to somehting like ST. The
+chronicle also. it has the word souls. make its SL. The chronicle should come out shortened. The telemetry is the
+perfect example of this. Orders need to be shortened too." The coordinator's ruling fixed the assumptions; the
+governance record (a D-record) is the coordinator's. This section supersedes the text above where the two disagree, and
+only there.
+
+### What stays prose, and what becomes codes
+
+- **Legend sheets keep words:** `README` (prose; its new `codes` row says where codes are defined) and `Codebook`.
+- **Every other sheet** (`Manifest`, `Orders`, `Trace`, `Chronicle`, `Telemetry`, `Forensic`) holds codes, numbers and
+  identifiers only, its column headers included. Identifiers are hashes and hex (seven or more hex digits, one case),
+  file names, version tags (`session-export/v1`, `telemetry/v5`, `chronicle-codes/v1`) and, in the key column of
+  `Manifest` and `Forensic`, JSON key paths.
+- **The Codebook is the single legend.** Its first rows are the telemetry codebook(s), unchanged. A `legend` header row
+  follows, then one row per code: column A the section (`all`, `type`, `Manifest:col`, `Orders:col`, `Orders:kind`,
+  `Orders:read`, `Trace:col`, `Chronicle:col`, `Chronicle:event`, `Chronicle:field`, `Telemetry:col`, `Forensic:col`,
+  `Forensic:file`), column B the code, column D its meaning. After them come the session's `Chronicle:names` rows (what a
+  named chronicle code names, e.g. `ST12` → `Bigen`) and `QT:texts` rows (the exact text of each `QT` code). The legend
+  is defined once, in `Sim.Ui/Export/WorkbookCodes.cs`.
+- **The in-game ANNALS panel stays prose** (`UiSession.AnnalLines`, unchanged), and so does the in-memory prose record
+  `RecordAnnalLines`.
+
+### The code scheme
+
+| Sheet | Column headers | Values |
+|---|---|---|
+| all | — | `NP` file named but not present (row: `NP`, file name, then the close record's bytes, sha256 and state), `NN` the manifest names no such file, `EM` the file holds no line, `QT<n>` a text (see below), `>` continuation |
+| Manifest | `KY VL TY` | key path (`$` the whole document); value: a string without letters or an identifier as is, any other string `QT<n>`, a number as written, bool `1`/`0`, null `~`, `{}` / `[]` empty; type `S N B O A Z` (`X` an exporter note) |
+| Orders | `I T PL K KC TG TD AM AD AB` | `KC` the kind code, the telemetry codebooks' own: `RB LA SA EC TX RT AA DR FS CC RA CE EX PR RF RE DF`, `MF` reserved kind 10, `UK` unknown; `TD`/`AD` the decoded target/amount: `ST12`, `ST12/S3` (sector), `RG4`, `PL1`, `RN1069`, `LT-1` / `LC-2` (clear a lane), `AG3`, `SK7`, `FM40`, `ZR0` (reserved field), `PC45`, `MM-12.5`, `PJ1`, `CI462102`, `QS1`, `QS2/PJ1/T7`, `NV1.5`, `SV` / `AS` / `MT2` (prospect method), `ID301`, `CN`. `TG`, `AM` and `AB` (the 64-bit pattern) keep the exact values |
+| Trace | `T Y PO SN FD H` (the file's header line) | data rows as in the file |
+| Chronicle | `L EV` | one coded event line per row (below) |
+| Telemetry | `T TC` | the coded cells, byte-identical |
+| Forensic | `KY VL TY`, then `XF FN FS BY HN HC AG` | records as on Manifest; `close NC X` when there is no close record; the files table: `XF.MN/OR/TR/CH/TE/FR`, state `PS`/`NP`/`RW` (rebuilt from an earlier workbook), agreement `EQ`/`NE`/`NC`/`NL`/`LN`/`SF` |
+
+**`QT` texts.** A string a session file holds is kept verbatim when it has no ASCII letter or is an identifier; any other
+is `QT<n>`, numbered by first use in sheet order, equal texts sharing a code, its exact text in the `QT:texts` row. This
+covers the manifest's `buildSha`/`buildDate` (`dev`, `local`), `platform` and `economyPackets`, and the forensic
+record's prose and closed-set values (`rec`, every `*State`, `hashAlgorithm`, `runIdInputs`, `dtRule`, `rngDerivation`,
+`aiNote`, the pipeline system names, the era band names, `limitations[*]`, `artifacts[*].role/state`, `gatesState`).
+Identifiers that are real words (a system name such as `catchment`, a runtime id such as `ubuntu.24.04-x64`, a limitation
+token such as `no-ai-at-m4`) are coded too: the Director's rule ("0 real words") outranks keeping them verbatim. Nothing
+is lost: every `QT` code reads back to its text exactly.
+
+### The chronicle: coded at the source
+
+`chronicle-*.txt` (written by `UiSession.ExportChronicle`; `Sim.Cli` writes none) is now the CODED record:
+
+```
+chronicle-codes/v1
+ST0=Bigen
+ST10=Libur
+ST2=Zareshu
+…
+Y0 FN ST0 SL438
+Y0 FN ST2 SL456
+…
+Y20 MG ST10 SL22 PC7
+Y70 AR ST2 AT26
+```
+
+(An excerpt of the seed-42 session of the `current-v5` fixture, replayed and written by this tree: 368 bytes coded, against
+1,106 bytes of prose, with the same 16 events.)
+
+Line 1 is the format tag `ChronicleCode.FormatTag`. The name lines `CODE=name` follow, in ordinal order of their code,
+for exactly the codes the event lines use. They are LEGEND lines: the exporter moves them to the Codebook's
+`Chronicle:names` rows. Then one event line per event, in record order: `Y<year> <EV> <fields>`. The core events
+(`Sim.Core/Chronicle/ChronicleCode.Render`) are `FN` founding, `FA`/`FE` famine onset/end, `XT` extinction, `AR` first
+artisans, `MG` migration surge, `DS` disaster, `SO`/`SE` food shortfall onset/end. The UI-side events
+(`Sim.Ui/ViewModel/StateChronicle`, given the record) are `RM` research, `AE` Age, `TL` tax levy, `RD`/`RU` road
+built/upgraded, `SC` structure, `IF`/`IM` institution founded/matured, `CP`/`RV` changed hands/revolt, `ME` merchant
+class, `SR`/`SS` a class rose/subsided, `RQ` re-equipped. Fields: `ST` settlement id, `SL` souls, `PC` share (`PC<1`,
+`PC>99`), `RS` famine reason ordinal, `YR` years, `DD` deaths, `AT` artisans, `PL`/`PF`/`PT` polity, `TB`/`TN` tax rate
+before/now, `RN` `AG` `RC` `PJ` `IN` `CL` `ID` content keys (named in the name lines), `FC` formations.
+
+- **Built from the event's values, never from prose.** The coded line takes the very values the prose binds: the same
+  year and rounding, and the share rule shared with `ChronicleProse` (`ShareText`), so the two cannot disagree on a
+  figure. A settlement is its id. Its name, as the `NameRegistry` gives it, appears only in a name line.
+- **Same events.** Each coded line is appended in the same call that appends its prose line to the record, so P7's
+  hidden-settlement filter and the event order are exactly as before. `RecordCodeLines[i]` is `RecordAnnalLines[i]`
+  coded.
+- **Names: the cleanest deterministic option.** The exporter reads the session files only. No other file holds the
+  settlement names, and deriving them would mean re-founding the world, which §1 forbids. So the chronicle file carries
+  them as legend lines, only for the codes it uses. A hidden settlement (P7) is never named, because its events are never
+  appended.
+- **Readers.** Resume never reads the chronicle (it copies the file aside on a schema change). `sim inspect` does not
+  read it. The forensic close record hashes whatever bytes are written. The exporter reads it as above. A
+  pre-amendment PROSE file (no tag, e.g. the `current-v5` fixture) is not parsed: each line is shown as its `QT` code,
+  and its text is in `QT:texts`.
+
+### Goldens (§7) re-pinned, with attribution
+
+Diffing the decoded parts, old (the deflate amendment above) against new, for both fixtures: `[Content_Types].xml`,
+`_rels/.rels`, `xl/workbook.xml`, `xl/_rels/workbook.xml.rels` and `xl/styles.xml` are byte-identical. The eight sheet
+parts change:
+- README: the `codes` row, and sheet descriptions naming the codes.
+- Manifest, Orders, Trace, Chronicle, Forensic: coded as above.
+- Telemetry: the header row only (`turn`, `cell …` → `T`, `TC`). Every data row, turn and cell, is byte-identical:
+  68 of 68 rows for `director-68`, 16 of 16 for `current-v5`.
+- Codebook: the telemetry codebook rows are unchanged as its first rows (339 for `director-68`, 371 for `current-v5`).
+  The legend and the session's names and texts are appended after them.
+
+| Golden | Was | Now |
+|---|---|---|
+| `DirectorWorkbookSha` (director-68) | `136e853c…c365e5` | `806e0947fec8a0e6a126d1dca37a94aa3afa98d71784c5a822cb03af240f1fb1` |
+| `CurrentWorkbookSha` (current-v5) | `6d488a2c…139560d` | `c5ec8abd82a11de7bdead82d1e342e21055de74a88c50ad125ba8dd3df578313` |
+| `SmallWorkbookSha` (the writer, two fixed sheets) | `e65373b0…18a82b5` | unchanged: `OoxmlWorkbook` and its input are untouched |
+
+Deflated workbook sizes: the Director's 274,855 → 281,467 bytes, and the current-tree session's 87,164 → 94,229 bytes.
+Most of the growth is the forensic prose, which moved to `QT:texts`, plus the legend.
+
+`RecoverRemovedTelemetry` and `JoinTelemetry` are unchanged: they skip the Telemetry sheet's one header row and read
+column B. The self-check still reads every cell of every sheet back, legend included, and decodes every telemetry cell.
+
+### Tests
+
+`Sim.Ui.Tests/SessionExportCodesTests.cs`:
+- The Director's criterion as a strict guard. No cell of a non-legend sheet may hold three or more ASCII letters in a
+  row, unless it is an identifier or a JSON key.
+- Every letter run of every such cell must be a code that the legend defines for that sheet.
+- The guards have teeth.
+- A new session writes the coded file, and its workbook shows it.
+- The coded record pairs the prose record one for one, P7 included. The prose record is byte for byte the frozen
+  `current-v5` chronicle, so the prose did not move. The ANNALS panel is that record under D-060's filter.
+- The coded Orders rows keep every amount's exact bits, and each kind has its coded reading.
+- The state chronicle's events (AE, TL, SC, IF, RV, CP, IM, SR, SS) are coded field for field, one coded line per
+  prose line, with the prose unchanged.
+
+`Sim.Tests/Systems/ChronicleTests.cs`:
+- Every core event kind's coded line, field for field, against its prose.
+- The record file: tag, then names in ordinal order, then events.
+
+`AnnalsTests.Annals_FoundingLinesAtStart_ExportMatchesPanel` now pins the FILE as the coded record, because the file
+format changed. The panel half of that test is unchanged.
+
+### Decisions made here
+
+- **F1:** the codes are two letters (one for the Manifest/Forensic types and a few column keys). No code has three
+  letters, so any run of three letters in a data cell is a defect, and the guard can be strict.
+- **F2:** the order-kind codes are the telemetry codebooks' `enums kind` codes, plus `MF` and `UK`.
+- **F3:** names live in the chronicle file as name lines (legend lines). No settlement name appears in a data cell.
+- **F4:** a pre-amendment prose chronicle is shown through `QT` codes, never parsed.
+- **F5 (amends E5):** Sim.Core gains `Sim.Core/Chronicle/ChronicleCode.cs`, and `ChronicleProse.FormatYear` and
+  `ShareText` become `internal` shared helpers (prose output unchanged). This is the observational chronicle, outside
+  the determinism surface. No simulation state, hash or pin moves.

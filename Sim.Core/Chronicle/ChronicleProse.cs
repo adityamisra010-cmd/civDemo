@@ -87,7 +87,7 @@ public static class ChronicleProse
 
     /// <summary>Sim-years since epoch, whole years (presentation may later map
     /// to BCE/CE; the annals speak in campaign years).</summary>
-    private static string FormatYear(double year) =>
+    internal static string FormatYear(double year) =>
         ((long)Math.Round(year)).ToString(CultureInfo.InvariantCulture);
 
     private static string Whole(double v) =>
@@ -104,12 +104,17 @@ public static class ChronicleProse
     /// whole that rounds to 100 reads "more than 99". The event set is
     /// untouched; only its wording is honest.
     /// </summary>
-    private static string Share(double fraction)
+    private static string Share(double fraction) => ShareText(fraction, "fewer than 1", "more than 99");
+
+    /// <summary>The share rule above with the two bound texts given: the prose's words here, the coded record's
+    /// <c>&lt;1</c> / <c>&gt;99</c> in <see cref="ChronicleCode"/> (ADR-059 amendment 2026-10-29) — one rule, two
+    /// spellings, so the coded record and the annals can never disagree on a figure.</summary>
+    internal static string ShareText(double fraction, string fewer, string more)
     {
         double pct = fraction * 100.0;
         long whole = (long)Math.Round(pct);
-        if (whole == 0 && pct > 0.0) return "fewer than 1";
-        if (whole == 100 && pct < 100.0) return "more than 99";
+        if (whole == 0 && pct > 0.0) return fewer;
+        if (whole == 100 && pct < 100.0) return more;
         return whole.ToString(CultureInfo.InvariantCulture);
     }
 

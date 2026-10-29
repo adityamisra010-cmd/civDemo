@@ -102,7 +102,7 @@ public class DiscoveryRangeTests
         w.Explorations.Add(new ExplorationRow(player, s, 15));
         Assert.Equal(15, DiscoveryQuery.NextRadius(w, f, player, s));        // capped: never 18
         Assert.Equal(ExploreVerdict.AtCap, DiscoveryQuery.CheckExplore(w, Cfg, player, s));
-        Assert.Equal("explored to the limit (240 km around it)", DiscoveryQuery.ExploreBlocker(ExploreVerdict.AtCap, Cfg, w));
+        Assert.Equal("explored to the limit (240 km around it) - further exploring needs mobile scouts (M7)", DiscoveryQuery.ExploreBlocker(ExploreVerdict.AtCap, Cfg, w));
 
         WorldState fresh = Canonical.Value;
         var into = new List<ActionDescriptor>();

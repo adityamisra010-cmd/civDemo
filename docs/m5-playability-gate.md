@@ -2817,3 +2817,20 @@ Later changes to the sections above are recorded here, at the end of the file, a
 >   484.4 px; with the old movement line plus the new line 504.4 px, which scrolled).
 > - Measured: `UnitTrainingPlaceholderTests.TheGateRow_Passes_InTheA1State` (in process, A1 turn 1, no monkey). The full
 >   smoke was NOT run by this track; §6 was not regenerated.
+
+> **DATED NOTE 2026-10-29 (the Director's M6 playtest findings, UI fixes): a separate Civics figure on the status band.**
+> The band's one research figure (`band-research`, the §3 inventory's "Research figure on the status band") became two
+> lane figures of the ADR-043 two-lane model:
+> - **Tech** (`band-research`, key [K]): the Technology lane only ("Tech idle - choose [K]", "Tech: X 27% +12.3/turn",
+>   "Tech: X next turn", "Tech waiting: X", "Tech stops at End Turn"); it opens the trees on the TECHNOLOGY tab. With
+>   one-pool content it keeps the label "Research".
+> - **Civics** (`band-civics`, key [C], previously unbound; Ctrl+C is left alone): the Civics line of the action surface
+>   ("Civics idle - choose [C]", "Civics: X 18% +3.1/turn", "Civics: X next turn", "Civics waiting: X", "Civics stops at
+>   End Turn"); it opens the trees on the CIVICS tab. Not drawn without a Civics lane.
+> - Each chip and key toggles ITS tab: on the open screen showing its tab it closes the screen; otherwise it opens the
+>   screen (or switches to its tab). A band too narrow for both in full (the 1080x640 minimum window) drops the node
+>   names, then the points a turn ("Tech 27%").
+> - Gate rows: new `C key (Civics tab / close / open; K back to Technology)`, `band-civics (opens the Civics tab)` and
+>   `shift-click band-civics (status band)`; `band-research (open)` and `K key (close / open)` now also check the
+>   Technology tab. The full smoke was NOT run by this change; §6 was not regenerated.
+

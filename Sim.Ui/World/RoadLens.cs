@@ -32,7 +32,9 @@ public readonly record struct RoadStroke(Rgba Color, double Width, (double On, d
 /// <see cref="Route"/> = -1) or a part of a built route (<see cref="Route"/> = its <c>TransportEdges</c>
 /// id, <see cref="NetworkEdge"/> = -1) drawn in class <see cref="EdgeType"/> over the fraction
 /// [<see cref="From"/>, <see cref="To"/>] of the route from A to B. <see cref="Commands"/> is the number of
-/// draw commands it emitted; the pieces' commands sum exactly to the Paths layer's draw count.
+/// draw commands it emitted; the pieces' commands sum exactly to the Paths layer's draw count. M6 playtest fix: a route
+/// part is drawn only over KNOWN land (<see cref="RoadLens.KnownSpans"/>), one piece per known stretch of it — all known,
+/// exactly one piece per part.
 /// </summary>
 public sealed record PathPiece(int NetworkEdge, int Route, int EdgeType, double From, double To, int Commands);
 
@@ -177,6 +179,70 @@ public static class RoadLens
             && DistanceToSegment(step.X1 + shift, step.Y1, route.X0, route.Y0, route.X1, route.Y1) < halfWidth;
     }
 
+    /// <summary>The whole route: every fraction of it known (the fog off, or a projection with no knowledge mask).</summary>
+    private static readonly (double From, double To)[] WholeRoute = [(0.0, 1.0)];
+
+    /// <summary>
+    /// M6 PLAYTEST FIX (Director, 2026-10-29) — NO ROAD OVER UNKNOWN LAND. The fractions [From, To] of route
+    /// <paramref name="r"/> (from A at 0 to B at 1) that lie over lattice nodes the observer KNOWS
+    /// (<see cref="WorldProjection.KnownNodes"/>; remembered land is known), ascending and maximal: the route's line is cut at
+    /// every lattice block boundary it crosses (x and y multiples of <see cref="WorldProjection.Stride"/>, on a cylinder of
+    /// every copy of the world), each stretch between two cuts lies in one block — the one holding its midpoint (the last row
+    /// and column reach the map's edge) — and is kept when that node is known. A route both of whose ends are known (P7) may
+    /// still run across land the observer has never seen; that stretch is not drawn. With no mask (everything known) the
+    /// whole route [0, 1], so a fog-off paint is exactly what it was. Pure arithmetic on the projection: no state is read.
+    /// </summary>
+    public static IReadOnlyList<(double From, double To)> KnownSpans(RouteLensView r, WorldProjection p)
+    {
+        bool[]? known = p.KnownNodes;
+        int lsize = p.LatticeSize, stride = p.Stride;
+        if (known is null || lsize <= 0 || stride <= 0 || known.Length < lsize * lsize) return WholeRoute;
+        double w = p.WorldSize;
+        bool wrap = p.WrapX && w > 0;
+        double dx = r.X1 - r.X0, dy = r.Y1 - r.Y0;
+        var ts = new List<double> { 0.0, 1.0 };
+        if (dx != 0.0)
+        {
+            double lo = Math.Min(r.X0, r.X1), hi = Math.Max(r.X0, r.X1);
+            int k0 = wrap ? (int)Math.Floor(lo / w) : 0, k1 = wrap ? (int)Math.Floor(hi / w) : 0;
+            for (int k = k0; k <= k1; k++)
+            {
+                double origin = k * w;   // the k-th copy of the world: its seam and its block columns
+                int j0 = Math.Max(0, (int)Math.Ceiling((lo - origin) / stride)), j1 = Math.Min(lsize - 1, (int)Math.Floor((hi - origin) / stride));
+                for (int j = j0; j <= j1; j++)
+                {
+                    double b = origin + (double)j * stride;
+                    if (b > lo && b < hi) ts.Add(Math.Clamp((b - r.X0) / dx, 0.0, 1.0));
+                }
+            }
+        }
+        if (dy != 0.0)
+        {
+            double lo = Math.Min(r.Y0, r.Y1), hi = Math.Max(r.Y0, r.Y1);
+            int j0 = Math.Max(1, (int)Math.Ceiling(lo / stride)), j1 = Math.Min(lsize - 1, (int)Math.Floor(hi / stride));
+            for (int j = j0; j <= j1; j++)
+            {
+                double b = (double)j * stride;
+                if (b > lo && b < hi) ts.Add(Math.Clamp((b - r.Y0) / dy, 0.0, 1.0));
+            }
+        }
+        ts.Sort();   // plain doubles: equal cuts are interchangeable, so the order is total and deterministic
+        var spans = new List<(double From, double To)>();
+        for (int i = 0; i + 1 < ts.Count; i++)
+        {
+            double a = ts[i], b = ts[i + 1];
+            if (!(b > a)) continue;
+            double t = (a + b) / 2.0;
+            double x = r.X0 + dx * t, y = r.Y0 + dy * t;
+            if (wrap) x -= Math.Floor(x / w) * w;
+            int col = Math.Clamp((int)Math.Floor(x / stride), 0, lsize - 1), row = Math.Clamp((int)Math.Floor(y / stride), 0, lsize - 1);
+            if (!known[row * lsize + col]) continue;
+            if (spans.Count > 0 && spans[^1].To == a) spans[^1] = (spans[^1].From, b);
+            else spans.Add((a, b));
+        }
+        return spans;
+    }
+
     /// <summary>Paints the Paths layer: the baseline steps no route owns, then every route (table
     /// order) on top, recording each piece drawn in <paramref name="pieces"/>. Below World zoom the look is
     /// <see cref="StyleAt"/> of the Settlement blend <paramref name="town"/> (P2), and each route is named once
@@ -186,7 +252,11 @@ public static class RoadLens
     /// relative to its first point (<see cref="WorldProjection.WrapX"/>) — is drawn at its copy nearest the viewport's centre
     /// (as the flat paint draws it whatever the viewport) and at every other copy whose bounds touch the viewport; a route
     /// is named at each copy drawn where its line is visible. Still ONE <see cref="PathPiece"/> per step or route part, its
-    /// <see cref="PathPiece.Commands"/> summing every copy's. Returns the draws beyond each piece of ground's first.</para></summary>
+    /// <see cref="PathPiece.Commands"/> summing every copy's. Returns the draws beyond each piece of ground's first.</para>
+    /// <para>M6 playtest fix: a route is drawn — and named — only over the land the observer knows
+    /// (<see cref="KnownSpans"/>): each part is cut to the known stretches of the route, one piece per stretch drawn, and a
+    /// route with no known stretch draws nothing. The baseline steps are already only those with both ends on known nodes
+    /// (P7, <see cref="WorldProjection.Build"/>). Everything known, exactly the paint it was.</para></summary>
     public static int PaintNetwork(DrawList d, ITextMeasure m, WorldProjection p, WorldZoom zoom, double town,
         Func<double, double, (double X, double Y)> toScreen, RectD viewport, MapInk ink, List<PathPiece> pieces,
         int[]? copies = null, double worldWidth = 0.0)
@@ -240,9 +310,20 @@ public static class RoadLens
             // The modernized fraction runs from A (the lower settlement id) toward B: the state records
             // how much of the upgrade is done, not where, so the lens fixes one deterministic end.
             double t = r.IsPartial ? r.Modernization : 0.0;
-            (int Cls, double From, double To)[] parts = t > 0.0
+            (int Cls, double From, double To)[] whole = t > 0.0
                 ? [(r.TargetClass, 0.0, t), (r.EdgeType, t, 1.0)]
                 : [(r.EdgeType, 0.0, 1.0)];
+            // M6 playtest fix: only the stretches over known land are drawn — each part cut to them (all known: the parts).
+            IReadOnlyList<(double From, double To)> known = KnownSpans(r, p);
+            var cut = new List<(int Cls, double From, double To)>(whole.Length + known.Count);
+            foreach ((int cls, double from, double to) in whole)
+                foreach ((double kf, double kt) in known)
+                {
+                    double lo = Math.Max(from, kf), hi = Math.Min(to, kt);
+                    if (hi > lo) cut.Add((cls, lo, hi));
+                }
+            if (cut.Count == 0) continue;   // nothing of this route lies over known land
+            (int Cls, double From, double To)[] parts = [.. cut];
             var styles = new IReadOnlyList<RoadStroke>[parts.Length];
             var counts = new int[parts.Length];
             int layers = 0;
@@ -279,7 +360,7 @@ public static class RoadLens
                 {
                     int before = d.Commands.Count;
                     Func<double, double, (double X, double Y)> copy = c == 0 ? toScreen : (x, y) => At(c, x, y);
-                    if (Label(d, m, r, t, copy, viewport, ink)) { d.FadeFrom(before, town); counts[^1]++; }
+                    if (Label(d, m, r, t, known, copy, viewport, ink)) { d.FadeFrom(before, town); counts[^1]++; }
                 }
                 if (!first) extra++;
                 first = false;
@@ -300,13 +381,26 @@ public static class RoadLens
     }
 
     /// <summary>The route's name ("Paved road"; a partial route "Built road - 40% to Paved road") at the
-    /// midpoint of its visible part, beside the line. False (nothing drawn) when no part is visible.</summary>
-    private static bool Label(DrawList d, ITextMeasure m, RouteLensView r, double t,
+    /// midpoint of its visible part, beside the line. False (nothing drawn) when no part is visible. M6 playtest fix: the
+    /// visible part is the longest on-screen stretch of the route's KNOWN stretches <paramref name="known"/> (ties: the
+    /// first, from A) — never over unknown land; the whole route known, exactly the line it was named on before.</summary>
+    private static bool Label(DrawList d, ITextMeasure m, RouteLensView r, double t, IReadOnlyList<(double From, double To)> known,
         Func<double, double, (double X, double Y)> toScreen, RectD viewport, MapInk ink)
     {
-        (double ax, double ay) = toScreen(r.X0, r.Y0);
-        (double bx, double by) = toScreen(r.X1, r.Y1);
-        if (!Clip(ref ax, ref ay, ref bx, ref by, viewport)) return false;
+        (double X, double Y) At(double f) =>
+            f == 0.0 ? (r.X0, r.Y0) : f == 1.0 ? (r.X1, r.Y1) : (r.X0 + (r.X1 - r.X0) * f, r.Y0 + (r.Y1 - r.Y0) * f);
+        double ax = 0, ay = 0, bx = 0, by = 0, best = -1;
+        foreach ((double from, double to) in known)
+        {
+            (double fx, double fy) = At(from);
+            (double tx, double ty) = At(to);
+            (double sx0, double sy0) = toScreen(fx, fy);
+            (double sx1, double sy1) = toScreen(tx, ty);
+            if (!Clip(ref sx0, ref sy0, ref sx1, ref sy1, viewport)) continue;
+            double len2 = (sx1 - sx0) * (sx1 - sx0) + (sy1 - sy0) * (sy1 - sy0);
+            if (len2 > best) { best = len2; ax = sx0; ay = sy0; bx = sx1; by = sy1; }   // strictly longer: the first wins a tie
+        }
+        if (best < 0) return false;
         double mx = (ax + bx) / 2, my = (ay + by) / 2;
         double dx = bx - ax, dy = by - ay, len = Math.Sqrt(dx * dx + dy * dy);
         double nx = len > 0 ? -dy / len : 0, ny = len > 0 ? dx / len : -1;

@@ -824,15 +824,41 @@ public static partial class PlayabilityGate
             Check("research", "band-research (open)", () =>
             {
                 if (!h.ClickControl("band-research")) return (GateResult.Fail, "not drawn");
-                return Expect(Ui.ProgressionOpen, "the Research screen did not open");
+                // Director playtest 2026-10-29: the Tech chip opens the trees on the Technology tab.
+                return Expect(Ui.ProgressionOpen && Screen.Tab == TreeTab.Technology,
+                    "the Research screen did not open on Technology (open " + Ui.ProgressionOpen + ")");
             });
             Check("research", "K key (close / open)", () =>
             {
                 h.Key(Keys.K);
                 bool closed = !Ui.ProgressionOpen;
                 h.Key(Keys.K);
-                return Expect(closed && Ui.ProgressionOpen, "K did not toggle the screen");
+                return Expect(closed && Ui.ProgressionOpen && Screen.Tab == TreeTab.Technology, "K did not toggle the screen (on Technology)");
             });
+            // Director playtest 2026-10-29: the Civics lane's own way in — the band's Civics chip and [C], each on the Civics
+            // tab; [C] on the Civics tab closes the screen, and [K] from the Civics tab goes back to Technology.
+            Check("research", "C key (Civics tab / close / open; K back to Technology)", () =>
+            {
+                h.Key(Keys.C);
+                bool civics = Ui.ProgressionOpen && Screen.Tab == TreeTab.Civics;
+                h.Key(Keys.C);
+                bool closed = !Ui.ProgressionOpen;
+                h.Key(Keys.C);
+                bool reopened = Ui.ProgressionOpen && Screen.Tab == TreeTab.Civics;
+                h.Key(Keys.K);
+                bool technology = Ui.ProgressionOpen && Screen.Tab == TreeTab.Technology;
+                return Expect(civics && closed && reopened && technology,
+                    "C to Civics " + civics + ", C closes " + closed + ", C reopens on Civics " + reopened + ", K to Technology " + technology);
+            });
+            CloseEverything();
+            Check("research", "band-civics (opens the Civics tab)", () =>
+            {
+                if (Ui.Controls.Find("band-civics") is null) return (GateResult.NotOffered, "no Civics lane (one-pool research)");
+                if (!h.ClickControl("band-civics")) return (GateResult.Fail, "not reachable");
+                return Expect(Ui.ProgressionOpen && Screen.Tab == TreeTab.Civics,
+                    "the trees did not open on Civics (open " + Ui.ProgressionOpen + ")");
+            });
+            OpenResearch();
             foreach (TreeTab tab in new[] { TreeTab.Civics, TreeTab.Technology })
                 Check("research", "tab:" + tab, () =>
                 {

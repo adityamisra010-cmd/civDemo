@@ -107,7 +107,7 @@ estimate to complete.
 ## 6. The Age transition
 
 When `EndTurn` moves the player into a new Age, the derived theme changes and `EraTransition` cross-fades the
-tokens over 1.6 s of UI time (colours mix, measures interpolate, discrete tokens switch at the midpoint); the
+tokens over 2.4 s of UI time (1.6 s before the 2026-10-29 note, §9b) (colours mix, measures interpolate, discrete tokens switch at the midpoint); the
 simulation never sees it. The transition panel reads "Your civilization has entered the {full Age name}", with
 the surge and modernization line and "Records are now kept in {medium}." No cinematic. Headless renders show
 the end state.
@@ -228,6 +228,38 @@ the three faces and Garamond's weights; the game measures with the real fonts.
 > (`EraThemes.DistinctStates`: ΔE ≥ 12 between every pair where the era allows, ≥ 8 everywhere, the body ink ≥ 7:1 on
 > each). Flowing panels (the Age panel and flow, the research detail panel) lay out in the era-invariant reference
 > type (`FlowText`), so §4's continuity — the same regions and hit rects in every era — holds for them too.
+
+## 9b. Age-step separation (Director playtest 2026-10-29, "panels only")
+
+> **DATED NOTE 2026-10-29 (Director playtest ruling, "panels only").** Playtest: "advancing the ages should be
+> changing the views and panels and colors … i dont see that happenning when i reach age 2." A1's stone panel
+> (#D4C6AB) and A2's clay panel (#DFC8A2) were ΔE*ab 7.0 apart — two beiges. Ruling: the MAP SUBSTRATE STAYS
+> UNTHEMED (the parchment bake, `MapInk.Default` and the parchment era A6 are unchanged — A6's canonical hash
+> `7e2e3eed8bb95fdb…` and its four preview SVGs are byte-identical), and the panel, field, bar (chrome), border and
+> accent tokens of A1–A5 and A7–A9 are re-tuned (TUNE values in `EraThemes.cs`) so every Age step is plain at a
+> glance. Pinned by `EraSeparationTests` with exact thresholds: consecutive eras differ by **ΔE\*ab ≥ 12 on the
+> panel or the field** and **≥ 15 on the chrome bar**, and A1→A2 by ≥ 12 on the panel itself.
+>
+> | Step | Panel ΔE before → after | Field | Chrome |
+> |---|---|---|---|
+> | A1→A2 | 7.0 → 17.3 | 11.7 → 30.5 | 11.4 → 30.7 |
+> | A2→A3 | 5.3 → 13.2 | 9.4 → 21.8 | 8.2 → 44.2 |
+> | A3→A4 | 15.6 → 21.3 | 19.2 → 30.4 | 30.1 → 23.7 |
+> | A4→A5 | 7.8 → 13.0 | 9.7 → 12.0 | 26.0 → 43.2 |
+> | A5→A6 | 11.5 → 14.6 | 14.3 → 23.3 | 19.4 → 28.3 |
+> | A6→A7 | 9.9 → 14.4 | 11.5 → 15.3 | 15.7 → 22.7 |
+> | A7→A8 | 7.9 → 11.8 | 15.1 → 17.8 | 23.8 → 37.2 |
+> | A8→A9 | 3.9 → 10.7 | 8.2 → 13.7 | 16.5 → 26.9 |
+>
+> The journey, natural materials → well-defined paper → computerised stock: A1 cool grey stone, charcoal bar, ochre
+> accent; A2 fired terracotta, dark red-clay bar, reed-straw soft accent; A3 golden sandstone under a verdigris bar;
+> A4 cool lime plaster under near-black iron; A5 white marble with blue-grey veins under a deep porphyry red;
+> A6 vellum (unchanged); A7 a whiter laid sheet with fainter chain lines under printer's black; A8 blue-white drafting
+> film under a technical blue; A9 neutral coated white and light grey under dark slate, no grain, a 2 px corner
+> (was 3) and a copper accent. Every readability floor (§9a) holds unchanged; the raised and sunken surfaces of A1–A4
+> were lightened or deepened so the four state fills now reach ΔE 12 in eight eras (five before). The cross-fade
+> is 2.4 s (was 1.6 s); the Age toast is unchanged. Semantic hue families are unchanged (no pigment was re-tuned).
+> The era names and media strings are unchanged.
 
 ## 10. Limits
 

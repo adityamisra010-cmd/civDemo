@@ -1,6 +1,8 @@
 # Session-export fixtures (ADR-059)
 
-Two played sessions, as their files. `SessionExportTests` exports each to a workbook and pins it byte for byte. It also
+Two played sessions, as their files. `SessionExportTests` exports each to a workbook and pins its content byte for byte:
+every entry's uncompressed bytes, in order (ADR-059 amendment 2026-10-29: the container is deflated, so its own bytes
+are no longer pinned; the decoded parts, re-packed STORED, still give the pre-amendment golden sha256). It also
 checks that the C# codec writes exactly the prototype's cells (`prototype-cells.txt.gz`).
 
 Telemetry is stored gzip'd (`telemetry-*.jsonl.gz`); the tests un-gzip it in memory under its original name. Every
@@ -22,7 +24,7 @@ sha256 values equal the ones in the forensic close record:
 
 The chronicle file is not in the set. The manifest names it, and the close record lists it as 3,349 bytes with sha256
 `3b0b4eba…c38a`, so the build did write one. It was not among the uploaded files. The workbook's Chronicle sheet says
-so and invents no line.
+so (code `NP`, with the close record's bytes and sha256) and invents no line.
 
 `prototype-cells.txt.gz` is the output of `python3 -I docs/m6-session-export/prototype/encode.py` on the telemetry file:
 68 cells, codebook v4, the longest 10,096 characters. `decode.py` gives the file back byte for byte.
@@ -39,6 +41,12 @@ Every telemetry line carries `grain.military`, an optional key that is new in `t
 
 This set has six files, a chronicle among them. `prototype-cells.txt.gz` is `encode.py`'s output: 16 cells, codebook
 v5, the longest 10,206 characters, no `!` escape. `decode.py` gives the file back byte for byte.
+
+Its chronicle predates the coded chronicle format (ADR-059 amendment 2026-10-29, "coded sheets, legend-only words"):
+it is the PROSE record, with no `chronicle-codes/v1` tag. The workbook does not parse it. Each line appears on the
+Chronicle sheet as its `QT` code, and its text is in the Codebook's `QT:texts` rows. A session the game writes now has a
+coded chronicle file instead. `SessionExportCodesTests` exercises that file on a freshly played session, and pins this
+fixture's prose as what the current tree's prose record still reproduces.
 
 These files are a frozen record. A later change to the simulation does not make them wrong: the export reads files,
 never a replay.

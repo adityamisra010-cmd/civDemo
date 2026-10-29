@@ -697,4 +697,70 @@ public class ChronicleTests
         Sim.Tests.TestUtil.Cr003Quarantine.FamineGuardStillDisarmed(
             anyFamine, "a famine line across the first Malthus crash");
     }
+    // --- the coded session record (ADR-059 amendment 2026-10-29) -------------------------------------------------
+
+    /// <summary>
+    /// THE CODED LINE OF EVERY CORE EVENT KIND, exactly, beside its prose: the coded record (chronicle-*.txt) is built at
+    /// the source from the event's values — the same year, the same rounded counts and the same share bounds the prose
+    /// prints (fewer than 1 → &lt;1, more than 99 → &gt;99) — and names the settlement by id (ST0), never by name. Each
+    /// kind is pinned field for field, and every number the prose prints is the number the code carries.
+    /// </summary>
+    [Fact]
+    public void Code_EveryEventKind_IsItsCodedLine_WithTheProsesFigures()
+    {
+        ChronicleConfig cfg = Config();
+        WorldState world = Rig();
+        NameRegistry names = NameRegistry.Build(cfg, 42, world);
+        string name = names.Name(0);
+        (ChronicleEvent E, string Code, string[] Figures)[] cases =
+        [
+            (new(ChronicleEventType.Founding, 0, 0.0, 0, 438.0, 0.0), "Y0 FN ST0 SL438", ["438"]),
+            (new(ChronicleEventType.FamineOnset, 10, 100.4, 0, 0.42, (double)(int)FamineReason.Disaster), "Y100 FA ST0 PC42 RS1", ["42"]),
+            (new(ChronicleEventType.FamineOnset, 10, 100.0, 0, 0.004, (double)(int)FamineReason.Both), "Y100 FA ST0 PC<1 RS3", ["fewer than 1"]),
+            (new(ChronicleEventType.FamineEnd, 12, 120.0, 0, 20.0, 37.6), "Y120 FE ST0 YR20 DD38", ["20", "38"]),
+            (new(ChronicleEventType.Extinction, 13, 130.0, 0, 1.0, 0.0), "Y130 XT ST0 SL1", ["1"]),
+            (new(ChronicleEventType.FirstArtisans, 7, 70.0, 0, 26.0, 0.0), "Y70 AR ST0 AT26", ["26"]),
+            (new(ChronicleEventType.FirstArtisans, 7, 70.0, 0, 1.0, 0.0), "Y70 AR ST0 AT1", ["1"]),
+            (new(ChronicleEventType.MigrationSurge, 2, 20.0, 0, 22.0, 0.07), "Y20 MG ST0 SL22 PC7", ["22", "7"]),
+            (new(ChronicleEventType.Disaster, 11, 110.0, 0, 0.60, 0.25), "Y110 DS ST0 PC75", ["75"]),
+            (new(ChronicleEventType.Disaster, 11, 110.0, 0, 0.0, 0.002), "Y110 DS ST0 PC>99", ["more than 99"]),
+            (new(ChronicleEventType.FoodShortfallOnset, 3, 30.0, 0, 0.000367, 0.0), "Y30 SO ST0 PC<1", ["fewer than 1"]),
+            (new(ChronicleEventType.FoodShortfallEnd, 5, 50.0, 0, 10.0, 0.0), "Y50 SE ST0 YR10", ["10"]),
+        ];
+        var kinds = new HashSet<ChronicleEventType>();
+        foreach ((ChronicleEvent e, string code, string[] figures) in cases)
+        {
+            Assert.Equal(code, ChronicleCode.Render(e));
+            string prose = ChronicleProse.Render(e, cfg, names);
+            Assert.Contains(name, prose, StringComparison.Ordinal);
+            Assert.DoesNotContain(name, code, StringComparison.Ordinal);   // by id, never by name
+            Assert.Contains(code.Split(' ')[0][1..], prose, StringComparison.Ordinal);   // the same year
+            foreach (string f in figures) Assert.Contains(f, prose, StringComparison.Ordinal);
+            kinds.Add(e.Type);
+        }
+        Assert.Equal(Enum.GetValues<ChronicleEventType>().Length, kinds.Count);   // every kind is pinned
+    }
+
+    /// <summary>The coded record's file: the format tag, then the name lines in ORDINAL order of their code (a dense
+    /// tie set: ST1, ST10, ST2 … and a second note of a code keeps the first name), then the event lines in event order.</summary>
+    [Fact]
+    public void Code_TheRecordFile_IsTagNamesInOrdinalOrderThenEvents()
+    {
+        var r = new ChronicleCode.Record();
+        foreach (int id in new[] { 2, 10, 1, 21, 3, 12 })
+        {
+            r.Add("Y0 FN " + r.Note(ChronicleCode.Settlement(id), "N" + id.ToString(System.Globalization.CultureInfo.InvariantCulture)) + " SL1");
+        }
+        r.Note("ST2", "other");          // first note wins
+        r.Note("AG1", "First");
+        Assert.Equal(
+            ChronicleCode.FormatTag + "\nAG1=First\nST1=N1\nST10=N10\nST12=N12\nST2=N2\nST21=N21\nST3=N3\n"
+            + "Y0 FN ST2 SL1\nY0 FN ST10 SL1\nY0 FN ST1 SL1\nY0 FN ST21 SL1\nY0 FN ST3 SL1\nY0 FN ST12 SL1\n",
+            r.FileText());
+        Assert.True(ChronicleCode.TryParseNameLine("ST12=Bigen", out string c, out string n) && c == "ST12" && n == "Bigen");
+        Assert.True(ChronicleCode.TryParseNameLine("AG-1=x=y", out c, out n) && c == "AG-1" && n == "x=y");
+        Assert.False(ChronicleCode.TryParseNameLine("Y0 FN ST12 SL1", out _, out _));
+        Assert.False(ChronicleCode.TryParseNameLine("ABCD1=x", out _, out _));
+        Assert.False(ChronicleCode.TryParseNameLine("ST=x", out _, out _));
+    }
 }

@@ -74,3 +74,14 @@ For each row, write: OK, a defect (with a screenshot), or a design note. Attach 
 - The early-court claim is now a measurement to record, not a stated fact: no test or measurement supports it.
 - The executable plan for this playtest (build, seeds, scenarios, measurements, pass/fail) is in
   [m6-exit-inventory.md](../m6-exit-inventory.md) §7.
+
+## Dated note — 2026-10-29 (D-068)
+
+The playtest continues on the build carrying the [D-068](../d068-m6-playtest-fix-rulings.md) fixes:
+- Re-check row 1 (Technology `[K]` and Civics `[C]` are now separate top-bar chips).
+- Re-check row 5 (roads now stop at the fog).
+- **Row 10 PASS now means:**
+  - the workbook appears;
+  - the folder holds no `telemetry-*.jsonl`;
+  - the Orders and Chronicle sheets read in codes, explained by the Codebook.
+- **New observation:** advance an Age and judge whether the panel change is now obvious. The map background is unchanged by design.

@@ -7,6 +7,11 @@ namespace Sim.Ui.Export;
 /// GPU, no world). It reads a saved session's six files and writes <c>session-STAMP.xlsx</c> beside them — the same
 /// <see cref="SessionWorkbook"/> the game writes at session close, so a session closed by a crash (or played before this
 /// build) is exported the same way. Exit 0 = written (and self-checked); 2 = refused, with the named reason on stderr.
+///
+/// ADR-059 amendment 2026-10-29: this command never removes a file (only the game, at session close, removes the raw
+/// telemetry log after a verified export). On a session whose raw log was removed, the telemetry is read back from the
+/// existing workbook and used only when it matches the forensic close record's sha256; otherwise the export is refused
+/// (<see cref="SessionExportException.TelemetryUnrecoverable"/>) and the existing workbook is left as it is.
 /// </summary>
 public static class SessionExportCommand
 {
@@ -42,6 +47,9 @@ public static class SessionExportCommand
                 + r.ContinuationRows.ToString(CultureInfo.InvariantCulture) + ", longest cell "
                 + r.LongestCell.ToString(CultureInfo.InvariantCulture) + " characters");
             output.WriteLine("  self-check: every cell read back, every telemetry cell decoded to its line byte for byte");
+            if (r.RawTelemetry == RawTelemetry.RecoveredFromWorkbook)
+                output.WriteLine("  telemetry: " + r.TelemetryFile + " was removed after a verified export; its lines were read back from "
+                    + "the existing workbook and match the forensic close record's sha256 " + r.TelemetrySha256);
             return 0;
         }
         catch (SessionExportException e)

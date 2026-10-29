@@ -238,3 +238,18 @@ soak was rerun from the repository root, which is how CI runs it.
 outside the gate.
 
 **Genuine M6 code blockers found:** none.
+
+## Dated note — 2026-10-29 (D-068: playtest fixes)
+
+- **Rulings:** the Director's first playtest on `ebcaa0c` produced [D-068](d068-m6-playtest-fix-rulings.md) R1–R6:
+  - separate Civics button;
+  - roads clipped to known land;
+  - telemetry log removed after a verified export, and the workbook deflated;
+  - corrected title and explore text;
+  - coded workbook sheets;
+  - stronger Age panels.
+- **Validation:** of the four first fixes: CI steps 1–13, 17, 18 and 20 exit 0; Sim.Ui.Tests 1,215/0; Sim.Tests
+  3,361/0/36 skipped. The combined batch is validated before its commit, and the results are recorded in D-068's
+  commit message.
+- **Authorization:** the Director authorized one commit and push of this batch, for the Windows playtest build.
+- **Unchanged:** M6 is NOT closed. The §4 gates (playtest, visual gate, Excel open, exit ruling) remain.

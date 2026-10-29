@@ -38,9 +38,9 @@ public sealed record MaterialTokens(
     Rgba Grain, double GrainDensity, double GrainAlpha, double GrainSize);
 
 /// <summary>INK: text and rule colours on the era's ground, and the inks for text set directly on
-/// the <see cref="MaterialTokens.Chrome"/> bars. The bars are the era's FRAME material — charred
-/// wood, dark wood, cast bronze, forged iron, porphyry, the binding's leather, printer's black,
-/// Prussian blue, graphite — darker than the content in every era (one consistent structure), so
+/// the <see cref="MaterialTokens.Chrome"/> bars. The bars are the era's FRAME material — charcoal,
+/// fired red clay, verdigris bronze, forged iron, porphyry red, the binding's leather, printer's black,
+/// technical blue, slate — darker than the content in every era (one consistent structure), so
 /// their text is light: <c>OnChrome</c>, <c>OnChromeSoft</c>, and <c>OnChromeAccent</c> for the
 /// emphasised figure on a bar.</summary>
 public sealed record InkTokens(Rgba Text, Rgba TextSoft, Rgba TextDim, Rgba OnAccent, Rgba Rule,

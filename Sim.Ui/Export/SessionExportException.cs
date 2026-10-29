@@ -33,4 +33,9 @@ public sealed class SessionExportException : Exception
     public const string RowLimit = "row-limit";
     /// <summary>The self-check: the workbook read back does not hold exactly the cells that were written.</summary>
     public const string WorkbookReadBack = "workbook-readback-mismatch";
+    /// <summary>ADR-059 amendment 2026-10-29: the raw telemetry log is not beside the manifest (the game removes it after
+    /// a verified export) and the existing workbook's Telemetry sheet does not give back the bytes the forensic close
+    /// record lists for it (or there is no close record to check them against). Nothing is written: the existing workbook
+    /// is left as it is, never replaced by one without the telemetry.</summary>
+    public const string TelemetryUnrecoverable = "telemetry-unrecoverable";
 }

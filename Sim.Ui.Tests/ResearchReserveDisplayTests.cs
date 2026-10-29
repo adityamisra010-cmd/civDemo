@@ -100,7 +100,7 @@ public class ResearchReserveDisplayTests(SteppedWorldFixture fx) : IClassFixture
         Assert.Equal(rs, block.Reserve);
         Assert.True(block.Idle);
         ResearchFigure band = StatusFigures.Research(block);
-        Assert.Equal("Research idle - choose [K] - reserve 0/" + Math.Floor(rs.CapMilli / 1000.0).ToString(System.Globalization.CultureInfo.InvariantCulture), band.Text);
+        Assert.Equal("Tech idle - choose [K] - reserve 0/" + Math.Floor(rs.CapMilli / 1000.0).ToString(System.Globalization.CultureInfo.InvariantCulture), band.Text);
         ProgressionScreen screen = Screen(w);
         Assert.Equal(rs, screen.Snapshot!.Reserve);
         List<string> painted = [.. Texts(screen.Paint(1600, 1000, ApproxTextMeasure.Instance))];

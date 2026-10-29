@@ -53,6 +53,7 @@ public sealed partial class GameUi
     private Sim.Ui.Actions.ActionSurfaceModel? _actionModel;
     private readonly EraTable _eraTable = UiSession.ProductionEra();
     private ResearchFigure _researchFigure = new("", false);
+    private ResearchFigure? _civicsFigure;   // Director playtest 2026-10-29: the Civics lane's own band figure ([C])
     private AgeFigure _ageFigure = new("", Sim.Ui.Ages.AgePanelState.NoContent);
     private readonly Sim.Ui.Actions.NoticeToast _notices = new();
     private bool _policyRecord;   // the labour record (declared vs effective, history): folded by default
@@ -498,6 +499,7 @@ public sealed partial class GameUi
         _actionModel = Sim.Ui.Actions.ActionSurface.ForSession(_session, _eraTable, _selected, _theme);
         _actions.Refresh(_actionModel, _world, _session.Config, UiPlayer.Empire, id => _session.Names.Name(id));
         _researchFigure = StatusFigures.Research(_actionModel.Research);
+        _civicsFigure = StatusFigures.Civics(_actionModel.Research);
         _ageFigure = StatusFigures.Age(Sim.Ui.Ages.AgePanelModel.Build(_world, _session.Config.Ages, _session.QueuedOrders(), UiPlayer.Empire));
 
         // T3.9b: the trade panel's rows — world-level, not per-settlement
@@ -652,10 +654,13 @@ public sealed partial class GameUi
         // so one press is never both "close" and "exit".
         if (IsActive && !io.WantCaptureKeyboard && keyboard.IsKeyDown(Keys.K) && !_lastKeyboard.IsKeyDown(Keys.K))
         {
-            bool opening = !_progressionOpen;
-            ToggleProgression();
+            bool opening = ToggleTree(Sim.Ui.Progression.TreeTab.Technology);
             if (opening) FocusAgeSuggestion();   // M5 polish: [K] from the Age panel opens the tree at its next research
         }
+        // Director playtest 2026-10-29: [C] is the Civics figure's key — the trees on the Civics tab (Ctrl+C is left alone).
+        if (IsActive && !io.WantCaptureKeyboard && Edge(keyboard, Keys.C)
+            && !keyboard.IsKeyDown(Keys.LeftControl) && !keyboard.IsKeyDown(Keys.RightControl))
+            ToggleTree(Sim.Ui.Progression.TreeTab.Civics);
         if (_progressionOpen)
         {
             UpdateProgression(dtSeconds, mouse, keyboard, viewport);
@@ -940,6 +945,19 @@ public sealed partial class GameUi
         var notes = new Sim.Ui.Render.DrawList();
         _notices.Paint(notes, Backend, _frameTheme, v.Width, _age.ToastVisible ? 196 : 60);
         Backend.Render(ImGui.GetForegroundDrawList(), notes);
+    }
+
+    /// <summary>Director playtest 2026-10-29 — the way into ONE tree ([K] and the Tech figure: Technology; [C] and the Civics
+    /// figure: Civics): the screen open on that tab closes; otherwise the screen opens (or stays open) on that tab. Returns
+    /// whether the screen was opened (it was closed). UI state only.</summary>
+    private bool ToggleTree(Sim.Ui.Progression.TreeTab tab)
+    {
+        if (_session.Config.Research is null) return false;
+        if (_progressionOpen && _progression!.Tab == tab) { ToggleProgression(); return false; }
+        bool opening = !_progressionOpen;
+        if (opening) ToggleProgression();
+        _progression!.Tab = tab;
+        return opening;
     }
 
     private void ToggleProgression()
@@ -1315,10 +1333,11 @@ public sealed partial class GameUi
     /// THE ALWAYS-TRUE BAND (UR-3): when, how many, how much, and what to do next — in three groups. [Turn · Year] |
     /// [Population · Food], each a caps label over… beside its figure in the KPI face (24 px), the figures clickable
     /// (T4.19 lane B: each routes through ExplainRouting to the account that decomposes it; a dotted underline on
-    /// hover says so) | [the research chip · the Age chip]. Idle research — the turn-1 call to action — is a warning
+    /// hover says so) | [the Tech chip [K] · the Civics chip [C] · the Age chip] (Director playtest 2026-10-29: one chip
+    /// per research lane, each opening the trees on its own tab). An idle lane — the turn-1 call to action — is a warning
     /// chip in the progress family's TEXT ink with a mark (it measured 2.41:1 as amber text, and read as disabled).
-    /// A narrow window drops the settlement count and the Age's name before anything else. Read-only: the band
-    /// emits no order.
+    /// A narrow window drops the settlement count and the Age's name before anything else, then the resource strip's
+    /// labels, then the node names in the lane chips, then their points a turn. Read-only: the band emits no order.
     /// </summary>
     private void DrawStatusBand()
     {
@@ -1343,6 +1362,7 @@ public sealed partial class GameUi
         float frameH = ImGui.GetFrameHeight();
 
         string research = _researchFigure.Text;
+        string civics = _civicsFigure?.Text ?? "";
         string age = _ageFigure.Text;
         (string Label, string Value, string Detail, ExplainFigure? Route)[] figures =
         [
@@ -1360,7 +1380,8 @@ public sealed partial class GameUi
         float ChipWidth(string text, bool mark) => ImGui.CalcTextSize(text).X + chipPad + (mark ? markW : 0f);
         float Total(bool details, string ageText) =>
             FigureWidth(0, details) + itemGap + FigureWidth(1, details) + groupGap + FigureWidth(2, details) + itemGap + FigureWidth(3, details)
-            + groupGap + ChipWidth(research, _researchFigure.Idle) + (ageText.Length > 0 ? itemGap + ChipWidth(ageText, false) : 0f);
+            + groupGap + ChipWidth(research, _researchFigure.Idle) + (civics.Length > 0 ? itemGap + ChipWidth(civics, _civicsFigure!.Idle) : 0f)
+            + (ageText.Length > 0 ? itemGap + ChipWidth(ageText, false) : 0f);
         float room = band.Width - 2f * margin;
         // M5 resources view: the resource strip after FOOD (its own group). A band too narrow for it all drops the
         // settlement count and the Age's name first (as before), then the strip's labels to their first letters.
@@ -1374,6 +1395,9 @@ public sealed partial class GameUi
         bool details = true, stripLabels = true;
         if (Total(true, age) + Strip(true) > room) { details = false; age = _ageFigure.Short; }
         if (Total(false, age) + Strip(true) > room) stripLabels = false;
+        // Director playtest 2026-10-29: two lane chips (Tech, Civics) — a band still too narrow drops the node names from them.
+        if (Total(false, age) + Strip(false) > room) { research = _researchFigure.Short; civics = _civicsFigure?.Short ?? ""; }
+        if (Total(false, age) + Strip(false) > room) { research = _researchFigure.Tiny; civics = _civicsFigure?.Tiny ?? ""; }
 
         float x = band.X + margin + 4f * s;
         for (int i = 0; i < figures.Length; i++)
@@ -1405,26 +1429,32 @@ public sealed partial class GameUi
             Separator(dl, x - groupGap / 2f, band.Y + top + 2f * s, band.Y + top + kpiPx - 2f * s);
         }
 
-        // The research chip — the band's way into the trees.
+        // The lane chips — the band's ways into the trees: Technology [K], then (two-lane model) Civics [C] (Director
+        // playtest 2026-10-29: civics had no way in but a tab inside the trees).
         float chipY = band.Y + top + (kpiPx - frameH) / 2f;
-        float rw = Math.Min(ChipWidth(research, _researchFigure.Idle), Math.Max(80f * s, band.X + band.Width - margin - x));
-        ImGui.SetCursorScreenPos(new System.Numerics.Vector2(x, chipY));
-        ParchmentPalette.Rgba researchInk = _researchFigure.Idle ? t.TextInk.Progress : t.TextInk.Active;
-        ImGui.PushStyleColor(ImGuiCol.Text, Col(researchInk));
-        ImGui.PushStyleColor(ImGuiCol.Button, Col(t.Material.PanelRaised));
-        ImGui.PushStyleColor(ImGuiCol.Border, Col(_researchFigure.Idle ? t.Semantic.Progress : t.Material.Border));
-        ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, (_researchFigure.Idle ? 2f : 1f) * s);
-        ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new System.Numerics.Vector2(_researchFigure.Idle ? 1f : 0.5f, 0.5f));
-        bool researchClicked = Button(research + "##band-research", new System.Numerics.Vector2(rw, frameH));
-        Controls.Record("band-research");
-        RegisterItem(ResearchChipSubject(), research);
-        System.Numerics.Vector2 rmin = ImGui.GetItemRectMin();
-        ImGui.PopStyleVar(2);
-        ImGui.PopStyleColor(3);
-        if (_researchFigure.Idle) AttentionMark(dl, rmin.X + 12f * s + 8f * s, rmin.Y + frameH / 2f, 8f * s, t);
-        if (researchClicked && ImGui.GetIO().KeyShift) OpenInfo(ResearchChipSubject());   // M5 polish: Shift+click = the card
-        else if (researchClicked) ToggleProgression();
-        x += rw + itemGap;
+        void LaneChip(string text, bool idle, string id, InfoSubject subject, Sim.Ui.Progression.TreeTab tab)
+        {
+            float cw = Math.Min(ChipWidth(text, idle), Math.Max(80f * s, band.X + band.Width - margin - x));
+            ImGui.SetCursorScreenPos(new System.Numerics.Vector2(x, chipY));
+            ImGui.PushStyleColor(ImGuiCol.Text, Col(idle ? t.TextInk.Progress : t.TextInk.Active));
+            ImGui.PushStyleColor(ImGuiCol.Button, Col(t.Material.PanelRaised));
+            ImGui.PushStyleColor(ImGuiCol.Border, Col(idle ? t.Semantic.Progress : t.Material.Border));
+            ImGui.PushStyleVar(ImGuiStyleVar.FrameBorderSize, (idle ? 2f : 1f) * s);
+            ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new System.Numerics.Vector2(idle ? 1f : 0.5f, 0.5f));
+            bool clicked = Button(text + "##" + id, new System.Numerics.Vector2(cw, frameH));
+            Controls.Record(id);
+            RegisterItem(subject, text);
+            System.Numerics.Vector2 min = ImGui.GetItemRectMin();
+            ImGui.PopStyleVar(2);
+            ImGui.PopStyleColor(3);
+            if (idle) AttentionMark(dl, min.X + 12f * s + 8f * s, min.Y + frameH / 2f, 8f * s, t);
+            if (clicked && ImGui.GetIO().KeyShift) OpenInfo(subject);   // M5 polish: Shift+click = the card
+            else if (clicked) ToggleTree(tab);
+            x += cw + itemGap;
+        }
+        LaneChip(research, _researchFigure.Idle, "band-research", ResearchChipSubject(), Sim.Ui.Progression.TreeTab.Technology);
+        if (_civicsFigure is { } civicsFigure && civics.Length > 0)
+            LaneChip(civics, civicsFigure.Idle, "band-civics", CivicsChipSubject(), Sim.Ui.Progression.TreeTab.Civics);
 
         // The compact Age indicator: opens (or closes) the capital's Age panel on demand.
         if (age.Length > 0)

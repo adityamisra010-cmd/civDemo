@@ -340,7 +340,10 @@ public sealed class ResourcesViewTests : IDisposable
         }
         Assert.True(right <= research.X0, "the strip runs into the research chip: " + right + " > " + research.X0);
         Assert.True(research.X1 <= h.Width, "the research chip leaves the window");
-        if (age is { } a) Assert.True(a.X1 <= h.Width && a.X0 >= research.X1, "the Age chip leaves the window or overlaps");
+        // Director playtest 2026-10-29: the Civics chip ([C]) sits after the Tech chip, inside the window, before the Age chip.
+        UiControl civics = h.Ui.Controls.Find("band-civics") ?? throw new InvalidOperationException("no Civics chip (two-lane content)");
+        Assert.True(civics.X0 >= research.X1 && civics.X1 <= h.Width, "the Civics chip leaves the window or overlaps: " + civics.X0 + ".." + civics.X1);
+        if (age is { } a) Assert.True(a.X1 <= h.Width && a.X0 >= civics.X1, "the Age chip leaves the window or overlaps");
         Assert.Empty(h.Problems);
     }
 

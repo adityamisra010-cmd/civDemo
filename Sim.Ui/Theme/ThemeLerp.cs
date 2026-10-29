@@ -90,8 +90,9 @@ public static class ThemeLerp
 /// </summary>
 public sealed class EraTransition
 {
-    /// <summary>The fade's length in seconds: short and restrained, no cinematic.</summary>
-    public const double Seconds = 1.6;
+    /// <summary>The fade's length in seconds: restrained, no cinematic — but long enough to be SEEN (Director playtest
+    /// 2026-10-29, "panels only": advancing an Age must be obvious; was 1.6 s).</summary>
+    public const double Seconds = 2.4;
 
     public EraTheme From { get; }
     public EraTheme Target { get; }

@@ -164,14 +164,15 @@ public static partial class PlayabilityGate
             AgePanelHome();
 
             // ---- The status band's chips: Shift+click shows the card instead of opening the screen.
-            foreach (string chip in new[] { "band-research", "band-age" })
+            // Director playtest 2026-10-29: the Civics lane's chip (band-civics) beside the Tech chip.
+            foreach (string chip in new[] { "band-research", "band-civics", "band-age" })
             {
                 string id = chip;
                 Check("info", "shift-click " + id + " (status band)", () =>
                 {
                     CloseEverything();
                     if (Ui.Controls.Find(id) is not { } c) return (GateResult.NotOffered, "not drawn");
-                    if ((FirstHit(id == "band-research" ? InfoKind.ResearchNode : InfoKind.Age, x => x.Rect.Contains(c.CenterX, c.CenterY))
+                    if ((FirstHit(id is "band-research" or "band-civics" ? InfoKind.ResearchNode : InfoKind.Age, x => x.Rect.Contains(c.CenterX, c.CenterY))
                         ?? FirstHit(InfoKind.Learning, x => x.Rect.Contains(c.CenterX, c.CenterY))) is not { } hit)
                         return (GateResult.Fail, "the chip registers no subject");
                     return ShiftCheck(hit, () => !Ui.ProgressionOpen && !Ui.AgePanelOpen);

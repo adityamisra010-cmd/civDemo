@@ -20,10 +20,19 @@ public class AnnalsTests
         session.ExportChronicle(path);
         try
         {
-            // EXPORT == PANEL: the file is the panel's lines, one per line,
-            // fixed \n termination — nothing added, nothing dropped.
-            string expected = string.Join("\n", session.AnnalLines) + "\n";
-            Assert.Equal(expected, File.ReadAllText(path));
+            // EXPORT == PANEL, one for one: the file holds one line per panel line (the player rules every settlement
+            // here, so the record and the panel are the same events), fixed \n termination — nothing added, nothing
+            // dropped. UPDATED for the ADR-059 amendment of 2026-10-29 (Director: the chronicle comes out shortened):
+            // the FILE is the CODED record — the format tag, the name lines, then each event as its coded line — while
+            // the panel stays prose (pinned unchanged above: one founding line each, "founded").
+            Assert.Equal(session.RecordAnnalLines, session.AnnalLines);
+            Assert.Equal(session.AnnalLines.Count, session.RecordCodeLines.Count);
+            var expected = new System.Text.StringBuilder(Sim.Core.Chronicle.ChronicleCode.FormatTag + "\n");
+            foreach ((string code, string name) in session.RecordNames) expected.Append(code).Append('=').Append(name).Append('\n');
+            foreach (string line in session.RecordCodeLines) expected.Append(line).Append('\n');
+            Assert.Equal(expected.ToString(), File.ReadAllText(path));
+            for (int i = 0; i < session.AnnalLines.Count; i++)
+                Assert.StartsWith("Y", session.RecordCodeLines[i], StringComparison.Ordinal);
         }
         finally { File.Delete(path); }
     }

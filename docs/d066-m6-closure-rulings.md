@@ -136,3 +136,8 @@ The text above is unchanged (gov-4 §6). Read it through the following:
 **"Not decided here" and the M6.24 note.** M6.24 (D-051 §2 remainder and §4) is now RULED: deferred until after the Director's M6 playtest, with no milestone named (D-067 R19). It is not an exit criterion, and the Director gate is discharged.
 
 **§1 R1–R8 stand.** D-067 adds the migration acceptance (R11–R14), the ratification of ADR-055 (R15), the separate ratification of EC-1/EC-2/EC-3 (R16–R18), and the commit order (R20).
+
+## Dated note — 2026-10-29 (D-068)
+
+A14 (STORED, byte-identical workbook) is superseded for the container by [D-068](d068-m6-playtest-fix-rulings.md) R3
+(deflate; the raw telemetry log is removed after a verified export). Its sheets are coded by D-068 R5.

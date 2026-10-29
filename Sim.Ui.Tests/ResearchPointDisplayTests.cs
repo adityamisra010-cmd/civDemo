@@ -137,7 +137,7 @@ public class ResearchPointDisplayTests(SteppedWorldFixture fx) : IClassFixture<S
         Assert.StartsWith("Researching · toward " + Name(c, d) + " · ", screen.StateLine(c.IndexOf(x)));
         ResearchFigure band = StatusFigures.Research(Surface(w).Research);
         Assert.False(band.Idle);
-        Assert.StartsWith("Research: " + Short(Name(c, x)) + " ", band.Text);
+        Assert.StartsWith("Tech: " + Short(Name(c, x)) + " ", band.Text);
         string card = InfoQuery.Card(w, fx.Session.Config, Me, InfoSubject.Research, ActionQueryContext.ForNextStep(w, Era)).StatusLine;
         Assert.StartsWith("Researching " + Name(c, x) + " (toward " + Name(c, d) + "): ", card);
         WorldState next = new TurnExecutor(Era, [SystemCatalog.Research(fx.Session.Config)]).Step(w);
@@ -157,7 +157,7 @@ public class ResearchPointDisplayTests(SteppedWorldFixture fx) : IClassFixture<S
         ResearchNodeId t = tech.Current!.Value;
         ResearchFigure band = StatusFigures.Research(Surface(w).Research);
         Assert.False(band.Idle);
-        Assert.StartsWith("Research: " + Short(Name(c, t)) + " ", band.Text);
+        Assert.StartsWith("Tech: " + Short(Name(c, t)) + " ", band.Text);
         DrawList painted = Screen(c, w).Paint(1600, 1000, ApproxTextMeasure.Instance);
         Assert.DoesNotContain(painted.Commands, cmd => cmd is TextCmd tc && tc.Text.StartsWith("Research idle", StringComparison.Ordinal));
         Assert.Contains(painted.Commands, cmd => cmd is TextCmd tc && tc.Text == "ASSISTING");
@@ -179,7 +179,7 @@ public class ResearchPointDisplayTests(SteppedWorldFixture fx) : IClassFixture<S
         ResearchNodeId td = tech.Destination!.Value;
         ResearchFigure band = StatusFigures.Research(Surface(w).Research);
         Assert.True(band.Idle);
-        Assert.Equal("Research waiting: " + Short(Name(c, td)), band.Text);
+        Assert.Equal("Tech waiting: " + Short(Name(c, td)), band.Text);
         string card = InfoQuery.Card(w, fx.Session.Config, Me, InfoSubject.Research, ActionQueryContext.ForNextStep(w, Era)).StatusLine;
         Assert.StartsWith("Waiting on the Civics tree: " + Name(c, td) + " needs ", card);
         Assert.Contains(" research points go unused this turn.", card, StringComparison.Ordinal);

@@ -14,6 +14,7 @@ public static class UiArgs
     public const string Usage =
         "Play:\n"
         + "  sim-ui [--seed N] [--size PX] [--settlements N] [--ai-empires N] [--dev] [--ui-scale F] [--resume DIR|MANIFEST]\n"
+        + "         [--keep-raw-telemetry]\n"
         + "    --seed N            world seed (default 42)\n"
         + "    --size PX           world size override (developer preview escape hatch; default: canonical size);\n"
         + "                        a multiple of 4 px, at least 12, since the world wraps east-west\n"
@@ -22,6 +23,8 @@ public static class UiArgs
         + "    --dev               open with the developer surfaces - turn audit, records, tables, build - shown; F12 toggles them in play\n"
         + "    --ui-scale F        interface size: 0.9, 1, 1.1, 1.25 or 1.5 times the automatic scale (Ctrl+= / Ctrl+- / Ctrl+0 in play)\n"
         + "    --resume DIR|FILE   continue a saved session (a session directory or a session-*.json manifest) by replaying its order log\n"
+        + "    --keep-raw-telemetry keep telemetry-*.jsonl beside the session workbook at close (developers); by default it is removed\n"
+        + "                        once session-STAMP.xlsx is written and verified - its Telemetry sheet holds every line (ADR-059)\n"
         + "Check (headless: no window, no GPU):\n"
         + "  sim-ui --smoke [--ai-empires N] [--monkey N] [--state NAME]... [--report PATH] [--timeout-minutes N]\n"
         + "                        the playability gate; exit 0 = passed (docs/m5-playability-gate.md)\n"
@@ -37,7 +40,9 @@ public static class UiArgs
         + "  sim-ui --export-session DIR|MANIFEST\n"
         + "                        write session-STAMP.xlsx beside a saved session: its six files in one workbook (README,\n"
         + "                        Manifest, Orders, Trace, Chronicle, Telemetry, Codebook, Forensic); the game writes the same\n"
-        + "                        workbook when a session closes (ADR-059)\n"
+        + "                        workbook when a session closes (ADR-059), deflate-compressed; it never removes a file. When\n"
+        + "                        the raw telemetry log was removed at close, its lines are read back from the existing workbook\n"
+        + "                        and used only if they match the forensic close record's sha256 (else refused, exit 2)\n"
         + "Developer previews (write SVGs to DIR and exit; no window):\n"
         + "  --research-preview [DIR]       the Knowledge & Technology progression screen (default research-preview)\n"
         + "  --age-preview [DIR]            the capital Age panel and Age flow (default age-preview)\n"
@@ -66,6 +71,11 @@ public static class UiArgs
         int at = Array.IndexOf(args, "--ui-scale");
         return at >= 0 && at + 1 < args.Length && Theme.UiScale.ParseUser(args[at + 1]) is double v ? v : Theme.UiScale.DefaultUser;
     }
+
+    /// <summary>ADR-059 amendment (Director playtest 2026-10-29): <c>--keep-raw-telemetry</c> keeps the raw telemetry log
+    /// beside the session workbook at close (<see cref="UiSession.KeepRawTelemetry"/>). Off by default: the log is removed
+    /// after a verified export. Not part of the world's identity.</summary>
+    public static bool KeepRawTelemetry(string[] args) => Array.IndexOf(args, "--keep-raw-telemetry") >= 0;
 
     /// <summary>The argument of <c>--resume</c>, or null.</summary>
     public static string? ResumePath(string[] args)

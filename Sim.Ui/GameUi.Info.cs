@@ -47,10 +47,19 @@ public sealed partial class GameUi
         FoldContext(false);
     }
 
-    /// <summary>The research figure's subject: the current target's node, else research itself.</summary>
+    /// <summary>The research (Tech) figure's subject: the current target's node — the Technology lane's with two lanes —
+    /// else research itself.</summary>
     private InfoSubject ResearchChipSubject() =>
-        _session.Config.Research is { } r && ResearchQuery.TryGetTarget(_world, UiPlayer.Empire, out ResearchNodeId t) && r.IndexOf(t) >= 0
-            ? InfoSubject.Node(t) : InfoSubject.Research;
+        _session.Config.Research is { } r
+        && (r.Tuning.TwoLanes
+            ? ResearchQuery.TryGetTarget(_world, r, UiPlayer.Empire, Sim.Core.Systems.Research.ResearchTree.Technology, out ResearchNodeId t)
+            : ResearchQuery.TryGetTarget(_world, UiPlayer.Empire, out t))
+        && r.IndexOf(t) >= 0 ? InfoSubject.Node(t) : InfoSubject.Research;
+
+    /// <summary>The Civics figure's subject (Director playtest 2026-10-29): the Civics lane's target node, else research itself.</summary>
+    private InfoSubject CivicsChipSubject() =>
+        _session.Config.Research is { } r && ResearchQuery.TryGetTarget(_world, r, UiPlayer.Empire, Sim.Core.Systems.Research.ResearchTree.Civics, out ResearchNodeId t)
+            && r.IndexOf(t) >= 0 ? InfoSubject.Node(t) : InfoSubject.Research;
 
     /// <summary>The Age figure's subject: the next Age (what it takes), or the current one at the final Age.</summary>
     private InfoSubject AgeChipSubject()

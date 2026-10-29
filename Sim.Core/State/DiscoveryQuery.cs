@@ -470,7 +470,9 @@ public static class DiscoveryQuery
     public static string? ExploreBlocker(ExploreVerdict v, SimConfig cfg, IReadOnlyWorldState world) => v switch
     {
         ExploreVerdict.Ok => null,
-        ExploreVerdict.AtCap => "explored to the limit (" + RangeText(world, cfg.Fog?.ExploreMaxRadiusNodes ?? 0) + " around it)",
+        // Director playtest 2026-10-29: the cap says why — exploring further is the mobile scouts' (M7), not this order's.
+        ExploreVerdict.AtCap => "explored to the limit (" + RangeText(world, cfg.Fog?.ExploreMaxRadiusNodes ?? 0) + " around it)"
+            + " - further exploring needs mobile scouts (M7)",
         ExploreVerdict.Unaffordable => "not enough grain (needs " + Inv(ExploreCost(cfg)) + ")",
         ExploreVerdict.NotControlled => "not your settlement",
         ExploreVerdict.NotEmpire => "not an Empire",

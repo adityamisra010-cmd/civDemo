@@ -104,6 +104,12 @@ internal static class ExportFixtures
     }
 
     public static string Sha(string path) => ForensicIdentity.Sha256Hex(File.ReadAllBytes(path));
+
+    /// <summary>ADR-059 amendment 2026-10-29 — the CONTENT golden of a workbook: its entries, decoded (inflated by
+    /// ZipArchive), re-packed in the pre-amendment STORED container. That container is a pure function of the entry names,
+    /// their order and their uncompressed bytes, so this sha256 pins exactly the decoded part contents, independently of
+    /// how a runtime's deflate compressed them — and it equals the historical byte golden of the same sheets.</summary>
+    public static string ContentSha(byte[] workbook) => ForensicIdentity.Sha256Hex(OoxmlZip.WriteStored(OoxmlWorkbook.Entries(workbook)));
 }
 
 /// <summary>
@@ -114,11 +120,27 @@ internal static class ExportFixtures
 /// </summary>
 public class SessionExportTests
 {
-    /// <summary>sha256 of the Director's 68-turn session's workbook (Fixtures/session-export/director-68).</summary>
-    internal const string DirectorWorkbookSha = "136e853c72d8596cb81785dd438dfeb6dbe527ca0e1ce53fd8532e8bf0c365e5";
+    /// <summary>The CONTENT golden (<see cref="ExportFixtures.ContentSha"/>) of the Director's 68-turn session's workbook
+    /// (Fixtures/session-export/director-68): the sha256 its decoded parts give re-packed STORED.
+    /// RE-PINNED by the ADR-059 amendment "coded sheets, legend-only words" (Director, 2026-10-29), from
+    /// 136e853c72d8596cb81785dd438dfeb6dbe527ca0e1ce53fd8532e8bf0c365e5: the eight sheet parts changed (README gains the
+    /// 'codes' row and describes the codes; Manifest, Orders, Trace, Chronicle, Telemetry and Forensic carry codes, their
+    /// headers included; the Codebook appends the legend and the QT texts after its unchanged telemetry codebook); the
+    /// five container parts are byte-identical and every Telemetry cell is byte-identical (only its header row is coded).</summary>
+    internal const string DirectorWorkbookSha = "806e0947fec8a0e6a126d1dca37a94aa3afa98d71784c5a822cb03af240f1fb1";
 
-    /// <summary>sha256 of the current-tree (telemetry/v5) session's workbook (Fixtures/session-export/current-v5).</summary>
-    internal const string CurrentWorkbookSha = "6d488a2c97bcbb143f274ddf97784cf4daf170d301b3e1e340718b532139560d";
+    /// <summary>The CONTENT golden of the current-tree (telemetry/v5) session's workbook (Fixtures/session-export/current-v5).
+    /// RE-PINNED likewise (2026-10-29) from 6d488a2c97bcbb143f274ddf97784cf4daf170d301b3e1e340718b532139560d, for the same
+    /// parts and reasons; its prose (pre-amendment) chronicle file is shown line by line as QT codes.</summary>
+    internal const string CurrentWorkbookSha = "c5ec8abd82a11de7bdead82d1e342e21055de74a88c50ad125ba8dd3df578313";
+
+    /// <summary>The fixed entry order of every workbook with the eight sheets.</summary>
+    internal static readonly string[] EntryOrder =
+    [
+        "[Content_Types].xml", "_rels/.rels", "xl/workbook.xml", "xl/_rels/workbook.xml.rels", "xl/styles.xml",
+        "xl/worksheets/sheet1.xml", "xl/worksheets/sheet2.xml", "xl/worksheets/sheet3.xml", "xl/worksheets/sheet4.xml",
+        "xl/worksheets/sheet5.xml", "xl/worksheets/sheet6.xml", "xl/worksheets/sheet7.xml", "xl/worksheets/sheet8.xml",
+    ];
 
     // ------------------------------------------------------------------------------------- codec goldens --
 
@@ -484,17 +506,31 @@ public class SessionExportTests
         return [a, b];
     }
 
-    /// <summary>The OOXML writer's byte golden: a fixed two-sheet workbook (escapes, gaps, an empty row).</summary>
+    /// <summary>The OOXML writer's CONTENT golden (<see cref="ExportFixtures.ContentSha"/>): a fixed two-sheet workbook
+    /// (escapes, gaps, an empty row) — the pre-amendment byte golden of the same sheets.</summary>
     internal const string SmallWorkbookSha = "e65373b07c7eee9160c39bcbdad022f7c13d306fd399715be01cb883118a82b5";
 
+    /// <summary>ADR-059 amendment 2026-10-29: the container is deflated, so its bytes may differ between runtimes; the
+    /// content may not. Two writes on one runtime give the same bytes; the decoded entries are exactly
+    /// <see cref="OoxmlWorkbook.Parts"/>, in order; and re-packed STORED they give the historical byte golden.</summary>
     [Fact]
-    public void TheWriterIsByteIdenticalAcrossRuns_AndMatchesItsGolden()
+    public void TheWritersContentMatchesItsGolden_AndTwoRunsGiveTheSameBytes()
     {
         byte[] one = OoxmlWorkbook.Write(SmallSheets());
         byte[] two = OoxmlWorkbook.Write(SmallSheets());
         Assert.Equal(one, two);
-        string sha = ForensicIdentity.Sha256Hex(one);
-        Assert.True(SmallWorkbookSha == sha, "the small workbook's sha256 is " + sha);
+        IReadOnlyList<(string Name, byte[] Data)> parts = OoxmlWorkbook.Parts(SmallSheets());
+        IReadOnlyList<(string Name, byte[] Data)> entries = OoxmlWorkbook.Entries(one);
+        Assert.Equal(parts.Count, entries.Count);
+        for (int i = 0; i < parts.Count; i++)
+        {
+            Assert.Equal(parts[i].Name, entries[i].Name);
+            Assert.Equal(parts[i].Data, entries[i].Data);
+        }
+        string sha = ExportFixtures.ContentSha(one);
+        Assert.True(SmallWorkbookSha == sha, "the small workbook's content sha256 is " + sha);
+        Assert.Equal(SmallWorkbookSha, ForensicIdentity.Sha256Hex(OoxmlZip.WriteStored(parts)));
+        Assert.True(one.Length < OoxmlZip.WriteStored(parts).Length, "deflated is smaller than stored");
     }
 
     [Fact]
@@ -516,27 +552,23 @@ public class SessionExportTests
         }
     }
 
-    /// <summary>The ZIP container, walked by hand: every entry STORED, the fixed entry order, timestamp, version and
-    /// attributes, no extra fields, a correct CRC, and a central directory that agrees with the local headers.</summary>
+    /// <summary>The ZIP container, walked by hand (ADR-059 amendment 2026-10-29): every entry DEFLATE (method 8, what Excel
+    /// reads), the fixed entry order, timestamp, version and attributes, no flags (so no data descriptor), no extra fields;
+    /// each entry inflates (raw deflate) to exactly its uncompressed size and CRC-32, and the central directory agrees with
+    /// the local headers.</summary>
     [Fact]
-    public void TheZipIsStoredWithFixedHeaders_AndEveryXmlPartIsWellFormed()
+    public void TheZipIsDeflatedWithFixedHeaders_AndEveryXmlPartIsWellFormed()
     {
         List<(string Name, byte[] Bytes)> files = ExportFixtures.Files("director-68");
         byte[] z = SessionWorkbook.Build(ExportFixtures.Manifest(files), ExportFixtures.Reader(files)).Bytes;
-        string[] order =
-        [
-            "[Content_Types].xml", "_rels/.rels", "xl/workbook.xml", "xl/_rels/workbook.xml.rels", "xl/styles.xml",
-            "xl/worksheets/sheet1.xml", "xl/worksheets/sheet2.xml", "xl/worksheets/sheet3.xml", "xl/worksheets/sheet4.xml",
-            "xl/worksheets/sheet5.xml", "xl/worksheets/sheet6.xml", "xl/worksheets/sheet7.xml", "xl/worksheets/sheet8.xml",
-        ];
         int pos = 0;
-        var local = new List<(string Name, int Offset, uint Crc, int Size)>();
+        var local = new List<(string Name, int Offset, uint Crc, int CSize, int USize)>();
         while (BinaryPrimitives.ReadUInt32LittleEndian(z.AsSpan(pos)) == 0x04034b50)
         {
             ReadOnlySpan<byte> h = z.AsSpan(pos, 30);
             Assert.Equal(20, BinaryPrimitives.ReadUInt16LittleEndian(h[4..]));
             Assert.Equal(0, BinaryPrimitives.ReadUInt16LittleEndian(h[6..]));        // no flags, no data descriptor
-            Assert.Equal(0, BinaryPrimitives.ReadUInt16LittleEndian(h[8..]));        // STORED
+            Assert.Equal(8, BinaryPrimitives.ReadUInt16LittleEndian(h[8..]));        // DEFLATE
             Assert.Equal(0, BinaryPrimitives.ReadUInt16LittleEndian(h[10..]));       // 00:00:00
             Assert.Equal(0x21, BinaryPrimitives.ReadUInt16LittleEndian(h[12..]));    // 1980-01-01
             uint crc = BinaryPrimitives.ReadUInt32LittleEndian(h[14..]);
@@ -544,19 +576,33 @@ public class SessionExportTests
             int usize = (int)BinaryPrimitives.ReadUInt32LittleEndian(h[22..]);
             int nlen = BinaryPrimitives.ReadUInt16LittleEndian(h[26..]);
             Assert.Equal(0, BinaryPrimitives.ReadUInt16LittleEndian(h[28..]));       // no extra field
-            Assert.Equal(csize, usize);
             string name = Encoding.ASCII.GetString(z, pos + 30, nlen);
-            Assert.Equal(crc, StoredZip.Crc32(z.AsSpan(pos + 30 + nlen, usize)));
-            local.Add((name, pos, crc, usize));
-            pos += 30 + nlen + usize;
+            byte[] data;
+            using (var inflate = new DeflateStream(new MemoryStream(z, pos + 30 + nlen, csize), CompressionMode.Decompress))
+            using (var o = new MemoryStream())
+            {
+                inflate.CopyTo(o);
+                data = o.ToArray();
+            }
+            Assert.Equal(usize, data.Length);
+            Assert.Equal(crc, OoxmlZip.Crc32(data));
+            Assert.True(csize < usize, name + " is compressed");
+            local.Add((name, pos, crc, csize, usize));
+            pos += 30 + nlen + csize;
         }
-        Assert.Equal(order, local.ConvertAll(l => l.Name).ToArray());
+        Assert.Equal(EntryOrder, local.ConvertAll(l => l.Name).ToArray());
         for (int i = 0; i < local.Count; i++)
         {
             ReadOnlySpan<byte> c = z.AsSpan(pos, 46);
             Assert.Equal(0x02014b50u, BinaryPrimitives.ReadUInt32LittleEndian(c));
             Assert.Equal(20, BinaryPrimitives.ReadUInt16LittleEndian(c[4..]));       // version made by: 2.0 / MS-DOS, not the host
+            Assert.Equal(20, BinaryPrimitives.ReadUInt16LittleEndian(c[6..]));       // version needed: 2.0 (deflate)
+            Assert.Equal(0, BinaryPrimitives.ReadUInt16LittleEndian(c[8..]));        // flags
+            Assert.Equal(8, BinaryPrimitives.ReadUInt16LittleEndian(c[10..]));       // DEFLATE
             Assert.Equal(local[i].Crc, BinaryPrimitives.ReadUInt32LittleEndian(c[16..]));
+            Assert.Equal((uint)local[i].CSize, BinaryPrimitives.ReadUInt32LittleEndian(c[20..]));
+            Assert.Equal((uint)local[i].USize, BinaryPrimitives.ReadUInt32LittleEndian(c[24..]));
+            Assert.Equal(0, BinaryPrimitives.ReadUInt16LittleEndian(c[30..]));       // no extra field
             Assert.Equal(0u, BinaryPrimitives.ReadUInt32LittleEndian(c[38..]));      // external attributes
             Assert.Equal((uint)local[i].Offset, BinaryPrimitives.ReadUInt32LittleEndian(c[42..]));
             pos += 46 + BinaryPrimitives.ReadUInt16LittleEndian(c[28..]);
@@ -593,14 +639,17 @@ public class SessionExportTests
     // ---------------------------------------------------------------------------------- workbook goldens --
 
     [Fact]
-    public void TheDirectors68TurnSession_ExportsByteIdentically_AndEveryCellDecodes()
+    public void TheDirectors68TurnSession_ExportsTheSameContent_AndEveryCellDecodes()
     {
         List<(string Name, byte[] Bytes)> files = ExportFixtures.Files("director-68");
         Assert.Equal(5, files.Count);   // the Director's set: no chronicle file was supplied
         SessionExportResult r = SessionWorkbook.Build(ExportFixtures.Manifest(files), ExportFixtures.Reader(files));
         SessionExportResult again = SessionWorkbook.Build(ExportFixtures.Manifest(files), ExportFixtures.Reader(files));
-        Assert.Equal(r.Bytes, again.Bytes);
-        Assert.True(DirectorWorkbookSha == r.Sha256, "the Director's workbook's sha256 is " + r.Sha256);
+        Assert.Equal(r.Bytes, again.Bytes);   // one runtime: the same bytes
+        Assert.Equal(EntryOrder, OoxmlWorkbook.Entries(r.Bytes).Select(e => e.Name).ToArray());
+        string content = ExportFixtures.ContentSha(r.Bytes);
+        Assert.True(DirectorWorkbookSha == content, "the Director's workbook's content sha256 is " + content);
+        Assert.Equal(RawTelemetry.Kept, r.RawTelemetry);
         Assert.Equal(["v4"], r.Codebooks);
         Assert.Equal(0, r.ContinuationRows);
         Assert.Equal(10096, r.LongestCell);   // README §3: the Director's session, max 10,096 coded characters
@@ -618,11 +667,14 @@ public class SessionExportTests
             Assert.Equal((i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), back.Sheets[5][i + 1][0]);
         }
 
-        // The chronicle is not in the set: the sheet says so — and what the close record says of it — and invents nothing.
+        // The chronicle is not in the set: the sheet says so (NP) — and what the close record says of it — and invents nothing.
         IReadOnlyList<string[]> chron = back.Sheets[4];
         Assert.Equal(2, chron.Count);
-        Assert.Equal("FILE NOT PRESENT", chron[1][0]);
-        Assert.Contains("3b0b4eba20940f64e7a26fddb0d360252c782079a54d05242f3fe63c143cc38a", chron[1][1], StringComparison.Ordinal);
+        Assert.Equal(["L", "EV"], chron[0]);
+        Assert.Equal("NP", chron[1][0]);
+        Assert.Equal("chronicle-20261019-144516-a1.txt", chron[1][1]);
+        Assert.Equal("3349", chron[1][2]);
+        Assert.Equal("3b0b4eba20940f64e7a26fddb0d360252c782079a54d05242f3fe63c143cc38a", chron[1][3]);
 
         // Orders: the 27 records of the binary log, decoded
         IReadOnlyList<string[]> orders = back.Sheets[2];
@@ -635,29 +687,34 @@ public class SessionExportTests
             Assert.Equal(BitConverter.DoubleToInt64Bits(log[i].Amount), BitConverter.DoubleToInt64Bits(CellNumber.Parse(orders[i + 1][7])));
         }
 
-        // Trace as is; Forensic with every file's sha256 now and as the close record lists it
+        // Trace as is, its header coded; Forensic with every file's sha256 now and as the close record lists it
         string[] trace = ExportFixtures.Lines(ExportFixtures.Bytes(files, "trace-"));
-        for (int i = 0; i < trace.Length; i++) Assert.Equal(trace[i], string.Join(",", back.Sheets[3][i]));
+        Assert.Equal(SessionTrace.Header, trace[0]);
+        Assert.Equal(["T", "Y", "PO", "SN", "FD", "H"], back.Sheets[3][0]);
+        for (int i = 1; i < trace.Length; i++) Assert.Equal(trace[i], string.Join(",", back.Sheets[3][i]));
         IReadOnlyList<string[]> forensic = back.Sheets[7];
         foreach ((string Name, byte[] Bytes) f in files)
         {
             string[]? row = null;
             foreach (string[] x in forensic)
-                if (x.Length > 1 && x[0].StartsWith("export.file.", StringComparison.Ordinal) && x[1] == f.Name) row = x;
+                if (x.Length > 1 && x[0].StartsWith("XF.", StringComparison.Ordinal) && x[1] == f.Name) row = x;
             Assert.NotNull(row);
-            Assert.Equal(ForensicIdentity.Sha256Hex(f.Bytes), row![4]);
-            if (!f.Name.StartsWith("forensic-", StringComparison.Ordinal)) Assert.Equal("same", row[6]);
+            Assert.Equal("PS", row![2]);
+            Assert.Equal(ForensicIdentity.Sha256Hex(f.Bytes), row[4]);
+            Assert.Equal(f.Name.StartsWith("forensic-", StringComparison.Ordinal) ? "SF" : "EQ", row[6]);
         }
     }
 
     [Fact]
-    public void ACurrentTreeSession_v5_ExportsByteIdentically_AndEveryCellDecodes()
+    public void ACurrentTreeSession_v5_ExportsTheSameContent_AndEveryCellDecodes()
     {
         List<(string Name, byte[] Bytes)> files = ExportFixtures.Files("current-v5");
         Assert.Equal(6, files.Count);
         SessionExportResult r = SessionWorkbook.Build(ExportFixtures.Manifest(files), ExportFixtures.Reader(files));
         Assert.Equal(r.Bytes, SessionWorkbook.Build(ExportFixtures.Manifest(files), ExportFixtures.Reader(files)).Bytes);
-        Assert.True(CurrentWorkbookSha == r.Sha256, "the current-tree workbook's sha256 is " + r.Sha256);
+        Assert.Equal(EntryOrder, OoxmlWorkbook.Entries(r.Bytes).Select(e => e.Name).ToArray());
+        string content = ExportFixtures.ContentSha(r.Bytes);
+        Assert.True(CurrentWorkbookSha == content, "the current-tree workbook's content sha256 is " + content);
         Assert.Equal(["v5"], r.Codebooks);
         OoxmlWorkbook.Content back = OoxmlWorkbook.Read(r.Bytes);
         string[] lines = ExportFixtures.Lines(ExportFixtures.Bytes(files, "telemetry-"));
@@ -668,10 +725,20 @@ public class SessionExportTests
             Assert.Equal(proto[i], cells[i]);
             Assert.Equal(lines[i], TelemetryCellCodec.Decode(cells[i]));
         }
+        // The fixture's chronicle predates the coded format (prose): it is NOT parsed — each line is its QT code, and the
+        // legend's QT:texts row of that code is the line, exactly.
         string[] chronicle = ExportFixtures.Lines(ExportFixtures.Bytes(files, "chronicle-"));
+        Assert.NotEqual(Sim.Core.Chronicle.ChronicleCode.FormatTag, chronicle[0]);
         Assert.Equal(chronicle.Length + 1, back.Sheets[4].Count);
-        for (int i = 0; i < chronicle.Length; i++) Assert.Equal(chronicle[i], back.Sheets[4][i + 1].Length > 1 ? back.Sheets[4][i + 1][1] : "");
-        Assert.Equal("v5", back.Sheets[6][0][1]);   // Codebook sheet: codebook v5
+        IReadOnlyList<string[]> codebook = back.Sheets[6];
+        for (int i = 0; i < chronicle.Length; i++)
+        {
+            Assert.Equal((i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture), back.Sheets[4][i + 1][0]);
+            string code = back.Sheets[4][i + 1][1];
+            Assert.StartsWith("QT", code, StringComparison.Ordinal);
+            Assert.Equal(chronicle[i], SessionExportCodesTests.LegendRow(codebook, "QT:texts", code)[3]);
+        }
+        Assert.Equal("v5", back.Sheets[6][0][1]);   // Codebook sheet: codebook v5 first, the workbook legend after it
     }
 
     // ------------------------------------------------------------------- the headless command and the hook --
@@ -693,7 +760,7 @@ public class SessionExportTests
             var e = new StringWriter();
             Assert.Equal(0, SessionExportCommand.Run(["--export-session", dir], o, e));
             string xlsx = Path.Combine(dir, "session-20261019-144516-a1.xlsx");
-            Assert.Equal(DirectorWorkbookSha, ExportFixtures.Sha(xlsx));
+            Assert.Equal(DirectorWorkbookSha, ExportFixtures.ContentSha(File.ReadAllBytes(xlsx)));
             Assert.Contains("68 turn(s), codebook v4", o.ToString(), StringComparison.Ordinal);
             for (int i = 0; i < files.Count; i++) Assert.Equal(before[i], ExportFixtures.Sha(Path.Combine(dir, files[i].Name)));   // read, never written
 
@@ -717,46 +784,243 @@ public class SessionExportTests
         }
     }
 
+    /// <summary>A fresh temp directory for one test (removed by the caller's finally).</summary>
+    private static string TempDir(string name)
+    {
+        string dir = Path.Combine(Path.GetTempPath(), name + "-" + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        return dir;
+    }
+
+    /// <summary>Plays three End Turns on a small world through the real GameUi (the headless harness) and closes it with
+    /// SaveOnExit. Returns the order-log path.</summary>
+    private static string PlayAndClose(string dir, bool keepRawTelemetry)
+    {
+        UiSession session = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+        session.KeepRawTelemetry = keepRawTelemetry;
+        using Sim.Ui.Headless.UiFrameHarness h = Sim.Ui.Headless.UiFrameHarness.Start(session, dir, Path.Combine(AppContext.BaseDirectory, "assets"));
+        session.ExportManifest("2026-10-28 12:00:00", h.SessionLogPath);
+        session.ExportForensicRun("2026-10-28 12:00:00+00:00", h.SessionLogPath);
+        for (int t = 0; t < 3; t++) session.EndTurn();
+        Assert.False(File.Exists(SessionWorkbook.WorkbookPathFor(UiSession.ManifestPath(h.SessionLogPath))));
+        h.Ui.SaveOnExit();
+        return h.SessionLogPath;
+    }
+
+    private static string ReadmeValue(OoxmlWorkbook.Content back, string key)
+    {
+        foreach (string[] row in back.Sheets[0])
+            if (row.Length > 1 && row[0] == key) return row[1];
+        throw new InvalidOperationException("no README row " + key);
+    }
+
     /// <summary>The session-close hook, through the real GameUi (the headless harness): SaveOnExit writes the six files,
     /// the forensic close record, and THEN the workbook. The workbook's Forensic sheet holds the close record (so the
     /// export ran after it); the close record does not list the workbook; and every file the close record hashed still
-    /// has that hash after the export.</summary>
+    /// has that hash after the export — except the raw telemetry log, which (ADR-059 amendment 2026-10-29) is REMOVED
+    /// after the verified export: its whole content, the bytes the close record hashed, is the Telemetry sheet.</summary>
     [Fact]
-    public void AtSessionClose_TheWorkbookIsWrittenAfterTheForensicClose_AndTheSixFilesKeepTheirHashes()
+    public void AtSessionClose_TheWorkbookIsWrittenAfterTheForensicClose_AndTheRawTelemetryIsRemovedOnceVerified()
     {
-        string dir = Path.Combine(Path.GetTempPath(), "civsim-export-close-" + Environment.ProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        string dir = TempDir("civsim-export-close");
         try
         {
-            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
-            UiSession session = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
-            using Sim.Ui.Headless.UiFrameHarness h = Sim.Ui.Headless.UiFrameHarness.Start(session, dir, Path.Combine(AppContext.BaseDirectory, "assets"));
-            session.ExportManifest("2026-10-28 12:00:00", h.SessionLogPath);
-            session.ExportForensicRun("2026-10-28 12:00:00+00:00", h.SessionLogPath);
-            for (int t = 0; t < 3; t++) session.EndTurn();
-            string xlsx = SessionWorkbook.WorkbookPathFor(UiSession.ManifestPath(h.SessionLogPath));
-            Assert.False(File.Exists(xlsx));
-
-            h.Ui.SaveOnExit();
-
+            string log = PlayAndClose(dir, keepRawTelemetry: false);
+            string xlsx = SessionWorkbook.WorkbookPathFor(UiSession.ManifestPath(log));
+            string telemetry = UiSession.TelemetryPath(log);
             Assert.True(File.Exists(xlsx));
-            ForensicRecordFile fr = ForensicRecordFile.Read(UiSession.ForensicPath(h.SessionLogPath));
+            Assert.False(File.Exists(telemetry), "the raw telemetry log is removed after the verified export");
+            ForensicRecordFile fr = ForensicRecordFile.Read(UiSession.ForensicPath(log));
             Assert.NotNull(fr.Close);
             Assert.Equal(5, fr.Close!.Artifacts.Length);
+            string? telemetrySha = null;
             foreach (ArtifactRef a in fr.Close.Artifacts)
             {
                 Assert.False(a.File.EndsWith(".xlsx", StringComparison.Ordinal));
-                Assert.Equal(a.Sha256, ExportFixtures.Sha(Path.Combine(dir, a.File)));   // unchanged by the export
+                if (a.Role == "telemetry")
+                {
+                    telemetrySha = a.Sha256;
+                    continue;
+                }
+                Assert.Equal(a.Sha256, ExportFixtures.Sha(Path.Combine(dir, a.File)));   // unchanged by the export, and kept
             }
+            Assert.NotNull(telemetrySha);
+            Assert.True(File.Exists(UiSession.ManifestPath(log)) && File.Exists(log) && File.Exists(UiSession.TracePath(log))
+                && File.Exists(UiSession.ChroniclePath(log)) && File.Exists(UiSession.ForensicPath(log)));
+
             OoxmlWorkbook.Content back = OoxmlWorkbook.Read(File.ReadAllBytes(xlsx));
             bool closeInWorkbook = false;
             foreach (string[] row in back.Sheets[7])
                 if (row.Length > 1 && row[0] == "close.turnsReached" && row[1] == "3") closeInWorkbook = true;
             Assert.True(closeInWorkbook, "the workbook's Forensic sheet holds the close record: the export ran after the close");
-            string[] lines = ExportFixtures.Lines(File.ReadAllBytes(UiSession.TelemetryPath(h.SessionLogPath)));
-            Assert.Equal(3, lines.Length);
             IReadOnlyList<string> cells = SessionWorkbook.JoinTelemetry(back.Sheets[5]);
-            for (int i = 0; i < lines.Length; i++) Assert.Equal(lines[i], TelemetryCellCodec.Decode(cells[i]));
+            Assert.Equal(3, cells.Count);
             Assert.StartsWith("v5 ", cells[0], StringComparison.Ordinal);
+            var lines = new List<string>();
+            foreach (string c in cells) lines.Add(TelemetryCellCodec.Decode(c));
+            // the removed file, rebuilt from the sheet, is byte for byte the file the close record hashed
+            Assert.Equal(telemetrySha, ForensicIdentity.Sha256Hex(SessionWorkbook.TelemetryBytesOf(lines)));
+            // and the README says so, still listing its sha256
+            string line = ReadmeValue(back, "file telemetry");
+            Assert.Contains("sha256 " + telemetrySha, line, StringComparison.Ordinal);
+            Assert.Contains("REMOVED after this workbook was written and verified", line, StringComparison.Ordinal);
+            Assert.Contains("raw telemetry log is removed", ReadmeValue(back, "Session workbook"), StringComparison.Ordinal);
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>The developer switch (<c>--keep-raw-telemetry</c>): the raw log stays, unchanged, and the README is the
+    /// one the headless export writes (the six files stay the record).</summary>
+    [Fact]
+    public void AtSessionClose_KeepRawTelemetry_KeepsTheLog()
+    {
+        string dir = TempDir("civsim-export-keep");
+        try
+        {
+            Assert.True(UiArgs.KeepRawTelemetry(["--seed", "7", "--keep-raw-telemetry"]));
+            Assert.False(UiArgs.KeepRawTelemetry(["--seed", "7"]));
+            string log = PlayAndClose(dir, keepRawTelemetry: true);
+            string telemetry = UiSession.TelemetryPath(log);
+            Assert.True(File.Exists(telemetry));
+            ForensicRecordFile fr = ForensicRecordFile.Read(UiSession.ForensicPath(log));
+            foreach (ArtifactRef a in fr.Close!.Artifacts)
+                Assert.Equal(a.Sha256, ExportFixtures.Sha(Path.Combine(dir, a.File)));
+            OoxmlWorkbook.Content back = OoxmlWorkbook.Read(File.ReadAllBytes(SessionWorkbook.WorkbookPathFor(UiSession.ManifestPath(log))));
+            Assert.StartsWith(Path.GetFileName(telemetry) + " - present, ", ReadmeValue(back, "file telemetry"), StringComparison.Ordinal);
+            Assert.Contains("The six files stay the record", ReadmeValue(back, "Session workbook"), StringComparison.Ordinal);
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>A refused export removes nothing (today's behaviour): no workbook, every file kept. And the removal is
+    /// granted only by the export's own verification: without a forensic close record listing the log's sha256, the
+    /// export keeps it (RawTelemetry.Kept), and <see cref="SessionWorkbook.RemoveRawTelemetry"/> refuses.</summary>
+    [Fact]
+    public void AFailedExportRemovesNothing_AndRemovalNeedsTheCloseRecordsSha()
+    {
+        string dir = TempDir("civsim-export-fail");
+        try
+        {
+            UiSession session = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
+            string log = ExportFixtures.PlayToDisk(session, dir, "20261029-120000-a0", turns: 2);
+            string telemetry = UiSession.TelemetryPath(log);
+            string text = File.ReadAllText(telemetry);
+            File.WriteAllText(telemetry, text.Replace("\"turn\":{\"turn\":2,", "\"turn\":{\"turn\":2,\"x\":1,", StringComparison.Ordinal));
+            Assert.NotEqual(text, File.ReadAllText(telemetry));
+            string[] before = Directory.GetFiles(dir);
+            Array.Sort(before, StringComparer.Ordinal);
+            var hashes = before.Select(ExportFixtures.Sha).ToArray();
+
+            var errors = new StringWriter();
+            Assert.Null(session.ExportWorkbook(log, errors));   // refused: telemetry-shape
+            Assert.Contains(SessionExportException.TelemetryShape, errors.ToString(), StringComparison.Ordinal);
+            string[] after = Directory.GetFiles(dir);
+            Array.Sort(after, StringComparer.Ordinal);
+            Assert.Equal(before, after);                                     // no workbook, nothing removed
+            Assert.Equal(hashes, after.Select(ExportFixtures.Sha).ToArray());
+
+            // without a close record, the export does not let the log go
+            List<(string Name, byte[] Bytes)> files = ExportFixtures.Files("current-v5");
+            files.RemoveAll(f => f.Name.StartsWith("forensic-", StringComparison.Ordinal));
+            SessionExportResult r = SessionWorkbook.Build(ExportFixtures.Manifest(files), ExportFixtures.Reader(files),
+                raw: RawTelemetry.RemovedAfterExport);
+            Assert.Equal(RawTelemetry.Kept, r.RawTelemetry);
+            Assert.NotNull(SessionWorkbook.RemoveRawTelemetry(Path.Combine(dir, "nowhere.xlsx"), r));
+            // with it, the same files may let it go
+            files = ExportFixtures.Files("current-v5");
+            Assert.Equal(RawTelemetry.RemovedAfterExport, SessionWorkbook.Build(ExportFixtures.Manifest(files),
+                ExportFixtures.Reader(files), raw: RawTelemetry.RemovedAfterExport).RawTelemetry);
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>ADR-059 amendment 2026-10-29: a session folder whose raw telemetry log was removed at close still
+    /// RESUMES — resume reads the manifest, the orders and the trace, never the telemetry — with every turn checked
+    /// against the trace; and the resumed session's own telemetry export rebuilds the removed file byte for byte (the
+    /// close record's sha256), so the next close has it again.</summary>
+    [Fact]
+    public void ASessionWhoseRawTelemetryWasRemoved_Resumes_AndRebuildsTheLogExactly()
+    {
+        string dir = TempDir("civsim-export-resume");
+        try
+        {
+            string log = PlayAndClose(dir, keepRawTelemetry: false);
+            string telemetry = UiSession.TelemetryPath(log);
+            Assert.False(File.Exists(telemetry));
+            string? listed = null;
+            foreach (ArtifactRef a in ForensicRecordFile.Read(UiSession.ForensicPath(log)).Close!.Artifacts)
+                if (a.Role == "telemetry") listed = a.Sha256;
+
+            UiSession resumed = UiSession.Resume(UiSession.ManifestPath(log), out string resumedLog);
+            Assert.Equal(log, resumedLog);
+            Assert.Equal(3, resumed.World.Clock.Turn);
+            Assert.Empty(resumed.ResumeNotice);   // the trace checked every turn: the recorded world
+            resumed.ExportTelemetry(telemetry);
+            Assert.Equal(listed, ExportFixtures.Sha(telemetry));
+        }
+        finally
+        {
+            if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
+        }
+    }
+
+    /// <summary>The headless re-export of a session whose raw log was removed at close: the telemetry is read back from
+    /// the existing workbook and used because it matches the close record's sha256, so the workbook's content is the same
+    /// (README and Forensic state aside, which say where the telemetry came from); the command never creates or removes a
+    /// session file. A workbook whose Telemetry sheet does not give back those bytes is the named refusal
+    /// <c>telemetry-unrecoverable</c>, and the existing workbook is left exactly as it was.</summary>
+    [Fact]
+    public void TheHeadlessReExport_ReadsARemovedLogBackFromTheWorkbook_OrRefusesByName()
+    {
+        string dir = TempDir("civsim-export-reexport");
+        try
+        {
+            string log = PlayAndClose(dir, keepRawTelemetry: false);
+            string xlsx = SessionWorkbook.WorkbookPathFor(UiSession.ManifestPath(log));
+            byte[] first = File.ReadAllBytes(xlsx);
+            string[] files = Directory.GetFiles(dir);
+            Array.Sort(files, StringComparer.Ordinal);
+
+            var o = new StringWriter();
+            Assert.Equal(0, SessionExportCommand.Run(["--export-session", dir], o, new StringWriter()));
+            Assert.Contains("were read back from the existing workbook", o.ToString(), StringComparison.Ordinal);
+            string[] now = Directory.GetFiles(dir);
+            Array.Sort(now, StringComparer.Ordinal);
+            Assert.Equal(files, now);
+            OoxmlWorkbook.Content a = OoxmlWorkbook.Read(first), b = OoxmlWorkbook.Read(File.ReadAllBytes(xlsx));
+            for (int s = 1; s < SessionWorkbook.SheetNames.Length - 1; s++)   // Manifest … Codebook: identical
+                Assert.Equal(a.Sheets[s], b.Sheets[s]);
+            Assert.Contains("recovered from the earlier workbook's Telemetry sheet", ReadmeValue(b, "file telemetry"), StringComparison.Ordinal);
+            byte[] second = File.ReadAllBytes(xlsx);
+
+            // a workbook whose Telemetry sheet lost its last turn: refused by name, and left as it was
+            var sheets = new List<SheetModel>();
+            for (int s = 0; s < b.SheetNames.Count; s++)
+            {
+                var m = new SheetModel(b.SheetNames[s], []);
+                int rows = b.SheetNames[s] == "Telemetry" ? b.Sheets[s].Count - 1 : b.Sheets[s].Count;
+                for (int r = 0; r < rows; r++) m.Rows.Add(b.Sheets[s][r]);
+                sheets.Add(m);
+            }
+            byte[] damaged = OoxmlWorkbook.Write(sheets);
+            File.WriteAllBytes(xlsx, damaged);
+            var e = new StringWriter();
+            Assert.Equal(2, SessionExportCommand.Run(["--export-session", dir], new StringWriter(), e));
+            Assert.Contains(SessionExportException.TelemetryUnrecoverable, e.ToString(), StringComparison.Ordinal);
+            Assert.Equal(damaged, File.ReadAllBytes(xlsx));
+            // nor does the game's close path replace it
+            Assert.Null(UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4).ExportWorkbook(log, new StringWriter()));
+            Assert.Equal(damaged, File.ReadAllBytes(xlsx));
+            Assert.NotEqual(second, damaged);
         }
         finally
         {

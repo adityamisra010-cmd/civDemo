@@ -18,17 +18,23 @@ public sealed class SheetModel(string name, int[] columnWidths)
 /// ADR-059 / D-066 A14 — A HAND-ROLLED, DETERMINISTIC OOXML (.xlsx) WRITER. No package: the workbook is a ZIP of a
 /// handful of fixed XML parts, written here byte by byte.
 ///
-/// DETERMINISM. Every entry is STORED (no deflate — a runtime's zlib may differ, stored bytes cannot), in a FIXED
-/// order, with a FIXED timestamp (1980-01-01 00:00, the DOS epoch), zero attributes, "version made by" 2.0 / MS-DOS,
-/// no extra fields and no data descriptors; the archive is assembled in a seekable MemoryStream. Every cell is an
-/// INLINE STRING (no shared-string table whose order could drift; no number a spreadsheet could re-format), escaped for
-/// XML and for OOXML's own <c>_xHHHH_</c> convention, with <c>xml:space="preserve"</c>. The same sheets therefore give
-/// the same bytes on every runtime and OS (A14).
+/// THE CONTAINER (ADR-059 §3 and its 2026-10-29 amendment). Every entry is DEFLATE-compressed (method 8, raw deflate at
+/// <see cref="System.IO.Compression.CompressionLevel.SmallestSize"/>, CRC-32 of the uncompressed bytes, sizes in the local
+/// header), in a FIXED order, with a FIXED timestamp (1980-01-01 00:00, the DOS epoch), zero attributes, "version made
+/// by" 2.0 / MS-DOS, no extra fields and no data descriptors; the archive is assembled in a seekable MemoryStream. The
+/// Director's playtest of 2026-10-29 superseded A14's STORED entries: the workbook is about 3–6 times smaller, and byte
+/// identity of the CONTAINER across runtimes is no longer a goal (a runtime's zlib may compress differently). What stays
+/// pinned is the CONTENT: the entry names, their order and every entry's uncompressed bytes — the parts below are a pure
+/// function of the sheets. <see cref="OoxmlZip.WriteStored"/> keeps the old STORED form, by which the tests re-derive the
+/// historical byte goldens from the decoded parts.
+///
+/// Every cell is an INLINE STRING (no shared-string table whose order could drift; no number a spreadsheet could
+/// re-format), escaped for XML and for OOXML's own <c>_xHHHH_</c> convention, with <c>xml:space="preserve"</c>.
 ///
 /// WHY THE CONTAINER IS WRITTEN BY HAND (measured, ADR-059 §3): System.IO.Compression's ZipArchive writes the HOST OS
-/// into each central-directory "version made by" field (0x0314 = Unix on Linux; 0x00xx on Windows), so its bytes are
-/// OS-dependent even with STORED entries, fixed times and zero attributes. The reader below uses ZipArchive — an
-/// independent implementation — to read the archive back.
+/// into each central-directory "version made by" field (0x0314 = Unix on Linux; 0x00xx on Windows) and cannot be told
+/// otherwise; the hand-written container keeps every header field fixed. The reader below uses ZipArchive — an
+/// independent implementation, which also inflates every entry and checks its CRC — to read the archive back.
 /// </summary>
 public static class OoxmlWorkbook
 {
@@ -41,8 +47,13 @@ public static class OoxmlWorkbook
     private const string PkgRelNs = "http://schemas.openxmlformats.org/package/2006/relationships";
     private const string Decl = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
 
-    /// <summary>The workbook's bytes. Sheet names must be unique, 1–31 characters, without <c>[]:*?/\</c>.</summary>
-    public static byte[] Write(IReadOnlyList<SheetModel> sheets)
+    /// <summary>The workbook's bytes (deflated entries, <see cref="OoxmlZip.Write"/>). Sheet names must be unique, 1–31
+    /// characters, without <c>[]:*?/\</c>.</summary>
+    public static byte[] Write(IReadOnlyList<SheetModel> sheets) => OoxmlZip.Write(Parts(sheets));
+
+    /// <summary>The workbook's parts — (entry name, uncompressed bytes) in the fixed entry order. The container is
+    /// <see cref="OoxmlZip"/>'s; the content pinned by the goldens is this list.</summary>
+    public static IReadOnlyList<(string Name, byte[] Data)> Parts(IReadOnlyList<SheetModel> sheets)
     {
         if (sheets.Count == 0) throw new ArgumentException("a workbook needs at least one sheet");
         var parts = new List<(string Name, byte[] Data)>
@@ -56,7 +67,7 @@ public static class OoxmlWorkbook
         };
         for (int i = 0; i < sheets.Count; i++)
             parts.Add(("xl/worksheets/sheet" + (i + 1).ToString(CultureInfo.InvariantCulture) + ".xml", Utf8(SheetXml(sheets[i]))));
-        return StoredZip.Write(parts);
+        return parts;
     }
 
     private static byte[] Utf8(string s) => new UTF8Encoding(false).GetBytes(s);
@@ -293,6 +304,22 @@ public static class OoxmlWorkbook
         return new Content(sheetNames, sheets, names);
     }
 
+    /// <summary>Every entry of a ZIP, in archive order, inflated by ZipArchive: (entry name, uncompressed bytes). The
+    /// content the goldens pin, independent of how the container compressed it.</summary>
+    public static IReadOnlyList<(string Name, byte[] Data)> Entries(byte[] bytes)
+    {
+        using var zip = new ZipArchive(new MemoryStream(bytes, writable: false), ZipArchiveMode.Read);
+        var list = new List<(string, byte[])>();
+        foreach (ZipArchiveEntry e in zip.Entries)
+        {
+            using Stream s = e.Open();
+            using var ms = new MemoryStream();
+            s.CopyTo(ms);
+            list.Add((e.FullName, ms.ToArray()));
+        }
+        return list;
+    }
+
     private static XmlReaderSettings ReaderSettings() =>
         new() { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, IgnoreWhitespace = false };
 
@@ -354,39 +381,65 @@ public static class OoxmlWorkbook
     }
 }
 
-/// <summary>A minimal ZIP writer: STORED entries only, fixed time and attributes, no extras (ADR-059 §3).</summary>
-public static class StoredZip
+/// <summary>
+/// A minimal ZIP writer for the workbook (ADR-059 §3, amended 2026-10-29): DEFLATE entries (method 8) by default, or
+/// STORED (method 0, the form before the amendment); in either form a fixed entry order, a fixed time, "version made by"
+/// and "version needed" 2.0 / MS-DOS, flags 0, external attributes 0, no extra fields, no data descriptors, no Zip64.
+/// </summary>
+public static class OoxmlZip
 {
     /// <summary>DOS date of 1980-01-01 (the earliest a ZIP can carry) and time 00:00:00.</summary>
     public const ushort DosDate = (0 << 9) | (1 << 5) | 1, DosTime = 0;
 
-    public static byte[] Write(IReadOnlyList<(string Name, byte[] Data)> entries)
+    /// <summary>The ZIP compression methods written here: 0 = STORED, 8 = DEFLATE.</summary>
+    public const ushort Stored = 0, Deflated = 8;
+
+    /// <summary>The workbook container: every entry deflated (raw deflate, SmallestSize).</summary>
+    public static byte[] Write(IReadOnlyList<(string Name, byte[] Data)> entries) => Write(entries, Deflated);
+
+    /// <summary>The container as it was before the 2026-10-29 amendment: every entry STORED. Its bytes are a pure
+    /// function of the entries, so the historical workbook goldens (ADR-059 §7) are re-derived from decoded parts with it.</summary>
+    public static byte[] WriteStored(IReadOnlyList<(string Name, byte[] Data)> entries) => Write(entries, Stored);
+
+    /// <summary>Raw DEFLATE (RFC 1951, no zlib or gzip wrapper) of <paramref name="data"/> at SmallestSize.</summary>
+    public static byte[] Deflate(byte[] data)
     {
+        using var ms = new MemoryStream();
+        using (var d = new DeflateStream(ms, CompressionLevel.SmallestSize, leaveOpen: true)) d.Write(data);
+        return ms.ToArray();
+    }
+
+    private static byte[] Write(IReadOnlyList<(string Name, byte[] Data)> entries, ushort method)
+    {
+        if (method is not (Stored or Deflated)) throw new ArgumentOutOfRangeException(nameof(method));
         using var ms = new MemoryStream();
         var offsets = new long[entries.Count];
         var crcs = new uint[entries.Count];
+        var csizes = new uint[entries.Count];
         Span<byte> h = stackalloc byte[46];
         for (int i = 0; i < entries.Count; i++)
         {
             (string name, byte[] data) = entries[i];
             byte[] n = Encoding.ASCII.GetBytes(name);
+            byte[] body = method == Deflated ? Deflate(data) : data;
             offsets[i] = ms.Position;
-            crcs[i] = Crc32(data);
+            crcs[i] = Crc32(data);                                       // CRC-32 of the UNCOMPRESSED bytes
+            csizes[i] = checked((uint)body.Length);
             h.Clear();
             BinaryPrimitives.WriteUInt32LittleEndian(h, 0x04034b50);
-            BinaryPrimitives.WriteUInt16LittleEndian(h[4..], 20);         // version needed: 2.0
-            BinaryPrimitives.WriteUInt16LittleEndian(h[6..], 0);          // flags
-            BinaryPrimitives.WriteUInt16LittleEndian(h[8..], 0);          // method: STORED
+            BinaryPrimitives.WriteUInt16LittleEndian(h[4..], 20);         // version needed: 2.0 (deflate)
+            BinaryPrimitives.WriteUInt16LittleEndian(h[6..], 0);          // flags: none (sizes and CRC are in this header)
+            BinaryPrimitives.WriteUInt16LittleEndian(h[8..], method);     // method: 8 DEFLATE (0 STORED)
             BinaryPrimitives.WriteUInt16LittleEndian(h[10..], DosTime);
             BinaryPrimitives.WriteUInt16LittleEndian(h[12..], DosDate);
             BinaryPrimitives.WriteUInt32LittleEndian(h[14..], crcs[i]);
-            BinaryPrimitives.WriteUInt32LittleEndian(h[18..], checked((uint)data.Length));
-            BinaryPrimitives.WriteUInt32LittleEndian(h[22..], (uint)data.Length);
+            BinaryPrimitives.WriteUInt32LittleEndian(h[18..], csizes[i]);  // compressed size
+            BinaryPrimitives.WriteUInt32LittleEndian(h[22..], checked((uint)data.Length));   // uncompressed size
             BinaryPrimitives.WriteUInt16LittleEndian(h[26..], checked((ushort)n.Length));
             BinaryPrimitives.WriteUInt16LittleEndian(h[28..], 0);         // extra length
             ms.Write(h[..30]);
             ms.Write(n);
-            ms.Write(data);
+            ms.Write(body);
         }
         long cdStart = ms.Position;
         for (int i = 0; i < entries.Count; i++)
@@ -398,11 +451,11 @@ public static class StoredZip
             BinaryPrimitives.WriteUInt16LittleEndian(h[4..], 20);         // version made by: 2.0, MS-DOS (fixed, not the host)
             BinaryPrimitives.WriteUInt16LittleEndian(h[6..], 20);         // version needed
             BinaryPrimitives.WriteUInt16LittleEndian(h[8..], 0);
-            BinaryPrimitives.WriteUInt16LittleEndian(h[10..], 0);
+            BinaryPrimitives.WriteUInt16LittleEndian(h[10..], method);
             BinaryPrimitives.WriteUInt16LittleEndian(h[12..], DosTime);
             BinaryPrimitives.WriteUInt16LittleEndian(h[14..], DosDate);
             BinaryPrimitives.WriteUInt32LittleEndian(h[16..], crcs[i]);
-            BinaryPrimitives.WriteUInt32LittleEndian(h[20..], (uint)data.Length);
+            BinaryPrimitives.WriteUInt32LittleEndian(h[20..], csizes[i]);
             BinaryPrimitives.WriteUInt32LittleEndian(h[24..], (uint)data.Length);
             BinaryPrimitives.WriteUInt16LittleEndian(h[28..], (ushort)n.Length);
             BinaryPrimitives.WriteUInt16LittleEndian(h[30..], 0);         // extra

@@ -224,7 +224,8 @@ public sealed class WorldProjection
     /// The projection holds only what the observer knows, so every layer the lens paints from it — and every hit test that
     /// reads the frame it paints — is filtered at once: a settlement or a formation the observer does not know is not in
     /// it; a territory block, a dirt-path step (both ends) only on known nodes; a built route only between two known
-    /// settlements. Nothing of a hidden settlement is read (its rows are never visited), and the honest empty states
+    /// settlements — and the lens draws and names it only over known nodes (<see cref="RoadLens.KnownSpans"/>, from
+    /// <see cref="WorldProjection.KnownNodes"/>: the M6 playtest fix, no road across land never seen). Nothing of a hidden settlement is read (its rows are never visited), and the honest empty states
     /// count only what is shown.</para></summary>
     public static WorldProjection Build(IReadOnlyWorldState world, SimConfig cfg, Func<int, string> name, PolityId player,
         Func<IReadOnlyWorldState, SimConfig, SettlementId, IReadOnlyList<InstitutionView>>? institutions = null,
@@ -253,7 +254,8 @@ public sealed class WorldProjection
         {
             TransportEdgeRow e = world.TransportEdges[i];
             if (!RoadPerformance.IsTravelled(e)) continue;
-            if (known.IsHiddenSettlement(e.A.Value) || known.IsHiddenSettlement(e.B.Value)) continue;   // P7: both ends known
+            // P7: both ends known. The stretches between them over unknown land are cut at paint (RoadLens.KnownSpans).
+            if (known.IsHiddenSettlement(e.A.Value) || known.IsHiddenSettlement(e.B.Value)) continue;
             if (!SiteOf(world, e.A, size, out double ax, out double ay) || !SiteOf(world, e.B, size, out double bx, out double by)) continue;
             if (wrapX) bx = Sim.Core.Pathing.MapTopology.UnwrapNear(bx, ax, size);   // WS3: the route the short way, as its LengthKm
             routes.Add(new RouteLensView(e.Id, e.A.Value, e.B.Value, ax, ay, bx, by, e.EdgeType, e.TargetClass, e.Modernization,

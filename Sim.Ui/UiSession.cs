@@ -34,6 +34,10 @@ public sealed class UiSession
     // D-060: the in-game ANNALS view — _annals with another empire's books left out (UiSession.PlayerAnnal). The session
     // record (ExportChronicle, chronicle-*.txt) stays _annals: the scope decision keeps the session files world-wide.
     private readonly List<string> _playerAnnals = [];
+    // ADR-059 amendment 2026-10-29 (Director): the session record as CODED lines — one per _annals line, in the same
+    // order, built at the source from the event's values (ChronicleCode), with the name table of every code it uses.
+    // ExportChronicle writes THIS to chronicle-*.txt; _annals (prose) stays for RecordAnnalLines.
+    private readonly Sim.Core.Chronicle.ChronicleCode.Record _record = new();
     private int _renderedEvents;
     // Item 3: the annal events the Sim.Core chronicle does not detect, derived UI-side from (prev, next).
     private readonly ViewModel.StateChronicle _events = new();
@@ -49,6 +53,14 @@ public sealed class UiSession
     /// <summary>D-060: the annals of the SESSION RECORD — what <see cref="ExportChronicle"/> writes to chronicle-*.txt,
     /// world-wide (subject to P7's hidden-settlement filter only), as before D-060.</summary>
     public IReadOnlyList<string> RecordAnnalLines => _annals;
+
+    /// <summary>ADR-059 amendment 2026-10-29: the session record's CODED lines — line i is <see cref="RecordAnnalLines"/>[i]
+    /// coded (<see cref="Sim.Core.Chronicle.ChronicleCode"/>); with <see cref="RecordNames"/>, what chronicle-*.txt holds.</summary>
+    public IReadOnlyList<string> RecordCodeLines => _record.Lines;
+
+    /// <summary>The name of every named code <see cref="RecordCodeLines"/> uses (ST12 → its settlement's name …),
+    /// ordinal by code: the chronicle file's name lines.</summary>
+    public IReadOnlyList<(string Code, string Name)> RecordNames => _record.Names;
 
     // THE SESSION RECORD (T4.17). The seed and overrides are kept because a
     // session log without them is UNREPLAYABLE — the world cannot be rebuilt,
@@ -310,8 +322,11 @@ public sealed class UiSession
             // P7: the annals are filtered by SUBJECT — an event at a settlement the player does not know is never told.
             // The collector itself still observes every settlement (its tracking state is the same with or without fog).
             if (!AdmitsAnnal(Knowledge, _chronicle.Events[_renderedEvents])) continue;
-            string line = Sim.Core.Chronicle.ChronicleProse.Render(_chronicle.Events[_renderedEvents], _chronicleCfg, Names);
+            Sim.Core.Chronicle.ChronicleEvent e = _chronicle.Events[_renderedEvents];
+            string line = Sim.Core.Chronicle.ChronicleProse.Render(e, _chronicleCfg, Names);
             _annals.Add(line);
+            _record.Note(Sim.Core.Chronicle.ChronicleCode.Settlement(e.SettlementId), Names.Name(e.SettlementId));
+            _record.Add(Sim.Core.Chronicle.ChronicleCode.Render(e));
             if (PlayerAnnal(Knowledge, _chronicle.Events[_renderedEvents], line, Names.Name) is { } told) _playerAnnals.Add(told);
         }
     }
@@ -857,7 +872,7 @@ public sealed class UiSession
         _observations.Observe(prev, World, _simCfg, OrderApplied.For(Orders, prev.Clock.Turn));
         Knowledge = _knowledgeOf(World);   // P7: what the player knows of the world the step produced
         ObserveChronicle();
-        _events.Observe(prev, World, _simCfg, Names.Name, _annals, Knowledge);
+        _events.Observe(prev, World, _simCfg, Names.Name, _annals, Knowledge, coded: _record);
         _events.Observe(prev, World, _simCfg, Names.Name, _playerAnnals, Knowledge, playerBooks: true);   // D-060: the ANNALS view
         NowUsableHistory.Observe(prev, World, _simCfg, UiPlayer.Empire);   // P10: the 'now usable' shortcuts this step fired
         History.Capture(World, Knowledge);
@@ -1118,6 +1133,13 @@ public sealed class UiSession
     }
 
     /// <summary>
+    /// ADR-059 amendment (Director playtest 2026-10-29): keep <c>telemetry-*.jsonl</c> beside the workbook at session close
+    /// (<c>sim-ui --keep-raw-telemetry</c>, for developers). False — the default — removes it after a verified export
+    /// (<see cref="ExportWorkbook"/>). Presentation of the session's files only: not part of the world, the log or the replay.
+    /// </summary>
+    public bool KeepRawTelemetry { get; set; }
+
+    /// <summary>
     /// ADR-059 (D-066 A14–A17) — THE ONE-FILE SESSION EXPORT, at session close: <c>session-STAMP.xlsx</c> beside the
     /// manifest, built from the six session files alone (<see cref="Export.SessionWorkbook"/>). Called AFTER
     /// <see cref="FinalizeTelemetry"/> and <see cref="ExportForensicClose"/>: it reads the files and writes only the
@@ -1125,6 +1147,12 @@ public sealed class UiSession
     /// workbook. A refusal (a named <see cref="Export.SessionExportException"/>) writes no workbook and is reported on
     /// <paramref name="errors"/>; it never blocks the exit — the six files are already complete. Returns the path, or
     /// null when nothing was written (no manifest on disk — a session whose launcher wrote none — or a refusal).
+    ///
+    /// ADR-059 amendment (Director playtest 2026-10-29): THEN, unless <see cref="KeepRawTelemetry"/>, the raw telemetry
+    /// log is removed — only after the workbook was written and its self-check passed, and only when
+    /// <see cref="Export.SessionWorkbook.RemoveRawTelemetry"/> finds the workbook on disk to be the verified one and the
+    /// log to be the one it holds. A refused or failed export removes nothing, and a log that cannot be removed is kept
+    /// and reported on <paramref name="errors"/>. The manifest, orders, trace, chronicle and forensic files always stay.
     /// </summary>
     public string? ExportWorkbook(string sessionLogPath, TextWriter? errors = null)
     {
@@ -1132,7 +1160,12 @@ public sealed class UiSession
         if (!File.Exists(manifest)) return null;
         try
         {
-            return Export.SessionWorkbook.ExportBeside(manifest).Path;
+            (string path, Export.SessionExportResult result) = Export.SessionWorkbook.ExportBeside(manifest,
+                KeepRawTelemetry ? Export.RawTelemetry.Kept : Export.RawTelemetry.RemovedAfterExport);
+            if (!KeepRawTelemetry && result.RawTelemetry != Export.RawTelemetry.RecoveredFromWorkbook
+                && Export.SessionWorkbook.RemoveRawTelemetry(path, result) is { } kept)
+                errors?.WriteLine("raw telemetry log kept beside the workbook: " + kept);
+            return path;
         }
         catch (Export.SessionExportException e)
         {
@@ -1146,14 +1179,18 @@ public sealed class UiSession
         }
     }
 
-    /// <summary>Exports the annals of the SESSION RECORD (<see cref="RecordAnnalLines"/>), one per line,
-    /// fixed \n (byte-identical across identical runs). D-060: world-wide, as before — the scope decision keeps the
-    /// session files the replay/forensic record; the in-game ANNALS panel (<see cref="AnnalLines"/>) is the filtered view.
-    /// Where the player rules every settlement the two are identical.</summary>
+    /// <summary>Exports the SESSION RECORD, fixed \n (byte-identical across identical runs). D-060: world-wide, as
+    /// before — the scope decision keeps the session files the replay/forensic record; the in-game ANNALS panel
+    /// (<see cref="AnnalLines"/>) is the filtered view.
+    ///
+    /// ADR-059 amendment 2026-10-29 (Director: the chronicle comes out shortened) — the file is CODED: the format tag
+    /// <see cref="Sim.Core.Chronicle.ChronicleCode.FormatTag"/>, the name lines (<see cref="RecordNames"/>), then one coded
+    /// line per event of <see cref="RecordAnnalLines"/>, in the same order (<see cref="RecordCodeLines"/>). Nothing reads
+    /// it back but the session export and a person; resume never reads it.</summary>
     public void ExportChronicle(string path)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-        File.WriteAllText(path, string.Join("\n", _annals) + "\n");
+        File.WriteAllText(path, _record.FileText());
     }
 
     /// <summary>
