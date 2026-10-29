@@ -224,3 +224,22 @@ of a layer's QUALIFYING places — the nodes the player knows whose value is dra
 (the boundary counted independently, all-known and under a half-known stub: no unknown node qualifies) and the gate row
 "<entity> (Show on map: its button)" (every outlined node known). The history is UI-side (`UiSession.NowUsableHistory`,
 fed by `Step`, rebuilt by replay) and changes no hash.
+
+## Dated note — 2026-10-28 (D-066 §2 A18, M6 closure track FOG; §1–§9 unchanged)
+
+- **§6's first channel is CLOSED — struck.** "The AI's valuation of a known cell integrates terrain under unknown nodes"
+  no longer holds under the fog: the site scan values a cell by `KnownSiting` (Sim.Core/State/KnownSiting.cs) —
+  region fertility summed over the KNOWN cells of the box, water access to the nearest KNOWN water or river cell, the
+  candidate floor over the known scores, and the reachability flood over KNOWN lattice nodes
+  (`Pathfinder.ReachableWithin`). Undiscovered terrain contributes nothing. Switch: sim.json
+  `colonization.aiFounding.knownTerrainOnly` (true; the twin `TestConfigs.PreAiKnownTerrain`). The quarantined tooth is
+  restored to equality (`PolityKnowledgeTests.KnownCellsValuations_ReadOnlyKnownTerrain_TerrainUnderUnknownNodesLeavesThePickIdentical_D066A18`),
+  with fog-on legs through the production seam. Record: ADR-044 dated note of 2026-10-28.
+- **Recorded residual (not this channel, and not AI-only):** the founding PREDICATE's own arms (the whole-map candidate
+  floor, spacing and the route) read land the issuer does not know; the player's placement mode and the AI ask the same
+  predicate, so both are told the same verdicts. Pinned open by
+  `PolityKnowledgeTests.RecordedResidual_ThePredicatesOwnArms_ReadLandTheIssuerDoesNotKnow_SharedByThePlayerAndTheAi`;
+  owned with the M7 movement / route graph (DW-002, D-066 A19).
+- **§4 the leak gate** now gates on the production fog (`KnowledgeLeakTests` lens `Fog`); the stub (`Restricted`,
+  `KnowledgeStubs`) remains a test seam and a control leg only. §1's "all-known today" was superseded when M6 Track EX
+  shipped the fog (ADR-044).

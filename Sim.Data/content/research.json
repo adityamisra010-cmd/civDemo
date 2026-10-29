@@ -90,7 +90,12 @@
     0.172235
    ],
    "_doc": "D-063 R6 (tranche 2): BaseCost = content cost (U x K^magnitude) x pacingScale[tree][Age-1]. Calibrated from measured AI empires (Sim.Tests PacingReferenceMeasurement, seeds 1, 2, 42, 7): a first pass by tools/calibrate_pacing.py, then tools/recalibrate_observed.py passes against observed Age-completion turns (targets: Age x complete by the midpoint of E[x+1] and E[x+2]; the slowest seed binds; each tree pulled to the pair's midpoint, the pincer). The scale is a recorded per-(tree, Age) number, never per node. Measurements and residuals: docs/m6-plan/knowledge-redesign/tranche2-balance-report.md. ADR-054 (2026-10-27, D-065 R6): CP became per turn from the RP base, so the CIVICS scale was recalibrated (technology unchanged): pass 1 multiplied each civics Age by the CP-weighted mean of 10/dtYears over its completion window in the pre-ADR-054 runs; passes 2-3 by tools/recalibrate_trial.py --pincer-only (technology frozen) with civics A1 held and civics A7 and A9 held at the pass-1 value (order- and throughput-bound). docs/m6-plan/knowledge-redesign/research-cost-pass/per-turn-cp-recalibration.md."
-  }
+  },
+  "foreignExposure": {
+   "enabled": true,
+   "ratePerYear": 0.01
+  },
+  "_foreignExposure": "ADR-058 (D-066 A7, 2026-10-28; the Director's instruction to complete M6): CONTACT-CARRIED FOREIGN EXPOSURE. DiffusionSystem writes the ResearchExposures seam: while an Empire trades with a settlement it does not control and KNOWS (PolityKnowledge.KnowsSettlement - no exposure from an unsighted partner), every node that partner's knowledge holds and the Empire may research now is offered ratePerYear x dtYears x BaseCost per step (law 3), cumulative, never lowered, capped at accelerationCreditCeilingFraction x BaseCost; ResearchSystem pays it from the ONE pool shared with Eureka (<= 0.40 x BaseCost). TUNE, CHOSEN: 0.01 of BaseCost a sim-year - the pool's exposure share fills in about 40 years of contact (four 10-year turns early, forty 1-year turns late): a bounded advance, never a completion. enabled false (or the block absent) writes no row - the attribution switch."
  },
  "baseline": [
   {
@@ -1748,14 +1753,14 @@
    "eurekas": [
     {
      "text": "Large trees grow beside navigable water",
-     "when": null,
+     "when": "deposit_timber > 0 AND (site_river > 0 OR site_coast > 0)",
      "kind": "environmental",
      "justification": "Dugouts need big straight trunks near rivers or lakes.",
      "system": "resources/terrain",
-     "evaluable_now": false,
+     "evaluable_now": true,
      "weight": 0.4,
      "source": "authored",
-     "class": "future-system:resources/terrain"
+     "class": "machine-evaluable"
     }
    ],
    "unlocks": {
@@ -1831,14 +1836,14 @@
    "eurekas": [
     {
      "text": "Fish-bearing waters in range",
-     "when": null,
+     "when": "deposit_fish > 0",
      "kind": "environmental",
      "justification": "Hooks appear among coastal and riverine foragers.",
      "system": "resources/terrain",
-     "evaluable_now": false,
+     "evaluable_now": true,
      "weight": 0.4,
      "source": "authored",
-     "class": "future-system:resources/terrain"
+     "class": "machine-evaluable"
     }
    ],
    "unlocks": {
@@ -4512,14 +4517,14 @@
    "eurekas": [
     {
      "text": "Brine springs, salt pans or a sea coast",
-     "when": null,
+     "when": "site_coast > 0",
      "kind": "environmental",
      "justification": "Salt making follows natural brine and evaporation sites.",
      "system": "resources/terrain",
-     "evaluable_now": false,
+     "evaluable_now": true,
      "weight": 0.4,
      "source": "authored",
-     "class": "future-system:resources/terrain"
+     "class": "machine-evaluable"
     }
    ],
    "unlocks": {
@@ -7074,14 +7079,14 @@
    "eurekas": [
     {
      "text": "A navigable river or sheltered coast with steady winds",
-     "when": null,
+     "when": "site_river > 0 OR site_coast > 0",
      "kind": "environmental",
      "justification": "The first sails appear on the Nile, where the current runs north and the wind blows south.",
      "system": "resources/terrain",
-     "evaluable_now": false,
+     "evaluable_now": true,
      "weight": 0.4,
      "source": "authored",
-     "class": "future-system:resources/terrain"
+     "class": "machine-evaluable"
     }
    ],
    "unlocks": {
@@ -14097,14 +14102,14 @@
    "eurekas": [
     {
      "text": "Saltpetre is available",
-     "when": null,
+     "when": "deposit_saltpetre > 0 OR stock_saltpetre > 0",
      "kind": "environmental",
      "justification": "Chinese alchemists worked with naturally occurring saltpetre.",
      "system": "resources/terrain",
-     "evaluable_now": false,
+     "evaluable_now": true,
      "weight": 0.4,
      "source": "authored",
-     "class": "future-system:resources/terrain"
+     "class": "machine-evaluable"
     }
    ],
    "unlocks": {
@@ -17315,14 +17320,14 @@
    "eurekas": [
     {
      "text": "Coal seams are in range",
-     "when": null,
+     "when": "deposit_coal > 0",
      "kind": "environmental",
      "justification": "Coking spread where coal was abundant and wood scarce (England).",
      "system": "resources/terrain",
-     "evaluable_now": false,
+     "evaluable_now": true,
      "weight": 0.4,
      "source": "authored",
-     "class": "future-system:resources/terrain"
+     "class": "machine-evaluable"
     }
    ],
    "unlocks": {
@@ -19837,14 +19842,14 @@
    "eurekas": [
     {
      "text": "Sulphur is burned with saltpetre to make acid for bleaching or metal finishing",
-     "when": null,
+     "when": "stock_sulphur > 0 AND stock_saltpetre > 0",
      "kind": "practical accomplishment",
      "justification": "Ward's glass-globe process (1736) already burned sulphur with saltpetre to make acid for linen bleaching and metal finishing; Roebuck's lead chamber (1746) scaled that practice, so working the small-batch method is the accelerator.",
      "system": "goods state",
-     "evaluable_now": false,
+     "evaluable_now": true,
      "weight": 0.4,
      "source": "authored",
-     "class": "future-system:goods state"
+     "class": "machine-evaluable"
     }
    ],
    "unlocks": {

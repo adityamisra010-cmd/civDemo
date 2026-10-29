@@ -24,7 +24,7 @@ public enum ResearchEntityKind { Building = 1, Infrastructure = 2, Institution =
 /// The sources that draw on a node's ONE shared acceleration-credit pool (ADR-029
 /// addendum A; finalization ruling 4). The pool's ceiling is
 /// accelerationCreditCeilingFraction × BaseCost across all sources together.
-/// <see cref="ForeignExposure"/> is a passive seam: nothing writes it yet.
+/// <see cref="ForeignExposure"/> is written by DiffusionSystem (ADR-058; research.json tuning.foreignExposure).
 /// </summary>
 public enum AccelerationSource { Eureka = 1, ForeignExposure = 2 }
 
@@ -51,8 +51,11 @@ public sealed record ResearchTuning(
     bool AiSupportingMilestones = false, bool AgeSweep = false, bool DestinationRouting = false,
     bool KnowledgeEffects = false, PacingScale? Pacing = null, bool RepeatableLevels = false, bool ResearchOverflow = false,
     bool ResearchOverflowLane = false, ResearchReserveRule? Reserve = null, bool AiGateAwareGoals = false,
-    bool AiCivicsGateGoals = false, int PopulationAverageTurns = 1)
+    bool AiCivicsGateGoals = false, int PopulationAverageTurns = 1, ForeignExposureTuning? ForeignExposure = null)
 {
+    // ForeignExposure (ADR-058; D-066 A7): research.json tuning.foreignExposure {enabled, ratePerYear}. Enabled, the
+    // DiffusionSystem writes the ResearchExposures seam from contact carriers (foreign trade with a partner whose settlement
+    // the receiver has sighted). Absent or enabled false: no exposure row is ever written — the attribution switch.
     // PopulationAverageTurns (ADR-054; the Director's binding rule of 2026-10-27: "every RP and CP calculation is per turn
     // and based on average population"): research.json tuning.populationAverageTurns, the window of turn-start populations
     // the knowledge bases average (ResearchQuery.KnowledgePopulation, the ONE input both lanes read). 2 (shipped): the
@@ -159,6 +162,46 @@ public sealed record FutureEffect(string Milestone, string System, KnowledgeOper
 /// (the loader refuses them): <see cref="CoefficientPerYear"/> and <see cref="Exponent"/> are 0 and never read.
 /// </summary>
 public sealed record CivicsPointsTuning(bool Enabled, double CoefficientPerYear, double Exponent, bool PerTurn = false);
+
+/// <summary>
+/// ADR-058 §B (D-066 track KNOW) — THE EUREKA QUANTITY LAYOUT of the research dialect. With G goods in the registry, a
+/// condition's quantity id q reads:
+/// <list type="bullet">
+/// <item>q in [0, G): <c>stock_&lt;good&gt;</c> — the whole units held in the settlement (unchanged since ADR-029 §7);</item>
+/// <item>q in [G, 2G): <c>deposit_&lt;good&gt;</c> — the deposit abundance of the good at the settlement AS ITS HOLDER KNOWS
+///   IT (State.DepositConcealment.KnownAbundance: a concealed, unsurveyed row reads 0 — the Prospect order reveals it);</item>
+/// <item>q = 2G: <c>site_river</c> — 1 when a river cell lies in the knowledge-lattice node the settlement stands on
+///   (its own node: always known to its holder), else 0;</item>
+/// <item>q = 2G + 1: <c>site_coast</c> — 1 when an open-water cell (water, not river) lies in that node, else 0;</item>
+/// <item>q ≥ 2G + 2: the stock_ and deposit_ names of a good its goods.json packet removed (GoodsConfig.DisabledGoodNames)
+///   — always 0.</item>
+/// </list>
+/// Every quantity is settlement-scoped: a condition holds when it holds in at least one settlement the holder controls
+/// (ResearchQuery.EurekaHolds). Pure arithmetic over ids; no state.
+/// </summary>
+public static class EurekaQuantities
+{
+    public const string StockPrefix = "stock_";
+    public const string DepositPrefix = "deposit_";
+    public const string SiteRiver = "site_river";
+    public const string SiteCoast = "site_coast";
+
+    /// <summary>The number of quantity ids over a registry of <paramref name="goods"/> goods.</summary>
+    public static int Count(int goods) => 2 * goods + 2;
+
+    public static int SiteRiverId(int goods) => 2 * goods;
+
+    public static int SiteCoastId(int goods) => 2 * goods + 1;
+}
+
+/// <summary>
+/// ADR-058 (D-066 A7) — CONTACT-CARRIED FOREIGN EXPOSURE (research.json <c>tuning.foreignExposure</c>). <see cref="Enabled"/>
+/// is the switch (false = no exposure row is ever written: the attribution twin). <see cref="RatePerYear"/>: the fraction of
+/// a node's BaseCost offered per SIM-YEAR of contact (law 3: × dtYears), finite and in (0, 1]; the cumulative offer per
+/// (polity, node) is capped at the acceleration pool's ceiling (accelerationCreditCeilingFraction × BaseCost), which also
+/// caps what ResearchSystem pays. TUNE.
+/// </summary>
+public sealed record ForeignExposureTuning(bool Enabled, double RatePerYear);
 
 /// <summary>
 /// ADR-051 (PROPOSED; research.json tuning.researchReserve) — THE TECHNOLOGY-LANE RP RESERVE RULE. <see cref="CapTurns"/>:
@@ -364,7 +407,8 @@ public sealed class ResearchContent
     public required IReadOnlyList<ResearchNode> Nodes { get; init; }
     public required IReadOnlyList<ResearchEntity> Entities { get; init; }
     public required int TechnologyCount { get; init; }
-    /// <summary>Quantity id → good (roster order). Eureka conditions name them stock_&lt;good&gt;.</summary>
+    /// <summary>Quantity id → good (roster order) for the stock_&lt;good&gt; quantities (ids 0..G-1). ADR-058: the
+    /// deposit_&lt;good&gt; and site_* quantities follow (<see cref="EurekaQuantities"/>).</summary>
     public required IReadOnlyList<GoodId> QuantityGoods { get; init; }
     public required string CorpusSha256 { get; init; }
     /// <summary>Per subtree (0..4), the dense indices of its FINITE (non-recursive) technologies —
@@ -685,14 +729,34 @@ public static class ResearchContentLoader
             unlocked[i] = ValidateUnlocks(raw[i].Json, raw[i].Tree, raw[i].Path, i, entities);
 
         // ---- Eurekas ----
+        // ADR-058 §B (D-066 A7 track KNOW): the quantity ids are laid out as EurekaQuantities states — stock_<good> for
+        // ids 0..G-1 (unchanged), deposit_<good> for G..2G-1, then site_river and site_coast. Without a goods registry
+        // there are no quantities at all (the pre-ADR-058 behaviour exactly).
+        // A good its goods.json packet REMOVED (GoodsConfig.DisabledGoodNames, ADR-056 §1) keeps its two names, bound past the
+        // live ids to a quantity that always reads 0 — the packet-off twin loads the same research.json (the sim.json
+        // concealableGoods precedent), and a circumstance over a good the economy does not have cannot hold.
         GoodId[] quantityGoods = goods is null ? [] : new GoodId[goods.Goods.Length];
-        string[] quantityNames = goods is null ? [] : new string[goods.Goods.Length];
+        string[] quantityNames = goods is null ? []
+            : new string[EurekaQuantities.Count(goods.Goods.Length) + 2 * goods.DisabledGoodNames.Length];
         if (goods is not null)
-            for (int g = 0; g < goods.Goods.Length; g++)
+        {
+            int gn = goods.Goods.Length;
+            for (int g = 0; g < gn; g++)
             {
                 quantityGoods[g] = new GoodId(goods.Goods[g].Id);
-                quantityNames[g] = "stock_" + goods.Goods[g].Name.Replace('-', '_');
+                string stem = goods.Goods[g].Name.Replace('-', '_');
+                quantityNames[g] = EurekaQuantities.StockPrefix + stem;
+                quantityNames[gn + g] = EurekaQuantities.DepositPrefix + stem;
             }
+            quantityNames[EurekaQuantities.SiteRiverId(gn)] = EurekaQuantities.SiteRiver;
+            quantityNames[EurekaQuantities.SiteCoastId(gn)] = EurekaQuantities.SiteCoast;
+            for (int k = 0; k < goods.DisabledGoodNames.Length; k++)
+            {
+                string stem = goods.DisabledGoodNames[k].Replace('-', '_');
+                quantityNames[EurekaQuantities.Count(gn) + 2 * k] = EurekaQuantities.StockPrefix + stem;
+                quantityNames[EurekaQuantities.Count(gn) + 2 * k + 1] = EurekaQuantities.DepositPrefix + stem;
+            }
+        }
         var eurekaSymbols = new PredicateSymbols(
             name => IdLookup(name),
             name =>
@@ -702,7 +766,7 @@ public static class ResearchContentLoader
                 return -1;
             },
             goods is null
-                ? "a node id (no goods registry is attached, so stock_<good> quantities are unavailable)"
+                ? "a node id (no goods registry is attached, so stock_<good>, deposit_<good> and site_* quantities are unavailable)"
                 : $"a node id, or a quantity ({string.Join(", ", quantityNames)})");
         double ceiling = tuning.AccelerationCreditCeilingFraction;
         var eurekas = new ResearchEureka[n][];
@@ -1130,7 +1194,17 @@ public static class ResearchContentLoader
             t.AiCheapestOrRoute ?? false, t.AiSupportingMilestones ?? false, t.AgeSweep ?? false, t.DestinationRouting ?? false,
             t.KnowledgeEffects ?? false, ValidatePacing(t.PacingScale), t.RepeatableLevels ?? false, t.ResearchOverflow ?? false,
             t.ResearchOverflowLane ?? false, ValidateReserve(t.ResearchReserve), t.AiGateAwareGoals ?? false,
-            t.AiCivicsGateGoals ?? false, averageTurns);
+            t.AiCivicsGateGoals ?? false, averageTurns, ValidateForeignExposure(t.ForeignExposure));
+    }
+
+    /// <summary>tuning.foreignExposure (ADR-058): ratePerYear finite and in (0, 1]; absent = off (null).</summary>
+    private static ForeignExposureTuning? ValidateForeignExposure(ForeignExposureJson? f)
+    {
+        if (f is null) return null;
+        if (!(double.IsFinite(f.RatePerYear) && f.RatePerYear > 0.0 && f.RatePerYear <= 1.0))
+            throw Fail($"tuning.foreignExposure.ratePerYear {Inv(f.RatePerYear)} must be finite and in (0, 1]: the fraction of a " +
+                       "node's BaseCost offered per sim-year of contact (ADR-058).");
+        return new ForeignExposureTuning(f.Enabled, f.RatePerYear);
     }
 
     /// <summary>tuning.researchReserve (ADR-051): capTurns and drawTurns finite and &gt; 0; absent = off (null).</summary>
@@ -1833,7 +1907,12 @@ public static class ResearchContentLoader
         [property: JsonPropertyName("researchReserve")] ResearchReserveJson? ResearchReserve = null,
         [property: JsonPropertyName("aiGateAwareGoals")] bool? AiGateAwareGoals = null,
         [property: JsonPropertyName("aiCivicsGateGoals")] bool? AiCivicsGateGoals = null,
-        [property: JsonPropertyName("populationAverageTurns")] int? PopulationAverageTurns = null);
+        [property: JsonPropertyName("populationAverageTurns")] int? PopulationAverageTurns = null,
+        [property: JsonPropertyName("foreignExposure")] ForeignExposureJson? ForeignExposure = null);
+
+    private sealed record ForeignExposureJson(
+        [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
+        [property: JsonPropertyName("ratePerYear"), JsonRequired] double RatePerYear);
 
     private sealed record ResearchReserveJson(
         [property: JsonPropertyName("capTurns"), JsonRequired] double CapTurns,

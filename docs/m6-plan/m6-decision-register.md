@@ -261,3 +261,7 @@ Record of the rulings: `docs/m5-exit-inventory.md` §13.
 ## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
 
 D-062 (`docs/d062-m6-director-final-rulings.md`) records the Director's final M6 rulings of 2026-10-22: D-I SUPERSEDED (separate, bankable Civics Points); the research stage loses `legal_code_roman`; deposits partly concealed and revealed by prospecting; minimal Explore/Prospect in M6 with separate Construction and Actions menus; movement/AP stays M7 (D-F confirmed); adoption stays M8 (D-D confirmed); nuclear knowledge only. Open letters resolved by it: D-H (schema: v35 is the M6 slice), D-K/D-J/D-T in their minimal form (ADR-044). D-R (overflow) unchanged for RP; CP never overflows (banked). Record: `docs/d062-m6-director-final-rulings.md`.
+
+## Dated note — 2026-10-28 (D-066; appended, the text above is unchanged)
+
+D-L, D-M, D-P and D-Q were settled by ADOPTION under the Director's 2026-10-28 decision rules (D-066 §2 A3, A1, A2, A5), as were D-G (A14–A17) and the "optional" wording (A6). Each is reversible and listed for the Director's confirmation at the exit gate. They are not recorded as Director rulings.

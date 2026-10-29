@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "status": "INERT",
+  "_doc": [
+    "M6.8-M6.10 (T6.12; D-E and D-F RULED option 1, 2026-10-20; D-066 R2, A2 item 4, A11). The unit-progression CONTENT: promotion trees (M6.9) and the dormant repeatable-training / Action Capacity data (M6.10). Contract: docs/m6-plan/unit-progression-contract.md (promotions) and docs/m6-plan/training-ap-contract.md (training).",
+    "INERT. UnitProgressionContentLoader loads and validates this file; NO simulation system, query, order, AI policy or save table reads it (source guard: UnitProgressionInertTests). The only reader outside the tests is the unit card's planned-for-M7 entry (Sim.Ui, display only). Nothing in this build earns experience, holds a promotion or trains a formation: M7 adds the state, the earning rule and the application (unit-progression-contract.md section 5).",
+    "Every number is an ILLUSTRATIVE BAND for shape validation, not a tuned value (D-006 TUNE; unit charter section 15.6 calibration not done).",
+    "trees: one per group of land ARMY-FORMATION families (D-011 section 3 formation fields exist only for formations). A family belongs to at most one tree. promotions[].effects name a FIELD and a TERM of the M7 contract (unit-progression-contract.md section 3); scale is a coefficient INSIDE that term's resolution equation (Law 2), never a flat bonus. A (field, term) pair is granted by exactly one promotion in the whole file: no stat is duplicated within or across trees. requires: promotion ids of the same tree, acyclic. exclusiveGroup: at most one member of a group can be held; a group has two or more members of one tree. maxTimes: how often a promotion can be taken (1..repeatCap); its compounded coefficient scale^maxTimes stays within the loader's bounds.",
+    "training: the D-F contract as data. mode is 'explicit' (an action the owner orders, spending Action Capacity); passiveGainPerYear is 0 - a dormant formation (M7 action state 'idle' for a whole refresh) never improves. Each profile: eligibility (condition names from the contract vocabulary), cost (the share of the refresh's Action Capacity the action consumes, and its duration in sim-years, accrued as a rate x dtYears), increment (max Action Capacity gained per completed training), cap (trainings per carrier), diminishing (the k-th training lasts years x factor^(k-1)). rejections: one per condition, with the reason a refused order states."
+  ],
+  "repeatCap": 3,
+  "trees": [
+    {
+      "id": "tree.line_infantry",
+      "name": "Line infantry drill",
+      "families": ["heavy_infantry", "spear_anti_cavalry", "light_infantry"],
+      "promotions": [
+        { "id": "promo.inf.drilled", "name": "Drilled", "description": "Practised in changing formation: the formation re-forms its frontage faster.",
+          "effects": [ { "field": "frontage", "term": "reform_time", "scale": 0.85 } ], "requires": [], "maxTimes": 1 },
+        { "id": "promo.inf.steady_ranks", "name": "Steady ranks", "description": "Holds together under losses: less cohesion is lost per casualty.",
+          "effects": [ { "field": "cohesion", "term": "loss_rate", "scale": 0.9 } ], "requires": ["promo.inf.drilled"], "maxTimes": 1 },
+        { "id": "promo.inf.shock_tactics", "name": "Shock tactics", "description": "Closes hard: a larger melee coefficient in the paired engagement. Excludes Shield wall.",
+          "effects": [ { "field": "strength", "term": "melee_effect", "scale": 1.1 } ], "requires": ["promo.inf.steady_ranks"], "exclusiveGroup": "inf.doctrine", "maxTimes": 1 },
+        { "id": "promo.inf.shield_wall", "name": "Shield wall", "description": "Fights in close order: a smaller share of casualties taken. Excludes Shock tactics.",
+          "effects": [ { "field": "strength", "term": "losses_taken", "scale": 0.9 } ], "requires": ["promo.inf.steady_ranks"], "exclusiveGroup": "inf.doctrine", "maxTimes": 1 }
+      ]
+    },
+    {
+      "id": "tree.ranged_infantry",
+      "name": "Missile troops' practice",
+      "families": ["ranged_infantry"],
+      "promotions": [
+        { "id": "promo.rng.practised_volleys", "name": "Practised volleys", "description": "Repeated practice: a larger ranged-fire coefficient. Can be taken twice.",
+          "effects": [ { "field": "strength", "term": "fire_effect", "scale": 1.05 } ], "requires": [], "maxTimes": 2 },
+        { "id": "promo.rng.fire_discipline", "name": "Fire discipline", "description": "Shoots on command: less ammunition spent per volley.",
+          "effects": [ { "field": "ammunition", "term": "expenditure_rate", "scale": 0.9 } ], "requires": ["promo.rng.practised_volleys"], "maxTimes": 1 },
+        { "id": "promo.rng.full_pouches", "name": "Full pouches", "description": "Carries more missiles into battle. Excludes Screening drill.",
+          "effects": [ { "field": "ammunition", "term": "capacity", "scale": 1.2 } ], "requires": ["promo.rng.fire_discipline"], "exclusiveGroup": "rng.kit", "maxTimes": 1 },
+        { "id": "promo.rng.screening_drill", "name": "Screening drill", "description": "Turns to face a threat quickly. Excludes Full pouches.",
+          "effects": [ { "field": "facing", "term": "turn_time", "scale": 0.85 } ], "requires": ["promo.rng.fire_discipline"], "exclusiveGroup": "rng.kit", "maxTimes": 1 }
+      ]
+    },
+    {
+      "id": "tree.mounted",
+      "name": "Horsemanship",
+      "families": ["light_cavalry", "heavy_cavalry", "ranged_cavalry"],
+      "promotions": [
+        { "id": "promo.cav.horse_care", "name": "Horse care", "description": "Mounts recover faster at rest: a larger fatigue-recovery rate per sim-year.",
+          "effects": [ { "field": "fatigue", "term": "recovery_rate", "scale": 1.1 } ], "requires": [], "maxTimes": 1 },
+        { "id": "promo.cav.rally_drill", "name": "Rally drill", "description": "Re-forms after a charge: a larger cohesion-recovery rate per sim-year.",
+          "effects": [ { "field": "cohesion", "term": "recovery_rate", "scale": 1.15 } ], "requires": ["promo.cav.horse_care"], "maxTimes": 1 },
+        { "id": "promo.cav.hardened_riders", "name": "Hardened riders", "description": "Rides longer before tiring: less fatigue per pulse of action. Can be taken twice.",
+          "effects": [ { "field": "fatigue", "term": "accrual_rate", "scale": 0.92 } ], "requires": ["promo.cav.horse_care"], "maxTimes": 2 },
+        { "id": "promo.cav.last_to_break", "name": "Last to break", "description": "Stays in the fight longer: a lower cohesion threshold before rout.",
+          "effects": [ { "field": "cohesion", "term": "rout_threshold", "scale": 0.9 } ], "requires": ["promo.cav.rally_drill", "promo.cav.hardened_riders"], "maxTimes": 1 }
+      ]
+    }
+  ],
+  "training": {
+    "status": "DORMANT",
+    "mode": "explicit",
+    "passiveGainPerYear": 0,
+    "dormantState": "idle",
+    "profiles": [
+      {
+        "id": "train.land_formation",
+        "name": "Field exercises",
+        "families": ["light_infantry", "spear_anti_cavalry", "heavy_infantry", "ranged_infantry", "light_cavalry", "heavy_cavalry", "ranged_cavalry", "siege"],
+        "eligibility": ["owned", "stationed_at_controlled_settlement", "not_reequipping", "not_engaged", "supplied", "action_capacity_available", "below_cap"],
+        "cost": { "actionCapacityShare": 1.0, "years": 0.25 },
+        "increment": 1,
+        "cap": 2,
+        "diminishing": { "rule": "escalating_years", "factor": 1.5 }
+      },
+      {
+        "id": "train.reconnaissance",
+        "name": "Fieldcraft",
+        "families": ["reconnaissance"],
+        "eligibility": ["owned", "stationed_at_controlled_settlement", "supplied", "action_capacity_available", "below_cap"],
+        "cost": { "actionCapacityShare": 1.0, "years": 0.1 },
+        "increment": 1,
+        "cap": 1,
+        "diminishing": { "rule": "escalating_years", "factor": 1.0 }
+      }
+    ],
+    "rejections": [
+      { "condition": "owned", "code": "not_owner", "text": "Only the formation's owner can order its training." },
+      { "condition": "stationed_at_controlled_settlement", "code": "not_stationed", "text": "Training needs the formation stationed at a settlement its owner controls." },
+      { "condition": "not_reequipping", "code": "reequipping", "text": "A formation that is re-equipping cannot train until the re-equipment completes or is cancelled." },
+      { "condition": "not_engaged", "code": "engaged", "text": "A formation in battle or under siege cannot train." },
+      { "condition": "supplied", "code": "unsupplied", "text": "An unfed or unsupplied formation cannot train." },
+      { "condition": "action_capacity_available", "code": "insufficient_action_capacity", "text": "Training needs the stated share of this refresh's Action Capacity unspent." },
+      { "condition": "below_cap", "code": "at_cap", "text": "The formation has trained as often as its family allows." }
+    ]
+  }
+}

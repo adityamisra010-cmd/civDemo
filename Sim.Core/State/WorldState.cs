@@ -1000,8 +1000,10 @@ public record struct ResearchCreditRow(PolityId Polity, ResearchNodeId Node, int
 /// <summary>
 /// ADR-029 addendum A — THE FOREIGN-EXPOSURE SEAM (finalization ruling 4). The CUMULATIVE
 /// foreign-exposure credit offered to one polity for one node (contact, trade, diffusion).
-/// THIS IS AN INPUT CONTRACT, NOT RESEARCH STATE: its writer is a future contact/diffusion
-/// system, and NO SYSTEM WRITES IT YET (the ResearchCostModifierRow precedent). ResearchSystem
+/// THIS IS AN INPUT CONTRACT, NOT RESEARCH STATE: ADR-058 (D-066 A7, 2026-10-28) — its ONE writer is
+/// DiffusionSystem (SystemId 31: contact-carried exposure from foreign trade with a known partner,
+/// ratePerYear × dtYears × BaseCost while the node is available, capped at the pool ceiling, never
+/// lowered; research.json tuning.foreignExposure, the switch). Schema unchanged (v26 section 47). ResearchSystem
 /// reads it from Prev and credits the offered amount not yet credited, from the shared pool,
 /// capped at the pool's headroom and the remaining EffectiveCost — so an offer is never paid
 /// twice and never overflows.
@@ -1370,7 +1372,7 @@ public interface IReadOnlyWorldState
     /// <summary>ADR-029 addendum A: acceleration-credit provenance per source — owned by ResearchSystem.</summary>
     IReadOnlyTable<ResearchCreditRow> ResearchCredits { get; }
 
-    /// <summary>ADR-029 addendum A: offered foreign-exposure credit — an input contract; no system writes it yet.</summary>
+    /// <summary>ADR-029 addendum A: offered foreign-exposure credit — an input contract; written by DiffusionSystem (ADR-058).</summary>
     IReadOnlyTable<ResearchExposureRow> ResearchExposures { get; }
 
     /// <summary>ADR-031: each polity's Age (absence = founding Age) — owned by AgeTransitionSystem.</summary>

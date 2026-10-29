@@ -290,6 +290,23 @@ public static partial class PlayabilityGate
                 ClickHit(HitKind.Lens, (int)Lens.KnowledgeAndTechnology);
                 return (r, d);
             });
+            // M6 integration (ADR-057 × P6 coverage): the INSTITUTIONS lens lists the university types (InfoKind.UniversityType)
+            // from turn 1, so a row presses one of them — the lens's other row above takes its first Entity or node.
+            Check("info", "shift-click UniversityType (INSTITUTIONS lens)", () =>
+            {
+                CloseEverything();
+                OpenResearch();
+                if (!ClickHit(HitKind.Lens, (int)Lens.Institutions)) return (GateResult.Fail, "lens not drawn");
+                h.Idle(3);
+                if (FirstHit(InfoKind.UniversityType) is not { } x)
+                {
+                    ClickHit(HitKind.Lens, (int)Lens.KnowledgeAndTechnology);
+                    return (GateResult.NotOffered, "the INSTITUTIONS lens lists no university type in this state");
+                }
+                (GateResult r, string d) = ShiftCheck(x);
+                ClickHit(HitKind.Lens, (int)Lens.KnowledgeAndTechnology);
+                return (r, d);
+            });
 
             // ---- The player views: text lines registered as passive regions.
             foreach ((string nav, InfoKind kind) in new[] { ("nav:Place", InfoKind.LabourSector), ("nav:Empire", InfoKind.TaxEdict), ("nav:Institutions", InfoKind.UniversityType) })

@@ -121,13 +121,13 @@ public sealed class StateChronicle
         {
             InstitutionRow row = next.Institutions[i];
             if (!S(row.Settlement)) continue;
-            string type = InstitutionContent.TypeOf(cfg.Research, row.Type)?.Name ?? "an institution";
+            string type = InstitutionContent.Info(cfg, row.Type)?.Name ?? "an institution";
             int at = -1;
             for (int k = 0; k < prev.Institutions.Count; k++) if (prev.Institutions[k].Id == row.Id) { at = k; break; }
             if (at < 0)
                 annals.Add(y + "the " + type + " was founded at " + name(row.Settlement.Value) + ".");
-            else if (Books(row.Settlement) && InstitutionsQuery.Stage(cfg, row.Maturity) == InstitutionLifecycle.Mature
-                     && InstitutionsQuery.Stage(cfg, prev.Institutions[at].Maturity) != InstitutionLifecycle.Mature)
+            else if (Books(row.Settlement) && InstitutionsQuery.Stage(cfg, row.Type, row.Maturity) == InstitutionLifecycle.Mature
+                     && InstitutionsQuery.Stage(cfg, row.Type, prev.Institutions[at].Maturity) != InstitutionLifecycle.Mature)
                 annals.Add(y + "the " + type + " at " + name(row.Settlement.Value) + " came to maturity.");
         }
 

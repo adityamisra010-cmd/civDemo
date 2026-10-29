@@ -688,7 +688,7 @@ public static partial class ConstructionQuery
         bool incremental = Incremental(cfg);
         var parts = new List<string>();
         if (InstitutionContent.FoundsInstitution(project)
-            && InstitutionViability.ToFound(world, cfg, settlement) is { Viable: false } viability)
+            && InstitutionViability.ToFound(world, cfg, settlement, project) is { Viable: false } viability)
             parts.Add(InstitutionViability.Shortfall(viability));
         string holder = empire ? "empire has" : "has";
         if (setAside is null && usedAhead is null)

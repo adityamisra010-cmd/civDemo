@@ -18,7 +18,11 @@ namespace Sim.Ui.Tests;
 /// <item>METAMORPHIC: removing every formation of the hidden polity, or adding one, leaves the player's military
 ///   descriptors and every factory answer identical.</item>
 /// </list>
-/// The rig is the shipped config (the military layer ON) with one AI Empire hidden by the knowledge stub.
+/// The rig is the shipped config (the military layer ON, the fog ON), 256 px, one AI Empire, three turns played. M6 closure
+/// (track FOG; D-066 §3): every test runs on two lenses — <see cref="Lens.Fog"/>, THE GATE: the player's production view
+/// (<c>PlayerKnowledge.Of(world, player, cfg)</c>), the AI hidden by the REAL fog (MEASURED 2026-10-28: on this rig the
+/// player knows none of the AI's 2 settlements, its formation or the polity through turn 6); and <see cref="Lens.Stub"/>,
+/// the control leg: the knowledge stub (all known but the AI polity).
 /// </summary>
 public partial class KnowledgeLeakTests
 {
@@ -30,6 +34,12 @@ public partial class KnowledgeLeakTests
         return (w, s.Config, KnowledgeStubs.HiddenMask(w, Player, Hidden));
     }, LazyThreadSafetyMode.ExecutionAndPublication);
 
+    private static MilitaryUnitRow Unit(IReadOnlyWorldState w, int id)
+    {
+        for (int i = 0; i < w.MilitaryUnits.Count; i++) if (w.MilitaryUnits[i].Id == id) return w.MilitaryUnits[i];
+        throw new InvalidOperationException("no formation " + id);
+    }
+
     private static int[] FormationsOf(IReadOnlyWorldState w, PolityId p)
     {
         var ids = new List<int>();
@@ -39,9 +49,13 @@ public partial class KnowledgeLeakTests
 
     /// <summary>Every answer the military order surface gives the player on <paramref name="w"/>, as text: the military
     /// descriptors the query lists, and the factory's refusal of each formation id and settlement id in <paramref name="ids"/>.</summary>
-    private static string MilitarySurface(IReadOnlyWorldState w, SimConfig cfg, bool[] mask, int[] formationIds, int[] settlementIds)
+    /// <summary>What the player knows of <paramref name="w"/> on the military rig in a leg.</summary>
+    private static PlayerKnowledge MilitaryView(Lens lens, IReadOnlyWorldState w, SimConfig cfg, bool[] mask) =>
+        lens == Lens.Fog ? PlayerKnowledge.Of(w, Player, cfg) : KnowledgeStubs.Over(w, Player, mask);
+
+    private static string MilitarySurface(Lens lens, IReadOnlyWorldState w, SimConfig cfg, bool[] mask, int[] formationIds, int[] settlementIds)
     {
-        PlayerKnowledge k = KnowledgeStubs.Over(w, Player, mask);
+        PlayerKnowledge k = MilitaryView(lens, w, cfg, mask);
         var lines = new List<string>();
         ImmutableArray<ActionDescriptor> actions = AvailableActionsQuery.For(w, cfg, Player);
         foreach (ActionDescriptor a in actions)
@@ -66,17 +80,22 @@ public partial class KnowledgeLeakTests
         return string.Join("\n", lines);
     }
 
-    [Fact]
-    public void TheMilitaryOrderSurface_RefusesAHiddenFormationOrSettlement_ExactlyAsANonexistentOne()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void TheMilitaryOrderSurface_RefusesAHiddenFormationOrSettlement_ExactlyAsANonexistentOne(Lens lens)
     {
         (WorldState w, SimConfig cfg, bool[] mask) = MilitaryRig.Value;
         Assert.True(RecruitmentQuery.Enabled(cfg), "the rig must run the military layer");
-        PlayerKnowledge k = KnowledgeStubs.Over(w, Player, mask);
+        Assert.True(DiscoveryQuery.FogOn(cfg), "the rig must run the shipped fog");
+        PlayerKnowledge k = MilitaryView(lens, w, cfg, mask);
+        Assert.False(k.AllKnown);
         int[] hiddenFormations = FormationsOf(w, Hidden);
         IReadOnlyList<int> hiddenSettlements = KnowledgeStubs.SettlementsOf(w, Hidden);
         Assert.NotEmpty(hiddenFormations);                                        // anti-vacuity: the AI fields a warband
         Assert.NotEmpty(hiddenSettlements);
         foreach (int s in hiddenSettlements) Assert.False(k.KnowsSettlement(s));
+        foreach (int h in hiddenFormations) Assert.False(k.Core.KnowsUnit(Unit(w, h)));
         int ghostFormation = 1_000_000, ghostSettlement = 1_000_000;
         int warbandKey = cfg.UnitFamilies!.FoundingIdentity.Key;
 
@@ -103,13 +122,15 @@ public partial class KnowledgeLeakTests
         Assert.NotNull(MilitaryOrderFactory.Disband(w, cfg, k, own, out _));
     }
 
-    [Fact]
-    public void PerturbingTheHiddenPolitysFormations_LeavesTheMilitaryOrderSurfaceIdentical()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void PerturbingTheHiddenPolitysFormations_LeavesTheMilitaryOrderSurfaceIdentical(Lens lens)
     {
         (WorldState w, SimConfig cfg, bool[] mask) = MilitaryRig.Value;
         int[] probeFormations = [.. FormationsOf(w, Player), .. FormationsOf(w, Hidden), 999, 1_000_000];
         int[] probeSettlements = [.. Enumerable.Range(0, w.Settlements.Count).Select(i => w.Settlements[i].Id.Value), 1_000_000];
-        string baseline = MilitarySurface(w, cfg, mask, probeFormations, probeSettlements);
+        string baseline = MilitarySurface(lens, w, cfg, mask, probeFormations, probeSettlements);
         Assert.Contains("military.disband.", baseline);                         // anti-vacuity: the player's warband is listed
 
         // (a) every hidden formation removed; (b) the hidden formations re-identified and one more added at a hidden
@@ -137,7 +158,7 @@ public partial class KnowledgeLeakTests
         more.MilitaryUnits.Add(template with { Id = 999 });
         Assert.Equal(hidden.Length + 1, FormationsOf(more, Hidden).Length);
 
-        Assert.Equal(baseline, MilitarySurface(gone, cfg, mask, probeFormations, probeSettlements));
-        Assert.Equal(baseline, MilitarySurface(more, cfg, mask, probeFormations, probeSettlements));
+        Assert.Equal(baseline, MilitarySurface(lens, gone, cfg, mask, probeFormations, probeSettlements));
+        Assert.Equal(baseline, MilitarySurface(lens, more, cfg, mask, probeFormations, probeSettlements));
     }
 }

@@ -886,6 +886,10 @@
    "text": "A crossbow mounts a short, stiff bow crosswise on a stock and holds the drawn string with a trigger, so it can be loaded in advance and aimed steadily. Bronze trigger mechanisms survive in China from the Warring States period, when armies issued crossbows in large numbers. A magazine-fed repeating version from Chu remained in use until the late Qing."
   },
   {
+   "id": "crossbow_repeating",
+   "text": "The repeating crossbow carries a box magazine of bolts above the stock; working one lever draws the string, drops the next bolt and shoots, so a single person can loose several light bolts in quick succession. Finds from Chu tombs suggest early forms by about the fourth century BCE, and later versions stayed in service into the nineteenth century."
+  },
+  {
    "id": "crucible_cast_steel",
    "text": "Crucible cast steel is made by melting blister steel in sealed clay crucibles and casting it into ingots, producing uniform steel free of slag. Benjamin Huntsman, a clockmaker near Sheffield, developed the process around 1740, firing his crucibles with coke. Sheffield became famous for its files, razors and cutlery. Older crucible steels had also been made in South Asia."
   },
@@ -3236,6 +3240,10 @@
   {
    "id": "siege_ram",
    "text": "Neo-Assyrian armies of the ninth to seventh centuries BCE attacked city walls with battering rams housed in wheeled, roofed frames, some built as towers with archers on top, pushed up earth ramps to the wall. Palace reliefs of Sennacherib's siege of Lachish in Judah, 701 BCE, depict the method, and archaeologists have excavated the Assyrian siege ramp there."
+  },
+  {
+   "id": "siege_tower",
+   "text": "A siege tower is a wheeled wooden structure, often hung with wet hides against fire, pushed up to a wall so that attackers can fight from its top or cross onto the rampart. Assyrian palace reliefs show towers working beside battering rams, and at Lachish, besieged in 701 BCE, the earthen assault ramp built by the army still survives."
   },
   {
    "id": "signal_beacons",

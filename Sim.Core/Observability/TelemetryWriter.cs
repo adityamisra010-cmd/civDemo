@@ -32,7 +32,7 @@ namespace Sim.Core.Observability;
 /// </summary>
 public static class TelemetryWriter
 {
-    public const string Schema = "telemetry/v4";
+    public const string Schema = "telemetry/v5";
 
     /// <summary>The vintages <see cref="Sim.Core.Observability.Forensic.TelemetryRecordFile"/>
     /// accepts, newest first. v3 = v2 + the T4.21-5 foodState/migrationPlan
@@ -41,8 +41,14 @@ public static class TelemetryWriter
     /// v4 (ADR-033 D4) = v3 + the <c>social.tax</c> object — the M5 tax burden that
     /// multiplies the happiness reading, with its declared rate and stored reach; every
     /// v3 key keeps its v3 meaning and position, so a v3 line is a v4 line without the
-    /// tax object, and the reader reports the burden as not recorded.</summary>
-    public static readonly string[] ReadableSchemas = ["telemetry/v4", "telemetry/v3", "telemetry/v2"];
+    /// tax object, and the reader reports the burden as not recorded.
+    /// v5 (D-066 A15; ADR-059) = the line shape of the M7 pass, which had been written under the unchanged v4 tag:
+    /// the optional <c>grain.military</c> (ADR-055) and <c>grain.fodder</c> (ADR-056) keys, flow reasons 19–23,
+    /// 23 goods and order kinds 16–18. The tag moves with the field set (the T4.20 rule above), so that a reader —
+    /// the session export's codebook first (one codebook per schema) — can tell the two shapes apart. Every v4 key keeps
+    /// its v4 meaning and position, so this reader reads a v5 line as it reads a v4 line. Telemetry text only: no
+    /// simulation state, no canonical schema and no world hash changes.</summary>
+    public static readonly string[] ReadableSchemas = ["telemetry/v5", "telemetry/v4", "telemetry/v3", "telemetry/v2"];
 
     /// <summary>Every observation in the history, one line each.</summary>
     public static void WriteAll(Stream output, IObservationHistory history)

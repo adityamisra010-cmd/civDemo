@@ -2,8 +2,8 @@
 """Research → gameplay unlock audit (R1; the Director's unlock-pipeline directive).
 
 Reads the CANONICAL content — research.json (nodes, entities, sectorActivities, researchStage, baseline),
-goods.json (recipes[].entity, projects[].entity / founds.entity), sim.json (roads.classes[].entity,
-governance.taxationRequires) and ages.json (research milestone facts) — and writes
+goods.json (recipes[].entity and .knowledge, goods[].knowledge, projects[].entity / founds.entity), sim.json
+(roads.classes[].entity, governance.taxationRequires, discovery.assayRequires) and ages.json (research milestone facts) — and writes
 docs/research-gameplay-unlock-audit.md: for EVERY Technology and Civics node, the knowledge it provides, the
 gameplay consequences its completion makes legal (each content-declared link to a realizing domain), its
 prerequisites, the class (A–J), whether the relationship is canonical in content, whether a simulation
@@ -14,7 +14,8 @@ realizes a recipe entity, a road-class entity, …) and it names no node: every 
 content links. The C# loader is the authority on validity; this is an independent re-reading for the report.
 
 Usage:  python3 scripts/research-gameplay-unlock-audit.py            (write the audit)
-        python3 scripts/research-gameplay-unlock-audit.py --check    (exit 1 if the audit is stale)
+        python3 scripts/research-gameplay-unlock-audit.py --check    (exit 1 if the audit is stale, or if any
+                                                                       discrepancy row is unlinked, unreachable or OPEN)
 """
 import json
 import sys
@@ -28,7 +29,7 @@ CONTENT = rl.ROOT / "Sim.Data" / "content"
 
 CLASSES = [
     ("A", "Baseline", "exists with zero research (declared in content: a baseline record or a null requirement)"),
-    ("B", "Research-gated gameplay capability", "gates a production recipe, a labour activity, trade, the tax edict or an Age milestone"),
+    ("B", "Research-gated gameplay capability", "gates a production recipe, a labour activity, a deposit or herd, trade, the tax edict, the assay or an Age milestone"),
     ("C", "Knowledge-only / modifier", "capability strings or immediate effects, no realizing link"),
     ("D", "Institution prerequisite", "gates a REALIZED institution (a founding project) or the research stage"),
     ("E", "Infrastructure prerequisite", "gates a road class RoadDevelopmentSystem builds"),
@@ -61,12 +62,41 @@ CONSUMERS = {
              "ResearchUnlockPipelineTests.T09–T10, T15"),
     "building": ("G", "ConstructionSystem — ConstructionQuery.IsProjectAvailable", "4 EnqueueConstruction", "Construction — build",
                  "ConstructionAvailabilityTests; ResearchUnlockPipelineUiTests (synthetic node)"),
+    # M6 closure (D-066 R2, the content/consequence audit): the gate kinds this audit did not read before. ADR-056 put a
+    # node expression on goods.json recipes and on deposit and herd goods (`knowledge`); ADR-046 put the assay behind
+    # sim.json discovery.assayRequires. A system enforces each, so each is class B.
+    "recipe-knowledge": ("B", "ProductionSystem — CraftingQuery.IsRecipeAvailable (goods.json recipes[].knowledge, EconomyKnowledge.Met)",
+                         "none (the Crafting labour share runs it)", "Production — crafts we know",
+                         "EconomyMetalsTests.Smelting_RunsOnlyWithItsKnowledge_…; EconomyGunpowderTests.Milling_RunsOnlyWithItsKnowledge_…"),
+    "good-knowledge": ("B", "ProductionSystem — EconomyKnowledge.Met (goods.json goods[].knowledge: a deposit is worked, a herd breeds, only once known)",
+                       "3 SectorAllocation (the Extraction / Herding share)", "Labour — the sector's goods",
+                       "EconomyMetalsTests.IronOre_IsNotWorkedWithoutItsKnowledge_…; EconomyGunpowderTests.Saltpetre_IsNotWorkedWithoutItsKnowledge; "
+                       "EconomyMountsTests.Breeding_NeedsItsKnowledge_…"),
+    "assay": ("B", "DiscoverySystem — DiscoveryQuery.AssayUnlocked (sim.json discovery.assayRequires)", "15 Prospect (Amount 1, the assay)",
+              "Discovery — Prospect (assay)", "DiscoveryTests.Assay_IsLockedUntilOreProspecting_…; ResearchUnlockPipelineTests.T15"),
+    "unit": ("F", "MilitarySystem — RecruitmentQuery.CheckRecruit (unit-families.json realizedBy; ADR-055)", "16 RecruitFormation",
+             "Military — recruit", "RecruitmentTests; UnitTaxonomyTests"),
 }
 PRECEDENCE = "HBEDGFJCI"
 
 
 def load(name):
     return json.loads((CONTENT / name).read_text(encoding="utf-8"))
+
+
+def add_unit_family_consumers(add, goods):
+    """ADR-055 / M6 KNOW: unit-families.json identities name the research.json unit entity they realize (realizedBy);
+    RecruitmentQuery recruits them. An identity whose recruitment needs a good goods.json does not have yet (a planned
+    packet good) is recruitable only once that packet lands; the label says which."""
+    have = {g["name"] for g in goods["goods"]}
+    for f in load("unit-families.json")["families"]:
+        for ident in f["line"]:
+            ent = ident.get("realizedBy")
+            if not ent:
+                continue
+            missing = sorted({i["good"] for i in (ident.get("recruitment") or {}).get("inputs", [])} - have)
+            note = f"; blocked until {', '.join(missing)} exist" if missing else ""
+            add(ent, "unit", f"unit identity `{f['id']}/{ident['id']}`{note}")
 
 
 def atoms_of(expr):
@@ -111,10 +141,12 @@ def build():
     for sa in research["sectorActivities"]:
         for rr in sa["researched"]:
             add(rr["entity"], "activity", f"sector `{sa['sector']}` → {rr['mode']}")
+    add_unit_family_consumers(add, goods)
 
     pseudo = {}   # pseudo requirement → (consumer type, label, expression)
     pseudo["tax"] = ("tax", "sim.json governance.taxationRequires", sim["governance"]["taxationRequires"])
     pseudo["stage"] = ("stage", "research.json researchStage.requires", research["researchStage"]["requires"])
+    pseudo.update(knowledge_gates(goods, sim))
     for ag in ages["ages"]:
         for group, items in (ag.get("entry") or {}).items():
             if not isinstance(items, list):
@@ -216,8 +248,11 @@ def build():
         if e["requires"] and not rl.holds(rl.parse(e["requires"]), known):
             disc.append(("unreachable", eid, "requirement can never hold on the graph", "content defect"))
     for r in goods["recipes"]:
+        if not packet_enabled(goods, r):
+            continue   # ADR-056: removed at load with its packet — it gates nothing and needs no link
         if not r.get("entity"):
-            disc.append(("unlinked", f"recipe {r['name']}", "goods.json recipe without a knowledge entity", "OPEN"))
+            if not r.get("knowledge"):
+                disc.append(("unlinked", f"recipe {r['name']}", "goods.json recipe without a knowledge entity or a knowledge gate", "OPEN"))
             continue
         e = entities[r["entity"]]
         if e["requires"] is None:
@@ -229,7 +264,9 @@ def build():
                              "KEPT BASELINE — ownership matrix classifies it A; D-047 left recipe gating to the Director "
                              "(\"no blanket gate\"); the directive named pottery and bronze casting only. Director decision."))
     for p in goods.get("projects") or []:
-        if not p.get("entity"):
+        # A project is gated by its own entity or, for an institution-only project (ADR-057's law court: no building
+        # entity of its own), by the entity it founds — ConstructionQuery.IsProjectAvailable reads both.
+        if not p.get("entity") and not (p.get("founds") or {}).get("entity"):
             disc.append(("unlinked", f"project {p['name']}", "construction project without a knowledge entity", "OPEN"))
     # fixed by R1 (recorded so the history reads in one place)
     disc.append(("fixed", "goods.json recipes", "E15: crafting recipes ran with no knowledge requirement — pottery and bronze before research",
@@ -325,5 +362,54 @@ def build():
     return "\n".join(L)
 
 
+def packet_enabled(goods, row):
+    """ADR-056: a good or recipe naming a disabled packet is removed at load (GoodsConfigLoader), so it gates nothing."""
+    name = row.get("packet")
+    return name is None or any(p["id"] == name and p.get("enabled", True) for p in goods.get("packets") or [])
+
+
+def knowledge_gates(goods, sim):
+    """M6 closure (D-066 R2): the node-expression gates outside research.json entities — goods.json recipes[].knowledge
+    and goods[].knowledge (ADR-056; the loader parses each over EXISTING node ids) and sim.json discovery.assayRequires
+    (ADR-046). Returns {pseudo key: (consumer type, label, expression)}; the rows of a disabled packet are skipped."""
+    out = {}
+    for r in goods["recipes"]:
+        if r.get("knowledge") and packet_enabled(goods, r):
+            out["recipe-knowledge:" + r["name"]] = ("recipe-knowledge", f"recipe `{r['name']}` (goods.json knowledge)", r["knowledge"])
+    for g in goods["goods"]:
+        if g.get("knowledge") and packet_enabled(goods, g):
+            what = "herd" if g.get("herd") else "deposit"
+            out["good-knowledge:" + g["name"]] = ("good-knowledge", f"{what} `{g['name']}` (goods.json knowledge)", g["knowledge"])
+    assay = (sim.get("discovery") or {}).get("assayRequires")
+    if assay:
+        out["assay"] = ("assay", "sim.json discovery.assayRequires (the assay)", assay)
+    return out
+
+
+# M6 closure (D-066 R2): the discrepancy types that BLOCK — `--check` exits 1 on them, as on a stale file. An unlinked
+# recipe or project (no knowledge link at all) and a requirement that can never hold are defects; every other §4 row is a
+# recorded decision (fixed, baseline-claim, deferred, declared-unresolved). A resolution still reading OPEN blocks too.
+BLOCKING = ("unlinked", "unreachable")
+
+
+def blocking_rows(text):
+    """The §4 discrepancy rows of `text` whose type is blocking or whose resolution is OPEN."""
+    rows = []
+    for line in text.splitlines():
+        cells = [c.strip() for c in line.split("|")]
+        if len(cells) == 6 and (cells[1] in BLOCKING or cells[4] == "OPEN"):
+            rows.append(line)
+    return rows
+
+
+def main(argv):
+    text = build()
+    rl.write_or_check(AUDIT, text, argv, TOOL)
+    if "--check" in argv[1:]:
+        bad = blocking_rows(text)
+        if bad:
+            sys.exit(f"{TOOL}: {len(bad)} blocking discrepancy row(s) (unlinked / unreachable / OPEN):\n" + "\n".join(bad))
+
+
 if __name__ == "__main__":
-    rl.write_or_check(AUDIT, build(), sys.argv, TOOL)
+    main(sys.argv)

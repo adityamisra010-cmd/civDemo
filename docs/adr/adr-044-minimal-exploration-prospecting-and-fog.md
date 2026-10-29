@@ -308,3 +308,118 @@ by `copper_smelting`) is superseded by ADR-046 §2: the survey bill (40 grain, 2
 (20 grain, 10 timber, 5 stone, 2 bronze, behind `ore_prospecting`), selected by the Prospect order's Amount (0/1). The fog's
 units are restated in km (ADR-046 §3); `formationSightNodes 1` is the node and its 4 orthogonal neighbours (the sim.json
 "8-neighbourhood" wording was wrong; behaviour unchanged). The text above is kept as written.
+
+---
+**Dated note, 2026-10-28 (M6 closure, track FOG; D-066 §1 R1, §2 A18/A19, §3). The text above is kept as written.**
+Every number below was MEASURED on the track's tree (the M6 closure base + this track) by the agent writing this note.
+
+**1. F-VERIFY — the research-sight fix to the stored extent (§6; ADR-047), independently verified.**
+`DiscoverySystem` builds each polity's stored union with `DiscoveryQuery.KnownBits(prev, f, polity, _cfg.Research)` — the
+SAME formation-sight radius `PolityKnowledge.Of` answers (research-improved, ADR-047). Mutant: the call reverted to
+`KnownBits(prev, f, polity)` (the content radius). Clean: `DiscoveryExtentResearchSightTests` 2/2 pass (≈2 s). Mutant
+(bound: 10× the clean class time): KILLED by the semantic test
+`TheStoredExtent_HoldsTheResearchSightDisc_SoTheLandStaysKnownAfterTheFormationLeaves` — first at its stored-extent
+assertion ("word 57: a node of the radius-2 sight disc is missing from the stored extent"), and, with that assertion
+disabled, independently at its player-visible assertion ("node 3702 of the radius-2 disc was forgotten when the formation
+left"). Not a golden kill. The property is one the system ought to have (D-040 B2: the extent is permanent once gained;
+§6: DiscoverySystem stores the union the query answers). **VERDICT: the fix is correct and its test has teeth.**
+`ResearchExposureControlChangeTests` (the exposure seam across a revolt; 5 tests) pass and are not about the sight radius.
+
+**2. F-MONO — the extent is monotone across revolt and loss of control (D-066 §3, COMPLETED).** New
+`Sim.Tests/Systems/DiscoveryExtentControlChangeTests` (2 tests), the revolt corner of ResearchExposureControlChangeTests
+on the dev world WITH terrain and the shipped fog, stepped by discovery then revolt (the shipped relative order): the
+player explores from the settlement it will lose (radius 3 → 6, land no current control re-derives), the settlement is
+made destitute and revolts into a new AI polity. Pinned turn-exactly: every stored word of the parent's extent survives
+every later step and `PolityKnowledge.Of` still answers it known; the parent keeps knowing the lost place (sighting, E5);
+the revolt-born polity on its FIRST world has no stored row yet its whole seed disc is known through the query, and the
+seed is stored one step later; it inherits none of the parent's explored land. A CAPTURE (the control row moved to the
+rival — the state an M7 conqueror leaves; no production path does it today): the loser keeps every word, the captor knows
+the captured seed at once and stores it the next step. Mutants (each killed by both tests or by the named one): the stored
+extent dropped from `KnownBits` (both); the query-time seed dropped from `PolityKnowledge.Of` (both); `DiscoverySystem`
+storing only polities that already have a row (both).
+
+**3. F-LEAK — the leak gate runs on the production fog (D-066 §3, COMPLETED).** `Sim.Ui.Tests` `KnowledgeLeakTests`
+(the main file and its Military file) run every family on two lenses: **Fog — the gate of record**: the SHIPPED config
+(fog, discovery, military and economy on) and the session's own production view, `PlayerKnowledge.Of(world, player,
+cfg)`, the AI hidden by the REAL fog, no stub; **Stub — a control leg**: the fog-off world through `KnowledgeStubs`. The
+all-known views are the positive controls of both. MEASURED before fixing the rig (seeds 42, 1, 2, 7; turns 0–12;
+canonical 1024 px; one AI Empire): the player knows 0 of the AI's 6 settlements, 0 of its formations and not the polity on
+every seed and turn (174 known lattice nodes of 65 536); the 256 px military rig likewise through turn 6. The fog rig is
+seed 42 after six turns, with one player Explore at turn 0 from its settlement farthest from every AI settlement (so its
+known land reaches past its own catchments — the place card's claim channel needs a known node it does not claim), and
+the AI still unsighted (asserted). The one family that cannot arise under the shipped fog — a step that un-knows a
+settlement (sighting memory is monotone; ghosts are M7) — keeps its stub leg and gains a fog pin that a sighted settlement
+stays known across steps. A known foreign settlement, where a family needs one, is known by a planted sighting row (E5),
+never by a stub. Result: 65/65 (42 → 65 tests). Fog-only mutant (the sighting arm of `KnowsSettlement` reading ANY
+polity's sightings): killed by 18 fog legs, survived by every stub leg — the fog legs see what the stub cannot.
+`PolityKnowledgeTests` gains fog-on legs through the production seam (the seam's answer, the AI site scan, the AI producer
+against foreign books, the formation card) and its stale header ("all-known today") is corrected; its foreign-books
+perturbation now includes foreign civics state (Civics Points purse, civics-tree completions, progress, target).
+
+**4. F-CHANNEL — the AI values only known terrain (D-066 A18, COMPLETED).** `Sim.Core/State/KnownSiting.cs`: region
+fertility summed directly over the KNOWN cells of BoxSum's window (unknown cells add nothing; no integral image, whose
+low bits read cells above-left), water access to the nearest KNOWN water or river cell (the same 4-neighbour metric,
+capped at the cutoff), the score for known land cells, the candidate floor over the known scores, and the known lattice
+nodes. `AiFoundingPolicy` ranks by it, takes its candidate arm, and floods only known nodes
+(`Pathfinder.ReachableWithin`, pinned equal to the uncapped Isochrone with every node admitted) — whenever the seam
+restricts (fog on) and sim.json `colonization.aiFounding.knownTerrainOnly` is true (shipped; absent = true). Fog off, the
+scan is the pre-A18 scan byte for byte (the seam is all-known; every fog-off golden and twin unchanged, MEASURED).
+`FrontierSiting` carries its `SitingConfig` (set by `PrepareFrontier`). The quarantined tooth is inverted to equality
+(`PolityKnowledgeTests.KnownCellsValuations_ReadOnlyKnownTerrain_TerrainUnderUnknownNodesLeavesThePickIdentical_D066A18`:
+the valuation, the pick and the order identical; the switch-off twin moves the pick, as P7 measured). New:
+the valuation identical under half-map fertility/water/river perturbations; the known-reach island test; the fog-on
+production-seam test (every AI order identical under fertility 0 or 1 beneath every unknown node; the twin's founding
+order moves, 15774 → 15516). Mutants: all cells treated as known (4 tests kill); ranking by the whole-map raster (2);
+the whole-component flood (the island test).
+**Recorded residual (not closed; not AI-only): the founding PREDICATE** (`FoundingQuery.Check`, the rule the player's
+placement mode and the AI share) judges its candidate floor over the whole map and spacing and the route over the whole
+lattice, so a perturbation of unknown land can still change the AI's order THROUGH THE RULE (MEASURED: a river under every
+unknown cell refuses the AI's pick, its valuation unchanged). The player is told the same verdict for the same cell.
+Pinned OPEN by `PolityKnowledgeTests.RecordedResidual_ThePredicatesOwnArms_ReadLandTheIssuerDoesNotKnow_SharedByThePlayerAndTheAi`;
+owned with DW-002 by M7 (D-066 A19). NEW DECISION (recorded under D-066's rules — simplest, deterministic, testable,
+reversible): "what a polity assumes of terrain it has not seen" = nothing (zero fertility, no water); the switch reverses
+it.
+
+**Moved pins (the golden protocol; A18 is the only cause on this tree).** The R4 rule: every older twin strips A18 too
+(`TestConfigs.PreMilitary` and `PreEconomyTrack`, through which every chained twin passes), so every older attribution
+control returns its recorded value unchanged (MEASURED: 11 failing controls on the first run, 0 after).
+
+| pin | old | new | control (returns old exactly) |
+|---|---|---|---|
+| AI world seed 42 t300 `AiFoundingAttributionTests.S1cTurn300` | `ac4554bfdcd3d5b6…` | `7aed09b9c85948aa…` | `TestConfigs.PreAiKnownTerrain` (`AiWorldTurn300_WithTheKnownTerrainValuationOff_IsThePreA18World`) |
+| its economy projection `S1cTurn300PreEconomy` | `3153b7e3214ecd21…` | `2b4d88e0b6f21ee8…` | the same twin |
+| `AiEmpireIntegrationTests` canonical AI: levy / first levy | 380 / 381 | 381 / 382 | `OneAiEmpire_WithTheKnownTerrainValuationOff_EveryPinReturnsItsPreA18Value` |
+| the same: foundings | 38, 78, 114, 151, 189, 225, 296, 367 | 44, 80, 116, 152, 188, 224, 295, 366 | the same |
+| §3's realized concealed share, AI world seed 1, turn 300 (`DiscoveryTests.RealizedConcealedShare_…`) | 9 / 38 | 9 / 36 (0.250, one colony fewer by turn 300); seeds 2, 42, 7 unchanged | `RealizedConcealedShare_Seed1Turn300_WithTheKnownTerrainValuationOff_IsThePreA18Count` |
+| founded `d5ebd0b2c642ec5c…` (ci.yml `FOUNDED_GOLDEN`), driven `55afd498a326ab2a…`, first reign `064ed6b76374dea4…` | — | unchanged (MEASURED: SnapshotTests, DrivenGoldenTests, FirstReignTests pass) | — |
+
+Cause of the AI moves: valuing only known terrain, the AI explores longer before its first founding (Explore stamped
+35–43; first founding 44, was 38). Three harness adjustments, no pin moved: the headless gate's `PlayabilityGate.LegalPlace`
+(the place the gate clicks for the player) ranks the player's KNOWN legal cells with the whole-map valuation — with the AI's
+known-terrain floor it found none in 12 of 13 states and `found-confirm` went uncovered (MEASURED: `--smoke --monkey 200`
+24 FAIL → 0 FAIL, SMOKE PASSED); and `IdentityDriftGuardTests`' recorder used the
+AI ranking as a site FINDER for the player and, under the fog, now finds no site after its two expeditions (MEASURED:
+`OffMap` on the -1 it returned), so it ranks with the twin's whole-map valuation (its predicate check unchanged); and
+`MapTopologyGuardTests` allowlists `KnownSiting`'s three column lines with reasons (its x steps go through
+`MapTopology.NeighbourX`). ci.yml's 600-turn AI leg (one local `run` + the kind check): 349 orders (was 365),
+9 Explore, 11 foundings, kind set unchanged.
+
+**5. F-BENCH — the discovery layer's cost (D-066 §3, COMPLETED).** `sim bench` now takes the layer switches
+(`--without-discovery`, `--without-tranche2`, `--without-economy`). `sim bench --founded --seed 42 --turns 300 --json`,
+three runs of each arm alternated, under `/tmp/civdemo-full-suite.lock`, Release, the track's tree (load average 2–7 on
+4 shared CPUs — wall times are indicative):
+
+| arm | total ms (3 runs) | median total | `discovery` phase median | clone bytes / turn |
+|---|---|---|---|---|
+| discovery on (shipped) | 31 971, 30 751, 33 056 | **31 971 ms** | **113.3 ms** (0.35 % of the step) | 146 815 |
+| `--without-discovery` | 34 912, 32 501, 31 833 | **32 501 ms** | 4.8 ms (the system returns at once) | 145 249 |
+
+The layer costs ≈ 0.11 s of discovery-system time per 300 turns (≈ 0.36 ms a step) and +1 566 B of clone per turn; the
+totals differ by less than their run-to-run spread. Caveats: `--without-discovery` also turns the military layer off (the
+R4 rule, as the CLI documents), which the `military` phase shows (≈ 18 ms on, 2 ms off); bench issues no orders, so the
+AI's A18 valuation (paid only on turns an AI founding is due) is not in it — the 600-turn AI leg above ran in 1 m 44 s.
+
+**6. Deferred, per D-066 R1 / A19 (unchanged here):** ghost rows and display, scouts, sighting from moving formations —
+M7 (H7-01, H7-07; `m7-handoff-register.md` note 2026-10-28); claim, trade and road routing against the known extent
+(DW-001, DW-006) and the predicate residual (DW-002) — M7 with the movement / route graph
+(`deferred-work-register.md` note 2026-10-28).

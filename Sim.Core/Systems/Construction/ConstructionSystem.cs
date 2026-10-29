@@ -347,7 +347,7 @@ public sealed class ConstructionSystem(SimConfig cfg) : ISimSystem<ConstructionT
             if (!(ConstructionQuery.CapacityAdultYears(prev, _cfg, settlement, ctx.DtYears) >= project.LaborRequired)) continue;
             SettlementId[] holders = ConstructionQuery.Holders(prev, _cfg, settlement);
             if (!ConstructionQuery.MaterialsAvailable(ctx.Owned.GoodStocks, goods, holders, project)) continue;
-            if (InstitutionContent.FoundsInstitution(project) && !InstitutionViability.ToFound(prev, _cfg, settlement).Viable) continue;
+            if (InstitutionContent.FoundsInstitution(project) && !InstitutionViability.ToFound(prev, _cfg, settlement, project).Viable) continue;
 
             for (int i = 0; i < project.Inputs.Length; i++)
             {

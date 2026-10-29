@@ -217,6 +217,43 @@ public static class Pathfinder
     }
 
     /// <summary>
+    /// D-066 A18 (M6 closure, track FOG) — the nodes an UNCAPPED <see cref="Isochrone"/> from <paramref name="origin"/>
+    /// reaches when the expansion may enter only the nodes <paramref name="admitted"/> marks (one entry per lattice node):
+    /// the same Dijkstra, the same edge set (8-neighbourhood steps and the network overlay's lanes) and the same relaxation,
+    /// with every non-admitted node closed before the first pop — so a path through a non-admitted node is never taken and
+    /// no step into one is ever costed. With every node admitted the answer is exactly <see cref="Isochrone"/>(origin,
+    /// double.MaxValue)'s reached set (pinned). A non-admitted origin reaches nothing. Caller: AiFoundingPolicy's
+    /// known-terrain reachability (the AI's reach over the land its polity knows).
+    /// </summary>
+    public static bool[] ReachableWithin(TraversalLattice lattice, IReadOnlyWorldState world, int origin, ReadOnlySpan<bool> admitted)
+    {
+        int n = lattice.NodeCount;
+        if (admitted.Length != n) throw new ArgumentException("one admission entry per lattice node", nameof(admitted));
+        LaneOverlay overlay = BuildOverlay(lattice, world);
+        var g = new double[n];
+        var closed = new bool[n];
+        Array.Fill(g, double.MaxValue);
+        for (int i = 0; i < n; i++) closed[i] = !admitted[i];   // never entered, never expanded
+
+        var reached = new bool[n];
+        var open = new MinHeap(256);
+        if ((uint)origin < (uint)n && admitted[origin] && lattice.IsPassable(origin))
+        {
+            g[origin] = 0.0;
+            open.Push(0.0, origin);
+        }
+        while (open.Count > 0)
+        {
+            (_, int current) = open.Pop();
+            if (closed[current]) continue;
+            closed[current] = true;
+            reached[current] = true;
+            Expand(lattice, overlay, current, g, null, closed, (node, tentative) => open.Push(tentative, node));
+        }
+        return reached;
+    }
+
+    /// <summary>
     /// The catchment PARTITION (T2.3, m2 spec §3): every settlement origin
     /// claims lattice nodes by the composite key (travel cost, settlement
     /// id) — one owner array cell, so no node is ever claimed twice BY

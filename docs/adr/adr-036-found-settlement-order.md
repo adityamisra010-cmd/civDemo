@@ -545,3 +545,13 @@ Suites on this tree:
 - Targeted Sim.Tests: 206 passed, 2 skipped.
 - The three gate scripts: OK.
 - `--smoke --monkey 200`: the same counts as the S1d record (2417 checks, 2288 pass, 129 not offered, 0 FAIL).
+
+---
+**Dated note, 2026-10-28 (D-066 §2 A18; M6 closure track FOG). §8 and §8.3 are unchanged above.** §8.3's "third channel"
+— the VALUATION of a known cell integrating terrain under unknown nodes — is CLOSED and struck: under the fog
+`AiFoundingPolicy` ranks by the issuer's `KnownSiting` (fertility, water access and the candidate floor over known terrain)
+and floods only known lattice nodes; §8's "the reachability flood still crosses the issuer's whole connected component"
+is closed with it. Fog off, the seam restricts nothing and the scan is the pre-A18 scan byte for byte. What §8 and §8.3
+recorded of the predicate's own arms (occupancy, spacing, claimed masks, and now the whole-map floor and route) stays
+the rule shared with the player's order — recorded as a residual with DW-002, M7 (D-066 A19). Evidence and moved pins:
+ADR-044 dated note of 2026-10-28.

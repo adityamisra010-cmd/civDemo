@@ -360,8 +360,19 @@ public class AiEmpireIntegrationTests
         // and the holdings unchanged. CAUSE: the military layer — the founding warbands' people leave their capitals' adults and
         // eat grain (with military.aiRecruitment off: 135/136, 380/381, A3 344, MEASURED — the AI's one recruitment moves A3 by
         // one turn). CONTROL: OneAiEmpire_WithTheMilitaryLayerOff_EveryPinReturnsItsPreAdr055Value returns 134/135, 379/380, 343.
-        Assert.Equal((135L, 136L, 380L, 381L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
-        Assert.Equal(345L, p.A3At);                          // the AI entered A3 (ADR-055: 343 -> 345; (ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422; CP: 422 -> 440; M6 merged: 440 -> 579; ADR-046: 579 -> 407; §6: 407 -> 416; D-063: 416 -> 341; ADR-054: 341 -> 343)
+        // ADR-058 RE-PIN (M6 closure, track KNOW, 2026-10-28; MEASURED on the KNOW tree by the agent writing this line,
+        // in-test harness): A3 345 -> 343; targets, first build, advance, road, levy, foundings and holdings unchanged. CAUSE:
+        // the Eurekas ADR-058 §B made evaluable (site and deposit conditions) fire for the AI and credit its A3 closure
+        // sooner; the exposure writer writes nothing here (no foreign trade). CONTROL:
+        // OneAiEmpire_WithTheKnowLayerOff_EveryPinReturnsItsPreAdr058Value (TestConfigs.PreKnow) returns 345.
+        // D-066 A18 RE-PIN (M6 closure track FOG, 2026-10-28; MEASURED on the FOG tree by the agent writing this line, in-test
+        // harness): levy 380/381 -> 381/382; road, A3 345, targets, first build and the advance unchanged. CAUSE: the AI's
+        // known-terrain valuation (KnownSiting) — the foundings move (below) and the levy with them. CONTROL:
+        // OneAiEmpire_WithTheKnownTerrainValuationOff_EveryPinReturnsItsPreA18Value returns 380/381 and the old foundings.
+        // M6 INTEGRATION RE-PIN (KNOW + FOG combined; MEASURED on the integrated tree): levy 373/374, A3 344 (foundings as FOG's).
+        // CONTROLS: PreKnow returns FOG's 381/382, A3 345; PreAiKnownTerrain returns KNOW's 380/381, A3 343.
+        Assert.Equal((135L, 136L, 373L, 374L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(344L, p.A3At);                          // the AI entered A3 (ADR-058: 345 -> 343; ADR-055: 343 -> 345; (ADR-035: 463 -> 458 -> 462 -> 461; D-051 1(b): 461 -> 451; S1c: 451 -> 423; batch 3: 423 -> 422; CP: 422 -> 440; M6 merged: 440 -> 579; ADR-046: 579 -> 407; §6: 407 -> 416; D-063: 416 -> 341; ADR-054: 341 -> 343)
 
         // S1c (ADR-036 §8): the AI EXPANDS through the player's Found Settlement order — one per 350 years at most, each
         // a colony it controls. MEASURED on this tree: eight orders by the first levy, the polity holding 6 + 8 = 14
@@ -375,7 +386,42 @@ public class AiEmpireIntegrationTests
         // ADR-046 RE-PIN (2026-10-23; MEASURED): the run ends at the first levy (407), so the foundings stamped 438 and 509 no
         // longer stand before it: ten orders -> eight (the cadence unchanged), 16 settlements -> 14.
         // ADR-054 (2026-10-27; MEASURED): the foundings and holdings are unchanged (eight orders, 14 settlements).
+        // D-066 A18 RE-PIN (2026-10-28; MEASURED, cause and control as the levy above): the foundings 38, 78, 114, 151, 189,
+        // 225, 296, 367 -> 44, 80, 116, 152, 188, 224, 295, 366 — valuing only the terrain it knows, the AI explores longer
+        // before its first founding (Explore stamped 35…43) and founds at 44; eight orders and 14 settlements unchanged.
+        Assert.Equal([44L, 80L, 116L, 152L, 188L, 224L, 295L, 366L], p.Founds);
+        Assert.Equal(14, p.Controlled);
+    }
+
+    /// <summary>D-066 A18 (M6 closure track FOG, 2026-10-28) — THE ATTRIBUTION CONTROL of the A18 re-pins above: the same run
+    /// with ONLY the AI's known-terrain valuation off (TestConfigs.PreAiKnownTerrain, a single-layer twin) returns every pre-A18
+    /// value, so the valuation is the whole of their move.</summary>
+    [Fact]
+    public void OneAiEmpire_WithTheKnownTerrainValuationOff_EveryPinReturnsItsPreA18Value()
+    {
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.Worldgen(), TestConfigs.PreAiKnownTerrain(Cfg));
+        Assert.Equal(["cereal_cultivation", "oral_tradition"], p.FirstTargets!);
+        Assert.Equal((0L, 2L, 66L, 67L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        // M6 integration: the KNOW layer stays on, so A18 off returns KNOW's values (control (b)).
+        Assert.Equal((135L, 136L, 380L, 381L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(343L, p.A3At);
         Assert.Equal([38L, 78L, 114L, 151L, 189L, 225L, 296L, 367L], p.Founds);
+        Assert.Equal(14, p.Controlled);
+    }
+
+    /// <summary>ADR-058 (M6 closure, track KNOW, 2026-10-28) — THE ATTRIBUTION CONTROL of the ADR-058 re-pin above: the same
+    /// run with the KNOW layer off (TestConfigs.PreKnow: no exposure writer, the seven Eurekas future-system again) returns
+    /// every pre-ADR-058 value (the base tree's pins).</summary>
+    [Fact]
+    public void OneAiEmpire_WithTheKnowLayerOff_EveryPinReturnsItsPreAdr058Value()
+    {
+        CanonicalAiPins p = RunCanonicalAi(TestConfigs.Worldgen(), TestConfigs.PreKnow(Cfg));
+        Assert.Equal(["cereal_cultivation", "oral_tradition"], p.FirstTargets!);
+        Assert.Equal((0L, 2L, 66L, 67L), (p.Target1, p.FirstBuild, p.Advance, p.AdvancedAt));
+        // M6 integration: D-066 A18 stays on, so KNOW off returns the FOG-only values (control (a)).
+        Assert.Equal((135L, 136L, 381L, 382L), (p.Road, p.FirstRoad, p.Tax, p.FirstTax));
+        Assert.Equal(345L, p.A3At);
+        Assert.Equal([44L, 80L, 116L, 152L, 188L, 224L, 295L, 366L], p.Founds);
         Assert.Equal(14, p.Controlled);
     }
 

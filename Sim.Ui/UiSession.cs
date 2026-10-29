@@ -1117,6 +1117,35 @@ public sealed class UiSession
                 GatesState: "not-recorded — no gate-verdict producer exists in this build"));
     }
 
+    /// <summary>
+    /// ADR-059 (D-066 A14–A17) — THE ONE-FILE SESSION EXPORT, at session close: <c>session-STAMP.xlsx</c> beside the
+    /// manifest, built from the six session files alone (<see cref="Export.SessionWorkbook"/>). Called AFTER
+    /// <see cref="FinalizeTelemetry"/> and <see cref="ExportForensicClose"/>: it reads the files and writes only the
+    /// workbook, so every one of the six keeps the hash the close record gave it, and the close record does not list the
+    /// workbook. A refusal (a named <see cref="Export.SessionExportException"/>) writes no workbook and is reported on
+    /// <paramref name="errors"/>; it never blocks the exit — the six files are already complete. Returns the path, or
+    /// null when nothing was written (no manifest on disk — a session whose launcher wrote none — or a refusal).
+    /// </summary>
+    public string? ExportWorkbook(string sessionLogPath, TextWriter? errors = null)
+    {
+        string manifest = ManifestPath(sessionLogPath);
+        if (!File.Exists(manifest)) return null;
+        try
+        {
+            return Export.SessionWorkbook.ExportBeside(manifest).Path;
+        }
+        catch (Export.SessionExportException e)
+        {
+            errors?.WriteLine("session workbook not written: " + e.Message);
+            return null;
+        }
+        catch (IOException e)
+        {
+            errors?.WriteLine("session workbook not written: " + e.Message);
+            return null;
+        }
+    }
+
     /// <summary>Exports the annals of the SESSION RECORD (<see cref="RecordAnnalLines"/>), one per line,
     /// fixed \n (byte-identical across identical runs). D-060: world-wide, as before — the scope decision keeps the
     /// session files the replay/forensic record; the in-game ANNALS panel (<see cref="AnnalLines"/>) is the filtered view.

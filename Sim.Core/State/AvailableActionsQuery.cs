@@ -798,16 +798,17 @@ public static class AvailableActionsQuery
             foreach (ConstructionProjectEntry project in projects)
             {
                 if (project.Founds is not { } founds) continue;
-                if (InstitutionContent.TypeOf(research, InstitutionContent.TypeKeyOf(research, project)) is not { } type) continue;
+                // ADR-057: every content-driven institution type (a university, or a sim.json type such as the law court).
+                if (InstitutionContent.Info(cfg, InstitutionContent.TypeKeyOf(cfg, project)) is not { } type) continue;
                 if (!ConstructionQuery.IsProjectAvailable(world, cfg, polity, settlement, project.Id)) continue;
 
                 long here = 0;
                 for (int i = 0; i < world.Institutions.Count; i++)
                     if (world.Institutions[i].Settlement == settlement && world.Institutions[i].Type == type.Key) here++;
-                string detail = research.Branches[type.Branch].Name + " research"
+                string detail = (type.Branch >= 0 ? research.Branches[type.Branch].Name + " research" : "public services (the levy's offset)")
                     + " · " + Inputs(project) + $" · {Num(project.LaborRequired)} adult-years"
                     + (here > 0 ? $" · {Inv(here)} here" : "");
-                if (cfg.Institutions is { } institutions)
+                if (cfg.Institutions is { } institutions && type.Branch >= 0)
                 {
                     double x = InstitutionEffects.MaturityWeighted(world, polity, type.Key);
                     double cut = InstitutionEffects.MaxResearchCostReduction(world, cfg, polity) * InstitutionEffects.NextMarginal(x);

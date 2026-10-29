@@ -94,7 +94,32 @@ public sealed record SimConfig(
     // defaulted tail: absent (or enabled false) the founding warband stays the ADR-031 token, MilitarySystem writes nothing
     // and every military order is refused — the pre-ADR-055 world byte for byte through the v37 projection (the attribution
     // control TestConfigs.PreMilitary). The canonical sim.json carries it, ON.
-    [property: JsonPropertyName("military")] MilitaryConfig? Military = null);
+    [property: JsonPropertyName("military")] MilitaryConfig? Military = null,
+    // ADR-057 (D-D option 1; D-066 A2 item 2, A10, A13): the regime-module data shape — READ-ONLY in M6 (no adoption order,
+    // no stored regime state, no political effect: M8). OPTIONAL and in the defaulted tail: absent, the regime read surface reports no
+    // module, no form and an empty label; nothing in the simulation reads it either way (RegimeLabelSourceGuardTests).
+    [property: JsonPropertyName("regime")] RegimeConfig? Regime = null);
+
+/// <summary>
+/// ADR-057 — THE REGIME SECTION (D-D option 1, RULED: M6 = availability, M8 = adoption). <c>BaseLabel</c>: the government
+/// label of a polity with no adopted form (no form is adopted before M8). <c>Modules</c>: the regime modules, each PRESENT
+/// while its condition holds in the world (derived every read, never stored). <c>Forms</c>: the government-form civics
+/// (research.json civic ids), shown "Available — adoption in M8" once researched (D-066 A10) and proved optional for the
+/// next Age at load (D-066 A6, I-7: <see cref="Sim.Core.State.RegimeContent.OptionalityViolations"/>).
+/// </summary>
+public sealed record RegimeConfig(
+    [property: JsonPropertyName("baseLabel"), JsonRequired] string BaseLabel,
+    [property: JsonPropertyName("modules"), JsonRequired] RegimeModuleConfig[] Modules,
+    [property: JsonPropertyName("forms"), JsonRequired] string[] Forms);
+
+/// <summary>ADR-057 — one regime module: its id and name; the institution type (an institutions.types id or a research.json
+/// university type id) whose ACTIVE institution (founded: Active or Mature) the owner must hold for the module to be present;
+/// and the qualifier it contributes to the DERIVED label ("law-giving" → "law-giving chiefdom").</summary>
+public sealed record RegimeModuleConfig(
+    [property: JsonPropertyName("id"), JsonRequired] string Id,
+    [property: JsonPropertyName("name"), JsonRequired] string Name,
+    [property: JsonPropertyName("institutionType"), JsonRequired] string InstitutionType,
+    [property: JsonPropertyName("qualifier"), JsonRequired] string Qualifier);
 
 /// <summary>
 /// ADR-055 — THE MILITARY SECTION. <c>Enabled</c>: THE SWITCH (false or absent: tokens only — the attribution control).
@@ -280,17 +305,50 @@ public sealed record ColonizationConfig(
 ///   of the canonical 12 at founding reaches at this pace by about the historical Iron Age. A DURATION in years
 ///   (law 3), measured as a LOWER bound (turns elapsed × the current turn length: the era table only ever shortens
 ///   turns), so it never opens early.</item>
+/// <item><c>KnownTerrainOnly</c> (true; absent = true): D-066 A18 (M6 closure) — THE SWITCH, IDENTITY (a rule, not a
+///   magnitude). True: under a restricting knowledge seam (the fog on) the site scan VALUES cells only by the terrain the
+///   polity knows — region fertility, water access, the candidate floor and the reachability flood
+///   (<see cref="State.KnownSiting"/>; ADR-044 dated note 2026-10-28). False: the frontier's whole-map raster, floor and
+///   flood, as before A18 — the golden-attribution control only (TestConfigs.PreAiKnownTerrain), never a gameplay
+///   setting. With the fog off the seam restricts nothing and the switch changes nothing.</item>
 /// </list>
 /// </summary>
 public sealed record AiFoundingConfig(
     [property: JsonPropertyName("enabled"), JsonRequired] bool Enabled,
     [property: JsonPropertyName("minSourcePopulation"), JsonRequired] long MinSourcePopulation,
-    [property: JsonPropertyName("minYearsBetweenFoundings"), JsonRequired] double MinYearsBetweenFoundings);
+    [property: JsonPropertyName("minYearsBetweenFoundings"), JsonRequired] double MinYearsBetweenFoundings,
+    [property: JsonPropertyName("knownTerrainOnly")] bool KnownTerrainOnly = true);
 
-/// <summary>ADR-033 D6 — the institutions section of sim.json. Today it carries the five specialized
-/// universities' tuning only; other institution types follow the same lifecycle later (out of scope).</summary>
+/// <summary>ADR-033 D6 — the institutions section of sim.json: the five specialized universities' tuning
+/// (<c>universities</c>) and — ADR-057 (D-066 A1: institution types are content-driven) — <c>types</c>, every OTHER
+/// institution type, each with its own lifecycle profile (viability, staffing, maturity). Absent <c>types</c> = none
+/// (the pre-ADR-057 world, bit for bit).</summary>
 public sealed record InstitutionsConfig(
-    [property: JsonPropertyName("universities"), JsonRequired] UniversitiesConfig Universities);
+    [property: JsonPropertyName("universities"), JsonRequired] UniversitiesConfig Universities,
+    [property: JsonPropertyName("types")] InstitutionTypeConfig[]? Types = null);
+
+/// <summary>
+/// ADR-057 (D-066 A1) — ONE CONTENT-DRIVEN INSTITUTION TYPE beyond the universities, on ADR-028's lifecycle
+/// (InstitutionRow, Locked → Available → Active → Mature): its key (stored in <c>InstitutionRow.Type</c>; unique across
+/// research.json <c>universityTypes</c> and this list), id (what a goods.json project's <c>founds.institutionType</c>
+/// names), display name, and its PROFILE — the same seven lifecycle numbers a university reads from
+/// <c>institutions.universities</c>, owned per type: maturation and decay e-folds, the MATURE reading, the staff share
+/// of its market at maturity (the D-021 brake), the host market one instance needs, and the founding / sustaining
+/// food-surplus thresholds. A type here has no research branch: the ADR-029 §9 cost seam stays the universities' (it is
+/// keyed by research.json university type). Its effects come only through coefficients inside named equations (D-066 A1)
+/// — the law court's maturity is a term of <c>Unrest.ServiceOffset</c>'s X like every institution's.
+/// </summary>
+public sealed record InstitutionTypeConfig(
+    [property: JsonPropertyName("key"), JsonRequired] int Key,
+    [property: JsonPropertyName("id"), JsonRequired] string Id,
+    [property: JsonPropertyName("name"), JsonRequired] string Name,
+    [property: JsonPropertyName("maturityTauYears"), JsonRequired] double MaturityTauYears,
+    [property: JsonPropertyName("decayTauYears"), JsonRequired] double DecayTauYears,
+    [property: JsonPropertyName("matureAt"), JsonRequired] double MatureAt,
+    [property: JsonPropertyName("staffShareAtMaturity"), JsonRequired] double StaffShareAtMaturity,
+    [property: JsonPropertyName("adultsPerInstitution"), JsonRequired] long AdultsPerInstitution,
+    [property: JsonPropertyName("foundingFoodSurplusRatio"), JsonRequired] double FoundingFoodSurplusRatio,
+    [property: JsonPropertyName("sustainingFoodSurplusRatio"), JsonRequired] double SustainingFoodSurplusRatio);
 
 /// <summary>
 /// ADR-033 D6 — THE UNIVERSITY LIFECYCLE'S TUNING (every number TUNE; each reference class is in
@@ -1074,6 +1132,7 @@ public static class SimConfigLoader
         ValidateTradeAgainstContent(cfg);
         ValidateProjectsAgainstContent(cfg.Goods, cfg.Research);
         ValidateInstitutionsAgainstContent(cfg);
+        ValidateRegimeAgainstContent(cfg);
         ValidateDiscoveryAgainstResearch(cfg);
         return cfg;
     }
@@ -1095,7 +1154,12 @@ public static class SimConfigLoader
     {
         Ages.UnitFamilyContent families = Ages.UnitFamilyContentLoader.Load(unitFamiliesJson, cfg.Research, cfg.Goods);
         Ages.AgeContent ages = Ages.AgeContentLoader.Load(agesJson, cfg.Research, cfg.Goods, cfg.Registries, families);
-        return cfg with { Ages = ages, UnitFamilies = families };
+        SimConfig result = cfg with { Ages = ages, UnitFamilies = families };
+        // ADR-057 (D-066 A6, m6-spec I-7): "optional" = not needed for the next Age — no government form is necessary for
+        // entering the Age after its own (or any earlier one). Refused here, where research, Ages and the regime meet.
+        if (Sim.Core.State.RegimeContent.OptionalityViolations(result) is { Count: > 0 } violations)
+            throw new SimConfigException("regime.forms: a government form is needed for the next Age (D-066 A6, I-7): " + string.Join("; ", violations));
+        return result;
     }
 
     /// <summary>
@@ -1251,6 +1315,7 @@ public static class SimConfigLoader
         if (cfg.Roads is not null) ValidateRoads(cfg.Roads);
         if (cfg.Governance is not null) ValidateGovernance(cfg.Governance);
         if (cfg.Institutions is not null) ValidateInstitutions(cfg.Institutions);
+        if (cfg.Regime is not null) ValidateRegime(cfg.Regime);
         if (cfg.Granaries is not null) ValidateGranaries(cfg.Granaries);
         if (cfg.Construction is { AllocationRatios: true } construction && !(construction.Incremental && construction.EmpireStockpile))
             throw new SimConfigException(
@@ -1554,6 +1619,7 @@ public static class SimConfigLoader
             if (research.Entities[e].Kind != Research.ResearchEntityKind.Institution)
                 throw new SimConfigException($"goods.json projects: '{p.Name}' founds entity '{founds.Entity}' of kind {research.Entities[e].Kind} — " +
                                              "what a project founds is an institution.");
+            if (founds.UniversityType is null) continue;   // ADR-057: an institutionType is sim.json's (ValidateInstitutionsAgainstContent)
             bool known = false;
             foreach (Research.UniversityType u in research.UniversityTypes)
                 if (string.Equals(u.Id, founds.UniversityType, StringComparison.Ordinal)) { known = true; break; }
@@ -1598,6 +1664,35 @@ public static class SimConfigLoader
             throw new SimConfigException($"{p}maxMortalityReduction must be in [0,1), got {Inv(u.MaxMortalityReduction)}.");
         if (!(u.HealthDecayCostUnits > 0.0) || !double.IsFinite(u.HealthDecayCostUnits))
             throw new SimConfigException($"{p}healthDecayCostUnits must be a finite value > 0, got {Inv(u.HealthDecayCostUnits)}.");
+        // ADR-057: every other institution type's profile on the same rules as the universities', keys and ids unique
+        // (against research.json universityTypes where the files meet: ValidateInstitutionsAgainstContent).
+        InstitutionTypeConfig[] types = cfg.Types ?? [];
+        for (int i = 0; i < types.Length; i++)
+        {
+            InstitutionTypeConfig t = types[i];
+            string q = $"institutions.types[{i}].";
+            if (t is null) throw new SimConfigException($"{q[..^1]} is null.");
+            if (t.Key <= 0) throw new SimConfigException($"{q}key must be > 0 (it is stored in InstitutionRow.Type), got {t.Key}.");
+            if (string.IsNullOrWhiteSpace(t.Id)) throw new SimConfigException($"{q}id must be non-empty.");
+            if (string.IsNullOrWhiteSpace(t.Name)) throw new SimConfigException($"{q}name must be non-empty.");
+            for (int j = 0; j < i; j++)
+                if (types[j].Key == t.Key || string.Equals(types[j].Id, t.Id, StringComparison.Ordinal))
+                    throw new SimConfigException($"{q}key {t.Key} / id '{t.Id}' repeats institutions.types[{j}] — one entry per type.");
+            if (!(t.MaturityTauYears > 0.0) || !double.IsFinite(t.MaturityTauYears))
+                throw new SimConfigException($"{q}maturityTauYears must be a finite value > 0, got {Inv(t.MaturityTauYears)}.");
+            if (!(t.DecayTauYears > 0.0) || !double.IsFinite(t.DecayTauYears))
+                throw new SimConfigException($"{q}decayTauYears must be a finite value > 0, got {Inv(t.DecayTauYears)}.");
+            if (!(t.MatureAt > 0.0 && t.MatureAt < 1.0))
+                throw new SimConfigException($"{q}matureAt must be in (0,1), got {Inv(t.MatureAt)}.");
+            if (!(t.StaffShareAtMaturity >= 0.0 && t.StaffShareAtMaturity <= 1.0))
+                throw new SimConfigException($"{q}staffShareAtMaturity must be in [0,1], got {Inv(t.StaffShareAtMaturity)}.");
+            if (t.AdultsPerInstitution <= 0)
+                throw new SimConfigException($"{q}adultsPerInstitution must be > 0 (the host market of one instance).");
+            if (!(t.SustainingFoodSurplusRatio >= 0.0) || !double.IsFinite(t.SustainingFoodSurplusRatio))
+                throw new SimConfigException($"{q}sustainingFoodSurplusRatio must be a finite value >= 0, got {Inv(t.SustainingFoodSurplusRatio)}.");
+            if (!(t.FoundingFoodSurplusRatio >= t.SustainingFoodSurplusRatio) || !double.IsFinite(t.FoundingFoodSurplusRatio))
+                throw new SimConfigException($"{q}foundingFoodSurplusRatio must be finite and >= sustainingFoodSurplusRatio, got {Inv(t.FoundingFoodSurplusRatio)}.");
+        }
     }
 
     /// <summary>M5 item 5: the granary effects' tuning — a named project, both ceilings in [0, 1) (the famine factor
@@ -1751,10 +1846,70 @@ public static class SimConfigLoader
         throw new SimConfigException($"granaries.project '{g.Project}' is not a goods.json projects name.");
     }
 
-    /// <summary>ADR-033 D6: the health type names a research.json university type.</summary>
+    /// <summary>ADR-057: the regime section's shape — a non-empty base label; modules with non-empty, unique ids and non-empty
+    /// names, institution types and qualifiers; non-empty, unique form ids.</summary>
+    private static void ValidateRegime(RegimeConfig r)
+    {
+        if (string.IsNullOrWhiteSpace(r.BaseLabel)) throw new SimConfigException("regime.baseLabel must be non-empty.");
+        for (int i = 0; i < r.Modules.Length; i++)
+        {
+            RegimeModuleConfig m = r.Modules[i];
+            if (m is null || string.IsNullOrWhiteSpace(m.Id) || string.IsNullOrWhiteSpace(m.Name)
+                || string.IsNullOrWhiteSpace(m.InstitutionType) || string.IsNullOrWhiteSpace(m.Qualifier))
+                throw new SimConfigException($"regime.modules[{i}] must name a non-empty id, name, institutionType and qualifier.");
+            for (int j = 0; j < i; j++)
+                if (string.Equals(r.Modules[j].Id, m.Id, StringComparison.Ordinal))
+                    throw new SimConfigException($"regime.modules[{i}].id '{m.Id}' repeats regime.modules[{j}].");
+        }
+        for (int i = 0; i < r.Forms.Length; i++)
+        {
+            if (string.IsNullOrWhiteSpace(r.Forms[i])) throw new SimConfigException($"regime.forms[{i}] must be non-empty.");
+            for (int j = 0; j < i; j++)
+                if (string.Equals(r.Forms[j], r.Forms[i], StringComparison.Ordinal))
+                    throw new SimConfigException($"regime.forms[{i}] '{r.Forms[i]}' repeats regime.forms[{j}].");
+        }
+    }
+
+    /// <summary>ADR-057: every regime form is a research.json CIVIC, and every module's institution type is a defined type.</summary>
+    private static void ValidateRegimeAgainstContent(SimConfig cfg)
+    {
+        if (cfg.Regime is not { } r || cfg.Research is not { } research) return;
+        foreach (string id in r.Forms)
+        {
+            int i = research.IndexOfId(id);
+            if (i < 0 || research.Nodes[i].Tree != Research.ResearchTree.Civics)
+                throw new SimConfigException($"regime.forms: '{id}' is not a research.json civic.");
+        }
+        foreach (RegimeModuleConfig m in r.Modules)
+        {
+            bool known = false;
+            foreach (Sim.Core.State.InstitutionTypeInfo t in Sim.Core.State.InstitutionContent.Types(cfg))
+                if (string.Equals(t.Id, m.InstitutionType, StringComparison.Ordinal)) { known = true; break; }
+            if (!known)
+                throw new SimConfigException($"regime.modules: '{m.Id}' names institution type '{m.InstitutionType}', which neither sim.json institutions.types nor research.json universityTypes defines.");
+        }
+    }
+
+    /// <summary>ADR-033 D6: the health type names a research.json university type. ADR-057: no institutions.types key or
+    /// id repeats a research.json university type's (one key space in InstitutionRow.Type), and every goods.json project
+    /// that founds an <c>institutionType</c> names an institutions.types id.</summary>
     private static void ValidateInstitutionsAgainstContent(SimConfig cfg)
     {
         if (cfg.Institutions is null || cfg.Research is null) return;
+        foreach (InstitutionTypeConfig t in cfg.Institutions.Types ?? [])
+            foreach (Research.UniversityType u in cfg.Research.UniversityTypes)
+                if (u.Key == t.Key || string.Equals(u.Id, t.Id, StringComparison.Ordinal))
+                    throw new SimConfigException($"institutions.types: key {t.Key} / id '{t.Id}' collides with research.json university type " +
+                                                 $"{u.Key} '{u.Id}' — institution type keys share InstitutionRow.Type.");
+        foreach (ConstructionProjectEntry p in cfg.Goods?.Projects ?? [])
+        {
+            if (p.Founds?.InstitutionType is not { } typeId) continue;
+            bool known = false;
+            foreach (InstitutionTypeConfig t in cfg.Institutions.Types ?? [])
+                if (string.Equals(t.Id, typeId, StringComparison.Ordinal)) { known = true; break; }
+            if (!known)
+                throw new SimConfigException($"goods.json projects: '{p.Name}' founds institution type '{typeId}', which sim.json institutions.types does not define.");
+        }
         string health = cfg.Institutions.Universities.HealthType;
         foreach (Research.UniversityType u in cfg.Research.UniversityTypes)
             if (string.Equals(u.Id, health, StringComparison.Ordinal)) return;

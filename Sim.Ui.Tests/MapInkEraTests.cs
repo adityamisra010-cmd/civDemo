@@ -334,7 +334,9 @@ public class MapHandEraTests(RoadWorldFixture fx) : IClassFixture<RoadWorldFixtu
         foreach (WorldZoom z in Zooms)
         {
             (DrawList d0, LensFrame f0) = Paint(p, z, MapInk.Default);
-            int network = f0.LayerDraws[(int)MapLayer.Territory] + f0.LayerDraws[(int)MapLayer.Paths];
+            // M6 E1.3: the object layer's terrain (relief, forests, fields) is drawn between the territories and the network,
+            // in identity inks with no hand — so it belongs to the prefix that is the parchment's exactly.
+            int network = f0.LayerDraws[(int)MapLayer.Territory] + f0.LayerDraws[(int)MapLayer.ObjectTerrain] + f0.LayerDraws[(int)MapLayer.Paths];
             Assert.True(f0.LayerDraws[(int)MapLayer.Paths] > 0);
             foreach (UiEra era in UiEras.All)
             {
@@ -356,6 +358,8 @@ public class MapHandEraTests(RoadWorldFixture fx) : IClassFixture<RoadWorldFixtu
                             (LineCmd x, LineCmd y) => x with { Color = default } == y with { Color = default },
                             (RectCmd x, RectCmd y) => x with { Fill = null, Stroke = null } == y with { Fill = null, Stroke = null },
                             (TextCmd x, TextCmd y) => x with { Color = default } == y with { Color = default },
+                            // E1.3: a terrain mark — the same points and the same (identity) ink in every era.
+                            (PolygonCmd x, PolygonCmd y) => x.Points.SequenceEqual(y.Points) && x.Fill == y.Fill,
                             _ => false,
                         };
                         Assert.True(same, $"{what}: network command {i} {a} vs {b}");
@@ -418,7 +422,7 @@ public class MapHandEraTests(RoadWorldFixture fx) : IClassFixture<RoadWorldFixtu
         {
             (DrawList d0, LensFrame f0) = Paint(p, z, k0);
             double s = Sim.Ui.ViewModel.UnitSelection.TokenSize(z);
-            int network = f0.LayerDraws[(int)MapLayer.Territory] + f0.LayerDraws[(int)MapLayer.Paths];
+            int network = f0.LayerDraws[(int)MapLayer.Territory] + f0.LayerDraws[(int)MapLayer.ObjectTerrain] + f0.LayerDraws[(int)MapLayer.Paths];   // E1.3
             foreach (UiEra era in UiEras.All)
             {
                 MapInk k = InkOf(era);

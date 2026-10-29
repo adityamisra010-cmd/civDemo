@@ -49,7 +49,7 @@ public static class InstitutionMarkerSource
         var views = new InstitutionView[keys.Count];
         for (int i = 0; i < keys.Count; i++)
         {
-            UniversityType? type = InstitutionContent.TypeOf(cfg.Research, keys[i]);
+            InstitutionTypeInfo? type = InstitutionContent.Info(cfg, keys[i]);   // ADR-057: any content-driven type
             views[i] = new InstitutionView(keys[i], type?.Name ?? "Institution", counts[i]);
         }
         Array.Sort(views, static (a, b) => a.TypeKey.CompareTo(b.TypeKey));   // keys are unique

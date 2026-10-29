@@ -178,7 +178,11 @@ public class RunFromSaveCliTests(FromSaveRuns runs) : IClassFixture<FromSaveRuns
         // ADR-055 RE-PIN (MEASURED on the combined research + units tree): 73 -> 76 — the founding warbands' people and their
         // grain upkeep move the AI's founding cadence; the premise (founded before the save at 80, above the founding world's
         // highest id) is unchanged.
-        Assert.Equal(76L, colony.FoundedTurn);
+        // M6 INTEGRATION RE-PIN (2026-10-28; MEASURED on the integrated tree, `sim run` as above): 76 -> 77 — the combined M6
+        // closure layers move the AI's founding cadence on this 256 px world (D-066 A18 values sites by known terrain; ADR-058's
+        // Eurekas move research); no CLI twin isolates the layers, so the split is not measured here (the in-process controls of
+        // both layers are AiFoundingAttributionTests / KnowAttributionTests). The premise is unchanged.
+        Assert.Equal(77L, colony.FoundedTurn);
         Assert.True(EmpireQuery.TryGetController(at80, colony.Id, out PolityId ruler) && ruler.Value == 2, "the colony is the AI's");
 
         (exit, _, stderr) = FromSaveRuns.Run("--from-save", s80, "--size", "256", "--turns", "4", "--orders", log,

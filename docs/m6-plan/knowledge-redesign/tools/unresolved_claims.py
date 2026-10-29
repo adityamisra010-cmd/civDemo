@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Per-node evidence inventory: what each educational text rests on, and every claim still unresolved.
 
-DESIGN-PACKAGE TOOLING ONLY. Reads corpus/*.json, corpus/plan.json and sources/register.json; writes
+DESIGN-PACKAGE TOOLING ONLY. Reads corpus/*.json (every file corpus/index.json lists — the LIVE corpus: D-066 A12,
+2026-10-28; it read only corpus/plan.json's 19 sourcing batches before, so the 442 tranche-2 entries were missing) and
+sources/register.json; writes
 data/unresolved-claims.json (one record per corpus entry) and corpus/unresolved-claims.md. Reports only what the
 entries and the register say: it never changes a status and never treats a cited URL as evidence that a page was
 read (a source counts as READ only when the register records retrieval 'page-read' or 'document-read').
@@ -44,7 +46,7 @@ def note_flags(text):
 
 
 def main():
-    plan = kr.load_json(kr.PKG / "corpus" / "plan.json")
+    plan = {"batches": kr.load_json(kr.PKG / "corpus" / "index.json")["files"]}   # file + title, every corpus file
     reg = {s["id"]: s for s in kr.load_json(kr.PKG / "sources" / "register.json")}
     records = []
     for b in plan["batches"]:

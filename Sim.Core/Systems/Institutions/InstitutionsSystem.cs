@@ -64,13 +64,18 @@ public sealed class InstitutionsSystem(SimConfig cfg) : ISimSystem<InstitutionsT
         // ADR-047: the owner's realized research shortens maturation (institutions.universities.maturityTauYears) and
         // deepens the research-cost cut (maxResearchCostReduction); both are the sim.json bases without an effect.
         KnowledgeEffectsSnapshot fx = KnowledgeEffects.Snapshot(prev, research);
+        // ADR-057 (D-066 A1): each row on ITS type's profile and market (a university's: institutions.universities and the
+        // shared university market, bit for bit; the ADR-047 research operand improves the university τ only).
         for (int i = 0; i < held; i++)
         {
             ref InstitutionRow row = ref table.Ref(i);
-            row.Maturity = InstitutionViability.ToSustain(prev, _cfg, row.Settlement).Viable
-                ? InstitutionEffects.Grow(row.Maturity, ctx.DtYears,
-                    fx.Apply(row.Polity, KnowledgeOperand.InstitutionsUniversitiesMaturityTauYears, u.MaturityTauYears))
-                : InstitutionEffects.Decay(row.Maturity, ctx.DtYears, u.DecayTauYears);
+            InstitutionProfile profile = InstitutionContent.Profile(institutions, row.Type);
+            double tau = profile.University
+                ? fx.Apply(row.Polity, KnowledgeOperand.InstitutionsUniversitiesMaturityTauYears, u.MaturityTauYears)
+                : profile.MaturityTauYears;
+            row.Maturity = InstitutionViability.ToSustain(prev, _cfg, row.Settlement, row.Type).Viable
+                ? InstitutionEffects.Grow(row.Maturity, ctx.DtYears, tau)
+                : InstitutionEffects.Decay(row.Maturity, ctx.DtYears, profile.DecayTauYears);
         }
 
         // 2. FOUND what ConstructionSystem built and nobody founded yet.
@@ -80,7 +85,7 @@ public sealed class InstitutionsSystem(SimConfig cfg) : ISimSystem<InstitutionsT
             SettlementId settlement = prev.Settlements[s].Id;
             foreach (ConstructionProjectEntry project in projects)
             {
-                int type = InstitutionContent.TypeKeyOf(research, project);
+                int type = InstitutionContent.TypeKeyOf(_cfg, project);   // ADR-057: any content-driven type
                 if (type < 0) continue;
                 long built = ConstructionQuery.Built(prev, settlement, project.Id);
                 long have = Count(table, settlement, type);

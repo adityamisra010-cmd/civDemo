@@ -5,40 +5,129 @@ using Sim.Core.Systems.Research;
 namespace Sim.Core.State;
 
 /// <summary>
-/// ADR-033 D6 — THE UNIVERSITY CONTENT LINKS, resolved from data (no type id or project id in code):
-/// which goods.json project founds which research.json university type, and which type heals
-/// (<c>institutions.universities.healthType</c>). Pure lookups over immutable config.
+/// ADR-057 (D-066 A1) — ONE INSTITUTION TYPE'S LIFECYCLE PROFILE: the numbers ADR-028's lifecycle reads, owned per type.
+/// A university type's profile is <c>institutions.universities</c> (the five specialties share one); a sim.json
+/// <c>institutions.types</c> entry carries its own. <see cref="University"/> marks the university profile: its maturation
+/// e-fold is improved by the owner's realized research (ADR-047's <c>institutions.universities.maturityTauYears</c>
+/// operand, a university operand), and every university shares ONE host market (the hosted count is of all university
+/// buildings, ADR-033 D6); each other type is its own market.
+/// </summary>
+public readonly record struct InstitutionProfile(
+    double MaturityTauYears, double DecayTauYears, double MatureAt, double StaffShareAtMaturity,
+    long AdultsPerInstitution, double FoundingFoodSurplusRatio, double SustainingFoodSurplusRatio, bool University);
+
+/// <summary>ADR-057 — one institution type as content resolves it: its key (<c>InstitutionRow.Type</c>), id, name, the
+/// research.json branch index it discounts (-1: none — only the universities carry one) and whether it is a university.</summary>
+public sealed record InstitutionTypeInfo(int Key, string Id, string Name, int Branch, bool University);
+
+/// <summary>
+/// ADR-033 D6 / ADR-057 — THE INSTITUTION CONTENT LINKS, resolved from data (no type id or project id in code): which
+/// goods.json project founds which institution type — a research.json university type (<c>founds.universityType</c>) or
+/// a sim.json <c>institutions.types</c> type (<c>founds.institutionType</c>, D-066 A1: institution types are
+/// content-driven) — each type's lifecycle profile, and which type heals (<c>institutions.universities.healthType</c>).
+/// Pure lookups over immutable config, no allocation on the per-row paths (<see cref="Profile"/>).
 /// </summary>
 public static class InstitutionContent
 {
     /// <summary>Whether completing the project founds an institution (goods.json <c>founds</c>).</summary>
     public static bool FoundsInstitution(ConstructionProjectEntry project) => project.Founds is not null;
 
-    /// <summary>The research.json universityTypes key the project founds, or -1 (not a founding project, or
-    /// no research content).</summary>
+    /// <summary>The research.json universityTypes key the project founds, or -1 (not a founding project, a project that
+    /// founds a non-university type, or no research content). Universities only; <see cref="TypeKeyOf(SimConfig, ConstructionProjectEntry)"/>
+    /// resolves every type.</summary>
     public static int TypeKeyOf(ResearchContent? research, ConstructionProjectEntry project)
     {
-        if (research is null || project.Founds is not { } founds) return -1;
+        if (research is null || project.Founds is not { UniversityType: { } university }) return -1;
         foreach (UniversityType u in research.UniversityTypes)
-            if (string.Equals(u.Id, founds.UniversityType, StringComparison.Ordinal)) return u.Key;
+            if (string.Equals(u.Id, university, StringComparison.Ordinal)) return u.Key;
         return -1;
     }
 
-    /// <summary>The goods.json project that founds university type <paramref name="typeKey"/>, or null.</summary>
+    /// <summary>ADR-057: the institution type key the project founds — a university type (research.json) or an
+    /// institutions.types type (sim.json) — or -1 (not a founding project, or the type is not in the loaded content).</summary>
+    public static int TypeKeyOf(SimConfig cfg, ConstructionProjectEntry project)
+    {
+        if (project.Founds is not { } founds) return -1;
+        if (founds.UniversityType is not null) return TypeKeyOf(cfg.Research, project);
+        foreach (InstitutionTypeConfig t in cfg.Institutions?.Types ?? [])
+            if (string.Equals(t.Id, founds.InstitutionType, StringComparison.Ordinal)) return t.Key;
+        return -1;
+    }
+
+    /// <summary>The goods.json project that founds institution type <paramref name="typeKey"/> (any type), or null.</summary>
     public static ConstructionProjectEntry? ProjectOfType(SimConfig cfg, int typeKey)
     {
-        if (cfg.Goods?.Projects is not { } projects || cfg.Research is not { } research) return null;
+        if (cfg.Goods?.Projects is not { } projects || cfg.Research is null) return null;
         foreach (ConstructionProjectEntry p in projects)
-            if (TypeKeyOf(research, p) == typeKey) return p;
+            if (p.Founds is not null && TypeKeyOf(cfg, p) == typeKey) return p;
         return null;
     }
 
-    /// <summary>The university type record of key <paramref name="typeKey"/>, or null.</summary>
+    /// <summary>The university type record of key <paramref name="typeKey"/>, or null (universities only).</summary>
     public static UniversityType? TypeOf(ResearchContent? research, int typeKey)
     {
         if (research is null) return null;
         int i = research.UniversityTypeIndexOf(typeKey);
         return i < 0 ? null : research.UniversityTypes[i];
+    }
+
+    /// <summary>ADR-057: the institution type of key <paramref name="typeKey"/> — a university type or an
+    /// institutions.types type — or null.</summary>
+    public static InstitutionTypeInfo? Info(SimConfig cfg, int typeKey)
+    {
+        if (TypeOf(cfg.Research, typeKey) is { } u) return new InstitutionTypeInfo(u.Key, u.Id, u.Name, u.Branch, University: true);
+        foreach (InstitutionTypeConfig t in cfg.Institutions?.Types ?? [])
+            if (t.Key == typeKey) return new InstitutionTypeInfo(t.Key, t.Id, t.Name, -1, University: false);
+        return null;
+    }
+
+    /// <summary>ADR-057: every institution type, in CONTENT ORDER — the research.json university types, then the sim.json
+    /// institutions.types entries. Callers that rank types break ties on the key explicitly.</summary>
+    public static InstitutionTypeInfo[] Types(SimConfig cfg)
+    {
+        var result = new List<InstitutionTypeInfo>();
+        if (cfg.Research is { } research)
+            foreach (UniversityType u in research.UniversityTypes) result.Add(new InstitutionTypeInfo(u.Key, u.Id, u.Name, u.Branch, University: true));
+        foreach (InstitutionTypeConfig t in cfg.Institutions?.Types ?? [])
+            result.Add(new InstitutionTypeInfo(t.Key, t.Id, t.Name, -1, University: false));
+        return [.. result];
+    }
+
+    /// <summary>
+    /// ADR-057: the lifecycle profile of type <paramref name="typeKey"/>: the institutions.types entry of that key, or —
+    /// for a university type AND for a key no content defines (content changed under a save; the pre-ADR-057 reading,
+    /// which applied the university numbers to every row) — <c>institutions.universities</c>. Requires an institutions
+    /// configuration (callers are inert without one). No allocation.
+    /// </summary>
+    public static InstitutionProfile Profile(InstitutionsConfig inst, int typeKey)
+    {
+        InstitutionTypeConfig[]? types = inst.Types;
+        if (types is not null)
+            for (int i = 0; i < types.Length; i++)
+            {
+                InstitutionTypeConfig t = types[i];
+                if (t.Key == typeKey)
+                    return new InstitutionProfile(t.MaturityTauYears, t.DecayTauYears, t.MatureAt, t.StaffShareAtMaturity,
+                        t.AdultsPerInstitution, t.FoundingFoodSurplusRatio, t.SustainingFoodSurplusRatio, University: false);
+            }
+        return UniversityProfile(inst.Universities);
+    }
+
+    /// <summary>The universities' shared profile (<c>institutions.universities</c>).</summary>
+    public static InstitutionProfile UniversityProfile(UniversitiesConfig u) =>
+        new(u.MaturityTauYears, u.DecayTauYears, u.MatureAt, u.StaffShareAtMaturity, u.AdultsPerUniversity,
+            u.FoundingFoodSurplusRatio, u.SustainingFoodSurplusRatio, University: true);
+
+    /// <summary>ADR-057: the HOST MARKET a type draws on — 0 for every university type (they share one market: the hosted
+    /// count is of all university buildings, ADR-033 D6) and for an unknown key (the profile it reads), else the type's
+    /// own key (each other type is its own market). No allocation.</summary>
+    public static int MarketOf(InstitutionsConfig? inst, int typeKey)
+    {
+        InstitutionTypeConfig[]? types = inst?.Types;
+        if (types is not null)
+            for (int i = 0; i < types.Length; i++)
+                if (types[i].Key == typeKey) return typeKey;
+        return 0;
     }
 
     /// <summary>The key of the type whose maturity heals (config <c>healthType</c>), or -1.</summary>
@@ -84,12 +173,22 @@ public static class InstitutionStaffing
         return staff > 0.0 ? adults - staff : adults;
     }
 
-    /// <summary>One institution's staff at its current maturity: staffShareAtMaturity × adultsPerUniversity ×
+    /// <summary>One university's staff at its current maturity: staffShareAtMaturity × adultsPerUniversity ×
     /// M (before the host's cap at its adult count).</summary>
     public static double StaffOfInstitution(SimConfig cfg, double maturity) =>
         cfg.Institutions is { } inst
             ? inst.Universities.StaffShareAtMaturity * inst.Universities.AdultsPerUniversity * Clamp01(maturity)
             : 0.0;
+
+    /// <summary>ADR-057: one institution of type <paramref name="typeKey"/>: its profile's staffShareAtMaturity ×
+    /// adultsPerInstitution × M — per type, the D-021 brake every type ships with (a university's is the line above,
+    /// bit for bit).</summary>
+    public static double StaffOfInstitution(SimConfig cfg, int typeKey, double maturity)
+    {
+        if (cfg.Institutions is not { } inst) return 0.0;
+        InstitutionProfile p = InstitutionContent.Profile(inst, typeKey);
+        return p.StaffShareAtMaturity * p.AdultsPerInstitution * Clamp01(maturity);
+    }
 
     private static double StaffOf(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, long adults)
     {
@@ -99,7 +198,7 @@ public static class InstitutionStaffing
         {
             InstitutionRow row = world.Institutions[i];
             if (row.Settlement != settlement) continue;
-            staff += StaffOfInstitution(cfg, row.Maturity);
+            staff += StaffOfInstitution(cfg, row.Type, row.Maturity);
         }
         if (!(staff > 0.0)) return 0.0;
         return Math.Min(adults, staff);
@@ -138,10 +237,19 @@ public readonly record struct UniversityViability(
 /// </summary>
 public static class InstitutionViability
 {
-    /// <summary>University buildings the settlement hosts: the Structures count of every founding project
-    /// there (all types). Equal to its institution rows except in the one step between a building's
-    /// completion and its founding, when the new building already needs its market.</summary>
-    public static long Hosted(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement)
+    /// <summary>University buildings the settlement hosts: the Structures count of every UNIVERSITY founding project
+    /// there (all university types — they share one market). Equal to its university rows except in the one step between a
+    /// building's completion and its founding, when the new building already needs its market.</summary>
+    public static long Hosted(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement) =>
+        Hosted(world, cfg, settlement, market: 0);
+
+    /// <summary>ADR-057: the buildings of the settlement's founding projects whose type draws on the same HOST MARKET as
+    /// type <paramref name="typeKey"/> (<see cref="InstitutionContent.MarketOf"/>: every university one market, every other
+    /// type its own).</summary>
+    public static long HostedOfType(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, int typeKey) =>
+        Hosted(world, cfg, settlement, InstitutionContent.MarketOf(cfg.Institutions, typeKey));
+
+    private static long Hosted(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, int market)
     {
         if (cfg.Goods?.Projects is not { } projects) return 0;
         long hosted = 0;
@@ -150,18 +258,38 @@ public static class InstitutionViability
             StructureRow row = world.Structures[i];
             if (row.Settlement != settlement || row.Count <= 0) continue;
             foreach (ConstructionProjectEntry p in projects)
-                if (p.Id == row.ProjectId && p.Founds is not null) { hosted += row.Count; break; }
+                if (p.Id == row.ProjectId && p.Founds is not null)
+                {
+                    if (InstitutionContent.MarketOf(cfg.Institutions, InstitutionContent.TypeKeyOf(cfg, p)) == market) hosted += row.Count;
+                    break;
+                }
         }
         return hosted;
     }
 
     /// <summary>Can the settlement found ONE MORE university now?</summary>
     public static UniversityViability ToFound(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement) =>
-        Evaluate(world, cfg, settlement, extra: 1, founding: true);
+        Evaluate(world, cfg, settlement, typeKey: null, extra: 1, founding: true);
 
     /// <summary>Can the settlement sustain (keep maturing) the universities it hosts?</summary>
     public static UniversityViability ToSustain(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement) =>
-        Evaluate(world, cfg, settlement, extra: 0, founding: false);
+        Evaluate(world, cfg, settlement, typeKey: null, extra: 0, founding: false);
+
+    /// <summary>ADR-057: can the settlement found ONE MORE institution of the type <paramref name="project"/> founds — on
+    /// that type's profile and market (a university project: exactly <see cref="ToFound(IReadOnlyWorldState, SimConfig, SettlementId)"/>)?</summary>
+    public static UniversityViability ToFound(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, ConstructionProjectEntry project) =>
+        Evaluate(world, cfg, settlement, TypeOrNull(cfg, project), extra: 1, founding: true);
+
+    /// <summary>ADR-057: can the settlement sustain its institutions of type <paramref name="typeKey"/> (that type's profile
+    /// and market; a university type: exactly <see cref="ToSustain(IReadOnlyWorldState, SimConfig, SettlementId)"/>)?</summary>
+    public static UniversityViability ToSustain(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, int typeKey) =>
+        Evaluate(world, cfg, settlement, typeKey, extra: 0, founding: false);
+
+    private static int? TypeOrNull(SimConfig cfg, ConstructionProjectEntry project)
+    {
+        int key = InstitutionContent.TypeKeyOf(cfg, project);
+        return key < 0 ? null : key;
+    }
 
     /// <summary>The published food_surplus_ratio (absent = 0.0: an unpublished variable reads 0, the
     /// ProductionSystem precedent — a settlement with no surplus reading supports no scholar).</summary>
@@ -189,15 +317,17 @@ public static class InstitutionViability
         _ => "a viable host",
     };
 
-    private static UniversityViability Evaluate(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, long extra, bool founding)
+    private static UniversityViability Evaluate(IReadOnlyWorldState world, SimConfig cfg, SettlementId settlement, int? typeKey, long extra, bool founding)
     {
         long adults = BandViews.Adults(world.Buckets, settlement);
-        long hosted = Hosted(world, cfg, settlement);
+        int market = typeKey is { } k ? InstitutionContent.MarketOf(cfg.Institutions, k) : 0;
+        long hosted = Hosted(world, cfg, settlement, market);
         double fsr = FoodSurplusRatio(world, settlement);
         if (cfg.Institutions is not { } inst)
             return new UniversityViability(false, ViabilityFailure.NoConfig, adults, hosted, 0, fsr, 0.0);
-        UniversitiesConfig u = inst.Universities;
-        long needed = checked(u.AdultsPerUniversity * (hosted + extra));
+        // ADR-057: the type's own profile (a university type, or none named: institutions.universities, bit for bit).
+        InstitutionProfile u = typeKey is { } key ? InstitutionContent.Profile(inst, key) : InstitutionContent.UniversityProfile(inst.Universities);
+        long needed = checked(u.AdultsPerInstitution * (hosted + extra));
         double food = founding ? u.FoundingFoodSurplusRatio : u.SustainingFoodSurplusRatio;
         if (adults < needed)
             return new UniversityViability(false, ViabilityFailure.Market, adults, hosted, needed, fsr, food);

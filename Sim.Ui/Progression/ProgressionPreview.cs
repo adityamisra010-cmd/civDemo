@@ -58,7 +58,7 @@ public static class ProgressionPreview
             (s, c) => { s.Tab = TreeTab.Civics; }),
         new("08-civics-hover-highlight", "Civics hover highlight, including a Technology prerequisite anchor.",
             (s, c) => { s.Tab = TreeTab.Civics; Hover(s, MostConnected(s, c, ResearchTree.Civics)); }),
-        new("09-lens-institutions", "INSTITUTIONS lens: adopted civics and knowledge-eligible institutions (real data).",
+        new("09-lens-institutions", "INSTITUTIONS lens: researched civics and knowledge-eligible institutions (real data).",
             (s, c) => s.SetLens(Lens.Institutions)),
         new("10-lens-industry", "INDUSTRY lens: honestly not yet simulated.",
             (s, c) => s.SetLens(Lens.Industry)),

@@ -399,3 +399,15 @@ Branch, SHAs and PR link; files changed; the exact cost methodology; cost distri
 ## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
 
 G5 ("exactly one shared RP pool", `:202-204`) is SUPERSEDED by D-062 R4 (separate Civics Points). F§1's stage expression (`:293-298`) is SUPERSEDED by D-062 R5: `legal_code_roman` leaves the research stage and remains an `inst.university` requirement. The rule "Technology costs must NOT be changed to force a target Age duration" (`:50`) is SUPERSEDED by D-062 R13: costs may be adjusted to support pacing, each change with a recorded reason and a measurement. Record: `docs/d062-m6-director-final-rulings.md`.
+
+## Dated note — 2026-10-28 (D-066 A7–A8, track KNOW; appended, the text above is unchanged)
+
+- **Eureka counts corrected.** F§1's "81 curated Eurekas on 80 nodes (73 authored, 8 inherited; 18 evaluable today)" is
+  the 2026-10-01 state. The shipped content (after D-047 ruling 10, ADR-045 and tranche 2) carries **86 Eurekas on 86
+  nodes, all authored, all on technologies**; before ADR-058, **14** were machine-evaluable (2 over stock, 12 over
+  knowledge) and 72 future-system; ADR-058 §B made seven more evaluable over deposits, site terrain and stock — **21
+  evaluable, 65 future-system**. Every one is classified in `docs/m6-plan/eureka-evaluability-register.md`.
+- **Part D item 5 ("both seams exist with no writer")** is closed for M6: the modifier seam's writer is
+  InstitutionsSystem (ADR-033 D6, formula confirmed by D-066 A8), and the foreign-exposure seam's writer is DiffusionSystem
+  (ADR-058, contact-carried exposure, D-066 A7). F§2's "the foreign-exposure seam (`ResearchExposures`, no writer)" reads
+  accordingly; the pool, its ceiling and the per-source provenance are unchanged.

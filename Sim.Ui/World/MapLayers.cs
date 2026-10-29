@@ -19,6 +19,10 @@ public enum MapLayer
     /// score and its two factors as lattice-node heatmaps under everything else the lens draws, the realized ore rolls
     /// beside the player's settlements and the overlay's key — painted by the lens only for the layers the player shows.</summary>
     ResourceOverlay = 9,
+    /// <summary>M6 E1.3: the object layer's terrain — relief, forests and cultivated fields drawn ON the paper under the one
+    /// light (<see cref="Sim.Ui.World.TerrainMarks"/>). Lens-owned; the substrate (the GPU pass's <see cref="Terrain"/>) is
+    /// untouched.</summary>
+    ObjectTerrain = 10,
 }
 
 /// <summary>Who draws a map layer: the legacy GPU map pass in <c>SimUiGame.Draw</c>, or the
@@ -42,7 +46,7 @@ public static class MapLayerOwnership
     [
         MapLayer.Terrain, MapLayer.Rivers, MapLayer.Territory, MapLayer.Paths,
         MapLayer.SettlementMarkers, MapLayer.UnitTokens, MapLayer.InstitutionMarkers, MapLayer.AgeBanners,
-        MapLayer.Legend, MapLayer.ResourceOverlay,
+        MapLayer.Legend, MapLayer.ResourceOverlay, MapLayer.ObjectTerrain,
     ];
 
     public static LayerOwner OwnerOf(MapLayer layer) => layer switch
@@ -68,6 +72,7 @@ public static class MapLayerOwnership
         WorldLayer.MilitaryFormations => MapLayer.UnitTokens,
         WorldLayer.InstitutionalPresence or WorldLayer.InstitutionTypes => MapLayer.InstitutionMarkers,
         WorldLayer.AgeBanners => MapLayer.AgeBanners,
+        WorldLayer.TerrainRelief => MapLayer.ObjectTerrain,
         _ => MapLayer.SettlementMarkers,   // major settlements, morphology, density, population, production
     };
 }

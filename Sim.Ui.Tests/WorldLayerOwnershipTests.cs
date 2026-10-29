@@ -318,9 +318,16 @@ public class WorldLayerOwnershipTests(InstitutionWorldFixture fx) : IClassFixtur
         MapInk ink = MapInk.Default;
         var glyphFills = new HashSet<string>(StringComparer.Ordinal) { ink.Granary.ToString(), ink.Workshop.ToString() };
         for (int k = 1; k <= 5; k++) glyphFills.Add(ink.InstitutionInk(k).ToString());
-        var rects = d.Commands.OfType<RectCmd>()
-            .Where(r => r.Fill is { } fill && glyphFills.Contains(fill.ToString()))
-            .Where(r => Math.Abs(r.Rect.CenterX - 800) < foot.R && Math.Abs(r.Rect.CenterY - 500) < foot.R).ToList();
+        // M6 E1.2: a part's walls are filled polygons under the one light (its front wall in the kind's ink), not rects.
+        var rects = d.Commands.Select(c => c switch
+            {
+                RectCmd r when r.Fill is { } fill && glyphFills.Contains(fill.ToString()) => (RectD?)r.Rect,
+                PolygonCmd g when glyphFills.Contains(g.Fill.ToString()) => new RectD(g.Points.Min(q => q.X), g.Points.Min(q => q.Y),
+                    g.Points.Max(q => q.X) - g.Points.Min(q => q.X), g.Points.Max(q => q.Y) - g.Points.Min(q => q.Y)),
+                _ => null,
+            })
+            .OfType<RectD>()
+            .Where(r => Math.Abs(r.CenterX - 800) < foot.R && Math.Abs(r.CenterY - 500) < foot.R).ToList();
         Assert.True(rects.Count >= 2 + 5, $"{rects.Count} glyph bodies inside the footprint");
         Assert.Equal(7, f.Institutions.Count(m => m.Settlement == fx.Capital));
     }

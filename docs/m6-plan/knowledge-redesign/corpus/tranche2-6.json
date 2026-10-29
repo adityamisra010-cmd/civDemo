@@ -1108,5 +1108,35 @@
    "notes": "Claims to check first: Institute for Government Research founded 1916 and later merged into Brookings; RAND project 1946; independent corporation 1948."
   },
   "mechanicLink": "Completing it raises the Civics Points each person generates."
+ },
+ {
+  "id": "crossbow_repeating",
+  "tree": "technology",
+  "description": "The repeating crossbow carries a box magazine of bolts above the stock; working one lever draws the string, drops the next bolt and shoots, so a single person can loose several light bolts in quick succession. Finds from Chu tombs suggest early forms by about the fourth century BCE, and later versions stayed in service into the nineteenth century.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "The date of the first magazine crossbow is uncertain: textual attributions range from the Warring States period to the third century CE, and Chu tomb finds are dated to about the fourth century BCE. The Qing-era weapon is better attested than its early forms.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "M6 closure audit (D-066)",
+   "method": "Not compared with any source. Written in the M6 closure audit (D-066 R2, 2026-10-28) from general knowledge, with cautious wording (ranges, 'about', well-established facts only), and checked for consistency with the node record. No source retrieved: the session reaches only GitHub, so no page could be read.",
+   "notes": "No claim corroborated and no source recorded (none invented). Claims to check first: lever-action box-magazine mechanism; Chu tomb finds of about the fourth century BCE; service into the nineteenth century."
+  },
+  "mechanicLink": "Completing it lowers the output lost to unrest and enlarges founding parties (realized knowledge effects). Kept as its own node: its merge into crossbow is deferred (ADR-045 §5)."
+ },
+ {
+  "id": "siege_tower",
+  "tree": "technology",
+  "description": "A siege tower is a wheeled wooden structure, often hung with wet hides against fire, pushed up to a wall so that attackers can fight from its top or cross onto the rampart. Assyrian palace reliefs show towers working beside battering rams, and at Lachish, besieged in 701 BCE, the earthen assault ramp built by the army still survives.",
+  "wordCount": 59,
+  "sources": [],
+  "uncertainty": "Siege towers appear in Near Eastern art before the Assyrian reliefs; how far Assyrian practice spread them is debated. The Lachish ramp is identified from excavation and the palace reliefs of Sennacherib together.",
+  "factCheck": {
+   "status": "unverified",
+   "checkedBy": "M6 closure audit (D-066)",
+   "method": "Not compared with any source. Written in the M6 closure audit (D-066 R2, 2026-10-28) from general knowledge, with cautious wording (ranges, 'about', well-established facts only), and checked for consistency with the node record. No source retrieved: the session reaches only GitHub, so no page could be read.",
+   "notes": "No claim corroborated and no source recorded (none invented). Claims to check first: hide covering against fire; Assyrian reliefs showing towers with rams; the siege of Lachish in 701 BCE and its surviving assault ramp."
+  },
+  "mechanicLink": "Completing it raises the path-building work each labourer does (a realized knowledge effect). Kept as its own node: its merge into siege_ram is deferred (ADR-045 §5)."
  }
 ]

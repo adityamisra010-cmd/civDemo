@@ -72,6 +72,11 @@ public static class DataFiles
     /// status stay in the corpus). Read by the UI's research views; never by the simulation.</summary>
     public static Stream OpenKnowledgeTexts() => Open("Sim.Data.knowledge-texts.json");
 
+    /// <summary>M6.9 / M6.10 (D-E, D-F option 1; D-066 R2): the INERT unit-progression content — promotion trees and the
+    /// dormant training / Action Capacity contract data — consumed by UnitProgressionContentLoader. No simulation system reads
+    /// it (UnitProgressionInertTests); the unit card shows it as planned for M7.</summary>
+    public static Stream OpenUnitProgression() => Open("Sim.Data.unit-progression.json");
+
     private static Stream Open(string logicalName) =>
         Assembly.GetExecutingAssembly().GetManifestResourceStream(logicalName)
         ?? throw new InvalidOperationException(

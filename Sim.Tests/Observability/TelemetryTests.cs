@@ -189,7 +189,7 @@ public class TelemetryTests
         using var line = new MemoryStream();
         TelemetryWriter.WriteTurn(line, Observer.Observe(prev, next, TestConfigs.Sim(), []));
         string text2 = System.Text.Encoding.UTF8.GetString(line.ToArray());
-        Assert.Contains("\"schema\":\"telemetry/v4\"", text2, StringComparison.Ordinal);   // ADR-033 D4 moved the tag (social.tax)
+        Assert.Contains("\"schema\":\"telemetry/v5\"", text2, StringComparison.Ordinal);   // ADR-033 D4 moved the tag (social.tax); D-066 A15 to v5
         foreach (string key in new[]
                  { "\"foodState\"", "\"state\"", "\"famineReason\"", "\"effectiveDeficit\"", "\"abandoned\"",
                    "\"disasterMultiplierThisStep\"", "\"disasterAppliedMultiplier\"",

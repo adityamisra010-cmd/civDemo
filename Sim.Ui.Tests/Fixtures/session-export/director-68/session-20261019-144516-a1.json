@@ -1,0 +1,26 @@
+{
+  "schema": "session-manifest/v2",
+  "seed": 42,
+  "sizePx": null,
+  "settlements": null,
+  "aiEmpires": 1,
+  "schemaVersion": 34,
+  "buildSha": "231485e",
+  "buildDate": "2026-10-19",
+  "startedAt": "2026-10-19 14:45:20",
+  "ordersFile": "orders-20261019-144516-a1.bin",
+  "chronicleFile": "chronicle-20261019-144516-a1.txt",
+  "traceFile": "trace-20261019-144516-a1.csv",
+  "telemetryFile": "telemetry-20261019-144516-a1.jsonl",
+  "platform": "win-x64",
+  "forensicFile": "forensic-20261019-144516-a1.jsonl",
+  "display": {
+    "windowWidth": 1382,
+    "windowHeight": 778,
+    "displayWidth": 1536,
+    "displayHeight": 864,
+    "uiScale": 1,
+    "userScale": 1,
+    "dpiScale": 1
+  }
+}

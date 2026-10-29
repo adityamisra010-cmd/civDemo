@@ -600,12 +600,14 @@ public sealed partial class GameUi
 
 
     /// <summary>The host is exiting: a final save, the telemetry flushed past the OS buffers, then the forensic
-    /// close record (which content-hashes every companion, so it is written last).</summary>
+    /// close record (which content-hashes every companion, so it is written last of the six), and then the one-file
+    /// session workbook (ADR-059), which only READS the six — so the close record neither lists it nor changes.</summary>
     public void SaveOnExit()
     {
         SaveSession();
         _session.FinalizeTelemetry(UiSession.TelemetryPath(_sessionLogPath));
         _session.ExportForensicClose(_sessionLogPath);
+        _session.ExportWorkbook(_sessionLogPath, Console.Error);
     }
 
     private Rectangle Viewport() => new(0, 0, _viewportWidth, _viewportHeight);
@@ -1719,9 +1721,12 @@ public sealed partial class GameUi
         if (card.NextAge.Length > 0) lines.Add((card.NextAge, _frameTheme.Ink.TextSoft, CardLine.Plain));
         // P11: what the row records (in the explanation size), then what this build does not simulate — each its own
         // line, each saying so — then the locked movement line, then the card's own statement of the limitation.
-        foreach (string recorded in new[] { card.PositionAddsToStation ? card.Position : "", card.Personnel, card.Reequip, card.Experience, card.Army })
+        // M6 E1.5 (D-052 §7): the combined token's composition — the formations of this type grouped here — first.
+        foreach (string recorded in new[] { card.Composition, card.PositionAddsToStation ? card.Position : "", card.Personnel, card.Reequip, card.Experience, card.Army })
             if (recorded.Length > 0) lines.Add((recorded, _frameTheme.Ink.Text, CardLine.Detail));
         foreach (string gap in card.NotSimulated) lines.Add((gap, _frameTheme.Ink.TextSoft, CardLine.Detail));
+        // M6.12: the inert planned-for-M7 line (training, the family's first promotion) — text, never a control.
+        if (card.Planned.Length > 0) lines.Add((card.Planned, _frameTheme.Ink.TextSoft, CardLine.Detail));
         if (card.Movement.Length > 0) lines.Add((card.Movement, _frameTheme.Ink.TextSoft, CardLine.Locked));
         lines.Add((card.Limitation, _frameTheme.TextInk.Progress, CardLine.Callout));
         ImFontPtr? body = RoleFont(Sim.Ui.Theme.TypeRole.Body);

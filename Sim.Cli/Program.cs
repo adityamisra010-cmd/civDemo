@@ -85,6 +85,7 @@ namespace Sim.Cli
                 world pair, which nothing persists, so it is RECONSTRUCTED by
                 replaying to that turn — the output says so on every answer.
                   sim bench --seed S --turns N [--founded [--settlements N]] [--json]
+                          [--without-discovery] [--without-tranche2] [--without-economy]
                   sim autoplay --seeds N --turns T --metrics OUT.json [--seed-base S]
                   sim worldgen --seed S [--stats] [--size PX]
                   sim corridors --metrics nightly-metrics.json
@@ -1032,6 +1033,10 @@ namespace Sim.Cli
 
         internal static int Bench(string[] args)
         {
+            // M6 closure (track FOG; ADR-044 dated note 2026-10-28): bench takes the layer switches too, so the discovery
+            // layer's cost is measured against its attribution twin (`--without-discovery`, which by the R4 rule also turns
+            // the newer military layer off — the per-system "discovery" phase is the layer's own cost).
+            args = TakeDiscoverySwitch(args);
             var opts = Options.Parse(args, flags: ["--json", "--founded"],
                 valued: ["--seed", "--turns", "--settlements"]);
             ulong seed = opts.Seed();

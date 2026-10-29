@@ -1,0 +1,125 @@
+{
+ "_doc": "M6 closure (D-066 R2, the content/consequence audit): the DECLARATIONS scripts/research-consequence-audit.py reads. Content is authoritative for what a node unlocks; this file only declares how the audit classifies the items content leaves as free text or as an entity no system of this milestone realizes. Every declared string must still be in research.json (a stale declaration fails the audit), and every free-text item must be declared here (an undeclared one is UNCLASSIFIED and fails it). Editing this file never changes the simulation: no C# reads it.",
+ "freeTextRule": "unlocks.techniques and unlocks.applications are free text, never entity ids. Each is KNOWLEDGE-ONLY: what the civilization knows how to do, shown in the research views, with no simulation consequence in M6. The node's mechanics are carried by its realized/future effects and its entity links (D-063 R1; D-066 A5: verb-granting knowledge is knowledge-only in M6, consumed by the owning system when it exists).",
+ "knowledgeOnly": {
+  "techniques": {
+   "fire_making": [
+    "Heat treatment of silcrete and flint",
+    "Earth-oven cooking at scale",
+    "Planned landscape burning"
+   ],
+   "cordage": [
+    "Knots and lashing",
+    "Net making",
+    "Windbreak and hide shelter"
+   ],
+   "sewing": [
+    "Tailored fur clothing"
+   ],
+   "dugout": [
+    "Large-log hull hollowing"
+   ],
+   "grinding_stone": [
+    "Wild cereal harvesting",
+    "Storage pit and cache",
+    "Drying and smoking"
+   ],
+   "cereal_domesticated": [
+    "Threshing and winnowing"
+   ],
+   "sheep_goat": [
+    "Transhumance",
+    "Dung as fuel"
+   ],
+   "milking": [
+    "Cheese making"
+   ],
+   "fermentation_grain": [
+    "Leavened bread"
+   ],
+   "wheel_solid": [
+    "Wheelbarrow"
+   ],
+   "calendar_lunar": [
+    "Solstice alignment"
+   ],
+   "lost_wax": [
+    "Goldsmithing"
+   ],
+   "mining_shaft": [
+    "Fire-setting",
+    "Mining under walls"
+   ],
+   "standard_weights": [
+    "Balance scale"
+   ],
+   "iron_bloomery": [
+    "Forging",
+    "Massed heavy infantry"
+   ],
+   "heavy_plough": [
+    "Three-field rotation"
+   ],
+   "gunpowder": [
+    "Fire lance"
+   ],
+   "flintlock": [
+    "Socket bayonet",
+    "Drill and the printed manual"
+   ],
+   "interchangeable_parts": [
+    "Moving assembly line"
+   ],
+   "trade": [
+    "Counted consignments",
+    "Pack-animal and boat haulage of goods for exchange"
+   ],
+   "taxation": [
+    "Harvest assessment",
+    "Levy in kind into sealed stores"
+   ]
+  },
+  "applications": {
+   "knapping_blade": [
+    "Long-distance obsidian exchange"
+   ],
+   "ochre_processing": [
+    "Representational art",
+    "Personal ornament"
+   ],
+   "stone_dry": [
+    "Megalithic construction"
+   ],
+   "cuneiform": [
+    "Written literature",
+    "Viticulture and wine trade"
+   ],
+   "gearing": [
+    "Seismoscope"
+   ]
+  }
+ },
+ "deferredOwnersRule": "A research entity no system of this milestone realizes is DEFERRED with an owner and a target. building.*, infra.*, project.* and inst.* read their owner and status from docs/m7-plan/building-and-infrastructure-charter.md §9 (the entity status register, kept complete by docs/m7-plan/tools/check_charters.py; D-066 A9). unit.* and the entities below are declared here.",
+ "deferredOwners": {
+  "unit.*": {
+   "owner": "M7 Battle Layer — recruitment and battle (ADR-033 D7; ADR-055 recruits by unit-families.json identity, not by these entities)",
+   "target": "M7",
+   "source": "docs/m7-plan/unit-catalogue-and-progression.md; docs/deferred-entity-realization-plan.md §E"
+  },
+  "activity.caravans": {
+   "owner": "Trade / transport — overland haulage on the M7 movement and route graph (alters transport cost; transport is frozen without a ruled packet)",
+   "target": "after M7 (route graph)",
+   "source": "docs/deferred-entity-realization-plan.md §C; D-066 A19"
+  },
+  "activity.coastal_shipping": {
+   "owner": "Trade / transport — sea haulage on the M7 movement and route graph",
+   "target": "after M7 (route graph)",
+   "source": "docs/deferred-entity-realization-plan.md §C; D-066 A19"
+  },
+  "activity.ocean_shipping": {
+   "owner": "Trade / transport — sea haulage on the M7 movement and route graph",
+   "target": "after M7 (route graph)",
+   "source": "docs/deferred-entity-realization-plan.md §C; D-066 A19"
+  }
+ }
+}

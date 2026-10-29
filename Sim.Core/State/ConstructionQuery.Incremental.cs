@@ -483,7 +483,7 @@ public static partial class ConstructionQuery
             return new HeadResolution(entry, null, p, p, [], 0.0, HeadLimitKind.UnknownProject, -1, 0, false);
 
         var none = new long[project.Inputs.Length];
-        if (InstitutionContent.FoundsInstitution(project) && !InstitutionViability.ToFound(prev, cfg, settlement).Viable)
+        if (InstitutionContent.FoundsInstitution(project) && !InstitutionViability.ToFound(prev, cfg, settlement, project).Viable)
             return new HeadResolution(entry, project, p, p, none, 0.0, HeadLimitKind.Viability, -1, 0, false);
 
         double capacity = capacityLeft ?? CapacityAdultYears(prev, cfg, settlement, dtYears);

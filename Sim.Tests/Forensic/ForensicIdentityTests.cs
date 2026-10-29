@@ -91,7 +91,9 @@ public class ForensicIdentityTests
         // recorded their bytes, so a session played from a locally built binary
         // (buildSha "dev") recorded NO recoverable configuration at all.
         ConfigResource[] config = ForensicIdentity.ConfigResources(Content);
-        Assert.Equal(14, config.Length);   // ADR-031: ages.json and unit-families.json joined; ADR-046: knowledge-texts.json (display text the UI reads)
+        Assert.Equal(15, config.Length);   // ADR-031: ages.json and unit-families.json joined; ADR-046: knowledge-texts.json (display text the UI reads)
+        // M6.9/M6.10 (D-E, D-F option 1): unit-progression.json — inert content no system reads, recorded like every resource
+        Assert.Contains(config, c => c.File == "unit-progression.json");
         // D-063: research-pre-tranche2.json (the attribution twin's content, read by `--without-tranche2`) is recorded too
         Assert.Contains(config, c => c.File == "research-pre-tranche2.json");
         Assert.Contains(config, c => c.File == "knowledge-texts.json");
@@ -144,7 +146,7 @@ public class ForensicIdentityTests
         // moved to v3 with the foodState/migrationPlan sections, and to v4 with
         // ADR-033 D4's social.tax object. The forensic tag below did NOT move —
         // this file's own field set is unchanged.
-        Assert.Equal("telemetry/v4", run.Schemas.Telemetry);
+        Assert.Equal("telemetry/v5", run.Schemas.Telemetry);   // D-066 A15 (ADR-059): v5 names the M7 pass's line shape
         Assert.Equal(TelemetryWriter.Schema, run.Schemas.Telemetry);
         Assert.Equal("session-manifest/v2", run.Schemas.SessionManifest);
         Assert.Equal("forensic/v1", run.Schemas.Forensic);

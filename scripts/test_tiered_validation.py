@@ -60,6 +60,22 @@ class SelectionRules(unittest.TestCase):
             self.assertIn(c, p.checks)
         self.assertIn("Research", p.terms["sim"])
 
+    def test_consequence_and_live_corpus_checks_follow_their_inputs(self):
+        # M6 closure (D-066 R2, A12): the consequence audit reads research, goods, sim content, the operand registry and the
+        # M7 building charter; the live corpus checks read research.json and the corpus
+        for path in ("Sim.Data/content/research.json", "Sim.Data/content/goods.json", "Sim.Data/content/sim.json",
+                     "Sim.Core/State/KnowledgeOperands.cs", "docs/m7-plan/building-and-infrastructure-charter.md",
+                     "scripts/research-consequence-declarations.json"):
+            self.assertIn("consequence-audit", plan([path]).checks, path)
+        for path in ("Sim.Data/content/goods.json", "Sim.Data/content/sim.json"):
+            self.assertIn("unlock-audit", plan([path]).checks, path)
+        for path in ("Sim.Data/content/research.json", "docs/m6-plan/knowledge-redesign/corpus/tranche2-6.json"):
+            self.assertIn("research-tool-tests", plan([path]).checks, path)
+        self.assertIn("research-audit-tests", plan(["scripts/research-gameplay-unlock-audit.py"]).checks)
+        for cid in ("consequence-audit", "research-audit-tests", "tree-closure", "charters", "research-tool-tests"):
+            self.assertIn(cid, tv.FULL_LOCAL_CHECKS)
+        self.assertEqual("manual", VMAP["checks"]["research-proposal-snapshot"]["where"])   # historical, out of the gate
+
     def test_shared_core_escalates_to_full_suites_at_integration(self):
         targeted = plan(["Sim.Core/Kernel/Snapshot.cs"])
         self.assertNotIn("simtests-full", targeted.checks)

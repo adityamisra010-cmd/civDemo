@@ -620,7 +620,7 @@ public class InspectionTests
         SessionManifest manifest;
         using (FileStream file = File.OpenRead(s.ManifestPath)) manifest = SessionManifest.Read(file, s.ManifestPath);
         string v4 = File.ReadAllLines(Path.Combine(s.Dir, manifest.TelemetryFile))[5];
-        Assert.Contains("\"schema\":\"telemetry/v4\"", v4, StringComparison.Ordinal);
+        Assert.Contains("\"schema\":\"telemetry/v5\"", v4, StringComparison.Ordinal);   // D-066 A15: the writer's tag is v5
         Assert.Contains("\"tax\"", v4, StringComparison.Ordinal);
 
         using var doc = System.Text.Json.JsonDocument.Parse(v4);
@@ -676,11 +676,12 @@ public class InspectionTests
         Assert.True(TelemetryRecordFile.IsReadable("telemetry/v2"));
         Assert.True(TelemetryRecordFile.IsReadable("telemetry/v3"));
         Assert.True(TelemetryRecordFile.IsReadable("telemetry/v4"));
-        Assert.False(TelemetryRecordFile.IsReadable("telemetry/v5"));
+        Assert.True(TelemetryRecordFile.IsReadable("telemetry/v5"));   // D-066 A15 (ADR-059)
+        Assert.False(TelemetryRecordFile.IsReadable("telemetry/v6"));
         Assert.False(TelemetryRecordFile.IsReadable(null));
         InvalidDataException bad = Assert.Throws<InvalidDataException>(
-            () => TelemetryRecordFile.Parse([v4.Replace("telemetry/v4", "telemetry/v5", StringComparison.Ordinal)], "future"));
-        Assert.Contains("telemetry/v4, telemetry/v3, telemetry/v2", bad.Message, StringComparison.Ordinal);
+            () => TelemetryRecordFile.Parse([v4.Replace("telemetry/v5", "telemetry/v6", StringComparison.Ordinal)], "future"));
+        Assert.Contains("telemetry/v5, telemetry/v4, telemetry/v3, telemetry/v2", bad.Message, StringComparison.Ordinal);
     }
 
     /// <summary>Re-emit this build's line as an older vintage: same bytes, minus the

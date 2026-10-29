@@ -1,0 +1,18 @@
+{
+  "schema": "session-manifest/v2",
+  "seed": 42,
+  "sizePx": null,
+  "settlements": null,
+  "aiEmpires": 1,
+  "schemaVersion": 39,
+  "buildSha": "dev",
+  "buildDate": "local",
+  "startedAt": "2026-10-28 12:00:00",
+  "ordersFile": "orders-20261028-120000-a1.bin",
+  "chronicleFile": "chronicle-20261028-120000-a1.txt",
+  "traceFile": "trace-20261028-120000-a1.csv",
+  "telemetryFile": "telemetry-20261028-120000-a1.jsonl",
+  "platform": "ubuntu.24.04-x64",
+  "forensicFile": "forensic-20261028-120000-a1.jsonl",
+  "economyPackets": "ec1,ec2,ec3"
+}

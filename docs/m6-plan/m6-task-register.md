@@ -310,3 +310,32 @@ actionable before their verdict (ADR-015 §6); hand-back is a pointer (GOV-3 E2)
 ## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
 
 Packets authorized by D-062 R12 and delivered on `claude/new-session-yavghm`: T6.2a stage gate + T6.3 Civics Points (ADR-043); T6.7-lite / T6.21-lite exploration, prospecting, concealment and fog (ADR-044); KR-3 content tranche (ADR-045). Remaining packets keep their status. Record: `docs/d062-m6-director-final-rulings.md`.
+
+## Dated note — 2026-10-28 (D-066 M6 closure; appended, the text above is unchanged)
+
+Status by the 2026-10-28 closure pass. Evidence is cited by test or document name. A row's status label above is history,
+not proof (gov-4). Every item below was re-verified against code and tests on the integrated tree (§ evidence in
+`docs/m6-exit-inventory.md`).
+
+| ID | Status 2026-10-28 | Evidence / remaining |
+|---|---|---|
+| M6.1 | DONE (spec DRAFT, AMENDED by D-062 and D-066; the Director's 2026-10-28 instruction directs completion) | D-066 §1–§2 |
+| M6.2 | DONE | reconciliation 2026-10-28; `docs/research-consequence-audit.md` |
+| M6.3 | DONE | D-066 A1; ADR-057 |
+| M6.4 | DONE | ADR-043, ADR-054, ADR-057 P1 (`CivicState`) |
+| M6.5 | DONE (trees accepted, D-066 R3) | KR-3, tranche 2, TC-1/TC-2 hashes unchanged by closure |
+| M6.6 | DONE to slice scope (regime module + derived label; forms Available only, adoption M8) | ADR-057 P5; `RegimeQueryTests`, `RegimeLabelSourceGuardTests` |
+| M6.7 | DONE | ADR-057 P6; `ActionSurfaceAcceptanceSweepTests`; `ResearchUnlockPipelineUiTests` |
+| M6.8–M6.12 | DONE (contracts, inert content + validator, inert placeholder) | `unit-progression-contract.md`, `training-ap-contract.md`, `settler-special-character-disposition.md`, `UnitProgressionContentTests`, `UnitTrainingPlaceholderTests` |
+| M6.13 | DONE for the minimal fog; movement-dependent items DEFERRED to M7 (D-066 R1, §3) | ADR-044 dated note 2026-10-28; `KnowledgeLeakTests` on real fog; `DiscoveryExtentControlChangeTests` |
+| M6.14 | IMPLEMENTED; Director Part G gate OPEN; self-set 2.0× frame budget NOT met in 20/48 near-empty rows (max 2.8 ms) | `e1-object-layer-note.md`; `e1-visual-acceptance-checklist.md`; `ObjectLayerTests` |
+| M6.15 | DONE (opening in Excel is a human check) | ADR-059; `SessionExportTests` incl. the Director's 68-turn session |
+| M6.16 | DONE, in CI | `scripts/research-consequence-audit.py`; `test_research_audits.py` |
+| M6.17 | DONE locally; Windows smoke and the 20-seed nightly are CI-only (external) | `golden-attribution-register.md`; populated-table tests v35–v39 |
+| M6.18 | IMPLEMENTED; the Director's playtest of the slice OPEN | ADR-057; `LawCourtTests`; `m6-playtest-checklist.md` |
+| M6.19 | DONE | `m7-handoff-register.md` dated notes 2026-10-28 |
+| M6.20 | OPEN until the Director's exit gate | `docs/m6-exit-inventory.md` |
+| M6.21 | DONE (contact exposure dormant in canonical worlds — Director question in `queue.md`) | ADR-058; `DiffusionExposureTests`, `EurekaEvaluabilityTests` |
+| M6.22 | DONE (formula = shipped ADR-033 D6 form, D-066 A8; law court realized; every entity classified) | `deferred-entity-dispositions.md`; `EntityDispositionRegisterTests` |
+| M6.23 | DONE (D-066 A18); founding-predicate residual assigned to M7 (DW-002) | `PolityKnowledgeTests` |
+| M6.24 | NOT IMPLEMENTED — BLOCKED on a Director ruling: D-N assigned D-051 §2/§4 to M6, but DW-036 records the §4 mechanism and milestone as "deferred until after the playtest"; §2 richness classes likewise unscheduled | DW-036; exit inventory known-open |

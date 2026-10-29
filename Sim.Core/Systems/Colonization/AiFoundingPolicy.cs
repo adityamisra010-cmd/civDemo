@@ -208,10 +208,11 @@ public static class AiFoundingPolicy
         if (ranked.Length == 0) return null;
         if (world.Terrain is not { } terrain || sites.Frontier is not { } f) return null;
 
+        KnownSiting? valuation = ValuationFor(cfg, f, terrain, knowledge);   // D-066 A18: once per polity per call
         for (int k = 0; k < ranked.Length; k++)
         {
             SettlementId from = ranked[k];
-            int cell = BestSiteFor(world, cfg, f, terrain, sites, polity, from, check, knowledge);
+            int cell = SiteFor(world, cfg, f, terrain, sites, polity, from, check, knowledge, valuation);
             if (cell < 0) continue;   // no cell of this source is Legal: the next source
             sites.Accept(cell);
             return FoundingQuery.FoundOrder(world, polity, from, cell);
@@ -305,24 +306,53 @@ public static class AiFoundingPolicy
     {
         ArgumentNullException.ThrowIfNull(knowledge);
         if (knowledge.Polity.Value != issuer.Value) throw new ArgumentException("the knowledge must be the issuer's", nameof(knowledge));
+        return SiteFor(world, cfg, f, terrain, sites, issuer, source, check, knowledge, ValuationFor(cfg, f, terrain, knowledge));
+    }
+
+    /// <summary>
+    /// D-066 A18 — THE VALUATION THE SCAN RANKS BY: null (the frontier's own raster, floor and whole-component flood — the
+    /// pre-A18 scan, byte for byte) when the seam restricts nothing (the fog off: <see cref="PolityKnowledge.AllKnown"/>) or
+    /// the switch <c>colonization.aiFounding.knownTerrainOnly</c> is false (the attribution twin); otherwise the issuer's
+    /// <see cref="KnownSiting"/> — region fertility, water access and the candidate floor over the terrain it KNOWS, and its
+    /// reach over the lattice nodes it knows.
+    /// </summary>
+    public static KnownSiting? ValuationFor(SimConfig cfg, SettlementSiting.FrontierSiting f, TerrainSet terrain, PolityKnowledge knowledge)
+    {
+        if (knowledge.AllKnown) return null;
+        if (cfg.Colonization?.AiFounding is not { KnownTerrainOnly: true }) return null;
+        SitingConfig siting = f.Siting
+            ?? throw new InvalidOperationException("the frontier carries no siting config, so it cannot be valued over the issuer's known terrain (D-066 A18)");
+        return KnownSiting.Of(terrain, siting, knowledge);
+    }
+
+    /// <summary>The site arm for one source with the valuation decided (<see cref="ValuationFor"/>).</summary>
+    private static int SiteFor(
+        IReadOnlyWorldState world, SimConfig cfg, SettlementSiting.FrontierSiting f, TerrainSet terrain, Sites sites,
+        PolityId issuer, SettlementId source, SiteCheck check, PolityKnowledge knowledge, KnownSiting? valuation)
+    {
         int sourceCell = -1;
         for (int i = 0; i < world.Settlements.Count; i++)
             if (world.Settlements[i].Id == source) { sourceCell = world.Settlements[i].SiteCell; break; }
         if (sourceCell < 0) return -1;
 
-        bool[] reachable = ReachableNodes(world, f, sourceCell);
+        // D-066 A18: with a valuation, the reach is the flood over the KNOWN nodes and the candidate arm is the known
+        // terrain's (score > 0 and not below the known floor); without one, the frontier's.
+        bool[] reachable = valuation is null
+            ? ReachableNodes(world, f, sourceCell)
+            : Pathfinder.ReachableWithin(f.Lattice, world, LatticeMap.OriginLatticeNode(f.Lattice, f.Size, sourceCell), valuation.KnownNodes);
+        double[] scores = valuation?.Scores ?? f.Scores;
         Func<int, bool> preFilter = cell =>
         {
             if (!knowledge.KnowsCell(cell)) return false;   // P7: the AI ranks only what it has discovered
-            if (!SettlementSiting.IsFrontierCandidate(f, terrain, cell)) return false;
+            if (valuation is null ? !SettlementSiting.IsFrontierCandidate(f, terrain, cell) : !valuation.IsCandidate(terrain, cell)) return false;
             if (!SettlementSiting.IsUnobstructedFrontierCell(f, sites.Spacing, sites.Occupied, cell)) return false;
             int node = LatticeMap.OriginLatticeNode(f.Lattice, f.Size, cell);
             return reachable[node] && !sites.IsClaimed(node);
         };
-        int pick = BestSite(f.Scores, preFilter);
+        int pick = BestSite(scores, preFilter);
         if (pick < 0 || IsLegal(pick)) return pick;
         // THE predicate refused the pre-filter's pick: fall through to this source's next-best Legal cell.
-        return BestSite(f.Scores, cell => preFilter(cell) && IsLegal(cell));
+        return BestSite(scores, cell => preFilter(cell) && IsLegal(cell));
 
         bool IsLegal(int cell) =>
             check(world, cfg, f, sites.Spacing, sites.Occupied, issuer, source, cell) == FoundingVerdict.Legal;

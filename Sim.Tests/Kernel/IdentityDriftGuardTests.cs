@@ -266,8 +266,13 @@ public class IdentityDriftGuardTests
             if (t == 2 || t == 3)
             {
                 SettlementId source = t == 2 ? a : b;
+                // D-066 A18 (M6 closure track FOG): the rig uses the AI's ranking only as a SITE FINDER for the player (any
+                // Legal site will do; the predicate below asserts it), so it ranks with the pre-A18 whole-map valuation
+                // (TestConfigs.PreAiKnownTerrain) — the sessions this rig records are unchanged by A18. MEASURED: under the
+                // shipped fog the known-terrain valuation finds no site the player can found after these two expeditions
+                // (INFERRED cause: its floor is the median of the KNOWN scores, which the good land around a settlement raises).
                 int site = (t == 2 ? plan?.FirstSite : plan?.SecondSite)
-                    ?? AiFoundingPolicy.BestSiteFor(w, cfg, f, w.Terrain!, new AiFoundingPolicy.Sites(w, f), Me, source);
+                    ?? AiFoundingPolicy.BestSiteFor(w, TestConfigs.PreAiKnownTerrain(cfg), f, w.Terrain!, new AiFoundingPolicy.Sites(w, f), Me, source);
                 Assert.Equal(FoundingVerdict.Legal, FoundingQuery.Check(w, cfg, f, Me, source, site));
                 log.Append(FoundingQuery.FoundOrder(w, Me, source, site));
                 if (t == 2) siteA = site; else siteB = site;

@@ -21,18 +21,36 @@ namespace Sim.Ui.Tests;
 
 /// <summary>
 /// M5 map workstream P7 — THE PLAYER-KNOWLEDGE SEAM'S LEAK GATE. The gate of record is METAMORPHIC and on VALUES: the
-/// one-AI world after six played turns is seen through a knowledge stub that hides the AI polity whole
-/// (<see cref="KnowledgeStubs"/>), and everything that polity is — its settlements' people, stocks, deposits, dwellings,
-/// structures, queues, labour, prices, grievances and needs, its formations, its tax and Age, the terrain under the
-/// nodes it hides — is perturbed. Every player-facing output must then be IDENTICAL: the world projection and the lens
-/// paint (SVG bytes and LensFrame), the HUD (world totals included), the player views, the market and needs panels, Tab,
-/// the unit and formation cards, the good cards, the place card of every sampled KNOWN map cell (InfoKind.Cell, M5 P8 —
-/// with its own perturbation of what only it reads: hidden sites moved, hidden claims and a hidden road planted, rivers
-/// and rough ground under every unknown node), the annals (both chronicles, with hidden EVENTS planted), the Trends
-/// world series and the history buffer's, and FrameText of every player section of the real UI. Each comparison has a
-/// POSITIVE CONTROL: with the all-known view the same perturbation does change the same output, so equality under the
-/// stub means the readers filtered, not that the perturbation missed. The read-isolation grep is advisory; the source
-/// guard here reads the same allowlist and is exact.
+/// one-AI world after six played turns, and everything the player does not know of the AI polity — its settlements'
+/// people, stocks, deposits, dwellings, structures, queues, labour, prices, grievances and needs, its formations, its tax
+/// and Age, the terrain under the nodes the player does not know — is perturbed. Every player-facing output must then be
+/// IDENTICAL: the world projection and the lens paint (SVG bytes and LensFrame), the HUD (world totals included), the
+/// player views, the market and needs panels, Tab, the unit and formation cards, the good cards, the place card of every
+/// sampled KNOWN map cell (InfoKind.Cell, M5 P8 — with its own perturbation of what only it reads: hidden sites moved,
+/// hidden claims and a hidden road planted, rivers and rough ground under every unknown node), the annals (both
+/// chronicles, with hidden EVENTS planted), the Trends world series and the history buffer's, and FrameText of every
+/// player section of the real UI. Each comparison has a POSITIVE CONTROL: with the all-known view the same perturbation
+/// does change the same output, so equality means the readers filtered, not that the perturbation missed. The
+/// read-isolation grep is advisory; the source guard here reads the same allowlist and is exact.
+///
+/// <para><b>WHAT HIDES THE RIVAL (M6 closure, track FOG; D-066 §3 "Leak gate on production fog (the KnowledgeStubs stub
+/// removed from the gating legs)").</b> Every family runs on two LENSES (<see cref="Lens"/>):</para>
+/// <list type="bullet">
+/// <item><see cref="Lens.Fog"/> — THE GATE OF RECORD. The SHIPPED config (fog, discovery, the military layer and the
+///   economy packets ON) and the session's own production view, <c>PlayerKnowledge.Of(world, player, cfg)</c>, built from
+///   <c>PolityKnowledge.Of</c> — the stored extent, the seed discs, formation sight and sightings. No stub is involved:
+///   the rival is hidden by the REAL fog. MEASURED before the rig was fixed (2026-10-28, seeds 42, 1, 2 and 7, turns
+///   0–12, canonical 1024 px, one AI Empire): on every seed and turn the player knows 0 of the AI's 6 settlements, 0 of
+///   its formations and not the polity (174 known lattice nodes of 65 536: its own seed discs); the 256 px military rig
+///   likewise through turn 6. The rig is seed 42 after six played turns.</item>
+/// <item><see cref="Lens.Stub"/> — a CONTROL leg, not the gate: the fog-off world (<c>TestFog.PreDiscovery</c>) seen
+///   through <see cref="KnowledgeStubs"/> (all known but the AI polity), the P7 rig as first written. It exercises the
+///   readers over far more KNOWN foreign ground (every node but the rival's) than the production fog does early in a
+///   game, so a reader that filtered only by "unknown land" and not by subject would still be caught.</item>
+/// </list>
+/// The all-known legs (fog off / <c>PlayerKnowledge.Of(world)</c>) are the positive controls of both lenses. One family
+/// cannot arise under the shipped fog — a STEP that un-knows a settlement (sighting memory is monotone, rule E5; ghosts
+/// are M7) — so it keeps its stub leg and gains a fog-leg pin that the premise does not arise.
 /// </summary>
 [Collection("ImGui context")]
 public partial class KnowledgeLeakTests : IDisposable
@@ -74,6 +92,8 @@ public partial class KnowledgeLeakTests : IDisposable
         public required WorldgenConfig Worldgen { get; init; }
         /// <summary>P8: the KNOWN map cells whose place cards are gated (<see cref="PlaceCells"/>).</summary>
         public required int[] Cells { get; init; }
+        /// <summary>M6 closure: what hides the rival in this rig.</summary>
+        public Lens Lens { get; init; } = Lens.Stub;
     }
 
     private static readonly Lazy<Rig> Played = new(() =>
@@ -92,8 +112,134 @@ public partial class KnowledgeLeakTests : IDisposable
     /// <summary>What the stub lets the player know of <paramref name="w"/> (the rig's fixed mask).</summary>
     private static PlayerKnowledge Stub(IReadOnlyWorldState w) => KnowledgeStubs.Over(w, Player, Played.Value.Mask);
 
-    /// <summary>The all-known production view (the positive control).</summary>
+    /// <summary>The all-known view (the positive control).</summary>
     private static PlayerKnowledge All(IReadOnlyWorldState w) => PlayerKnowledge.Of(w);
+
+    // ================================================================== M6 closure (track FOG): the production-fog lens
+
+    /// <summary>What hides the rival from the player in a leg of the gate (see the type's remarks).</summary>
+    public enum Lens
+    {
+        /// <summary>THE GATE: the shipped fog through the production seam, no stub.</summary>
+        Fog,
+        /// <summary>A control leg: the fog-off world through the knowledge stub.</summary>
+        Stub,
+    }
+
+    /// <summary>The fog rig: the SHIPPED config, the one-AI canonical world, six turns played by the real session — one
+    /// player Explore at turn 0 — the AI unsighted (MEASURED, see the type's remarks; asserted by TheRig_…); its mask is the player's production KNOWN mask of the world after
+    /// the step (used only where a family needs a fixed node set: the place card's "farthest unknown node").</summary>
+    private static readonly Lazy<Rig> FogPlayed = new(() =>
+    {
+        UiSession s = UiSession.Start(42, aiEmpiresOverride: 1);
+        Assert.True(DiscoveryQuery.FogOn(s.Config), "the fog rig must run the shipped fog");
+        // The player explores once, at turn 0, from its settlement FARTHEST from every AI settlement (radius 3 → 6 nodes), so
+        // its known land reaches past its own catchments (the place card's claim channel needs a known node no settlement of
+        // the player claims) while every AI settlement stays outside the disc and unsighted (asserted by TheRig_…).
+        PolityKnowledge grid = PolityKnowledge.Of(s.World, Player, null);
+        int l = grid.LatticeSize, from = -1;
+        long fromD = -1;
+        for (int i = 0; i < s.World.Settlements.Count; i++)
+        {
+            SettlementRow mine = s.World.Settlements[i];
+            if (!EmpireQuery.ControlsSettlement(s.World, Player, mine.Id)) continue;
+            int a = grid.NodeOfCell(mine.SiteCell);
+            long nearest = long.MaxValue;
+            for (int j = 0; j < s.World.Settlements.Count; j++)
+            {
+                if (!EmpireQuery.ControlsSettlement(s.World, Hidden, s.World.Settlements[j].Id)) continue;
+                int b = grid.NodeOfCell(s.World.Settlements[j].SiteCell);
+                long dx = Math.Abs(a % l - b % l), dy = a / l - b / l;
+                if (grid.WrapX) dx = Math.Min(dx, l - dx);
+                nearest = Math.Min(nearest, dx * dx + dy * dy);
+            }
+            if (nearest > fromD) { fromD = nearest; from = mine.Id.Value; }
+        }
+        Assert.True(fromD > 6 * 6, "every player settlement has an AI settlement within the explored radius - the fog rig is void");
+        Assert.True(s.EmitExplore(from), "the fog rig's expedition was refused");
+        for (int t = 0; t < 6; t++) s.EndTurn();
+        WorldState next = s.World.Clone();
+        PolityKnowledge core = PolityKnowledge.Of(next, Player, s.Config);
+        bool[] mask = new bool[core.LatticeSize * core.LatticeSize];
+        for (int n = 0; n < mask.Length; n++) mask[n] = core.Known(n);
+        return new Rig
+        {
+            Prev = s.PreviousWorld!.Clone(), Next = next, Config = s.Config, Name = s.Names.Name,
+            Mask = mask, Worldgen = s.Sites!.Worldgen, Cells = FogPlaceCells(next, s.Config),
+            Lens = Lens.Fog,
+        };
+    }, LazyThreadSafetyMode.ExecutionAndPublication);
+
+    /// <summary>The rig of a lens.</summary>
+    private static Rig RigOf(Lens lens) => lens == Lens.Fog ? FogPlayed.Value : Played.Value;
+
+    /// <summary>What the player knows of <paramref name="w"/> in a leg: the production seam under the rig's (shipped)
+    /// config for <see cref="Lens.Fog"/>; the stub's fixed mask for <see cref="Lens.Stub"/>.</summary>
+    private static PlayerKnowledge Gate(Lens lens, IReadOnlyWorldState w) =>
+        lens == Lens.Fog ? PlayerKnowledge.Of(w, Player, FogPlayed.Value.Config) : Stub(w);
+
+    /// <summary>The gate of a lens as a function (for the readers that take one).</summary>
+    private static Func<IReadOnlyWorldState, PlayerKnowledge> GateOf(Lens lens) => w => Gate(lens, w);
+
+    /// <summary>A real UI session over <paramref name="w"/> for a leg: the fog lens's session uses the shipped config and
+    /// builds its OWN production knowledge (no seam passed); the stub lens's, the fog-off config through the stub. With
+    /// <paramref name="allKnown"/> the session sees everything (the positive control) under the leg's own config.</summary>
+    private static UiSession SessionOf(Lens lens, WorldState w, bool allKnown = false) => lens == Lens.Fog
+        ? UiSession.StartFromWith(FogPlayed.Value.Config, w, 42, null, null, allKnown ? x => PlayerKnowledge.Of(x) : null)
+        : UiSession.StartFromWith(TestFog.PreDiscovery, w, 42, null, null, allKnown ? null : Stub);
+
+    /// <summary>The fog rig's sampled KNOWN cells: for every AI settlement the known cell nearest its site (where its
+    /// spacing, claims, roads and ground meet the player's known land), then 10 px out from each of the player's own
+    /// settlements in the four axis directions; distinct, at most 28.</summary>
+    private static int[] FogPlaceCells(IReadOnlyWorldState w, SimConfig cfg)
+    {
+        PolityKnowledge k = PolityKnowledge.Of(w, Player, cfg);
+        int size = w.Terrain!.Size;
+        IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(w, Hidden);
+        var known = new List<int>();
+        for (int cell = 0; cell < size * size; cell++) if (k.KnowsCell(cell)) known.Add(cell);
+        var cells = new List<int>();
+        for (int i = 0; i < w.Settlements.Count; i++)
+        {
+            if (!hidden.Contains(w.Settlements[i].Id.Value)) continue;
+            int site = w.Settlements[i].SiteCell, x = site % size, y = site / size, best = -1;
+            long bestD = long.MaxValue;
+            foreach (int cell in known)
+            {
+                long dx = Math.Abs(cell % size - x), dy = cell / size - y;
+                if (w.Terrain.WrapX) dx = Math.Min(dx, size - dx);
+                long d = dx * dx + dy * dy;
+                if (d < bestD) { bestD = d; best = cell; }   // ascending scan: ties to the lower cell
+            }
+            if (best >= 0 && !cells.Contains(best)) cells.Add(best);
+        }
+        for (int i = 0; i < w.Settlements.Count; i++)
+        {
+            if (hidden.Contains(w.Settlements[i].Id.Value)) continue;
+            int site = w.Settlements[i].SiteCell, x = site % size, y = site / size;
+            foreach ((int dx, int dy) in new[] { (10, 0), (-10, 0), (0, 10), (0, -10) })
+            {
+                int cx = x + dx, cy = y + dy;
+                if (cx < 0 || cy < 0 || cx >= size || cy >= size) continue;
+                int cell = cy * size + cx;
+                if (k.KnowsCell(cell) && !cells.Contains(cell)) cells.Add(cell);
+            }
+        }
+        // The claim channel needs a sampled known node no settlement of the PLAYER claims (unclaimed, or a hidden one's): the
+        // first such known cell, ascending (the seed discs and the player's catchments nearly coincide on this rig).
+        foreach (int cell in known)
+        {
+            int node = k.NodeOfCell(cell);
+            bool mine = false;
+            for (int i = 0; i < w.CatchmentNodes.Count; i++)
+                mine |= w.CatchmentNodes[i].LatticeNode == node && !hidden.Contains(w.CatchmentNodes[i].Settlement.Value);
+            if (mine) continue;
+            if (!cells.Contains(cell)) cells.Insert(0, cell);
+            break;
+        }
+        Assert.True(cells.Count >= 8, "too few known cells for the place cards - the fog rig is void");
+        return [.. cells.Take(28)];
+    }
 
     // ================================================================== P8: the place card (InfoKind.Cell)
 
@@ -135,22 +281,27 @@ public partial class KnowledgeLeakTests : IDisposable
     private static readonly List<SiteAssessment.Prepared> SitesMade = [];
 
     /// <summary>The place card's site half for <paramref name="w"/>'s terrain (prepared once per terrain, as UiSession.Sites).</summary>
-    private static SiteAssessment.Prepared SitesFor(IReadOnlyWorldState w)
+    private static SiteAssessment.Prepared SitesFor(IReadOnlyWorldState w) => SitesFor(Played.Value, w);
+
+    /// <summary>As <see cref="SitesFor(IReadOnlyWorldState)"/> under rig <paramref name="r"/>'s config.</summary>
+    private static SiteAssessment.Prepared SitesFor(Rig r, IReadOnlyWorldState w)
     {
         lock (SitesLock)
         {
             foreach (SiteAssessment.Prepared p in SitesMade) if (p.IsFor(w.Terrain)) return p;
-            SiteAssessment.Prepared made = SiteAssessment.Prepare(w, Played.Value.Config, Played.Value.Worldgen)!;
+            SiteAssessment.Prepared made = SiteAssessment.Prepare(w, r.Config, r.Worldgen)!;
             SitesMade.Add(made);
             return made;
         }
     }
 
     /// <summary>The place card of <paramref name="cell"/> as the player sees it through <paramref name="k"/>: every line.</summary>
-    private static string PlaceCard(IReadOnlyWorldState w, PlayerKnowledge k, int cell)
+    private static string PlaceCard(IReadOnlyWorldState w, PlayerKnowledge k, int cell) => PlaceCard(Played.Value, w, k, cell);
+
+    /// <summary>As <see cref="PlaceCard(IReadOnlyWorldState, PlayerKnowledge, int)"/> under rig <paramref name="r"/>.</summary>
+    private static string PlaceCard(Rig r, IReadOnlyWorldState w, PlayerKnowledge k, int cell)
     {
-        Rig r = Played.Value;
-        InfoCard card = InfoQuery.Card(w, r.Config, Player, InfoSubject.OfCell(cell), settlementName: r.Name, knowledge: k.Core, site: SitesFor(w));
+        InfoCard card = InfoQuery.Card(w, r.Config, Player, InfoSubject.OfCell(cell), settlementName: r.Name, knowledge: k.Core, site: SitesFor(r, w));
         var sb = new StringBuilder(card.Title).Append('|').Append(card.Kind).Append('|').Append(card.What).Append('|').Append(card.Status)
             .Append('|').Append(card.StatusLine).Append('\n');
         foreach (InfoSection sec in card.More)
@@ -161,12 +312,25 @@ public partial class KnowledgeLeakTests : IDisposable
         return sb.ToString();
     }
 
-    [Fact]
-    public void TheRig_HidesExactlyTheAiPolity_AndLeavesTheRestKnown()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void TheRig_HidesExactlyTheAiPolity_AndLeavesTheRestKnown(Lens lens)
     {
-        Rig r = Played.Value;
-        PlayerKnowledge k = Stub(r.Next);
+        Rig r = RigOf(lens);
+        PlayerKnowledge k = Gate(lens, r.Next);
         Assert.False(k.AllKnown);
+        if (lens == Lens.Fog)
+        {
+            // No stub: the view IS the production seam under the shipped fog, node for node.
+            PolityKnowledge production = PolityKnowledge.Of(r.Next, Player, r.Config);
+            for (int n = 0; n < production.LatticeSize * production.LatticeSize; n++)
+            {
+                Assert.Equal(production.Known(n), k.Core.Known(n));
+                Assert.Equal(production.Visible(n), k.Core.Visible(n));
+            }
+            Assert.True(RecruitmentQuery.Enabled(r.Config), "the fog rig runs the shipped config (the military layer on)");
+        }
         Assert.True(PlayerKnowledge.Of(r.Next).AllKnown);
         IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(r.Next, Hidden);
         Assert.True(hidden.Count >= 2, "the rig needs at least two hidden settlements");
@@ -174,7 +338,7 @@ public partial class KnowledgeLeakTests : IDisposable
         for (int i = 0; i < r.Next.Settlements.Count; i++)
         {
             int id = r.Next.Settlements[i].Id.Value;
-            bool isHidden = hidden.Contains(id);
+            bool isHidden = hidden.Contains(id);   // fog: the rig holds only the player's and the AI's settlements
             Assert.Equal(!isHidden, k.KnowsSettlement(id));
             Assert.Equal(isHidden, k.IsHiddenSettlement(id));
             if (!isHidden) known++;
@@ -301,11 +465,14 @@ public partial class KnowledgeLeakTests : IDisposable
     }
 
     /// <summary>The rig's world after the step, perturbed (salt 1).</summary>
-    private static WorldState PerturbedNext()
+    private static WorldState PerturbedNext() => PerturbedNext(Lens.Stub);
+
+    /// <summary>The rig's world after the step, perturbed (salt 1) — everything the lens's gate hides.</summary>
+    private static WorldState PerturbedNext(Lens lens)
     {
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
         WorldState w = r.Next.Clone();
-        Perturb(w, Stub(w), r.Config, 1);
+        Perturb(w, Gate(lens, w), r.Config, 1);
         return w;
     }
 
@@ -379,7 +546,7 @@ public partial class KnowledgeLeakTests : IDisposable
 
         // P8: the place card of every sampled KNOWN map cell.
         var places = new StringBuilder();
-        foreach (int cell in r.Cells) places.Append(cell).Append(":\n").Append(PlaceCard(w, k, cell));
+        foreach (int cell in r.Cells) places.Append(cell).Append(":\n").Append(PlaceCard(r, w, k, cell));
         cat["place cards"] = places.ToString();
         return cat;
     }
@@ -397,17 +564,19 @@ public partial class KnowledgeLeakTests : IDisposable
 
     // ================================================================== metamorphic: every static reader
 
-    [Fact]
-    public void PerturbingWhatTheStubHides_LeavesEveryStaticReaderIdentical_AndTheAllKnownControlSeesIt()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void PerturbingWhatIsHidden_LeavesEveryStaticReaderIdentical_AndTheAllKnownControlSeesIt(Lens lens)
     {
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
         WorldState a = r.Next.Clone();
-        WorldState b = PerturbedNext();
+        WorldState b = PerturbedNext(lens);
         (int maxS, int maxU) = Bounds(a, b);
 
-        SortedDictionary<string, string> ka = Readers(a, Stub(a), r, maxS, maxU), kb = Readers(b, Stub(b), r, maxS, maxU);
+        SortedDictionary<string, string> ka = Readers(a, Gate(lens, a), r, maxS, maxU), kb = Readers(b, Gate(lens, b), r, maxS, maxU);
         foreach (string category in ka.Keys)
-            Assert.True(ka[category] == kb[category], "the stubbed player sees the hidden polity through: " + category);
+            Assert.True(ka[category] == kb[category], "the player (" + lens + ") sees the hidden polity through: " + category);
 
         // POSITIVE CONTROL: all-known WITH THE BOOKS OPEN (the developer view — D-060 closes a known rival's books to the
         // production view, which D060_* pins), the same perturbation reaches every category it can reach (Tab cycles ids,
@@ -423,13 +592,16 @@ public partial class KnowledgeLeakTests : IDisposable
         Assert.NotEqual(ca["tab"], ka["tab"]);
     }
 
-    [Fact]
-    public void TheHistoryBuffersWorldSeries_SumOnlyKnownSettlements()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void TheHistoryBuffersWorldSeries_SumOnlyKnownSettlements(Lens lens)
     {
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
+        Func<IReadOnlyWorldState, PlayerKnowledge> seen = GateOf(lens);   // the leg's gate: the production fog, or the stub
         WorldState a0 = r.Prev.Clone(), a1 = r.Next.Clone();
-        WorldState b0 = r.Prev.Clone(), b1 = PerturbedNext();
-        Perturb(b0, Stub(b0), r.Config, 0);
+        WorldState b0 = r.Prev.Clone(), b1 = PerturbedNext(lens);
+        Perturb(b0, seen(b0), r.Config, 0);
         string Series(HistoryBuffer h)
         {
             var sb = new StringBuilder();
@@ -444,35 +616,38 @@ public partial class KnowledgeLeakTests : IDisposable
             h.Capture(n, k(n));
             return h;
         }
-        Assert.Equal(Series(Capture(a0, a1, Stub)), Series(Capture(b0, b1, Stub)));
+        Assert.Equal(Series(Capture(a0, a1, seen)), Series(Capture(b0, b1, seen)));
         Assert.NotEqual(Series(Capture(a0, a1, All)), Series(Capture(b0, b1, All)));   // control
 
         // P7 review (finding 2): a hidden settlement's own PRICE series — the Market and Trends price plots — reads as
         // never captured through the stub, whatever its prices do; all-known it is read, and moves (the control).
-        HistoryBuffer ha = Capture(a0, a1, Stub), hb = Capture(b0, b1, Stub);
+        HistoryBuffer ha = Capture(a0, a1, seen), hb = Capture(b0, b1, seen);
         bool priceMoved = false;
         foreach (int id in KnowledgeStubs.SettlementsOf(a1, Hidden))
             foreach (GoodEntry g in r.Config.Goods!.Goods)
             {
-                Assert.Empty(ha.Price(id, g.Id, Stub(a1)));
-                Assert.Empty(hb.Price(id, g.Id, Stub(b1)));
+                Assert.Empty(ha.Price(id, g.Id, seen(a1)));
+                Assert.Empty(hb.Price(id, g.Id, seen(b1)));
                 priceMoved |= !ha.Price(id, g.Id, All(a1)).SequenceEqual(hb.Price(id, g.Id, All(b1)));
             }
         Assert.True(priceMoved, "no hidden settlement's price series moved all-known - the control is void");
         foreach (int id in KnowledgeStubs.SettlementsOf(a1, Player))
             foreach (GoodEntry g in r.Config.Goods!.Goods)
-                Assert.Equal(ha.Price(id, g.Id, Stub(a1)), hb.Price(id, g.Id, Stub(b1)));
+                Assert.Equal(ha.Price(id, g.Id, seen(a1)), hb.Price(id, g.Id, seen(b1)));
     }
 
     // ================================================================== metamorphic: Trends (the plotted values)
 
-    [Fact]
-    public void TheTrendsWorldSeries_AreIdentical_WhateverTheHiddenPolityDoes()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void TheTrendsWorldSeries_AreIdentical_WhateverTheHiddenPolityDoes(Lens lens)
     {
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
+        Func<IReadOnlyWorldState, PlayerKnowledge> seen = GateOf(lens);   // the leg's gate
         WorldState a0 = r.Prev.Clone(), a1 = r.Next.Clone();
-        WorldState b0 = r.Prev.Clone(), b1 = PerturbedNext();
-        Perturb(b0, Stub(b0), r.Config, 0);
+        WorldState b0 = r.Prev.Clone(), b1 = PerturbedNext(lens);
+        Perturb(b0, seen(b0), r.Config, 0);
         var la = new ObservationLog();
         la.Observe(a0, a1, r.Config, []);
         var lb = new ObservationLog();
@@ -482,7 +657,7 @@ public partial class KnowledgeLeakTests : IDisposable
         foreach (TrendMetric m in TrendsModel.Metrics(r.Config.Registries.Classes))
         {
             if (m.IsPrice) continue;
-            double[] sa = TrendsModel.World(la, m.Key, m.ClassId, Stub(a1)), sb = TrendsModel.World(lb, m.Key, m.ClassId, Stub(b1));
+            double[] sa = TrendsModel.World(la, m.Key, m.ClassId, seen(a1)), sb = TrendsModel.World(lb, m.Key, m.ClassId, seen(b1));
             Assert.Equal(sa.Length, sb.Length);
             for (int i = 0; i < sa.Length; i++)
                 Assert.True(sa[i].Equals(sb[i]), m.Label + " [" + i.ToString(CultureInfo.InvariantCulture) + "]: " + R(sa[i]) + " vs " + R(sb[i]));
@@ -495,7 +670,7 @@ public partial class KnowledgeLeakTests : IDisposable
         }
         Assert.True(reached >= 3, "the perturbation reaches only " + reached.ToString(CultureInfo.InvariantCulture) + " all-known world series - the control is void");
         // Every known settlement's own series is untouched too.
-        PlayerKnowledge k = Stub(a1);
+        PlayerKnowledge k = seen(a1);
         for (int i = 0; i < a1.Settlements.Count; i++)
         {
             int id = a1.Settlements[i].Id.Value;
@@ -509,7 +684,7 @@ public partial class KnowledgeLeakTests : IDisposable
             foreach (TrendMetric m in TrendsModel.Metrics(r.Config.Registries.Classes))
             {
                 if (m.IsPrice) continue;
-                double[] ha = TrendsModel.Settlement(la, id, m.Key, m.ClassId, Stub(a1)), hb = TrendsModel.Settlement(lb, id, m.Key, m.ClassId, Stub(b1));
+                double[] ha = TrendsModel.Settlement(la, id, m.Key, m.ClassId, seen(a1)), hb = TrendsModel.Settlement(lb, id, m.Key, m.ClassId, seen(b1));
                 Assert.Equal(TrendsModel.Settlement(la, -1, m.Key, m.ClassId), ha);
                 Assert.Equal(ha, hb);
                 settlementMoved |= !TrendsModel.Settlement(la, id, m.Key, m.ClassId, All(a1)).SequenceEqual(TrendsModel.Settlement(lb, id, m.Key, m.ClassId, All(b1)));
@@ -547,13 +722,16 @@ public partial class KnowledgeLeakTests : IDisposable
         }
     }
 
-    [Fact]
-    public void TheAnnals_TellNothingOfWhatTheStubHides_EvenItsEvents()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void TheAnnals_TellNothingOfWhatIsHidden_EvenItsEvents(Lens lens)
     {
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
+        Func<IReadOnlyWorldState, PlayerKnowledge> seen = GateOf(lens);   // the leg's gate
         WorldState a0 = r.Prev.Clone(), a1 = r.Next.Clone();
-        WorldState b0 = r.Prev.Clone(), b1 = PerturbedNext();
-        Perturb(b0, Stub(b0), r.Config, 0);
+        WorldState b0 = r.Prev.Clone(), b1 = PerturbedNext(lens);
+        Perturb(b0, seen(b0), r.Config, 0);
         PlantHiddenEvents(b1, r.Config);
 
         List<string> StateEvents(WorldState p, WorldState n, PlayerKnowledge? k)
@@ -576,22 +754,24 @@ public partial class KnowledgeLeakTests : IDisposable
             return lines;
         }
 
-        Assert.Equal(StateEvents(a0, a1, Stub(a1)), StateEvents(b0, b1, Stub(b1)));
-        Assert.Equal(CoreEvents(a0, a1, Stub(a1)), CoreEvents(b0, b1, Stub(b1)));
+        Assert.Equal(StateEvents(a0, a1, seen(a1)), StateEvents(b0, b1, seen(b1)));
+        Assert.Equal(CoreEvents(a0, a1, seen(a1)), CoreEvents(b0, b1, seen(b1)));
         // POSITIVE CONTROLS: unfiltered, the planted events are told (and the core collector sees the hidden famine).
         List<string> told = StateEvents(b0, b1, null);
         Assert.NotEqual(StateEvents(a0, a1, null), told);
-        Assert.True(told.Count >= StateEvents(b0, b1, Stub(b1)).Count + 5, "fewer than five hidden events were planted: " + string.Join(" | ", told));
+        Assert.True(told.Count >= StateEvents(b0, b1, seen(b1)).Count + 5, "fewer than five hidden events were planted: " + string.Join(" | ", told));
         Assert.NotEqual(CoreEvents(a0, a1, null), CoreEvents(b0, b1, null));
         // And the filter keeps every event about what the player knows (all-known: exactly the unfiltered list).
         Assert.Equal(StateEvents(a0, a1, null), StateEvents(a0, a1, All(a1)));
     }
 
-    [Fact]
-    public void ACoreChronicleEvent_ReachesTheAnnals_OnlyWhenItsSettlementIsNotHidden()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void ACoreChronicleEvent_ReachesTheAnnals_OnlyWhenItsSettlementIsNotHidden(Lens lens)
     {
-        Rig r = Played.Value;
-        PlayerKnowledge k = Stub(r.Next);
+        Rig r = RigOf(lens);
+        PlayerKnowledge k = Gate(lens, r.Next);
         foreach (int id in KnowledgeStubs.SettlementsOf(r.Next, Hidden))
             Assert.False(UiSession.AdmitsAnnal(k, new ChronicleEvent(ChronicleEventType.FamineOnset, 6, 0.0, id, 0, 0)));
         foreach (int id in KnowledgeStubs.SettlementsOf(r.Next, Player))
@@ -620,13 +800,16 @@ public partial class KnowledgeLeakTests : IDisposable
         return all;
     }
 
-    [Fact]
-    public void FrameText_OfEveryPlayerSection_IsIdentical_WhateverTheHiddenPolityIs()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void FrameText_OfEveryPlayerSection_IsIdentical_WhateverTheHiddenPolityIs(Lens lens)
     {
-        Rig r = Played.Value;
-        WorldState a = r.Next.Clone(), b = PerturbedNext();
-        List<string> fa = Frames(UiSession.StartFromWith(TestFog.PreDiscovery, a, 42, null, null, Stub), Path.Combine(_root, "a"));
-        List<string> fb = Frames(UiSession.StartFromWith(TestFog.PreDiscovery, b, 42, null, null, Stub), Path.Combine(_root, "b"));
+        Rig r = RigOf(lens);
+        WorldState a = r.Next.Clone(), b = PerturbedNext(lens);
+        // Fog: the real UI over the SHIPPED config builds its own production knowledge — no seam is passed.
+        List<string> fa = Frames(SessionOf(lens, a), Path.Combine(_root, lens + "-a"));
+        List<string> fb = Frames(SessionOf(lens, b), Path.Combine(_root, lens + "-b"));
         Assert.Equal(fa, fb);
         // No name of a hidden settlement is drawn anywhere.
         foreach (int id in KnowledgeStubs.SettlementsOf(a, Hidden))
@@ -635,20 +818,22 @@ public partial class KnowledgeLeakTests : IDisposable
         // D-060 the control was "the all-known UI over the two worlds draws a difference": that difference was the rival's
         // books (its founding figures in the annals), which D-060 closes to the production view — D060_TheRealUi_* is the
         // metamorphic test of that, with its own positive control on the player's own books.
-        List<string> ca = Frames(UiSession.StartFromWith(TestFog.PreDiscovery, r.Next.Clone(), 42), Path.Combine(_root, "ca"));
+        List<string> ca = Frames(SessionOf(lens, r.Next.Clone(), allKnown: true), Path.Combine(_root, lens + "-ca"));
         Assert.NotEqual(fa, ca);
         Assert.Contains(KnowledgeStubs.SettlementsOf(a, Hidden), id => ca.Any(text => HasWord(text, r.Name(id))));
     }
 
-    [Fact]
-    public void RawSettlementIds_AreNotInPlayerText()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void RawSettlementIds_AreNotInPlayerText(Lens lens)
     {
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
         Assert.Equal(HudModel.NoSelectionTitle, HudModel.From(r.Next, -1).TitleLine);
         Assert.Equal(HudModel.UnnamedTitle, HudModel.From(r.Next, r.Next.Settlements[1].Id.Value).TitleLine);
         Assert.Equal(r.Name(r.Next.Settlements[1].Id.Value), HudModel.From(r.Next, r.Next.Settlements[1].Id.Value, settlementName: r.Name(r.Next.Settlements[1].Id.Value)).TitleLine);
         // No player surface of the real UI prints "settlement N" (the dense id would count the world's settlements).
-        foreach (string text in Frames(UiSession.StartFromWith(TestFog.PreDiscovery, r.Next.Clone(), 42), Path.Combine(_root, "ids")))
+        foreach (string text in Frames(SessionOf(lens, r.Next.Clone(), allKnown: lens == Lens.Stub), Path.Combine(_root, lens + "-ids")))
             Assert.False(Regex.IsMatch(text, @"(?i)\bsettlement\s+\d+"), "a raw settlement id in player text: " + text);
     }
 
@@ -688,6 +873,40 @@ public partial class KnowledgeLeakTests : IDisposable
         Assert.NotNull(UnitCardModel.Build(w, r.Config, unitId, Player, r.Name, All(w)));
     }
 
+    [Fact]
+    public void TheSettlementView_UnderTheProductionFog_ListsTheRivalFormationInTheCapital_AndNoUnseenOne()
+    {
+        // The fog leg of the test above. Under the shipped fog a settlement the player controls is always VISIBLE (its node is
+        // in sight, ADR-044 §6), so "a known settlement holding an unknown formation" — the stub leg's case — cannot arise:
+        // a rival formation stationed in the player's capital is SEEN, and the view lists it exactly as the seam knows it.
+        // The rival's other formation, at its own unseen settlement, has no card. CONTROL: all-known, its card is built.
+        Rig r = FogPlayed.Value;
+        WorldState w = r.Next.Clone();
+        Assert.True(EmpireQuery.TryGetCapital(w, Player, out SettlementId capital));
+        int capitalCell = -1;
+        for (int i = 0; i < w.Settlements.Count; i++) if (w.Settlements[i].Id == capital) capitalCell = w.Settlements[i].SiteCell;
+        int rival = -1;
+        for (int i = 0; i < w.MilitaryUnits.Count && rival < 0; i++) if (w.MilitaryUnits[i].Owner.Value == Hidden.Value) rival = i;
+        Assert.True(rival >= 0);
+        MilitaryUnitRow unseenRow = w.MilitaryUnits[rival];
+        int size = w.Terrain!.Size;
+        // A second rival formation, standing in the player's capital (a test row, never stepped).
+        int maxId = 0;
+        for (int i = 0; i < w.MilitaryUnits.Count; i++) maxId = Math.Max(maxId, w.MilitaryUnits[i].Id);
+        w.MilitaryUnits.Add(unseenRow with { Id = maxId + 1, Location = capital, X = capitalCell % size, Y = capitalCell / size });
+        MilitaryUnitRow inCapital = w.MilitaryUnits[w.MilitaryUnits.Count - 1];
+
+        PlayerKnowledge fog = Gate(Lens.Fog, w);
+        Assert.True(fog.KnowsSettlement(capital.Value));
+        Assert.True(fog.KnowsUnit(inCapital), "a formation in the player's own (visible) settlement is seen");
+        Assert.False(fog.KnowsUnit(unseenRow), "the rival's formation at home is not seen");
+        string units = string.Join(" ; ", PlayerViews.Settlement(w, r.Config, Player, null, capital.Value, r.Name, 3, fog).Blocks[^1].Lines);
+        Assert.Contains("The empire of " + Hidden.Value.ToString(CultureInfo.InvariantCulture), units, StringComparison.Ordinal);
+        Assert.NotNull(UnitCardModel.Build(w, r.Config, inCapital.Id, Player, r.Name, fog));
+        Assert.Null(UnitCardModel.Build(w, r.Config, unseenRow.Id, Player, r.Name, fog));
+        Assert.NotNull(UnitCardModel.Build(w, r.Config, unseenRow.Id, Player, r.Name, All(w)));   // control
+    }
+
     /// <summary>Sets one (settlement, good) stock to exactly <paramref name="qty"/> through the Ledger (find-or-add).</summary>
     private static void SetStock(WorldState w, SettlementId s, int good, long qty)
     {
@@ -709,8 +928,10 @@ public partial class KnowledgeLeakTests : IDisposable
         return next;
     }
 
-    [Fact]
-    public void AForeignQueueHead_TellsNothingOfItsEmpiresHiddenSettlements_WhileTheViewersOwnHeadReadsItsEmpiresPurse()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void AForeignQueueHead_TellsNothingOfItsEmpiresHiddenSettlements_WhileTheViewersOwnHeadReadsItsEmpiresPurse(Lens lens)
     {
         // D-051 §6 / D-053 §1 (the construction purse) under P7. A KNOWN foreign settlement A whose Empire also rules a
         // HIDDEN settlement B: A's queue head blocker must not sum B's stock (measured on the v1 patch: "20 stone (empire has
@@ -718,18 +939,14 @@ public partial class KnowledgeLeakTests : IDisposable
         // the player's Empire. D-054 WS1: this blocker line is the SWITCH-OFF rule (construction.incremental off), so this
         // test reads the settlement view under that config; the shipped (incremental) reading of the same rig — a foreign head
         // says what is being built and never why it waits — is the next test.
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
         SimConfig whole = r.Config with { Construction = r.Config.Construction! with { Incremental = false } };
         WorldState w = r.Next.Clone();
         IReadOnlyList<int> foreign = KnowledgeStubs.SettlementsOf(w, Hidden);
         Assert.True(foreign.Count >= 2, "the rig needs two settlements of one foreign Empire");
         SettlementId a = new(foreign[0]), b = new(foreign[1]);
-        PolityKnowledge grid = PlayerKnowledge.Of(w).Core;
-        var mask = new bool[grid.LatticeSize * grid.LatticeSize];
-        for (int n = 0; n < mask.Length; n++) mask[n] = true;
-        for (int i = 0; i < w.Settlements.Count; i++)
-            if (w.Settlements[i].Id == b) mask[grid.NodeOfCell(w.Settlements[i].SiteCell)] = false;
-        PlayerKnowledge k = KnowledgeStubs.Over(w, Player, mask);
+        Func<IReadOnlyWorldState, PlayerKnowledge> knows = KnownAHiddenB(lens, w, a, b);
+        PlayerKnowledge k = knows(w);
         Assert.True(k.KnowsSettlement(a.Value) && k.IsHiddenSettlement(b.Value), "rig: A known, B hidden");
 
         int stone = r.Config.Goods!.IdOf("stone"), timber = r.Config.Goods!.IdOf("timber");
@@ -740,10 +957,10 @@ public partial class KnowledgeLeakTests : IDisposable
         Assert.Single(ConstructionQuery.Queue(w, a));
 
         string Structures(WorldState world, SettlementId at) =>
-            Block(PlayerViews.Settlement(world, whole, Player, null, at.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)), "Structures");
+            Block(PlayerViews.Settlement(world, whole, Player, null, at.Value, r.Name, 3, knows(world)), "Structures");
         // D-060: A is a known RIVAL — its view is closed books (no Structures block at all, so neither its own stock nor its
         // hidden sibling's is read). Before D-060 its head line read A's own stock ("20 stone (has 2)").
-        string Foreign(WorldState world) => View(PlayerViews.Settlement(world, whole, Player, null, a.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)));
+        string Foreign(WorldState world) => View(PlayerViews.Settlement(world, whole, Player, null, a.Value, r.Name, 3, knows(world)));
         string before = Foreign(w);
         Assert.Contains(PlayerKnowledge.NotYoursLine, before, StringComparison.Ordinal);
         Assert.DoesNotContain("Structures:", before, StringComparison.Ordinal);
@@ -769,24 +986,22 @@ public partial class KnowledgeLeakTests : IDisposable
         Assert.Contains("20 stone (empire has 17)", mineAfter, StringComparison.Ordinal);
     }
 
-    [Fact]
-    public void WithIncrementalConstruction_AForeignQueueHead_SaysOnlyWhatIsBeingBuilt_WhileTheViewersOwnHeadReadsItsEmpiresPurse()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void WithIncrementalConstruction_AForeignQueueHead_SaysOnlyWhatIsBeingBuilt_WhileTheViewersOwnHeadReadsItsEmpiresPurse(Lens lens)
     {
         // D-054 WS1 under P7: a KNOWN foreign settlement A's head line names the project and nothing else — no figures, no
         // waiting reason ("why it waits is not known to us") — so neither A's own stock nor its hidden sibling B's moves it.
         // CONTROL: the player's own head reads the player's Empire through ConstructionQuery.HeadStatus — a sibling's stone
         // turns "waiting for stone" into a head that will start at End Turn.
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
         Assert.True(ConstructionQuery.Incremental(r.Config));
         WorldState w = r.Next.Clone();
         IReadOnlyList<int> foreign = KnowledgeStubs.SettlementsOf(w, Hidden);
         Assert.True(foreign.Count >= 2, "the rig needs two settlements of one foreign Empire");
         SettlementId a = new(foreign[0]), b = new(foreign[1]);
-        PolityKnowledge grid = PlayerKnowledge.Of(w).Core;
-        var mask = new bool[grid.LatticeSize * grid.LatticeSize];
-        for (int n = 0; n < mask.Length; n++) mask[n] = true;
-        for (int i = 0; i < w.Settlements.Count; i++)
-            if (w.Settlements[i].Id == b) mask[grid.NodeOfCell(w.Settlements[i].SiteCell)] = false;
+        Func<IReadOnlyWorldState, PlayerKnowledge> knows = KnownAHiddenB(lens, w, a, b);
         int stone = r.Config.Goods!.IdOf("stone"), timber = r.Config.Goods!.IdOf("timber");
         int slot = NextSlot(w, a);
         w.ConstructionQueue.Add(new ConstructionQueueRow(a, slot, 1));
@@ -797,9 +1012,9 @@ public partial class KnowledgeLeakTests : IDisposable
         Assert.Single(ConstructionQuery.Queue(w, a));
 
         string Structures(WorldState world, SettlementId at) =>
-            Block(PlayerViews.Settlement(world, r.Config, Player, null, at.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)), "Structures");
+            Block(PlayerViews.Settlement(world, r.Config, Player, null, at.Value, r.Name, 3, knows(world)), "Structures");
         // D-060: a known rival's view is closed books — not even what is being built is listed (its queue is its books).
-        string Foreign(WorldState world) => View(PlayerViews.Settlement(world, r.Config, Player, null, a.Value, r.Name, 3, KnowledgeStubs.Over(world, Player, mask)));
+        string Foreign(WorldState world) => View(PlayerViews.Settlement(world, r.Config, Player, null, a.Value, r.Name, 3, knows(world)));
         string before = Foreign(w);
         Assert.Contains(PlayerKnowledge.NotYoursLine, before, StringComparison.Ordinal);
         Assert.DoesNotContain("granary", before, StringComparison.Ordinal);
@@ -831,6 +1046,32 @@ public partial class KnowledgeLeakTests : IDisposable
 
     // ================================================================== the subject filters, each with its own control (P7 review, finding 3)
 
+    /// <summary>
+    /// The foreign-queue rigs' view: A (a foreign settlement) KNOWN, B (another of A's Empire) hidden. Fog: the player has
+    /// SIGHTED A — the settlement sighting row an Explore or a moment in sight leaves (rule E5, ADR-044 §6) is planted in the
+    /// world — so A is known (remembered) through the production seam while B stays unknown; no stub. Stub: every node known
+    /// but B's.
+    /// </summary>
+    private static Func<IReadOnlyWorldState, PlayerKnowledge> KnownAHiddenB(Lens lens, WorldState w, SettlementId a, SettlementId b)
+    {
+        if (lens == Lens.Fog)
+        {
+            var rows = new List<SettlementSightingRow>();
+            for (int i = 0; i < w.SettlementSightings.Count; i++) rows.Add(w.SettlementSightings[i]);
+            rows.Add(new SettlementSightingRow(Player, a, w.Clock.Turn));
+            rows.Sort((x, y) => x.Polity.Value != y.Polity.Value ? x.Polity.Value.CompareTo(y.Polity.Value) : x.Settlement.Value.CompareTo(y.Settlement.Value));
+            w.SettlementSightings.Clear();
+            foreach (SettlementSightingRow row in rows) w.SettlementSightings.Add(row);
+            return x => Gate(Lens.Fog, x);
+        }
+        PolityKnowledge grid = PlayerKnowledge.Of(w).Core;
+        var mask = new bool[grid.LatticeSize * grid.LatticeSize];
+        for (int n = 0; n < mask.Length; n++) mask[n] = true;
+        for (int i = 0; i < w.Settlements.Count; i++)
+            if (w.Settlements[i].Id == b) mask[grid.NodeOfCell(w.Settlements[i].SiteCell)] = false;
+        return x => KnowledgeStubs.Over(x, Player, mask);
+    }
+
     /// <summary>The block of <paramref name="v"/> headed <paramref name="heading"/>, as text.</summary>
     private static string Block(PlayerView v, string heading)
     {
@@ -855,9 +1096,13 @@ public partial class KnowledgeLeakTests : IDisposable
     /// lengths; 2 also moves that hidden settlement's site within its own unknown node), or nothing (0). The turn-6 rig
     /// has no trade or road with the hidden polity, so without this the trade, roads and route filters are never asked.
     /// </summary>
-    private static WorldState PlantedNext(int variant)
+    private static WorldState PlantedNext(int variant) => PlantedNext(Lens.Stub, variant);
+
+    /// <summary>As <see cref="PlantedNext(int)"/> on the lens's rig (variant 2's move stays inside the node the lens's gate
+    /// hides).</summary>
+    private static WorldState PlantedNext(Lens lens, int variant)
     {
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
         WorldState w = r.Next.Clone();
         if (variant == 0) return w;
         IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(w, Hidden), mine = KnowledgeStubs.SettlementsOf(w, Player);
@@ -871,7 +1116,7 @@ public partial class KnowledgeLeakTests : IDisposable
             TransportEdgeStates.Complete, 1000, 40.0 + variant, 0, 1, 1, EdgeTypes.Trackway, 0.0, 1.0));
         if (variant == 2)
         {
-            PlayerKnowledge k = Stub(w);
+            PlayerKnowledge k = Gate(lens, w);
             int size = w.Terrain!.Size;
             for (int i = 0; i < w.Settlements.Count; i++)
             {
@@ -885,15 +1130,17 @@ public partial class KnowledgeLeakTests : IDisposable
         return w;
     }
 
-    [Fact]
-    public void ATradeFlowOrARoadToAHiddenSettlement_ShowsNowhere_InTheEmpireViewOrTheProjection()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void ATradeFlowOrARoadToAHiddenSettlement_ShowsNowhere_InTheEmpireViewOrTheProjection(Lens lens)
     {
         // METAMORPHIC, one reader at a time: the Empire view's Trade and Roads blocks and the projection's built routes are
         // identical through the stub whether nothing, or a flow each way plus a travelled road to one hidden settlement, or
         // to another (its site moved too), is planted — and name no hidden settlement. EACH READER'S OWN CONTROL: all-known,
         // the planted rows reach that reader (it changes and names the hidden settlement).
-        Rig r = Played.Value;
-        WorldState a = PlantedNext(0), b = PlantedNext(1), c = PlantedNext(2);
+        Rig r = RigOf(lens);
+        WorldState a = PlantedNext(lens, 0), b = PlantedNext(lens, 1), c = PlantedNext(lens, 2);
         IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(a, Hidden);
         Func<WorldState, PlayerKnowledge, string>[] readers =
         [
@@ -904,8 +1151,8 @@ public partial class KnowledgeLeakTests : IDisposable
         string[] label = ["Empire / Trade", "Empire / Roads", "projection / routes"];
         for (int i = 0; i < readers.Length; i++)
         {
-            string sa = readers[i](a, Stub(a)), sb = readers[i](b, Stub(b)), sc = readers[i](c, Stub(c));
-            Assert.True(sa == sb && sa == sc, label[i] + " shows what the stub hides:\n" + sa + "\n" + sb + "\n" + sc);
+            string sa = readers[i](a, Gate(lens, a)), sb = readers[i](b, Gate(lens, b)), sc = readers[i](c, Gate(lens, c));
+            Assert.True(sa == sb && sa == sc, label[i] + " shows what is hidden (" + lens + "):\n" + sa + "\n" + sb + "\n" + sc);
             foreach (int id in hidden) Assert.False(HasWord(sb + sc, r.Name(id)), label[i] + " names hidden " + r.Name(id));
             string ca = readers[i](a, All(a)), cb = readers[i](b, All(b)), cc = readers[i](c, All(c));
             Assert.True(ca != cb && cb != cc, label[i] + ": the planted rows do not reach this reader - its comparison proves nothing");
@@ -924,11 +1171,11 @@ public partial class KnowledgeLeakTests : IDisposable
     /// occupancy); a hidden settlement's catchment claim planted on the node of every sampled cell nobody claims (claim);
     /// and under every unknown node a river and rough ground (water access, the lattice: spacing, catchment, route).
     /// </summary>
-    private static WorldState PlaceCardPerturbedNext()
+    private static WorldState PlaceCardPerturbedNext(Lens lens)
     {
-        Rig r = Played.Value;
-        WorldState w = PlantedNext(1);
-        Perturb(w, Stub(w), r.Config, 1);
+        Rig r = RigOf(lens);
+        WorldState w = PlantedNext(lens, 1);
+        Perturb(w, Gate(lens, w), r.Config, 1);
         int size = w.Terrain!.Size;
         (int l, int block) = PolityKnowledge.Grid(size);
         bool[] mask = r.Mask;
@@ -953,10 +1200,18 @@ public partial class KnowledgeLeakTests : IDisposable
         {
             int node = grid.NodeOfCell(cell);
             bool claimed = false;
-            for (int i = 0; i < w.CatchmentNodes.Count; i++) claimed |= w.CatchmentNodes[i].LatticeNode == node;
+            for (int i = 0; i < w.CatchmentNodes.Count; i++)
+            {
+                if (w.CatchmentNodes[i].LatticeNode != node) continue;
+                claimed = true;
+                // M6 closure (fog lens): a known node a HIDDEN settlement already claims passes to another hidden one.
+                SettlementId holder = w.CatchmentNodes[i].Settlement;
+                if (hidden.Contains(holder.Value))
+                    w.CatchmentNodes[i] = w.CatchmentNodes[i] with { Settlement = new SettlementId(holder.Value == hidden[0] ? hidden[1] : hidden[0]) };
+            }
             if (!claimed) w.CatchmentNodes.Add(new CatchmentNodeRow(claimant, node, 1.0));
         }
-        PlayerKnowledge k = Stub(w);
+        PlayerKnowledge k = Gate(lens, w);
         TerrainSet t = w.Terrain;
         double[] rivers = t.Rivers.ToArray(), movement = t.MovementCost.ToArray();
         for (int cell = 0; cell < movement.Length; cell++)
@@ -973,29 +1228,31 @@ public partial class KnowledgeLeakTests : IDisposable
         return w;
     }
 
-    [Fact]
-    public void ThePlaceCardOfAKnownCell_TellsNothingOfWhatTheStubHides_SitesClaimsRoadsOrGround_AndTheAllKnownControlSeesEach()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void ThePlaceCardOfAKnownCell_TellsNothingOfWhatIsHidden_SitesClaimsRoadsOrGround_AndTheAllKnownControlSeesEach(Lens lens)
     {
         // P8 review (finding 1): the place card is a player output, so it is held to the player's class (ADR-037 §7). Through
         // the stub, every sampled KNOWN cell's card is identical however the hidden polity's sites, claims, roads, rivers and
         // ground differ, and names no hidden settlement. EACH CHANNEL'S OWN CONTROL: all-known, the same perturbation moves
         // the spacing, the claim, the route, the water access, the score, the floor, the hinterland and the would-be
         // catchment of at least one sampled cell — so equality through the stub means the card withheld them.
-        Rig r = Played.Value;
-        WorldState a = r.Next.Clone(), b = PlaceCardPerturbedNext();
+        Rig r = RigOf(lens);
+        WorldState a = r.Next.Clone(), b = PlaceCardPerturbedNext(lens);
         IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(a, Hidden);
-        PlayerKnowledge ka = Stub(a), kb = Stub(b);
+        PlayerKnowledge ka = Gate(lens, a), kb = Gate(lens, b);
         foreach (int id in hidden) Assert.False(kb.KnowsSettlement(id));
         var moved = new SortedDictionary<string, int>(StringComparer.Ordinal);
         void Moved(string channel, bool differs) => moved[channel] = (moved.TryGetValue(channel, out int n) ? n : 0) + (differs ? 1 : 0);
         foreach (int cell in r.Cells)
         {
-            string sa = PlaceCard(a, ka, cell), sb = PlaceCard(b, kb, cell);
-            Assert.True(sa == sb, "the place card of known cell " + cell.ToString(CultureInfo.InvariantCulture) + " shows what the stub hides:\n" + sa + "\n---\n" + sb);
+            string sa = PlaceCard(r, a, ka, cell), sb = PlaceCard(r, b, kb, cell);
+            Assert.True(sa == sb, "the place card of known cell " + cell.ToString(CultureInfo.InvariantCulture) + " shows what is hidden (" + lens + "):\n" + sa + "\n---\n" + sb);
             foreach (int id in hidden) Assert.False(HasWord(sb, r.Name(id)), "the place card names hidden " + r.Name(id));
 
-            SiteAssessment.Report ca = SiteAssessment.Assess(a, r.Config, SitesFor(a), All(a).Core, Player, cell);
-            SiteAssessment.Report cb = SiteAssessment.Assess(b, r.Config, SitesFor(b), All(b).Core, Player, cell);
+            SiteAssessment.Report ca = SiteAssessment.Assess(a, r.Config, SitesFor(r, a), All(a).Core, Player, cell);
+            SiteAssessment.Report cb = SiteAssessment.Assess(b, r.Config, SitesFor(r, b), All(b).Core, Player, cell);
             Moved("spacing", !ca.SpacingCost.Equals(cb.SpacingCost));
             Moved("claim", ca.ClaimedBy != cb.ClaimedBy);
             Moved("route", !(ca.Route?.TotalCost ?? -1.0).Equals(cb.Route?.TotalCost ?? -1.0));
@@ -1004,20 +1261,22 @@ public partial class KnowledgeLeakTests : IDisposable
             Moved("floor", !ca.Floor.Equals(cb.Floor));
             Moved("hinterland", !ca.MeanMoisture.Equals(cb.MeanMoisture));
             Moved("catchment", !Nullable.Equals(ca.WouldBeArableKm2, cb.WouldBeArableKm2));
-            Moved("card", PlaceCard(a, All(a), cell) != PlaceCard(b, All(b), cell));
+            Moved("card", PlaceCard(r, a, All(a), cell) != PlaceCard(r, b, All(b), cell));
         }
         foreach (KeyValuePair<string, int> m in moved)
             Assert.True(m.Value > 0, "the perturbation does not reach the place card's " + m.Key + " - the comparison above proves nothing for it");
     }
 
-    [Fact]
-    public void TheMigrationView_ComparesKnownPlacesOnly_HoweverAttractiveAHiddenOneIs()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void TheMigrationView_ComparesKnownPlacesOnly_HoweverAttractiveAHiddenOneIs(Lens lens)
     {
         // A REAL SettlementRecord (ObservationLog over the rig's step) carries every settlement's attractiveness, read from
         // PREV's smoothed table. The hidden settlements' readings are raised above every other — by two different amounts.
         // Through the stub, every known settlement's view (its Migration block's "more attractive" comparison) is the same
         // and names no hidden place. THE CONTROL: all-known, the comparison names the hidden settlement and moves with it.
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
         IReadOnlyList<int> hidden = KnowledgeStubs.SettlementsOf(r.Next, Hidden), mine = KnowledgeStubs.SettlementsOf(r.Next, Player);
         string Views(double lift, Func<IReadOnlyWorldState, PlayerKnowledge> knowledge)
         {
@@ -1044,7 +1303,7 @@ public partial class KnowledgeLeakTests : IDisposable
             }
             return sb.ToString();
         }
-        string s1 = Views(1.0, Stub), s2 = Views(2.0, Stub);
+        string s1 = Views(1.0, GateOf(lens)), s2 = Views(2.0, GateOf(lens));
         Assert.Equal(s1, s2);
         foreach (int id in hidden) Assert.False(HasWord(s1, r.Name(id)), "the migration view names hidden " + r.Name(id) + ": " + s1);
         // The control: all-known, the comparison NAMES the hidden settlement (D-060: without its reading — a known rival's
@@ -1068,16 +1327,31 @@ public partial class KnowledgeLeakTests : IDisposable
         return sb.ToString();
     }
 
-    [Fact]
-    public void EverySelectionKeyedReader_ReadsAHiddenSettlementAsNoSelection_AndTheAllKnownControlReadsIt()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void EverySelectionKeyedReader_ReadsAHiddenSettlementAsNoSelection_AndTheAllKnownControlReadsIt(Lens lens)
     {
         // Reader by reader (GameUi drops a hidden selection before any of them is asked, so the frame test below cannot
         // see a reader that ignores knowledge): the settlement records, the labour record (POLICY), the action surface's
         // labour note, the Trends settlement series and the price series, keyed on a settlement the stub hides, read
         // exactly as no selection (id -1). The control: the all-known twin session (the same world and orders, one step)
         // reads each of them for the same id.
-        UiSession s = PlayabilityGate.HiddenRival();
-        UiSession all = UiSession.StartFromWith(TestFog.PreDiscovery, UiSession.StartWith(TestFog.PreDiscovery, 42, aiEmpiresOverride: 1).World.Clone(), 42);
+        UiSession s, all;
+        if (lens == Lens.Fog)
+        {
+            // The SHIPPED fog: the one-AI world at turn 1 played by the real session, whose own production knowledge hides the
+            // unsighted AI; the control is the same world and step seen all-known.
+            WorldState start = UiSession.Start(42, aiEmpiresOverride: 1).World.Clone();
+            s = UiSession.StartFromWith(FogPlayed.Value.Config, start.Clone(), 42);
+            all = UiSession.StartFromWith(FogPlayed.Value.Config, start.Clone(), 42, null, null, x => PlayerKnowledge.Of(x));
+            s.EndTurn();
+        }
+        else
+        {
+            s = PlayabilityGate.HiddenRival();
+            all = UiSession.StartFromWith(TestFog.PreDiscovery, UiSession.StartWith(TestFog.PreDiscovery, 42, aiEmpiresOverride: 1).World.Clone(), 42);
+        }
         all.EndTurn();
         Assert.Equal(s.World.Clock.Turn, all.World.Clock.Turn);
         PlayerKnowledge k = s.Knowledge;
@@ -1210,13 +1484,44 @@ public partial class KnowledgeLeakTests : IDisposable
         Assert.Contains(g1, text => HasWord(text, r.Name(c1)) && !told.Contains(text));
     }
 
+    [Fact]
+    public void UnderTheProductionFog_NoStepUnknowsASettlement_SoTheStepHidesNoSelection()
+    {
+        // The fog leg of ASelectionThatAStepHides_…: under the shipped fog a settlement once known stays known — the player's
+        // own by control, a foreign one by its SIGHTING, which no step removes (rule E5; DiscoverySystem only inserts or
+        // re-stamps sightings) — so the premise of that family (a step that hides a known settlement) never arises before
+        // M7's ghosts. PINNED: an AI settlement sighted once (the row an Explore or a moment in sight writes) is known on that
+        // turn and on each of the next three, through the real session's own production knowledge, out of sight all along.
+        Rig r = FogPlayed.Value;
+        WorldState w = r.Next.Clone();
+        SettlementId target = new(KnowledgeStubs.SettlementsOf(w, Hidden)[0]);
+        Func<IReadOnlyWorldState, PlayerKnowledge> knows = KnownAHiddenB(Lens.Fog, w, target, new SettlementId(KnowledgeStubs.SettlementsOf(w, Hidden)[1]));
+        UiSession s = UiSession.StartFromWith(r.Config, w, 42);
+        Assert.True(s.Knowledge.KnowsSettlement(target.Value));
+        Assert.True(knows(s.World).KnowsSettlement(target.Value));
+        for (int t = 0; t < 3; t++)
+        {
+            s.EndTurn();
+            Assert.False(s.Knowledge.Core.Visible(s.Knowledge.Core.NodeOfCell(FoundSite(s.World, target))), "the sighted settlement came into sight - the pin is void");
+            Assert.True(s.Knowledge.KnowsSettlement(target.Value), "a step un-knew a sighted settlement at turn " + s.World.Clock.Turn.ToString(CultureInfo.InvariantCulture));
+        }
+    }
+
+    private static int FoundSite(IReadOnlyWorldState w, SettlementId s)
+    {
+        for (int i = 0; i < w.Settlements.Count; i++) if (w.Settlements[i].Id == s) return w.Settlements[i].SiteCell;
+        throw new InvalidOperationException("no settlement " + s.Value.ToString(CultureInfo.InvariantCulture));
+    }
+
     // ================================================================== selection: Tab and the click
 
-    [Fact]
-    public void Tab_NeverReachesAHiddenSettlement_AndReachesEveryKnownOne()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void Tab_NeverReachesAHiddenSettlement_AndReachesEveryKnownOne(Lens lens)
     {
-        WorldState w = Played.Value.Next;
-        PlayerKnowledge k = Stub(w);
+        WorldState w = RigOf(lens).Next;
+        PlayerKnowledge k = Gate(lens, w);
         var reached = new List<int>();
         int cur = -1;
         for (int i = 0; i <= 2 * w.Settlements.Count; i++)
@@ -1235,16 +1540,21 @@ public partial class KnowledgeLeakTests : IDisposable
         for (int i = 0; i <= w.Settlements.Count; i++) { cur = SettlementSelection.CycleNext(w, cur, All(w)); all.Add(cur); }
         Assert.Contains(all, id => k.IsHiddenSettlement(id));
         // Nothing known: Tab selects nothing.
-        bool[] none = new bool[Played.Value.Mask.Length];
-        Assert.Equal(-1, SettlementSelection.CycleNext(w, -1, KnowledgeStubs.Over(w, new PolityId(77), none)));
+        // Fog: a polity with no settlement, no extent and no sighting knows nothing (the production seam); stub: a mask of nothing.
+        PlayerKnowledge nothing = lens == Lens.Fog
+            ? PlayerKnowledge.Of(w, new PolityId(77), RigOf(lens).Config)
+            : KnowledgeStubs.Over(w, new PolityId(77), new bool[Played.Value.Mask.Length]);
+        Assert.Equal(-1, SettlementSelection.CycleNext(w, -1, nothing));
     }
 
-    [Fact]
-    public void AClickOnAHiddenSite_SelectsNothing_WhereTheAllKnownMapSelectsIt()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void AClickOnAHiddenSite_SelectsNothing_WhereTheAllKnownMapSelectsIt(Lens lens)
     {
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
         WorldState w = r.Next;
-        PlayerKnowledge k = Stub(w);
+        PlayerKnowledge k = Gate(lens, w);
         WorldProjection stub = WorldProjection.Build(w, r.Config, r.Name, Player, knowledge: k);
         WorldProjection all = WorldProjection.Build(w, r.Config, r.Name, Player);
         foreach (int id in KnowledgeStubs.SettlementsOf(w, Hidden))
@@ -1267,10 +1577,19 @@ public partial class KnowledgeLeakTests : IDisposable
         }
     }
 
-    [Fact]
-    public void TheGateRows_PassOnTheHiddenRivalRig_AndAreNotDrawnWhenNothingIsHidden()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void TheGateRows_PassOnTheHiddenRivalRig_AndAreNotDrawnWhenNothingIsHidden(Lens lens)
     {
-        using (UiFrameHarness h = UiFrameHarness.Start(PlayabilityGate.HiddenRival(), Path.Combine(_root, "gate"), Assets()))
+        UiSession hiddenRival;
+        if (lens == Lens.Fog)
+        {
+            hiddenRival = UiSession.Start(42, aiEmpiresOverride: 1);   // the shipped fog hides the unsighted AI
+            hiddenRival.EndTurn();
+        }
+        else hiddenRival = PlayabilityGate.HiddenRival();
+        using (UiFrameHarness h = UiFrameHarness.Start(hiddenRival, Path.Combine(_root, lens + "-gate"), Assets()))
         {
             IReadOnlyList<GateRow> rows = PlayabilityGate.KnowledgeRows(h, "hidden rival");
             Assert.Equal(["Tab never reaches a hidden settlement", "a click on a hidden position selects nothing"],
@@ -1278,14 +1597,33 @@ public partial class KnowledgeLeakTests : IDisposable
             foreach (GateRow row in rows) Assert.True(row.Result == GateResult.Pass, row.Control + ": " + row.Detail);
             Assert.Empty(h.Problems);
         }
-        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.StartWith(TestFog.PreDiscovery, 42, aiEmpiresOverride: 1), Path.Combine(_root, "gate-all"), Assets()))
+        using (UiFrameHarness h = UiFrameHarness.Start(UiSession.StartWith(TestFog.PreDiscovery, 42, aiEmpiresOverride: 1), Path.Combine(_root, lens + "-gate-all"), Assets()))
             Assert.Empty(PlayabilityGate.KnowledgeRows(h, "one AI"));
     }
 
     // ================================================================== the seam: all-known is byte-identical
 
     [Fact]
-    public void TheProductionView_IsAllKnown_AndEveryReaderGivesWhatItGaveWithoutKnowledge()
+    public void TheProductionView_IsTheFogSeam_NotAllKnown_AndTheSessionBuildsItFromTheShippedConfig()
+    {
+        // Corrected 2026-10-28 (M6 closure, track FOG): the test below was named "TheProductionView_IsAllKnown_…" — true
+        // until M6 Track EX shipped the fog. The PRODUCTION view is the session's PlayerKnowledge.Of(world, player, cfg)
+        // under the shipped fog: not all-known, and node for node the production seam.
+        Rig r = FogPlayed.Value;
+        UiSession s = SessionOf(Lens.Fog, r.Next.Clone());
+        PlayerKnowledge k = s.Knowledge;
+        Assert.False(k.AllKnown);
+        PolityKnowledge production = PolityKnowledge.Of(s.World, Player, r.Config);
+        for (int n = 0; n < production.LatticeSize * production.LatticeSize; n++)
+        {
+            Assert.Equal(production.Known(n), k.Core.Known(n));
+            Assert.Equal(production.Visible(n), k.Core.Visible(n));
+        }
+        foreach (int id in KnowledgeStubs.SettlementsOf(s.World, Hidden)) Assert.True(k.IsHiddenSettlement(id));
+    }
+
+    [Fact]
+    public void TheFogOffView_IsAllKnown_AndEveryReaderGivesWhatItGaveWithoutKnowledge()
     {
         Rig r = Played.Value;
         WorldState w = r.Next;
@@ -1443,11 +1781,10 @@ public partial class KnowledgeLeakTests : IDisposable
     /// overlay bake and per-view overlay frame, the lens paint (SVG bytes of the frame's own commands and the LensFrame:
     /// tokens, hits, parts), the formation tokens, the formation cards, the place cards and FrameText of every view.
     /// </summary>
-    private static FogRun MapFeatures(WorldState w, Func<IReadOnlyWorldState, PlayerKnowledge>? knowledgeOf, string dir,
+    private static FogRun MapFeatures(Rig r, SimConfig config, WorldState w, Func<IReadOnlyWorldState, PlayerKnowledge>? knowledgeOf, string dir,
         (double X, double Y)? clickHiddenAt, int hiddenUnit, int hiddenSite)
     {
-        Rig r = Played.Value;
-        UiSession s = UiSession.StartFromWith(TestFog.PreDiscovery, w, 42, null, null, knowledgeOf);
+        UiSession s = UiSession.StartFromWith(config, w, 42, null, null, knowledgeOf);
         var cat = new SortedDictionary<string, string>(StringComparer.Ordinal);
         void Add(string key, string text) => cat[key] = cat.TryGetValue(key, out string? had) ? had + text : text;
 
@@ -1557,27 +1894,34 @@ public partial class KnowledgeLeakTests : IDisposable
     /// the same perturbation changes each of them (so equality under the stub means the readers filtered, not that the
     /// perturbation missed), and the stub is not all-known's twin.
     /// </summary>
-    [Fact]
-    public void Integration_EveryMapFeatureAtOnce_ShowsNothingOfWhatTheStubHides_AndTheAllKnownControlSeesEveryComponent()
+    [Theory]
+    [InlineData(Lens.Fog)]
+    [InlineData(Lens.Stub)]
+    public void Integration_EveryMapFeatureAtOnce_ShowsNothingOfWhatIsHidden_AndTheAllKnownControlSeesEveryComponent(Lens lens)
     {
-        Rig r = Played.Value;
+        Rig r = RigOf(lens);
+        // Fog: the shipped config, the session's own production view (no seam passed) and, for the control, the all-known
+        // view under the same config; stub: the fog-off config, the stub, and no seam (all-known with the fog off).
+        SimConfig config = lens == Lens.Fog ? r.Config : TestFog.PreDiscovery;
+        Func<IReadOnlyWorldState, PlayerKnowledge>? gate = lens == Lens.Fog ? null : Stub;
+        Func<IReadOnlyWorldState, PlayerKnowledge>? allKnown = lens == Lens.Fog ? x => PlayerKnowledge.Of(x) : null;
         int hiddenUnit = MilitaryQuery.Units(r.Next, Hidden)[0].Id;
         int hiddenId = KnowledgeStubs.SettlementsOf(r.Next, Hidden)[0], hiddenSite = -1;
         for (int i = 0; i < r.Next.Settlements.Count; i++) if (r.Next.Settlements[i].Id.Value == hiddenId) hiddenSite = r.Next.Settlements[i].SiteCell;
         Assert.True(hiddenSite >= 0);
 
-        FogRun ca = MapFeatures(r.Next.Clone(), null, Path.Combine(_root, "fog-ca"), null, hiddenUnit, hiddenSite);
+        FogRun ca = MapFeatures(r, config, r.Next.Clone(), allKnown, Path.Combine(_root, lens + "-ca"), null, hiddenUnit, hiddenSite);
         Assert.True(ca.HiddenToken is not null, "the all-known map does not draw the hidden formation - the card control is void");
-        FogRun cb = MapFeatures(PerturbedNext(), null, Path.Combine(_root, "fog-cb"), ca.HiddenToken, hiddenUnit, hiddenSite);
-        FogRun sa = MapFeatures(r.Next.Clone(), Stub, Path.Combine(_root, "fog-sa"), ca.HiddenToken, hiddenUnit, hiddenSite);
-        FogRun sb = MapFeatures(PerturbedNext(), Stub, Path.Combine(_root, "fog-sb"), ca.HiddenToken, hiddenUnit, hiddenSite);
+        FogRun cb = MapFeatures(r, config, PerturbedNext(lens), allKnown, Path.Combine(_root, lens + "-cb"), ca.HiddenToken, hiddenUnit, hiddenSite);
+        FogRun sa = MapFeatures(r, config, r.Next.Clone(), gate, Path.Combine(_root, lens + "-sa"), ca.HiddenToken, hiddenUnit, hiddenSite);
+        FogRun sb = MapFeatures(r, config, PerturbedNext(lens), gate, Path.Combine(_root, lens + "-sb"), ca.HiddenToken, hiddenUnit, hiddenSite);
 
         Assert.Null(sa.HiddenToken);
         Assert.Null(sb.HiddenToken);
         Assert.Equal(sa.Parts.Keys.ToArray(), sb.Parts.Keys.ToArray());
         Assert.Equal(["frametext", "lens", "overlay", "place cards", "projection", "tokens", "unit card"], sa.Parts.Keys.ToArray());
         string[] leaks = [.. sa.Parts.Keys.Where(c => sa.Parts[c] != sb.Parts[c])];
-        Assert.True(leaks.Length == 0, "the stubbed player sees the hidden polity through: " + string.Join(", ", leaks));
+        Assert.True(leaks.Length == 0, "the player (" + lens + ") sees the hidden polity through: " + string.Join(", ", leaks));
         foreach (int id in KnowledgeStubs.SettlementsOf(r.Next, Hidden))
             Assert.False(HasWord(sa.Parts["frametext"], r.Name(id)), r.Name(id) + " drawn under the stub");
 
@@ -1586,8 +1930,11 @@ public partial class KnowledgeLeakTests : IDisposable
         // D-060: a known rival formation's card shows only public fields (identity, owner, station, position), so the
         // perturbation of its experience does not reach the all-known card — the one blind component, by design. Its stub
         // comparison is still not vacuous: all-known, the click on the rival's token opens its card; under the stub it does not.
+        // M6 E1.5 RE-PIN (D-052 §7): the rival's card now names its token's COMPOSITION — the perturbation's extra formation of
+        // the hidden polity stands with the clicked one, so the all-known card reads "Grouped here: 2 formations …". That
+        // number is public (the map draws it above the token), so the card is no longer blind: every component is reached.
         string[] blind = [.. ca.Parts.Keys.Where(c => ca.Parts[c] == cb.Parts[c])];
-        Assert.True(blind.SequenceEqual(["unit card"]), "the perturbation does not reach " + string.Join(", ", blind) + " - the comparison above proves nothing for it");
+        Assert.True(blind.Length == 0, "the perturbation does not reach " + string.Join(", ", blind) + " - the comparison above proves nothing for it");
         Assert.NotEqual(ca.Parts["unit card"], sa.Parts["unit card"]);
         Assert.NotEqual(ca.Parts["projection"], sa.Parts["projection"]);
         Assert.NotEqual(ca.Parts["tokens"], sa.Parts["tokens"]);

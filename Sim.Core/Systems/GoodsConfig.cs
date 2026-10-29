@@ -176,9 +176,18 @@ public sealed record ConstructionProjectEntry(
 /// of the institution the completion founds (InstitutionsSystem founds it the step after the building
 /// stands). Data, never an id in code; cross-validated against research.json at the four-file load.
 /// </summary>
+/// <para>ADR-057 (D-066 A1, institution types content-driven): a project founds EITHER a research.json university type
+/// (<c>universityType</c>) OR a sim.json <c>institutions.types</c> type (<c>institutionType</c>, e.g. the law court) —
+/// exactly one is named. <see cref="TypeId"/> is the one named.</para>
 public sealed record ProjectFounds(
     [property: JsonPropertyName("entity"), JsonRequired] string Entity,
-    [property: JsonPropertyName("universityType"), JsonRequired] string UniversityType);
+    [property: JsonPropertyName("universityType")] string? UniversityType = null,
+    [property: JsonPropertyName("institutionType")] string? InstitutionType = null)
+{
+    /// <summary>The institution type id the completion founds (the university type or the institutions.types id).</summary>
+    [JsonIgnore]
+    public string TypeId => UniversityType ?? InstitutionType ?? "";
+}
 
 /// <summary>
 /// The D-031 goods registry + recipe book (T3.2), loaded from goods.json on
@@ -539,13 +548,16 @@ public static class GoodsConfigLoader
             {
                 if (string.IsNullOrWhiteSpace(founds.Entity))
                     throw new GoodsConfigException($"projects[{i}] ({pr.Name}).founds.entity must be non-empty.");
-                if (string.IsNullOrWhiteSpace(founds.UniversityType))
-                    throw new GoodsConfigException($"projects[{i}] ({pr.Name}).founds.universityType must be non-empty.");
+                // ADR-057: exactly one of universityType / institutionType, non-empty.
+                if ((founds.UniversityType is null) == (founds.InstitutionType is null))
+                    throw new GoodsConfigException($"projects[{i}] ({pr.Name}).founds must name exactly one of universityType and institutionType.");
+                if (string.IsNullOrWhiteSpace(founds.TypeId))
+                    throw new GoodsConfigException($"projects[{i}] ({pr.Name}).founds.{(founds.UniversityType is null ? "institutionType" : "universityType")} must be non-empty.");
                 for (int j = 0; j < i; j++)
                     if (cfg.Projects[j].Founds is { } other
-                        && string.Equals(other.UniversityType, founds.UniversityType, StringComparison.Ordinal))
+                        && string.Equals(other.TypeId, founds.TypeId, StringComparison.Ordinal))
                         throw new GoodsConfigException(
-                            $"projects[{i}] ({pr.Name}) founds university type '{founds.UniversityType}', which " +
+                            $"projects[{i}] ({pr.Name}) founds institution type '{founds.TypeId}', which " +
                             $"projects[{j}] ({cfg.Projects[j].Name}) already founds — one project per type, so a " +
                             "settlement's university count of a type is the count of one project's structures.");
             }

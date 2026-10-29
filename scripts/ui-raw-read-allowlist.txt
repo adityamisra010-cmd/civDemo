@@ -18,6 +18,7 @@
 # Format: <path> | <class> | <reason>
 Sim.Ui/ViewModel/PlayerKnowledge.cs | seam | the per-turn view over the Sim.Core seam: it enumerates settlements to cache KnowsSettlement
 Sim.Ui/World/WorldLens.cs | routed | WorldProjection.Build: the observer; hidden settlements, formations, territory, paths and routes are never visited
+Sim.Ui/World/TerrainMarks.cs | routed | M6 E1.3 FieldsOf: the site of a cultivating settlement whose books the player reads, and only its catchment nodes the PlayerKnowledge knows
 Sim.Ui/ViewModel/SettlementSelection.cs | routed | Tab cycles known settlements only; the opening selection is the first known one
 Sim.Ui/ViewModel/HudModel.cs | routed | a hidden selection reads as none; the band totals (population, food, settlement count) read the player's OWN settlements only (EmpireStores.OwnSettlements), never a foreign one
 Sim.Ui/ViewModel/PlayerViews.cs | routed | a hidden settlement reads as absent; formations, migration and trade lines name known subjects only
@@ -37,6 +38,7 @@ Sim.Ui/Headless/PlayabilityGate.Info.cs | harness | the gate's info rows (P8): t
 Sim.Ui/Headless/PlayabilityGate.Placement.cs | harness | the gate's placement rows (S1d) and the placement state's rig: the source's own site (an illegal place) and where a hidden settlement stands (undiscovered ground offered nothing), and the rig's check that its order founded
 Sim.Ui/Headless/MapFrameCost.cs | harness | the map frame-cost bench (--frame-cost map)
 Sim.Ui/Theme/EraPreview.cs | harness | the era SVG preview tool
+Sim.Ui/Headless/ObjectLayerPreview.cs | harness | the E1 object-layer preview tool (--e1-preview): picks the capital's nearest settlements for its logged illustration rows
 Sim.Ui/Ages/AgePreview.cs | harness | the Age SVG preview tool
 Sim.Ui/Actions/R2aPreview.cs | harness | the R2a SVG preview tool
 Sim.Ui/World/ResourceOverlay.cs | routed | the overlay's status: the ore-roll markers read the deposits of settlements the player controls and knows (PlayerKnowledge.KnowsSettlement, ReadsInternals); the player's own sites for the access isochrones; the layers read terrain only, masked by the known nodes

@@ -265,3 +265,16 @@ output or the positive control. Each is restated in its own file, with a D-060 c
 
 > Accepted as part of the M5 set, including the §5/§6 scope decisions (F12 DEV panels and session files stay world-wide)
 > and the §11 Decisions A and B. Record: `docs/m5-exit-inventory.md` §13.
+
+## 13. Dated note — 2026-10-28: §9 "Fog (S2a) is unbuilt" superseded (D-066 §3; M6 closure track FOG; §1–§12 unchanged)
+
+- **The fog is built and shipped ON** (M6 Track EX, ADR-044; sim.json `fog.enabled` true). "Known" is no longer
+  all-known in production: `PlayerKnowledge.Of(world, player, cfg)` is built from `PolityKnowledge.Of` — the stored
+  extent, the seed discs, formation sight and settlement sightings. Both gates apply, as §9 anticipated: a settlement the
+  player has not discovered is hidden (P7), and a known foreign one is closed books (D-060).
+- **The leak gate now runs on the production fog** (D-066 §3): `Sim.Ui.Tests` `KnowledgeLeakTests` (and its Military
+  file) gate every family through the production seam with the AI unsighted, no knowledge stub; the stub and fog-off
+  legs are kept as controls only.
+- **Decision A (§11, the drawn token's size) stays DEFERRED** — it was deferred "until fog-of-war visibility and
+  information-disclosure rules are designed"; the M6 fog draws a rival only once it is known, and the token's sizing of a
+  known rival is unchanged. It is not ruled here.

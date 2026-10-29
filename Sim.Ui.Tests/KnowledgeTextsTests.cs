@@ -29,22 +29,20 @@ public class KnowledgeTextsTests
     {
         UiSession s = UiSession.Start(42, sizeOverridePx: 256, settlementsOverride: 4);
         ResearchContent r = s.Config.Research!;
-        // ADR-049: + the three civics repeatables (564); D-063 tranche 2: + 439 corpus entries (corpus/tranche2-*.json)
-        Assert.Equal(1003, KnowledgeTexts.Count);
+        // ADR-049: + the three civics repeatables (564); D-063 tranche 2: + 439 corpus entries (corpus/tranche2-*.json);
+        // M6 closure (D-066 R2): + siege_tower and crossbow_repeating, the two ADR-045 deferred merges (unverified texts;
+        // the TC-1 TEXT hash reads research.json name/desc only, so it is unmoved) — every node now has its text.
+        Assert.Equal(1005, KnowledgeTexts.Count);
         int withText = 0;
         foreach (ResearchNode n in r.Nodes)
         {
             string? text = KnowledgeTexts.For(n.Key);
-            if (text is null)
-            {
-                Assert.Contains(n.Id, new[] { "siege_tower", "crossbow_repeating" });   // the two merges deferred by ADR-045
-                continue;
-            }
+            Assert.True(text is not null, n.Id);
             withText++;
             Assert.InRange(text.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length, 40, 70);
             foreach (string bad in Forbidden) Assert.DoesNotContain(bad, text, StringComparison.OrdinalIgnoreCase);
         }
-        Assert.Equal(1003, withText);
+        Assert.Equal(r.Nodes.Count, withText);
     }
 
     [Fact]

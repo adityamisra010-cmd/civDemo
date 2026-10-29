@@ -193,4 +193,58 @@ public sealed record MapInk
     /// <see cref="InstitutionOther"/>.</summary>
     public Rgba InstitutionInk(int typeKey) =>
         typeKey >= 1 && typeKey <= Universities.Count ? Universities[typeKey - 1] : InstitutionOther;
+
+    // ---------------------------------------------------------------- the object layer (M6 E1; D-038 Part B, style bible §8)
+    // IDENTITY inks, the same in every era (a granary reads as a granary from A1 to A9). Every base is a style-bible §2 hex
+    // (named in each comment) and every lit or shade face is DERIVED from its base by Lit / Shade below — no new hue
+    // (style bible §2, "object-layer shading stops").
+    /// <summary>E1: the contact shadow under every object, drawn at <see cref="ObjectLight.ShadowAlpha"/> — bible InkPrimary
+    /// #3A2E1F deepened; used for nothing else (the single-light test identifies shadows by it).</summary>
+    public Rgba ObjectShadow { get; init; } = Rgba.Hex(0x2C2318);
+    /// <summary>E1: relief — upland and mountain mass (bible UplandUmber #A98B63).</summary>
+    public Rgba ReliefUpland { get; init; } = Rgba.Hex(0xA98B63);
+    /// <summary>E1: relief — low hills (bible PlainTan #C4B183).</summary>
+    public Rgba ReliefHill { get; init; } = Rgba.Hex(0xC4B183);
+    /// <summary>E1: relief — the pale cap of the highest peaks (bible PeakPale #DCC9A0).</summary>
+    public Rgba ReliefPeak { get; init; } = Rgba.Hex(0xDCC9A0);
+    /// <summary>E1: forest crowns (bible Verdigris #5E7A6B).</summary>
+    public Rgba Forest { get; init; } = Rgba.Hex(0x5E7A6B);
+    /// <summary>E1: a cultivated field's crop strip (bible FertileGreen #8F9C63).</summary>
+    public Rgba FieldCrop { get; init; } = Rgba.Hex(0x8F9C63);
+    /// <summary>E1: a cultivated field's fallow strip (bible PlainTan #C4B183).</summary>
+    public Rgba FieldFallow { get; init; } = Rgba.Hex(0xC4B183);
+    /// <summary>E1: the scaffold of a part under construction (bible InkSoft #6B5A3E).</summary>
+    public Rgba Scaffold { get; init; } = Rgba.Hex(0x6B5A3E);
+    /// <summary>E1.4: the walls of the style register's four rungs (<see cref="ObjectRegister"/>) — earthen (bible Arid
+    /// #CBBE93), timber (bible UplandUmber #A98B63), masonry (bible PaperMid #E3D3AE), engineered (bible PaperShade
+    /// #C9B588).</summary>
+    public IReadOnlyList<Rgba> RegisterWalls { get; init; } =
+        [Rgba.Hex(0xCBBE93), Rgba.Hex(0xA98B63), Rgba.Hex(0xE3D3AE), Rgba.Hex(0xC9B588)];
+    /// <summary>E1.4: the roofs of the register's rungs — thatch (bible PlainTan #C4B183), shingle (bible InkSoft #6B5A3E),
+    /// tile (bible IronRed #8C4A3A), slate (bible DeepSea #5F7E88).</summary>
+    public IReadOnlyList<Rgba> RegisterRoofs { get; init; } =
+        [Rgba.Hex(0xC4B183), Rgba.Hex(0x6B5A3E), Rgba.Hex(0x8C4A3A), Rgba.Hex(0x5F7E88)];
+
+    /// <summary>The paper the LIT stop lightens toward (bible PaperLight) and the ink the SHADE stop deepens toward (bible
+    /// InkPrimary) — constants of the object layer's one light, never era-shifted.</summary>
+    private static readonly Rgba LitToward = Rgba.Hex(0xEFE3C8), ShadeToward = Rgba.Hex(0x3A2E1F);
+
+    /// <summary>E1: the LIT face of an object whose base is <paramref name="c"/> — the face turned to the one light
+    /// (<see cref="ObjectLight"/>): <paramref name="c"/> moved <see cref="ObjectLight.LitStop"/> of the way to the paper,
+    /// channel by channel, rounded to the byte; alpha kept.</summary>
+    public static Rgba Lit(Rgba c) => Toward(c, LitToward, ObjectLight.LitStop);
+
+    /// <summary>E1: the SHADE face of an object whose base is <paramref name="c"/> — <paramref name="c"/> moved
+    /// <see cref="ObjectLight.ShadeStop"/> of the way to the ink; alpha kept.</summary>
+    public static Rgba Shade(Rgba c) => Toward(c, ShadeToward, ObjectLight.ShadeStop);
+
+    private static Rgba Toward(Rgba c, Rgba to, double t) =>
+        new((byte)Math.Round(c.R + (to.R - c.R) * t), (byte)Math.Round(c.G + (to.G - c.G) * t),
+            (byte)Math.Round(c.B + (to.B - c.B) * t), c.A);
+
+    /// <summary>E1.4: the wall ink of register rung <paramref name="rung"/> (clamped to the rungs there are).</summary>
+    public Rgba WallOf(int rung) => RegisterWalls[Math.Clamp(rung, 0, RegisterWalls.Count - 1)];
+
+    /// <summary>E1.4: the roof ink of register rung <paramref name="rung"/> (clamped).</summary>
+    public Rgba RoofOf(int rung) => RegisterRoofs[Math.Clamp(rung, 0, RegisterRoofs.Count - 1)];
 }

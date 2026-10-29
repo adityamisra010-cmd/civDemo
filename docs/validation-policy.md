@@ -204,6 +204,23 @@ recorded in `docs/queue.md`. A Tier 3 run reports the check as FAIL until the pa
 retired. Never report it as a pass. Because a failed cheap check blocks the full suites, run those two suites directly
 with the same commands, and say so in the report.
 
+**Resolved by the M6 closure audit (2026-10-28, D-066 A12).** A12: *checks that read the live corpus and live content
+are reconciled to the live tree; checks of the superseded proposal graph alone are retired as a historical snapshot
+(kept in the repository, out of the gate).* What moved where — no failing check was dropped silently:
+
+| Check (before) | Reads | Now | Result on the closure tree |
+|---|---|---|---|
+| `validate.py` corpus checks C01–C11 (active set = the proposal graph) | live corpus | `validate.py --live`: the active set is the live `research.json` (1005 nodes); in `research-tool-tests` and CI | 0 ERROR. The 321 C01 errors were tranche-2 corpus ids absent from the proposal graph; against the live tree they resolve, and the 2 live nodes that had no entry (`crossbow_repeating`, `siege_tower`) now have one (unverified) |
+| `validate.py` V22 Eureka refusals | proposal records; the live `when` borrowed by index | `validate.py --live`: V22 on the live Eurekas (14 conditions, 12 knowledge-only — the count the C# Eureka guarantee test pins) | 0 ERROR. The 20 V22 errors were 11 proposal Eureka records on 10 nodes that D-063 dropped from live content as sweep-implied (commit `8c43d39`): the proposal record survived, the live condition it borrowed by index did not |
+| `validate.py` graph checks V01–V27 (the proposal graph) | proposal graph | **historical snapshot**, out of the gate: `research-proposal-snapshot` (`where: manual`) in the map; run `validate.py` with no flag; `validation-report.md` is that snapshot | fails by construction: 341 errors at `0bf7626`, 343 on the closure tree (the two entries added for `crossbow_repeating` and `siege_tower` are C01 there: the proposal graph merges both away); never a gate, never reported as a pass |
+| `test_validate.py` (25 fixtures) | both | `--live`: the 11 corpus fixtures plus 2 new live fixtures (C01 a live node without an entry; V22 a live Eureka's shape) and their 8 mutants — the gate. The 14 proposal-graph fixtures (V14, V23–V25) stay runnable in the historical default run | `--live --mutants`: 13/13 fixtures, 8/8 mutants killed |
+| `test_sourcing_queue.py` t8 | live corpus | unchanged test; tool fixed: `unresolved_claims.py` read only `corpus/plan.json`'s 19 sourcing batches (561 entries) and now reads every file `corpus/index.json` lists (1005) | 8/8 tests, 5/5 mutants killed |
+| — | live corpus | `export_runtime_texts.py --check` joins `research-tool-tests` and CI | current (1005 texts) |
+
+`research-tool-tests` now runs the live checks only, and passes. Four checks that were not in CI are now in CI and in
+the map: `tree_closure_check.py`, `check_charters.py`, `scripts/research-consequence-audit.py --check` (the
+closure-grade consequence audit) and `scripts/test_research_audits.py` (its mutant tests and the unlock audit's).
+
 Test patterns are dotnet `FullyQualifiedName~` substrings, which are case-insensitive:
 - prefer `.ClassPrefix` (for example `.Age`) to a bare word that occurs inside unrelated names (Storage, Maintain);
 - `trait:suite=determinism` selects by trait;

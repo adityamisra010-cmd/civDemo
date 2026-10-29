@@ -82,3 +82,13 @@ All 23 `unit.*` entities (archers … war_galley, tank, icbm, …) and `building
 A 6 · B 12 · C 19 · D 15 · E 27 (23 units + 4 military buildings/institutions) · F 17 · G 19 = **115**, each audit
 row exactly once (checked against the audit §4 list on this tree). The audit, not this note, is the authoritative
 list. Tier membership is INFERRED and OPEN to Director revision.
+
+## Dated note — 2026-10-28 (D-066 A9, track KNOW; appended, the plan above is unchanged)
+
+The per-entity record is now `docs/m6-plan/deferred-entity-dispositions.md`: every one of the 135 research.json entities,
+exactly once, realized (owner system, consumer, test) or deferred (owning system and target milestone from the M7
+building and unit charters, and the reason) — checked against the content by `EntityDispositionRegisterTests`. Since
+this plan: the 23 `unit.*` entities (tier E) are realized by the M7 pass's recruitment (unit-families.json `realizedBy`,
+RecruitmentQuery; nine recruit only once a planned packet good exists); `inst.law_code` is the M6 slice entity (D-066 A2,
+track CIV). D-066 A9: no other tier is realized in M6. The audit (`scripts/research-gameplay-unlock-audit.py`) now reads
+`realizedBy`, so it lists 91 + the law court as deferred, not 115.

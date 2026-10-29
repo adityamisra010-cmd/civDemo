@@ -86,11 +86,11 @@ public static class MapFrameCost
         ResourceOverlay? Overlay = null, OverlayStatus? OverlayStatus = null, OverlayKind? OnlyLayer = null, bool Outline = false);
 
     public static string Run(string assetsRoot, int rounds = 5, int settlements = DefaultSettlements,
-        int canonicalTurn = DefaultCanonicalTurn, Action<string>? log = null)
+        int canonicalTurn = DefaultCanonicalTurn, Action<string>? log = null, int? highCountSizePx = null)
     {
         rounds = Math.Max(1, rounds);
         log ??= _ => { };
-        UiSession highCount = StartHighCount(settlements);   // first: a count past the siting capacity is refused at once
+        UiSession highCount = StartHighCount(settlements, highCountSizePx);   // first: a count past the siting capacity is refused at once
         MapWorld canonical = Found("canonical", UiSession.Start(42), Math.Max(HighCountTurn, canonicalTurn), log);
         var worlds = new List<MapWorld>
         {
@@ -224,12 +224,15 @@ public static class MapFrameCost
 
     /// <summary>W2 review F3: the high-count world, founded by the simulation's own founding with <paramref name="settlements"/>
     /// sites. A count the canonical world's siting cannot place is the caller's argument error (named, with the capacity the
-    /// siting reports), not an unhandled abort.</summary>
-    public static UiSession StartHighCount(int settlements)
+    /// siting reports), not an unhandled abort.
+    /// <para>M6 E1.0: <paramref name="sizePx"/> (<c>--size PX</c>, the D-015 dev-size escape) founds the high-count world at
+    /// another map size — the only way to reach the Scale Charter's 800 settlements, which the canonical cylinder cannot site
+    /// (capacity 362). Null: the canonical size.</para></summary>
+    public static UiSession StartHighCount(int settlements, int? sizePx = null)
     {
         try
         {
-            return UiSession.Start(42, settlementsOverride: Math.Max(1, settlements));
+            return UiSession.Start(42, sizeOverridePx: sizePx, settlementsOverride: Math.Max(1, settlements));
         }
         catch (InvalidOperationException e) when (e.Message.StartsWith("settlement siting could only place", StringComparison.Ordinal))
         {
@@ -245,7 +248,7 @@ public static class MapFrameCost
         while (s.World.Clock.Turn < turns) s.EndTurn();
         WorldProjection p = WorldProjection.Build(s.World, s.Config, s.Names.Name, UiPlayer.Empire);
         string note = string.Create(CultureInfo.InvariantCulture,
-            $"turn {s.World.Clock.Turn}, {p.Settlements.Count} settlements, {p.Territory.Count} territory blocks, {p.Roads.Count} dirt-path steps, {p.Routes.Count} built routes, {p.Units.Count} formations");
+            $"turn {s.World.Clock.Turn}, {p.Settlements.Count} settlements, {p.Territory.Count} territory blocks, {p.Roads.Count} dirt-path steps, {p.Routes.Count} built routes, {p.Units.Count} formations, a {p.WorldSize:0}-px world");
         return new MapWorld(name, s, p, note);
     }
 

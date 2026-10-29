@@ -165,3 +165,13 @@ definition. D-I, D-D, D-E, D-F are ruled (see `m6-decision-register.md`). Record
 ## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
 
 Scope amended by D-062: M6 now includes separate bankable Civics Points (ADR-043), the stage-gate change, deposit concealment with Prospect and Explore orders, a minimal fog and the Actions menu (ADR-044), and a non-breaking content tranche of the redesigned tree (ADR-045). Movement/AP stay M7; adoption stays M8; no nuclear mechanics. Record: `docs/d062-m6-director-final-rulings.md`.
+
+## Dated note — 2026-10-28 (D-066; appended, the text above is unchanged)
+
+Scope changes recorded by `docs/d066-m6-closure-rulings.md`:
+- **R1 (RULED):** movement-dependent fog is deferred to M7. This covers LIVE/GHOST rows, scouts, sighting from moving units, claim/trade/road routing on the known extent, and siege/line-of-sight.
+- **Not reopened:** the trees (R3).
+- **Not adopted:** the candidate (R4).
+- **Excluded:** M7 follow-ups (R5).
+- **Item status:** per `m6-task-register.md` dated note 2026-10-28.
+- **S-18 (D-051 carry-over):** still open, pending a Director mechanism ruling.

@@ -1,5 +1,6 @@
 using Sim.Core.Kernel;
 using Sim.Core.State;
+using Sim.Core.Systems;
 using Sim.Core.Systems.Research;
 
 namespace Sim.Ui.Progression;
@@ -38,7 +39,11 @@ public static class Lenses
         _ => l.ToString(),
     };
 
-    public static LensPage Page(Lens lens, IReadOnlyWorldState world, ResearchContent content, PolityId polity)
+    /// <remarks>ADR-057 (M6 CIV, P5/P6): with the session's <paramref name="cfg"/> the INSTITUTIONS lens also shows every
+    /// institution type's stage (Unresearched → Available → Active, with the locked reason), the regime modules and the
+    /// DERIVED government label, and the government forms ("Available - adoption in M8", D-066 A10). Without it (a content
+    /// preview) those sections are omitted.</remarks>
+    public static LensPage Page(Lens lens, IReadOnlyWorldState world, ResearchContent content, PolityId polity, SimConfig? cfg = null)
     {
         bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
         switch (lens)
@@ -62,9 +67,11 @@ public static class Lenses
                 var civicSubjects = new List<InfoSubject?>();
                 for (int i = 0; i < completed.Length; i++)
                     if (completed[i] && content.Nodes[i].Tree == ResearchTree.Civics) { civics.Add(content.Nodes[i].Name); civicSubjects.Add(InfoSubject.Node(content.Nodes[i].Key)); }
-                return new LensPage(lens, "Institutions", "How the society is organised: adopted civics and the institutions they allow.",
-                    LensStatus.PartialData, "Adopted civics are completed Civics nodes. Universities are simulated: one is founded when its building is completed in a town that can sustain it (see INSTITUTIONS); other institutions are knowledge eligibility only.",
-                    [new LensSection("Adopted civics", civics.Count + " of " + content.CivicsCount, civics, civicSubjects),
+                // D-D / I-2 (CivicState): a completed civic is RESEARCHED — its knowledge holds — never "adopted"; adoption is M8.
+                return new LensPage(lens, "Institutions", "How the society is organised: researched civics and the institutions they allow.",
+                    LensStatus.PartialData, "Researched civics are completed Civics nodes: their knowledge holds. No civic or government form is adopted before M8. Universities are simulated: one is founded when its building is completed in a town that can sustain it (see INSTITUTIONS); other institutions are knowledge eligibility only.",
+                    [new LensSection("Researched civics", civics.Count + " of " + content.CivicsCount, civics, civicSubjects),
+                     .. InstitutionSections(world, cfg, polity),
                      Eligible("Institutions within reach of knowledge", "knowledge eligibility only", world, content, polity, ResearchEntityKind.Institution)]);
             }
             case Lens.Infrastructure:
@@ -89,6 +96,39 @@ public static class Lenses
                 return new LensPage(lens, "Industry", "Workshops, manufactories and production at scale.",
                     LensStatus.NotYetSimulated, "Crafting is simulated as a labour sector turning inputs into goods by recipe (see the Work of each settlement); workshops, manufactories and industrial production at scale are not yet simulated, so this lens lists nothing.", []);
         }
+    }
+
+    /// <summary>ADR-057 (P5/P6): the institution types (each founded by a project: universities and the law court) with their
+    /// stage and locked reason; the regime modules with the derived label; the government forms. Read through
+    /// InstitutionsQuery and RegimeQuery — nothing here is computed twice.</summary>
+    private static IEnumerable<LensSection> InstitutionSections(IReadOnlyWorldState world, SimConfig? cfg, PolityId polity)
+    {
+        if (cfg is null) yield break;
+        var types = new List<string>();
+        var typeSubjects = new List<InfoSubject?>();
+        foreach (InstitutionTypeInfo t in InstitutionContent.Types(cfg))
+            if (InstitutionsQuery.TypeReading(world, cfg, polity, t.Key) is { } r)
+            {
+                types.Add(r.Name + ": " + r.Line);
+                typeSubjects.Add(InfoSubject.OfUniversity(t.Key));
+            }
+        if (types.Count > 0)
+            yield return new LensSection("Institutions", "Unresearched -> Available -> Active (founded by construction)", types, typeSubjects);
+        if (cfg.Regime is null) yield break;
+        var modules = new List<string>();
+        foreach (RegimeModuleView m in RegimeQuery.Modules(world, cfg, polity)) modules.Add(m.Name + ": " + m.Reason);
+        modules.Add("Government label: " + RegimeQuery.Label(world, cfg, polity) + " (derived from the modules; it changes nothing)");
+        yield return new LensSection("Regime modules", "derived from what exists; nothing is adopted before M8", modules);
+        var forms = new List<string>();
+        var formSubjects = new List<InfoSubject?>();
+        foreach (GovernmentFormView f in RegimeQuery.Forms(world, cfg, polity))
+        {
+            forms.Add(f.Name + ": " + f.Line);
+            formSubjects.Add(InfoSubject.Node(f.Key));
+        }
+        int researched = 0;
+        foreach (GovernmentFormView f in RegimeQuery.Forms(world, cfg, polity)) if (f.State == CivicState.Researched) researched++;
+        yield return new LensSection("Government forms", researched + " of " + forms.Count + " researched - adoption in M8", forms, formSubjects);
     }
 
     private static LensSection Eligible(string heading, string note, IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchEntityKind kind)

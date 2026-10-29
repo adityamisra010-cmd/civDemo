@@ -18,8 +18,9 @@ public static class FrameRaster
     public static readonly (byte R, byte G, byte B) StandIn = (196, 182, 150);
 
     /// <summary>Rasterizes the current context's draw data (after <c>ImGui.Render</c>) to a
-    /// <paramref name="width"/> × <paramref name="height"/> image on a dark field.</summary>
-    public static unsafe ArtImage Rasterize(int width, int height)
+    /// <paramref name="width"/> × <paramref name="height"/> image on a dark field — or (M6 E1.6) over
+    /// <paramref name="under"/>, an image of the same size (the object-layer preview's parchment, sampled for the camera).</summary>
+    public static unsafe ArtImage Rasterize(int width, int height, ArtImage? under = null)
     {
         ImDrawDataPtr data = ImGui.GetDrawData();
         ImGuiIOPtr io = ImGui.GetIO();
@@ -27,6 +28,8 @@ public static class FrameRaster
         IntPtr atlasId = io.Fonts.TexID;
         var px = new double[width * height * 3];
         for (int i = 0; i < width * height; i++) { px[i * 3] = 40; px[i * 3 + 1] = 44; px[i * 3 + 2] = 48; }
+        if (under is { } u && u.Width == width && u.Height == height)
+            for (int i = 0; i < width * height; i++) { px[i * 3] = u.Rgba[i * 4]; px[i * 3 + 1] = u.Rgba[i * 4 + 1]; px[i * 3 + 2] = u.Rgba[i * 4 + 2]; }
 
         for (int l = 0; l < data.CmdListsCount; l++)
         {

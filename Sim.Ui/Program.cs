@@ -15,6 +15,14 @@ if (Array.IndexOf(args, "--help") >= 0 || Array.IndexOf(args, "-h") >= 0)
     return;
 }
 
+// --export-session DIR|MANIFEST (ADR-059, D-066 A16): the one-file session export, headless — reads a saved session's six
+// files and writes session-STAMP.xlsx beside them (the workbook the game writes at session close). No window, no world.
+if (Sim.Ui.Export.SessionExportCommand.Wants(args))
+{
+    Environment.ExitCode = Sim.Ui.Export.SessionExportCommand.Run(args, Console.Out, Console.Error);
+    return;
+}
+
 // --smoke [--ai-empires N] [--monkey N] [--report PATH] (M5 hardening H1): THE PLAYABILITY GATE, headless — a real
 // native ImGui context and the game's real per-frame UI driven by scripted clicks, keys, wheel and drags over every
 // visible control in every meaningful state, then a seeded monkey. No window, no GPU. Exit 0 = passed.
@@ -93,6 +101,18 @@ if (Array.IndexOf(args, "--era-preview") >= 0)
     string? fonts = Sim.Ui.Art.AssetManifest.PreviewFontDirectory();
     foreach (string p in Sim.Ui.Theme.EraPreview.Run(dir, fonts))
         Console.WriteLine($"era preview: {Path.GetFullPath(p)}");
+    return;
+}
+
+// --e1-preview [dir] (M6 E1.6; docs/m6-plan/e1-visual-acceptance-checklist.md): the object layer at three zooms in three
+// eras on the canonical world and the 300- and 800-settlement worlds, over each world's parchment bake, plus the parts sheet.
+if (Array.IndexOf(args, "--e1-preview") >= 0)
+{
+    int at = Array.IndexOf(args, "--e1-preview");
+    string dir = at + 1 < args.Length && !args[at + 1].StartsWith("--") ? args[at + 1] : "e1-preview";
+    string? fonts = Sim.Ui.Art.AssetManifest.PreviewFontDirectory();
+    foreach (string p in Sim.Ui.Headless.ObjectLayerPreview.Run(dir, fonts, line => Console.Error.WriteLine(line), quick: Array.IndexOf(args, "--quick") >= 0))
+        Console.WriteLine($"e1 preview: {Path.GetFullPath(p)}");
     return;
 }
 

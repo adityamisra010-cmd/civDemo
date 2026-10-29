@@ -76,10 +76,14 @@ public sealed class SettlementClasses
     public IReadOnlyList<SettlementSizeClass> Classes { get; }
     public CompositionLattice Lattice { get; }
 
-    private SettlementClasses(IReadOnlyList<SettlementSizeClass> classes, CompositionLattice lattice)
+    /// <summary>M6 E1.2: the part conventions — D-043 D2's count stages and D-066 A4's parts limit (<c>parts</c>).</summary>
+    public PartConventions Parts { get; }
+
+    private SettlementClasses(IReadOnlyList<SettlementSizeClass> classes, CompositionLattice lattice, PartConventions parts)
     {
         Classes = classes;
         Lattice = lattice;
+        Parts = parts;
     }
 
     private static readonly Lazy<SettlementClasses> Shipped = new(() =>
@@ -187,7 +191,11 @@ public sealed class SettlementClasses
             Req(l, "blockRingPitch", "lattice.").GetDouble(), Req(l, "blockLotPitch", "lattice.").GetDouble(),
             Req(l, "blockRings", "lattice.").GetInt32(), Req(l, "dwellingsPerBlock", "lattice.").GetInt64());
         Validate(lattice, classes);
-        return new SettlementClasses(classes, lattice);
+        PartConventions parts = PartConventions.Parse(Req(root, "parts", ""));
+        if (parts.MaxParts > lattice.SlotCount)
+            throw Bad("parts.maxParts (" + parts.MaxParts.ToString(CultureInfo.InvariantCulture) + ") exceeds the lattice's glyph lots ("
+                + lattice.SlotCount.ToString(CultureInfo.InvariantCulture) + ")");
+        return new SettlementClasses(classes, lattice, parts);
     }
 
     private static void Validate(CompositionLattice l, List<SettlementSizeClass> classes)
@@ -242,12 +250,22 @@ public sealed record PlacedPart(string Key, CompositionLot Lot, bool Spilled);
 /// </summary>
 public sealed record SettlementComposition(
     int Settlement, int SizeClass, double SizeIndex, double FootprintUnits,
-    IReadOnlyList<PlacedPart> Parts, IReadOnlyList<CompositionLot> Blocks, long BlocksWanted, int OpenBlockLots);
+    IReadOnlyList<PlacedPart> Parts, IReadOnlyList<CompositionLot> Blocks, long BlocksWanted, int OpenBlockLots)
+{
+    /// <summary>M6 E1.2 (D-066 A4): the lot the OVERFLOW part stands on when the settlement holds more kinds than the
+    /// composite shows — its own claim, after every kind's (so no kind's lot moves for it).</summary>
+    public CompositionLot OverflowLot { get; init; }
+
+    /// <summary>M6 E1.2: the parts UNDER CONSTRUCTION at the settlement (<see cref="SettlementLensView.Building"/>), each on
+    /// its kind's lot — the lot the built part will take — key ascending. Not in <see cref="Parts"/>: only what is built is
+    /// a part (P12a), so the composition digest of a settlement with nothing queued is unchanged.</summary>
+    public IReadOnlyList<PlacedPart> Scaffolds { get; init; } = [];
+}
 
 /// <summary>
 /// The kinds of part a settlement can hold, from CONTENT: every construction project drawn as a structure (goods.json
 /// projects that found no institution — ADR-033 D6 draws a university once, as its institution), ascending id, and every
-/// institution type (research.json <c>universityTypes</c>), ascending key. Every settlement reserves a lot for each of
+/// institution type (research.json <c>universityTypes</c> and sim.json <c>institutions.types</c>, ADR-057), ascending key. Every settlement reserves a lot for each of
 /// them, whether it holds one or not, so what a settlement holds never decides where anything else stands.
 /// </summary>
 public sealed record PartUniverse(IReadOnlyList<int> StructureProjects, IReadOnlyList<int> InstitutionTypes)
@@ -261,9 +279,8 @@ public sealed record PartUniverse(IReadOnlyList<int> StructureProjects, IReadOnl
             if (!InstitutionContent.FoundsInstitution(p) && !projects.Contains(p.Id)) projects.Add(p.Id);
         projects.Sort();
         var types = new List<int>();
-        if (cfg.Research is { } research)
-            foreach (Sim.Core.Systems.Research.UniversityType u in research.UniversityTypes)
-                if (!types.Contains(u.Key)) types.Add(u.Key);
+        foreach (InstitutionTypeInfo u in InstitutionContent.Types(cfg))   // ADR-057: every content-driven institution type
+            if (!types.Contains(u.Key)) types.Add(u.Key);
         types.Sort();
         return new PartUniverse(projects, types);
     }
@@ -273,10 +290,28 @@ public sealed record PartUniverse(IReadOnlyList<int> StructureProjects, IReadOnl
 /// id) or an institution type (1, the type key).</summary>
 public readonly record struct PartClaim(int Category, int Key)
 {
-    public const int Structure = 0, Institution = 1;
+    /// <summary>M6 E1.2: <see cref="Overflow"/> is the overflow part's claim (D-066 A4), key 0.</summary>
+    public const int Structure = 0, Institution = 1, Overflow = 2;
 
     /// <summary>The claim's key — the string its preferred lots hash from, and the <see cref="InstitutionMarker"/> key.</summary>
-    public string HashKey => (Category == Structure ? "structure:" : "institution:") + Key.ToString(CultureInfo.InvariantCulture);
+    public string HashKey => Category switch
+    {
+        Structure => "structure:",
+        Institution => "institution:",
+        _ => "overflow:",
+    } + Key.ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>The claim of a part key ("structure:{id}" or "institution:{key}").</summary>
+    public static bool TryParse(string key, out PartClaim claim)
+    {
+        claim = default;
+        int colon = key.IndexOf(':');
+        if (colon < 0 || !int.TryParse(key.AsSpan(colon + 1), NumberStyles.Integer, CultureInfo.InvariantCulture, out int k)) return false;
+        string head = key[..colon];
+        if (head == "structure") { claim = new PartClaim(Structure, k); return true; }
+        if (head == "institution") { claim = new PartClaim(Institution, k); return true; }
+        return false;
+    }
 }
 
 /// <summary>
@@ -464,6 +499,20 @@ public static class SettlementComposer
             foreach ((int _, PartClaim u) in claims) if (u == c) { known = true; break; }
             if (!known) claims.Add((1, c));
         }
+        // M6 E1.2: the overflow part's own claim (tier 2) and any kind under construction that no claim names yet (tier 3)
+        // — both AFTER every claim above in the priority order, so no kind's lot moves for them.
+        int overflowAt = claims.Count;
+        claims.Add((2, new PartClaim(PartClaim.Overflow, 0)));
+        var building = new List<PartClaim>();
+        foreach (string key in s.Building ?? [])
+            if (PartClaim.TryParse(key, out PartClaim b) && !building.Contains(b)) building.Add(b);
+        building.Sort(static (a, b) => a.Category != b.Category ? a.Category.CompareTo(b.Category) : a.Key.CompareTo(b.Key));
+        foreach (PartClaim c in building)
+        {
+            bool known = false;
+            foreach ((int _, PartClaim u) in claims) if (u == c) { known = true; break; }
+            if (!known) claims.Add((3, c));
+        }
         CompositionLot[] lots = AssignSlots(s.Id, claims, lattice, out bool[] spilled);
         var parts = new List<PlacedPart>(held.Count);
         foreach (PartClaim c in held)
@@ -473,8 +522,12 @@ public static class SettlementComposer
         double footprint = classes.FootprintRadiusUnits(s.Population);
         long wanted = Math.Max(0L, s.Dwellings) / lattice.DwellingsPerBlock;
         List<CompositionLot> blocks = VisibleBlocks(s.Id, wanted, parts, footprint, lattice, out int open);
+        var scaffolds = new List<PlacedPart>(building.Count);
+        foreach (PartClaim c in building)
+            for (int i = 0; i < claims.Count; i++)
+                if (claims[i].Claim == c) { scaffolds.Add(new PlacedPart(c.HashKey, lots[i], spilled[i])); break; }
         return new SettlementComposition(s.Id, classes.ClassOf(s.Population), classes.SizeIndex(s.Population), footprint,
-            parts, blocks, wanted, open);
+            parts, blocks, wanted, open) { OverflowLot = lots[overflowAt], Scaffolds = scaffolds };
     }
 
     private static CompositionLot Lot(int ring, int index, double radius, double deg)

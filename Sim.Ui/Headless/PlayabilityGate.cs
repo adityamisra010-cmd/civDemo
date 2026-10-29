@@ -2326,10 +2326,10 @@ public static partial class PlayabilityGate
                 if (mine[0].Location.Value >= 0) CameraFocus.CenterOn(Ui.Camera, Ui.World, mine[0].Location.Value, Ui.MapRect);
                 h.Idle(2);
                 UnitPlacement? at = null;
-                foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Id == unit) at = p;
+                foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Holds(unit)) at = p;   // E1.5: the token holding it
                 if (at is not { } placed) return (GateResult.Fail, "token not drawn");
                 h.Click(placed.X, placed.Y);
-                return Expect(Ui.SelectedUnit == unit && Ui.UnitCard is not null, "selected unit " + Ui.SelectedUnit);
+                return Expect(Ui.SelectedUnit == placed.Id && Ui.UnitCard is not null, "selected unit " + Ui.SelectedUnit);
             });
             Check("map: formation", "unit card states the M7 limitation", () =>
             {
@@ -2356,7 +2356,7 @@ public static partial class PlayabilityGate
             {
                 if (Ui.SelectedUnit < 0)
                 {
-                    foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Id == unit) { h.Click(p.X, p.Y); break; }
+                    foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Holds(unit)) { h.Click(p.X, p.Y); break; }
                 }
                 if (Ui.UnitCard is not { } card) return (GateResult.Fail, "no card");
                 h.Idle(1);
@@ -2371,11 +2371,31 @@ public static partial class PlayabilityGate
                 return Expect(missing.Count == 0 && !digits && card.Movement == UnitCardModel.MovementText,
                     "not drawn: " + string.Join(" | ", missing) + (digits ? "; a stat line carries a number" : ""));
             });
-            Check("map: formation", "unit card close", () =>
+            // M6.12 (D-F option 1; D-066 A2 item 4): the training placeholder — ONE drawn text line, "Training — planned for
+            // M7" with the family tree's inert first promotion "earned in M7"; no control beyond close, no order, no world change
+            // (a LookCheck: the world hash and the queued orders are unchanged by showing it).
+            LookCheck("map: formation", "unit card training placeholder is inert (M6.12)", () =>
             {
                 if (Ui.SelectedUnit < 0)
                 {
                     foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Id == unit) { h.Click(p.X, p.Y); break; }
+                }
+                if (Ui.UnitCard is not { } card) return (GateResult.Fail, "no card");
+                h.Idle(1);
+                IReadOnlyList<string> drawn = Ui.FrameText.Texts(FrameSurface.UnitCard);
+                bool shown = card.Planned.StartsWith(UnitTrainingPlaceholder.TrainingText, StringComparison.Ordinal) && drawn.Contains(card.Planned);
+                int cardControls = 0;
+                foreach (UiControl c in Ui.Controls.Last)
+                    if (c.X0 >= Ui.UnitCardRect.X && c.X1 <= Ui.UnitCardRect.X + Ui.UnitCardRect.Width
+                        && c.Y0 >= Ui.UnitCardRect.Y && c.Y1 <= Ui.UnitCardRect.Y + Ui.UnitCardRect.Height) cardControls++;
+                return Expect(shown && cardControls == 1,
+                    (shown ? "" : "the training line is not drawn: '" + card.Planned + "'; ") + "controls on card " + cardControls);
+            });
+            Check("map: formation", "unit card close", () =>
+            {
+                if (Ui.SelectedUnit < 0)
+                {
+                    foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Holds(unit)) { h.Click(p.X, p.Y); break; }
                 }
                 if (!h.ClickControl("unit-close")) return (GateResult.Fail, "close not drawn");
                 return Expect(Ui.SelectedUnit < 0 && Ui.UnitCard is null, "card still open");
@@ -2418,7 +2438,10 @@ public static partial class PlayabilityGate
                 CloseEverything();
                 h.Idle(1);
                 if (Ui.LensFrame is not { } f) return (GateResult.Fail, "no lens frame");
-                var drawn = new List<int>(f.UnitTokens);
+                // E1.5 (D-052 §7): a token stands for the formations of one type at one place — every known row is held by
+                // exactly one token.
+                var drawn = new List<int>();
+                foreach (UnitPlacement up in f.UnitPlacements) foreach (int id in up.Members) if (!drawn.Contains(id)) drawn.Add(id);
                 drawn.Sort();
                 var want = new List<int>();
                 foreach (MilitaryUnitRow u in known) want.Add(u.Id);
@@ -2437,10 +2460,10 @@ public static partial class PlayabilityGate
                     CentreOnFormation(u);
                     h.Idle(1);
                     UnitPlacement? at = null;
-                    foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Id == u.Id) at = p;
+                    foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Holds(u.Id)) at = p;   // E1.5: its token
                     if (at is not { } placed) { bad.Add(u.Id.ToString(CultureInfo.InvariantCulture) + " not drawn"); continue; }
                     h.Click(placed.X, placed.Y);
-                    if (Ui.SelectedUnit != u.Id || Ui.UnitCard?.UnitId != u.Id)
+                    if (Ui.SelectedUnit != placed.Id || Ui.UnitCard?.UnitId != placed.Id)
                         bad.Add(u.Id.ToString(CultureInfo.InvariantCulture) + " -> " + Ui.SelectedUnit.ToString(CultureInfo.InvariantCulture));
                 }
                 CloseEverything();
@@ -2458,10 +2481,10 @@ public static partial class PlayabilityGate
                 CentreOnFormation(r);
                 h.Idle(1);
                 UnitPlacement? at = null;
-                foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Id == r.Id) at = p;
+                foreach (UnitPlacement p in Ui.LensFrame!.UnitPlacements) if (p.Holds(r.Id)) at = p;   // E1.5: its token
                 if (at is not { } placed) return (GateResult.Fail, "the rival's token is not drawn");
                 h.Click(placed.X, placed.Y);
-                bool ok = Ui.SelectedUnit == r.Id && Ui.UnitCard is { Mine: false } card && card.UnitId == r.Id
+                bool ok = Ui.SelectedUnit == placed.Id && Ui.UnitCard is { Mine: false } card && card.UnitId == placed.Id
                     && card.NotSimulated.Count == UnitCardModel.NotSimulatedLines.Count;
                 string why = "rival " + r.Id.ToString(CultureInfo.InvariantCulture) + ", selected " + Ui.SelectedUnit.ToString(CultureInfo.InvariantCulture)
                     + (Ui.UnitCard is { } open ? (open.Mine ? ", its card says it is the player's" : "") : ", no card");

@@ -2803,3 +2803,17 @@ Later changes to the sections above are recorded here, at the end of the file, a
 > - **MEASURED** (`dotnet Sim.Ui/bin/Release/net10.0/Sim.Ui.dll --smoke --monkey 200`, on the Release build of this
 >   change): 13 states, 3967 checks, 3666 pass, 301 not offered, 0 FAIL, 0 problems. The run printed SMOKE PASSED.
 > - §6 was not regenerated, so its table does not yet list the two new rows. The next integration regenerates it.
+
+
+> **DATED NOTE 2026-10-28 (M6.12, D-066 R2 and A2 item 4; D-F option 1): the training placeholder on the formation card.**
+> - **New row `map: formation` / `unit card training placeholder is inert (M6.12)`** (a LookCheck: the world hash and the
+>   queued orders must be unchanged). The card draws ONE text line, `Training — planned for M7 · '<the family tree's
+>   first promotion>': earned in M7` (the founding Warband: `'Drilled'`, `UnitTrainingPlaceholder`). The row requires the
+>   line drawn on the card's surface (FrameText) and the card's controls still exactly one (close).
+> - **The locked movement line now reads `Movement: not simulated — Battle Layer (M7)`.** The old line's "awaiting the
+>   Director's ruling" was stale wording (`m5-playtest-known-issues.md`; DW-018: movement and Action Points were ruled M7
+>   work, D-052 §4). The shorter, one-row line is also what keeps P11's measured property: the whole card fits UNSCROLLED
+>   at the 1280x800 design window with the new line (measured content 487.4 px against 498 px of room; before the change
+>   484.4 px; with the old movement line plus the new line 504.4 px, which scrolled).
+> - Measured: `UnitTrainingPlaceholderTests.TheGateRow_Passes_InTheA1State` (in process, A1 turn 1, no monkey). The full
+>   smoke was NOT run by this track; §6 was not regenerated.

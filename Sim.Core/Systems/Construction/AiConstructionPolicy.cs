@@ -21,7 +21,8 @@ namespace Sim.Core.Systems.Construction;
 /// that is AVAILABLE to the polity there, and whose every material is covered IN FULL by the RESERVED PURSE now (item 3;
 /// the builders' pace is the system's when it resolves the queue). Building each project
 /// once per settlement keeps the AI from sinking every unit of timber and stone into duplicate structures.</item>
-/// <item><b>Universities</b> (ADR-033 D6; projects that found an institution): AT MOST ONE founding per
+/// <item><b>Universities</b> (ADR-033 D6; projects that found an institution — ADR-057: EVERY content-driven institution
+/// type, the sim.json institutions.types law court included, each on its own profile and market): AT MOST ONE founding per
 /// polity per turn, decided after the ordinary projects. The SPECIALTY is the AVAILABLE university type the
 /// polity holds FEWEST instances of — counted PROSPECTIVELY: its founded rows, the buildings of the type
 /// completed in its settlements and not yet founded, and the projects of the type in their queues, so the
@@ -188,27 +189,29 @@ public static class AiConstructionPolicy
         IReadOnlyWorldState world, SimConfig cfg, PolityId polity, double dtYears, IReadOnlyList<int>? alreadyOrdered,
         IReadOnlyList<OrderRecord>? chosen)
     {
-        if (cfg.Goods is not { } goods || cfg.Research is not { } research || cfg.Institutions is not { } institutions) return null;
+        if (cfg.Goods is not { } goods || cfg.Research is null || cfg.Institutions is not { } institutions) return null;
         if (!EmpireQuery.TryGetCommandSource(world, polity, out CommandSource source) || source != CommandSource.Ai) return null;
         UniversitiesConfig u = institutions.Universities;
 
         // The specialty: composite key (n ascending, X ascending, type key ascending) over the AVAILABLE,
-        // not prospectively saturated types that have a site. Content order is ascending key, and the best is
-        // replaced only on a STRICTLY lower n, or an equal n and a STRICTLY lower X.
+        // not prospectively saturated types that have a site. ADR-057 (D-066 A1): EVERY content-driven institution type
+        // — the universities and the sim.json institutions.types (the law court) — through the same availability
+        // predicate, each on its own market (Site); the key tie-break is explicit, so content order does not decide.
         int bestType = -1;
         long bestN = 0;
         double bestX = 0.0;
         SettlementId bestSite = default;
         ConstructionProjectEntry? bestProject = null;
-        foreach (UniversityType type in research.UniversityTypes)
+        foreach (InstitutionTypeInfo type in InstitutionContent.Types(cfg))
         {
             if (InstitutionContent.ProjectOfType(cfg, type.Key) is not { } project) continue;
             long n = ProspectiveCount(world, polity, type.Key, project);
             if (InstitutionEffects.Saturation(n) >= u.SaturatedAt) continue;
             if (bestType >= 0 && n > bestN) continue;
             double x = InstitutionEffects.MaturityWeighted(world, polity, type.Key);
-            if (bestType >= 0 && n == bestN && !(x < bestX)) continue;
-            if (Site(world, cfg, goods, polity, project, dtYears, u.AdultsPerUniversity, alreadyOrdered, chosen) is not { } site) continue;
+            if (bestType >= 0 && n == bestN && (x > bestX || (x == bestX && type.Key > bestType))) continue;
+            long market = InstitutionContent.Profile(institutions, type.Key).AdultsPerInstitution;
+            if (Site(world, cfg, goods, polity, project, dtYears, market, alreadyOrdered, chosen) is not { } site) continue;
             (bestType, bestN, bestX, bestSite, bestProject) = (type.Key, n, x, site, project);
         }
         return bestProject is null ? null : ConstructionQuery.EnqueueOrder(world, polity, bestSite, bestProject.Id);
@@ -255,7 +258,7 @@ public static class AiConstructionPolicy
             if (alreadyOrdered is not null && Contains(alreadyOrdered, settlement.Value)) continue;
             if (ConstructionQuery.Queue(world, settlement).Length > 0) continue;
             if (!ConstructionQuery.IsProjectAvailable(world, cfg, polity, settlement, project.Id)) continue;
-            UniversityViability v = InstitutionViability.ToFound(world, cfg, settlement);
+            UniversityViability v = InstitutionViability.ToFound(world, cfg, settlement, project);   // ADR-057: its type's market
             if (!v.Viable) continue;
             if (!ReservedCovers(world, goods, ConstructionQuery.Holders(world, cfg, settlement), project, chosen)) continue;
             double capacity = ConstructionQuery.CapacityAdultYears(world, cfg, settlement, dtYears);

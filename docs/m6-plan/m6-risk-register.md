@@ -31,3 +31,13 @@ owner. Severity: H / M / L (impact × likelihood, judged, not measured).
 | R-19 | **Civics Points (D-061) implemented as a split of RP or as a second engine** — either silently violates the Director's intent ("not a renamed subset") or R-02 | H | a CP formula containing an RP term; a `CivicsQuery`/second loader | spec I-3/I-4; D-061.3 "no RP term"; one engine parameterized by (tree, pool, target) | spec author / implementation |
 | R-20 | **Civics migration at the schema bump loses or double-counts the seven nodes' progress** on resumed sessions | M | a resumed v34 session whose civics progress differs from its trace | D-061.5 ruled before T6.3; v34 fixture resume test extended to civics rows | implementation |
 | R-21 | **The Civ VI comparison is assumed done** and content is authored against uncited recollection | M | T6.4 content PRs citing "Civ VI does X" without a source | spec §8 states the dependency; T6.1b produces the cited comparison before T6.4 content | spec author |
+
+## Dated note — 2026-10-28 (D-066 closure; appended)
+
+| Risk | Status |
+|---|---|
+| Fog leak channels | REDUCED: leak gate on real fog; AI reads known terrain only (A18). Residual: the founding predicate reads unseen land for player and AI alike — M7 (DW-002). |
+| Movement-dependent fog | DEFERRED to M7 (D-066 R1). Risk carried by M7. |
+| E1 visual legibility (G2/G3) | OPEN until the Director's Part G gate. Frame cost: the self-set 2.0× budget is exceeded on near-empty maps only (≤ 2.8 ms). |
+| New content inert in normal play | OPEN. Contact exposure writes nothing in canonical worlds; the law court appears around turn 500+. This is a playtest observation, not a defect. |
+| Pre-existing red | `research-proposal-snapshot` (historical) is out of the gate; live research tool checks pass. |

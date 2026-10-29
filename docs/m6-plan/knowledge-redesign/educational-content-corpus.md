@@ -6,6 +6,58 @@ Canonical texts: `corpus/*.json` (listed in `corpus/index.json`); readable views
 the same lists are stored per batch in `corpus/plan.json` → `evidence`). Writing and sourcing rules:
 `research/corpus-brief.md`. Sources: `historical-source-register.md` (canonical `sources/register.json`).
 
+> **Dated note, 2026-10-28 — the LIVE figures (M6 closure audit, D-066 R2 and A12).** The sections below were written for the
+> 561-entry package (2026-10-22/23) and are kept as written; these are the measured figures of the live corpus now. No status
+> was upgraded: the two entries added here are `unverified`, and the D-062 dated note of 2026-10-23 still holds (texts are
+> shown in the game; none is marked fact-checked; gameplay does not wait on source verification).
+>
+> | Live corpus (`tools/validate.py --live`, `tools/unresolved_claims.py`) | Entries |
+> |---|---|
+> | All entries (25 files listed in `corpus/index.json`) = every node of the live `research.json` | **1,005** (561 package + 442 tranche 2 + 2 added 2026-10-28) |
+> | `source-checked` (a page or document was read; every claim confirmed) | **0** |
+> | `search-corroborated` (every listed claim matched search-result text; no page opened) | **113** |
+> | `partially-checked` (some claims matched search-result text; others unsupported or unchecked) | **250** |
+> | `unverified` (no source retrieved; the whole text unresolved) | **642** (198 package + 442 tranche 2 + 2) |
+> | May ship as fact under the internal QC gate (C10) | **0** |
+>
+> The 442 tranche-2 entries (`corpus/tranche2-1.json` … `tranche2-6.json`, 74/74/74/73/73/74) were all drafted
+> `unverified`, from general knowledge, with no source retrieved. `crossbow_repeating` and `siege_tower` — the two runtime
+> nodes whose merge ADR-045 §5 deferred, which had no text — now have one each (end of `tranche2-6.json`, `unverified`,
+> written by this audit; `knowledge-texts.json` re-exported, 1,005 texts). Adding them moves neither TC-1 hash: the TEXT hash
+> covers each node's `name` and `desc` in `research.json` (`TreeClosureBaselineTests.Hashes`), not `knowledge-texts.json`,
+> and no golden or pinned digest reads that file. The sourcing queue (`corpus/sourcing-queue.md`, `corpus/plan.json`) still
+> covers the 561 package entries only: the 444 others are not queued yet.
+>
+> **The source-access-blocked subset (exact, measured 2026-10-28).** Promotion to `source-checked` needs a page or document
+> READ (validator C11). Every one of the 1,153 register records was retrieved as `web-search-result`; the 28 records on
+> `github.com` (the one host this environment reaches) are game-design references that no corpus entry cites, so every
+> entry with a source cites only hosts the session proxy refuses (a `CONNECT` to `en.wikipedia.org` is answered 403;
+> `github.com` answers). Hence:
+> - **blocked by page access alone — 113 entries**, the `search-corroborated` set: each needs only its cited pages opened
+>   and its claims confirmed against them;
+> - **blocked by page access and by open claims — 250 entries**, the `partially-checked` set (per entry, the unsupported or
+>   unchecked statements are listed in `corpus/unresolved-claims.md`);
+> - **blocked by sourcing first — 642 entries**, the `unverified` set: no source has been found yet, and finding one needs the
+>   same network access.
+>
+> The 113 entries blocked by page access alone, by file:
+>
+> - `agriculture-food-1.json` (18): `agricultural_chemistry`, `animal_traction`, `cereal_cultivation`, `cereal_domesticated`, `chemical_fertilizer`, `cotton_cultivation`, `fermentation_fruit`, `fishing_hook`, `flax`, `grinding_stone`, `heavy_plough`, `maize`, `milking`, `millet`, `rice_wet`, `rotary_quern`, `sheep_goat`, `sorghum_pearl_millet`
+> - `agriculture-food-2.json` (4): `frontier_climate`, `frontier_crops`, `precision_agriculture`, `scientific_plant_breeding`
+> - `materials-mining-1.json` (9): `adhesive_natural`, `copper_native`, `cupellation`, `knapping_oldowan`, `mining_shaft`, `pattern_welding`, `percussion_drilling`, `sheet_metal`, `tin_bronze`
+> - `materials-mining-2.json` (4): `hot_blast`, `metallography`, `portland_cement`, `puddling`
+> - `science-early.json` (4): `calendar_civil`, `counting_rods`, `horse_domestication`, `mechanics_archimedean`
+> - `natural-science-1.json` (24): `atomic_clock`, `cell_theory`, `chemistry_quantitative`, `electromagnetic_field_theory`, `genetic_engineering`, `heliocentrism`, `laser`, `microscope`, `organic_chemistry`, `pcr`, `periodic_system`, `photography`, `plastics`, `probability_statistics`, `quantum_mechanics`, `relativity`, `space_probe`, `spectroscopy`, `superconductivity_applied`, `synthetic_dye`, `taxonomy`, `telescope`, `thermodynamics`, `trigonometry`
+> - `natural-science-2.json` (4): `catalytic_converter`, `crispr`, `dna_sequencing`, `genome_sequencing`
+> - `communication-computing.json` (7): `chinese_script`, `communications_satellite`, `optical_telegraph`, `punched_card_tabulation`, `radio`, `radio_broadcasting`, `telephone`
+> - `industry-construction-2.json` (1): `numerical_control`
+> - `transport-naval-1.json` (1): `raft`
+> - `military.json` (2): `guided_missile`, `rifling`
+> - `medicine.json` (5): `antibiotic_broad`, `endocrinology`, `epidemiology`, `germ_theory`, `immunology`
+> - `nuclear-geology.json` (20): `fast_breeder_reactor`, `fission_weapon`, `geological_disposal`, `graphite_reactor`, `heavy_water_reactor`, `light_water_reactor`, `mineralogy`, `nuclear_fusion_research`, `nuclear_medicine`, `nuclear_physics`, `nuclear_power`, `radiation_detection`, `radiation_protection`, `radioactivity`, `radioisotope_production`, `radiometric_prospecting`, `radiotherapy`, `reprocessing`, `uranium_enrichment`, `uranium_milling`
+> - `civics-1.json` (8): `assembly_democracy`, `chiefdom`, `civil_police`, `classical_republic`, `feudal_monarchy`, `provincial_administration`, `religious_toleration`, `succession_law`
+> - `civics-2.json` (2): `constitutional_monarchy`, `marxist_leninist_state`
+
 ## 0. The shipping gate (read this first)
 
 > **Dated note, 2026-10-23 (the Director's M6 review, item 4; ADR-046 §4).** The game now SHOWS every text as plain prose

@@ -31,6 +31,13 @@
     <!-- P12a: the settlement visual classes and composition lattice — VIEW data (how state is drawn), embedded so the
          game, the headless tools and the tests read the same bytes. The simulation never reads it. -->
     <EmbeddedResource Include="UiContent\world\settlement-classes.json" LogicalName="Sim.Ui.settlement-classes.json" />
+    <!-- ADR-059 (D-066 A14-A17): the session export's codebooks — the TSV the workbook's Codebook sheet shows and its
+         machine-readable twin the codec reads — generated from docs/m6-session-export/prototype/spec.py, the single
+         source (make_codebook.py; CI checks they are current). One codebook per telemetry schema: v4 and v5. -->
+    <EmbeddedResource Include="..\docs\m6-session-export\codebook-telemetry-v4.tsv" LogicalName="Sim.Ui.codebook-telemetry-v4.tsv" />
+    <EmbeddedResource Include="..\docs\m6-session-export\codebook-telemetry-v4.json" LogicalName="Sim.Ui.codebook-telemetry-v4.json" />
+    <EmbeddedResource Include="..\docs\m6-session-export\codebook-telemetry-v5.tsv" LogicalName="Sim.Ui.codebook-telemetry-v5.tsv" />
+    <EmbeddedResource Include="..\docs\m6-session-export\codebook-telemetry-v5.json" LogicalName="Sim.Ui.codebook-telemetry-v5.json" />
   </ItemGroup>
 
   <ItemGroup>

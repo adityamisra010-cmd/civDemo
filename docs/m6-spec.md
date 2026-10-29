@@ -447,3 +447,17 @@ movement), nuclear mechanics, key retirement/merge/consumer-removing splits unti
 identity and the RP-loss identity; criterion 4's extent, memory and leak requirements hold for the minimal fog; GHOST
 display and scouts move to M7.
 
+
+## Dated note — 2026-10-28 (D-066; appended, the text above is unchanged)
+
+`docs/d066-m6-closure-rulings.md` records:
+- the Director's 2026-10-28 rulings: fog deferral (R1) and the completion of all other M6 obligations (R2);
+- the defaults ADOPTED to complete M6.
+
+§5 exit criteria:
+- **Criterion 4:** read against the minimal fog, with movement-dependent items deferred (R1).
+- **Criteria 7 and 8:** read per D-066 A11 and A13.
+- **Criterion 9's** Windows smoke and 20-seed nightly are CI-only.
+- **Criterion 5's** visual gate and criterion 10's slice acceptance are the Director's.
+
+Evidence: `docs/m6-exit-inventory.md`.

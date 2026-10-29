@@ -1,4 +1,8 @@
-"""tuple codec: telemetry/v4 JSONL line  <->  one Excel cell of positional tuples.
+"""tuple codec: telemetry JSONL line (v2-v5)  <->  one Excel cell of positional tuples.
+
+Codebook: v4 for telemetry/v2, v3 and v4 lines (cell head v2/v3/v4); v5 for telemetry/v5
+(cell head v5; D-066 A15). The codebook in force for a call is _CB, chosen from the line's
+schema tag (encode) or the cell's first token (decode).
 
 Cell grammar (see codebook.tsv for every code):
   cell     := turnSeg ( '|' settSeg )*
@@ -21,6 +25,9 @@ import json
 import re
 
 import spec as SP
+
+_CB = SP.V4   # the codebook in force (set by encode_line / decode_cell)
+ABSENT_LEAF = ('absent', None)   # an OPTIONAL key that is not in the line (codebook v5)
 
 INT_RE = re.compile(r'-?\d+$')
 LEG_RE = re.compile(r'^(-?\d+)(?:\+(-?\d+))?(?:-(-?\d+))?$')
@@ -204,7 +211,7 @@ def dec_legs(t):
 
 
 def name_of(mapname, ident):
-    m, fallback = SP.NAME_MAPS[mapname]
+    m, fallback = _CB.NAME_MAPS[mapname]
     if ident in m:
         return m[ident]
     if fallback:
@@ -226,7 +233,7 @@ def enc_val(typ, v):
             t = '1' if v[1] else '0'
     elif typ.startswith('e:'):
         if isinstance(v, tuple) and v[0] == 's':
-            t = SP.ENUMS[typ[2:]].get(v[1])
+            t = _CB.ENUMS[typ[2:]].get(v[1])
     elif typ == 'da':
         if isinstance(v, list):
             parts = [enc_double(x) if isinstance(x, tuple) else None for x in v]
@@ -258,7 +265,7 @@ def dec_val(typ, t):
     if typ == 'b':
         return ('b', t == '1')
     if typ.startswith('e:'):
-        rev = {c: n for n, c in SP.ENUMS[typ[2:]].items()}
+        rev = {c: n for n, c in _CB.ENUMS[typ[2:]].items()}
         return ('s', rev[t])
     if typ == 'da':
         return [] if t == '~' else [dec_double(x) for x in t.split(';')]
@@ -327,6 +334,8 @@ def default_value(dspec, ctx, resolve):
                 return None
             out.append(v)
         return out
+    if k == 'absent':
+        return ABSENT_LEAF
     if k == 'own_attr':
         sid = get_path(ctx, 'S.settlement', resolve)
         lst = get_path(ctx, 'S.migration.allAttractiveness', resolve)
@@ -416,6 +425,8 @@ def _collect_opt(template, obj, where, leaves, tables, optional):
         key = e[0]
         if len(e) == 2 and isinstance(e[1], str):
             leaves.setdefault(e[1], {})[key] = obj[key]
+        elif len(e) == 3 and e[1] == 'opt':
+            leaves.setdefault(e[2], {})[key] = obj.get(key, ABSENT_LEAF)
         elif len(e) == 2:
             _collect_opt(e[1], obj[key], where + '.' + key, leaves, tables, optional)
         elif e[1] == '@':
@@ -431,7 +442,7 @@ def _collect_opt(template, obj, where, leaves, tables, optional):
 def _is_opt(template, key):
     for e in template:
         if e[0] == key:
-            return len(e) == 4 and e[1] == '?'
+            return (len(e) == 4 and e[1] == '?') or (len(e) == 3 and e[1] == 'opt')
     return False
 
 
@@ -461,11 +472,14 @@ def enc_segment(template, secs, order, obj, ctx, head, table_defaults):
 
 
 def encode_line(line):
+    global _CB
     doc = parse_json(line)
     _check_keys(doc, ['schema', 'turn', 'settlements'], 'line')
     sch = doc['schema']
-    if sch[0] == 's' and sch[1] in SP.SCHEMA_CODES:
-        head = SP.SCHEMA_CODES[sch[1]]
+    cb = SP.codebook_for_schema(sch[1]) if sch[0] == 's' else None
+    _CB = cb or SP.V4
+    if cb is not None:
+        head = cb.SCHEMA_CODES[sch[1]]
     else:
         head = bang(sch)
     T = doc['turn']
@@ -487,11 +501,11 @@ def encode_line(line):
     if cand:
         best = max(cand.values(), key=lambda c: c[0])  # first max wins (dict order)
         lineA = best[1]
-    secs_t = dict(SP.TURN_SECTIONS)
+    secs_t = dict(_CB.TURN_SECTIONS)
     tctx = Ctx(T=T)
-    parts = [head] + enc_segment(SP.TURN_TEMPLATE, secs_t, SP.TURN_SECTION_ORDER, T, tctx, 'turn', {})
+    parts = [head] + enc_segment(_CB.TURN_TEMPLATE, secs_t, _CB.TURN_SECTION_ORDER, T, tctx, 'turn', {})
     if lineA:
-        secs_a = {'A': ('table',) + SP.ATTR_ROW + ('empty',)}
+        secs_a = {'A': ('table',) + _CB.ATTR_ROW + ('empty',)}
         a = enc_table('A', secs_a, lineA, tctx, [])
         if a is not None:
             parts.append(a)
@@ -502,8 +516,8 @@ def encode_line(line):
         sid = s.get('settlement') if isinstance(s, dict) else None
         mine = [o for o in t_orders if isinstance(o, dict) and o.get('settlement') == sid]
         tdefs = {'Ma': lineA, 'O': mine}
-        segs.append(' '.join(enc_segment(SP.SETTLEMENT_TEMPLATE, SP.SETTLEMENT_SECTIONS,
-                                         SP.SETTLEMENT_SECTION_ORDER, s, ctx, 'settlements[%d]' % i,
+        segs.append(' '.join(enc_segment(_CB.SETTLEMENT_TEMPLATE, _CB.SETTLEMENT_SECTIONS,
+                                         _CB.SETTLEMENT_SECTION_ORDER, s, ctx, 'settlements[%d]' % i,
                                          tdefs)))
     return '|'.join(segs)
 
@@ -541,6 +555,19 @@ def deep_resolve(x):
         for i in range(len(x)):
             x[i] = deep_resolve(x[i])
         return x
+    return x
+
+
+def strip_absent(x):
+    """Drop OPTIONAL keys whose field was empty (the key was not in the line)."""
+    if isinstance(x, dict):
+        for k in [k for k, v in x.items() if v == ABSENT_LEAF]:
+            del x[k]
+        for v in x.values():
+            strip_absent(v)
+    elif isinstance(x, list):
+        for v in x:
+            strip_absent(v)
     return x
 
 
@@ -615,8 +642,8 @@ def build(template, secs_spec, parsed, ctx, table_pending, holder, obj=None):
         obj = {}
     for e in template:
         key = e[0]
-        if len(e) == 2 and isinstance(e[1], str):
-            code = e[1]
+        if (len(e) == 2 and isinstance(e[1], str)) or (len(e) == 3 and e[1] == 'opt'):
+            code = e[1] if len(e) == 2 else e[2]
             vals = holder.setdefault(code, None)
             if vals is None:
                 vals = {}
@@ -646,20 +673,25 @@ def build(template, secs_spec, parsed, ctx, table_pending, holder, obj=None):
 
 
 def decode_cell(cell):
+    global _CB
     segs = cell.split('|')
     turn_toks = segs[0].split(' ', 1)
     head = turn_toks[0]
-    rev = {v: k for k, v in SP.SCHEMA_CODES.items()}
+    cb = None if head.startswith('!') else SP.codebook_for_head(head)
+    if cb is None and not head.startswith('!'):
+        raise ValueError('unknown cell head ' + head[:20])
+    _CB = cb or SP.V4
+    rev = {v: k for k, v in _CB.SCHEMA_CODES.items()}
     schema = unbang(head) if head.startswith('!') else ('s', rev[head])
     tparsed = parse_segment(turn_toks[1]) if len(turn_toks) > 1 else {}
     T = {}
     tctx = Ctx(T=T)
     tp = []
-    build(SP.TURN_TEMPLATE, SP.TURN_SECTIONS, tparsed, tctx, tp, {}, T)
+    build(_CB.TURN_TEMPLATE, _CB.TURN_SECTIONS, tparsed, tctx, tp, {}, T)
     deep_resolve(T)
     lineA = []
     if 'A' in tparsed and tparsed['A'][0] == 'val':
-        lineA = dec_table(('table',) + SP.ATTR_ROW + ('empty',), tparsed['A'][1], tctx)
+        lineA = dec_table(('table',) + _CB.ATTR_ROW + ('empty',), tparsed['A'][1], tctx)
         deep_resolve(lineA)
     setts = []
     for seg in segs[1:]:
@@ -667,7 +699,7 @@ def decode_cell(cell):
         S = {}
         ctx = Ctx(T=T, S=S)
         tp = []
-        build(SP.SETTLEMENT_TEMPLATE, SP.SETTLEMENT_SECTIONS, parsed, ctx, tp, {}, S)
+        build(_CB.SETTLEMENT_TEMPLATE, _CB.SETTLEMENT_SECTIONS, parsed, ctx, tp, {}, S)
         sid = resolve(S['settlement'])
         for obj, key, code in tp:
             if code == 'Ma':
@@ -676,8 +708,45 @@ def decode_cell(cell):
                 obj[key] = [deep_copy(o) for o in T['orders'] if o['settlement'] == sid]
         deep_resolve(S)
         setts.append(S)
+    strip_absent(T)
+    for S in setts:
+        strip_absent(S)
     return {'schema': schema, 'turn': T, 'settlements': setts}
 
 
 def decode_to_line(cell):
     return to_json(decode_cell(cell))
+
+
+# ---------------------------------------------------------------- continuation cells (D-066 A17)
+def split_cell(cell, limit=SP.CELL_LIMIT):
+    """Split a coded cell into workbook cells of at most `limit` characters, at '|' only.
+    The first part is the cell's head; every further part is a CONTINUATION: the marker '>' and
+    then the cut '|'. Greedy: each part takes as many whole segments as fit. A single segment
+    longer than the limit cannot be split and is refused (never truncated)."""
+    segs = cell.split('|')
+    cur = segs[0]
+    if len(cur) > limit:
+        raise EncodeError('the turn segment is %d characters, over the cell limit %d' % (len(cur), limit))
+    parts = []
+    for seg in segs[1:]:
+        if len(cur) + 1 + len(seg) <= limit:
+            cur += '|' + seg
+        else:
+            parts.append(cur)
+            cur = SP.CONTINUATION_MARK + '|' + seg
+            if len(cur) > limit:
+                raise EncodeError('a settlement segment is %d characters, over the cell limit %d'
+                                  % (len(seg), limit))
+    parts.append(cur)
+    return parts
+
+
+def join_cells(parts):
+    """The inverse of split_cell: drop each continuation's marker and append it to the cell above."""
+    out = parts[0]
+    for p in parts[1:]:
+        if not p.startswith(SP.CONTINUATION_MARK):
+            raise ValueError('not a continuation cell: ' + p[:20])
+        out += p[len(SP.CONTINUATION_MARK):]
+    return out

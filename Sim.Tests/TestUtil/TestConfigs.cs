@@ -251,14 +251,84 @@ public static class TestConfigs
     /// every RecruitFormation / ReequipFormation / DisbandFormation order is refused — sections 70–73 stay EMPTY. A world
     /// stepped under it is the v38 world plus four empty count prefixes, so its v38 projection
     /// (<see cref="SchemaProjection.V38"/>) is the v38 hash byte for byte: every pin the slice moves is attributed through it.
-    /// The NEWEST layer, so every older twin strips it (the R4 rule: <see cref="PreM6"/>, and through it every chained twin).</summary>
+    /// The NEWEST layer, so every older twin strips it (the R4 rule: <see cref="PreM6"/>, and through it every chained twin).
+    /// D-066 A18 (M6 closure, 2026-10-28): the AI's known-terrain valuation is newer still, so this twin — and through it
+    /// every older chained twin — strips it too (<see cref="PreAiKnownTerrain"/>, the R4 rule).</summary>
     public static SimConfig PreMilitary(SimConfig cfg) =>
-        cfg.Military is { Enabled: true } m ? cfg with { Military = m with { Enabled = false } } : cfg;
+        PreKnow(PreAiKnownTerrain(cfg.Military is { Enabled: true } m ? cfg with { Military = m with { Enabled = false } } : cfg));   // R4: both newer layers — ADR-058 KNOW and D-066 A18
+
+    // ======================================================================
+    // ADR-058 (D-066 A7, track KNOW, 2026-10-28) — CONTACT-CARRIED FOREIGN EXPOSURE AND THE SEVEN NEWLY EVALUABLE EUREKAS.
+    // One content layer of research.json: tuning.foreignExposure (DiffusionSystem's switch) and the conditions of the seven
+    // Eurekas ADR-058 §B made evaluable. Its twin restores both, so a world stepped under it writes no exposure row and
+    // fires none of the seven — the base tree's world byte for byte (the inert diffusion slot writes nothing). It is the
+    // NEWEST layer: every older twin strips it (the R4 rule, through PreMilitary, which every chained twin calls, and in
+    // every older twin built from the shipped research.json).
+    // ======================================================================
+
+    /// <summary>ADR-058 §B: the seven Eurekas made evaluable, by node id (each node has exactly one Eureka).</summary>
+    public static readonly string[] KnowEurekaNodes =
+        ["dugout", "fishing_hook", "salt_extraction", "sail_square", "coke", "gunpowder", "sulphuric_acid"];
+
+    /// <summary>ADR-058: undoes the KNOW layer on a parsed research.json — removes tuning.foreignExposure and returns the seven
+    /// Eurekas to their future-system form (no condition).</summary>
+    public static void UndoKnow(System.Text.Json.Nodes.JsonObject doc)
+    {
+        doc["tuning"]!.AsObject().Remove("foreignExposure");
+        doc["tuning"]!.AsObject().Remove("_foreignExposure");
+        foreach (System.Text.Json.Nodes.JsonNode? n in doc["technologies"]!.AsArray())
+        {
+            if (Array.IndexOf(KnowEurekaNodes, (string?)n!["id"]) < 0) continue;
+            var e = n["eurekas"]![0]!.AsObject();
+            e["when"] = null;
+            e["evaluable_now"] = false;
+            e["class"] = "future-system:" + (string?)e["system"];
+        }
+    }
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> NoKnow = new(() =>
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenResearch();
+        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        UndoKnow(doc);
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
+    });
+
+    /// <summary>ADR-058 — THE KNOW LAYER OFF, a single-layer twin: the shipped research content with tuning.foreignExposure
+    /// removed and the seven ADR-058 Eurekas future-system again. The attribution control of every pin ADR-058 moves. Only
+    /// the SHIPPED research is swapped (a rig's own content or an older twin's is returned unchanged).</summary>
+    public static SimConfig PreKnow(SimConfig cfg) =>
+        cfg.Research is { } r && ReferenceEquals(r, CanonicalResearch.Value) ? cfg with { Research = NoKnow.Value } : cfg;
+
+    /// <summary>ADR-058, the exposure half alone: the shipped content with tuning.foreignExposure.enabled false (the
+    /// seven Eurekas kept evaluable) — the switch-off twin of the writer.</summary>
+    public static SimConfig PreForeignExposure(SimConfig cfg) =>
+        cfg.Research is { } r && ReferenceEquals(r, CanonicalResearch.Value) ? cfg with { Research = ExposureOff.Value } : cfg;
+
+    private static readonly Lazy<global::Sim.Core.Systems.Research.ResearchContent> ExposureOff = new(() =>
+    {
+        using var stream = global::Sim.Data.DataFiles.OpenResearch();
+        var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
+        doc["tuning"]!["foreignExposure"]!["enabled"] = false;
+        using var goods = global::Sim.Data.DataFiles.OpenGoods();
+        return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
+    });
+
+    /// <summary>D-066 A18 (M6 closure, track FOG; 2026-10-28) — THE AI'S KNOWN-TERRAIN VALUATION OFF: sim.json
+    /// colonization.aiFounding.knownTerrainOnly false, so under the fog the AI site scan ranks known cells by the frontier's
+    /// WHOLE-MAP raster, floor and flood again (the valuation channel ADR-037 §6 recorded). A single-layer twin, the attribution
+    /// control of every AI pin A18 moves; with the fog off (PreDiscovery and every twin built on it) the seam restricts
+    /// nothing, so the switch is inert there.</summary>
+    public static SimConfig PreAiKnownTerrain(SimConfig cfg) =>
+        cfg.Colonization?.AiFounding is { KnownTerrainOnly: true } ai
+            ? cfg with { Colonization = cfg.Colonization with { AiFounding = ai with { KnownTerrainOnly = false } } }
+            : cfg;
 
     /// <summary>ADR-055 §7 — THE AI RECRUITMENT POLICY OFF (sim.json military.aiRecruitment false), the military layer
     /// otherwise on: the attribution control of the AI's recruitment orders (a single-layer twin).</summary>
     public static SimConfig PreAiRecruitment(SimConfig cfg) =>
-        cfg.Military is { AiRecruitment: true } m ? cfg with { Military = m with { AiRecruitment = false } } : cfg;
+        PreKnow(PreAiKnownTerrain(cfg.Military is { AiRecruitment: true } m ? cfg with { Military = m with { AiRecruitment = false } } : cfg));   // R4: both newer layers — ADR-058 KNOW and D-066 A18
 
     /// <summary>ADR-046: the assay (discovery.assayCost / assayRequires) removed — the survey stays. Its requirement names
     /// ore_prospecting, a node of the research-content tranche (ADR-045), so every twin that installs pre-tranche content
@@ -471,6 +541,7 @@ public static class TestConfigs
         using var stream = global::Sim.Data.DataFiles.OpenResearch();
         var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
         UndoAdr054(doc, perTurn, average);
+        UndoKnow(doc);   // ADR-058 is newer: the R4 rule strips it from this older twin
         using var goods = global::Sim.Data.DataFiles.OpenGoods();
         return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
     }
@@ -510,7 +581,7 @@ public static class TestConfigs
     {
         cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         if (cfg.Research is not { Tuning.KnowledgeEffects: true } r) return cfg;
-        if (!ReferenceEquals(r, CanonicalResearch.Value))
+        if (!ReferenceEquals(r, CanonicalResearch.Value) && !ReferenceEquals(r, NoKnow.Value))   // ADR-058: PreMilitary stripped KNOW
             throw new NotSupportedException("PreKnowledgeEffects is defined on the shipped research content only");
         return cfg with { Research = NoKnowledgeEffects.Value };
     }
@@ -520,6 +591,7 @@ public static class TestConfigs
         using var stream = global::Sim.Data.DataFiles.OpenResearch();
         var doc = System.Text.Json.Nodes.JsonNode.Parse(stream)!.AsObject();
         UndoKnowledgeEffects(doc);
+        UndoKnow(doc);   // ADR-058 is newer: the R4 rule strips it from this older twin
         using var goods = global::Sim.Data.DataFiles.OpenGoods();
         return global::Sim.Core.Systems.Research.ResearchContentLoader.Load(doc.ToJsonString(), GoodsConfigLoader.Load(goods));
     });
@@ -531,7 +603,8 @@ public static class TestConfigs
     {
         cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         if (cfg.Research is not { Tuning.AiSupportingMilestones: true } r) return cfg;
-        if (!ReferenceEquals(r, CanonicalResearch.Value) && !ReferenceEquals(r, PreTranche2Research.Value))
+        if (!ReferenceEquals(r, CanonicalResearch.Value) && !ReferenceEquals(r, PreTranche2Research.Value)
+            && !ReferenceEquals(r, NoKnow.Value))   // ADR-058: PreMilitary stripped KNOW
             throw new NotSupportedException("PreAiSupporting is defined on the shipped research content only");
         return cfg with { Research = NoAiSupporting.Value };
     }
@@ -551,7 +624,8 @@ public static class TestConfigs
     {
         cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         if (cfg.Research is not { Tuning.AiCheapestOrRoute: true } r) return cfg;
-        if (!ReferenceEquals(r, CanonicalResearch.Value) && !ReferenceEquals(r, PreTranche2Research.Value))
+        if (!ReferenceEquals(r, CanonicalResearch.Value) && !ReferenceEquals(r, PreTranche2Research.Value)
+            && !ReferenceEquals(r, NoKnow.Value))   // ADR-058: PreMilitary stripped KNOW
             throw new NotSupportedException("PreAiRoutes is defined on the shipped research content only");
         return cfg with { Research = NoAiRoutes.Value };
     }
@@ -623,7 +697,8 @@ public static class TestConfigs
         cfg = PreEconomyTrack(PreMilitary(cfg));   // ADR-055/056 (R4 rule): an older twin strips the newer military layer and the economy packets
         if (cfg.Research is not { } r) return cfg;
         cfg = NoAssay(cfg);   // ADR-046's assay names ore_prospecting, a tranche node: the R4 rule strips it with the tranche
-        if (ReferenceEquals(r, CanonicalResearch.Value) || ReferenceEquals(r, PreTranche2Research.Value))
+        if (ReferenceEquals(r, CanonicalResearch.Value) || ReferenceEquals(r, PreTranche2Research.Value)
+            || ReferenceEquals(r, NoKnow.Value))   // ADR-058: PreMilitary stripped KNOW
             return cfg with { Research = PreTrancheWithCp.Value };   // tranche 2 is newer: stripped with the ADR-045 tranche
         if (ReferenceEquals(r, NoCivicsPoints.Value)) return cfg with { Research = NoCivicsPointsPreTranche.Value };
         if (ReferenceEquals(r, OldStage.Value)) return cfg with { Research = OldStagePreTranche.Value };
@@ -715,15 +790,33 @@ public static class TestConfigs
     /// <summary>ADR-056 — EC-3 (gunpowder) switched off: <paramref name="cfg"/> without the ec3 goods and recipes.</summary>
     public static SimConfig PreEc3(SimConfig cfg) => WithoutPacket(cfg, "ec3");
 
+    /// <summary>
+    /// ADR-057 (M6 CIV track) — THE LAW COURT SWITCHED OFF: the switch-off twin of the slice's second institution type. The
+    /// goods.json projects that found a sim.json <c>institutions.types</c> type (the law court, project 16) are removed, the
+    /// type list is dropped and the regime section with it — the pre-ADR-057 content exactly (a university founds by
+    /// <c>universityType</c> and is untouched). An injected order for the removed project is refused as UnknownProject.
+    /// </summary>
+    public static SimConfig PreLawCourt(SimConfig cfg)
+    {
+        if (cfg.Goods is { Projects: { } projects } goods)
+        {
+            var kept = new List<ConstructionProjectEntry>();
+            foreach (ConstructionProjectEntry p in projects) if (p.Founds?.InstitutionType is null) kept.Add(p);
+            cfg = cfg with { Goods = goods with { Projects = [.. kept] } };
+        }
+        if (cfg.Institutions is { } inst) cfg = cfg with { Institutions = inst with { Types = null } };
+        return cfg with { Regime = null };
+    }
+
     /// <summary>ADR-056 — every economy packet switched off: the world before the M7 economy track.</summary>
     public static SimConfig PreEconomyTrack(SimConfig cfg)
     {
         foreach (PacketEntry p in cfg.Goods?.Packets ?? []) cfg = WithoutPacket(cfg, p.Id);
-        return cfg;
+        return PreAiKnownTerrain(cfg);   // D-066 A18 (2026-10-28) is newer: the R4 rule
     }
 
     private static SimConfig WithoutPacket(SimConfig cfg, string packet) =>
-        cfg.Goods is { } goods && goods.IsPacketEnabled(packet) ? global::Sim.Core.State.EconomyKnowledge.WithGoods(cfg, goods.WithoutPacket(packet)) : cfg;
+        PreKnow(cfg.Goods is { } goods && goods.IsPacketEnabled(packet) ? global::Sim.Core.State.EconomyKnowledge.WithGoods(cfg, goods.WithoutPacket(packet)) : cfg);   // ADR-058 R4: KNOW is newer
 
     public static SimConfig Sim()
     {

@@ -1,7 +1,31 @@
+using Sim.Core.Systems;
 using Sim.Core.Systems.ClassMobility;
 using Sim.Core.Systems.Research;
 
 namespace Sim.Core.State;
+
+/// <summary>
+/// D-D (RULED 2026-10-20; D-062 confirmed) / m6-spec I-2 / D-066 A10 — THE CIVIC-STATE VOCABULARY of M6, read by every
+/// presentation of a civic (the Progression › Civics tab, the INSTITUTIONS lens, the info card). A civic node is in exactly
+/// one of three states, each derived from completion and the one eligibility predicate (<see cref="ResearchQuery.IsAvailable(ResearchContent, int, bool[], bool)"/>):
+/// <list type="bullet">
+/// <item><b>Unresearched</b> — not complete and not researchable now (a prerequisite, the subtree stage or the Age sweep
+///   is outstanding).</item>
+/// <item><b>Available</b> — not complete and researchable now (it may be targeted).</item>
+/// <item><b>Researched</b> — complete: its KNOWLEDGE effects hold (D-063 R1) and the institutions it unlocks are
+///   knowledge-eligible. A researched GOVERNMENT FORM is "available — adoption in M8" (D-066 A10): researching a form is
+///   not adopting it.</item>
+/// </list>
+/// <b>"Adopted" is reserved for M8</b> (D-D: government adoption and active political effects belong to M8; D-062
+/// confirmed). It is deliberately NOT a member of this enum, so no M6 code path can return, store or display it; the
+/// m6-spec I-2 rule "Available is never read as Adopted" is enforced by the type.
+/// </summary>
+public enum CivicState
+{
+    Unresearched = 1,
+    Available = 2,
+    Researched = 3,
+}
 
 /// <summary>
 /// ADR-029 §12 — THE research read seam (D-044 R17). These are pure, read-only
@@ -73,6 +97,21 @@ public static class ResearchQuery
             if (row.Polity.Value == polity.Value && !IsCompleted(prev, polity, row.Node)) result.Add(row.Node);
         }
         return [.. result];
+    }
+
+    /// <summary>D-D / I-2 — the <see cref="CivicState"/> of content node <paramref name="node"/> over a completed mask and the
+    /// availability mask (<see cref="AvailableMask(ResearchContent, bool[], int[])"/>): Researched when complete, Available when
+    /// researchable now, else Unresearched. Pure; reads no Age, no currency and no date (I-3, I-6, law 4). Defined for any node;
+    /// the presentation calls it for civics.</summary>
+    public static CivicState CivicStateOf(bool[] completed, bool[] available, int node) =>
+        completed[node] ? CivicState.Researched : available[node] ? CivicState.Available : CivicState.Unresearched;
+
+    /// <summary>D-D / I-2 — <paramref name="polity"/>'s <see cref="CivicState"/> of <paramref name="node"/> read from the world.</summary>
+    public static CivicState CivicStateOf(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchNodeId node)
+    {
+        int index = RequireIndex(content, node);
+        bool[] completed = CompletedMask(world, content, polity);
+        return CivicStateOf(completed, AvailableMask(content, completed, LevelMask(world, content, polity, completed)), index);
     }
 
     // ------------------------------------------------------------------ stage, subtrees, availability
@@ -1094,9 +1133,16 @@ public static class ResearchQuery
     /// settlement the polity controls, taken in table order. A condition over node atoms only is
     /// evaluated once, at polity scope. An unpublished variable reads 0.0 (the ProductionSystem
     /// precedent).
+    ///
+    /// ADR-058 §B: the quantity ids follow <see cref="EurekaQuantities"/> — stock_&lt;good&gt;, then deposit_&lt;good&gt; (the
+    /// abundance AS THE HOLDER KNOWS IT: <see cref="DepositConcealment.KnownAbundance"/> under <paramref name="cfg"/>'s
+    /// discovery rules, so a concealed deposit counts only once prospected), then site_river and site_coast (terrain of the
+    /// settlement's own knowledge-lattice node, <see cref="SiteRiver"/> / <see cref="SiteCoast"/>). With a null
+    /// <paramref name="cfg"/> concealment is off (the DepositConcealment rule for a config without discovery).
     /// </summary>
     public static bool EurekaHolds(
-        IReadOnlyWorldState world, ResearchContent content, PolityId polity, Predicate condition, bool[] completed)
+        IReadOnlyWorldState world, ResearchContent content, PolityId polity, Predicate condition, bool[] completed,
+        SimConfig? cfg = null)
     {
         Predicate.AtomReader atoms = a => completed[a];
         if (!condition.ReadsVariables && condition.QuantityIds.Count == 0)
@@ -1105,9 +1151,50 @@ public static class ResearchQuery
         {
             SettlementId id = world.Settlements[s].Id;
             if (SettlementKnowledge.HolderOf(world, id).Value != polity.Value) continue;
-            if (condition.Evaluate(v => Variable(world, id, v), atoms, q => Stock(world, id, content.QuantityGoods[q])))
+            if (condition.Evaluate(v => Variable(world, id, v), atoms, q => Quantity(world, content, cfg, id, q)))
                 return true;
         }
+        return false;
+    }
+
+    /// <summary>ADR-058 §B: the value of eureka quantity <paramref name="q"/> at <paramref name="settlement"/>
+    /// (<see cref="EurekaQuantities"/> layout).</summary>
+    public static double Quantity(IReadOnlyWorldState world, ResearchContent content, SimConfig? cfg, SettlementId settlement, int q)
+    {
+        int goods = content.QuantityGoods.Count;
+        if (q < goods) return Stock(world, settlement, content.QuantityGoods[q]);
+        if (q < 2 * goods) return DepositConcealment.KnownAbundance(world, cfg, settlement, content.QuantityGoods[q - goods].Value);
+        if (q == EurekaQuantities.SiteRiverId(goods)) return SiteRiver(world, settlement) ? 1.0 : 0.0;
+        if (q == EurekaQuantities.SiteCoastId(goods)) return SiteCoast(world, settlement) ? 1.0 : 0.0;
+        return 0.0;   // a good its packet removed (EurekaQuantities): the economy does not have it
+    }
+
+    /// <summary>ADR-058 §B — site_river: whether a river cell lies in the knowledge-lattice node the settlement stands on
+    /// (the 16-km node of its site cell; cells past the last whole block belong to the last node). False without terrain.</summary>
+    public static bool SiteRiver(IReadOnlyWorldState world, SettlementId settlement) => SiteHas(world, settlement, coast: false);
+
+    /// <summary>ADR-058 §B — site_coast: whether an open-water cell (water ≥ 0.5 and not a river cell) lies in the
+    /// knowledge-lattice node the settlement stands on. False without terrain.</summary>
+    public static bool SiteCoast(IReadOnlyWorldState world, SettlementId settlement) => SiteHas(world, settlement, coast: true);
+
+    private static bool SiteHas(IReadOnlyWorldState world, SettlementId settlement, bool coast)
+    {
+        if (world.Terrain is not { } t) return false;
+        int node = DiscoveryQuery.NodeOfSettlement(world, settlement);
+        if (node < 0) return false;
+        (int l, int b, int size, _) = DiscoveryQuery.Lattice(world);
+        int nx = node % l, ny = node / l;
+        int x0 = nx * b, y0 = ny * b;
+        int x1 = nx == l - 1 ? size : Math.Min(size, x0 + b);
+        int y1 = ny == l - 1 ? size : Math.Min(size, y0 + b);
+        ReadOnlySpan<double> water = t.Water, rivers = t.Rivers;
+        for (int y = y0; y < y1; y++)
+            for (int x = x0; x < x1; x++)
+            {
+                int c = y * size + x;
+                bool river = rivers[c] >= 0.5;
+                if (coast ? !river && water[c] >= 0.5 : river) return true;
+            }
         return false;
     }
 
@@ -1162,7 +1249,8 @@ public static class ResearchQuery
         int Index, string Text, string Kind, string Justification, string System, string Class, string Source,
         double Weight, double MaxCredit, string? Condition, bool Fired, bool? HoldsNow);
 
-    public static EurekaState[] Eurekas(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchNodeId node)
+    public static EurekaState[] Eurekas(IReadOnlyWorldState world, ResearchContent content, PolityId polity, ResearchNodeId node,
+        SimConfig? cfg = null)
     {
         int index = RequireIndex(content, node);
         bool[] completed = CompletedMask(world, content, polity);
@@ -1173,7 +1261,7 @@ public static class ResearchQuery
             ResearchEureka eu = n.Eurekas[e];
             result[e] = new EurekaState(e, eu.Text, eu.Kind, eu.Justification, eu.System, eu.Class, eu.Source, eu.Weight,
                 EurekaCredit(n, eu), eu.Condition?.Source, EurekaFired(world, polity, node, e),
-                eu.Condition is null ? null : EurekaHolds(world, content, polity, eu.Condition, completed));
+                eu.Condition is null ? null : EurekaHolds(world, content, polity, eu.Condition, completed, cfg));
         }
         return result;
     }

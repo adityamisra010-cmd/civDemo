@@ -10,7 +10,12 @@ must exit 0 with no ERROR. The tracked package is never written.
 
   python3 -I tools/test_validate.py            # run every fixture
   python3 -I tools/test_validate.py --mutants  # also prove each check has teeth: disable it, the fixture must miss
+  python3 -I tools/test_validate.py --live [--mutants]   # THE GATE: only the corpus fixtures, against validate.py --live
 Exit 1 if any fixture (or, with --mutants, any mutant) misbehaves.
+
+D-066 A12 (2026-10-28): the corpus fixtures (C03, C11 and the VALID corpus copies) run against `validate.py --live` — the
+live research.json is the active set — and are the gate. The proposal-graph fixtures (V14, V23-V25) belong to the
+historical snapshot: the default run keeps them runnable, out of the gate.
 """
 import json
 import os
@@ -27,6 +32,7 @@ import kr_lib as kr  # noqa: E402
 TOOLS = Path(__file__).resolve().parent
 VALIDATE = TOOLS / "validate.py"
 ROW = re.compile(r"^\| (ERROR|WARN|INFO) \| (\w+) \| (.*) \|$")
+LIVE = False   # set by --live: run validate.py --live and read validation-report-live.md
 
 
 # ---------------------------------------------------------------- workspace
@@ -49,10 +55,10 @@ def make_workspace(tmp, content=False):
 
 
 def run_validator(pkg, env, corpus, validator=VALIDATE):
-    args = [sys.executable, "-I", str(validator)] + ([] if corpus else ["--no-corpus"])
+    args = [sys.executable, "-I", str(validator)] + (["--live"] if LIVE else [] if corpus else ["--no-corpus"])
     proc = subprocess.run(args, env=env, capture_output=True, text=True)
     rows = []
-    for line in (pkg / "validation-report.md").read_text(encoding="utf-8").splitlines():
+    for line in (pkg / ("validation-report-live.md" if LIVE else "validation-report.md")).read_text(encoding="utf-8").splitlines():
         m = ROW.match(line)
         if m:
             rows.append(m.groups())
@@ -279,6 +285,30 @@ def fx_source_url_added_to_unverified(pkg, env):
                             lambda e: e.__setitem__("sources", [{"sourceId": "FIXTURE-001", "claims": ["fixture"]}]))
 
 
+def fx_live_node_without_corpus_entry(pkg, env):
+    """D-066 A12: a node of the LIVE research.json loses its corpus entry (its text would vanish from the game)."""
+    for f in corpus_entries(pkg):
+        data = kr.load_json(f)
+        if data:
+            gone = data.pop()
+            kr.dump_json(data, f)
+            return gone["id"]
+    raise AssertionError("empty corpus")
+
+
+def fx_live_eureka_shape(pkg, env):
+    """D-066 A12: a LIVE Eureka whose evaluable_now disagrees with its condition (V22 on the live content)."""
+    path = Path(env["KR_CONTENT"]) / "research.json"
+    doc = kr.load_json(path)
+    for n in doc["technologies"] + doc["civics"]:
+        for e in n.get("eurekas") or []:
+            if e.get("when"):
+                e["evaluable_now"] = False
+                path.write_text(__import__("json").dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                return n["id"]
+    raise AssertionError("no live Eureka with a condition")
+
+
 # valid fixtures --------------------------------------------------------------
 
 def fx_unchanged(pkg, env):
@@ -363,6 +393,10 @@ FIXTURES = [
      ("C03", r"{id}: no sources but status is not 'unverified'", {"C03"})),
     ("partially-checked with no supported claim", False, True, fx_partially_checked_with_nothing_supported,
      ("C11", r"{id}: 'partially-checked' but no listed claim is supported", {"C11"})),
+    ("live node without a corpus entry", False, True, fx_live_node_without_corpus_entry,
+     ("C01", r"^{id}: no corpus entry$", {"C01"})),
+    ("live Eureka shape (V22 on the live content)", True, True, fx_live_eureka_shape,
+     ("V22", r"^{id}\.eurekas\[\d+\]: evaluable_now must be true exactly when", {"V22"})),
     # valid
     ("VALID unchanged copy", False, True, fx_unchanged, None),
     ("VALID honest downgrade corroborated -> partially-checked", False, True, fx_honest_downgrade, None),
@@ -441,6 +475,9 @@ MUTANTS = [
      'False and not any('),
     ("no sources but partially-checked", 'rep.add("ERROR", "C03", f"{e[\'id\']}: no sources', 'rep.add("WARN", "C03", f"{e[\'id\']}: no sources'),
     ("partially-checked with no supported claim", "if st == \"partially-checked\" and results and not any(", "if False and not any("),
+    ("live node without a corpus entry", 'rep.add("ERROR", "C01", f"{i}: no corpus entry")', 'rep.add("WARN", "C01", f"{i}: no corpus entry")'),
+    ("live Eureka shape (V22 on the live content)", 'rep.add("ERROR", "V22", f"{n[\'id\']}.eurekas[{idx}]: evaluable_now',
+     'rep.add("INFO", "V22", f"{n[\'id\']}.eurekas[{idx}]: evaluable_now'),
 ]
 
 TAX_ONLY = '''
@@ -479,6 +516,11 @@ def run_mutants():
 
 
 def main(argv):
+    global LIVE, FIXTURES, MUTANTS
+    if "--live" in argv:
+        LIVE = True
+        FIXTURES = [f for f in FIXTURES if f[2]]   # the corpus fixtures: the checks that read the live corpus
+        MUTANTS = [m for m in MUTANTS if m[0] in {f[0] for f in FIXTURES}]
     bad = []
     for fx in FIXTURES:
         problem, _ = run_fixture(fx)

@@ -320,3 +320,15 @@ Record: `docs/d050-m5-hardening-rulings.md`.
   PathBuild toward dirt paths, as it always was.
 - **D3/D5 (the construction predicate, the AI) carry a new order:** kind 11 `CancelConstruction`, validated again at
   delivery, and the AI's structural-stall cancel (D-054 §1).
+
+## D6 research-cost formula — the M6 formula (appended 2026-10-28, D-066 A8; the sections above are unchanged)
+
+D-066 §2 **A8** (ADOPTED under the Director's 2026-10-28 delegation; confirmation requested at the M6 exit gate): the
+shipped D6 form of the university research-cost seam **is the M6 research-modifier formula**, with no change. Per owner
+and university type, X = the maturity-weighted count of its universities (`InstitutionEffects.MaturityWeighted`), and the
+`ResearchCostModifierRow` factor is **Factor = 1 − maxResearchCostReduction × (1 − e^−X)** ∈ (0, 1]
+(`InstitutionEffects.ResearchFactor`; `InstitutionsSystem` step 3, which rebuilds the table every step), with
+maxResearchCostReduction the owner's `institutions.universities.maxResearchCostReduction` improved by its realized research
+(ADR-047). ResearchSystem applies it to Technology nodes of the type's subtree only, under the 20 % EffectiveCost floor;
+the 40 % acceleration ceiling stays on BASE. This closes D-044 R5's and D-045 Part D item 3's open formula question for
+M6. Record: `docs/d066-m6-closure-rulings.md` §2 A8 (track KNOW).

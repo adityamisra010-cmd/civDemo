@@ -1,6 +1,19 @@
 # CURRENT STATE — the routing document
 
-> **2026-10-28 (latest): M7 EXECUTION PASS IMPLEMENTED (uncommitted, awaiting Director review)** on
+> **2026-10-28 (latest): M6 CLOSURE IMPLEMENTED — TECHNICALLY READY FOR THE EXIT GATE (uncommitted).**
+> - **Records:** D-066 (`docs/d066-m6-closure-rulings.md`) holds the Director's fog deferral (R1) and "complete all other M6" (R2), plus the ADOPTED defaults A1–A19.
+> - **Delivered:**
+>   - the law-court civics slice (ADR-057);
+>   - contact exposure and Eureka evaluability (ADR-058);
+>   - the session workbook (ADR-059);
+>   - fog without movement (ADR-044 note; A18);
+>   - unit-progression contracts and inert content;
+>   - the E1 object layer;
+>   - the closure-grade consequence audit in CI.
+> - **Validation on the final tree:** Sim.Tests 3,361/0/36 skipped; Sim.Ui.Tests 1,200/0.
+> - **Exit:** M6 is NOT closed. Remaining gates: `docs/m6-exit-inventory.md` §4. The trees are accepted (D-066 R3); TC-1/TC-2 hashes unchanged.
+>
+> **2026-10-28 (earlier): M7 EXECUTION PASS IMPLEMENTED (uncommitted, awaiting Director review)** on
 > `claude/new-session-yavghm`, working tree over `0bf7626`. Report: `docs/m7-plan/m7-execution-pass-report.md`.
 > - **RP/CP (D-065 R6, ADR-054):** one shared base function; CP per turn (never × dtYears); both lanes read the average
 >   of the previous and current research-step population (schema v38 `ResearchPopulations`). CR-026 RESOLVED. Civics

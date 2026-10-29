@@ -130,6 +130,9 @@ public class UnitTokenDetailTests : IDisposable
         WorldSize = p.WorldSize, KmPerPx = p.KmPerPx, Settlements = p.Settlements, Units = units, Roads = p.Roads,
         Routes = p.Routes, Territory = p.Territory, PlayerPolity = p.PlayerPolity, PlayerAge = p.PlayerAge,
         PlayerAgeName = p.PlayerAgeName, Absent = p.Absent,
+        // M6 E1.3: the object layer's terrain, so the paint without formations is the paint with them, less them.
+        Terrain = p.Terrain, KnownNodes = p.KnownNodes, LatticeSize = p.LatticeSize, Stride = p.Stride, Fields = p.Fields,
+        Universe = p.Universe, Classes = p.Classes, Fog = p.Fog, WrapX = p.WrapX,
     };
 
     private static readonly WorldZoom[] Zooms = [WorldZoom.World, WorldZoom.Regional, WorldZoom.Settlement];
@@ -464,8 +467,10 @@ public class UnitTokenDetailTests : IDisposable
             Assert.Contains(": not simulated", line, StringComparison.Ordinal);
             Assert.DoesNotContain(line, c => c is >= '0' and <= '9');
         }
-        Assert.Equal("Movement: not simulated in this build — scheduled for the Battle Layer (M7), awaiting the Director's ruling",
-            UnitCardModel.MovementText);
+        // M6.12 (2026-10-28): the stale "awaiting the Director's ruling" is gone (m5-playtest-known-issues.md, DW-018: movement
+        // and Action Points were ruled M7 work, D-052 §4) — and the one-row line keeps the card unscrolled at 1280x800 with
+        // the training placeholder line added.
+        Assert.Equal("Movement: not simulated — Battle Layer (M7)", UnitCardModel.MovementText);
         WorldState w = Base.Value.World.Clone();
         for (int i = 0; i < w.MilitaryUnits.Count; i++)
         {
@@ -474,6 +479,9 @@ public class UnitTokenDetailTests : IDisposable
             foreach (string line in new[] { card.Title, card.Family, card.Line, card.AgeForm, card.Station, card.NextAge })
                 Assert.DoesNotContain(line, c => c is >= '0' and <= '9');
             Assert.Equal("7", new string([.. card.Movement.Where(c => c is >= '0' and <= '9')]));     // "(M7)" and nothing else
+            // M6.12: the planned-for-M7 line shows no figure either — only the milestone it names, twice when the family's
+            // tree supplies the inert promotion entry ("planned for M7 · 'Drilled': earned in M7").
+            Assert.Matches("^7+$", new string([.. card.Planned.Where(c => c is >= '0' and <= '9')]));
             Assert.Equal("7", new string([.. card.Limitation.Where(c => c is >= '0' and <= '9')]));   // "(milestone M7)"
             if (card.Mine)
             {
@@ -491,6 +499,9 @@ public class UnitTokenDetailTests : IDisposable
         }
     }
 
+    /// <summary>M6 E1.5 RE-PIN (D-052 §7 governs over P11's per-formation, no-count default; D-066 R2 "E1 visuals"): the
+    /// legend names the token per type and place with its silhouette and the NUMBER OF FORMATIONS above it, and the absent
+    /// line says what that number is not — people (a formation still holds no headcount on the map).</summary>
     [Fact]
     public void TheLegend_SaysTheTokensCarryNoCount_AndWhatTheirMarksAre()
     {
@@ -498,9 +509,9 @@ public class UnitTokenDetailTests : IDisposable
         (_, LensFrame f) = Paint(p, WorldZoom.Regional, legend: new LegendAnchor(4000, 4000, 600));
         MapLegend legend = f.Legend!;
         Assert.Contains(WorldLayer.MilitaryFormations, legend.Layers);
-        Assert.Contains("Formations: a token each - family emblem, a pip per form in its line", legend.Entries);
+        Assert.Contains("Formations: a token per type and place - its silhouette, a pip per form, the number of formations above", legend.Entries);
         Assert.Contains(WorldProjection.FormationCountAbsent, legend.Absent);
-        Assert.Equal("Formation counts: not simulated - a formation holds no people, so no token shows a count",
+        Assert.Equal("Headcounts: not simulated - a formation holds no people; a token's number counts formations, never people",
             WorldProjection.FormationCountAbsent);
     }
 

@@ -166,3 +166,6 @@ the rule and report Age entries. Costs may then be retuned, without editing node
 3. The Civilization VI and VII cross-check tab (in progress).
 4. After review: import the reviewed civics into `research.json`, implement the sweep rule (ADR) and its AI goal, write
    the corpus texts for the new civics, measure pacing and re-pin the goldens with attribution.
+
+---
+**Dated note, 2026-10-28:** §4 item 2 ("optional" = not needed for the next Age) was ADOPTED under the Director's 2026-10-28 decision rules (D-066 A6). It is implemented as the I-7 validator (ADR-057). Director confirmation is requested at the M6 exit gate. Text above unchanged.

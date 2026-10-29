@@ -102,7 +102,8 @@ public readonly record struct MapDetail(WorldZoom Band, double Regional, double 
 
     /// <summary>
     /// The opacity of an information layer at this detail, R = <see cref="Regional"/>, S = <see cref="Settlement"/>:
-    /// territories 1 − S; the World band's marks and network 1 − R; roads, morphology and production signals R;
+    /// territories 1 − S; the World band's marks and network 1 − R; roads, morphology, production signals and (M6 E1.3) the
+    /// object layer's terrain R;
     /// institutional presence R(1 − S); the Settlement band's institution types, infrastructure density and population
     /// scale S; formations and Age banners 1 (every band).
     /// </summary>
@@ -110,7 +111,7 @@ public readonly record struct MapDetail(WorldZoom Band, double Regional, double 
     {
         WorldLayer.Territories => 1 - Settlement,
         WorldLayer.MajorSettlements or WorldLayer.MajorInfrastructure => 1 - Regional,
-        WorldLayer.Roads or WorldLayer.SettlementMorphology or WorldLayer.ProductionSignals => Regional,
+        WorldLayer.Roads or WorldLayer.SettlementMorphology or WorldLayer.ProductionSignals or WorldLayer.TerrainRelief => Regional,
         WorldLayer.InstitutionalPresence => Regional * (1 - Settlement),
         WorldLayer.InstitutionTypes or WorldLayer.InfrastructureDensity or WorldLayer.PopulationScale => Settlement,
         _ => 1.0,   // MilitaryFormations, AgeBanners

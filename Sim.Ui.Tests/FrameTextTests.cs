@@ -653,6 +653,10 @@ internal static class FrameTextGuard
             "--frame-cost map: one backend per measured window size and one for the run-wide JIT warm-up. Each replays WorldLens.Paint into a bare HeadlessImGui frame of its own (no GameUi, no game frame, no FrameText to report to)"),
         new("Sim.Ui/Headless/MapFrameCost.cs", "DrawListImGuiBackend", 3,
             "the measurement's own backend, a parameter of PainterFor, Sweep and Frame"),
+        // M6 E1.6: the object-layer preview's PNGs — the same shape as the frame-cost benches: a bare HeadlessImGui frame of its
+        // own per image, rasterized headless (no GameUi, no game frame, no FrameText to report to).
+        new("Sim.Ui/Headless/ObjectLayerPreview.cs", "new DrawListImGuiBackend", 1,
+            "--e1-preview: replays one lens paint (or the parts sheet) into a bare HeadlessImGui frame of its own, rasterized to PNG evidence"),
         new("Sim.Ui/ImGuiIntegration/DrawListImGuiBackend.cs", "DrawListImGuiBackend", 2, "the class itself: its declaration and its constructor"),
     ];
 

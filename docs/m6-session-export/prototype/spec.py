@@ -324,3 +324,146 @@ SETTLEMENT_TEMPLATE = [
 TURN_SECTION_ORDER = ['t', 'k', 'p', 'g', 'w', 'q', 'f', 'o', 'y', 'c', 'A']
 SETTLEMENT_SECTION_ORDER = ['#', 'P', 'Pc', 'F', 'Fg', 'H', 'E', 'Eg', 'Ei', 'Eo', 'Ea', 'S', 'Sg', 'Sn',
                             'St', 'M', 'Ma', 'X', 'Y', 'L', 'O']
+
+
+# ================================================================ codebook objects
+# One codebook per telemetry schema (README §5.4; D-066 A15). Everything above is codebook v4
+# (telemetry/v2, v3 and v4 lines), unchanged, so make_codebook.py still writes
+# codebook-telemetry-v4.tsv byte for byte. Codebook v5 (telemetry/v5) is derived from it below.
+
+class Codebook:
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+
+
+def _names(reasons, goods):
+    quantities = dict([(3, 'population'), (4, 'dwellings')] + [(100 + g, n) for g, n in goods.items()])
+    return quantities, {
+        'reason': (reasons, 'reason-%d'),
+        'quantity': (quantities, None),
+        'good': (goods, None),
+        'class': (CLASSES, 'class-%d'),
+        'need': (NEEDS, 'need-%d'),
+    }
+
+
+V4 = Codebook(
+    version='v4', SCHEMA_CODES=SCHEMA_CODES, REASONS=REASONS, GOODS=GOODS, QUANTITIES=QUANTITIES,
+    CLASSES=CLASSES, NEEDS=NEEDS, NAME_MAPS=NAME_MAPS, ENUMS=ENUMS, NONFINITE=NONFINITE,
+    CONSTANTS=(C1, C2, C3, C4, C5), TURN_SECTIONS=TURN_SECTIONS, ATTR_ROW=ATTR_ROW,
+    SETTLEMENT_SECTIONS=SETTLEMENT_SECTIONS, TURN_TEMPLATE=TURN_TEMPLATE,
+    SETTLEMENT_TEMPLATE=SETTLEMENT_TEMPLATE, TURN_SECTION_ORDER=TURN_SECTION_ORDER,
+    SETTLEMENT_SECTION_ORDER=SETTLEMENT_SECTION_ORDER)
+
+# ---------------------------------------------------------------- codebook v5
+# telemetry/v5 (D-066 A15) = the line shape of the M7 pass, which the writer emitted under the
+# unchanged telemetry/v4 tag:
+#   - turn.grain.military (ADR-055) and turn.grain.fodder (ADR-056 EC-2): OPTIONAL keys, written
+#     only when non-zero, between "overflow" and "closing";
+#   - flow reasons 17-21 have names (ReasonNames.Of); 22 and 23 still print "reason-22" /
+#     "reason-23", which the fallback reproduces;
+#   - 23 goods (15-23: iron-ore ... explosives), so 23 economy goods rows per settlement and 22
+#     turn goods rows (2-23), and 25 stock rows (3, 4, 101-123);
+#   - order kinds 14-18 (Explore, Prospect, RecruitFormation, ReequipFormation, DisbandFormation);
+#   - constant C2 (food.storeLossesIdentity) names the military grain (ADR-055).
+# Every other section, field, position and default is codebook v4's.
+#
+# New default spec:
+#   ('absent',)   the key is NOT in the line (an OPTIONAL key); an EMPTY field means "not written".
+# New template entry:
+#   (key, 'opt', sectionCode)   an OPTIONAL leaf: the key may be missing from the JSON object.
+
+ABSENT = ('absent',)
+
+REASONS_V5 = dict(REASONS)
+REASONS_V5.update({17: 'prospecting', 18: 'expedition', 19: 'recruitment', 20: 'formationUpkeep',
+                   21: 'reequipment'})
+GOODS_V5 = dict(GOODS)
+GOODS_V5.update({15: 'iron-ore', 16: 'coal', 17: 'iron', 18: 'steel', 19: 'horses', 20: 'saltpetre',
+                 21: 'sulphur', 22: 'gunpowder', 23: 'explosives'})
+QUANTITIES_V5, NAME_MAPS_V5 = _names(REASONS_V5, GOODS_V5)
+ENUMS_V5 = {k: dict(v) for k, v in ENUMS.items()}
+ENUMS_V5['kind'].update({'Explore': 'EX', 'Prospect': 'PR', 'RecruitFormation': 'RF',
+                         'ReequipFormation': 'RE', 'DisbandFormation': 'DF'})
+
+
+def _with_field(fields, key, new_default):
+    return [(k, t, new_default if k == key else d) for k, t, d in fields]
+
+
+TURN_SECTIONS_V5 = dict(TURN_SECTIONS)
+_k = TURN_SECTIONS['k']
+TURN_SECTIONS_V5['k'] = (_k[0], _k[1], _with_field(_k[2], 'quantity',
+                                                    ('pos', [N(str(q)) for q in sorted(QUANTITIES_V5)])), _k[3])
+TURN_SECTIONS_V5['g'] = ('tuple', TURN_SECTIONS['g'][1] + [('military', 'i', ABSENT), ('fodder', 'i', ABSENT)])
+_q = TURN_SECTIONS['q']
+TURN_SECTIONS_V5['q'] = (_q[0], _q[1], _with_field(_q[2], 'good', ('pos', [N(str(g)) for g in range(2, 24)])),
+                         _q[3])
+
+# C2 (food.storeLossesIdentity) gained the military grain clause in the M7 pass (ADR-055; Observer.cs).
+C2_V5 = ("GrainOpening + Harvest - Eaten - GrainClosing; absorbs spoilage + granary overflow "
+         "(unsplit per settlement) AND any appropriation transfer AND colony provisions AND "
+         "intra-polity grain relief (D-053 s2: grain a settlement sent to a hungry sibling of "
+         "its own polity counts here at the donor; grain it received and ate counts here "
+         "NEGATIVE) AND military grain (ADR-055: formation upkeep, recruitment and re-equipment "
+         "grain sunk from its stores); sum over all records == ledger spoilage + overflow + "
+         "military on every turn; negative means grain ARRIVED by an unrecorded transfer "
+         "(provisions on a founding record; otherwise a raid, or relief from its own polity, "
+         "which leaves the recipient's granary empty)")
+
+SETTLEMENT_SECTIONS_V5 = dict(SETTLEMENT_SECTIONS)
+SETTLEMENT_SECTIONS_V5['F'] = ('tuple', _with_field(SETTLEMENT_SECTIONS['F'][1], 'storeLossesIdentity',
+                                                    ('k', S(C2_V5))))
+_eg = SETTLEMENT_SECTIONS['Eg']
+_eg_price = [d for k, t, d in _eg[2] if k == 'price'][0]
+_eg_fields = _with_field(_eg[2], 'price', ('pos', _eg_price[1] + [N('1')] * 9))
+_eg_fields = _with_field(_eg_fields, 'good', ('pos', [N(str(g)) for g in range(1, 24)]))
+SETTLEMENT_SECTIONS_V5['Eg'] = (_eg[0], _eg[1], _eg_fields, _eg[3])
+
+
+def _grain_v5(template):
+    out = []
+    for e in template:
+        if e[0] == 'grain':
+            keys = [k for k, _ in e[1]]
+            at = keys.index('overflow') + 1
+            out.append(('grain', e[1][:at] + [('military', 'opt', 'g'), ('fodder', 'opt', 'g')] + e[1][at:]))
+        else:
+            out.append(e)
+    return out
+
+
+V5 = Codebook(
+    version='v5', SCHEMA_CODES={'telemetry/v5': 'v5'}, REASONS=REASONS_V5, GOODS=GOODS_V5,
+    QUANTITIES=QUANTITIES_V5, CLASSES=CLASSES, NEEDS=NEEDS, NAME_MAPS=NAME_MAPS_V5, ENUMS=ENUMS_V5,
+    NONFINITE=NONFINITE, CONSTANTS=(C1, C2_V5, C3, C4, C5), TURN_SECTIONS=TURN_SECTIONS_V5, ATTR_ROW=ATTR_ROW,
+    SETTLEMENT_SECTIONS=SETTLEMENT_SECTIONS_V5, TURN_TEMPLATE=_grain_v5(TURN_TEMPLATE),
+    SETTLEMENT_TEMPLATE=SETTLEMENT_TEMPLATE, TURN_SECTION_ORDER=TURN_SECTION_ORDER,
+    SETTLEMENT_SECTION_ORDER=SETTLEMENT_SECTION_ORDER)
+
+CODEBOOKS = {'v4': V4, 'v5': V5}
+
+
+def codebook_for_schema(tag):
+    """The codebook of a telemetry schema tag, or None (README §5.4: one codebook per schema)."""
+    for cb in (V5, V4):
+        if tag in cb.SCHEMA_CODES:
+            return cb
+    return None
+
+
+def codebook_for_head(head):
+    """The codebook of a cell's first token (v2, v3, v4 -> v4; v5 -> v5), or None."""
+    for cb in (V5, V4):
+        if head in cb.SCHEMA_CODES.values():
+            return cb
+    return None
+
+# ---------------------------------------------------------------- continuation cells (D-066 A17)
+# A workbook cell holds at most 32,767 characters. A coded turn longer than that is split at a
+# '|' (a segment boundary; '|' never occurs inside a segment) into further rows. A continuation
+# row has an EMPTY column A and its cell starts with the reserved marker below, followed by the
+# '|' that was cut. A reader joins it by dropping the marker and appending the rest to the cell
+# above. No cell begins with '>' otherwise (a coded cell begins with its schema code).
+CELL_LIMIT = 32767
+CONTINUATION_MARK = '>'

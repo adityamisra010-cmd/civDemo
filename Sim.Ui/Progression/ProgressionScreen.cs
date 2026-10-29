@@ -266,8 +266,8 @@ public sealed partial class ProgressionScreen
         if (Snapshot is not null && world.Clock.Turn != Snapshot.Turn) { PendingTarget = -1; Array.Clear(_pendingCancel); }
         _world = world;
         // rp-cp-lifecycle k5: the CP a turn is the NEXT step's accrual (the era table's dt at the world's date).
-        Snapshot = ResearchSnapshot.Build(world, Content, Polity, ActionQueryContext.ForNextStep(world, Era).NextDtYears);
-        Page = Lenses.Page(Lens, world, Content, Polity);
+        Snapshot = ResearchSnapshot.Build(world, Content, Polity, ActionQueryContext.ForNextStep(world, Era).NextDtYears, Config);
+        Page = Lenses.Page(Lens, world, Content, Polity, Config);
     }
 
     public void Resize(double width, double height) { _w = width; _h = height; EnsureLayouts(); }
@@ -478,7 +478,7 @@ public sealed partial class ProgressionScreen
     public void SetLens(Lens lens)
     {
         Lens = lens;
-        if (_world is not null) Page = Lenses.Page(lens, _world, Content, Polity);
+        if (_world is not null) Page = Lenses.Page(lens, _world, Content, Polity, Config);
     }
 
     /// <summary>Select a node by id and glide to it (used by previews and keyboard focus).</summary>
@@ -1584,7 +1584,7 @@ public sealed partial class ProgressionScreen
         y += FlowText.Slot(TypeRole.Title, _scale) + Sp(8);
         string intro = Graph.Tree == ResearchTree.Technology
             ? "The main trunk and five specialised subtrees. The subtrees open together once the research stage is reached."
-            : "Forms of social organisation. Adopted civics also appear under the INSTITUTIONS lens.";
+            : "Forms of social organisation. Researched civics also appear under the INSTITUTIONS lens; researching a form is not adopting it (adoption arrives in M8).";
         foreach (string line in FlowText.Wrap(m, intro, TypeRole.Body, _scale, w)) { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
         y += Sp(12);
         y = Stat(d, m, x, w, y, "Research stage", s.StageReached ? "reached" : "not yet reached", s.StageReached ? Ink.Positive : Ink.Progress);
@@ -1735,6 +1735,18 @@ public sealed partial class ProgressionScreen
             foreach (string line in FlowText.Wrap(m, "Leads to: " + string.Join(", ", leads), TypeRole.Body, _scale, w)) { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
         if (!any && leads.Count == 0) { d.Write(t, x, y, "Nothing further in this tree yet.", body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
         y += Sp(8);
+
+        // ADR-057 (M6 CIV, P6): a civic whose unlocked institution a content-driven type realizes (law_code → the law court)
+        // shows that institution's stage for the player — Unresearched → Available → Active, with the locked reason — read
+        // through InstitutionsQuery.TypeReading (the stage the INSTITUTIONS lens shows too).
+        List<string> realized = InstitutionLines(node);
+        if (realized.Count > 0)
+        {
+            y = Heading(d, m, x, w, y, "INSTITUTION", 7);
+            foreach (string r in realized)
+                foreach (string line in FlowText.Wrap(m, r, TypeRole.Body, _scale, w)) { d.Write(t, x, y, line, body, t.Ink.Text); y += FlowText.Slot(TypeRole.Body, _scale); }
+            y += Sp(8);
+        }
 
         // REQUIRES: the prerequisites (marked done or missing; a prerequisite in another lane names it) and why it is locked.
         y = Heading(d, m, x, w, y, n.Prerequisites.Count == 0 ? "REQUIRES - nothing (a root)" : "REQUIRES", 2);
@@ -1918,6 +1930,18 @@ public sealed partial class ProgressionScreen
     }
 
     /// <summary>A section heading: capitals at the heading role in the accent's TEXT ink, over a hairline.</summary>
+    /// <summary>ADR-057 (P6): "Law Court: Active - 1 founded (maturity 0.31)" for every institution type that founds an entity
+    /// the node unlocks — empty without the session's config and world, or for a node no type realizes.</summary>
+    public List<string> InstitutionLines(int node)
+    {
+        var lines = new List<string>();
+        if (Config is not { } cfg || _world is not { } world) return lines;
+        foreach (int e in Content.Nodes[node].UnlockedEntities)
+            foreach (int key in InstitutionsQuery.TypesFounding(cfg, Content.Entities[e].Id))
+                if (InstitutionsQuery.TypeReading(world, cfg, Polity, key) is { } r) lines.Add(r.Name + ": " + r.Line);
+        return lines;
+    }
+
     private double Heading(DrawList d, ITextMeasure m, double x, double w, double y, string text, int id)
     {
         EraTheme t = Theme;

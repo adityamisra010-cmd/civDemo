@@ -142,3 +142,82 @@ Per-asset extra slots:
 > map substrate — parchment, washes, coastlines, hydrography — is not re-themed by this change; UI
 > furniture stays lit flat in every era (§1, two-layer rule); the single-cartographer rule for generated
 > art and §7 are untouched. D-002 (ImGui is the game UI) and D-038 (the map shows what IS) are unaffected.
+
+---
+
+## 8. THE OBJECT LAYER — CONVENTIONS (M6 E1, 2026-10-28; appended — nothing above is edited)
+
+> Authority: D-038 Parts B (two-layer lighting), C (anatomy fence), D1 (procedural first), G (acceptance), H (composed
+> settlements; H8 answered by D-066 A4); D-043 D2 (count staging); D-052 §6–§7 (unit art, one token per type);
+> D-066 A3 (register driven by realized state) and A4 (bounded parts, overflow fold). Code: `Sim.Ui/World/ObjectLight.cs`,
+> `PartManifest.cs`, `WorldLens.Parts.cs`, `StyleRegister.cs`, `TerrainMarks.cs`, `UnitSilhouette.cs`; inks in
+> `MapInk.cs`; data in `Sim.Ui/UiContent/world/settlement-classes.json` (`parts`). Decisions: `docs/m6-plan/e1-object-layer-note.md`.
+> The look is the Director's call at the Part G gate (`docs/m6-plan/e1-visual-acceptance-checklist.md`); nothing here
+> claims that gate.
+
+**8.1 The one light (D-038 B1/B2, H4).** Stated ONCE, as constants (`ObjectLight`), never varied per asset:
+- the light comes from the **north-west** (`FromDeg` 315); every object's **contact shadow** is its own silhouette
+  translated along the screen direction **(2, 1)/√5** (east-south-east, flattened onto the paper) by **0.16 × its height**,
+  in `MapInk.ObjectShadow` (#2C2318, the bible's ink deepened) at **32 %** opacity;
+- every face turned to the light is its base moved **38 %** toward Paper light #EFE3C8 (`MapInk.Lit`); every face turned away,
+  **30 %** toward Ink primary #3A2E1F (`MapInk.Shade`) — the §2 "object-layer shading stops", derived, never a new hue;
+- one ground plane: objects stand on the paper (y down); no cast shadow beyond the contact shadow, no ambient occlusion;
+- an object under **3 px** tall is drawn flat (no shadow, no faces): one threshold for every object;
+- ONE shared painter casts shadows (`ObjectPaint.Solid`); a shadow is always followed by its caster. The single-light test
+  (`ObjectLayerTests.EveryShadowOffset_IsTheOneLightsConstant_AppliedToItsCaster`) proves every shadow in the layer is its
+  caster translated by this constant. A part lit any other way is rejected (B2), not accepted as a near-miss.
+
+**8.2 Production and geometry (D-038 D1).** Every object is PROCEDURAL, in code, from the style bible's palette — no
+external art asset, no generated image. Every polygon is CONVEX (the ImGui backend fills convex polygons only; pinned by
+`EveryObjectPolygon_IsConvex`). The parts manifest (`PartManifest.Entries`) lists every part: dwelling, the three
+structure forms, the institution halls (by university key, by a word of the type's content name — a law court draws the
+scales — or the generic hall), the scaffold, the overflow part, relief (hill, mountain, peak), forest, field, and the
+formation silhouette. A new institution type draws a hall the day its content exists.
+
+**8.3 Composed settlements and count staging (D-038 H4; D-043 D2).** A settlement is composited at draw time from the parts
+its state holds, each on its fixed lot (P12a's lattice, unchanged): one part per structure KIND and per institution TYPE,
+aggregated. A part of count c is drawn at the stage of the last threshold c reaches — **1 small (one building), 10
+expanded (a building and a wing), 20 campus (three about a court), 30 complex (five)** — thresholds data-defined
+(`settlement-classes.json parts.countStages`). At **high zoom** (the Settlement band, the part's glyph at least 14 px) a part
+counted above one shows its NUMBER on a small paper tag; the key beside the footprint names every count at the Settlement
+band. A part UNDER CONSTRUCTION (a queued project, or a founding project built and not yet founded) is a scaffold on the lot
+its finished part will take — never the finished part.
+
+**8.4 The parts limit and the overflow rule (D-066 A4; D-038 H8).** One settlement's composite draws at most
+**`maxParts` = 8** parts (`settlement-classes.json`). A settlement holding more kinds draws its **7 most significant** —
+institutions before structures, then the larger count, then the lower key (an integer composite key; tie-dense pinned) —
+and folds the rest into **ONE overflow part** (three small blocks) on a lot of its own, claimed after every kind so no
+part moves for it; at high zoom its number is **"+N", the count of kinds folded**; its map marker carries the folded
+total. 8 = every kind the shipped content can found at one settlement today (2 structure kinds, 5 university types) plus
+one, inside the lattice's 14 glyph lots — so with today's content nothing folds; the rule is there for the content to come.
+
+**8.5 The style register (D-066 A3; Law 4).** Built material follows REALIZED state only — what the settlement has built
+and the best road class ACHIEVED on a route ending at it — in four rungs: **earthen** (round huts, thatch) → **timber**
+(any structure, or a trackway) → **masonry** (a founded institution, 10 structures, or a built or paved road) →
+**engineered** (20 institutions, or a macadam road or highway). Monotone: building more never lowers it. The rung chooses
+dwelling roofs and walls and structure roofs (`MapInk.RegisterWalls` / `RegisterRoofs`, bible hexes). **The Age banner is
+the only Age-keyed element of the map**: the Age, the date and the knowledge mask choose nothing physical (pinned by
+`TheAge_ChangesNothingOnTheMapButTheBanner`; the era's ink and HAND of P13 — stroke weight, plate cut, banner fly — are
+unchanged and change no geometry).
+
+**8.6 Terrain objects (D-038 G2 "terrain has relief"; §4 items 8–9).** Relief (hills, mountains, peaks with a pale cap),
+forests (tree crowns) and cultivated fields are OBJECTS the lens draws on the paper from the Regional band in; the
+SUBSTRATE (bake, washes, coasts, rivers) is untouched and byte-identical in every era. Relief and forests re-draw what the
+immutable worldgen rasters hold (decorative: they never suggest a resource or class the simulation lacks; the legend says
+so), only on nodes the player knows, spaced at least 30 px apart on screen and at most 48 px a mark (closer in a cell holds
+up to 3 × 3 marks), each seeded from its place so the marks read as a hand's, not a grid. Fields lie only on the fertile,
+known catchment of a settlement whose cultivation is REALIZED (its economy farms, not forages), up to its farming share.
+
+**8.7 Formations: silhouettes and one token per type (D-038 C1/C3; D-052 §6–§7).** A formation is drawn as a SILHOUETTE
+keyed by its current identity — the formation as an object seen from above the paper (a rank block with its standard, a
+spear hedge, a loose screen, a mounted wedge, an engine on wheels, a hull with sails, an aircraft's plan) — on the
+owner's plate, under the one light, with the P11 form pips below. **Never a figure:** convex filled polygons only, at most
+8 vertices each and 12 per token, no circle, curve or polyline, inside the plate (the C1 guard,
+`TheSilhouette_IsConvexSolids_NeverAFigure_ForEveryIdentity_InEveryEra`). The formations of one owner, one place and one
+identity are **one token** whose **number above it counts the formations — never people** (a formation holds no headcount on
+the map); selecting it names the composition on the card.
+
+**8.8 Frame cost.** The object layer's stated budget is every frame-cost row within **2.0 ×** its pre-E1 baseline (the
+canonical sweep at 300 and 800 settlements). MEASURED at E1: **not met in 20 of 48 rows** — all of them near-empty-map rows
+(base 0.14–1.3 ms); the most expensive row of every world is unchanged within noise. The terrain marks are bounded per frame
+(at most ~1,150 places in any viewport). Numbers and the options: `docs/m6-plan/e1-object-layer-note.md` §2.

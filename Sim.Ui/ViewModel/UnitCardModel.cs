@@ -41,6 +41,16 @@ public sealed record UnitCard(
 
     /// <summary>ADR-055: its pending re-equipment as its ReequipRow records it ("Re-equipping to X: 90 of 180 days"), or "".</summary>
     public string Reequip { get; init; } = "";
+
+    /// <summary>M6.12 (D-F; D-066 A2 item 4): the INERT planned-for-M7 line — the training placeholder and the family's first
+    /// promotion "earned in M7" (<see cref="UnitTrainingPlaceholder.Line"/>). Text only: no control, no order, no world read.</summary>
+    public string Planned { get; init; } = "";
+
+    /// <summary>M6 E1.5 (D-052 §7: "selecting it opens a combined army detail panel showing the composition"): when the
+    /// map's token for this formation stands for more than one — the formations of one owner, one place and one identity the
+    /// player knows — the line naming how many and which ("Grouped here: 3 formations of Spearmen (ids 4, 9, 12) - one
+    /// token on the map"); "" when it stands alone. A count of formations, never of people.</summary>
+    public string Composition { get; init; } = "";
 }
 
 /// <summary>
@@ -84,10 +94,11 @@ public static class UnitCardModel
     /// saved before v39): a token that holds no one. No number.</summary>
     public const string TokenPersonnelText = "Personnel: none - a token formation that holds no one";
 
-    /// <summary>P11: the locked movement line (pending the Director's ruling on the workstream's movement issue: M7 and
-    /// CR-017). It is text only: the card offers no Move control and the map reads no right-click.</summary>
-    public const string MovementText =
-        "Movement: not simulated in this build — scheduled for the Battle Layer (M7), awaiting the Director's ruling";
+    /// <summary>P11: the locked movement line. It is text only: the card offers no Move control and the map reads no
+    /// right-click. M6.12 (2026-10-28): "awaiting the Director's ruling" removed — stale wording recorded in
+    /// m5-playtest-known-issues.md and DW-018 (movement and Action Points were RULED M7 work, D-052 §4); the shorter line
+    /// is also what keeps the card unscrolled at the 1280x800 design window with the training placeholder line added.</summary>
+    public const string MovementText = "Movement: not simulated — Battle Layer (M7)";
 
     /// <summary>D-060: the recorded-fields line of a rival's formation (in place of its experience and army lines).</summary>
     public const string RivalRecordText = "Experience and army: not known to you - it is not your formation";
@@ -150,6 +161,7 @@ public static class UnitCardModel
                 + " days (it fights as " + title + " until then)";
         return new UnitCard(unit.Id, title, owner, mine, familyName, line, ageForm, station, next, orders ? LimitationWithOrdersText : LimitationText)
         {
+            Composition = CompositionText(world, unit, title, knowledge ?? PlayerKnowledge.Of(world, player)),
             Personnel = personnel,
             Reequip = reequip,
             Position = PositionText(unit),
@@ -159,8 +171,32 @@ public static class UnitCardModel
             Experience = mine ? ExperienceText(unit.Experience) : RivalRecordText,
             Army = mine ? ArmyText(unit.Army) : "",
             NotSimulated = NotSimulatedLines,
+            Planned = UnitTrainingPlaceholder.Line(family),
             Movement = MovementText,
         };
+    }
+
+    /// <summary>M6 E1.5 (D-052 §7): the composition line of <paramref name="unit"/>'s token — the known formations of its
+    /// owner at its place (the same settlement, or in the field exactly its position) with its identity, ids ascending;
+    /// "" when it is alone (the lens's grouping rule, <see cref="WorldLens.Groups(WorldProjection)"/>, read from the rows).</summary>
+    public static string CompositionText(IReadOnlyWorldState world, in MilitaryUnitRow unit, string title, PlayerKnowledge known)
+    {
+        var ids = new List<int>();
+        for (int i = 0; i < world.MilitaryUnits.Count; i++)
+        {
+            MilitaryUnitRow u = world.MilitaryUnits[i];
+            if (u.Owner.Value != unit.Owner.Value || u.Identity != unit.Identity || !known.KnowsUnit(u)) continue;
+            bool here = unit.Location.Value >= 0 || u.Location.Value >= 0
+                ? u.Location.Value == unit.Location.Value
+                : u.X == unit.X && u.Y == unit.Y;
+            if (here) ids.Add(u.Id);
+        }
+        if (ids.Count <= 1) return "";
+        ids.Sort();
+        var list = new System.Text.StringBuilder();
+        for (int i = 0; i < ids.Count; i++) list.Append(i == 0 ? "" : ", ").Append(ids[i].ToString(CultureInfo.InvariantCulture));
+        return "Grouped here: " + ids.Count.ToString(CultureInfo.InvariantCulture) + " formations of " + title + " (ids " + list
+            + ") - one token on the map";
     }
 
     /// <summary>P11: whether <paramref name="unit"/> is stationed in a settlement and stands exactly on its site cell.</summary>

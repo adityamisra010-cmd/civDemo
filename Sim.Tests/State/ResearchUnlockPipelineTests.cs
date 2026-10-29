@@ -263,7 +263,10 @@ public class ResearchUnlockPipelineTests
     {
         WorldState w = Know(Solo(), Player, UniversityKnowledge);
         ActionDescriptor[] found = Actions(w).Where(a => a.Domain == ActionDomain.Institutions).ToArray();
-        Assert.Equal(5 * w.Settlements.Count, found.Length);   // five university types × controlled settlements
+        // five university types × controlled settlements — ADR-057 (M6 CIV): plus the law court (project 16), whose civic
+        // law_code is an ancestor of legal_code_roman, so the university knowledge makes it available too.
+        Assert.Equal(5 * w.Settlements.Count, found.Count(a => a.Targets[1].Id != 16));
+        Assert.Equal(w.Settlements.Count, found.Count(a => a.Targets[1].Id == 16 && a.Label == "Found Law Court"));
         Assert.All(found, a => Assert.Equal(OrderKind.EnqueueConstruction, a.Order));
         Assert.Equal(0, w.Institutions.Count);                          // research completion founds nothing
     }
@@ -302,20 +305,120 @@ public class ResearchUnlockPipelineTests
         SettlementId cap = Capital(w);
         int university = Cfg.Goods!.Projects!.First(p => p.Founds is not null).Id;
         ResearchNodeId locked = Research.Nodes[Research.IndexOfId("tin_bronze")].Key;   // not available at founding
+        // M6 closure (D-066 R2): kinds 14 and 15 and the civic lane join the sweep.
+        ResearchNodeId lockedCivic = Research.Nodes[Research.IndexOfId("legal_code_roman")].Key;   // a civic, not available at founding
+        Assert.Equal(ResearchTree.Civics, Research.Nodes[Research.IndexOfId("legal_code_roman")].Tree);
+        Assert.False(ResearchQuery.AvailableMask(w, Research, Player)[Research.IndexOfId("legal_code_roman")]);
+        Assert.False(Research.Tuning.DestinationRouting);   // the available-only rule (routing on: T15b)
+        // kind 15: the assay (Amount 1) waits on sim.json discovery.assayRequires (ore_prospecting), which the player lacks
+        Assert.False(DiscoveryQuery.AssayUnlocked(w, Cfg, Player));
+        foreach (DiscoveryCostItem item in Cfg.Discovery!.AssayCost!) Sim.Tests.Military.MilitaryRigs.Endow(w, cap, item.Good, 10 * item.Qty);   // the purse covers the bill
+        Assert.Equal(ProspectVerdict.NotUnlocked, DiscoveryQuery.CheckProspect(w, Cfg, Player, cap, ProspectMethod.Assay));
+        Assert.Equal(ProspectVerdict.Ok, DiscoveryQuery.CheckProspect(w, Cfg, Player, cap, ProspectMethod.Assay, assayUnlocked: true));   // knowledge is the ONLY refusal
+        // kind 14: the explored radius at its knowledge-set cap (fog.exploreMaxRadiusNodes, a research operand)
+        int maxRadius = DiscoveryQuery.ExploreMaxRadiusNodes(w, Research, Cfg.Fog!, Player);
+        WorldState below = w.Clone();
+        SetExploredRadius(below, Player, cap, maxRadius - 1);
+        Assert.Equal(ExploreVerdict.Ok, DiscoveryQuery.CheckExplore(below, Cfg, Player, cap));   // the cap is the ONLY refusal
+        SetExploredRadius(w, Player, cap, maxRadius);
+        Assert.Equal(ExploreVerdict.AtCap, DiscoveryQuery.CheckExplore(w, Cfg, Player, cap));
         OrderRecord[] injected =
         [
             Governance.TaxOrder(w.Clock.Turn, Player, 30),                                 // kind 5
             ConstructionQuery.EnqueueOrder(w, Player, cap, university),                    // kind 4
             RoadDevelopmentQuery.DevelopOrder(w, Player, 100),                             // kind 8
             OrderRecord.From(w.Clock.Turn, Player, OrderKind.SetResearchTarget, (int)locked.Value, 0.0),   // kind 6
+            OrderRecord.From(w.Clock.Turn, Player, OrderKind.SetResearchTarget, (int)lockedCivic.Value, 0.0),   // kind 6, civic lane
             AgeQuery.AdvanceOrder(w, Player, 2, 0),                                        // kind 7
+            OrderRecord.From(w.Clock.Turn, Player, OrderKind.Explore, cap.Value, 0.0),     // kind 14
+            OrderRecord.From(w.Clock.Turn, Player, OrderKind.Prospect, cap.Value, (double)ProspectMethod.Assay),   // kind 15
         ];
         WorldState next = Step(w, injected);
         Assert.Equal(0, next.TaxPolicies.Count);
         Assert.DoesNotContain(Rows(next.ConstructionQueue), r => r.ProjectId == university);
         Assert.Empty(Rows(next.RoadDevelopments));
         Assert.DoesNotContain(Rows(next.ResearchTargets), r => r.Node.Value == locked.Value);
+        Assert.DoesNotContain(Rows(next.ResearchTargets), r => r.Node.Value == lockedCivic.Value);
         Assert.Equal(AgeQuery.CurrentAge(w, Cfg.Ages!, Player), AgeQuery.CurrentAge(next, Cfg.Ages!, Player));
+        Assert.DoesNotContain(Rows(next.SettlementSurveys), r => r.Polity == Player && r.Settlement == cap);   // no assay
+        Assert.Equal(maxRadius, DiscoveryQuery.ExploredRadius(next, Cfg.Fog!, Player, cap));                 // no wider
+        long Sunk(WorldState x, ReasonId r) => Rows(x.LedgerFlows).Where(f => f.Reason == r).Sum(f => f.TotalSunk);
+        Assert.Equal(Sunk(w, ReasonIds.Expedition), Sunk(next, ReasonIds.Expedition));     // nothing charged for the expedition
+        Assert.Equal(Sunk(w, ReasonIds.Prospecting), Sunk(next, ReasonIds.Prospecting));   // nor for the assay
+        var refused = DiscoveryQuery.RefusedAtDelivery(w, next, Cfg, injected, Player);
+        Assert.Contains(refused, x => x.Kind == OrderKind.Explore && x.Settlement == cap);
+        Assert.Contains(refused, x => x.Kind == OrderKind.Prospect && x.Settlement == cap);
+    }
+
+    /// <summary>
+    /// THE CIVIC-DESTINATION RULE (ADR-048 with ADR-043's two lanes; documented by the M6 closure audit, D-066 R2). With
+    /// research.json tuning.destinationRouting ON (the shipped content), a SetResearchTarget naming a LOCKED civic is not
+    /// rejected — it is stored as the Civics lane's DESTINATION, which is the design: the player (and the AI) may aim at any
+    /// incomplete node. It is no bypass: the locked civic itself receives no Civics Points and does not complete; the lane
+    /// funds the CURRENT node of its route, which is available; the Technology lane is untouched. An order naming a
+    /// COMPLETED or UNKNOWN node still changes nothing. With routing off the available-only rule holds (T15 above).
+    /// </summary>
+    [Fact]
+    public void T15b_CivicLane_ALockedCivicIsADestination_NeverFundedOrCompletedAhead_OfItsPrerequisites()
+    {
+        SimConfig live = TestConfigs.Sim();
+        ResearchContent rc = live.Research!;
+        Assert.True(rc.Tuning.DestinationRouting);
+        WorldState w = StepWith(live, WorldFounding.Found(TestConfigs.DevWorldgen(), live, 42));
+        int civic = rc.IndexOfId("legal_code_roman");
+        Assert.Equal(ResearchTree.Civics, rc.Nodes[civic].Tree);
+        Assert.False(ResearchQuery.AvailableMask(w, rc, Player)[civic]);
+        ResearchNodeId key = rc.Nodes[civic].Key;
+        bool techSet = ResearchQuery.TryGetTarget(w, rc, Player, ResearchTree.Technology, out ResearchNodeId techTarget);
+
+        // the twin: the same world, never ordered
+        WorldState ordered = StepWith(live, w, OrderRecord.From(w.Clock.Turn, Player, OrderKind.SetResearchTarget, (int)key.Value, 0.0));
+        WorldState twin = StepWith(live, w);
+        Assert.True(ResearchQuery.TryGetTarget(ordered, rc, Player, ResearchTree.Civics, out ResearchNodeId dest));
+        Assert.Equal(key, dest);                                                       // stored as the destination
+        Assert.Equal(techSet, ResearchQuery.TryGetTarget(ordered, rc, Player, ResearchTree.Technology, out ResearchNodeId techAfter));
+        if (techSet) Assert.Equal(techTarget, techAfter);                               // the Technology lane is untouched
+        for (int t = 0; t < 4 && !ResearchQuery.AvailableMask(ordered, rc, Player)[civic]; t++)
+        {
+            // never funded or completed while locked: the order adds NOTHING to the locked node itself
+            Assert.Equal(ResearchQuery.Progress(twin, Player, key), ResearchQuery.Progress(ordered, Player, key));
+            Assert.False(ResearchQuery.IsCompleted(ordered, Player, key));
+            ResearchRoute route = ResearchQuery.Route(ordered, rc, Player, ResearchTree.Civics);
+            if (route.Current is { } current)
+            {
+                Assert.NotEqual(key, current);
+                Assert.True(ResearchQuery.AvailableMask(ordered, rc, Player)[rc.IndexOf(current)], "the funded node is available");
+            }
+            ordered = StepWith(live, ordered);
+            twin = StepWith(live, twin);
+        }
+
+        // an order naming an unknown node changes nothing (the destination stays)
+        WorldState again = StepWith(live, ordered, OrderRecord.From(ordered.Clock.Turn, Player, OrderKind.SetResearchTarget, 999_999, 0.0));
+        Assert.True(ResearchQuery.TryGetTarget(again, rc, Player, ResearchTree.Civics, out ResearchNodeId still));
+        Assert.True(still == key || ResearchQuery.IsCompleted(again, Player, key));
+    }
+
+    private static WorldState StepWith(SimConfig cfg, WorldState w, params OrderRecord[] orders)
+    {
+        var log = new OrderLog();
+        foreach (OrderRecord o in orders) log.Append(o);
+        using var era = Sim.Data.DataFiles.OpenEraPacing();
+        using var pipe = Sim.Data.DataFiles.OpenPipeline();
+        return new TurnExecutor(EraTableLoader.Load(era), PipelineLoader.Load(pipe, SystemCatalog.All(cfg, TestConfigs.Worldgen())), log).Step(w);
+    }
+
+    /// <summary>Sets <paramref name="polity"/>'s explored radius around <paramref name="settlement"/> in place, keeping the
+    /// table in strictly ascending (Polity, Settlement) order (DiscoveryQuery.InvariantViolation).</summary>
+    private static void SetExploredRadius(WorldState w, PolityId polity, SettlementId settlement, int radius)
+    {
+        var rows = new List<ExplorationRow>(Rows(w.Explorations));
+        rows.RemoveAll(r => r.Polity == polity && r.Settlement == settlement);
+        rows.Add(new ExplorationRow(polity, settlement, radius));
+        rows.Sort((a, b) => a.Polity.Value != b.Polity.Value ? a.Polity.Value.CompareTo(b.Polity.Value) : a.Settlement.Value.CompareTo(b.Settlement.Value));
+        w.Explorations.Clear();
+        foreach (ExplorationRow r in rows) w.Explorations.Add(r);
+        Assert.Null(DiscoveryQuery.InvariantViolation(w));
     }
 
     // ------------------------------------------------------------------ 16 AI

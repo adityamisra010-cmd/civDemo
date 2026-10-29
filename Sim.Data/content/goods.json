@@ -578,6 +578,26 @@
         }
       ],
       "laborRequired": 240.0
+    },
+    {
+      "id": 16,
+      "name": "law court",
+      "founds": {
+        "entity": "inst.law_code",
+        "institutionType": "law_court"
+      },
+      "_doc": "ADR-057 (D-066 A2, the M6 vertical slice): the LAW COURT - the second institution type (sim.json institutions.types law_court). No building entity of its own exists in research.json, so the project's only knowledge gate is what it founds: inst.law_code, which requires the civic law_code (ConstructionQuery.IsKnowledgeEligible - the one availability predicate; refused as NotKnowledgeEligible before the civic completes). The completed building is counted in Structures; InstitutionsSystem founds the court the next step (maturity 0); founding also requires the host's founding viability on the court's own profile and market (InstitutionViability.ToFound). TUNE, reference class: the workshop (60 timber, 40 stone, 8.0 adult-years for a ~50 m2 craft workshop) scaled by floor area to a ~200 m2 hall of judgement with its tablet store (INFERRED from excavated Old Babylonian public buildings), x4; the workshop's tools are its own equipment and do not scale.",
+      "inputs": [
+        {
+          "good": "timber",
+          "qty": 240
+        },
+        {
+          "good": "stone",
+          "qty": 160
+        }
+      ],
+      "laborRequired": 32.0
     }
   ]
 }

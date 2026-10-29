@@ -31,6 +31,9 @@ public enum WorldLayer
     ProductionSignals,
     MilitaryFormations,
     AgeBanners,
+    /// <summary>M6 E1.3: the object layer's terrain — relief, forests and cultivated fields (<see cref="TerrainMarks"/>),
+    /// drawn on the paper under the one light from the Regional band in (decorative: the washes hold the terrain).</summary>
+    TerrainRelief,
 }
 
 /// <summary>One structure kind in a settlement, aggregated (M4-D counts; never per-building).</summary>
@@ -55,7 +58,14 @@ public sealed record SettlementLensView(
     // active classes or size tier for it, and the lens prints no "N people - N dwellings" line, no size-tier line and no
     // labour caption under its name. Its token — the footprint, dwelling blocks, structures and institutions as drawn —
     // is the map as drawn (public), so Population and Dwellings stay for the geometry.
-    bool ReadsInternals = true);
+    bool ReadsInternals = true,
+    // M6 E1.4: the best road class ACHIEVED (EdgeTypes) on a travelled, known route ending here (0: none) — an input of the
+    // style register (StyleRegister.Of), realized state only.
+    int TopRouteClass = 0,
+    // M6 E1.2: the part keys ("structure:{id}", "institution:{key}") UNDER CONSTRUCTION here — a ConstructionQueueRow at
+    // the settlement, or a founding project built and not yet founded — ascending, distinct; null: none (and none for a
+    // settlement whose books the player may not read, D-060).
+    IReadOnlyList<string>? Building = null);
 
 /// <summary>One institution marker the lens drew: a structure kind (Key "structure:{projectId}") or an
 /// institution type from <see cref="InstitutionMarkerSource"/> (Key "institution:{typeKey}") in a
@@ -75,6 +85,32 @@ public sealed record UnitLensView(int Id, int Owner, double X, double Y, int Fam
 /// slot among the formations sharing its anchor (0 = first in ascending unit id).</summary>
 public sealed record UnitPlacement(int Id, double X, double Y, int Slot)
 {
+    /// <summary>M6 E1.5 (D-052 §7): every formation the token stands for, ascending (its <see cref="Id"/> — the lowest — first);
+    /// [<see cref="Id"/>] for a placement made by hand.</summary>
+    public IReadOnlyList<int> Members { get => _members ?? [Id]; init => _members = value; }
+    private readonly IReadOnlyList<int>? _members;
+
+    /// <summary>The number of formations the token stands for.</summary>
+    public int Count => Members.Count;
+
+    /// <summary>Whether the token stands for formation <paramref name="id"/>.</summary>
+    public bool Holds(int id)
+    {
+        foreach (int m in Members) if (m == id) return true;
+        return false;
+    }
+
+    /// <summary>Value equality, the members compared element by element (a list compares by reference otherwise).</summary>
+    public bool Equals(UnitPlacement? other)
+    {
+        if (other is null) return false;
+        if (Id != other.Id || X != other.X || Y != other.Y || Slot != other.Slot || Size != other.Size || Count != other.Count) return false;
+        for (int i = 0; i < Count; i++) if (Members[i] != other.Members[i]) return false;
+        return true;
+    }
+
+    public override int GetHashCode() => HashCode.Combine(Id, X, Y, Slot, Size, Count);
+
     /// <summary>P2: the half-size the token was drawn at (its plate is 2 × 1.5 times it) — blended between the bands'
     /// 9 and 12 px across the World ↔ Regional window; 0 when the placement was not made by a paint (the hit test then
     /// uses <see cref="ViewModel.UnitSelection.TokenSize"/> of the frame's band).</summary>
@@ -135,6 +171,23 @@ public sealed class WorldProjection
     /// reserves a lot for each. Empty when the projection was built without content (a hand-made projection): every held
     /// kind then claims in (category, key) order.</summary>
     public PartUniverse Universe { get; init; } = PartUniverse.Empty;
+
+    /// <summary>M6 E1.3: the object layer's terrain marks (relief and forests) of the projection's terrain — baked once per
+    /// terrain (immutable, ADR-008); null without terrain.</summary>
+    public TerrainMarks? Terrain { get; init; }
+
+    /// <summary>M6 E1.3: the observer's known lattice nodes (row-major, <see cref="LatticeSize"/>²); null when every node is
+    /// known. Relief and forests are drawn on known nodes only.</summary>
+    public bool[]? KnownNodes { get; init; }
+
+    /// <summary>M6 E1.3: the traversal lattice's side (nodes) and stride (world px) — the geometry <see cref="KnownNodes"/> is
+    /// indexed by.</summary>
+    public int LatticeSize { get; init; }
+    public int Stride { get; init; } = LatticeStride;
+
+    /// <summary>M6 E1.3: the cultivated fields — one per fertile, known catchment node of a cultivating settlement whose books
+    /// the player reads, up to its farming share (<see cref="TerrainMarks.FieldsOf"/>).</summary>
+    public IReadOnlyList<FieldMark> Fields { get; init; } = [];
 
     /// <summary>P12a: the settlement visual classes and composition lattice (<c>settlement-classes.json</c>).</summary>
     public SettlementClasses Classes { get; init; } = SettlementClasses.Default;
@@ -240,6 +293,7 @@ public sealed class WorldProjection
 
         AgeContent? ages = cfg.Ages;
         var settlements = new List<SettlementLensView>();
+        var cultivating = new List<(int Settlement, double Share)>();
         bool anyInstitution = false;
         bool anyStructure = false;
         for (int s = 0; s < world.Settlements.Count; s++)
@@ -305,12 +359,28 @@ public sealed class WorldProjection
             // D-060: a known settlement the player does not rule keeps its token; its books are not carried.
             bool books = known.ReadsInternals(id.Value);
             if (!books) { sectors = null; topLabel = null; notables = 0; classes = 0; tier = 0; }
+            // M6 E1.4: the best class ACHIEVED on a travelled route the player knows ending here (the drawn routes).
+            int topRoute = 0;
+            foreach (RouteLensView r in routes) if (r.A == id.Value || r.B == id.Value) topRoute = Math.Max(topRoute, r.EdgeType);
+            // M6 E1.2: what is under construction here (its books: carried only where the player reads them, D-060).
+            IReadOnlyList<string>? building = books ? UnderConstruction(world, cfg, id) : null;
+            // M6 E1.3: a CULTIVATING settlement (its farming share above 0 — the ordered split, or the never-ordered default
+            // the economy itself uses, Sectors.Default — and cultivation its knowledge's: the predicate the economy's yield
+            // reads) lays fields on its fertile catchment.
+            if (books && ctl >= 0 && !LabourActivities.HarvestsWildFood(world, cfg, id))
+            {
+                SectorAllocationRow alloc = Sectors.Default(id);
+                for (int a = 0; a < world.SectorAllocations.Count; a++)
+                    if (world.SectorAllocations[a].Settlement == id) alloc = world.SectorAllocations[a];
+                double farm = Sectors.Share(alloc, Sectors.Farming);
+                if (farm > 0) cultivating.Add((id.Value, farm));
+            }
             int cell = row.SiteCell;
             IReadOnlyList<InstitutionView> held = institutions(world, cfg, id);
             if (held.Count > 0) anyInstitution = true;
             settlements.Add(new SettlementLensView(
                 id.Value, name(id.Value), cell % size + 0.5, cell / size + 0.5, ctl, capital, ctl == player.Value,
-                pop, dwellings, tier, age, structures, sectors, roadsHere, notables, classes, held, topLabel, books));
+                pop, dwellings, tier, age, structures, sectors, roadsHere, notables, classes, held, topLabel, books, topRoute, building));
         }
 
         var units = new List<UnitLensView>();
@@ -331,7 +401,8 @@ public sealed class WorldProjection
         var absent = new List<string>
         {
             "Army movement and supply arrive with the Battle Layer (M7) - formations are shown where they are stationed",
-            // P11: a formation holds no people (MilitaryUnitRow has no headcount), so no token carries a count.
+            // P11: a formation holds no people (MilitaryUnitRow has no headcount); M6 E1.5 (D-052 §7): a token's number counts
+            // the FORMATIONS of one type grouped there, never people.
             FormationCountAbsent,
         };
         if (!anyInstitution) absent.Add("Institutions: none founded");
@@ -343,6 +414,10 @@ public sealed class WorldProjection
 
         return new WorldProjection
         {
+            Terrain = world.Terrain is null ? null : TerrainMarks.Of(world.Terrain),
+            KnownNodes = world.Terrain is null || known.AllKnown ? null : KnownMask(known, lsize),
+            LatticeSize = world.Terrain is null ? 0 : lsize, Stride = stride,
+            Fields = world.Terrain is null ? [] : TerrainMarks.FieldsOf(world, cultivating, known, lsize, stride),
             Fog = FogRuns(known, world.Terrain is null ? 0 : lsize, stride, size),
             WorldSize = size, WrapX = wrapX, KmPerPx = world.Terrain?.KmPerPx ?? double.NaN, Settlements = settlements, Units = units, Roads = roads, Routes = routes, Territory = territory,
             PlayerPolity = player.Value, PlayerAge = playerAge,
@@ -354,7 +429,7 @@ public sealed class WorldProjection
     /// <summary>P11: the honest empty state for the formation count (ledger §24's "internal composition may appear as
     /// labels/counts" has no composition to show: <c>MilitaryUnitRow</c> holds no headcount, manpower or strength).</summary>
     public const string FormationCountAbsent =
-        "Formation counts: not simulated - a formation holds no people, so no token shows a count";
+        "Headcounts: not simulated - a formation holds no people; a token's number counts formations, never people";
 
     /// <summary>M6 EX (ADR-044): the fog's row runs (see <see cref="WorldProjection.Fog"/>) — per lattice row, maximal runs
     /// of nodes in one state, UNKNOWN or REMEMBERED; the last node of a row or column reaches the map's edge. Empty when the
@@ -384,6 +459,51 @@ public sealed class WorldProjection
     }
 
     private static int FogState(PlayerKnowledge known, int node) => !known.Known(node) ? 2 : known.Visible(node) ? 0 : 1;
+
+    /// <summary>M6 E1.3: the observer's known lattice nodes (the object layer's relief and forests are drawn only on them).</summary>
+    private static bool[] KnownMask(PlayerKnowledge known, int lsize)
+    {
+        var mask = new bool[lsize * lsize];
+        for (int i = 0; i < mask.Length; i++) mask[i] = known.Known(i);
+        return mask;
+    }
+
+    /// <summary>M6 E1.2: the part keys under construction at <paramref name="id"/> — every project its construction queue
+    /// holds (a founding project as its institution type's key, any other as its structure key), and every founding project
+    /// built there and not yet founded (more built than founded: <see cref="InstitutionsQuery.Lifecycle"/>'s rule) —
+    /// ascending (structures, then institutions; by key), distinct. Null when nothing is.</summary>
+    private static IReadOnlyList<string>? UnderConstruction(IReadOnlyWorldState world, SimConfig cfg, SettlementId id)
+    {
+        var claims = new List<PartClaim>();
+        void Add(PartClaim c) { if (!claims.Contains(c)) claims.Add(c); }
+        PartClaim ClaimOf(ConstructionProjectEntry p)
+        {
+            int type = InstitutionContent.TypeKeyOf(cfg.Research, p);
+            return type >= 0 ? new PartClaim(PartClaim.Institution, type) : new PartClaim(PartClaim.Structure, p.Id);
+        }
+        for (int i = 0; i < world.ConstructionQueue.Count; i++)
+        {
+            ConstructionQueueRow q = world.ConstructionQueue[i];
+            if (q.Settlement != id) continue;
+            if (cfg.Goods?.ProjectById(q.ProjectId) is { } p) Add(ClaimOf(p));
+            else Add(new PartClaim(PartClaim.Structure, q.ProjectId));
+        }
+        foreach (ConstructionProjectEntry p in cfg.Goods?.Projects ?? [])
+        {
+            if (!InstitutionContent.FoundsInstitution(p)) continue;
+            int type = InstitutionContent.TypeKeyOf(cfg.Research, p);
+            if (type < 0) continue;
+            long founded = 0;
+            for (int i = 0; i < world.Institutions.Count; i++)
+                if (world.Institutions[i].Settlement == id && world.Institutions[i].Type == type) founded++;
+            if (ConstructionQuery.Built(world, id, p.Id) > founded) Add(new PartClaim(PartClaim.Institution, type));
+        }
+        if (claims.Count == 0) return null;
+        claims.Sort(static (a, b) => a.Category != b.Category ? a.Category.CompareTo(b.Category) : a.Key.CompareTo(b.Key));
+        var keys = new string[claims.Count];
+        for (int i = 0; i < keys.Length; i++) keys[i] = claims[i].HashKey;
+        return keys;
+    }
 
     private static bool SiteOf(IReadOnlyWorldState world, SettlementId id, int size, out double x, out double y)
     {
@@ -585,15 +705,15 @@ public sealed record LensFrame(WorldZoom Zoom, IReadOnlyList<WorldLayer> Layers,
 /// HAND — glyph stroke weight, the token plate's cut, the banner's fly, the name plate's ornament — from its
 /// <see cref="MapInk.Hand"/> (packet P13): the painters switch on those tokens, never on an era or Age number.
 /// </summary>
-public static class WorldLens
+public static partial class WorldLens
 {
     private static readonly WorldLayer[] WorldLayers =
         [WorldLayer.Territories, WorldLayer.MajorInfrastructure, WorldLayer.MajorSettlements, WorldLayer.MilitaryFormations, WorldLayer.AgeBanners];
     private static readonly WorldLayer[] RegionalLayers =
-        [WorldLayer.Territories, WorldLayer.Roads, WorldLayer.SettlementMorphology, WorldLayer.InstitutionalPresence,
+        [WorldLayer.Territories, WorldLayer.TerrainRelief, WorldLayer.Roads, WorldLayer.SettlementMorphology, WorldLayer.InstitutionalPresence,
          WorldLayer.ProductionSignals, WorldLayer.MilitaryFormations, WorldLayer.AgeBanners];
     private static readonly WorldLayer[] SettlementLayers =
-        [WorldLayer.Roads, WorldLayer.SettlementMorphology, WorldLayer.InfrastructureDensity, WorldLayer.InstitutionTypes,
+        [WorldLayer.TerrainRelief, WorldLayer.Roads, WorldLayer.SettlementMorphology, WorldLayer.InfrastructureDensity, WorldLayer.InstitutionTypes,
          WorldLayer.PopulationScale, WorldLayer.ProductionSignals, WorldLayer.MilitaryFormations, WorldLayer.AgeBanners];
 
     /// <summary>The layers drawn at a zoom level, in paint order.</summary>
@@ -810,6 +930,16 @@ public static class WorldLens
         }
         Charge(MapLayer.Territory, WorldLayer.Territories);
 
+        // M6 E1.3: THE OBJECT LAYER'S TERRAIN — the cultivated fields, then relief and forests, on the paper and under every
+        // network piece and settlement, fading in with the Regional blend (the World band draws none: the washes carry it).
+        if (On(WorldLayer.TerrainRelief))
+        {
+            int from = d.Commands.Count;
+            copies += TerrainMarks.Paint(d, k, p, At, scale, viewport, ks, worldW);
+            d.FadeFrom(from, detail.Alpha(WorldLayer.TerrainRelief));
+            Charge(MapLayer.ObjectTerrain, WorldLayer.TerrainRelief);
+        }
+
         // The network: the dirt-path baseline (dashed at World zoom, cased below) and the built routes
         // by class on top — the World zoom's major infrastructure, the closer zooms' roads. P2: across the World ↔
         // Regional window the two looks cross-fade (the World network fading out under the cased one fading in).
@@ -885,23 +1015,28 @@ public static class WorldLens
         {
             double tok = MapDetail.Mix(9, 12, R);
             SettlementLensView?[] stations = Stations(p);
-            int[] slots = FanSlots(p);
-            for (int i = 0; i < p.Units.Count; i++)
+            // D-052 §7 (M6 E1.5): ONE TOKEN PER UNIT TYPE AND PLACE — the formations of one owner sharing an anchor and an
+            // identity are one token (its representative the lowest id), its silhouette the identity's, the number of
+            // formations above it when more than one. Groups in table order of their first member.
+            List<UnitGroup> groups = Groups(p, stations);
+            int[] slots = GroupSlots(p, stations, groups);
+            for (int gi = 0; gi < groups.Count; gi++)
             {
-                UnitLensView u = p.Units[i];
+                UnitGroup grp = groups[gi];
+                UnitLensView u = p.Units[grp.Leader];
                 // A formation stationed in a settlement is anchored to it, just outside the mark's east
                 // edge at mid-height (clear of the name below and the banner above); one in the field sits
-                // at its own position. Formations sharing an anchor FAN OUT in ascending unit id (stable,
+                // at its own position. Tokens sharing an anchor FAN OUT in ascending representative id (stable,
                 // never overlapping): a row eastward at World zoom, a labelled column below that (P2: the row
                 // folds into the column across the World ↔ Regional window).
-                SettlementLensView? station = stations[i];
+                SettlementLensView? station = stations[grp.Leader];
                 double wx = u.X + 0.5, wy = u.Y + 0.5, edge = 0;
                 if (station is not null)
                 {
                     wx = station.X; wy = station.Y;
                     edge = MapDetail.Mix(MarkRadiusPx(p, station) + 2, FootprintRadiusPx(p, station, scale, S), R) + tok + 3;
                 }
-                (double fx, double fy) = FanOffset(R, slots[i], tok);
+                (double fx, double fy) = FanOffset(R, slots[gi], tok);
                 int primary = Primary(wx, wy);
                 bool firstCopy = true;
                 foreach (int c in ks)   // WS3: the copy nearest the centre always (as flat), any other that touches the viewport
@@ -909,23 +1044,23 @@ public static class WorldLens
                     (double ux, double uy) = At(c, wx, wy);
                     ux += edge + fx;
                     uy += fy;
-                    if (c != primary && !TokenTouches(m, ux, uy, tok, R, u.IdentityName, viewport)) continue;
-                    UnitToken(d, ux, uy, tok, u.Emblem ?? UnitEmblem.Unkeyed(u.FamilyKey), k.PolityOf(u.Owner, p.PlayerPolity), k);
+                    if (c != primary && !TokenTouches(m, ux, uy, tok, R, u.IdentityName, viewport, grp.Members.Count)) continue;
+                    FormationToken(d, ux, uy, tok, u.Emblem ?? UnitEmblem.Unkeyed(u.FamilyKey), k.PolityOf(u.Owner, p.PlayerPolity), k, grp.Members.Count);
                     if (R > 0)
                     {
                         int from = d.Commands.Count;
                         _type.Label(d, ux + tok + 5, uy - _type.Size(TypeRole.Caption, FontRole.Caps) * 0.62, u.IdentityName, TypeRole.Caption, FontRole.Caps, k.Ink, TextAlign.Left);
                         d.FadeFrom(from, R);
                     }
-                    if (firstCopy) unitTokens.Add(u.Id);
+                    if (firstCopy) unitTokens.Add(grp.Representative);
                     else copies++;
                     firstCopy = false;
-                    placements.Add(new UnitPlacement(u.Id, ux, uy, slots[i]) { Size = tok });
+                    placements.Add(new UnitPlacement(grp.Representative, ux, uy, slots[gi]) { Size = tok, Members = grp.Members });
                 }
             }
-            // The selected formation's frame, over every token (UnitSelection's hit rect, 4 px out).
+            // The selected formation's frame, over every token (UnitSelection's hit rect, 4 px out): the token holding it.
             foreach (UnitPlacement up in placements)
-                if (up.Id == selectedUnit)
+                if (up.Holds(selectedUnit))
                 {
                     double ts = tok + 4;
                     d.Rect(new RectD(up.X - ts, up.Y - ts * 0.8, 2 * ts, 1.6 * ts), null, k.Selection, 2.4, 3);
@@ -1006,12 +1141,13 @@ public static class WorldLens
     /// <summary>WS3: whether a formation token at (<paramref name="ux"/>, <paramref name="uy"/>) of half-size
     /// <paramref name="tok"/> — its plate, its selection frame and, once labelled (<paramref name="regional"/> &gt; 0), its
     /// identity label to the right — can touch <paramref name="viewport"/> (with the replay's fringe).</summary>
-    private static bool TokenTouches(ITextMeasure m, double ux, double uy, double tok, double regional, string label, RectD viewport)
+    private static bool TokenTouches(ITextMeasure m, double ux, double uy, double tok, double regional, string label, RectD viewport, int count = 1)
     {
         double ts = tok + 4 + DrawListCull.FringePx;
-        double right = ux + ts;
+        double right = ux + ts, top = uy - ts;
         if (regional > 0) right = Math.Max(right, ux + tok + 5 + _type.Width(m, label, TypeRole.Caption, FontRole.Caps) + DrawListCull.FringePx);
-        return DrawListCull.Touches(new RectD(ux - ts, uy - ts, right - (ux - ts), 2 * ts), viewport);
+        if (count > 1) top = Math.Min(top, FormationCountTop(uy, tok) - DrawListCull.FringePx);   // E1.5: the number above
+        return DrawListCull.Touches(new RectD(ux - ts, top, right - (ux - ts), uy + ts - top), viewport);
     }
 
     // ---------------------------------------------------------------- the legend (P3)
@@ -1031,8 +1167,9 @@ public static class WorldLens
         WorldLayer.InfrastructureDensity => "Path links in the catchment, size tier",
         WorldLayer.PopulationScale => "People and dwellings",
         WorldLayer.ProductionSignals => "Labour split: a ring of sector arcs",
-        WorldLayer.MilitaryFormations => "Formations: a token each - family emblem, a pip per form in its line",
+        WorldLayer.MilitaryFormations => "Formations: a token per type and place - its silhouette, a pip per form, the number of formations above",
         WorldLayer.AgeBanners => "Age banners: the holder's Age",
+        WorldLayer.TerrainRelief => "Relief, forests and fields: drawn on the paper (decorative; the washes hold the terrain)",
         _ => layer.ToString(),
     };
 
@@ -1219,23 +1356,85 @@ public static class WorldLens
         return result;
     }
 
-    /// <summary>THE FAN-OUT SLOTS (parallel to <c>p.Units</c>): a formation's slot is how many formations
-    /// sharing its anchor — the same settlement, or in the field exactly the same position — have a
-    /// smaller unit id. Integer keys only, independent of table order, so the layout is stable across
-    /// turns and saves (unit ids are stable and never reused, ADR-031).</summary>
+    /// <summary>
+    /// D-052 §7 (M6 E1.5) — ONE TOKEN PER UNIT TYPE AND PLACE: a group of the projection's formations — one owner, one
+    /// anchor (the same settlement, or in the field exactly the same position), one identity (the emblem's identity and role
+    /// mark; the identity name for a view built without content). <see cref="Leader"/> is the index into <c>p.Units</c> of
+    /// its first member in table order (where it is drawn in the paint order), <see cref="Representative"/> the LOWEST id of
+    /// its members (the token's id: what a click selects, what the fan orders by), <see cref="Members"/> every member id,
+    /// ascending. Grouping applies to the formations the observer knows — the projection holds no other (P7).
+    /// </summary>
+    public sealed record UnitGroup(int Leader, int Representative, IReadOnlyList<int> Members);
+
+    /// <summary>The token groups of <paramref name="p"/>, in table order of their first member.</summary>
+    public static List<UnitGroup> Groups(WorldProjection p) => Groups(p, Stations(p));
+
+    private static List<UnitGroup> Groups(WorldProjection p, SettlementLensView?[] stations)
+    {
+        var groups = new List<UnitGroup>();
+        var leaderOf = new int[p.Units.Count];
+        var members = new List<List<int>>();
+        for (int i = 0; i < p.Units.Count; i++)
+        {
+            leaderOf[i] = -1;
+            for (int g = 0; g < groups.Count && leaderOf[i] < 0; g++)
+                if (SameGroup(p, stations, groups[g].Leader, i)) { leaderOf[i] = g; members[g].Add(p.Units[i].Id); }
+            if (leaderOf[i] >= 0) continue;
+            leaderOf[i] = groups.Count;
+            groups.Add(new UnitGroup(i, p.Units[i].Id, []));
+            members.Add([p.Units[i].Id]);
+        }
+        for (int g = 0; g < groups.Count; g++)
+        {
+            members[g].Sort();
+            groups[g] = groups[g] with { Representative = members[g][0], Members = members[g] };
+        }
+        return groups;
+    }
+
+    private static bool SameGroup(WorldProjection p, SettlementLensView?[] stations, int i, int j)
+    {
+        UnitLensView a = p.Units[i], b = p.Units[j];
+        if (a.Owner != b.Owner) return false;
+        bool anchored = stations[i] is not null || stations[j] is not null
+            ? stations[i] is not null && stations[j] is not null && stations[i]!.Id == stations[j]!.Id
+            : a.X == b.X && a.Y == b.Y;
+        if (!anchored) return false;
+        UnitEmblem ea = a.Emblem ?? UnitEmblem.Unkeyed(a.FamilyKey), eb = b.Emblem ?? UnitEmblem.Unkeyed(b.FamilyKey);
+        return ea == eb && a.IdentityName == b.IdentityName;
+    }
+
+    /// <summary>THE FAN-OUT SLOTS of the groups (parallel to <paramref name="groups"/>): a token's slot is how many tokens
+    /// sharing its anchor — the same settlement, or in the field exactly the same position — have a smaller representative
+    /// id. Integer keys only, independent of table order, so the layout is stable across turns and saves (unit ids are
+    /// stable and never reused, ADR-031).</summary>
+    private static int[] GroupSlots(WorldProjection p, SettlementLensView?[] stations, List<UnitGroup> groups)
+    {
+        var slots = new int[groups.Count];
+        for (int i = 0; i < groups.Count; i++)
+            for (int j = 0; j < groups.Count; j++)
+            {
+                if (groups[j].Representative >= groups[i].Representative) continue;
+                int a = groups[i].Leader, b = groups[j].Leader;
+                bool same = stations[a] is not null || stations[b] is not null
+                    ? stations[a] is not null && stations[b] is not null && stations[a]!.Id == stations[b]!.Id
+                    : p.Units[a].X == p.Units[b].X && p.Units[a].Y == p.Units[b].Y;
+                if (same) slots[i]++;
+            }
+        return slots;
+    }
+
+    /// <summary>THE FAN-OUT SLOTS (parallel to <c>p.Units</c>): every formation takes its token's slot
+    /// (<see cref="Groups(WorldProjection)"/>; a formation alone in its group is its own token, as before D-052 §7's grouping).</summary>
     public static int[] FanSlots(WorldProjection p)
     {
         SettlementLensView?[] stations = Stations(p);
+        List<UnitGroup> groups = Groups(p, stations);
+        int[] bySlot = GroupSlots(p, stations, groups);
         var slots = new int[p.Units.Count];
-        for (int i = 0; i < p.Units.Count; i++)
-            for (int j = 0; j < p.Units.Count; j++)
-            {
-                if (p.Units[j].Id >= p.Units[i].Id) continue;
-                bool same = stations[i] is not null || stations[j] is not null
-                    ? stations[i] is not null && stations[j] is not null && stations[i]!.Id == stations[j]!.Id
-                    : p.Units[i].X == p.Units[j].X && p.Units[i].Y == p.Units[j].Y;
-                if (same) slots[i]++;
-            }
+        for (int g = 0; g < groups.Count; g++)
+            for (int i = 0; i < p.Units.Count; i++)
+                foreach (int id in groups[g].Members) if (p.Units[i].Id == id) slots[i] = bySlot[g];
         return slots;
     }
 
@@ -1295,13 +1494,12 @@ public static class WorldLens
         // Dwellings (P12a): one block per dwellingsPerBlock dwellings on the FIXED block lattice — the first lots in its
         // fixed order on the rings the footprint holds, a lot under a part's glyph hidden where it stands — so a new block
         // or a new part never moves a block already drawn, and a growing footprint opens rings outward (no cap of 48).
-        // One form at every Age.
+        // M6 E1.2/E1.4: each block a cottage under the one light in the settlement's STYLE REGISTER — a pure function of
+        // what it has built and what reaches it (StyleRegister.Of), never of its Age; flat below DwellingShadedPx.
+        ObjectRegister register = StyleRegister.Of(s);
         double bw = lattice.BlockUnits * unitPx, bh = lattice.BlockHeightUnits * unitPx;
         foreach (CompositionLot lot in comp.Blocks)
-        {
-            double bx = sx + lot.X * unitPx, by = sy + lot.Y * unitPx;
-            d.Rect(new RectD(bx - bw / 2, by - bh / 2, bw, bh), A(k.Dwelling, 0.85));
-        }
+            DwellingBlock(d, sx + lot.X * unitPx, sy + lot.Y * unitPx, bw, bh, register, k);
 
         // Centre: the capital star / settlement mark, on the plaza the block lattice leaves open.
         double centre = Math.Max(5, lattice.PlazaRadiusUnits * unitPx);
@@ -1313,15 +1511,18 @@ public static class WorldLens
         double aPresence = detail.Alpha(WorldLayer.InstitutionalPresence), aTypes = detail.Alpha(WorldLayer.InstitutionTypes);
         if (aPresence > 0 || aTypes > 0)
         {
-            // Embedded glyphs inside the footprint — one per structure KIND and one per institution
-            // TYPE (aggregated), with names and counts at settlement zoom.
+            // M6 E1.2 — THE COMPOSED PARTS inside the footprint: one per structure KIND and one per institution TYPE
+            // (aggregated, D-043 D2), each at its COUNT STAGE (1 small, 10 expanded, 20 campus, 30 complex — data-defined,
+            // PartConventions), its number at high zoom; at most maxParts of them, the surplus folded into the overflow part
+            // (D-066 A4); a part under construction as a scaffold on its kind's lot. Names and counts in the key at
+            // Settlement zoom.
             bool named = aTypes > 0;
             double aRing = Math.Min(1.0, aPresence + aTypes);
             WorldLayer ringLayer = detail.Band == WorldZoom.Settlement ? WorldLayer.InstitutionTypes : WorldLayer.InstitutionalPresence;
             int total = s.Structures.Count + s.Institutions.Count;
             double g = lattice.GlyphUnits * unitPx;   // P12a: the glyph fills its lot's box at every zoom
-            int n = 0;
-            // Settlement zoom: a key beside the footprint (left, right-aligned) names each embedded glyph
+            PartConventions conventions = p.Classes.Parts;
+            // Settlement zoom: a key beside the footprint (left, right-aligned) names each embedded part
             // with its aggregated count, so labels never overprint the footprint or each other.
             void Key(int i, string label, long count, Action<double, double> glyph)
             {
@@ -1330,38 +1531,58 @@ public static class WorldLens
                 d.FadeFrom(at, aTypes);
                 charge(MapLayer.InstitutionMarkers, WorldLayer.InstitutionTypes);
             }
-            // P12a: each part on ITS lot of the composition (comp.Parts: the structures, then the institution types, in the
-            // view's order) — never spaced by its index among the others, so an arrival re-spaces nothing.
-            (double, double) Slot(int i) => (sx + comp.Parts[i].Lot.X * unitPx, sy + comp.Parts[i].Lot.Y * unitPx);
-            void Placed(int i, int at)
+            void Placed(string key, CompositionLot lot, int at)
             {
                 RectD? box = null;
                 for (int c = at; c < d.Commands.Count; c++)
                     if (DrawListCull.Bounds(d.Commands[c]) is RectD b) box = box is RectD u ? Union(u, b) : b;
                 RectD rect = box is RectD bb ? bb.Inset(DrawListCull.FringePx) : new RectD(0, 0, 0, 0);
-                parts.Add(new PartPlacement(s.Id, comp.Parts[i].Key, comp.Parts[i].Lot.Ring, comp.Parts[i].Lot.Index, rect));
+                parts.Add(new PartPlacement(s.Id, key, lot.Ring, lot.Index, rect));
             }
-            foreach (StructureView st in s.Structures)
+            // P12a: each part on ITS lot of the composition (comp.Parts: the structures, then the institution types, in the
+            // view's order) — never spaced by its index among the others, so an arrival re-spaces nothing.
+            List<ShownPart> shown = PartFold.Shown(s, conventions, out int foldedKinds, out long foldedCount);
+            foreach (ShownPart part in shown)
             {
-                (double gx, double gy) = Slot(n++);
+                PlacedPart placed = comp.Parts[part.Index];
+                double gx = sx + placed.Lot.X * unitPx, gy = sy + placed.Lot.Y * unitPx;
+                PartSpec spec = part.Institution ? PartSpec.Of(s.Institutions[part.Index - s.Structures.Count]) : PartSpec.Of(s.Structures[part.Index]);
                 int at = d.Commands.Count;
-                StructureGlyph(d, gx, gy, g, st.Kind, k);
-                Placed(n - 1, at);
+                PartGlyph(d, gx, gy, g, spec, Math.Max(0, conventions.StageOf(part.Count)), register, k);
+                Placed(placed.Key, placed.Lot, at);
+                if (named && part.Count > 1 && g >= CountTagMinGlyphPx) CountTag(d, gx, gy, g, part.Count.ToString(CultureInfo.InvariantCulture), aTypes, k);
                 d.FadeFrom(at, aRing);
                 charge(MapLayer.InstitutionMarkers, ringLayer);
-                if (named) Key(n - 1, st.Name, st.Count, (x, y) => StructureGlyph(d, x, y, 7, st.Kind, k));
-                institutions.Add(new InstitutionMarker(s.Id, "structure:" + st.ProjectId.ToString(CultureInfo.InvariantCulture), st.Count));
+                institutions.Add(new InstitutionMarker(s.Id, part.Key, part.Count));
             }
-            foreach (InstitutionView iv in s.Institutions)
+            if (foldedKinds > 0)
             {
-                (double gx, double gy) = Slot(n++);
+                // D-066 A4: the overflow part on its own lot; its number at high zoom is the count of kinds folded.
+                double ox = sx + comp.OverflowLot.X * unitPx, oy = sy + comp.OverflowLot.Y * unitPx;
                 int at = d.Commands.Count;
-                UniversityGlyph(d, gx, gy, g, iv.TypeKey, k);
-                Placed(n - 1, at);
+                OverflowGlyph(d, ox, oy, g, register, k);
+                Placed(OverflowKey, comp.OverflowLot, at);
+                if (named && g >= CountTagMinGlyphPx) CountTag(d, ox, oy, g, "+" + foldedKinds.ToString(CultureInfo.InvariantCulture), aTypes, k);
                 d.FadeFrom(at, aRing);
                 charge(MapLayer.InstitutionMarkers, ringLayer);
-                if (named) Key(n - 1, iv.Name, iv.Count, (x, y) => UniversityGlyph(d, x, y, 7, iv.TypeKey, k));
-                institutions.Add(new InstitutionMarker(s.Id, "institution:" + iv.TypeKey.ToString(CultureInfo.InvariantCulture), iv.Count));
+                institutions.Add(new InstitutionMarker(s.Id, OverflowKey, foldedCount));
+            }
+            foreach (PlacedPart sc in comp.Scaffolds)
+            {
+                bool held = false;
+                foreach (ShownPart part in shown) if (part.Key == sc.Key) { held = true; break; }
+                int at = d.Commands.Count;
+                ScaffoldGlyph(d, sx + sc.Lot.X * unitPx, sy + sc.Lot.Y * unitPx, g, held, k);
+                d.FadeFrom(at, aRing);
+                charge(MapLayer.InstitutionMarkers, ringLayer);
+            }
+            int n = 0;
+            if (named)
+            {
+                foreach (StructureView st in s.Structures)
+                    Key(n++, st.Name, st.Count, (x, y) => PartGlyph(d, x, y, 7, PartSpec.Of(st), 0, register, k));
+                foreach (InstitutionView iv in s.Institutions)
+                    Key(n++, iv.Name, iv.Count, (x, y) => PartGlyph(d, x, y, 7, PartSpec.Of(iv), 0, register, k));
             }
             if (s.Notables > 0 && named)
             {
@@ -1389,6 +1610,60 @@ public static class WorldLens
             d.FadeFrom(at, aSectors);
         }
         charge(MapLayer.SettlementMarkers, WorldLayer.ProductionSignals);
+    }
+
+    /// <summary>M6 E1.2: "high zoom" for a part's number (D-043 D2) — the glyph size (screen px) from which the number is
+    /// drawn on the part (below it the part is too small to carry it legibly; the key beside the footprint names every count
+    /// at the Settlement band whatever the size).</summary>
+    public const double CountTagMinGlyphPx = 14.0;
+
+    /// <summary>M6 E1.2: the marker and part key of the overflow part (D-066 A4).</summary>
+    public const string OverflowKey = "overflow";
+
+    /// <summary>M6 E1.2 — A PART'S NUMBER at high zoom (D-043 D2: "at high zoom, the visual can display the number associated
+    /// with the aggregated institution"): <paramref name="text"/> on a small paper plate at the part's north-east corner, faded
+    /// in with the Settlement band's institution types (<paramref name="alpha"/>).</summary>
+    private static void CountTag(DrawList d, double gx, double gy, double g, string text, double alpha, MapInk k)
+    {
+        int at = d.Commands.Count;
+        (RectD plate, double tx, double ty, double size) = CountTagGeometry(gx, gy, g, text);
+        d.Rect(plate, A(k.NamePlate, 0.9), A(k.Ink, 0.5), 0.8, 1.5);
+        _type.LabelAt(d, tx, ty, text, size, FontRole.Numeric, k.Ink, TextAlign.Center);
+        d.FadeFrom(at, alpha);
+    }
+
+    /// <summary>The number tags a settlement's composite draws at high zoom (every shown part counted above one, and the
+    /// overflow part's), as <see cref="CountTagGeometry"/> places them — the cull's view of <see cref="CountTag"/>.</summary>
+    private static List<(RectD Plate, double X, double Y, double Size, string Text)> CountTags(WorldProjection p, SettlementLensView s, double sx, double sy, double unitPx)
+    {
+        var tags = new List<(RectD, double, double, double, string)>();
+        void Add(double gx, double gy, double g, string text)
+        {
+            (RectD plate, double x, double y, double size) = CountTagGeometry(gx, gy, g, text);
+            tags.Add((plate, x, y, size, text));
+        }
+        SettlementComposition comp = p.CompositionOf(s);
+        double g = p.Classes.Lattice.GlyphUnits * unitPx;
+        if (g < CountTagMinGlyphPx) return tags;
+        List<ShownPart> shown = PartFold.Shown(s, p.Classes.Parts, out int foldedKinds, out long _);
+        foreach (ShownPart part in shown)
+        {
+            if (part.Count <= 1) continue;
+            CompositionLot lot = comp.Parts[part.Index].Lot;
+            Add(sx + lot.X * unitPx, sy + lot.Y * unitPx, g, part.Count.ToString(CultureInfo.InvariantCulture));
+        }
+        if (foldedKinds > 0)
+            Add(sx + comp.OverflowLot.X * unitPx, sy + comp.OverflowLot.Y * unitPx, g, "+" + foldedKinds.ToString(CultureInfo.InvariantCulture));
+        return tags;
+    }
+
+    /// <summary>Where a part's number goes: its plate, the text's anchor and its set size (the cull reads the same).</summary>
+    private static (RectD Plate, double X, double Y, double Size) CountTagGeometry(double gx, double gy, double g, string text)
+    {
+        double size = _type.Size(TypeRole.Caption, FontRole.Numeric) * 0.9;
+        double w = Math.Max(size, text.Length * size * 0.56) + 4, h = size * 1.25;
+        double cx = gx + 0.55 * g, cy = gy - 0.62 * g;
+        return (new RectD(cx - w / 2, cy - h / 2, w, h), cx, cy - h / 2 + 0.5, size);
     }
 
     /// <summary>Where a settlement's name goes at Regional and Settlement zoom (the y of its top): under the footprint of
@@ -1492,6 +1767,12 @@ public static class WorldLens
                     Span(ky - glyph, ky + glyph);
                 }
                 if (s.Notables > 0) Run(sy + rFoot * 0.12 + 6, second, null);   // NotablesLine
+                // M6 E1.2: the parts' numbers (CountTag), on their lots.
+                foreach ((RectD plate, double _, double ty, double size, string _) in CountTags(p, s, sx, sy, unitPx))
+                {
+                    Span(plate.Y, plate.Bottom);
+                    Run(ty, size, null);
+                }
             }
         }
         if (banner)
@@ -1513,11 +1794,17 @@ public static class WorldLens
             if (detail.Alpha(WorldLayer.InstitutionTypes) > 0)
             {
                 int total = s.Structures.Count + s.Institutions.Count, n = 0;
+                ObjectRegister register = StyleRegister.Of(s);
                 foreach (StructureView st in s.Structures)
-                    KeyEntry(probe, sx, sy, rFoot, total, n++, st.Name, st.Count, (x, y) => StructureGlyph(probe, x, y, 7, st.Kind, k), k.Ink);
+                    KeyEntry(probe, sx, sy, rFoot, total, n++, st.Name, st.Count, (x, y) => PartGlyph(probe, x, y, 7, PartSpec.Of(st), 0, register, k), k.Ink);
                 foreach (InstitutionView iv in s.Institutions)
-                    KeyEntry(probe, sx, sy, rFoot, total, n++, iv.Name, iv.Count, (x, y) => UniversityGlyph(probe, x, y, 7, iv.TypeKey, k), k.Ink);
+                    KeyEntry(probe, sx, sy, rFoot, total, n++, iv.Name, iv.Count, (x, y) => PartGlyph(probe, x, y, 7, PartSpec.Of(iv), 0, register, k), k.Ink);
                 if (s.Notables > 0) NotablesLine(probe, s, sx, sy, rFoot, k.Ink);
+                foreach ((RectD plate, double tx, double ty, double size, string text) in CountTags(p, s, sx, sy, unitPx))
+                {
+                    probe.Rect(plate, k.NamePlate, k.Ink, 0.8, 1.5);
+                    _type.LabelAt(probe, tx, ty, text, size, FontRole.Numeric, k.Ink, TextAlign.Center);
+                }
             }
         }
         if (banner) Banner(probe, m, sx, bannerY, s.Age, k.Ink, s.IsCapital, k, s.Id);
@@ -1737,6 +2024,34 @@ public static class WorldLens
             default: d.Circle(x, cy, e * 0.5, mark, null); break;
         }
     }
+
+    /// <summary>
+    /// M6 E1.5 — THE FORMATION TOKEN THE LENS DRAWS (D-052 §7: "one representative character per unit type, with that
+    /// type's count above it"; D-038 C1/C3: never a figure — a silhouette). The plate in the owner's ink (the same 2s × 1.5s
+    /// box, the hit rect, cut by the era's hand); on it the identity's SILHOUETTE under the one light
+    /// (<see cref="UnitSilhouette"/>: convex solids, no figure); below it one upright pip per form of the identity's place in
+    /// its family's line (P11, unchanged); and, when the token stands for more than one formation, their NUMBER above the
+    /// plate (formations, never people: a formation holds no headcount). P11's emblem token is <see cref="UnitToken(DrawList, double, double, double, UnitEmblem, Rgba, MapInk?)"/>.
+    /// </summary>
+    public static void FormationToken(DrawList d, double x, double y, double s, UnitEmblem emblem, Rgba owner, MapInk? ink = null, int count = 1)
+    {
+        MapInk k = ink ?? MapInk.Default;
+        d.Rect(new RectD(x - s, y - s * 0.75, s * 2, s * 1.5), owner, k.GlyphInk, Stroke(k, 1.4), PlateRadius(k.Hand.Plate, s));
+        UnitSilhouette.Paint(d, k, x, y, s, emblem);
+        int pips = Math.Min(emblem.Form, UnitEmblem.MaxPips);
+        double pitch = PipPitch(s), top = y + s * 0.54, foot = y + s * 0.70;
+        for (int i = 0; i < pips; i++)
+        {
+            double px = x + (i - (pips - 1) / 2.0) * pitch;
+            HandLine(d, k, px, top, px, foot, k.EmblemMark, Emblem(k, 1.0), emblem.Identity, UnitFormSalt, i);
+        }
+        if (count > 1)
+            _type.Label(d, x, FormationCountTop(y, s), count.ToString(CultureInfo.InvariantCulture), TypeRole.Caption, FontRole.Numeric, k.Ink, TextAlign.Center);
+    }
+
+    /// <summary>E1.5: the top of a token's formation number (above the plate of half-size <paramref name="s"/> at
+    /// <paramref name="y"/>).</summary>
+    public static double FormationCountTop(double y, double s) => y - s * 0.75 - 2 - _type.Size(TypeRole.Caption, FontRole.Numeric) * 1.2;
 
     /// <summary>A formation token: a framed plate whose emblem is the unit FAMILY (twelve families,
     /// twelve emblems), filled with the owner's ink — the family mark alone (<see cref="UnitEmblem.Unkeyed"/>).</summary>

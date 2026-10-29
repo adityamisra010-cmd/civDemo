@@ -125,9 +125,13 @@ public class DiscoveryTests
     /// <summary>ADR-044 §3 (the coordinator's ruling under D-062): the eligible rows are the ORE deposits (copper-ore,
     /// tin-ore) with abundance &gt; 0 at every settlement, and the realized concealed share over ALL of them — colonies
     /// included — is pinned exactly at turn 0 and at turn 300 of the AI world (aiEmpires 1, the AI's own orders), each in
-    /// [20 %, 30 %]. MEASURED 2026-10-23.</summary>
+    /// [20 %, 30 %]. MEASURED 2026-10-23.
+    /// D-066 A18 RE-PIN (M6 closure track FOG, 2026-10-28; MEASURED on the track's tree by the agent writing this line): seed 1
+    /// turn 300, 9 / 38 -> 9 / 36 (= 0.250; one AI colony fewer stands by turn 300 — the AI, valuing only the terrain it
+    /// knows, explores longer before founding); seeds 2, 42 and 7 unchanged. CONTROL:
+    /// <see cref="RealizedConcealedShare_Seed1Turn300_WithTheKnownTerrainValuationOff_IsThePreA18Count"/> returns 9 / 38.</summary>
     [Theory]
-    [InlineData(1UL, 6, 24, 9, 38)]
+    [InlineData(1UL, 6, 24, 9, 36)]
     [InlineData(2UL, 7, 24, 10, 38)]
     [InlineData(42UL, 7, 24, 10, 38)]
     [InlineData(7UL, 6, 24, 10, 38)]
@@ -149,6 +153,24 @@ public class DiscoveryTests
         Assert.Equal(300L, w.Clock.Turn);
         Assert.Equal((concealed300, eligible300), ConcealedShare(w, cfg));
         Assert.InRange(concealed300 / (double)eligible300, 0.20, 0.30);
+    }
+
+    /// <summary>D-066 A18 — the attribution control of the seed-1 re-pin above: with ONLY the AI's known-terrain valuation off
+    /// (TestConfigs.PreAiKnownTerrain) the AI world of seed 1 holds the pre-A18 9 / 38 at turn 300.</summary>
+    [Fact]
+    public void RealizedConcealedShare_Seed1Turn300_WithTheKnownTerrainValuationOff_IsThePreA18Count()
+    {
+        SimConfig cfg = TestConfigs.PreAiKnownTerrain(TestConfigs.Sim());
+        WorldgenConfig wg = TestConfigs.Worldgen();
+        WorldState w = WorldFounding.Found(wg with { AiEmpires = 1 }, cfg, 1UL);
+        var log = new OrderLog();
+        TurnExecutor exec = Exec(cfg, log, wg);
+        for (int t = 0; t < 300; t++)
+        {
+            AiOrders.Append(log, w, cfg, wg);
+            w = exec.Step(w);
+        }
+        Assert.Equal((9, 38), ConcealedShare(w, cfg));
     }
 
     /// <summary>ADR-056: over the BASE pool (copper-ore, tin-ore — the goods no economy packet adds; each packet's ores are

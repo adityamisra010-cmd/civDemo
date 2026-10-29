@@ -99,7 +99,7 @@ public class TaxGlassBoxTests
         using var line = new MemoryStream();
         TelemetryWriter.WriteTurn(line, obs);
         string text = System.Text.Encoding.UTF8.GetString(line.ToArray());
-        Assert.Contains("\"schema\":\"telemetry/v4\"", text);
+        Assert.Contains("\"schema\":\"telemetry/v5\"", text);   // D-066 A15: v5 = v4 + the M7 pass's keys; social.tax unchanged
         Assert.Contains("\"tax\":{", text);
         TelemetryTurn read = Assert.Single(TelemetryRecordFile.Parse([text.Trim()], "v4-line").Turns);
         for (int i = 0; i < obs.Settlements.Length; i++)

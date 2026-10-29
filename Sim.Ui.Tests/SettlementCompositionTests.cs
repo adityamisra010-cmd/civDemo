@@ -832,7 +832,7 @@ public class SettlementCompositionTests(InstitutionWorldFixture fx) : IClassFixt
         Assert.Equal(PartUniverse.Of(fx.Session.Config).StructureProjects, u.StructureProjects);
         Assert.Equal(PartUniverse.Of(fx.Session.Config).InstitutionTypes, u.InstitutionTypes);
         Assert.Equal([fx.Granary, fx.Workshop], u.StructureProjects);
-        Assert.Equal([1, 2, 3, 4, 5], u.InstitutionTypes);
+        Assert.Equal([1, 2, 3, 4, 5, 6], u.InstitutionTypes);   // ADR-057: the five universities and the law court (sim.json institutions.types)
         CompositionLattice lattice = p.Classes.Lattice;
         Assert.True(u.StructureProjects.Count + u.InstitutionTypes.Count <= lattice.SlotCount);
         SettlementLensView cap = p.Settlements.Single(s => s.Id == fx.Capital);

@@ -298,6 +298,32 @@ public static class InfoQuery
                 foreach (SettlementId s in mine) held = Math.Max(held, Held(world, s, good));
                 parts.Add(name + " held: " + Inv(held) + " at most in one settlement");
             }
+        // ADR-058 §B: deposit_<good> as the polity knows it (an unsurveyed concealed deposit reads as absent — no leak),
+        // and the two site facts of its settlements' own lattice nodes.
+        if (cfg.Goods is { } g2 && cfg.Research is { } r2)
+        {
+            for (int q = 0; q < r2.QuantityGoods.Count; q++)
+            {
+                int good = r2.QuantityGoods[q].Value;
+                string name = GoodName(g2, good);
+                if (!HasToken(source, EurekaQuantities.DepositPrefix + name.Replace('-', '_'))) continue;
+                int with = 0;
+                foreach (SettlementId s in mine) if (DepositConcealment.KnownAbundance(world, cfg, s, good) > 0.0) with++;
+                parts.Add(name + " deposits known: at " + Inv(with) + " of your settlements");
+            }
+            if (HasToken(source, EurekaQuantities.SiteRiver))
+            {
+                int with = 0;
+                foreach (SettlementId s in mine) if (ResearchQuery.SiteRiver(world, s)) with++;
+                parts.Add("a river beside " + Inv(with) + " of your settlements");
+            }
+            if (HasToken(source, EurekaQuantities.SiteCoast))
+            {
+                int with = 0;
+                foreach (SettlementId s in mine) if (ResearchQuery.SiteCoast(world, s)) with++;
+                parts.Add("open water beside " + Inv(with) + " of your settlements");
+            }
+        }
         return parts.Count == 0 ? source : source + " - " + string.Join("; ", parts);
     }
 
@@ -1027,7 +1053,7 @@ public static class InfoQuery
         else
             b.Requirements.Add(new InfoLink(Num(p.LaborRequired) + " adult-years of construction labour", InfoSubject.Sector(Sectors.Construction, where),
                 cap is { } cy ? cy >= p.LaborRequired : null, cap is { } cz ? "about " + Num(cz) + " this turn (an estimate)" : "the construction share of labour"));
-        if (founds && where >= 0 && InstitutionViability.ToFound(c.W, c.Cfg, new SettlementId(where)) is { Viable: false } v)
+        if (founds && where >= 0 && InstitutionViability.ToFound(c.W, c.Cfg, new SettlementId(where), p) is { Viable: false } v)
             b.Requirements.Add(new InfoLink("A town able to sustain it", null, false, "needs " + InstitutionViability.Shortfall(v)));
         if (blocker is not null && b.WhyLocked.Count == 0) b.WhyLocked.Add(new InfoLink("Waits: " + blocker, null, false));
 
@@ -1042,8 +1068,8 @@ public static class InfoQuery
                                 "Age " + Numeral(age) + " " + (m.Core ? "core" : "supporting") + " milestone (" + Inv(m.Fact.Min) + " built)"));
         if (founds)
         {
-            int type = InstitutionContent.TypeKeyOf(c.R, p);
-            if (InstitutionContent.TypeOf(c.R, type) is { } ut)
+            int type = InstitutionContent.TypeKeyOf(c.Cfg, p);   // ADR-057: any content-driven type
+            if (InstitutionContent.Info(c.Cfg, type) is { } ut)
                 b.Enables.Add(new InfoLink(ut.Name, InfoSubject.OfUniversity(ut.Key), null, "the institution it founds once its building stands"));
         }
         else
@@ -1873,13 +1899,26 @@ public static class InfoQuery
 
     private static void UniversityCard(Ctx c, B b)
     {
-        if (c.R is not { } r || InstitutionContent.TypeOf(r, (int)b.Subject.Id) is not { } ut) { b.Unknown("a university type with this key"); return; }
+        // ADR-057: the subject key is any content-driven institution type; a university names its branch, another type (the
+        // law court) the named equation its maturity enters.
+        if (c.R is not { } r || InstitutionContent.Info(c.Cfg, (int)b.Subject.Id) is not { } ut) { b.Unknown("an institution type with this key"); return; }
         b.Title = ut.Name;
-        b.Kind = "Institution - a specialised university (" + r.Branches[ut.Branch].Name + ")";
-        b.What = "Founded when its building is completed in a town able to sustain it; as it matures it makes research in "
-            + r.Branches[ut.Branch].Name + " cheaper.";
+        if (ut.University)
+        {
+            b.Kind = "Institution - a specialised university (" + r.Branches[ut.Branch].Name + ")";
+            b.What = "Founded when its building is completed in a town able to sustain it; as it matures it makes research in "
+                + r.Branches[ut.Branch].Name + " cheaper.";
+            b.RealizedBy = "ConstructionSystem builds its building; InstitutionsSystem founds it and matures it; ResearchSystem reads the cost factor.";
+        }
+        else
+        {
+            b.Kind = "Institution";
+            b.What = "Founded when its building is completed in a town able to sustain it; as it matures its maturity counts in the "
+                + "public services of its town - the offset that lightens how heavily the levy is felt there (Unrest.ServiceOffset). "
+                + "Its staff are withdrawn from labour.";
+            b.RealizedBy = "ConstructionSystem builds its building; InstitutionsSystem founds it and matures it; the levy's felt burden reads its maturity.";
+        }
         b.Effect = InfoEffect.Simulated;
-        b.RealizedBy = "ConstructionSystem builds its building; InstitutionsSystem founds it and matures it; ResearchSystem reads the cost factor.";
         int count = 0;
         foreach (InstitutionInstanceView v in InstitutionsQuery.Instances(c.W, c.Cfg, c.P)) if (v.TypeKey == ut.Key) count++;
         if (InstitutionContent.ProjectOfType(c.Cfg, ut.Key) is { } p)
@@ -2403,7 +2442,7 @@ public static class InfoQuery
 
     private static string ProjectName(Ctx c, ConstructionProjectEntry p)
     {
-        if (p.Founds is { } f && c.R is { } r0 && InstitutionContent.TypeOf(r0, InstitutionContent.TypeKeyOf(r0, p)) is { } ut) return ut.Name;
+        if (p.Founds is not null && InstitutionContent.Info(c.Cfg, InstitutionContent.TypeKeyOf(c.Cfg, p)) is { } ut) return ut.Name;
         if (p.Entity is { } id && c.R is { } r && r.EntityIndexOf(id) is int e and >= 0 && r.Entities[e].Name is { Length: > 0 } name) return name;
         return Cap(p.Name);
     }

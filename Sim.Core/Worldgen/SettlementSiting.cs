@@ -352,6 +352,10 @@ public static class SettlementSiting
         public required double Floor { get; init; }
         public required double MinSpacingCostUnits { get; init; }
         public required int Size { get; init; }
+        /// <summary>D-066 A18 (M6 closure, track FOG): the siting config this frontier was prepared with — what the AI's
+        /// known-terrain valuation (<see cref="State.KnownSiting"/>) recomputes the score from over the cells its polity
+        /// knows. Null on a hand-built frontier (a test raster); such a frontier cannot be valued over a partial view.</summary>
+        public SitingConfig? Siting { get; init; }
     }
 
     /// <summary>Prepare the terrain-invariant half of frontier siting (once per run).</summary>
@@ -370,6 +374,7 @@ public static class SettlementSiting
             MinSpacingCostUnits =
                 Pathing.LatticeGeometry.CostUnitsForIdealGroundKm(lattice, cfg.MinSpacingKm),
             Size = terrain.Size,
+            Siting = cfg,
         };
     }
 

@@ -112,7 +112,7 @@ public sealed record ResearchTables(
 /// attached (a toy world, or a config loaded without research.json) it is inert:
 /// the Colonization / Construction precedent.
 /// </summary>
-public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<ResearchTables>
+public sealed class ResearchSystem(ResearchContent? content, SimConfig? cfg = null) : ISimSystem<ResearchTables>
 {
     /// <summary>SystemId 24. 17 is held by the unmerged t4.13 branch, 22 by the unmerged
     /// m5-full-build GovernanceSystem, and 19 is left alone (ADR-029 §3).</summary>
@@ -122,6 +122,10 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
     public SystemId Id => WellKnownId;
 
     private readonly ResearchContent? _content = content;
+
+    /// <summary>ADR-058 §B: the config a Eureka's deposit_&lt;good&gt; quantity reads concealment through (sim.json discovery);
+    /// null = concealment off. SystemCatalog passes the step's config.</summary>
+    private readonly SimConfig? _cfg = cfg;
 
     public void Step(SimContext<ResearchTables> ctx)
     {
@@ -268,7 +272,7 @@ public sealed class ResearchSystem(ResearchContent? content) : ISimSystem<Resear
                     ResearchEureka eureka = node.Eurekas[e];
                     if (eureka.Condition is null) continue;
                     if (ResearchQuery.EurekaFired(prev, polity, node.Key, e)) continue;
-                    if (!ResearchQuery.EurekaHolds(prev, content, polity, eureka.Condition, completed)) continue;
+                    if (!ResearchQuery.EurekaHolds(prev, content, polity, eureka.Condition, completed, _cfg)) continue;
                     // The Eureka fires once, whatever the pool can still pay: a held condition
                     // never pays twice, and a full pool simply pays it nothing.
                     owned.Eurekas.Add(new ResearchEurekaRow(polity, node.Key, e));

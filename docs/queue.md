@@ -1737,3 +1737,25 @@
   warband's 20 people outlive the settlement (extinction turn 18 shipped vs 11 military-off). Pinned by
   `PopulationTests.DeadWorld_OnTheShippedConfig_TheWarbandOutlivesTheSettlement`. Director decision: accept until M7.4, or
   amend ADR-055 so attrition/desertion lands with this slice.
+- 2026-10-28 (M6 closure audit, D-066 R2 / A12): the research-tool-tests and unlock-audit items above (lines 1725 and 1730)
+  are CLOSED. `validate.py --live` reconciles the corpus and Eureka checks to the live tree and passes; the proposal-graph
+  checks are a historical snapshot out of the gate (docs/validation-policy.md §6 states what moved where);
+  `unresolved_claims.py` reads the live corpus (t8 passes). The unlock audit reads goods.json `knowledge` (recipes, deposit
+  and herd goods) and the sim.json assay gate, and `--check` now exits 1 on any unlinked, unreachable or OPEN row.
+- 2026-10-28 (M6 closure audit, observation for the Director): six levelled `frontier_*` repeatables carry a realized
+  completion delta AND a per-level effect on the SAME operand (frontier_crops, frontier_medicine, frontier_materials,
+  frontier_military, frontier_cyber, frontier_climate). Both are summed into Σ before the registry cap — two declared
+  channels (ADR-047 completion once; ADR-049 per level), not a duplicate within one, so the consequence audit records them
+  (`docs/research-consequence-audit.md` §7) and does not fail. Whether level 1 should carry both is a content call; no change.
+- 2026-10-28 (M6 closure, track KNOW, ADR-058): contact exposure is binary per partner and accrues at one rate however
+  many partners know the node; weighting the rate by trade volume (TradeFlows quantity) or by the number of partners is a
+  better diffusion model, left for a calibration pass. City states are carriers but not receivers (D-066 lists the
+  city-state knowledge rule as undecided).
+- 2026-10-28 (M6 closure, track KNOW, ADR-058 §B): Eurekas groundable in state the build already computes but left out of
+  the resources/terrain pass — `road_paved` (built roads: TransportEdges), `quantum_mechanics` (a university:
+  InstitutionRow) — and three that need a ruled threshold first (`irrigation_canal` aridity, `terrace` slope, `water_mill`
+  river gradient). Register: `docs/m6-plan/eureka-evaluability-register.md`.
+- 2026-10-28 (M6 closure, track KNOW, ADR-058 §A.6): MEASURED — in the canonical AI world (seed 42, 600 turns) no foreign
+  trade flow ever exists (trade is research-gated at both endpoints; the AI learns it ~turn 540, city states and an
+  order-less player never), so contact exposure writes nothing. Director question for the playtest: should contact also be
+  carried by proximity/sighting alone, or stay trade-only (D-066 A7 as adopted)?

@@ -504,7 +504,9 @@ public static class AiResearchPolicy
         {
             foreach (ConstructionProjectEntry project in projects)
             {
-                if (project.Founds is not { } founds) continue;
+                // ADR-057: the UNIVERSITY requirement only (ADR-046's goal is the universities'; a project founding another
+                // institution type — the law court — is no research goal of its own, so this goal closure is unchanged).
+                if (project.Founds is not { UniversityType: not null } founds) continue;
                 if (ConstructionQuery.IsKnowledgeEligible(world, content, polity, project)) continue;
                 if (project.Entity is { } building)
                 {

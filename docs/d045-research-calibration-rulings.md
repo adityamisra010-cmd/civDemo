@@ -611,3 +611,11 @@ several D-045 rulings are implemented. The D-045 text stands as the record of wh
 | §8 university seam | Unchanged (input table, no writer); EffectiveCost gains the 20 % floor |
 | §10 finite vs recursive | The ten are the named recursive set, available per subtree; repeat mechanics DEFERRED (D-046 G4) |
 | §11 technique candidates | Unchanged: 38 flagged, none moved; carried forward in `docs/research-corpus-audit.md` §7 |
+
+## Dated note — 2026-10-28 (D-066 A8; appended, the text above is unchanged)
+
+Part D item 3 ("Future research modifiers … no formula is chosen"): for universities, the M6 formula is the shipped
+ADR-033 D6 form, Factor = 1 − maxResearchCostReduction × (1 − e^−X), X the owner's maturity-weighted university count per
+type (`InstitutionEffects.ResearchFactor`) — D-066 §2 A8, ADOPTED, no code change; recorded on ADR-033 D6. Foreign
+knowledge now has a source too: contact-carried exposure (ADR-058, D-066 A7), credited from the shared acceleration pool,
+never a multiplier. The other modifiers the item lists (literacy, education, health, connectivity) remain unformulated.

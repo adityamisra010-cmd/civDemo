@@ -95,6 +95,8 @@ internal static class ResearchRigs
         public bool AiGateAwareGoals { get; set; }
         /// <summary>ADR-053: tuning.aiCivicsGateGoals (null = absent).</summary>
         public bool AiCivicsGateGoals { get; set; }
+        /// <summary>ADR-058: tuning.foreignExposure {enabled, ratePerYear} (null = absent, no exposure writer).</summary>
+        public (bool Enabled, double RatePerYear)? ForeignExposure { get; set; }
 
         public string Json()
         {
@@ -270,6 +272,9 @@ internal static class ResearchRigs
                     ["aiGateAwareGoals"] = AiGateAwareGoals ? true : null,
                     ["aiCivicsGateGoals"] = AiCivicsGateGoals ? true : null,
                     ["populationAverageTurns"] = PopulationAverageTurns,
+                    ["foreignExposure"] = ForeignExposure is { } fe
+                        ? new JsonObject { ["enabled"] = fe.Enabled, ["ratePerYear"] = fe.RatePerYear }
+                        : null,
                 },
                 ["baseline"] = WithBaseline
                     ? new JsonArray(new JsonObject

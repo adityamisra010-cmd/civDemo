@@ -147,9 +147,9 @@
   },
   {
    "file": "tranche2-6.json",
-   "title": "Tranche 2 additions (part 6 of 6): arts-culture, exploration-empire, public-administration, thought-learning",
+   "title": "Tranche 2 additions (part 6 of 6): arts-culture, exploration-empire, public-administration, thought-learning; plus crossbow_repeating and siege_tower (the two ADR-045 deferred-merge nodes, added by the M6 closure audit, D-066)",
    "lane": "T2-tranche2",
-   "count": 74
+   "count": 76
   }
  ]
 }

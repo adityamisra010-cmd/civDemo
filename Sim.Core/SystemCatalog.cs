@@ -411,7 +411,7 @@ public static class SystemCatalog
     /// Inert when the config carries no research content.</summary>
     public static SystemRegistration Research(SimConfig cfg)
     {
-        var system = new ResearchSystem(cfg.Research);
+        var system = new ResearchSystem(cfg.Research, cfg);
         return new SystemRegistration(ResearchSystem.WellKnownId, ResearchSystem.Name,
             (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<ResearchTables>(
                 prev, new ResearchTables(next.ResearchTargets, next.ResearchProgress,
@@ -524,6 +524,19 @@ public static class SystemCatalog
             Reservations.Enabled(cfg) ? [Systems.Construction.ConstructionSystem.Name] : null);
     }
 
+    /// <summary>ADR-058 (D-066 A7; SystemId 31): contact-carried foreign exposure. SOLE OWNER of ResearchExposures (the
+    /// ADR-029 addendum A input seam ResearchSystem reads from Prev and pays from the shared acceleration pool). Reads only
+    /// PREV: the roster, Controls, TradeFlows, the fog's sightings and the completed knowledge. Inert with research.json
+    /// tuning.foreignExposure absent or disabled.</summary>
+    public static SystemRegistration Diffusion(SimConfig cfg)
+    {
+        var system = new Systems.Diffusion.DiffusionSystem(cfg);
+        return new SystemRegistration(Systems.Diffusion.DiffusionSystem.WellKnownId, Systems.Diffusion.DiffusionSystem.Name,
+            (prev, next, rng, dtDays, dtYears, orders) => system.Step(new SimContext<Systems.Diffusion.DiffusionTables>(
+                prev, new Systems.Diffusion.DiffusionTables(next.ResearchExposures),
+                rng, Systems.Diffusion.DiffusionSystem.WellKnownId, dtDays, dtYears, orders, new Ledger(next.LedgerFlows))));
+    }
+
     /// <summary>
     /// All systems that exist at the current milestone — M1 production systems
     /// first, retired T0.x toys last (still registered: the toy preset and the
@@ -532,6 +545,6 @@ public static class SystemCatalog
     public static SystemRegistration[] All(SimConfig cfg, Worldgen.WorldgenConfig? worldgen = null) =>
         [Catchment(cfg), HarvestWeather(cfg), Disaster(cfg), Production(cfg), Appropriation(cfg), Consumption(cfg), Price(cfg), TradeArbitrage(cfg),
          Housing(cfg), Construction(cfg), ClassMobility(cfg), Migration(cfg), Colonization(cfg, worldgen), Discovery(cfg), Revolt(cfg), Governance(cfg), Demographics(cfg), NeedsGrievance(cfg), PathBuild(cfg),
-         Research(cfg), AgeEligibility(cfg), AgeTransition(cfg), Military(cfg), RoadDevelopment(cfg), Institutions(cfg),
+         Research(cfg), AgeEligibility(cfg), AgeTransition(cfg), Military(cfg), RoadDevelopment(cfg), Institutions(cfg), Diffusion(cfg),
          Weather(), Growth(), Trade()];
 }

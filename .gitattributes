@@ -1,0 +1,4 @@
+# ADR-059: byte-exact inputs of the session-export goldens. The workbook golden hashes these bytes (the embedded codebooks
+# and the recorded session files, some of which a Windows build wrote with CRLF), so no checkout may convert line endings.
+docs/m6-session-export/codebook-telemetry-* -text
+Sim.Ui.Tests/Fixtures/session-export/** -text

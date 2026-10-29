@@ -148,6 +148,16 @@ public class ResearchUnlockPipelineUiTests
             Assert.Equal(researched, m.Production.Entries.Any(e => e.Name == "Pottery firing"));
             Assert.Equal(researched, m.Production.Entries.Any(e => e.Name == "Bronze casting"));
             Assert.Equal(researched, m.Construction.Projects.Any(p => p.Name.Contains("University", StringComparison.Ordinal)));
+            // ADR-057 (M6 CIV, P6): the law court (goods.json project 16, founding inst.law_code, which requires law_code — an
+            // ancestor of legal_code_roman) is on the surface exactly when legal: listed at a settlement IFF the one availability
+            // predicate admits it there (one predicate, two callers), and shown only then.
+            Assert.Equal(researched, m.Construction.Projects.Any(p => p.ProjectId == 16));
+            for (int s = 0; s < w.Settlements.Count; s++)
+            {
+                SettlementId at = w.Settlements[s].Id;
+                Assert.Equal(ConstructionQuery.IsProjectAvailable(w, cfg, Me, at, 16),
+                    query.Any(a => a.Domain == ActionDomain.Institutions && a.Targets[0].Id == at.Value && a.Targets[1].Id == 16));
+            }
         }
     }
 

@@ -27,6 +27,9 @@
     <!-- D-055 (schema v34): the batch-3 build's v33 session (Sim.Tests/Fixtures/README-v33-fixture.md) — the UI resume of a
          v33 session under v34 reads the same files. -->
     <None Include="..\Sim.Tests\Fixtures\v33-session-q17\*" LinkBase="Fixtures\v33-session-q17" CopyToOutputDirectory="PreserveNewest" />
+    <!-- ADR-059: the session-export fixtures (Fixtures/session-export/README.md) — the Director's 68-turn session and a
+         current-tree session, each with the prototype's cells (the codec goldens). Telemetry is stored gzip'd. -->
+    <None Update="Fixtures\session-export\**\*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

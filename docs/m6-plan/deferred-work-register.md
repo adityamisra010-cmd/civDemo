@@ -45,7 +45,7 @@ recommendations for unruled ones are in `m6-decision-register.md` and `../m5-exi
 
 | ID | Item | Source | Deferred by / when | Destination | Cat | Dir. owed |
 |---|---|---|---|---|---|---|
-| DW-018 | Unit move orders, Action Points/Capacity, right-click move; m5w S3a–S3c; kind 10 reserved; AP state at v36; unit-card wording stale ("awaiting the Director's ruling") | `d052:46-51`; `cr-017:7-12`; `milestones.md:36`; `m5w:1197, 1229-1230`; `d054:407`; `known-issues:154-155, 266` | Director 2026-10-12: "Unit move orders, Action Points / Action Capacity and right-click move are M7 Battle Layer work. CR-017 §3 … and §5 … must be ruled before any M7 movement packet" | "M7" | SIM+UI | Y (CR-017 §3/§5 substance) |
+| DW-018 | Unit move orders, Action Points/Capacity, right-click move; m5w S3a–S3c; kind 10 reserved; ~~AP state at v36~~ AP state has no reserved schema version (v36 is ADR-049's; D-062 R11, D-066 A11 — corrected 2026-10-28, M6.19); unit-card wording stale ("awaiting the Director's ruling") — ~~stale~~ corrected 2026-10-28 (M6.12: the movement line now reads "Movement: not simulated — Battle Layer (M7)"). The M6 side of AP is the contract only ([training-ap-contract.md](training-ap-contract.md), H7-02) | `d052:46-51`; `cr-017:7-12`; `milestones.md:36`; `m5w:1197, 1229-1230`; `d054:407`; `known-issues:154-155, 266` | Director 2026-10-12: "Unit move orders, Action Points / Action Capacity and right-click move are M7 Battle Layer work. CR-017 §3 … and §5 … must be ruled before any M7 movement packet" | "M7" | SIM+UI | Y (CR-017 §3/§5 substance) |
 | DW-019 | CR-017's other collisions (Ages as state, transition surge, mobile agents, war pulses; seven collisions) | `cr-017:3-6, 29-32` | Raised 2026-09-29; scheduling only ruled | §3/§5 "M7"; rest none named | GOV | Y |
 | DW-020 | Military realization: recruitment, headcount, armies in motion, ZOC, war pulses, conquest; Age military milestones PENDING recruitment; tier-E entities; city_wall defence effect | `milestones.md:53-58`; `adr-033:151-158`; `d052:89`; `baseline:385, 752, 758, 761`; `m5-integration-coherence-matrix.md:221-224`; deferred-entity plan `:37, 57-63` | Roadmap rebase 2026-10-03 | "M7" | SIM | N |
 | DW-021 | Annexation gameplay (`MergeInto` has no caller), conquest, recovery of revolted settlements; transfer of institutions on conquest/secession "later work — open question" | `baseline:752-755`; `adr-033:258-259`; coherence `:172-183`; `institutions-universities.md:61` | R3/D-048 | "M7 (Battle Layer), M8" | SIM | Y (institution transfer) |
@@ -156,3 +156,38 @@ acceptance".
   INFERRED-stale playtest lines are RECORDED here and left for the next docs pass that touches those files.
 - New deferred items from T6.1 (`docs/m6-foundations-audit.md` §F): the "chosen, never derived" constants (queued in
   `docs/queue.md`), the code-literal lattice stride and AI valuation windows, the stale code comments (to T6.2).
+
+## Dated note — 2026-10-28 (M6.19, D-066 R2; DW-018 corrected in place, struck text kept)
+
+- **DW-018:** "AP state at v36" was stale — v36 is ADR-049's, and Action Points / Action Capacity state has no reserved
+  schema version (D-062 R11; D-066 A11); it takes the next free version when M7 lands it. The unit card's stale
+  "awaiting the Director's ruling" movement wording (`m5-playtest-known-issues.md`) is corrected by M6.12. The item's
+  destination (M7) and its owed ruling (CR-017 §3/§5) are unchanged. M6 delivers the AP/training contract only
+  ([training-ap-contract.md](training-ap-contract.md); `m7-handoff-register.md` H7-02).
+
+## Dated note — 2026-10-28 (D-066 §2 A19 and §3; M6 closure track FOG; appended, the text above is unchanged)
+
+The fog rows the D-066 §3 deferral table carries, restated here per row. Each "Destination" of the rows above that says
+"M6" is superseded for the parts listed **M7**; the parts listed **M6** are done or completed in M6 (D-066 §3).
+
+| ID | Part | Disposition | Reason | Dependency | Owner / milestone |
+|---|---|---|---|---|---|
+| DW-001 | Stored known extent, UNKNOWN / VISIBLE / REMEMBERED, settlement sighting memory, Explore / Prospect | DONE in M6, preserved with its tests (ADR-044) | — | — | M6 (Track EX) |
+| DW-001 | Extent monotone across revolt and loss of control; the leak gate on the production fog; the AI's valuation of unseen terrain (closing ADR-037 §6's valuation channel) | COMPLETED in M6 (D-066 §3; A18; ADR-044 dated note 2026-10-28) | — | none | M6 (closure track FOG) |
+| DW-001 | LIVE / GHOST rows and the ghost display; scouts and reconnaissance; sighting updates from moving formations | DEFERRED (D-066 R1) | A ghost is a last-seen position of something that moves; scouts and sight along a path need movable units | Movable units: order kind 10, per-step positions, Action Points | **M7** — H7-01 / H7-07 (single owner, see `m7-handoff-register.md` note of 2026-10-28) |
+| DW-001 | The known-extent restriction of claim and trade routing (D-040 B1's "claim, trade") | DEFERRED (D-066 A19; slice contract E8; ADR-044 §11) | E8 ruled no new gate in the M6 slice beyond the founding arm; road and trade routing belong with the movement graph | The M7 movement / route graph these routings share | **M7** (movement, D-039 parts A/D/E) |
+| DW-002 | Which world a fogged issuer's Found Settlement order is judged against (the placement-mode verdict reads unseen ground) | DEFERRED (D-066 A19) | The founding predicate's spacing, route and candidate-floor arms read the whole map; restricting them is a RULE change shared by the player's placement mode and the AI (one predicate), not an AI-only channel. A18 closed the AI's VALUATION only; the residual is pinned open by `PolityKnowledgeTests.RecordedResidual_ThePredicatesOwnArms_ReadLandTheIssuerDoesNotKnow_SharedByThePlayerAndTheAi` | The M7 movement / route graph (the route arm is a travel question) | **M7** (with DW-001's routing row) |
+| DW-006 | Trade's mutually-known term in `TradeQuery.CanTrade` | DEFERRED (D-066 A19) | Trade pairing against the known extent is part of trade routing, which E8 left ungated in M6 | The M7 movement / route graph | **M7** (with DW-001's routing row) |
+
+## Dated note — 2026-10-28 (M6 exit audit: aligned with D-066 §3)
+
+The fog deferral rows are carried as in D-066's dated note of 2026-10-28 (one owner each):
+- **LIVE/GHOST, scouts and moving sight:** H7-07.
+- **Claim, trade AND road routing** (DW-001 deferred part, DW-002, DW-006): M7 route graph (H7-01).
+- **Siege / line of sight:** H7-04.
+- **Discovery bench:** completed, recorded in the ADR-044 dated note.
+
+The earlier note's attribution of claim/trade routing to "D-039 A/D/E" is corrected: D-039 parts A, D and E are command
+friction, siege and campaign, not the route graph.
+
+DW-036 (D-051 §4) stays open and needs a Director ruling (D-066 dated note, M6.24).

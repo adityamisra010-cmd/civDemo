@@ -117,7 +117,8 @@ public class SessionRecordTests
             // so this test tracks the tag instead of re-pinning it every bump.
             Assert.Contains("\"schema\":\"" + TelemetryWriter.Schema + "\"", lines[0]);
             // ADR-033 D4: v4 adds social.tax (the M5 tax burden on happiness).
-            Assert.Equal("telemetry/v4", TelemetryWriter.Schema);
+            // D-066 A15 (ADR-059): v5 names the M7 pass's line shape (grain.military / grain.fodder, 23 goods).
+            Assert.Equal("telemetry/v5", TelemetryWriter.Schema);
         }
         finally
         {

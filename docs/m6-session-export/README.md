@@ -76,3 +76,34 @@ byte (checked 2026-10-19).
    InvariantCulture; no Dictionary iteration; no `float`.
 4. **Versioning:** one codebook per telemetry schema; a writer change needs a new codebook before export works.
 5. **Goldens:** the prototype's cells for the measured runs become the C# port's golden tests.
+
+---
+
+## 6. Dated note, 2026-10-28: built in M6 (ADR-059; D-066 A14–A17)
+
+The design above is now built, in `Sim.Ui/Export/`. Sections 1–5 are kept as written. This note records what changed
+around them; [ADR-059](../adr/adr-059-one-file-session-export.md) has the details.
+
+**Where the export runs.** The game writes `session-STAMP.xlsx` when a session closes, after the forensic close record.
+`sim-ui --export-session DIR|MANIFEST` writes the same workbook headlessly.
+
+**Two codebooks (§5.4).**
+- `codebook-telemetry-v4.tsv` is unchanged, byte for byte. It reads `telemetry/v2`, `v3` and `v4` lines.
+- `codebook-telemetry-v5.tsv` reads `telemetry/v5`, the tag the writer now emits (D-066 A15). It adds:
+  - the optional `grain.military` and `grain.fodder` keys;
+  - the names of reasons 17–21;
+  - 23 goods;
+  - order kinds 14–18;
+  - constant C2's military-grain clause;
+  - the continuation rule.
+
+**`make_codebook.py`.** It now writes four files into this folder: both TSVs and their machine-readable twins
+`codebook-telemetry-v4.json` and `-v5.json`, which the C# codec reads. `make_codebook.py --check` fails when any of
+them is stale; CI runs it. It no longer writes `prototype/codebook.tsv`.
+
+**Continuation cells (§5.1).** Section 3's "Limit" paragraph asked the M6 spec to define a continuation cell; D-066 A17
+defines it. A continuation row has an EMPTY column A, and its cell starts with `>` followed by the `|` that was cut.
+`codec.split_cell` and `codec.join_cells` are the prototype's versions.
+
+**Goldens (§5.5).** The prototype's cells for the Director's 68-turn session and for a 16-turn current-tree session
+are the C# port's goldens. They are in `Sim.Ui.Tests/Fixtures/session-export/`.

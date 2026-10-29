@@ -111,7 +111,11 @@ public sealed class ResearchSnapshot
     /// Turn plays (<see cref="ActionQueryContext.ForNextStep"/> over the session's era table) — the dt the CP a turn is
     /// shown for (rp-cp-lifecycle k5); null falls back to the clock's last dt, which is wrong at turn 0 and at the first
     /// turn of each era band.</summary>
-    public static ResearchSnapshot Build(IReadOnlyWorldState world, ResearchContent content, PolityId polity, double? nextDtYears = null)
+    /// <remarks>ADR-058 §B: <paramref name="cfg"/> is the session's config, through which a Eureka's deposit_&lt;good&gt; quantity
+    /// reads concealment (an unsurveyed concealed deposit never shows as holding — no information leak); null = concealment
+    /// off.</remarks>
+    public static ResearchSnapshot Build(IReadOnlyWorldState world, ResearchContent content, PolityId polity, double? nextDtYears = null,
+        Sim.Core.Systems.SimConfig? cfg = null)
     {
         int n = content.Nodes.Count;
         bool[] completed = ResearchQuery.CompletedMask(world, content, polity);
@@ -178,7 +182,7 @@ public sealed class ResearchSnapshot
                 prereqs[k] = new PrereqView(p, content.Nodes[p].Name, completed[p], and ? EdgeKind.And : EdgeKind.Or);
             }
 
-            ResearchQuery.EurekaState[] eu = ResearchQuery.Eurekas(world, content, polity, node.Key);
+            ResearchQuery.EurekaState[] eu = ResearchQuery.Eurekas(world, content, polity, node.Key, cfg);
             var eurekas = new EurekaView[eu.Length];
             for (int e = 0; e < eu.Length; e++)
                 eurekas[e] = new EurekaView(eu[e].Text, eu[e].Kind, eu[e].Weight, eu[e].MaxCredit, eu[e].Condition,

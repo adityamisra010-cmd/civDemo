@@ -50,14 +50,22 @@ public static partial class PlayabilityGate
 
     /// <summary>The best place THE predicate answers Legal for from <paramref name="source"/>, against the batch this turn's
     /// queued orders already make, among the cells the player KNOWS (the AI's own ranking, AiFoundingPolicy.BestSiteFor,
-    /// with the player's knowledge); -1 when there is none.</summary>
+    /// with the player's knowledge and — D-066 A18 — the whole-map valuation); -1 when there is none.</summary>
     public static int LegalPlace(UiSession s, int source)
     {
         if (s.Sites is not { } site || s.World.Terrain is not { } terrain) return -1;
         SettlementSiting.FrontierSiting f = site.Frontier;
         FoundSettlementOrderFactory.Pending pending = FoundSettlementOrderFactory.Standing(s.World, s.Config, f, s.QueuedOrders());
         if (pending.Founds(new SettlementId(source))) return -1;
-        return AiFoundingPolicy.BestSiteFor(s.World, s.Config, f, terrain, pending.Sites, Me, new SettlementId(source),
+        // D-066 A18 (M6 closure track FOG): the gate needs ANY place the player may found — THE predicate decides and the scan
+        // still admits only cells the player KNOWS — so it ranks with the whole-map valuation (knownTerrainOnly off), not the
+        // AI's stricter known-terrain floor. MEASURED: with the AI's valuation the gate found no legal known place in 12 of its
+        // 13 states (found-confirm drawn but never pressed). The ranking only chooses which legal known place the gate
+        // clicks; nothing of it is shown to the player.
+        Sim.Core.Systems.SimConfig finder = s.Config.Colonization?.AiFounding is { } ai
+            ? s.Config with { Colonization = s.Config.Colonization with { AiFounding = ai with { KnownTerrainOnly = false } } }
+            : s.Config;
+        return AiFoundingPolicy.BestSiteFor(s.World, finder, f, terrain, pending.Sites, Me, new SettlementId(source),
             FoundingQuery.Check, s.Knowledge.Core);
     }
 

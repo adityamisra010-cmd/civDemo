@@ -34,7 +34,8 @@ public static class SmokeCommand
                 try
                 {
                     table = MapFrameCost.Run(assets, Arg(args, "--rounds") ?? 5, settlements: settlements,
-                        canonicalTurn: Arg(args, "--turns") ?? MapFrameCost.DefaultCanonicalTurn, log: line => Console.Error.WriteLine(line));
+                        canonicalTurn: Arg(args, "--turns") ?? MapFrameCost.DefaultCanonicalTurn, log: line => Console.Error.WriteLine(line),
+                        highCountSizePx: Arg(args, "--size"));
                 }
                 catch (ArgumentException e) when (e.ParamName == "settlements")
                 {

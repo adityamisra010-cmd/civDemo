@@ -126,7 +126,8 @@ public class MilitaryAttributionTests
     {
         Assert.True(RecruitmentQuery.Enabled(TestConfigs.Sim()));
         Assert.False(RecruitmentQuery.Enabled(Off()));
-        Assert.Same(TestConfigs.Sim().Research, Off().Research);   // a pre-military twin keeps the research content as shipped
+        // A pre-military twin keeps the research content as shipped — less the NEWER ADR-058 layer, which it strips (R4).
+        Assert.Same(TestConfigs.PreKnow(TestConfigs.Sim()).Research, Off().Research);
         foreach (SimConfig older in new[]
                  {
                      TestConfigs.PreM6(TestConfigs.Sim()), TestConfigs.PreDiscovery(TestConfigs.Sim()),

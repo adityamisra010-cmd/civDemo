@@ -27,6 +27,30 @@ jobs:
       - name: Research → gameplay unlock audit is current (R1 — every node's content-declared consequence)
         run: python3 scripts/research-gameplay-unlock-audit.py --check
 
+      # M6 closure (D-066 R2, the content/consequence audit; A12 for the live corpus checks). Each exits 1 on a FAIL.
+      - name: Research consequence audit is current and every rule passes (closure grade — zero unclassified items)
+        run: python3 scripts/research-consequence-audit.py --check
+
+      - name: Research audits' teeth (mutant tests of the unlock and consequence audits)
+        run: python3 -m unittest scripts/test_research_audits.py
+
+      - name: Tree closure integrity (ids, keys, prerequisites, reachability, Age order, effects, costs)
+        run: python3 -I docs/m6-plan/knowledge-redesign/tools/tree_closure_check.py
+
+      - name: M7 unit and building charter consistency (the §9 entity register the consequence audit reads)
+        run: python3 -I docs/m7-plan/tools/check_charters.py .
+
+      - name: Live corpus and content checks (validate.py --live, its fixtures and mutants; D-066 A12)
+        run: |
+          python3 -I docs/m6-plan/knowledge-redesign/tools/validate.py --live
+          git diff --exit-code -- docs/m6-plan/knowledge-redesign/validation-report-live.md   # the committed report must be current (M6 exit audit, defect 2)
+          python3 -I docs/m6-plan/knowledge-redesign/tools/test_validate.py --live --mutants
+          python3 -I docs/m6-plan/knowledge-redesign/tools/test_sourcing_queue.py --mutants
+          python3 -I docs/m6-plan/knowledge-redesign/tools/export_runtime_texts.py --check
+
+      - name: Session-export codebooks are current (ADR-059 — generated from prototype/spec.py)
+        run: python3 -I docs/m6-session-export/prototype/make_codebook.py --check
+
       - name: Validation selector self-test and map consistency (docs/validation-policy.md)
         run: python3 -m unittest scripts/test_tiered_validation.py
 
@@ -43,6 +67,12 @@ jobs:
 
       - name: Build
         run: dotnet build Sim.slnx --no-restore --configuration Release
+
+      - name: Unit-progression content validator (M6.9/M6.10 — inert promotion trees and the dormant training contract)
+        run: dotnet test Sim.Tests --no-build --configuration Release --filter "FullyQualifiedName~UnitProgression"
+
+      - name: Session export golden (ADR-059 — the Director's 68-turn session and a current-tree session, byte for byte)
+        run: dotnet test Sim.Ui.Tests --no-build --configuration Release --filter "FullyQualifiedName~SessionExportTests"
 
       - name: Test
         run: dotnet test Sim.slnx --no-build --configuration Release
@@ -360,6 +390,11 @@ jobs:
           # ADR-055 (M7 recruitment, 2026-10-28; MEASURED on the combined research + units + economy tree by the coordinator):
           # the AI recruits (kind 16, RecruitFormation) exactly once in 600 turns, at turn 243 (skirmishers; every later
           # identity's bill needs an EC good its knowledge does not yet reach). The run log holds 365 orders.
+          # D-066 A18 (M6 closure track FOG, 2026-10-28; MEASURED: one local `run` of the command above and this kind check on the track tree): the AI
+          # values sites by the terrain it KNOWS, so it explores longer before founding — 9 Explore orders (stamped 35-43), 11
+          # foundings (first 44); the run log holds 349 orders; the kind set is unchanged.
+          # M6 INTEGRATION (all seven tracks, KNOW + FOG combined; MEASURED: one local `run` + this check on the integrated
+          # tree): 351 orders; 9 Explore (35-43), 11 foundings (first 44); the kind set is unchanged.
           expected = set(range(3, 10)) | {12, 13, 14, 15, 16}   # 10 is reserved (MoveFormation, M7); 11 is legacy (D-056)
           print(f"run log: {n} orders, kinds {sorted(kinds)}")
           if kinds != expected:

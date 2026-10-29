@@ -1,6 +1,6 @@
 # Research → gameplay unlock audit
 
-**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `f18295e9a85e5c2e…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
+**Generated** by `scripts/research-gameplay-unlock-audit.py` from the canonical content (research.json sha256 `9450783cf3cac4f8…`). Do not edit by hand; CI runs `--check`. Every row is derived from content links; the only mapping in the script is per consumer type (§1), which names no node.
 
 ## 1. How a node's consequence is realized (per consumer type)
 
@@ -15,6 +15,10 @@
 | institution | D | ConstructionSystem + InstitutionsSystem — ConstructionQuery.IsProjectAvailable (founds) | 4 EnqueueConstruction | Construction — found a university | ResearchUnlockPipelineTests.T11–T15 |
 | road | E | RoadDevelopmentSystem — RoadDevelopmentQuery.IsClassKnown | 8 DevelopRoads | Roads — develop | ResearchUnlockPipelineTests.T09–T10, T15 |
 | building | G | ConstructionSystem — ConstructionQuery.IsProjectAvailable | 4 EnqueueConstruction | Construction — build | ConstructionAvailabilityTests; ResearchUnlockPipelineUiTests (synthetic node) |
+| recipe-knowledge | B | ProductionSystem — CraftingQuery.IsRecipeAvailable (goods.json recipes[].knowledge, EconomyKnowledge.Met) | none (the Crafting labour share runs it) | Production — crafts we know | EconomyMetalsTests.Smelting_RunsOnlyWithItsKnowledge_…; EconomyGunpowderTests.Milling_RunsOnlyWithItsKnowledge_… |
+| good-knowledge | B | ProductionSystem — EconomyKnowledge.Met (goods.json goods[].knowledge: a deposit is worked, a herd breeds, only once known) | 3 SectorAllocation (the Extraction / Herding share) | Labour — the sector's goods | EconomyMetalsTests.IronOre_IsNotWorkedWithoutItsKnowledge_…; EconomyGunpowderTests.Saltpetre_IsNotWorkedWithoutItsKnowledge; EconomyMountsTests.Breeding_NeedsItsKnowledge_… |
+| assay | B | DiscoverySystem — DiscoveryQuery.AssayUnlocked (sim.json discovery.assayRequires) | 15 Prospect (Amount 1, the assay) | Discovery — Prospect (assay) | DiscoveryTests.Assay_IsLockedUntilOreProspecting_…; ResearchUnlockPipelineTests.T15 |
+| unit | F | MilitarySystem — RecruitmentQuery.CheckRecruit (unit-families.json realizedBy; ADR-055) | 16 RecruitFormation | Military — recruit | RecruitmentTests; UnitTaxonomyTests |
 
 A consequence is CANONICAL when content declares it (an entity requirement, a consumer's entity link, a requirement expression). ENFORCED means the realizing system calls the knowledge evaluator (`ResearchQuery.IsKnowledgeEligible` / `RequirementMet`) through the predicate named above; the UI lists the action only when the query does (one predicate, every caller). Unrealized entities are DEFERRED (§4).
 
@@ -25,18 +29,18 @@ Each node is counted once, under its primary class (precedence H, B, E, D, G, F,
 | class | name | rule | count |
 |---|---|---|---|
 | A | Baseline | exists with zero research (declared in content: a baseline record or a null requirement) | 25 |
-| B | Research-gated gameplay capability | gates a production recipe, a labour activity, trade, the tax edict or an Age milestone | 51 |
-| C | Knowledge-only / modifier | capability strings or immediate effects, no realizing link | 821 |
+| B | Research-gated gameplay capability | gates a production recipe, a labour activity, a deposit or herd, trade, the tax edict, the assay or an Age milestone | 59 |
+| C | Knowledge-only / modifier | capability strings or immediate effects, no realizing link | 815 |
 | D | Institution prerequisite | gates a REALIZED institution (a founding project) or the research stage | 7 |
 | E | Infrastructure prerequisite | gates a road class RoadDevelopmentSystem builds | 4 |
 | F | Military / unit unlock | gates a unit entity (load-validated; recruitment is M7 Battle Layer) | 31 |
 | G | Application / realization | gates a building a construction project builds | 0 |
 | H | Repeatable | a repeatable node (D-044 T6 / D-046 G4) | 13 |
 | I | Content-only / descriptive | no capability string, no effect, no entity | 0 |
-| J | Explicitly deferred | every consequence is an entity no system of this milestone realizes | 78 |
+| J | Explicitly deferred | every consequence is an entity no system of this milestone realizes | 76 |
 | | **nodes** | Technology 525 + Civics 480 | **1005** |
 
-Node→consequence links by consumer type: activity 10, age 41, building 15, deferred 245, institution 50, recipe 2, road 6, stage 4, tax 1, trade 1.
+Node→consequence links by consumer type: activity 10, age 41, assay 1, building 15, deferred 212, good-knowledge 5, institution 51, recipe 2, recipe-knowledge 7, road 6, stage 4, tax 1, trade 1, unit 32.
 
 ## 3. Baseline (class A)
 
@@ -77,13 +81,6 @@ Node→consequence links by consumer type: activity 10, age 41, building 15, def
 | fixed | `sim.json trade` | R2a: trade between settlements was an M4 system with no research node | FIXED (R2a): node `trade` → entity `activity.trade` → sim.json trade.entity; TradeArbitrageSystem enforces TradeQuery.CanTrade; LIVE |
 | baseline-claim | `recipe.toolmaking` | declared BASELINE, but node capability strings mention `tools`: `copper_native`, `copper_smelting`, `arsenical_bronze`, `casting_closed`, `iron_bloomery`, `cast_iron`, `crucible_cast_steel`, `systematic_theology` | KEPT BASELINE — ownership matrix classifies it A; D-047 left recipe gating to the Director ("no blanket gate"); the directive named pottery and bronze casting only. Director decision. |
 | baseline-claim | `recipe.weaving` | declared BASELINE, but node capability strings mention `cloth`: `hide_working`, `sewing`, `loom_warp_weighted`, `dyeing`, `silk`, `fulling_mill`, `horizontal_loom`, `power_loom` | KEPT BASELINE — ownership matrix classifies it A; D-047 left recipe gating to the Director ("no blanket gate"); the directive named pottery and bronze casting only. Director decision. |
-| unlinked | `recipe coke-smelting` | goods.json recipe without a knowledge entity | OPEN |
-| unlinked | `recipe explosives-making` | goods.json recipe without a knowledge entity | OPEN |
-| unlinked | `recipe gunpowder-milling` | goods.json recipe without a knowledge entity | OPEN |
-| unlinked | `recipe iron-smelting` | goods.json recipe without a knowledge entity | OPEN |
-| unlinked | `recipe iron-toolmaking` | goods.json recipe without a knowledge entity | OPEN |
-| unlinked | `recipe steel-cementation` | goods.json recipe without a knowledge entity | OPEN |
-| unlinked | `recipe steel-converting` | goods.json recipe without a knowledge entity | OPEN |
 | deferred | `activity.caravans` | activity entity requires `donkey OR camel`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `activity.coastal_shipping` | activity entity requires `sail_square`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `activity.ocean_shipping` | activity entity requires `carrack OR caravel OR polynesian_canoe OR ocean_junk`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
@@ -156,7 +153,6 @@ Node→consequence links by consumer type: activity 10, age 41, building 15, def
 | deferred | `inst.historiography` | institution entity requires `(cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script) AND library`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `inst.hospital` | institution entity requires `medicine_hippocratic AND pharmacology`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `inst.joint_stock` | institution entity requires `joint_stock`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
-| deferred | `inst.law_code` | institution entity requires `law_code`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `inst.legal_code_roman` | institution entity requires `legal_code_roman`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `inst.library` | institution entity requires `archive AND scribal_school`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `inst.mass_media_broadcast` | institution entity requires `radio AND television AND mass_schooling`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
@@ -176,29 +172,6 @@ Node→consequence links by consumer type: activity 10, age 41, building 15, def
 | deferred | `project.interstellar_probe` | project entity requires `fusion_propulsion`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `project.orbital_launch` | project entity requires `rocket`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
 | deferred | `project.probe_acceleration` | project entity requires `laser AND space_solar`; no system of this milestone realizes it | DEFERRED — no owning system yet; knowledge eligibility is shown in the trees and lenses only |
-| deferred | `unit.aircraft_carrier` | unit entity requires `aircraft AND steam_turbine`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.archers` | unit entity requires `bow_simple`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.artillery` | unit entity requires `cannon_early OR cannon_cast_bronze OR cannon_cast_iron`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.chariot` | unit entity requires `chariot`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.combat_drone` | unit entity requires `combat_drone`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.crossbowmen` | unit entity requires `crossbow`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.heavy_cavalry` | unit entity requires `stirrup`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.helicopter` | unit entity requires `helicopter`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.horse_archers` | unit entity requires `cavalry AND composite_bow`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.icbm` | unit entity requires `icbm`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.ironclad` | unit entity requires `screw_propeller AND iron_hull`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.longbowmen` | unit entity requires `longbow`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.military_aircraft` | unit entity requires `aircraft`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.missile` | unit entity requires `rocket`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.musketeers` | unit entity requires `matchlock OR flintlock`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.nuclear_submarine` | unit entity requires `nuclear_submarine`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.ship_of_the_line` | unit entity requires `ship_of_line`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.siege_engine` | unit entity requires `siege_ram OR torsion_artillery OR trebuchet OR traction_trebuchet`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.slingers` | unit entity requires `sling`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.spearmen` | unit entity requires `hafting`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.stealth_aircraft` | unit entity requires `stealth`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.tank` | unit entity requires `tank`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
-| deferred | `unit.war_galley` | unit entity requires `naval_ram`; no system of this milestone realizes it | DEFERRED — recruitment is M7 Battle Layer (ADR-033 D7) |
 
 ## 5. Every node
 
@@ -216,12 +189,12 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `ground_stone_early` | tech | A1 | B | knapping_oldowan | resharpenable ground-edge felling axe; efficient heavy woodworking | `activity.logging` → sector `extraction` → joins | yes | yes | Labour |
 | `adhesive_natural` | tech | A1 | C | — | load-bearing compound adhesive for composite hafting | — | — | n/a | — |
 | `birch_tar` | tech | A1 | C | fire_making AND adhesive_natural | reliable hafting adhesive; waterproofing | — | — | n/a | — |
-| `hafting` | tech | A1 | F | cordage AND adhesive_natural | durable composite thrusting spear; socketed composite axe and adze | `unit.spearmen` → no realizing system | yes | deferred | — |
+| `hafting` | tech | A1 | F | cordage AND adhesive_natural | durable composite thrusting spear; socketed composite axe and adze | `unit.spearmen` → unit identity `spear_anti_cavalry/spearmen` | yes | yes | Military |
 | `cordage` | tech | A1 | C | — | binding; snares; nets; carrying | — | — | n/a | — |
 | `basketry` | tech | A1 | J | cordage | carrying; storage; sieving; fish traps | `infra.fish_weir` → no realizing system | yes | deferred | — |
 | `atlatl` | tech | A1 | C | hafting | ranged hunting of large game | — | — | n/a | — |
-| `bow_simple` | tech | A1 | F | cordage | ranged hunting; ranged combat | `unit.archers` → no realizing system | yes | deferred | — |
-| `sling` | tech | A1 | F | cordage | ranged combat; herd protection | `unit.slingers` → no realizing system | yes | deferred | — |
+| `bow_simple` | tech | A1 | F | cordage | ranged hunting; ranged combat | `unit.archers` → unit identity `ranged_infantry/archers` | yes | yes | Military |
+| `sling` | tech | A1 | F | cordage | ranged combat; herd protection | `unit.slingers` → unit identity `ranged_infantry/slingers` | yes | yes | Military |
 | `shelter_hut` | tech | A1 | C | cordage | multi-season occupation; storage inside | — | — | n/a | — |
 | `hide_working` | tech | A1 | C | knapping_levallois | clothing; containers; shelter covering | — | — | n/a | — |
 | `sewing` | tech | A1 | C | hide_working AND cordage | fitted clothing; tents; bags | — | — | n/a | — |
@@ -301,12 +274,12 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `surveying` | tech | A3 | C | cuneiform OR hieroglyphic OR chinese_script OR mesoamerican_script | land register; taxation by area; construction layout | — | — | n/a | — |
 | `sail_square` | tech | A3 | J | (dugout OR raft) AND loom_warp_weighted | improved coastal and seagoing transport class (sail); upriver travel under sail instead of rowing; river and coastal trade at scale under sail | `activity.coastal_shipping` → no realizing system | yes | deferred | — |
 | `plank_boat` | tech | A3 | J | dugout AND copper_smelting | cargo vessels; sea-going hulls | `building.harbour` → no realizing system | yes | deferred | — |
-| `horse_domestication` | tech | A3 | J | cattle | riding; fast overland movement; horse traction | `infra.courier_relay` → no realizing system | yes | deferred | — |
+| `horse_domestication` | tech | A3 | B (BJ) | cattle | riding; fast overland movement; horse traction | `good-knowledge:horses` → herd `horses` (goods.json knowledge)<br>`infra.courier_relay` → no realizing system | yes | partly (rest deferred) | Labour |
 | `donkey` | tech | A3 | J | cattle | pack transport; caravan trade | `activity.caravans` → no realizing system | yes | deferred | — |
 | `camel` | tech | A3 | J | cattle | desert crossing; long-distance caravan | `activity.caravans` → no realizing system | yes | deferred | — |
 | `wheel_spoked` | tech | A3 | C | wheel_solid AND casting_closed | fast light vehicles | — | — | n/a | — |
-| `chariot` | tech | A3 | F | wheel_spoked AND horse_domestication | mobile archery platform; elite warfare | `unit.chariot` → no realizing system | yes | deferred | — |
-| `composite_bow` | tech | A3 | F | bow_simple AND sheep_goat AND hide_working | mounted archery; chariot archery | `unit.horse_archers` → no realizing system | yes | deferred | — |
+| `chariot` | tech | A3 | F | wheel_spoked AND horse_domestication | mobile archery platform; elite warfare | `unit.chariot` → unit identity `heavy_cavalry/chariots` | yes | yes | Military |
+| `composite_bow` | tech | A3 | F | bow_simple AND sheep_goat AND hide_working | mounted archery; chariot archery | `unit.horse_archers` → unit identity `ranged_cavalry/horse_archers` | yes | yes | Military |
 | `fired_brick` | tech | A3 | J | kiln_updraft AND mudbrick | foundations; drains; baths; monumental work | `infra.sewer` → no realizing system<br>`infra.urban_drainage` → no realizing system | yes | deferred | — |
 | `glass_glaze` | tech | A3 | C | kiln_updraft AND salt_extraction | glazed ware; faience beads | — | — | n/a | — |
 | `glass_core` | tech | A3 | C | glass_glaze | glass vessels; luxury export | — | — | n/a | — |
@@ -315,9 +288,9 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `water_clock` | tech | A3 | C | pottery_open_fired AND calendar_civil | night hours; temple timing | — | — | n/a | — |
 | `medicine_recorded` | tech | A3 | C | herbal_remedies AND (cuneiform OR hieroglyphic OR chinese_script) | transmissible treatment; surgical procedure record | — | — | n/a | — |
 | `beekeeping` | tech | A3 | C | pottery_open_fired | honey; beeswax for casting and sealing | — | — | n/a | — |
-| `iron_bloomery` | tech | A4 | B (BJ) | charcoal AND kiln_updraft | iron tools and weapons; metal without long-distance trade; Iron agricultural tools; Iron fastenings | `age:a4_iron` → Age 4 milestone `a4_iron` (core)<br>`building.smithy` → no realizing system | yes | partly (rest deferred) | Age |
+| `iron_bloomery` | tech | A4 | B (BJ) | charcoal AND kiln_updraft | iron tools and weapons; metal without long-distance trade; Iron agricultural tools; Iron fastenings | `age:a4_iron` → Age 4 milestone `a4_iron` (core)<br>`building.smithy` → no realizing system<br>`good-knowledge:iron-ore` → deposit `iron-ore` (goods.json knowledge)<br>`recipe-knowledge:iron-smelting` → recipe `iron-smelting` (goods.json knowledge) | yes | partly (rest deferred) | Age, Labour, Production |
 | `bellows` | tech | A3 | C | hide_working AND kiln_updraft | hotter furnaces; iron smelting feasible | — | — | n/a | — |
-| `steel_carburized` | tech | A4 | C | iron_bloomery | hard edges; blades better than bronze | — | — | n/a | — |
+| `steel_carburized` | tech | A4 | B | iron_bloomery | hard edges; blades better than bronze | `recipe-knowledge:steel-cementation` → recipe `steel-cementation` (goods.json knowledge) | yes | yes | Production |
 | `quenching` | tech | A4 | C | steel_carburized | very hard edges | — | — | n/a | — |
 | `tempering` | tech | A4 | C | quenching | tough AND hard blades; Noric steel | — | — | n/a | — |
 | `wootz` | tech | A4 | C | steel_carburized AND kiln_updraft | superior blades; Damascus steel (via export) | — | — | n/a | — |
@@ -327,13 +300,13 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `brahmi` | tech | A4 | J | abjad | Indian literate tradition | `building.school` → no realizing system | yes | deferred | — |
 | `hacksilver` | tech | A3 | C | standard_weights AND cupellation | exchange without barter; value store; price in shekels | — | — | n/a | — |
 | `coinage_electrum` | tech | A4 | B (BJ) | hacksilver AND stamp_seal | state-guaranteed money; mercenary pay; market exchange at volume; taxation in coin | `age:a5_coinage` → Age 5 milestone `a5_coinage` (core)<br>`building.mint` → no realizing system<br>`inst.mint_institution` → no realizing system | yes | partly (rest deferred) | Age |
-| `cavalry` | tech | A4 | F | horse_domestication | horse archery; mobile warfare; steppe raiding | `unit.horse_archers` → no realizing system | yes | deferred | — |
+| `cavalry` | tech | A4 | F | horse_domestication | horse archery; mobile warfare; steppe raiding | `unit.horse_archers` → unit identity `ranged_cavalry/horse_archers` | yes | yes | Military |
 | `saddle` | tech | A4 | C | cavalry AND sewing | long-distance riding; lance use (with stirrup) | — | — | n/a | — |
-| `siege_ram` | tech | A4 | F | wheel_solid AND hide_working | breach walls | `unit.siege_engine` → no realizing system | yes | deferred | — |
+| `siege_ram` | tech | A4 | F | wheel_solid AND hide_working | breach walls | `unit.siege_engine` → unit identity `siege/siege_rams` | yes | yes | Military |
 | `siege_tower` | tech | A4 | C | siege_ram | assault over walls | — | — | n/a | — |
 | `stone_fortification` | tech | A4 | J | ashlar_masonry AND surveying | walls resisting rams; gate defence | `building.castle` → no realizing system<br>`building.lighthouse` → no realizing system | yes | deferred | — |
-| `crossbow` | tech | A4 | F | bow_simple AND casting_closed | mass conscript archery | `unit.crossbowmen` → no realizing system | yes | deferred | — |
-| `naval_ram` | tech | A4 | F | plank_boat AND casting_closed | naval battle; sea control | `unit.war_galley` → no realizing system | yes | deferred | — |
+| `crossbow` | tech | A4 | F | bow_simple AND casting_closed | mass conscript archery | `unit.crossbowmen` → unit identity `ranged_infantry/crossbowmen` | yes | yes | Military |
+| `naval_ram` | tech | A4 | F | plank_boat AND casting_closed | naval battle; sea control | `unit.war_galley` → unit identity `naval_combat/war_galleys` | yes | yes | Military |
 | `qanat` | tech | A4 | J | well AND surveying AND mining_shaft | settlement in arid zones; irrigation without river | `infra.qanat` → no realizing system | yes | deferred | — |
 | `aqueduct_tunnel` | tech | A4 | J | mining_shaft AND surveying | urban water supply under siege; settlement beyond local water | `infra.aqueduct` → no realizing system | yes | deferred | — |
 | `aqueduct_channel` | tech | A4 | J | surveying AND stone_dry | long-distance urban water | `infra.aqueduct` → no realizing system | yes | deferred | — |
@@ -347,7 +320,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `olive_press_beam` | tech | A4 | C | oil_press AND stone_dry | oil at export scale | — | — | n/a | — |
 | `geometry_axiomatic` | tech | A5 | B (BDG) | geometry_practical | proof; rigorous engineering calculation; transmissible without a teacher | `age:a5_geometry` → Age 5 milestone `a5_geometry` (supporting)<br>`building.university` → project `military university`<br>`building.university` → project `medical university`<br>`building.university` → project `engineering university`<br>`building.university` → project `natural science university`<br>`building.university` → project `agricultural university`<br>`stage` → research.json researchStage.requires | yes | yes | Age, Construction, Research |
 | `mechanics_archimedean` | tech | A5 | C | geometry_axiomatic | compound pulley; screw press; water screw; calculated siege engines | — | — | n/a | — |
-| `torsion_artillery` | tech | A5 | F | crossbow | long-range bombardment; siege by machine | `unit.siege_engine` → no realizing system | yes | deferred | — |
+| `torsion_artillery` | tech | A5 | F | crossbow | long-range bombardment; siege by machine | `unit.siege_engine` → unit identity `siege/siege_rams` | yes | yes | Military |
 | `water_screw` | tech | A5 | C | mechanics_archimedean | lift irrigation; mine drainage | — | — | n/a | — |
 | `noria` | tech | A5 | C | wheel_solid AND irrigation_canal | irrigation above river level; arable extension | — | — | n/a | — |
 | `water_mill` | tech | A5 | B (BJ) | rotary_quern | milling without human labour; the energy resource type of ADR-019 §5 | `age:a6_mills` → Age 6 milestone `a6_mills` (supporting)<br>`building.paper_mill` → no realizing system<br>`building.water_mill` → no realizing system | yes | partly (rest deferred) | Age |
@@ -366,7 +339,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `collar_harness` | tech | A5 | C | horse_domestication AND sewing | horse haulage | — | — | n/a | — |
 | `paper` | tech | A5 | B (BJ) | cordage | cheap records; books; bureaucratic scale | `age:a6_paper` → Age 6 milestone `a6_paper` (supporting)<br>`building.library` → no realizing system<br>`building.paper_mill` → no realizing system<br>`inst.translation_movement` → no realizing system | yes | partly (rest deferred) | Age |
 | `crossbow_repeating` | tech | A5 | C | crossbow | rapid fire at short range | — | — | n/a | — |
-| `stirrup` | tech | A5 | F | saddle AND iron_bloomery | lance charge; heavy cavalry | `unit.heavy_cavalry` → no realizing system | yes | deferred | — |
+| `stirrup` | tech | A5 | F | saddle AND iron_bloomery | lance charge; heavy cavalry | `unit.heavy_cavalry` → unit identity `heavy_cavalry/knights` | yes | yes | Military |
 | `silk` | tech | A3 | C | loom_warp_weighted AND orchard | silk cloth; the Silk Road export | — | — | n/a | — |
 | `lacquer` | tech | A2 | C | adhesive_natural | waterproof vessels; luxury goods | — | — | n/a | — |
 | `astronomy_geometric` | tech | A5 | J | geometry_axiomatic AND calendar_lunisolar | planetary prediction; star catalogue; the base for all astronomy until Kepler | `building.observatory` → no realizing system | yes | deferred | — |
@@ -398,10 +371,10 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `astrolabe` | tech | A6 | J | astronomy_geometric | latitude; prayer times; surveying | `building.observatory` → no realizing system | yes | deferred | — |
 | `cog` | tech | A6 | C | stern_rudder AND plank_boat | bulk grain and timber trade in the Baltic and North Sea | — | — | n/a | — |
 | `gunpowder` | tech | A6 | C | alchemy | incendiaries; fire lances; bombs | — | — | n/a | — |
-| `saltpetre_refining` | tech | A6 | C | gunpowder | reliable high-nitrate powder | — | — | n/a | — |
-| `cannon_early` | tech | A6 | F | saltpetre_refining AND (casting_closed OR iron_bloomery) | projectile artillery (weak at first) | `unit.artillery` → no realizing system | yes | deferred | — |
-| `trebuchet` | tech | A6 | F | traction_trebuchet | reduction of stone castles | `unit.siege_engine` → no realizing system | yes | deferred | — |
-| `longbow` | tech | A6 | F | bow_simple | massed infantry archery | `unit.longbowmen` → no realizing system | yes | deferred | — |
+| `saltpetre_refining` | tech | A6 | B | gunpowder | reliable high-nitrate powder | `good-knowledge:saltpetre` → deposit `saltpetre` (goods.json knowledge)<br>`good-knowledge:sulphur` → deposit `sulphur` (goods.json knowledge)<br>`recipe-knowledge:gunpowder-milling` → recipe `gunpowder-milling` (goods.json knowledge) | yes | yes | Labour, Production |
+| `cannon_early` | tech | A6 | F | saltpetre_refining AND (casting_closed OR iron_bloomery) | projectile artillery (weak at first) | `unit.artillery` → unit identity `siege/bombards` | yes | yes | Military |
+| `trebuchet` | tech | A6 | F | traction_trebuchet | reduction of stone castles | `unit.siege_engine` → unit identity `siege/siege_rams` | yes | yes | Military |
+| `longbow` | tech | A6 | F | bow_simple | massed infantry archery | `unit.longbowmen` → unit identity `ranged_infantry/longbowmen` | yes | yes | Military |
 | `plate_armour` | tech | A6 | C | tempering AND sheet_metal | near-immunity to arrows and blades | — | — | n/a | — |
 | `greek_fire` | tech | A6 | C | distillation | naval incendiary | — | — | n/a | — |
 | `woodblock_print` | tech | A6 | J | paper AND stamp_seal | mass religious texts; paper money (Song); printed calendars | `building.printing_house` → no realizing system | yes | deferred | — |
@@ -429,13 +402,13 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `longitude_problem` | tech | A7 | C | celestial_navigation AND escapement_verge | east-west position at sea; safe ocean routing | — | — | n/a | — |
 | `mercator` | tech | A7 | C | cartography AND portolan AND trigonometry | practical ocean charts | — | — | n/a | — |
 | `corned_powder` | tech | A7 | B | saltpetre_refining | reliable cannon; handguns | `age:a7_powder` → Age 7 milestone `a7_powder` (supporting) | yes | yes | Age |
-| `cannon_cast_bronze` | tech | A7 | F | cannon_early AND casting_closed | breaching stone walls; end of the castle | `unit.artillery` → no realizing system | yes | deferred | — |
-| `cannon_cast_iron` | tech | A7 | F | cannon_cast_bronze AND blast_furnace_water | cheap naval and siege guns | `unit.artillery` → no realizing system | yes | deferred | — |
-| `matchlock` | tech | A7 | F | cannon_early AND corned_powder | massed infantry fire | `unit.musketeers` → no realizing system | yes | deferred | — |
+| `cannon_cast_bronze` | tech | A7 | F | cannon_early AND casting_closed | breaching stone walls; end of the castle | `unit.artillery` → unit identity `siege/bombards` | yes | yes | Military |
+| `cannon_cast_iron` | tech | A7 | F | cannon_cast_bronze AND blast_furnace_water | cheap naval and siege guns | `unit.artillery` → unit identity `siege/bombards` | yes | yes | Military |
+| `matchlock` | tech | A7 | F | cannon_early AND corned_powder | massed infantry fire | `unit.musketeers` → unit identity `heavy_infantry/musketeers` | yes | yes | Military |
 | `wheellock` | tech | A7 | C | matchlock AND escapement_verge | pistol; mounted firearms | — | — | n/a | — |
-| `flintlock` | tech | A7 | F | wheellock | universal infantry musket; bayonet infantry (with next) | `unit.musketeers` → no realizing system | yes | deferred | — |
+| `flintlock` | tech | A7 | F | wheellock | universal infantry musket; bayonet infantry (with next) | `unit.musketeers` → unit identity `heavy_infantry/musketeers` | yes | yes | Military |
 | `trace_italienne` | tech | A7 | J | cannon_cast_bronze AND geometry_axiomatic AND stone_fortification | cannon-resistant fortification | `building.bastion_fort` → no realizing system | yes | deferred | — |
-| `ship_of_line` | tech | A7 | F | carrack AND cannon_cast_iron | sea control; naval blockade | `unit.ship_of_the_line` → no realizing system | yes | deferred | — |
+| `ship_of_line` | tech | A7 | F | carrack AND cannon_cast_iron | sea control; naval blockade | `unit.ship_of_the_line` → unit identity `naval_combat/ships_of_the_line` | yes | yes | Military |
 | `heliocentrism` | tech | A7 | C | astronomy_geometric AND trigonometry | accurate planetary prediction | — | — | n/a | — |
 | `telescope` | tech | A7 | J | spectacles | Jupiter's moons; naval reconnaissance (D-039 B) | `building.observatory` → no realizing system | yes | deferred | — |
 | `microscope` | tech | A7 | C | spectacles | cells; microorganisms | — | — | n/a | — |
@@ -443,7 +416,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `calculus` | tech | A7 | J | algebra AND geometry_axiomatic | physics; engineering; economics (later) | `inst.statistics_vital` → no realizing system | yes | deferred | — |
 | `barometer_vacuum` | tech | A7 | C | glass_blowing AND mechanics_archimedean | weather prediction; the concept behind the atmospheric engine | — | — | n/a | — |
 | `steam_atmospheric` | tech | A7 | C | barometer_vacuum AND cast_iron | mine drainage; coal mining at depth | — | — | n/a | — |
-| `coke` | tech | A7 | C | blast_furnace_water AND coal_fuel | iron at industrial scale; cheap cast iron | — | — | n/a | — |
+| `coke` | tech | A7 | B | blast_furnace_water AND coal_fuel | iron at industrial scale; cheap cast iron | `good-knowledge:coal` → deposit `coal` (goods.json knowledge)<br>`recipe-knowledge:coke-smelting` → recipe `coke-smelting` (goods.json knowledge) | yes | yes | Labour, Production |
 | `brass_calamine` | tech | A5 | C | copper_smelting | scientific instruments; precision parts | — | — | n/a | — |
 | `inoculation` | tech | A7 | C | medicine_hippocratic | immunisation | — | — | n/a | — |
 | `anatomy_dissection` | tech | A7 | C | medicine_hippocratic AND printing_press | accurate surgery | — | — | n/a | — |
@@ -459,7 +432,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `steam_high_pressure` | tech | A8 | C | steam_rotary AND puddling | locomotive; steamboat; portable engine | — | — | n/a | — |
 | `puddling` | tech | A8 | B | coke AND steam_rotary | wrought iron ×15 cheaper; rails; structural iron | `age:a8_iron` → Age 8 milestone `a8_iron` (supporting) | yes | yes | Age |
 | `hot_blast` | tech | A8 | C | coke | iron on poor coal | — | — | n/a | — |
-| `bessemer` | tech | A8 | J | puddling | steel rails; structural steel; steel ships | `building.steelworks` → no realizing system | yes | deferred | — |
+| `bessemer` | tech | A8 | B (BJ) | puddling | steel rails; structural steel; steel ships | `building.steelworks` → no realizing system<br>`recipe-knowledge:steel-converting` → recipe `steel-converting` (goods.json knowledge) | yes | partly (rest deferred) | Production |
 | `open_hearth` | tech | A8 | J | bessemer AND hot_blast | quality steel; scrap recycling | `building.steelworks` → no realizing system | yes | deferred | — |
 | `basic_process` | tech | A8 | C | bessemer | steel from any ore; German industrial rise | — | — | n/a | — |
 | `slide_rest_lathe` | tech | A8 | J | cylinder_boring AND escapement_verge | precise screws; standard threads; every later machine | `inst.standard_threads` → no realizing system | yes | deferred | — |
@@ -475,8 +448,8 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `locomotive` | tech | A8 | C | steam_high_pressure | overland speed; bulk overland transport | — | — | n/a | — |
 | `railway` | tech | A8 | B (BJ) | locomotive AND puddling AND surveying | national markets; standard time; military mobilisation by rail | `age:a8_rail` → Age 8 milestone `a8_rail` (supporting)<br>`infra.railway` → no realizing system | yes | partly (rest deferred) | Age |
 | `steamboat` | tech | A8 | C | steam_rotary AND mortise_hull | river commerce against current; scheduled ocean crossing | — | — | n/a | — |
-| `screw_propeller` | tech | A8 | F | steamboat AND water_screw | ocean steamships; steam warships | `unit.ironclad` → no realizing system | yes | deferred | — |
-| `iron_hull` | tech | A8 | F | puddling AND steamboat | ships beyond timber limits; ironclads | `unit.ironclad` → no realizing system | yes | deferred | — |
+| `screw_propeller` | tech | A8 | F | steamboat AND water_screw | ocean steamships; steam warships | `unit.ironclad` → unit identity `naval_combat/ironclads` | yes | yes | Military |
+| `iron_hull` | tech | A8 | F | puddling AND steamboat | ships beyond timber limits; ironclads | `unit.ironclad` → unit identity `naval_combat/ironclads` | yes | yes | Military |
 | `macadam` | tech | A8 | E | road_paved | macadamised road class: compacted graded stone, all-weather coaching | `infra.road_macadam` → road class `infra.road_macadam` | yes | yes | Roads |
 | `bicycle` | tech | A8 | C | interchangeable_parts AND steel_carburized | personal transport; the precision-parts industry that built cars and aircraft | — | — | n/a | — |
 | `chemistry_quantitative` | tech | A8 | J | distillation AND barometer_vacuum | predictable chemical process; all later industrial chemistry | `building.research_laboratory` → no realizing system | yes | deferred | — |
@@ -487,7 +460,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `portland_cement` | tech | A8 | J | concrete_pozzolan AND kiln_updraft AND chemistry_quantitative | concrete everywhere | `building.cement_works` → no realizing system | yes | deferred | — |
 | `reinforced_concrete` | tech | A8 | J | portland_cement AND bessemer | frames, bridges, high-rise | `infra.sewerage_system` → no realizing system | yes | deferred | — |
 | `haber_bosch` | tech | A8 | C | chemistry_quantitative AND open_hearth AND thermodynamics | yield ceiling raised ~2×; population beyond organic limit | — | — | n/a | — |
-| `dynamite` | tech | A8 | C | sulphuric_acid AND organic_chemistry | hard-rock excavation at scale; Alpine tunnels | — | — | n/a | — |
+| `dynamite` | tech | A8 | B | sulphuric_acid AND organic_chemistry | hard-rock excavation at scale; Alpine tunnels | `recipe-knowledge:explosives-making` → recipe `explosives-making` (goods.json knowledge) | yes | yes | Production |
 | `electromagnetism` | tech | A8 | C | calculus AND electrostatics | motor; generator; telegraph | — | — | n/a | — |
 | `telegraph` | tech | A8 | B (BJ) | electromagnetism AND wire_drawing | near-instant long-distance messages; D-039 A3 order latency collapse | `age:a8_telegraph` → Age 8 milestone `a8_telegraph` (supporting)<br>`infra.telegraph_line` → no realizing system | yes | partly (rest deferred) | Age |
 | `submarine_cable` | tech | A8 | J | telegraph AND steamboat | global information network | `infra.submarine_cable` → no realizing system | yes | deferred | — |
@@ -504,16 +477,16 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `antisepsis` | tech | A8 | C | germ_theory AND anaesthesia | abdominal surgery; survival of wounds | — | — | n/a | — |
 | `photography` | tech | A8 | C | chemistry_quantitative AND glass_lead | visual record; D-039 reconnaissance by camera (later) | — | — | n/a | — |
 | `evolution` | tech | A8 | C | selective_breeding AND taxonomy AND stratigraphy | biology as a science; breeding theory | — | — | n/a | — |
-| `aircraft` | tech | A8 | F (FJ) | internal_combustion AND glider | aerial reconnaissance (D-039 B: reconnaissance no longer walks); bombing; air transport | `building.airfield` → no realizing system<br>`unit.aircraft_carrier` → no realizing system<br>`unit.military_aircraft` → no realizing system | yes | deferred | — |
+| `aircraft` | tech | A8 | F (FJ) | internal_combustion AND glider | aerial reconnaissance (D-039 B: reconnaissance no longer walks); bombing; air transport | `building.airfield` → no realizing system<br>`unit.aircraft_carrier` → unit identity `carriers/aircraft_carriers`; blocked until engines, fuel exist<br>`unit.military_aircraft` → unit identity `air/military_aircraft`; blocked until engines, fuel exist | yes | partly (rest deferred) | Military |
 | `aircraft_metal` | tech | A9 | C | aircraft AND aluminium | airliners; strategic bombers | — | — | n/a | — |
 | `jet_engine` | tech | A9 | C | aircraft_metal AND steam_turbine | jet aircraft; global air travel | — | — | n/a | — |
-| `steam_turbine` | tech | A8 | F | steam_high_pressure AND open_hearth AND thermodynamics | efficient generation; Dreadnought speed | `unit.aircraft_carrier` → no realizing system | yes | deferred | — |
+| `steam_turbine` | tech | A8 | F | steam_high_pressure AND open_hearth AND thermodynamics | efficient generation; Dreadnought speed | `unit.aircraft_carrier` → unit identity `carriers/aircraft_carriers`; blocked until engines, fuel exist | yes | yes | Military |
 | `automobile_mass` | tech | A9 | C | internal_combustion AND interchangeable_parts AND petroleum_refining | suburb; trucking; the road economy; moving assembly line (Ford, 1913); mass production | — | — | n/a | — |
-| `tank` | tech | A9 | F | internal_combustion AND basic_process AND rifled_artillery AND machine_gun AND mechanised_agriculture | mobile armoured warfare | `unit.tank` → no realizing system | yes | deferred | — |
+| `tank` | tech | A9 | F | internal_combustion AND basic_process AND rifled_artillery AND machine_gun AND mechanised_agriculture | mobile armoured warfare | `unit.tank` → unit identity `heavy_cavalry/tanks`; blocked until engines, fuel exist | yes | yes | Military |
 | `diesel` | tech | A9 | C | gas_engine AND open_hearth AND thermodynamics | heavy transport; submarines; generators | — | — | n/a | — |
 | `aluminium` | tech | A9 | C | electricity_generation AND soda_leblanc | light structural metal; aircraft | — | — | n/a | — |
 | `superalloy` | tech | A9 | C | open_hearth AND metallography | jet engines; gas turbines | — | — | n/a | — |
-| `rocket` | tech | A9 | F (FJ) | internal_combustion AND aluminium AND mechanics_newtonian | ballistic missile; satellite launch | `building.spaceport` → no realizing system<br>`project.orbital_launch` → no realizing system<br>`unit.missile` → no realizing system | yes | deferred | — |
+| `rocket` | tech | A9 | F (FJ) | internal_combustion AND aluminium AND mechanics_newtonian | ballistic missile; satellite launch | `building.spaceport` → no realizing system<br>`project.orbital_launch` → no realizing system<br>`unit.missile` → unit identity `strategic_missile/ballistic_missiles`; blocked until fuel exist | yes | partly (rest deferred) | Military |
 | `satellite` | tech | A9 | C | orbital_launch_vehicle AND computer AND transistor | orbital observation (a pointed observer, never a map reveal — D-039 B3, D-040 B3); orbit insertion, tracking and telemetry | — | — | n/a | — |
 | `container_shipping` | tech | A9 | C | iron_hull AND diesel | near-zero bulk transport cost by sea | — | — | n/a | — |
 | `radio` | tech | A8 | B (BJ) | electromagnetic_field_theory AND telegraph | wireless command (D-039 A); ship-to-shore wireless; broadcast media (D-041 C1) | `age:a9_radio` → Age 9 milestone `a9_radio` (supporting)<br>`building.radio_transmitter` → no realizing system<br>`inst.mass_media_broadcast` → no realizing system | yes | partly (rest deferred) | Age |
@@ -605,12 +578,12 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `high_speed_rail` | tech | A9 | C | electric_traction AND reinforced_concrete | intercity travel faster than air over medium distance | — | — | n/a | — |
 | `jet_airliner` | tech | A9 | C | jet_engine AND aircraft_metal AND superalloy | mass international travel | — | — | n/a | — |
 | `electric_vehicle` | tech | A9 | C | lithium_battery AND electric_motor AND automobile_mass | road transport without oil | — | — | n/a | — |
-| `helicopter` | tech | A9 | F | aircraft | vertical lift; air mobility without runways | `unit.helicopter` → no realizing system | yes | deferred | — |
-| `icbm` | tech | A9 | F | rocket AND thermonuclear AND computer | intercontinental strike | `unit.icbm` → no realizing system | yes | deferred | — |
-| `nuclear_submarine` | tech | A9 | F | light_water_reactor AND submarine | undersea deterrence; sea denial | `unit.nuclear_submarine` → no realizing system | yes | deferred | — |
+| `helicopter` | tech | A9 | F | aircraft | vertical lift; air mobility without runways | `unit.helicopter` → unit identity `rotary_wing/helicopters`; blocked until aluminium, engines, fuel exist | yes | yes | Military |
+| `icbm` | tech | A9 | F | rocket AND thermonuclear AND computer | intercontinental strike | `unit.icbm` → unit identity `strategic_missile/icbm_forces`; blocked until electronics, fuel exist | yes | yes | Military |
+| `nuclear_submarine` | tech | A9 | F | light_water_reactor AND submarine | undersea deterrence; sea denial | `unit.nuclear_submarine` → unit identity `submarines/nuclear_submarines`; blocked until electronics, uranium exist | yes | yes | Military |
 | `guided_munitions` | tech | A9 | C | laser AND computer AND guided_missile | precision strike | — | — | n/a | — |
-| `stealth` | tech | A9 | F | composites AND radar AND computer AND aircraft | penetration of air defences | `unit.stealth_aircraft` → no realizing system | yes | deferred | — |
-| `combat_drone` | tech | A9 | F | gps AND microprocessor AND aircraft | persistent surveillance; strike without aircrew | `unit.combat_drone` → no realizing system | yes | deferred | — |
+| `stealth` | tech | A9 | F | composites AND radar AND computer AND aircraft | penetration of air defences | `unit.stealth_aircraft` → unit identity `air/stealth_aircraft`; blocked until aluminium, composites, electronics, engines, fuel exist | yes | yes | Military |
+| `combat_drone` | tech | A9 | F | gps AND microprocessor AND aircraft | persistent surveillance; strike without aircrew | `unit.combat_drone` → unit identity `unmanned_aircraft/combat_drones`; blocked until aluminium, electronics, fuel exist | yes | yes | Military |
 | `missile_defence` | tech | A9 | C | radar AND guided_missile AND computer | defence against ballistic and cruise missiles | — | — | n/a | — |
 | `additive_manufacturing` | tech | A9 | C | numerical_control AND plastics | complex parts without tooling | — | — | n/a | — |
 | `nanotechnology` | tech | A9 | C | cmos_vlsi AND quantum_mechanics | nanomaterials; sub-100 nm fabrication | — | — | n/a | — |
@@ -636,10 +609,10 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `ashlar_masonry` | tech | A3 | J | stone_dry AND copper_smelting | dressed-stone walls, temples and towers; stone voussoirs for arches, bridges and vaults | `building.lighthouse` → no realizing system | yes | deferred | — |
 | `cupellation` | tech | A3 | C | copper_smelting AND gold_silver_native | silver separated from argentiferous lead by oxidizing the lead to litharge; fire assay of gold and silver (cupellation at small scale) | — | — | n/a | — |
 | `mesoamerican_script` | tech | A3 | D (DJ) | calendar_lunar | full writing grown from calendrical notation; dated dynastic monuments; bark-paper books | `building.library` → no realizing system<br>`building.school` → no realizing system<br>`inst.aramaic_admin` → no realizing system via `inst.archive`<br>`inst.archive` → no realizing system<br>`inst.guild` → no realizing system via `inst.archive`<br>`inst.historiography` → no realizing system<br>`inst.historiography` → no realizing system via `inst.archive`<br>`inst.historiography` → no realizing system via `inst.scribal_school`<br>`inst.library` → no realizing system via `inst.archive`<br>`inst.library` → no realizing system via `inst.scribal_school`<br>`inst.natural_philosophy` → no realizing system<br>`inst.scientific_society` → no realizing system via `inst.archive`<br>`inst.scientific_society` → no realizing system via `inst.scribal_school`<br>`inst.scribal_school` → no realizing system<br>`inst.textile_workshop` → no realizing system via `inst.archive`<br>`inst.translation_movement` → no realizing system via `inst.archive`<br>`inst.translation_movement` → no realizing system via `inst.scribal_school`<br>`inst.university` → project `military university` founds via `inst.archive`<br>`inst.university` → project `medical university` founds via `inst.archive`<br>`inst.university` → project `engineering university` founds via `inst.archive`<br>`inst.university` → project `natural science university` founds via `inst.archive`<br>`inst.university` → project `agricultural university` founds via `inst.archive`<br>`inst.university` → project `military university` founds via `inst.scribal_school`<br>`inst.university` → project `medical university` founds via `inst.scribal_school`<br>`inst.university` → project `engineering university` founds via `inst.scribal_school`<br>`inst.university` → project `natural science university` founds via `inst.scribal_school`<br>`inst.university` → project `agricultural university` founds via `inst.scribal_school` | yes | partly (rest deferred) | Construction |
-| `ore_prospecting` | tech | A3 | C | copper_smelting | surface indications of ore (colour stains, gossans) and placer working | — | — | n/a | — |
+| `ore_prospecting` | tech | A3 | B | copper_smelting | surface indications of ore (colour stains, gossans) and placer working | `assay` → sim.json discovery.assayRequires (the assay) | yes | yes | Discovery |
 | `counting_rods` | tech | A5 | C | chinese_script | decimal place-value calculation on a counting board (rod numerals, blank for zero); signed (red/black) numbers in calculation; root extraction and elimination for simultaneous linear problems (Nine Chapters methods) | — | — | n/a | — |
 | `drawloom` | tech | A5 | C | silk AND horizontal_loom | figured (pattern-woven) silk and damask; a loom that stores a pattern in its harness | — | — | n/a | — |
-| `traction_trebuchet` | tech | A5 | F | sling AND timber_frame | stone-throwing artillery by lever and sling (crew-hauled) | `unit.siege_engine` → no realizing system | yes | deferred | — |
+| `traction_trebuchet` | tech | A5 | F | sling AND timber_frame | stone-throwing artillery by lever and sling (crew-hauled) | `unit.siege_engine` → unit identity `siege/siege_rams` | yes | yes | Military |
 | `ocean_junk` | tech | A6 | J | watertight_bulkhead AND compass_magnetic AND monsoon_sailing | oceanic transport class (junk); Indian Ocean crossings by compass and monsoon | `activity.ocean_shipping` → no realizing system | yes | deferred | — |
 | `percussion_drilling` | tech | A6 | C | iron_bloomery AND well | cased boreholes hundreds of metres deep for brine and natural gas; drilled wells reach fluids no shaft can (later petroleum) | — | — | n/a | — |
 | `rifling` | tech | A7 | C | matchlock | accurate aimed fire at long range (rifles) | — | — | n/a | — |
@@ -706,7 +679,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `grain_storage` | tech | A2 | C | cereal_cultivation | Raised floors, sealed pits and mud-plastered bins keep stored grain dry and free of pests, so a harvest lasts until the next one and beyond. | — | — | n/a | — |
 | `reservoir_dam` | tech | A3 | C | stone_dry AND irrigation_canal | Walls of stone and earth across a valley hold back seasonal runoff, so channels can water the fields through a dry year. | — | — | n/a | — |
 | `signal_beacons` | tech | A3 | C | fire_making AND stone_dry | Chains of watch posts on high ground pass a pre-arranged fire or smoke signal from hilltop to hilltop: news of raiders reaches the capital in hours instead of days. | — | — | n/a | — |
-| `iron_farm_tools` | tech | A4 | C | iron_bloomery AND digging_stick_hoe AND sickle | Forged iron sickles, hoe blades and ploughshares hold an edge and outlast stone and bronze, letting farmers clear forest and work harder soils. | — | — | n/a | — |
+| `iron_farm_tools` | tech | A4 | B | iron_bloomery AND digging_stick_hoe AND sickle | Forged iron sickles, hoe blades and ploughshares hold an edge and outlast stone and bronze, letting farmers clear forest and work harder soils. | `recipe-knowledge:iron-toolmaking` → recipe `iron-toolmaking` (goods.json knowledge) | yes | yes | Production |
 | `lifting_crane` | tech | A4 | C | cordage AND wheel_solid AND ashlar_masonry | A timber jib with pulleys and a winch lifts heavy blocks and beams: small gangs raise walls and roofs that once needed ramps and crowds. | — | — | n/a | — |
 | `camel_caravan` | tech | A4 | C | camel AND trade | Strings of camels, with wells, guides and halting places, carry goods across deserts that no cart or donkey could cross, so towns far apart can trade overland. | — | — | n/a | — |
 | `codex` | tech | A5 | C | hide_working AND abjad | Pages of durable parchment bound between boards. A codex can be opened at any page, indexed and carried, so reference books, law codes and scripture survive and can be consulted quickly. | — | — | n/a | — |
@@ -731,7 +704,7 @@ Columns: class (primary, then all), prerequisites, knowledge (capability strings
 | `synoptic_meteorology` | tech | A8 | C | barometer_vacuum AND telegraph | Simultaneous barometer readings, telegraphed to one office, become a weather map. Storm warnings reach ports, and frost warnings reach growers. | — | — | n/a | — |
 | `precast_housing` | tech | A9 | C | reinforced_concrete AND electric_motor | Wall and floor panels are cast in factories and lifted into place by crane, so whole housing estates rise with little site labour. | — | — | n/a | — |
 | `aerial_reconnaissance` | tech | A9 | C | aircraft AND photography | Aircraft with cameras photograph the land beyond the front and far from home. Maps of unseen country are made from the air. | — | — | n/a | — |
-| `law_code` | civics | A3 | B (BJ) | (cuneiform OR hieroglyphic OR chinese_script) | — | `age:a3_law` → Age 3 milestone `a3_law` (supporting)<br>`inst.law_code` → no realizing system | yes | partly (rest deferred) | Age |
+| `law_code` | civics | A3 | B (BD) | (cuneiform OR hieroglyphic OR chinese_script) | — | `age:a3_law` → Age 3 milestone `a3_law` (supporting)<br>`inst.law_code` → project `law court` founds | yes | yes | Age, Construction |
 | `legal_code_roman` | civics | A4 | B (BDJ) | law_code | — | `age:a5_systematic_law` → Age 5 milestone `a5_systematic_law` (core)<br>`inst.guild` → no realizing system<br>`inst.legal_code_roman` → no realizing system<br>`inst.scientific_society` → no realizing system via `inst.university`<br>`inst.university` → project `military university` founds<br>`inst.university` → project `medical university` founds<br>`inst.university` → project `engineering university` founds<br>`inst.university` → project `natural science university` founds<br>`inst.university` → project `agricultural university` founds | yes | partly (rest deferred) | Age, Construction |
 | `census` | civics | A4 | B (BJ) | (cuneiform OR hieroglyphic OR chinese_script) AND appointed_officials | — | `age:a4_census` → Age 4 milestone `a4_census` (supporting)<br>`inst.census` → no realizing system<br>`inst.mass_media_broadcast` → no realizing system via `inst.mass_schooling`<br>`inst.mass_schooling` → no realizing system<br>`inst.military_medicine` → no realizing system<br>`inst.mint_institution` → no realizing system<br>`inst.quarantine` → no realizing system<br>`inst.statistics_vital` → no realizing system | yes | partly (rest deferred) | Age |
 | `coined_wage` | civics | A4 | B (BJ) | coinage_electrum | — | `age:a5_wages` → Age 5 milestone `a5_wages` (supporting)<br>`inst.coined_wage` → no realizing system | yes | partly (rest deferred) | Age |

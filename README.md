@@ -119,6 +119,7 @@ sim replay --seed S --orders PATH --turns N [--hash-log PATH]
 # plus the state footprint: bucket row count and clone bytes per turn (T3.11 —
 # the instrument for the m0-kernel-spec §3.2 clone-size claim)
 sim bench --seed S --turns N [--founded [--settlements N]] [--json]
+          [--without-discovery] [--without-tranche2] [--without-economy]
 
 # T2.8 calibration data source: N independent canonical founded worlds
 # (seeds seed-base..seed-base+N-1, default base 1), T no-order turns each,

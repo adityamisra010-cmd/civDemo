@@ -29,5 +29,10 @@
     "blockLotPitch": 1.0,
     "blockRings": 16,
     "dwellingsPerBlock": 25
+  },
+  "_docParts": "M6 E1.2 - THE PART CONVENTIONS (style bible section 8). countStages: D-043 D2's count staging, data-defined - a part (one structure kind or one institution type, aggregated) of count c is drawn at the stage of the last threshold c reaches: 1 small, 10 expanded, 20 campus, 30 complex; at high zoom (the Settlement band) the part also shows its number when it is above 1. maxParts: D-066 A4 (D-038 H8) - the most parts one settlement's composite draws; a settlement holding more kinds draws its maxParts - 1 most significant (institutions first, then the larger count, then the lower key) and folds the rest into ONE overflow part on its own lot, whose number at high zoom is the count of kinds folded. 8 = every kind the shipped content can found at one settlement today (2 structure kinds, 5 university types) plus one more, within the lattice's 14 glyph lots. View data only.",
+  "parts": {
+    "countStages": [1, 10, 20, 30],
+    "maxParts": 8
   }
 }

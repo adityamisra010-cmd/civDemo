@@ -116,10 +116,47 @@ public class AiFoundingAttributionTests
     // EconomyProjection.HashWithout(live), the packet rows removed and ASSERTED inert, asserted FIRST in the pin test — is the
     // units pin (S1cTurn300PreEconomy); (b) military off — MilitaryAttributionTests: TestConfigs.PreMilitary's world is the
     // research+econ pin through SchemaProjection.V38KeepingPackets and the research pin through SchemaProjection.V38.
-    internal const string S1cTurn300 = "ac4554bfdcd3d5b61bf92cebca1acf56289700d7cc5510f8e7891a85d8356ebc";
+    // ADR-058 (M6 closure, track KNOW, 2026-10-28) RE-PIN (VALUE; MEASURED on the KNOW tree — base 0bf7626 + m6-base.patch
+    // + this track — by the agent writing this line): OLD ac4554bfdcd3d5b6… -> NEW a519b5c989ca7cc6…; economy projection
+    // 3153b7e3214ecd21… -> 5edcc3e08123a27f…. CAUSE: three of the seven Eurekas ADR-058 §B made evaluable (deposit and site
+    // terrain conditions) fire in this world and credit their nodes; the exposure writer writes no row by turn 300 (no
+    // foreign trade with a sighted partner — measured, and the exposure-off twin TestConfigs.PreForeignExposure gives the
+    // SAME new hash). CONTROL: KnowAttributionTests.AiWorldSeed42Turn300_… — TestConfigs.PreKnow returns OLD byte for byte,
+    // both the raw hash and the economy projection.
+    // M6 INTEGRATION RE-PIN (KNOW + FOG combined, 2026-10-28; MEASURED on the integrated tree by the agent writing this line,
+    // in-test harness): KNOW-only a519b5c9… / FOG-only 7aed09b9… -> COMBINED 5458cb3d…. CONTROLS, both exact: TestConfigs.PreKnow
+    // returns FogOnlyTurn300, TestConfigs.PreAiKnownTerrain returns KnowOnlyTurn300, both off return PreA18Turn300 (the base).
+    internal const string S1cTurn300 = "5458cb3d2564e0162346451b80b7650da6c11a36ef5aafb2d525e67a61439e8c";
+
+    /// <summary>ADR-058's pin: the AI world with the KNOW layer on and A18 off (what PreAiKnownTerrain returns).</summary>
+    internal const string KnowOnlyTurn300 = "a519b5c989ca7cc6004d6c9ac039431098d24c7b658f9fd933919bdac41e4c46";
+    internal const string KnowOnlyTurn300PreEconomy = "5edcc3e08123a27fcf4acde2e114c6ec7594f20f8890e254673f965db50e0f8a";
 
     /// <summary>ADR-056 §13: <see cref="S1cTurn300"/> with the economy packets off — the units track's pin (control (a)).</summary>
-    internal const string S1cTurn300PreEconomy = "3153b7e3214ecd21925e679dd6d0f1c4042c39358e97c5a40d9e5073618eb3a3";
+    /// ADR-058: moved with S1cTurn300 (the KNOW layer acts on the packet-stripped world too); the base-tree value
+    /// 3153b7e3214ecd21… is what TestConfigs.PreKnow's world projects to (KnowAttributionTests).
+    /// M6 INTEGRATION: combined KNOW + FOG -> a56313fc… (controls as S1cTurn300).
+    internal const string S1cTurn300PreEconomy = "a56313fcf7d5de68d83e2adbe3aab1cf47b667c60a220bc23972573d887f4640";
+
+    // D-066 A18 RE-PIN (M6 closure track FOG, 2026-10-28; VALUE, MEASURED on this tree by the agent writing this line, in-test
+    // harness ZzPinProbe, since removed): OLD ac4554bfdcd3d5b6… -> NEW 7aed09b9c85948aa…. CAUSE (one): the AI's known-terrain
+    // valuation (sim.json colonization.aiFounding.knownTerrainOnly; KnownSiting) — under the fog the AI values a site only by
+    // the terrain it knows, so it explores longer before its first founding (Explore 35…43, first founding stamped 44, was 38)
+    // and every later founding moves. CONTROL: AiWorldTurn300_WithTheKnownTerrainValuationOff_IsThePreA18World —
+    // TestConfigs.PreAiKnownTerrain returns OLD byte for byte (and OLD's economy projection, 3153b7e3…).
+    internal const string FogOnlyTurn300 = "7aed09b9c85948aa3f11ff276033ccfc1918ff2d17c4951d37d7b44a21a99619";   // what TestConfigs.PreKnow returns (M6 integration control (a))
+
+    /// <summary>D-066 A18: the live AI world at turn 300 BEFORE the known-terrain valuation (the S1cTurn300 value at the M6
+    /// closure base) — what <c>TestConfigs.PreAiKnownTerrain</c> must return.</summary>
+    internal const string PreA18Turn300 = "ac4554bfdcd3d5b61bf92cebca1acf56289700d7cc5510f8e7891a85d8356ebc";
+
+    /// <summary>ADR-056 §13: <see cref="S1cTurn300"/> with the economy packets off — the units track's pin (control (a)).
+    /// D-066 A18 RE-PIN (2026-10-28, MEASURED; cause and control as <see cref="S1cTurn300"/>): OLD 3153b7e3214ecd21… (now
+    /// <see cref="PreA18Turn300PreEconomy"/>, the twin's) -> NEW 2b4d88e0b6f21ee8….</summary>
+    internal const string FogOnlyTurn300PreEconomy = "2b4d88e0b6f21ee8532b643d3cd4d40551dbcb367e174230c7213d7d4030d920";   // what TestConfigs.PreKnow returns (M6 integration control (a))
+
+    /// <summary>D-066 A18: <see cref="PreA18Turn300"/> with the economy packets off (the units track's pin before A18).</summary>
+    internal const string PreA18Turn300PreEconomy = "3153b7e3214ecd21925e679dd6d0f1c4042c39358e97c5a40d9e5073618eb3a3";
 
     /// <summary>D-063: the live AI world at turn 300 BEFORE tranche 2 (the S1cTurn300 value at 86800d9) — what the
     /// pre-tranche-2 twin (TestConfigs.PreTranche2) must return.</summary>
@@ -148,6 +185,26 @@ public class AiFoundingAttributionTests
         using var pipeStream = Sim.Data.DataFiles.OpenPipeline();
         return new TurnExecutor(EraTableLoader.Load(eraStream),
             PipelineLoader.Load(pipeStream, SystemCatalog.All(cfg, worldgen ?? TestConfigs.PreD054Worldgen())), orders);
+    }
+
+    /// <summary>D-066 A18 (M6 closure track FOG, 2026-10-28) — THE ATTRIBUTION CONTROL of the A18 re-pin of
+    /// <see cref="S1cTurn300"/>: the shipped config with ONLY the AI's known-terrain valuation off
+    /// (<c>TestConfigs.PreAiKnownTerrain</c>, a single-layer twin) returns the pre-A18 world byte for byte, so the valuation is
+    /// the whole of the move.</summary>
+    [Fact]
+    public void AiWorldTurn300_WithTheKnownTerrainValuationOff_IsThePreA18World()
+    {
+        SimConfig off = TestConfigs.PreAiKnownTerrain(TestConfigs.Sim());
+        Assert.False(off.Colonization!.AiFounding!.KnownTerrainOnly);
+        Assert.True(TestConfigs.Sim().Colonization!.AiFounding!.KnownTerrainOnly);
+        WorldState w = CivicsPointsAttributionTests.RunAiWorld(off);
+        // M6 integration: A18 off leaves the KNOW layer on — KNOW's pin (control (b)); both off is the base world.
+        Assert.Equal(KnowOnlyTurn300PreEconomy, EconomyProjection.HashWithout(w, TestConfigs.Sim()));
+        Assert.Equal(KnowOnlyTurn300, WorldHash.ComputeHex(w));
+        WorldState both = CivicsPointsAttributionTests.RunAiWorld(TestConfigs.PreKnow(off));
+        Assert.Equal(PreA18Turn300PreEconomy, EconomyProjection.HashWithout(both, TestConfigs.Sim()));
+        Assert.Equal(PreA18Turn300, WorldHash.ComputeHex(both));
+        Assert.NotEqual(KnowOnlyTurn300, S1cTurn300);
     }
 
     [Fact]

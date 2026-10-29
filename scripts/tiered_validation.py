@@ -36,14 +36,14 @@ TIERS = ("targeted", "integration", "full")
 TEST_PROJECTS = {"sim": "Sim.Tests", "ui": "Sim.Ui.Tests"}
 FULL_LOCAL_CHECKS = [
     "banned-constructs", "read-isolation", "readonly-proof", "selector-selftest", "research-tool-tests",
-    "research-audit", "research-calibration-report", "unlock-audit", "tree-closure", "charters", "doc-links-all",
-    "build", "simtests-full", "uitests-full",
+    "research-audit", "research-calibration-report", "unlock-audit", "consequence-audit", "research-audit-tests",
+    "tree-closure", "charters", "doc-links-all", "build", "simtests-full", "uitests-full",
 ]
 FULL_ELSEWHERE_CHECKS = ["ci-xproc-determinism", "ci-platform-smoke", "calibration-nightly", "multi-seed-trial", "bench",
                          "gui-acceptance"]
 CHEAP_FIRST = ["selector-selftest", "banned-constructs", "read-isolation", "research-tool-tests", "research-audit",
-               "research-calibration-report", "unlock-audit", "tree-closure", "charters", "doc-links", "doc-links-all",
-               "readonly-proof", "build"]
+               "research-calibration-report", "unlock-audit", "consequence-audit", "research-audit-tests", "tree-closure",
+               "charters", "doc-links", "doc-links-all", "readonly-proof", "build"]
 
 
 def repo_root() -> str:
