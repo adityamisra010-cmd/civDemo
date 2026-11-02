@@ -1853,3 +1853,13 @@ category B they move to (combat engineers, military supply, field medical). Earl
 execution-pass report cite the withdrawal as "R10"; both citations refer to the same pair of rulings. The ratified packets (D-067 R16–R18;
 [ADR-056](../adr/adr-056-economy-packets.md) §4 and §9, as amended) unblock families 14 and 17–19 only. The rows above
 are unchanged as the historical charter text.
+
+## Dated note — 2026-11-01 (D-069 R2)
+
+Under [D-069](../d069-originality-and-third-party-game-references.md) R2 shipped content names no other game. The
+per-identity reference field of `Sim.Data/content/unit-families.json` (38 identities citing Civilization VI or Age of
+Empires II units) and the third-party mentions in its doc text were moved to
+[unit-design-references.md](unit-design-references.md), labelled design reference, not shipped. The loader no longer
+reads the field and the unit identity record (`Sim.Core/Systems/Ages/UnitFamilyContent.cs`) no longer carries it. The
+"References" bullet above, which says Civilization VI was used as a pattern reference only, stays as written; it is
+design history in `docs/`, which D-069 allows. New unit briefs follow [ip-originality.md](../ip-originality.md) §1.

@@ -231,3 +231,9 @@ this packet.
 
 **Goldens.** None moved. Unit-family content is not hashed, and no golden run advances an Age.
 `FOUNDED_GOLDEN` is unchanged.
+
+> **Append-only note, 2026-11-01 (D-069 R2).** The `unit-families.json` identity field `reference` (the Civ VI / AoE II
+> pattern citation mentioned in the Decision above) is removed from the content, and `UnitIdentity` no longer has a
+> `Reference` member: nothing read it. Shipped content names no other game
+> ([D-069](../d069-originality-and-third-party-game-references.md)). The 38 values are kept as design reference in
+> [`docs/m7-plan/unit-design-references.md`](../m7-plan/unit-design-references.md). The text above is not edited.

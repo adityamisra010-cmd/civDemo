@@ -27,7 +27,9 @@ public sealed class TreeClosureBaselineTests
     // attribution: restoring that one field restores the TC-1 hash).
     internal const string Tc1StructureSha256 = "918502844849f4378fe8a0e06c118bd1c59c476e61400909e852ed12e4b9d1d0";
     internal const string StructureSha256 = "489dc44e73c6de6b2a1419abf609371e6a0110a84d6e24e6c66af17f446fa702";
-    internal const string TextSha256 = "de341a8eb3a7770ef36ee2585342a2baadf9c131b602b93f8af19a054d1e6c39";
+    // TC-3 (D-069 R2, Director 2026-11-01): TEXT-only — the descriptions of frontier_propulsion, trade and taxation no longer
+    // name another game. TEXT was de341a8eb3a7770ef36ee2585342a2baadf9c131b602b93f8af19a054d1e6c39; STRUCTURE unchanged.
+    internal const string TextSha256 = "0b6dad3c014028a5689b5e33dc7c1a4a5de5c28a7b7721458ea3c6ff4ab846ee";
 
     internal static (string Structure, string Text) Hashes()
     {
@@ -72,6 +74,29 @@ public sealed class TreeClosureBaselineTests
         aircraft["age"] = "A9";
         Assert.Equal(Tc1StructureSha256, Hashes(doc).Structure);
         Assert.Equal(TextSha256, Hashes(doc).Text);
+    }
+
+    internal const string Tc2TextSha256 = "de341a8eb3a7770ef36ee2585342a2baadf9c131b602b93f8af19a054d1e6c39";
+
+    /// <summary>TC-3 attribution (D-069 R2): restoring the three pre-D-069 descriptions (their original text is kept in
+    /// docs/m7-plan/unit-design-references.md §2) reproduces the TC-2 TEXT hash, and STRUCTURE is the TC-2 value throughout,
+    /// so the three rewrites are the ONE change and it is text-only.</summary>
+    [Fact]
+    public void ThePreD069Descriptions_ReproduceTheTc2Text_D069IsTextOnly()
+    {
+        JsonObject doc;
+        using (var s = Sim.Data.DataFiles.OpenResearch()) doc = JsonNode.Parse(s)!.AsObject();
+        Assert.Equal(StructureSha256, Hashes(doc).Structure);
+        JsonNode Node(string tree, string id) => doc[tree]!.AsArray().Single(n => (string?)n!["id"] == id)!;
+        JsonNode propulsion = Node("technologies", "frontier_propulsion"), trade = Node("technologies", "trade"), tax = Node("civics", "taxation");
+        Assert.Equal("Each level raises the transit velocity of probes and expeditions.", (string?)propulsion["desc"]);
+        propulsion["desc"] = "Each level raises the transit velocity of probes and expeditions \u2014 the research analogue of Civ 6's laser station, which is a project.";
+        trade["desc"] = ((string)trade["desc"]!).Replace("Its causal prerequisites are a record of quantity",
+            "Placement: Civ VI unlocks trade routes and the Trader with the Ancient-Era Foreign Trade civic (after Code of Laws); here the causal prerequisites are a record of quantity", StringComparison.Ordinal);
+        tax["desc"] = ((string)tax["desc"]!).Replace("Its causal prerequisites are counted obligations",
+            "Placement: Civ VI has no tax technology \u2014 governments and their policies come through civics, starting with the first civic, Code of Laws (Chiefdom); here the causal prerequisites are counted obligations", StringComparison.Ordinal);
+        Assert.Equal(Tc2TextSha256, Hashes(doc).Text);
+        Assert.Equal(StructureSha256, Hashes(doc).Structure);
     }
 
     [Fact]

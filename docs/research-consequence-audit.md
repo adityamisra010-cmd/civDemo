@@ -1,6 +1,6 @@
 # Research consequence audit (closure grade)
 
-**Generated** by `scripts/research-consequence-audit.py` from the canonical content (research.json sha256 `9450783cf3cac4f8…`), the operand registry `Sim.Core/State/KnowledgeOperands.cs`, `scripts/research-consequence-declarations.json` and the M7 building charter §9 register. Do not edit by hand; CI runs `--check`, which fails on a stale file or on any FAIL below. M6 closure, D-066 R2 (the content/consequence audit) and A5 / A9.
+**Generated** by `scripts/research-consequence-audit.py` from the canonical content (research.json sha256 `c06c493a9b1b2e6d…`), the operand registry `Sim.Core/State/KnowledgeOperands.cs`, `scripts/research-consequence-declarations.json` and the M7 building charter §9 register. Do not edit by hand; CI runs `--check`, which fails on a stale file or on any FAIL below. M6 closure, D-066 R2 (the content/consequence audit) and A5 / A9.
 
 ## 1. Rules
 

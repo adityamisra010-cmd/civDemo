@@ -29,6 +29,7 @@ Read `docs/current-state.md` first, then **verify its claims against Git state a
 - Every milestone spec from M4 onward carries the four S8 §4.1 items — FOUNDATIONS AUDIT as packet one, dimensional declaration, corridor independence, coupling map (`docs/spine-s8-governance-freeze.md` §4.1, ADR-014). If you are writing a milestone spec, §4.1 is mandatory reading first.
 - Tuning data files and `TUNE` parameters is always allowed.
 - **Entity proposals:** a unit family is a controllable formation only (D-065 R8). Classify every new entity A–E per `docs/m7-plan/unit-catalogue-and-progression.md` §4.5 before designing it.
+- **Originality (D-069):** this is an original game. Specify and implement work in terms of our own design and genre patterns, never as a copy of another game. Shipped content (`Sim.Data/content/`, player-facing text) names no other game. Rules and the release gate: `docs/ip-originality.md`.
 
 ## Workflow per session
 - Execute ONE task packet. Do not exceed its scope, even to "help."

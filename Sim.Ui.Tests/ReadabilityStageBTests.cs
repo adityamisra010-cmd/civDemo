@@ -221,9 +221,9 @@ public class ReadabilityStageBTests(ReadabilityWorldsFixture fx) : IClassFixture
         RectD panel = s.DetailRect;
         double Y(string heading) => d.Commands.OfType<TextCmd>().First(t => t.Text.StartsWith(heading, StringComparison.Ordinal) && panel.Contains(t.X + 1, t.Y + 1)).Y;
         HitRegion cta = s.Hits.Single(h => h.Kind == HitKind.SetTarget);
-        double cost = Y("COST"), enables = Y("ENABLES"), requires = Y("REQUIRES"), eureka = Y("EUREKA"), uni = Y("UNIVERSITY"), about = Y("ABOUT");
+        double cost = Y("COST"), enables = Y("ENABLES"), requires = Y("REQUIRES"), idea = Y("IDEA"), uni = Y("UNIVERSITY"), about = Y("ABOUT");
         Assert.True(cost < cta.Rect.Y && cta.Rect.Bottom < enables, "the action sits under the cost, before what it enables");
-        Assert.True(enables < requires && requires < eureka && eureka < uni && uni < about);
+        Assert.True(enables < requires && requires < idea && idea < uni && uni < about);
         Assert.True(cta.Rect.H >= 44, "a primary action at least 44 px tall");
         // ENABLES reads the content: a node that declares capabilities lists them.
         ResearchNode node = Content.Nodes[pick];

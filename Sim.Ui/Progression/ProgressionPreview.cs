@@ -48,7 +48,7 @@ public static class ProgressionPreview
             (s, c) => Hover(s, MostConnected(s, c, ResearchTree.Technology))),
         new("03-technology-target", "JUMP TO TARGET: the current research target (partial progress) selected, its links highlighted.",
             (s, c) => { if (s.Snapshot!.TargetIndex is int t) s.Focus(t, jump: true); }),
-        new("04-technology-locked-subtree", "A subtree node locked by the research stage, with its Eureka list and university relevance.",
+        new("04-technology-locked-subtree", "A subtree node locked by the research stage, with its Idea list and university relevance.",
             (s, c) => s.Focus(FirstWithEurekaInSubtree(s, c), jump: true)),
         new("05-technology-overview", "FIT: the whole Technology tree as one vertical strip of tiers; lanes across the width.",
             (s, c) => { s.Tab = TreeTab.Technology; s.FitAll(); }),

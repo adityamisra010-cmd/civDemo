@@ -1789,9 +1789,9 @@ public sealed partial class ProgressionScreen
             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
         y += Sp(8);
 
-        // EUREKA.
-        y = Heading(d, m, x, w, y, "EUREKA", 3);
-        if (n.Eurekas.Count == 0) { d.Write(t, x, y, "This node has no Eureka.", body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale) + Sp(8); }
+        // IDEA: the player-facing name of the acceleration mechanism the code calls Eureka (D-069 R4).
+        y = Heading(d, m, x, w, y, "IDEA", 3);
+        if (n.Eurekas.Count == 0) { d.Write(t, x, y, "This node has no Idea.", body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale) + Sp(8); }
         else
         {
             double credited = n.EurekaCredited + n.ForeignCredited;
@@ -1811,7 +1811,7 @@ public sealed partial class ProgressionScreen
                     for (int k = 1; k < 4; k++) d.Line(x + w * k / 4.0, y + Sp(8), x + w * k / 4.0, y + Sp(11), A(t.Material.Border, 0.6), 0.6);
             }
             y += Sp(16);
-            foreach (string line in FlowText.Wrap(m, "Eureka " + Num(n.EurekaCredited) + " RP  ·  foreign exposure " + Num(n.ForeignCredited) + " RP" + (n.ExposureOffered > 0 ? " (offered " + Num(n.ExposureOffered) + ")" : ""), TypeRole.Secondary, _scale, w))
+            foreach (string line in FlowText.Wrap(m, "Idea " + Num(n.EurekaCredited) + " RP  ·  foreign exposure " + Num(n.ForeignCredited) + " RP" + (n.ExposureOffered > 0 ? " (offered " + Num(n.ExposureOffered) + ")" : ""), TypeRole.Secondary, _scale, w))
             { d.Write(t, x, y, line, second, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Secondary, _scale); }
             y += Sp(6);
             int ei = 0;

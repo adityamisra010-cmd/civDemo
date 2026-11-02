@@ -23,10 +23,12 @@ public enum NoSuccessorRule { Preserve = 1, Generic = 2 }
 /// and/or <see cref="Requires"/> (an expression of research.json node ids, ANDed with the entity where both are given), or
 /// <see cref="Baseline"/> (a research.json baseline capability — known from the start). <see cref="Recruitment"/> is what
 /// recruiting it takes (null in a schema-1 file: not recruitable). <see cref="CarrierCapable"/> and <see cref="JetDeck"/>
-/// form the one embark predicate (MilitaryQuery.CanEmbark; aviation-progression §9.1).</para></summary>
+/// form the one embark predicate (MilitaryQuery.CanEmbark; aviation-progression §9.1).</para>
+/// <para>D-069 R2 (2026-11-01): the former <c>reference</c> field (a third-party design reference that nothing read) is no
+/// longer content or a member here; its values are design reference in docs/m7-plan/unit-design-references.md.</para></summary>
 public sealed record UnitIdentity(
     int Key, string Id, string Name, int Age, bool Branch, string HistoricalEmergence,
-    IReadOnlyList<string> Equipment, string? RealizedBy, string? Reference, int FamilyKey)
+    IReadOnlyList<string> Equipment, string? RealizedBy, int FamilyKey)
 {
     /// <summary>The per-identity requirement (node ids, research dialect), or null.</summary>
     public Sim.Core.Systems.ClassMobility.Predicate? Requires { get; init; }
@@ -326,7 +328,7 @@ public static class UnitFamilyContentLoader
                 if (ij.RealizedBy is { } entity && research is not null && research.EntityIndexOf(entity) < 0)
                     throw Fail($"{ip}: realizedBy '{entity}' is not an entity in research.json.");
                 line[i] = new UnitIdentity(ij.Key, ij.Id, ij.Name, ij.Age, ij.Branch, ij.HistoricalEmergence,
-                    ij.Equipment ?? [], ij.RealizedBy, ij.Reference, j.Key)
+                    ij.Equipment ?? [], ij.RealizedBy, j.Key)
                 {
                     Requires = ParseRequires(ij, ip, research),
                     RequiresSource = ij.Requires,
@@ -585,7 +587,6 @@ public static class UnitFamilyContentLoader
         [property: JsonPropertyName("historicalEmergence"), JsonRequired] string HistoricalEmergence,
         [property: JsonPropertyName("equipment")] string[]? Equipment,
         [property: JsonPropertyName("realizedBy")] string? RealizedBy,
-        [property: JsonPropertyName("reference")] string? Reference,
         [property: JsonPropertyName("branch")] bool Branch = false,
         [property: JsonPropertyName("requires")] string? Requires = null,
         [property: JsonPropertyName("baseline")] string? Baseline = null,
