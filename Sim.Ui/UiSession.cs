@@ -920,6 +920,48 @@ public sealed class UiSession
             Path.GetFileNameWithoutExtension(sessionLogPath)
                 .Replace("orders-", "session-") + ".json");
 
+    /// <summary>Director 2026-11-02: the close-time export's diagnostic log twinned with a session log path: same stamp,
+    /// `export-` prefix, `.log`, in the record folder. Written only when a verified export could not remove the raw
+    /// telemetry log (the reason, appended); never read back, never listed by the forensic record.</summary>
+    public static string ExportLogPath(string sessionLogPath) =>
+        Path.Combine(Path.GetDirectoryName(sessionLogPath) ?? "",
+            Path.GetFileNameWithoutExtension(sessionLogPath)
+                .Replace("orders-", "export-") + ".log");
+
+    /// <summary>
+    /// Director 2026-11-02 ("Next run onwards, I want only one excel sheet [in the runs folder], not these multiple
+    /// files"): THE RECORD FOLDER. A played session writes its record — manifest, orders, trace, chronicle, telemetry,
+    /// forensic record (and any as-recorded copy or export log) — into <c>runs/.record/</c>, under the same file names as
+    /// before; only <c>session-STAMP.xlsx</c> is written into <c>runs/</c> itself
+    /// (<see cref="Export.SessionWorkbook.WorkbookPathFor"/>). On Windows the folder is marked Hidden
+    /// (<see cref="PrepareRecordFolder"/>), so Explorer shows the workbooks only. Resume reads the record folder
+    /// (<see cref="UiArgs.ResolveManifest"/>); a folder in the older flat layout still resumes and exports as before.
+    /// </summary>
+    public const string RecordFolder = ".record";
+
+    /// <summary>Director 2026-11-02: creates <paramref name="dir"/> and, on Windows, when it is a <see cref="RecordFolder"/>,
+    /// marks it Hidden (once; an already-hidden folder is left alone). Any other folder is only created. An attribute that
+    /// cannot be set is not an error: the folder works either way.</summary>
+    public static void PrepareRecordFolder(string dir)
+    {
+        Directory.CreateDirectory(dir);
+        if (!OperatingSystem.IsWindows() || !IsRecordFolder(dir)) return;
+        try
+        {
+            if ((File.GetAttributes(dir) & FileAttributes.Hidden) == 0)
+                File.SetAttributes(dir, FileAttributes.Directory | FileAttributes.Hidden);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // presentation only: the record is complete whether Explorer shows the folder or not
+        }
+    }
+
+    /// <summary>Whether <paramref name="dir"/> is a session record folder (its last segment is <see cref="RecordFolder"/>).</summary>
+    public static bool IsRecordFolder(string? dir) =>
+        dir is { Length: > 0 }
+        && string.Equals(Path.GetFileName(Path.TrimEndingDirectorySeparator(dir)), RecordFolder, StringComparison.Ordinal);
+
     /// <summary>
     /// The reproduction contract for this session: the seed and overrides the
     /// world was built from, and the identity of the build that ran it. Written
@@ -953,11 +995,13 @@ public sealed class UiSession
             Display: display,
             EconomyPackets: SessionManifest.EnabledEconomyPackets(_simCfg.Goods));   // ADR-056
 
-    /// <summary>Writes the manifest beside the order log (with the display the game opens on, when the host knows it).</summary>
+    /// <summary>Writes the manifest beside the order log (with the display the game opens on, when the host knows it).
+    /// Director 2026-11-02 ("one Excel file in runs"): the first file a session writes, so it also prepares the record
+    /// folder (<see cref="PrepareRecordFolder"/>) — hidden on Windows when it is <see cref="RecordFolder"/>.</summary>
     public void ExportManifest(string startedAt, string sessionLogPath, SessionDisplay? display = null)
     {
         string path = ManifestPath(sessionLogPath);
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        PrepareRecordFolder(Path.GetDirectoryName(path)!);
         using FileStream file = File.Create(path);
         Manifest(startedAt, sessionLogPath, display).Write(file);
     }
@@ -1154,7 +1198,23 @@ public sealed class UiSession
     /// log to be the one it holds. A refused or failed export removes nothing, and a log that cannot be removed is kept
     /// and reported on <paramref name="errors"/>. The manifest, orders, trace, chronicle and forensic files always stay.
     /// </summary>
-    public string? ExportWorkbook(string sessionLogPath, TextWriter? errors = null)
+    public string? ExportWorkbook(string sessionLogPath, TextWriter? errors = null) =>
+        ExportWorkbook(sessionLogPath, errors, delete: null, pause: null);
+
+    /// <summary>
+    /// As <see cref="ExportWorkbook(string, TextWriter?)"/>; Director 2026-11-02 — TEST SEAM for the removal's retry:
+    /// <paramref name="delete"/> and <paramref name="pause"/> stand in for <see cref="File.Delete"/> and the wait between
+    /// attempts (<see cref="Export.SessionWorkbook.RemoveRawTelemetry(string, string, Export.SessionExportResult, Action{string}?, Action{int}?)"/>).
+    /// Null: the real ones. The launcher never passes them.
+    ///
+    /// The workbook goes to <see cref="Export.SessionWorkbook.WorkbookPathFor"/> — the parent of the record folder when the
+    /// manifest is in <see cref="RecordFolder"/> (runs\session-STAMP.xlsx), else beside the manifest (an older flat folder).
+    /// The raw telemetry log is the one in the MANIFEST's folder. A log that could not be removed is reported on
+    /// <paramref name="errors"/> AND appended to <see cref="ExportLogPath"/> in the record folder, because the Windows
+    /// launcher discards stderr; writing that log never throws, so nothing here blocks the exit. (A refused export is
+    /// reported on <paramref name="errors"/> only, as before: it writes no file at all.)
+    /// </summary>
+    public string? ExportWorkbook(string sessionLogPath, TextWriter? errors, Action<string>? delete, Action<int>? pause)
     {
         string manifest = ManifestPath(sessionLogPath);
         if (!File.Exists(manifest)) return null;
@@ -1163,8 +1223,9 @@ public sealed class UiSession
             (string path, Export.SessionExportResult result) = Export.SessionWorkbook.ExportBeside(manifest,
                 KeepRawTelemetry ? Export.RawTelemetry.Kept : Export.RawTelemetry.RemovedAfterExport);
             if (!KeepRawTelemetry && result.RawTelemetry != Export.RawTelemetry.RecoveredFromWorkbook
-                && Export.SessionWorkbook.RemoveRawTelemetry(path, result) is { } kept)
-                errors?.WriteLine("raw telemetry log kept beside the workbook: " + kept);
+                && Export.SessionWorkbook.RemoveRawTelemetry(path, Path.Combine(Path.GetDirectoryName(Path.GetFullPath(manifest)) ?? "",
+                    result.TelemetryFile), result, delete, pause) is { } kept)
+                ReportKept(sessionLogPath, errors, "raw telemetry log kept in the session record (" + result.TelemetryFile + "): " + kept);
             return path;
         }
         catch (Export.SessionExportException e)
@@ -1176,6 +1237,24 @@ public sealed class UiSession
         {
             errors?.WriteLine("session workbook not written: " + e.Message);
             return null;
+        }
+    }
+
+    /// <summary>Director 2026-11-02: why the raw telemetry log was kept, on <paramref name="errors"/> and appended to
+    /// <see cref="ExportLogPath"/> (a line: the local time, then the reason). Never throws: a log that cannot be written is
+    /// said on <paramref name="errors"/> only.</summary>
+    private static void ReportKept(string sessionLogPath, TextWriter? errors, string reason)
+    {
+        errors?.WriteLine(reason);
+        string log = ExportLogPath(sessionLogPath);
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(log)!);
+            File.AppendAllText(log, DateTime.Now.ToString("yyyy-MM-dd HH:mm:sszzz", CultureInfo.InvariantCulture) + " " + reason + "\n");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            errors?.WriteLine("export log not written (" + log + "): " + e.Message);
         }
     }
 
@@ -1198,10 +1277,12 @@ public sealed class UiSession
     /// lexicographic = chronological. A non-canonical size is recorded IN the
     /// name (…-s256.bin) so a preview session is never mistaken for a
     /// canonical-world log at replay time (`sim replay --founded --size PX`).
+    /// Director 2026-11-02: in the record folder, <c>runs/.record/</c> (<see cref="RecordFolder"/>); every companion
+    /// path is twinned from it, so the whole record follows. The file name is unchanged.
     /// </summary>
     public static string SessionLogPath(
         DateTime now, int? sizeOverridePx = null, int? settlementsOverride = null, int? aiEmpiresOverride = null) =>
-        Path.Combine("runs",
+        Path.Combine("runs", RecordFolder,
             "orders-" + now.ToString("yyyyMMdd-HHmmss", CultureInfo.InvariantCulture)
             + (sizeOverridePx is { } sz
                 ? "-s" + sz.ToString(CultureInfo.InvariantCulture)

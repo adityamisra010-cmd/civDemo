@@ -585,3 +585,24 @@ format changed. The panel half of that test is unchanged.
 - **F5 (amends E5):** Sim.Core gains `Sim.Core/Chronicle/ChronicleCode.cs`, and `ChronicleProse.FormatYear` and
   `ShareText` become `internal` shared helpers (prose output unchanged). This is the observational chronicle, outside
   the determinism surface. No simulation state, hash or pin moves.
+
+## Dated note — 2026-11-02 (Director: one Excel file in runs)
+
+The Director's instruction: "Next run onwards, I want only one excel sheet [in the runs folder], not these multiple
+files." The governance record (a D-record) is the coordinator's. This note records the change to where the files are
+written. It supersedes "beside the six session files" above, for the game's own sessions only.
+
+- **The record folder.** The game writes the session files into `runs/.record/` under the same names. The folder is
+  hidden on Windows.
+- **The workbook.** It is written to `runs/`: `SessionWorkbook.WorkbookPathFor` maps a manifest in a `.record` folder
+  to that folder's parent. Every other manifest keeps its workbook beside it.
+- **The raw telemetry log.** It is removed from the manifest's folder, `RemoveRawTelemetry(workbook, telemetry, …)`.
+  An `IOException` or `UnauthorizedAccessException` is retried, up to 5 attempts in all with waits of 250, 500, 750 and
+  1000 ms. The three conditions are checked again on every attempt.
+- **A failure.** If the log still cannot be removed, the reason is also appended to `.record/export-STAMP.log`.
+- **Resume.** `UiArgs.ResolveManifest` reads the record folder and the older flat layout.
+- **Unchanged.** The workbook bytes for the same files, every file name, and the forensic close record's artifact list
+  are unchanged. No simulation state, hash or simulation golden moves.
+- **The one moved test pin.** `UiSessionReplayTests.SessionLogPath_StampedFlat_LexicographicIsChronological` now
+  expects `runs/.record/orders-…`.
+- **Details.** `docs/m6-session-export/README.md` §7.

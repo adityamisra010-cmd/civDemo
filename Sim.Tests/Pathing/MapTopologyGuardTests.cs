@@ -100,6 +100,9 @@ public class MapTopologyGuardTests
         ("Sim.Ui/Art/HeaderRuleBaker.cs",
             "double dx = px - cx;",
             "chrome art (a header rule bitmap), not map geometry."),
+        ("Sim.Ui/Progression/CardDoubleClick.cs",
+            "_card >= 0 && now - _time <= WindowSeconds && now >= _time && Math.Abs(x - _x) <= SlopPx && Math.Abs(y - _y) <= SlopPx ? _card : -1;",
+            "SCREEN-space pointer travel between the two clicks of a research-card double-click (D-070), in pixels; not map geometry."),
         // ---- WS3 RENDERING STAGE (W2): the Sim.Ui map sites W1 left pending, each converted and re-reviewed. What remains
         // here is a FLAT branch (the wrapped branch goes through MapTopology) or screen-space geometry (no world x delta).
         ("Sim.Ui/World/MapCells.cs",

@@ -59,6 +59,10 @@ jobs:
       #   - UiSession.SessionLogPath builds Path.Combine("runs", …) — RELATIVE,
       #     resolved against the WORKING DIRECTORY, so a launcher that leaves
       #     cwd at the zip root puts `runs/` at the root by itself.
+      #     (Director 2026-11-02, "one Excel file in runs": it is now
+      #     Path.Combine("runs", ".record", …) — the session record goes to the
+      #     hidden runs\.record\ and only session-STAMP.xlsx to runs\; still
+      #     relative to the working directory, so nothing here changes.)
       #   - AssetManifest resolves art at Path.Combine(AppContext.BaseDirectory,
       #     "assets") — the EXE's directory, not cwd — so `assets/` travels
       #     with the exe into `app/` and keeps working.
@@ -92,6 +96,8 @@ jobs:
           # game entirely"): the second launcher CONTINUES the latest game. `--resume runs` loads the newest
           # session-*.json in runs\ (UiArgs.ResolveManifest: the stamps sort by launch time), i.e. the game started
           # last; a refused or unreadable session reports itself in the error dialog as any --resume does.
+          # Director 2026-11-02: the game records into runs\.record\; ResolveManifest looks there AND in runs\
+          # itself (the older flat layout), so the launcher's argument stays `--resume runs`.
           printf '@echo off\r\ncd /d "%%~dp0"\r\nstart "" "app\\Sim.Ui.exe" --resume runs\r\n' \
             > "publish/sim-ui-win-x64/Continue last game.cmd"
           cat "publish/sim-ui-win-x64/Continue last game.cmd"

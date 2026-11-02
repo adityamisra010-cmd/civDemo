@@ -22,8 +22,9 @@ public static class UiArgs
         + "    --ai-empires N      found N AI-commanded Empires to play against (default worldgen.json's aiEmpires, which is 0)\n"
         + "    --dev               open with the developer surfaces - turn audit, records, tables, build - shown; F12 toggles them in play\n"
         + "    --ui-scale F        interface size: 0.9, 1, 1.1, 1.25 or 1.5 times the automatic scale (Ctrl+= / Ctrl+- / Ctrl+0 in play)\n"
-        + "    --resume DIR|FILE   continue a saved session (a session directory or a session-*.json manifest) by replaying its order log\n"
-        + "    --keep-raw-telemetry keep telemetry-*.jsonl beside the session workbook at close (developers); by default it is removed\n"
+        + "    --resume DIR|FILE   continue a saved session (a session directory or a session-*.json manifest) by replaying its order log;\n"
+        + "                        a directory's newest session, in it or in its .record folder (where the game records sessions)\n"
+        + "    --keep-raw-telemetry keep telemetry-*.jsonl in the session record at close (developers); by default it is removed\n"
         + "                        once session-STAMP.xlsx is written and verified - its Telemetry sheet holds every line (ADR-059)\n"
         + "Check (headless: no window, no GPU):\n"
         + "  sim-ui --smoke [--ai-empires N] [--monkey N] [--state NAME]... [--report PATH] [--timeout-minutes N]\n"
@@ -42,7 +43,8 @@ public static class UiArgs
         + "                        Manifest, Orders, Trace, Chronicle, Telemetry, Codebook, Forensic); the game writes the same\n"
         + "                        workbook when a session closes (ADR-059), deflate-compressed; it never removes a file. When\n"
         + "                        the raw telemetry log was removed at close, its lines are read back from the existing workbook\n"
-        + "                        and used only if they match the forensic close record's sha256 (else refused, exit 2)\n"
+        + "                        and used only if they match the forensic close record's sha256 (else refused, exit 2). A session\n"
+        + "                        recorded in a .record folder gets its workbook in that folder's parent (runs\\session-STAMP.xlsx)\n"
         + "Developer previews (write SVGs to DIR and exit; no window):\n"
         + "  --research-preview [DIR]       the Knowledge & Technology progression screen (default research-preview)\n"
         + "  --age-preview [DIR]            the capital Age panel and Age flow (default age-preview)\n"
@@ -85,14 +87,34 @@ public static class UiArgs
     }
 
     /// <summary>A session manifest path: the argument itself when it is a file, else the newest
-    /// <c>session-*.json</c> in the directory (the stamps sort lexicographically = chronologically).</summary>
+    /// <c>session-*.json</c> in the directory (the stamps sort lexicographically = chronologically).
+    ///
+    /// Director 2026-11-02 ("one Excel file in runs"): a session's record lives in the directory's record folder
+    /// (<c>runs/.record/</c>, <see cref="UiSession.RecordFolder"/>), so the manifests there are candidates too, beside those
+    /// of the older flat layout in the directory itself — <c>Continue last game.cmd</c> (<c>--resume runs</c>) resumes the
+    /// newest session whichever layout recorded it. Newest = the greatest file NAME, ordinal (the stamp); a name in both
+    /// places resolves to the record folder's. A record folder named directly (<c>--resume runs/.record</c>) is an
+    /// ordinary directory.</summary>
     public static string ResolveManifest(string pathOrDir)
     {
         if (File.Exists(pathOrDir)) return pathOrDir;
-        string[] found = Directory.GetFiles(pathOrDir, "session-*.json");
-        if (found.Length == 0) throw new FileNotFoundException($"no session-*.json manifest in {pathOrDir}");
-        Array.Sort(found, StringComparer.Ordinal);
-        return found[^1];
+        string[] flat = Directory.GetFiles(pathOrDir, "session-*.json");   // a missing directory throws here, as before
+        string record = Path.Combine(pathOrDir, UiSession.RecordFolder);
+        string[] recorded = Directory.Exists(record) ? Directory.GetFiles(record, "session-*.json") : [];
+        string? best = null;
+        bool bestRecorded = false;
+        foreach ((string[] paths, bool inRecord) in new[] { (flat, false), (recorded, true) })
+            foreach (string p in paths)
+            {
+                int byName = best is null ? 1 : string.CompareOrdinal(Path.GetFileName(p), Path.GetFileName(best));
+                if (byName > 0 || (byName == 0 && inRecord && !bestRecorded))
+                {
+                    best = p;
+                    bestRecorded = inRecord;
+                }
+            }
+        return best ?? throw new FileNotFoundException(
+            $"no session-*.json manifest in {pathOrDir} (nor in its {UiSession.RecordFolder} folder)");
     }
 
     public static (ulong Seed, int? SizeOverridePx, int? SettlementsOverride, int? AiEmpiresOverride) Parse(string[] args)

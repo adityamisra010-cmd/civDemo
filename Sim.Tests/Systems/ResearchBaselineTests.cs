@@ -98,10 +98,11 @@ public class ResearchBaselineTests
             Assert.DoesNotContain("/ HarvestSystem", b.ProvidedBy, StringComparison.Ordinal);
         // The founding nodes that once claimed these are re-scoped to advanced forms (ids and keys kept).
         Assert.Equal(1, content.Nodes[content.IndexOfId("fire_making")].Key.Value);
-        Assert.Contains("baseline", content.Nodes[content.IndexOfId("fire_making")].Description, StringComparison.Ordinal);
-        Assert.Contains("baseline", content.Nodes[content.IndexOfId("fishing_hook")].Description, StringComparison.Ordinal);
-        Assert.Contains("baseline", content.Nodes[content.IndexOfId("raft")].Description, StringComparison.Ordinal);
-        Assert.Contains("baseline", content.Nodes[content.IndexOfId("hafting")].Description, StringComparison.Ordinal);
+        // TC-4 (Director, 2026-11-02): each says so in plain words ("... need(s) no research"), no longer as "baseline (D-047 ...)".
+        Assert.Contains("need no research", content.Nodes[content.IndexOfId("fire_making")].Description, StringComparison.Ordinal);
+        Assert.Contains("no research", content.Nodes[content.IndexOfId("fishing_hook")].Description, StringComparison.Ordinal);
+        Assert.Contains("need no research", content.Nodes[content.IndexOfId("raft")].Description, StringComparison.Ordinal);
+        Assert.Contains("need no research", content.Nodes[content.IndexOfId("hafting")].Description, StringComparison.Ordinal);
     }
 
     [Fact]

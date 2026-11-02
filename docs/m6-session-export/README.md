@@ -107,3 +107,61 @@ defines it. A continuation row has an EMPTY column A, and its cell starts with `
 
 **Goldens (§5.5).** The prototype's cells for the Director's 68-turn session and for a 16-turn current-tree session
 are the C# port's goldens. They are in `Sim.Ui.Tests/Fixtures/session-export/`.
+
+---
+
+## 7. Dated note, 2026-11-02: Director: one Excel file in runs
+
+The Director's instruction, after the playtest of `511e70f`: "Next run onwards, I want only one excel sheet [in the runs
+folder], not these multiple files." Sections 1–6 are kept as written. This note records what changed. The governance
+record (a D-record) is the coordinator's.
+
+**The layout.** From this build on, a played session writes its record into a record folder, `runs\.record\`. Only the
+workbook is written into `runs\` itself:
+
+```
+runs\session-STAMP.xlsx                  the one visible file per session (upload this)
+runs\.record\session-STAMP.json          the manifest
+runs\.record\orders-STAMP.bin            the order log
+runs\.record\trace-STAMP.csv             the turn trace
+runs\.record\chronicle-STAMP.txt         the coded chronicle
+runs\.record\forensic-STAMP.jsonl        the forensic run and close records
+runs\.record\telemetry-STAMP.jsonl       only while the session runs; removed after a verified export
+runs\.record\export-STAMP.log            only when that removal failed: why (see below)
+```
+
+- **Names unchanged.** Every file keeps its name, so the forensic record, the exporter and every sha256 mean what they
+  meant. Only the directory moved. `UiSession.SessionLogPath` is now `runs/.record/orders-…`, and every companion path
+  is twinned from it.
+- **Hidden on Windows.** The game marks `.record` Hidden on Windows (`UiSession.PrepareRecordFolder`, called when the
+  manifest is written at launch), so Explorer shows only the workbooks. With "Show hidden items" switched on, it is there.
+- **Where the workbook goes.** `SessionWorkbook.WorkbookPathFor` puts it in the record folder's parent when the manifest
+  is in a folder named `.record`. Otherwise it goes beside the manifest, as before: an older flat `runs\`, or a copied
+  session. The self-check, and the removal's check that the workbook on disk is the verified one, are unchanged.
+- **Resume.** `Continue last game.cmd` still passes `--resume runs`. `UiArgs.ResolveManifest` now looks in
+  `runs\.record\` and in `runs\` itself, and takes the newest stamp. If the same stamp is in both, the record folder's
+  copy wins. An explicit manifest path and an older flat folder still resume. `--export-session runs` finds the session
+  the same way.
+- **Workbook content unchanged.** The workbook's sheets are byte for byte what they were for the same six files. Its
+  README still says the files are "beside" it. In the new layout that means the hidden folder next to it.
+
+**Why the 16 MB telemetry log was still there.** In the Director's Windows session `20261102-140558-a1`, the workbook
+verified (its README lists the telemetry present, 16,074,749 bytes), but `telemetry-*.jsonl` was not removed. The
+reason went to stderr, which the `start ""` launcher discards. The probable cause is a transient Windows lock on a
+freshly written 16 MB file (a Defender scan, an Explorer preview, the search indexer or cloud sync) that made
+`File.Delete` throw. That is NOT PROVEN: no log of the failure exists. The code closes every handle it opens.
+
+**What changed in the removal** (`SessionWorkbook.RemoveRawTelemetry`):
+- **Retries.** An `IOException` or `UnauthorizedAccessException` is retried. There are up to 5 attempts in all, with
+  waits of 250, 500, 750 and 1000 ms (2.5 s at most).
+- **Checks on every attempt.** All three verification conditions are checked again before each attempt.
+- **No retry for a failed condition.** A condition that does not hold is final at once.
+- **The log.** If the log still cannot be removed, it is kept, and the reason goes to stderr AND is appended to
+  `runs\.record\export-STAMP.log`. The reason names the number of attempts and the last error. The next failure can
+  then be diagnosed.
+- **The exit.** A failed delete never blocks the exit; the workbook is already written.
+
+**CI.** No Windows job performs a real quit and export. The `windows-smoke` job runs `--smoke` on a temporary flat
+folder and never closes a session through `SaveOnExit`. So no CI assertion on the Windows runs folder was added. The
+layout is asserted in `Sim.Ui.Tests/SessionRecordFolderTests.cs`, through the real GameUi close on the headless
+harness. The Windows-only real-lock test in that file runs only on Windows.

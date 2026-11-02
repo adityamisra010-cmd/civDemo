@@ -422,11 +422,13 @@ public class UiSessionReplayTests
         string a = Sim.Ui.UiSession.SessionLogPath(early);
         string b = Sim.Ui.UiSession.SessionLogPath(late);
 
-        Assert.Equal(Path.Combine("runs", "orders-20260722-090500.bin"), a);
+        // Director 2026-11-02 ("one Excel file in runs"): MOVED PIN — the log (and so every twinned companion) is in the
+        // record folder runs/.record/; the file name is unchanged.
+        Assert.Equal(Path.Combine("runs", ".record", "orders-20260722-090500.bin"), a);
         Assert.True(string.CompareOrdinal(a, b) < 0, "lexicographic != chronological");
 
         // Non-canonical sizes are visible IN the name (replay needs --size PX).
-        Assert.Equal(Path.Combine("runs", "orders-20260722-090500-s256.bin"),
+        Assert.Equal(Path.Combine("runs", ".record", "orders-20260722-090500-s256.bin"),
             Sim.Ui.UiSession.SessionLogPath(early, sizeOverridePx: 256));
     }
 

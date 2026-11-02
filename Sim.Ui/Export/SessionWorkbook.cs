@@ -73,8 +73,18 @@ public static class SessionWorkbook
     /// <summary>The sheets, in order.</summary>
     public static readonly string[] SheetNames = ["README", "Manifest", "Orders", "Trace", "Chronicle", "Telemetry", "Codebook", "Forensic"];
 
-    /// <summary>The workbook path beside a manifest: <c>session-STAMP.json</c> → <c>session-STAMP.xlsx</c>.</summary>
-    public static string WorkbookPathFor(string manifestPath) => Path.ChangeExtension(manifestPath, ".xlsx");
+    /// <summary>The workbook path for a manifest: <c>session-STAMP.json</c> → <c>session-STAMP.xlsx</c>, beside it — EXCEPT
+    /// (Director 2026-11-02, "one Excel file in runs") when the manifest is in a session record folder
+    /// (<see cref="UiSession.RecordFolder"/>, <c>runs/.record/</c>): then the workbook goes to that folder's PARENT
+    /// (<c>runs/session-STAMP.xlsx</c>), the one file the visible runs folder holds per session. A manifest in any other
+    /// folder (an older flat <c>runs/</c>, a copied session) keeps its workbook beside it, as before.</summary>
+    public static string WorkbookPathFor(string manifestPath)
+    {
+        string? dir = Path.GetDirectoryName(manifestPath);
+        if (!UiSession.IsRecordFolder(dir)) return Path.ChangeExtension(manifestPath, ".xlsx");
+        return Path.Combine(Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(dir!)) ?? "",
+            Path.ChangeExtension(Path.GetFileName(manifestPath), ".xlsx"));
+    }
 
     /// <summary>Exports the session whose manifest is <paramref name="manifestPath"/> to <see cref="WorkbookPathFor"/>.
     /// The file is written only after the self-check passed, in one write.
@@ -190,24 +200,58 @@ public static class SessionWorkbook
     /// </list>
     /// The manifest, orders, trace, chronicle and forensic files are never touched (resume reads them).
     /// </summary>
-    public static string? RemoveRawTelemetry(string workbookPath, SessionExportResult result)
+    public static string? RemoveRawTelemetry(string workbookPath, SessionExportResult result) =>
+        RemoveRawTelemetry(workbookPath,
+            Path.Combine(Path.GetDirectoryName(Path.GetFullPath(workbookPath)) ?? "", result.TelemetryFile), result);
+
+    /// <summary>How many times <see cref="RemoveRawTelemetry(string, string, SessionExportResult, Action{string}?, Action{int}?)"/>
+    /// tries before it keeps the log (Director 2026-11-02).</summary>
+    public const int RemovalAttempts = 5;
+
+    /// <summary>The wait before retry k (1-based) is k times this many milliseconds: 250, 500, 750, 1000 — at most 2.5 s
+    /// in all, so a log Windows holds briefly (a Defender scan, an Explorer preview, the search indexer, cloud sync of a
+    /// freshly written 16 MB file) is still removed, and one held for good delays the exit by that bound only.</summary>
+    public const int RemovalWaitStepMs = 250;
+
+    /// <summary>
+    /// As <see cref="RemoveRawTelemetry(string, SessionExportResult)"/>, for a raw log at <paramref name="telemetryPath"/>
+    /// — the manifest's folder, which (Director 2026-11-02) is the record folder <c>runs/.record/</c> while the workbook is
+    /// in <c>runs/</c>. The three conditions are unchanged, and are checked again on EVERY attempt, right before the
+    /// delete. A transient failure — an <see cref="IOException"/> or <see cref="UnauthorizedAccessException"/> while
+    /// reading either file or deleting the log (on Windows: a process holding the freshly written log open without
+    /// delete sharing) — is retried up to <see cref="RemovalAttempts"/> times in all, waiting k ×
+    /// <see cref="RemovalWaitStepMs"/> ms before retry k. A condition that does not hold is final at once (no retry). The
+    /// returned reason names the attempts and the last error.
+    ///
+    /// <paramref name="delete"/> and <paramref name="pause"/> are a TEST SEAM (null: <see cref="File.Delete"/> and
+    /// <see cref="Thread.Sleep(int)"/>). UI/export code, outside the simulation: the wait reads no clock into any record.
+    /// </summary>
+    public static string? RemoveRawTelemetry(string workbookPath, string telemetryPath, SessionExportResult result,
+        Action<string>? delete = null, Action<int>? pause = null)
     {
         if (result.RawTelemetry != RawTelemetry.RemovedAfterExport)
             return "the export did not verify it for removal (" + result.RawTelemetry.ToString() + ")";
-        string telemetryPath = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(workbookPath)) ?? "", result.TelemetryFile);
-        try
+        delete ??= File.Delete;
+        pause ??= Thread.Sleep;
+        string last = "";
+        for (int attempt = 1; attempt <= RemovalAttempts; attempt++)
         {
-            if (!File.ReadAllBytes(workbookPath).AsSpan().SequenceEqual(result.Bytes))
-                return "the workbook on disk is not the workbook that was verified";
-            if (ForensicIdentity.Sha256HexOfFile(telemetryPath) != result.TelemetrySha256)
-                return "the raw log on disk is not the log the workbook holds";
-            File.Delete(telemetryPath);
-            return null;
+            if (attempt > 1) pause(RemovalWaitStepMs * (attempt - 1));
+            try
+            {
+                if (!File.ReadAllBytes(workbookPath).AsSpan().SequenceEqual(result.Bytes))
+                    return "the workbook on disk is not the workbook that was verified";
+                if (ForensicIdentity.Sha256HexOfFile(telemetryPath) != result.TelemetrySha256)
+                    return "the raw log on disk is not the log the workbook holds";
+                delete(telemetryPath);
+                return null;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                last = e.GetType().Name + ": " + e.Message;
+            }
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
-        {
-            return e.Message;
-        }
+        return "not removed after " + RemovalAttempts.ToString(CultureInfo.InvariantCulture) + " attempts; last error " + last;
     }
 
     private static byte[]? ReadBeside(string dir, string name)

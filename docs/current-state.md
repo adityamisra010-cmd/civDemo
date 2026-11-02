@@ -1,8 +1,8 @@
 # CURRENT STATE — the routing document
 
-> **2026-11-02 (latest): ORIGINALITY (D-069) AND RESEARCH-TREE PLAYTEST FIXES (D-070); M6 NOT CLOSED.**
-> - **Rulings:** [D-069](d069-originality-and-third-party-game-references.md): no third-party game names in shipped content; real historical names stay; "Eureka" shown as "Idea". [D-070](d070-research-tree-pin-and-banked-civics.md): click pins a research node, double-click orders it, prerequisites in orange; banked Civics Points shown.
-> - **Moved pins:** tree-closure TEXT (D-069 R2); `EraSeparationTests.A6CanonicalHash` (D-070, one added token line). No simulation hash moves.
+> **2026-11-02 (latest): ORIGINALITY (D-069), RESEARCH-TREE PLAYTEST FIXES (D-070), ONE EXCEL FILE AND PLAIN DESCRIPTIONS (D-071); M6 NOT CLOSED.**
+> - **Rulings:** [D-069](d069-originality-and-third-party-game-references.md): no third-party game names in shipped content; real historical names stay; "Eureka" shown as "Idea". [D-070](d070-research-tree-pin-and-banked-civics.md): click pins a research node, double-click orders it, prerequisites in orange; banked Civics Points shown. [D-071](d071-one-file-runs-and-plain-descriptions.md): after a session closes `runs\` shows only the workbook (record files move to hidden `runs\.record\`); 87 research descriptions rewritten in plain language.
+> - **Moved pins:** tree-closure TEXT (D-069 R2, then D-071 TC-4); `EraSeparationTests.A6CanonicalHash` (D-070, one added token line). No simulation hash moves.
 > - **Authorized:** commit and push for the Windows playtest build (Director, 2026-11-02). No merge, tag or release.
 > - **Still open:** the playtest rows, the visual gate, the Excel open, and the exit ruling.
 >

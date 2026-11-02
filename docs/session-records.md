@@ -1,5 +1,12 @@
 # WHAT A PLAYED SESSION LEAVES BEHIND
 
+> **Dated note, 2026-11-02 (Director: one Excel file in runs).** The layout below is the historical one. A session
+> recorded by a build from 2026-11-02 on writes these files, under the same names, into the record folder
+> `runs\.record\`, which is hidden on Windows. The telemetry and forensic files are there too. Only
+> `runs\session-STAMP.xlsx` is in `runs\` itself. So the inspect recipe below reads
+> `sim inspect --manifest runs\.record\session-STAMP.json`, and `--resume runs` finds the session there. An older flat
+> `runs\` still resumes. Details: `docs/m6-session-export/README.md` §7.
+
 Four files in `runs\`, all sharing one stamp so a session's files sort together
 and cannot be confused with another's:
 

@@ -309,10 +309,12 @@ AI-commanded Empires to play against, ADR-033 D5; default worldgen.json's
 the log name, `-aN`), `--dev` (open with the developer panels; F12 toggles them) and
 `--resume DIR|MANIFEST` (continue a saved session by replaying its order log). `--help` prints the usage line.
 
-Each played session writes six files into `runs/` (beside the launcher; in the
-current directory when `Sim.Ui.exe` is run directly), twinned by the same
-timestamp and the same `[-sPX][-nN][-aN]` suffixes (until 2026-10-05 this list
-named only the first two):
+Each played session writes six files into `runs/.record/`, twinned by the same timestamp and the same
+`[-sPX][-nN][-aN]` suffixes (until 2026-10-05 this list named only the first two). `runs/` is beside the launcher, or
+in the current directory when `Sim.Ui.exe` is run directly. Dated note, 2026-11-02 (Director: one Excel file in runs):
+these files used to sit in `runs/` itself. Now only `session-<stamp>.xlsx` is written there, and `.record` is hidden on
+Windows. The raw telemetry log is removed after a verified export. `--resume runs` reads `.record`, and an older flat
+`runs/` still resumes (`docs/m6-session-export/README.md` §7):
 
 - `orders-<yyyyMMdd-HHmmss>[-sPX][-nN][-aN].bin` — the order log (the replay
   input; lexicographic order = chronological, so back-to-back gate logs sort
@@ -328,7 +330,7 @@ named only the first two):
 A session log + its seed replays hash-identically:
 
 ```bash
-sim replay --founded --seed S --orders runs/orders-<stamp>.bin --turns N
+sim replay --founded --seed S --orders runs/.record/orders-<stamp>.bin --turns N
 # played on --size PX? add: --size PX  (the -sPX filename suffix tells you)
 # played with --settlements N? add: --settlements N  (the -nN suffix tells you)
 # played with --ai-empires N? add: --ai-empires N  (the -aN suffix tells you)
