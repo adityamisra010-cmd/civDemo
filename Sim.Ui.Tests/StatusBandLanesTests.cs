@@ -53,9 +53,11 @@ public sealed class StatusBandLanesTests : IDisposable
         ResearchBlock b = Block(civics: Civics());
         ResearchFigure tech = StatusFigures.Research(b), civ = StatusFigures.Civics(b)!;
         Assert.Equal(("Tech idle - choose [K]", true), (tech.Text, tech.Idle));
-        Assert.Equal(("Civics idle - choose [C]", true), (civ.Text, civ.Idle));
+        // Director playtest 2026-11: the Civics figure ends with the bank (the fixture's CivicsLine banks 25.0 CP).
+        Assert.Equal(("Civics idle - choose [C] · 25.0 CP banked", true), (civ.Text, civ.Idle));
         Assert.Equal("Tech idle [K]", tech.Short);
-        Assert.Equal("Civics idle [C]", civ.Short);
+        Assert.Equal("Civics idle [C] · 25.0 CP", civ.Short);
+        Assert.Equal("Civics idle [C]", civ.Bare);
         Assert.Equal(tech.Short, tech.Tiny);
     }
 
@@ -66,18 +68,20 @@ public sealed class StatusBandLanesTests : IDisposable
         ResearchFigure tech = StatusFigures.Research(b), civ = StatusFigures.Civics(b)!;
         // Tech: 54 of 200 = 27 %, the RP pool 12.34 a turn; Civics: 18.9 of 100 = 18 % (floored), the CP 3.14 a turn.
         Assert.Equal(("Tech: Cordage 27% +12.3/turn", false), (tech.Text, tech.Idle));
-        Assert.Equal(("Civics: Oral tradition 18% +3.1/turn", false), (civ.Text, civ.Idle));
+        Assert.Equal(("Civics: Oral tradition 18% +3.1/turn · 25.0 CP banked", false), (civ.Text, civ.Idle));
         Assert.Equal("Tech 27% +12.3/turn", tech.Short);
-        Assert.Equal("Civics 18% +3.1/turn", civ.Short);
+        Assert.Equal("Civics 18% +3.1/turn · 25.0 CP", civ.Short);
         Assert.Equal("Tech 27%", tech.Tiny);
-        Assert.Equal("Civics 18%", civ.Tiny);
+        Assert.Equal("Civics 18% · 25.0 CP", civ.Tiny);
+        Assert.Equal("Civics 18%", civ.Bare);   // Director playtest 2026-11: only the last resort drops the bank
+        Assert.Equal(tech.Tiny, tech.Bare);
         // A lane's state never leaks into the other's figure: the Civics lane idle leaves the Tech figure in progress.
         ResearchBlock techOnly = Block(target: Cordage, civics: Civics());
         Assert.Equal("Tech: Cordage 27% +12.3/turn", StatusFigures.Research(techOnly).Text);
-        Assert.Equal("Civics idle - choose [C]", StatusFigures.Civics(techOnly)!.Text);
+        Assert.Equal("Civics idle - choose [C] · 25.0 CP banked", StatusFigures.Civics(techOnly)!.Text);
         ResearchBlock civicOnly = Block(civics: Civics(target: Oral));
         Assert.Equal("Tech idle - choose [K]", StatusFigures.Research(civicOnly).Text);
-        Assert.Equal("Civics: Oral tradition 18% +3.1/turn", StatusFigures.Civics(civicOnly)!.Text);
+        Assert.Equal("Civics: Oral tradition 18% +3.1/turn · 25.0 CP banked", StatusFigures.Civics(civicOnly)!.Text);
     }
 
     [Fact]
@@ -86,14 +90,14 @@ public sealed class StatusBandLanesTests : IDisposable
         ResearchBlock chosen = Block(chosen: Cordage, civics: Civics(chosen: LongCivic));
         Assert.Equal("Tech: Cordage next turn", StatusFigures.Research(chosen).Text);
         // The node's name is cut to StatusFigures.NameChars with an ellipsis, as the Tech figure's.
-        Assert.Equal("Civics: Independent electoral... next turn", StatusFigures.Civics(chosen)!.Text);
-        Assert.Equal("Civics chosen", StatusFigures.Civics(chosen)!.Short);
+        Assert.Equal("Civics: Independent electoral... next turn · 25.0 CP banked", StatusFigures.Civics(chosen)!.Text);
+        Assert.Equal("Civics chosen · 25.0 CP", StatusFigures.Civics(chosen)!.Short);
         Assert.False(StatusFigures.Civics(chosen)!.Idle);
 
         ResearchBlock stopping = Block(target: Cordage, clear: true, civics: Civics(target: Oral, clear: true));
         Assert.Equal(("Tech stops at End Turn", true), (StatusFigures.Research(stopping).Text, StatusFigures.Research(stopping).Idle));
-        Assert.Equal(("Civics stops at End Turn", true), (StatusFigures.Civics(stopping)!.Text, StatusFigures.Civics(stopping)!.Idle));
-        Assert.Equal("Civics stops", StatusFigures.Civics(stopping)!.Short);
+        Assert.Equal(("Civics stops at End Turn · 25.0 CP banked", true), (StatusFigures.Civics(stopping)!.Text, StatusFigures.Civics(stopping)!.Idle));
+        Assert.Equal("Civics stops · 25.0 CP", StatusFigures.Civics(stopping)!.Short);
     }
 
     [Fact]
@@ -103,13 +107,13 @@ public sealed class StatusBandLanesTests : IDisposable
         var waiting = new RouteFunding(LaneActivity.Waiting, null, "Oral tradition", "Technology", "Cordage");
         ResearchBlock b = Block(target: Cordage, civics: Civics(target: Oral, funding: waiting));
         ResearchFigure civ = StatusFigures.Civics(b)!;
-        Assert.Equal(("Civics waiting: Oral tradition", true), (civ.Text, civ.Idle));
-        Assert.Equal("Civics waiting", civ.Short);
+        Assert.Equal(("Civics waiting: Oral tradition · 25.0 CP banked", true), (civ.Text, civ.Idle));
+        Assert.Equal("Civics waiting · 25.0 CP", civ.Short);
         Assert.Equal("Tech: Cordage 27% +12.3/turn", StatusFigures.Research(b).Text);
         // k3: a Civics lane with no target ASSISTING the Technology route names the civic it funds — not idle.
         var assisting = new RouteFunding(LaneActivity.Assisting, Oral, "Cordage", "Technology", null);
         ResearchFigure assist = StatusFigures.Civics(Block(target: Cordage, civics: Civics(funding: assisting)))!;
-        Assert.Equal(("Civics: Oral tradition 18% +3.1/turn", false), (assist.Text, assist.Idle));
+        Assert.Equal(("Civics: Oral tradition 18% +3.1/turn · 25.0 CP banked", false), (assist.Text, assist.Idle));
     }
 
     [Fact]
@@ -133,7 +137,7 @@ public sealed class StatusBandLanesTests : IDisposable
         UiControl civics = h.Ui.Controls.Find("band-civics") ?? throw new InvalidOperationException("no Civics chip");
         Assert.True(civics.X0 >= tech.X1, "the Civics chip sits after the Tech chip");
         Assert.Contains("Tech idle - choose [K]", h.Ui.FrameText.Texts(FrameSurface.Status));
-        Assert.Contains("Civics idle - choose [C]", h.Ui.FrameText.Texts(FrameSurface.Status));
+        Assert.Contains("Civics idle - choose [C] · 0.0 CP banked", h.Ui.FrameText.Texts(FrameSurface.Status));   // turn 1: nothing banked yet
 
         Assert.True(h.ClickControl("band-civics"));
         Assert.True(h.Ui.ProgressionOpen);

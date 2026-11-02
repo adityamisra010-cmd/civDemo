@@ -441,6 +441,8 @@ public static class EraThemes
             Food: S(SemanticFamilies.Food), Knowledge: S(SemanticFamilies.Knowledge), Military: S(SemanticFamilies.Military),
             Infrastructure: S(SemanticFamilies.Infrastructure),
             Prerequisite: S(SemanticFamilies.Prerequisite), Dependent: S(SemanticFamilies.Dependent),
+            // A signal ink: only the era's lightness shift applies, never its saturation (a highlighter is vivid in every era).
+            Pinned: FromHsl(SemanticFamilies.Pinned.Hue, SemanticFamilies.Pinned.Saturation, SemanticFamilies.Pinned.Lightness + p.LightShift),
             AvailableFill: AvailableFillOf(m, available), ActiveFill: Mix(m.Panel, active, 0.16),
             CompletedFill: Mix(m.Panel, completed, 0.24), LockedFill: LockedFillOf(m, AvailableFillOf(m, available)),
             Lanes: lanes);
@@ -504,6 +506,13 @@ public static class SemanticFamilies
     public static readonly SemanticFamily Prerequisite = new("prerequisite", 24, 0.80, 0.42, 14, 36);
     public static readonly SemanticFamily Dependent = new("dependent", 205, 0.62, 0.40, 192, 220);
 
+    /// <summary>Director playtest 2026-11 (research tree, click to pin): the pinned card and its direct prerequisites —
+    /// a pure, fully saturated orange. Unlike the other families the era's pigment saturation does not scale it (only the
+    /// lightness shift applies): it is a signal, and the muted oranges the screen already uses (the hover prerequisite,
+    /// retained progress, the Engineering lane, the accent) sit at a lower chroma, which is what keeps it apart from them.
+    /// It is drawn over a casing of the body ink (the card fills are light; see ProgressionScreen.PinnedStroke).</summary>
+    public static readonly SemanticFamily Pinned = new("pinned", 30, 1.00, 0.50, 26, 34);
+
     /// <summary>The highest saturation a neutral (locked) token may have.</summary>
     public const double NeutralMaxSaturation = 0.16;
 
@@ -513,6 +522,6 @@ public static class SemanticFamilies
         (Available, s => s.Available), (Active, s => s.Active), (Completed, s => s.Completed), (Locked, s => s.Locked),
         (Progress, s => s.Progress), (Danger, s => s.Danger), (Positive, s => s.Positive), (Food, s => s.Food),
         (Knowledge, s => s.Knowledge), (Military, s => s.Military), (Infrastructure, s => s.Infrastructure),
-        (Prerequisite, s => s.Prerequisite), (Dependent, s => s.Dependent),
+        (Prerequisite, s => s.Prerequisite), (Dependent, s => s.Dependent), (Pinned, s => s.Pinned),
     ];
 }

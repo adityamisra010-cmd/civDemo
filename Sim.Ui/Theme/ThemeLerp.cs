@@ -36,7 +36,7 @@ public static class ThemeLerp
             C(sa.Available, sb.Available, t), C(sa.Active, sb.Active, t), C(sa.Completed, sb.Completed, t), C(sa.Locked, sb.Locked, t),
             C(sa.Progress, sb.Progress, t), C(sa.Danger, sb.Danger, t), C(sa.Positive, sb.Positive, t), C(sa.Food, sb.Food, t),
             C(sa.Knowledge, sb.Knowledge, t), C(sa.Military, sb.Military, t), C(sa.Infrastructure, sb.Infrastructure, t),
-            C(sa.Prerequisite, sb.Prerequisite, t), C(sa.Dependent, sb.Dependent, t),
+            C(sa.Prerequisite, sb.Prerequisite, t), C(sa.Dependent, sb.Dependent, t), C(sa.Pinned, sb.Pinned, t),
             C(sa.AvailableFill, sb.AvailableFill, t), C(sa.ActiveFill, sb.ActiveFill, t), C(sa.CompletedFill, sb.CompletedFill, t),
             C(sa.LockedFill, sb.LockedFill, t),
             new LaneHues(C(la.Main, lb.Main, t), C(la.Military, lb.Military, t), C(la.Medicine, lb.Medicine, t),

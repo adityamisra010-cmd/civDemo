@@ -21,9 +21,15 @@ public class EraSeparationTests
     /// <summary>Consecutive eras' bars (the dark chrome) differ by at least this. Before: A1→A2 11.4, A2→A3 8.2.</summary>
     public const double ChromeStep = 15.0;
 
-    /// <summary>The parchment era's full canonical hash — unchanged by this ruling (the preview log before it
-    /// recorded the same 16-hex prefix, 7e2e3eed8bb95fdb).</summary>
-    public const string A6CanonicalHash = "7e2e3eed8bb95fdb3e230f41524fb52a72b265446fb78d6b38eddebd4fc5287b";
+    /// <summary>The parchment era's full canonical hash. Unchanged by the panels-only ruling (the preview log before it
+    /// recorded the same 16-hex prefix, 7e2e3eed8bb95fdb); MOVED by the Director's 2026-11 research-tree playtest fix,
+    /// which adds ONE token, <see cref="SemanticTokens.Pinned"/> — the canonical text gains exactly one line,
+    /// <c>Semantic.Pinned=#FF8000</c>, and nothing else (<see cref="A6CanonicalHashBeforePinned"/> pins that).</summary>
+    public const string A6CanonicalHash = "85a966243e6a148cf035bc53549258a408e87184ce564248165d5d8d30709e59";
+
+    /// <summary>The parchment era's canonical hash before the Pinned token: the canonical text without that one line still
+    /// hashes to it, so every other A6 token is byte-identical.</summary>
+    public const string A6CanonicalHashBeforePinned = "7e2e3eed8bb95fdb3e230f41524fb52a72b265446fb78d6b38eddebd4fc5287b";
 
     private static EraTheme T(int age) => EraThemes.For((UiEra)age);
 
@@ -92,6 +98,13 @@ public class EraSeparationTests
         EraTheme a6 = EraThemes.For(UiEra.Medieval);
         string hash = ThemeCanon.Hash(a6);
         Assert.True(hash == A6CanonicalHash, hash);
+        // The move is the one added line and nothing else.
+        string canon = ThemeCanon.Describe(a6);
+        string[] added = [.. canon.Split('\n').Where(l => l.StartsWith("Semantic.Pinned=", StringComparison.Ordinal))];
+        Assert.Equal(["Semantic.Pinned=#FF8000"], added);
+        string before = canon.Replace("Semantic.Pinned=#FF8000\n", "", StringComparison.Ordinal);
+        Assert.Equal(A6CanonicalHashBeforePinned,
+            Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(before))));
         Assert.Equal(ParchmentPalette.PaperLight, a6.Material.Panel);
         Assert.Equal(ParchmentPalette.PaperMid, a6.Material.Field);
         Assert.Equal(Sim.Ui.World.MapInk.Default, Sim.Ui.World.MapInk.For(a6));

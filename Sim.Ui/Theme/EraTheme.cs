@@ -71,12 +71,15 @@ public sealed record LaneHues(
 /// (<see cref="SemanticFamilies"/>; pinned by test): what is completed is gold, what is being
 /// researched is teal, what is available is blue, what is locked is grey, retained progress is
 /// amber, danger is red — whether it is daubed in ochre at A1 or printed in a modern ink at A9.
-/// The <c>*Fill</c> tokens are the state tints a card is filled with.
+/// The <c>*Fill</c> tokens are the state tints a card is filled with. <c>Pinned</c> (Director playtest 2026-11, research
+/// tree) is the SIGNAL orange of a pinned research card and its direct prerequisites: vivid in every era (the era's
+/// pigment does not mute it) and clearly apart from the Completed gold, the Researching teal and the screen's other oranges
+/// (the hover prerequisite, retained progress, the Engineering lane, the accent) — <see cref="SemanticFamilies.Pinned"/>.
 /// </summary>
 public sealed record SemanticTokens(
     Rgba Available, Rgba Active, Rgba Completed, Rgba Locked, Rgba Progress, Rgba Danger, Rgba Positive,
     Rgba Food, Rgba Knowledge, Rgba Military, Rgba Infrastructure,
-    Rgba Prerequisite, Rgba Dependent,
+    Rgba Prerequisite, Rgba Dependent, Rgba Pinned,
     Rgba AvailableFill, Rgba ActiveFill, Rgba CompletedFill, Rgba LockedFill,
     LaneHues Lanes);
 

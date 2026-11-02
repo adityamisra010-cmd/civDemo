@@ -164,6 +164,9 @@ public sealed partial class GameUi
     private bool _progressionOpen;
     private bool _progressionDrag;
     private int _progressionDownX, _progressionDownY;
+    // Director playtest 2026-11: a click pins a research card, a double-click orders it — detected on the host's frame clock.
+    private readonly Sim.Ui.Progression.CardDoubleClick _cardClicks = new();
+    private double _progressionClock;
     private KeyboardState _lastKeyboard;
     private bool _clickCandidate;   // press began on the map (not over ImGui)
     private int _clickDownX, _clickDownY;
@@ -966,6 +969,7 @@ public sealed partial class GameUi
         _progression ??= new Sim.Ui.Progression.ProgressionScreen(content, UiPlayer.Empire) { Era = _eraTable };
         _progressionOpen = !_progressionOpen;
         _progressionDrag = false;
+        _cardClicks.Reset();
     }
 
     /// <summary>The progression screen owns the whole window while open: Escape (or K, or the
@@ -974,13 +978,15 @@ public sealed partial class GameUi
     private void UpdateProgression(double dt, MouseState mouse, KeyboardState keyboard, Rectangle viewport)
     {
         var screen = _progression!;
+        _progressionClock += Math.Max(0.0, dt);   // the double-click window runs on frame time, never the wall clock
         screen.Scale = Scale;   // UR-4: the tree's strips, cards and type follow the UI scale
         screen.Resize(viewport.Width, viewport.Height);
         screen.Refresh(_world);
         screen.Age = Sim.Ui.Ages.AgePanelModel.Build(_world, _session.Config.Ages, _session.QueuedOrders(), UiPlayer.Empire);
         if (!IsActive) return;
-        // UR-4: Escape closes the detail drawer first (narrow windows), then the screen.
-        if (keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape)) { if (!screen.CloseDrawer()) _progressionOpen = false; return; }
+        // UR-4 / Director playtest 2026-11: Escape clears the pin first (closing the narrow window's detail drawer with
+        // it), then closes the screen.
+        if (keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape)) { if (!screen.ClearPin()) _progressionOpen = false; return; }
         if (EndTurnKey.ShouldFire(keyboard.IsKeyDown(Keys.Space), _lastKeyboard.IsKeyDown(Keys.Space), false, false))
             EndTurn();
 
@@ -1017,10 +1023,15 @@ public sealed partial class GameUi
             && InfoClickInProgression(mouse.X, mouse.Y))
         {
             // M5 polish: the pinned card's own controls, or a Shift+click that opened a card — never a research order.
+            _cardClicks.Reset();
         }
         else if (mouse.LeftButton == ButtonState.Released && _lastMouse.LeftButton == ButtonState.Pressed && !_progressionDrag)
         {
-            Sim.Ui.Progression.ProgressionCommand cmd = screen.Click(mouse.X, mouse.Y);
+            // Director playtest 2026-11: a click PINS the card under it; the second click on the same card within
+            // CardDoubleClick.WindowSeconds of frame time orders it (the screen's DoubleClick — the order a click used to give).
+            int twice = _cardClicks.Pending(_progressionClock, mouse.X, mouse.Y);
+            Sim.Ui.Progression.ProgressionCommand cmd = twice >= 0 ? screen.DoubleClick(mouse.X, mouse.Y, twice) : screen.Click(mouse.X, mouse.Y);
+            _cardClicks.Record(_progressionClock, mouse.X, mouse.Y, twice >= 0 ? -1 : screen.LastCardClick);
             if (cmd.Close) _progressionOpen = false;
             if (cmd.OpenAge)
             {
@@ -1205,6 +1216,8 @@ public sealed partial class GameUi
         if (modal) ImGui.EndDisabled();
         if (!modal) DrawStoresCard();   // M5 resources view: the strip group's hover card, over the chrome
         else { _stripHover = null; StripHover = null; StripCardLines = []; }
+        if (!modal) DrawCivicsCard();   // Director playtest 2026-11: the Civics chip's hover card (the bank and the rate)
+        else { _civicsChipHover = null; CivicsCardLines = []; }
         if (!modal) DrawInfoHint();   // M5 polish: the Age panel's regions, then the hover hint
 
         if (_fonts is not null) ImGui.PopFont();
@@ -1398,6 +1411,8 @@ public sealed partial class GameUi
         // Director playtest 2026-10-29: two lane chips (Tech, Civics) — a band still too narrow drops the node names from them.
         if (Total(false, age) + Strip(false) > room) { research = _researchFigure.Short; civics = _civicsFigure?.Short ?? ""; }
         if (Total(false, age) + Strip(false) > room) { research = _researchFigure.Tiny; civics = _civicsFigure?.Tiny ?? ""; }
+        // Director playtest 2026-11: the Civics chip carries the bank; a band too narrow even then drops it (its hover card keeps it).
+        if (Total(false, age) + Strip(false) > room) civics = _civicsFigure?.Bare ?? "";
 
         float x = band.X + margin + 4f * s;
         for (int i = 0; i < figures.Length; i++)
@@ -1448,6 +1463,12 @@ public sealed partial class GameUi
             ImGui.PopStyleVar(2);
             ImGui.PopStyleColor(3);
             if (idle) AttentionMark(dl, min.X + 12f * s + 8f * s, min.Y + frameH / 2f, 8f * s, t);
+            if (tab == Sim.Ui.Progression.TreeTab.Civics && ImGui.IsItemHovered())
+            {
+                // Director playtest 2026-11: the Civics chip's hover card states the bank and the rate (painted at frame end).
+                System.Numerics.Vector2 max = ImGui.GetItemRectMax();
+                _civicsChipHover = new Sim.Ui.Render.RectD(min.X, min.Y, max.X - min.X, max.Y - min.Y);
+            }
             if (clicked && ImGui.GetIO().KeyShift) OpenInfo(subject);   // M5 polish: Shift+click = the card
             else if (clicked) ToggleTree(tab);
             x += cw + itemGap;
@@ -1482,6 +1503,29 @@ public sealed partial class GameUi
             PopDataFont();
         }
         ImGui.End();
+    }
+
+    // The Civics chip's rect while the pointer rests on it in this frame (its hover card is painted at the end of the frame).
+    private Sim.Ui.Render.RectD? _civicsChipHover;
+
+    /// <summary>The Civics chip's hover card lines in the last frame (empty when none was painted).</summary>
+    public IReadOnlyList<string> CivicsCardLines { get; private set; } = [];
+
+    /// <summary>Paints the Civics chip's hover card under the chip (the stores card's paint), or clears it.</summary>
+    private void DrawCivicsCard()
+    {
+        CivicsCardLines = [];
+        Sim.Ui.Render.RectD? at = _civicsChipHover;
+        _civicsChipHover = null;
+        if (at is not { } chip) return;
+        IReadOnlyList<string> lines = StatusFigures.CivicsCardLines(_actionModel?.Research);
+        if (lines.Count == 0) return;
+        _surface = FrameSurface.Status;
+        var d = new Sim.Ui.Render.DrawList();
+        StoresCard.Paint(d, Backend, _frameTheme, chip.X, chip.Y + chip.H + 10f * Scale, _viewportWidth, _viewportHeight,
+            StatusFigures.CivicsCardTitle, lines, Scale);
+        Backend.Render(ImGui.GetForegroundDrawList(), d);
+        CivicsCardLines = lines;
     }
 
     /// <summary>A short vertical hairline between the band's groups.</summary>

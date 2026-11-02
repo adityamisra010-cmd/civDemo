@@ -195,6 +195,23 @@ public sealed class UiFrameHarness : IDisposable
         Frame();
     }
 
+    /// <summary>Director playtest 2026-11: a DOUBLE click as a player makes it — move, press, release, press, release within
+    /// two frames of each other (well inside <see cref="Progression.CardDoubleClick.WindowSeconds"/> of frame time), and
+    /// one frame for the result to show.</summary>
+    public void DoubleClick(double x, double y)
+    {
+        MoveTo(x, y);
+        _left = true;
+        Frame();
+        _left = false;
+        Frame();
+        _left = true;
+        Frame();
+        _left = false;
+        Frame();
+        Frame();
+    }
+
     /// <summary>M5 polish (directive §9): a left click with Shift held throughout (move, press, release, result) — the
     /// universal "show me what this is" gesture. Shift is released one frame after the click.</summary>
     public void ShiftClick(double x, double y)

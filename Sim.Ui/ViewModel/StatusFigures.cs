@@ -18,6 +18,12 @@ public sealed record ResearchFigure(string Text, bool Idle)
     /// <summary>The shortest form, for a band still too narrow for <see cref="Short"/>: a lane in progress without its
     /// points ("Tech 27%"); every other state as <see cref="Short"/>.</summary>
     public string Tiny { get => _tiny ?? Short; init => _tiny = value; }
+
+    private readonly string? _bare;
+
+    /// <summary>The last resort, for a band too narrow even for <see cref="Tiny"/> (the smallest window): the Civics figure
+    /// without its bank (Director playtest 2026-11; the chip's hover card still states it); every other figure as Tiny.</summary>
+    public string Bare { get => _bare ?? Tiny; init => _bare = value; }
 }
 
 /// <summary>The status band's compact Age indicator: the full Age name and the eligibility summary. It opens
@@ -86,17 +92,48 @@ public static class StatusFigures
     public static ResearchFigure? Civics(ResearchBlock? research)
     {
         if (research?.Civics is not { } c) return null;
+        // Director playtest 2026-11 ("I can't see accumulated civics points anywhere"): every form ends with the BANK —
+        // " · 25.0 CP banked" in full, " · 25.0 CP" in the short and tiny forms; only the bare form (a band too narrow for
+        // the tiny one) drops it.
+        string bank = Bank(c.Balance), full = " · " + bank + " banked", brief = " · " + bank;
         if (c.Idle)
             return c.ClearQueued
-                ? new ResearchFigure("Civics stops at End Turn", true) { Short = "Civics stops" }
-                : new ResearchFigure("Civics idle - choose [C]", true) { Short = "Civics idle [C]" };
+                ? new ResearchFigure("Civics stops at End Turn" + full, true) { Short = "Civics stops" + brief, Bare = "Civics stops" }
+                : new ResearchFigure("Civics idle - choose [C]" + full, true) { Short = "Civics idle [C]" + brief, Bare = "Civics idle [C]" };
         ResearchItem item = c.Funding?.Node ?? c.Effective!;   // rp-cp-lifecycle k3: an assisting lane names the civic it funds
         string name = Name(item);
-        if (c.Chosen is not null) return new ResearchFigure("Civics: " + name + " next turn", false) { Short = "Civics chosen" };
-        if (c.Waiting) return new ResearchFigure("Civics waiting: " + name, true) { Short = "Civics waiting" };
+        if (c.Chosen is not null) return new ResearchFigure("Civics: " + name + " next turn" + full, false) { Short = "Civics chosen" + brief, Bare = "Civics chosen" };
+        if (c.Waiting) return new ResearchFigure("Civics waiting: " + name + full, true) { Short = "Civics waiting" + brief, Bare = "Civics waiting" };
         string figures = string.Create(CultureInfo.InvariantCulture, $"{Percent(item):0}% +{c.PointsPerTurn:0.0}/turn");
-        return new ResearchFigure("Civics: " + name + " " + figures, false)
-            { Short = "Civics " + figures, Tiny = string.Create(CultureInfo.InvariantCulture, $"Civics {Percent(item):0}%") };
+        return new ResearchFigure("Civics: " + name + " " + figures + full, false)
+            { Short = "Civics " + figures + brief, Tiny = string.Create(CultureInfo.InvariantCulture, $"Civics {Percent(item):0}%") + brief,
+                Bare = string.Create(CultureInfo.InvariantCulture, $"Civics {Percent(item):0}%") };
+    }
+
+    /// <summary>The bank of Civics Points as every display shows it: one decimal and the unit ("25.0 CP").</summary>
+    public static string Bank(double balance) => string.Create(CultureInfo.InvariantCulture, $"{balance:0.0} CP");
+
+    /// <summary>The title of the Civics chip's hover card.</summary>
+    public const string CivicsCardTitle = "Civics Points";
+
+    /// <summary>
+    /// The Civics chip's HOVER CARD (Director playtest 2026-11): the bank and the rate, from the action surface's Civics line
+    /// (<see cref="CivicsLine.Balance"/>, <see cref="CivicsLine.PointsPerTurn"/>) — "Banked: 25.0 CP (kept until spent,
+    /// never lost)", "Per turn: +3.1 CP", then what the lane does with them. Empty without a Civics lane.
+    /// </summary>
+    public static IReadOnlyList<string> CivicsCardLines(ResearchBlock? research)
+    {
+        if (research?.Civics is not { } c) return [];
+        string doing = c.Idle
+            ? (c.ClearQueued ? "The Civics lane stops at End Turn; the points stay banked." : "No civic chosen: the points stay banked until you choose one [C].")
+            : c.Waiting ? "The chosen civic waits on the Technology tree; the points stay banked."
+            : "The points pay for " + (c.Funding?.Node ?? c.Effective!).Name + ".";
+        return
+        [
+            "Banked: " + Bank(c.Balance) + " (kept until spent, never lost)",
+            string.Create(CultureInfo.InvariantCulture, $"Per turn: +{c.PointsPerTurn:0.0} CP"),
+            doing,
+        ];
     }
 
     /// <summary>A node's name cut to <see cref="NameChars"/> with an ellipsis.</summary>

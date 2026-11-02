@@ -220,7 +220,7 @@ public class ActionSurfaceTests(CanonicalTurnOneFixture fx) : IClassFixture<Cano
         Assert.Equal("Tech idle - choose [K]", r.Text);   // UR-3: the call to action says what to do (Director playtest 2026-10-29: "Tech" — the Technology lane)
         ResearchFigure civics = StatusFigures.Civics(m.Research)!;   // ... and the Civics lane has its own figure, [C]
         Assert.True(civics.Idle);
-        Assert.Equal("Civics idle - choose [C]", civics.Text);
+        Assert.Equal("Civics idle - choose [C] · 0.0 CP banked", civics.Text);   // Director playtest 2026-11: the bank (none at turn 1)
         AgeFigure a = StatusFigures.Age(AgePanelModel.Build(s.World, s.Config.Ages, s.QueuedOrders(), Me));
         Assert.Equal(AgePanelState.NotEligible, a.State);
         Assert.StartsWith("Age I " + s.Config.Ages!.Age(1).Name, a.Text);   // the FULL Age name

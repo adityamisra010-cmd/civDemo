@@ -306,7 +306,7 @@ public class InfoPanelTests : IDisposable
     }
 
     [Fact]
-    public void ShiftClick_OnAnAvailableResearchCard_ShowsItsCard_AndTargetsNothing_APlainClickStillTargetsIt()
+    public void ShiftClick_OnAnAvailableResearchCard_ShowsItsCard_AndTargetsNothing_APlainClickPinsIt_ASecondClickTargetsIt()
     {
         UiSession s = Small();
         using UiFrameHarness h = UiFrameHarness.Start(s, WorkDir("node"), Assets());
@@ -339,6 +339,12 @@ public class InfoPanelTests : IDisposable
         h.Key(Keys.Escape);
         Assert.False(h.Ui.Inspector.IsOpen);
         Assert.True(h.Ui.ProgressionOpen, "Escape closed the card, not the tree");
+        // Director playtest 2026-11: a plain click PINS the card and orders nothing; the second click on it within the
+        // double-click window (the harness's next click, 6 frames later) targets it.
+        h.Click(px, py);
+        Assert.Equal(node, screen.Selected);
+        Assert.Equal(choice, s.QueuedResearchChoice());
+        Assert.Equal(queued, s.QueuedOrders().Count);
         h.Click(px, py);
         Assert.Equal(node, screen.Selected);
         Assert.Equal(screen.Content.Nodes[node].Key.Value, s.QueuedResearchChoice());

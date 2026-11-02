@@ -12,7 +12,14 @@ namespace Sim.Ui.Progression;
 /// <summary>The two sibling trees under KNOWLEDGE &amp; TECHNOLOGY (ruling 11).</summary>
 public enum TreeTab { Technology = 0, Civics = 1 }
 
-public enum HitKind { Lens, Tab, SetTarget, Close, Minimap, LaneToggle, Frontier, Fit, MinimapToggle, Reset, AgeOpen, CloseDetail, Panel, CancelDestination }
+public enum HitKind
+{
+    Lens, Tab, SetTarget, Close, Minimap, LaneToggle, Frontier, Fit, MinimapToggle, Reset, AgeOpen, CloseDetail, Panel, CancelDestination,
+    /// <summary>Director playtest 2026-11: the orange "N prerequisites above / below" marker at the canvas's top or bottom
+    /// edge while a pinned card has prerequisites out of view; Arg −1 above, +1 below. A click scrolls the nearest one into
+    /// view and keeps the pin.</summary>
+    PinnedOffscreen,
+}
 
 public readonly record struct HitRegion(RectD Rect, HitKind Kind, int Arg);
 
@@ -66,11 +73,30 @@ public sealed partial class ProgressionScreen
     /// <summary>Whether the detail panel is docked beside the tree (wide windows) rather than an overlay drawer.</summary>
     public bool Docked => _w >= DockMinWidth * _scale;
 
-    /// <summary>Whether the overlay drawer is open (narrow windows: a node of the tree on show is selected).</summary>
-    public bool DrawerOpen => !Docked && Lens == Lens.KnowledgeAndTechnology && Selected >= 0 && InTab(Selected);
+    /// <summary>Whether the overlay drawer is open (narrow windows: a card of the tree on show is pinned).</summary>
+    public bool DrawerOpen => !Docked && Lens == Lens.KnowledgeAndTechnology && Pin >= 0;
 
-    /// <summary>Whether a content node belongs to the tree on show.</summary>
-    private bool InTab(int contentIndex) => Content.Nodes[contentIndex].Tree == (ResearchTree)((int)Tab + 1);
+    /// <summary>
+    /// THE PIN (Director playtest 2026-11: "if I click, it stays selected and its prerequisites light up — orange — so when
+    /// I scroll up I know exactly which node is the prerequisite"). A single click on a card PINS it (<see cref="Selected"/>);
+    /// it orders nothing — a double-click (<see cref="DoubleClick"/>) or the detail panel's button orders. The pin is the
+    /// selected node while it has a visible card in the tree on show (its own nodes, and the other tree's prerequisites in
+    /// the "From …" column), else −1. It survives scrolling, zooming, dragging, the overview strip and hovering other
+    /// cards; a click on empty canvas, the drawer's close button or Escape clears it.
+    /// </summary>
+    public int Pin => Selected >= 0 && Graph.VertexOf(Selected) is int v && v >= 0 && !Layout.Placed[v].Hidden ? Selected : -1;
+
+    /// <summary>The node the highlight follows: the pin, else the hovered card, else −1.</summary>
+    public int FocusNode => Pin >= 0 ? Pin : Hovered;
+
+    /// <summary>Clears the pin shown on this tab (Escape's first press; the narrow window's drawer closes with it); false
+    /// when nothing was pinned here.</summary>
+    public bool ClearPin()
+    {
+        if (Lens != Lens.KnowledgeAndTechnology || Pin < 0) return false;
+        Selected = -1;
+        return true;
+    }
 
     /// <summary>The tree of the open tab.</summary>
     private ResearchTree TabTree => (ResearchTree)((int)Tab + 1);
@@ -79,8 +105,9 @@ public sealed partial class ProgressionScreen
     /// Civics targets are shown separately); in the one-pool model the one target, whichever tree.</summary>
     private int? CapsuleTarget(ResearchSnapshot s) => s.TwoLanes ? s.TargetOn(TabTree, s.Nodes) : s.TargetIndex;
 
-    /// <summary>The node the detail panel shows: the hovered card, else the selected node of the tree on show, or -1.</summary>
-    public int DetailNode => Hovered >= 0 ? Hovered : Selected >= 0 && InTab(Selected) ? Selected : -1;
+    /// <summary>The node the detail panel shows: the pinned card while there is one (hovering another card no longer swaps
+    /// it — the hover tip names that card), else the hovered card, or −1.</summary>
+    public int DetailNode => FocusNode;
 
     /// <summary>The detail panel's rect: docked, the column right of the tree under the tab bar; as a drawer, the
     /// same width over the tree's right edge — left of the overview strip, under the lane header and control row (all
@@ -89,7 +116,7 @@ public sealed partial class ProgressionScreen
         ? new RectD(_w - DetailW, LensBarH + TabBarH, DetailW, Math.Max(100, _h - LensBarH - TabBarH))
         : new RectD(_w - (MinimapVisible ? StripW : 0) - DetailW, LensBarH + TabBarH + HeaderH, DetailW, Math.Max(100, _h - LensBarH - TabBarH - HeaderH));
 
-    /// <summary>Closes the overlay drawer (deselects); false when there was none.</summary>
+    /// <summary>Closes the overlay drawer (clears the pin); false when there was none.</summary>
     public bool CloseDrawer()
     {
         if (!DrawerOpen) return false;
@@ -97,10 +124,14 @@ public sealed partial class ProgressionScreen
         return true;
     }
 
-    /// <summary>Whether a screen point on the canvas is covered by the overview strip or the open drawer (a card under
-    /// it is neither hovered nor clicked).</summary>
-    public bool Obscured(double x, double y) =>
-        (MinimapVisible && MinimapRect().Contains(x, y)) || (DrawerOpen && DetailRect.Contains(x, y));
+    /// <summary>Whether a screen point on the canvas is covered by the overview strip, the open drawer or an off-screen
+    /// prerequisite marker (a card under it is neither hovered nor clicked).</summary>
+    public bool Obscured(double x, double y)
+    {
+        if ((MinimapVisible && MinimapRect().Contains(x, y)) || (DrawerOpen && DetailRect.Contains(x, y))) return true;
+        foreach (HitRegion h in _hits) if (h.Kind == HitKind.PinnedOffscreen && h.Rect.Contains(x, y)) return true;
+        return false;
+    }
 
     public ResearchContent Content { get; }
     /// <summary>Whether the overview minimap is shown (toggled by its button).</summary>
@@ -212,15 +243,80 @@ public sealed partial class ProgressionScreen
         if (jump) Camera.Set(Camera.TargetZoom, Camera.TargetPanX, Camera.TargetPanY);
     }
 
-    /// <summary>The hovered (else selected) node's DIRECT prerequisites and dependents as content
-    /// indices, ascending — exactly the cards and edges the highlight lights up.</summary>
-    public (int[] Prerequisites, int[] Dependents) Highlight()
+    /// <summary>The FOCUS's (<see cref="FocusNode"/>: the pin, else the hovered card) DIRECT prerequisites and dependents
+    /// as content indices, ascending — the cards the persistent highlight lights up (with a pin, its prerequisites are the
+    /// orange set, <see cref="PinnedPrerequisites"/>).</summary>
+    public (int[] Prerequisites, int[] Dependents) Highlight() => NeighboursOf(FocusNode);
+
+    /// <summary>The TRANSIENT highlight: the hovered card's direct prerequisites and dependents while a DIFFERENT card is
+    /// pinned (drawn on top of the orange set, in the hover colours); empty otherwise (with no pin the hover is the focus).</summary>
+    public (int[] Prerequisites, int[] Dependents) HoverHighlight() =>
+        Pin >= 0 && Hovered >= 0 && Hovered != Pin ? NeighboursOf(Hovered) : ([], []);
+
+    private (int[] Prerequisites, int[] Dependents) NeighboursOf(int node)
     {
-        int focus = Hovered >= 0 ? Hovered : Selected;
-        if (focus < 0 || Graph.VertexOf(focus) < 0) return ([], []);
-        (int[] pre, int[] dep) = ResearchTreeLayout.Neighbours(Graph, Graph.VertexOf(focus));
+        if (node < 0 || Graph.VertexOf(node) < 0) return ([], []);
+        (int[] pre, int[] dep) = ResearchTreeLayout.Neighbours(Graph, Graph.VertexOf(node));
         int[] Map(int[] vs) { var r = new int[vs.Length]; for (int i = 0; i < vs.Length; i++) r[i] = Graph.Vertices[vs[i]].ContentIndex; Array.Sort(r); return r; }
         return (Map(pre), Map(dep));
+    }
+
+    /// <summary>
+    /// THE ORANGE SET (Director playtest 2026-11): the pinned card's DIRECT prerequisites as content indices, ascending and
+    /// distinct — every edge into the pin, whatever its kind: the required ones, the "one of" alternatives, and the other
+    /// tree's prerequisites drawn in the "From …" column. Empty with nothing pinned.
+    /// </summary>
+    public int[] PinnedPrerequisites()
+    {
+        int pin = Pin;
+        if (pin < 0) return [];
+        int pv = Graph.VertexOf(pin);
+        var r = new List<int>();
+        foreach (GraphEdge e in Graph.Edges)
+        {
+            if (e.To != pv) continue;
+            int ci = Graph.Vertices[e.From].ContentIndex;
+            if (!r.Contains(ci)) r.Add(ci);
+        }
+        r.Sort();
+        return [.. r];
+    }
+
+    /// <summary>The orange prerequisites whose cards lie (wholly or partly) ABOVE (<paramref name="below"/> false) or
+    /// BELOW the canvas in the view shown now, nearest first (ties: lower content index). Hidden cards (a collapsed lane)
+    /// are not counted.</summary>
+    public List<int> PinnedOffscreen(bool below)
+    {
+        var r = new List<(double Gap, int Node)>();
+        (double _, double y0, double _, double y1) = VisibleWorld();
+        foreach (int ci in PinnedPrerequisites())
+        {
+            PlacedVertex p = Layout.Placed[Graph.VertexOf(ci)];
+            if (p.Hidden) continue;
+            if (!below && p.Y < y0) r.Add((y0 - p.Y, ci));
+            else if (below && p.Bottom > y1) r.Add((p.Bottom - y1, ci));
+        }
+        r.Sort((a, b) => a.Gap != b.Gap ? a.Gap.CompareTo(b.Gap) : a.Node.CompareTo(b.Node));
+        var nodes = new List<int>(r.Count);
+        foreach ((double _, int n) in r) nodes.Add(n);
+        return nodes;
+    }
+
+    /// <summary>The share of the canvas height left between a card scrolled in by the off-screen marker and the canvas edge.</summary>
+    public const double OffscreenScrollMargin = 0.18;
+
+    /// <summary>Scrolls (gliding) so the nearest orange prerequisite above (or below) the canvas is wholly in view, a
+    /// margin in from the edge it was beyond; the pin is kept.</summary>
+    public void ScrollToPinnedOffscreen(bool below)
+    {
+        List<int> off = PinnedOffscreen(below);
+        if (off.Count == 0) return;
+        PlacedVertex p = Layout.Placed[Graph.VertexOf(off[0])];
+        RectD c = Canvas;
+        double z = Camera.TargetZoom;
+        double want = below ? p.Bottom - c.H * (1.0 - OffscreenScrollMargin) / z : p.Y - c.H * OffscreenScrollMargin / z;
+        Camera.ScrollBy(0, (want - Camera.TargetPanY) * z);
+        ClampCamera();
     }
 
     /// <summary>The frontier node of the current tree: the research target when it lies in this
@@ -255,6 +351,10 @@ public sealed partial class ProgressionScreen
     /// <summary>M5 workstream P6 (observation only): the last click <see cref="Click"/> resolved to a hit region. The
     /// playability gate's coverage reads it; nothing in the UI or the simulation does.</summary>
     public ResolvedClick<HitKind> LastClick { get; private set; }
+
+    /// <summary>The card (content index) the last <see cref="Click"/> landed on and pinned, or −1 (chrome, empty canvas,
+    /// another lens). The host's double-click detection (<see cref="CardDoubleClick"/>) reads it.</summary>
+    public int LastCardClick { get; private set; } = -1;
     public RectD Canvas => Lens == Lens.KnowledgeAndTechnology
         ? new RectD(0, LensBarH + TabBarH + HeaderH, Math.Max(100, Docked ? _w - DetailW : _w), Math.Max(100, _h - LensBarH - TabBarH - HeaderH))
         : new RectD(0, LensBarH, _w, Math.Max(100, _h - LensBarH));
@@ -292,6 +392,16 @@ public sealed partial class ProgressionScreen
         if (Lens != Lens.KnowledgeAndTechnology) return -1;
         RectD c = Canvas;
         if (!c.Contains(x, y) || Obscured(x, y)) return -1;
+        int v = Layout.HitTest(Camera.ToWorldX(x, c.X), Camera.ToWorldY(y, c.Y));
+        return v < 0 ? -1 : Graph.Vertices[v].ContentIndex;
+    }
+
+    /// <summary>The card laid out under a screen point on the current tree, whatever overlay lies over it, or -1.</summary>
+    private int CardUnder(double x, double y)
+    {
+        if (Lens != Lens.KnowledgeAndTechnology) return -1;
+        RectD c = Canvas;
+        if (!c.Contains(x, y) || (MinimapVisible && MinimapRect().Contains(x, y))) return -1;
         int v = Layout.HitTest(Camera.ToWorldX(x, c.X), Camera.ToWorldY(y, c.Y));
         return v < 0 ? -1 : Graph.Vertices[v].ContentIndex;
     }
@@ -340,14 +450,13 @@ public sealed partial class ProgressionScreen
     public bool Advance(double dt) => Camera.Advance(dt);
 
     /// <summary>
-    /// A click at a screen point. Chrome first (lens, tab, close, the detail panel's button,
-    /// the minimap), then the tree: a card is SELECTED, and if the node is available to the
-    /// player now, the SetResearchTarget order is built by <see cref="ResearchOrderFactory"/>
-    /// and returned for the host to log. Locked or completed nodes only select — except that with destination routing on
-    /// (ADR-048) a locked node is ordered as the lane's destination, by the same factory.
+    /// A click at a screen point. Chrome first (lens, tab, close, the detail panel's button, the minimap, the off-screen
+    /// prerequisite markers), then the tree: a card is PINNED (Director playtest 2026-11) — it orders NOTHING; empty canvas
+    /// clears the pin. Ordering is the double-click's (<see cref="DoubleClick"/>) and the detail panel's button's.
     /// </summary>
     public ProgressionCommand Click(double x, double y)
     {
+        LastCardClick = -1;
         // Later-painted regions lie on top (the drawer over the tree): the last region under the point answers.
         for (int i = _hits.Count - 1; i >= 0; i--)
         {
@@ -356,6 +465,7 @@ public sealed partial class ProgressionScreen
             LastClick = LastClick.Next(h.Kind);
             switch (h.Kind)
             {
+                case HitKind.PinnedOffscreen: ScrollToPinnedOffscreen(h.Arg > 0); return ProgressionCommand.None;
                 case HitKind.Panel: return ProgressionCommand.None;
                 case HitKind.CloseDetail: Selected = -1; return ProgressionCommand.None;
                 case HitKind.Close: return new ProgressionCommand(true, null, null);
@@ -381,8 +491,38 @@ public sealed partial class ProgressionScreen
             }
         }
         int node = NodeAt(x, y);
-        if (node < 0) return ProgressionCommand.None;
+        if (node < 0)
+        {
+            // Empty tree canvas (not under the strip or the drawer): the pin is cleared.
+            if (Lens == Lens.KnowledgeAndTechnology && Canvas.Contains(x, y) && !Obscured(x, y)) Selected = -1;
+            return ProgressionCommand.None;
+        }
         Selected = node;
+        LastCardClick = node;
+        return ProgressionCommand.None;
+    }
+
+    /// <summary>
+    /// The SECOND click of a double-click (Director playtest 2026-11: "double-click to start researching"). It is a click
+    /// first (<see cref="Click"/>: the card is pinned, chrome answers as usual); when it landed on a card — on
+    /// <paramref name="card"/> when one is given, the card the first click pinned — the node is ordered exactly as a click
+    /// used to order it: the SetResearchTarget order <see cref="ResearchOrderFactory"/> builds, for an available node, or with
+    /// destination routing on (ADR-048) for any incomplete node as the lane's destination; never for the current target or
+    /// a target already ordered this turn. The host decides what a double-click is (<see cref="CardDoubleClick"/>). The
+    /// first click's pin may have opened the narrow window's drawer, or an off-screen marker, over the card: a second click
+    /// on <paramref name="card"/>'s own place is that card's, whatever now lies over it.
+    /// </summary>
+    public ProgressionCommand DoubleClick(double x, double y, int card = -1)
+    {
+        if (card >= 0 && CardUnder(x, y) == card)
+        {
+            Selected = card;
+            LastCardClick = card;
+            return Issue(card);
+        }
+        ProgressionCommand c = Click(x, y);
+        int node = LastCardClick;
+        if (node < 0 || (card >= 0 && node != card)) return c;
         return Issue(node);
     }
 
@@ -439,7 +579,7 @@ public sealed partial class ProgressionScreen
         static string Count(int n, string one, string many) => n.ToString(CultureInfo.InvariantCulture) + " " + (n == 1 ? one : many);
         if (r.Destination is null)
         {
-            lines.Add("Destination: none - click any node to set one");
+            lines.Add("Destination: none - double-click any node to set one");
             return lines;
         }
         lines.Add(r.Assisting && r.Destination == r.AssistedDestination ? "Destination: none - assisting " + Name(r.AssistedDestination)
@@ -645,14 +785,25 @@ public sealed partial class ProgressionScreen
         EraMarks.Close(d, t, close, t.Ink.Text, 121);
         _hits.Add(new HitRegion(close, HitKind.Close, 0));
         double rx = close.X - Sp(14);
-        // ADR-043: on the Civics tab of the two-lane model the rate is the Civics Points a turn accrues.
-        bool civicRate = Snapshot.TwoLanes && TabTree == ResearchTree.Civics;
-        d.Write(t, rx, Sp(6), Snapshot.PointsPerTurnOn(TabTree).ToString("0.0", CultureInfo.InvariantCulture), Px(TypeRole.Kpi, FontRole.Numeric),
-            t.Ink.OnChromeAccent, TextAlign.Right, FontRole.Numeric);
-        d.Write(t, rx, Sp(6) + Line(Px(TypeRole.Kpi, FontRole.Numeric)) - Sp(4), civicRate ? "civics / turn" : "research / turn", Px(TypeRole.Caption), t.Ink.OnChromeSoft, TextAlign.Right);
+        double kpi = Px(TypeRole.Kpi, FontRole.Numeric);
+        double kpiRoom = Sp(KpiBlockRef(Snapshot)) - (_w - rx) - Sp(10);
+        if (Snapshot.TwoLanes && TabTree == ResearchTree.Civics)
+        {
+            // Director playtest 2026-11 ("I can't see accumulated civics points anywhere"): on the Civics tab of the two-lane
+            // model (ADR-043) the block's figure is the BANK — the Civics Points accrued and not yet spent — and the
+            // caption the rate a turn adds to it.
+            WriteFit(d, m, rx, Sp(6), CivicsBankFigure(Snapshot.CivicsBalance), kpi, kpiRoom, t.Ink.OnChromeAccent, TextAlign.Right, FontRole.Numeric);
+            WriteFit(d, m, rx, Sp(6) + Line(kpi) - Sp(4), CivicsBankCaption(Snapshot.CivicsPerTurn), Px(TypeRole.Caption), kpiRoom, t.Ink.OnChromeSoft, TextAlign.Right);
+        }
+        else
+        {
+            d.Write(t, rx, Sp(6), Snapshot.PointsPerTurnOn(TabTree).ToString("0.0", CultureInfo.InvariantCulture), kpi,
+                t.Ink.OnChromeAccent, TextAlign.Right, FontRole.Numeric);
+            d.Write(t, rx, Sp(6) + Line(kpi) - Sp(4), "research / turn", Px(TypeRole.Caption), t.Ink.OnChromeSoft, TextAlign.Right);
+        }
 
         // Lens slots between the two blocks, geometry from the era-invariant measure (the same slots in every era).
-        double x0 = Sp(150), right = _w - Sp(190);
+        double x0 = Sp(150), right = _w - Sp(KpiBlockRef(Snapshot));
         double sub = Px(TypeRole.Caption);
         var want = new double[Lenses.All.Count];
         var subs = new string[Lenses.All.Count];
@@ -699,6 +850,18 @@ public sealed partial class ProgressionScreen
             _hits.Add(new HitRegion(r, HitKind.Lens, (int)l));
         }
     }
+
+    /// <summary>The width (UI scale 1) the lens bar keeps on its right for the close button and the points block: wider
+    /// in the two-lane model (ADR-043), whose Civics tab shows the bank and its rate — on both tabs, so the lens slots
+    /// do not move when the tab changes.</summary>
+    public static double KpiBlockRef(ResearchSnapshot s) => s.TwoLanes ? 250 : 190;
+
+    /// <summary>The bank of Civics Points as the Civics tab's figure ("412.3 CP"; the one-decimal CP of every other
+    /// display of the bank and of a turn's CP).</summary>
+    public static string CivicsBankFigure(double balance) => balance.ToString("0.0", CultureInfo.InvariantCulture) + " CP";
+
+    /// <summary>The caption under the bank: "banked · +22.0 / turn".</summary>
+    public static string CivicsBankCaption(double perTurn) => "banked · +" + perTurn.ToString("0.0", CultureInfo.InvariantCulture) + " / turn";
 
     private void PaintTabBar(DrawList d, ITextMeasure m)
     {
@@ -958,54 +1121,94 @@ public sealed partial class ProgressionScreen
                     TextInks.Darken(hue, t.Ink.Text, t.Material.Field, TextInks.Floor), TextAlign.Left, FontRole.Heading);   // on the field, not the panel
         }
 
-        int focus = Hovered >= 0 ? Hovered : Selected;
-        int focusV = focus >= 0 ? Graph.VertexOf(focus) : -1;
-        if (focusV >= 0 && L.Placed[focusV].Hidden) focusV = -1;
-        var related = new int[Graph.Vertices.Count];   // 0 none, 1 prerequisite, 2 dependent
+        // THE FOCUS (the pin, else the hovered card) and its direct neighbours; with a pin, its prerequisites are the ORANGE
+        // set and the hovered card (another one) adds its own transient highlight on top (Director playtest 2026-11).
+        int VertexShown(int node) => node >= 0 && Graph.VertexOf(node) is int vx && vx >= 0 && !L.Placed[vx].Hidden ? vx : -1;
+        int pinV = VertexShown(Pin);
+        int focusV = VertexShown(FocusNode);
+        int hoverV = pinV >= 0 && VertexShown(Hovered) is int hv && hv != pinV ? hv : -1;
+        var related = new int[Graph.Vertices.Count];   // 0 none, 1 prerequisite, 2 dependent (of the focus)
+        var transient = new int[Graph.Vertices.Count];   // the same for the hovered card while another is pinned
+        var orange = new bool[Graph.Vertices.Count];
         if (focusV >= 0)
         {
-            (int[] pre, int[] dep) = ResearchTreeLayout.Neighbours(Graph, focusV);
-            foreach (int v in dep) related[v] = 2;
-            foreach (int v in pre) related[v] = 1;
+            (int[] pre, int[] dep) = Highlight();
+            foreach (int ci in dep) related[Graph.VertexOf(ci)] = 2;
+            foreach (int ci in pre) related[Graph.VertexOf(ci)] = 1;
+        }
+        if (pinV >= 0) foreach (int ci in PinnedPrerequisites()) orange[Graph.VertexOf(ci)] = true;
+        if (hoverV >= 0)
+        {
+            (int[] pre, int[] dep) = HoverHighlight();
+            foreach (int ci in dep) transient[Graph.VertexOf(ci)] = 2;
+            foreach (int ci in pre) transient[Graph.VertexOf(ci)] = 1;
         }
 
         // Cards first. With a focus, the unrelated cards RECEDE — their fill and frame fade a quarter toward the field
         // — but their words keep their ink (UR-2: a veil may dim fills and frames, never text). Related cards are
-        // outlined in the prerequisite / dependent colour.
+        // outlined in the prerequisite / dependent colour; with a pin, the pin and its prerequisites in the cased orange.
         int hoveredV = Hovered >= 0 ? Graph.VertexOf(Hovered) : -1;
+        double outlineW = Math.Max(2.0, t.Icons.StrokePx);
         foreach (int v in VisibleVertices())
         {
             PlacedVertex p = L.Placed[v];
             if (p.Hidden) continue;
             double x = SX(p.X), y = SY(p.Y);
-            bool recede = focusV >= 0 && v != focusV && related[v] == 0;
+            bool recede = focusV >= 0 && v != focusV && v != hoverV && related[v] == 0 && transient[v] == 0 && !orange[v];
             PaintCard(d, m, v, x, y, z, v == hoveredV, recede);
-            if (focusV < 0 || v == focusV || recede) continue;
+            if (focusV < 0 || recede) continue;
             var r = new RectD(x - 2, y - 2, p.W * z + 4, p.H * z + 4);
-            d.Polyline(PanelFrame.Outline(r, t, CardId(v), FrameKind.Card), related[v] == 1 ? t.Semantic.Prerequisite : t.Semantic.Dependent,
-                Math.Max(2.0, t.Icons.StrokePx), closed: true);
+            if (v == pinV || orange[v])
+            {
+                // THE ORANGE SET: a strong cased outline just outside the card (the pin's the stronger).
+                double ow = v == pinV ? PinnedOutlinePx : PinnedPrerequisiteOutlinePx;
+                PinnedStroke(d, PanelFrame.Outline(r.Inset(-(ow / 2 + 2)), t, CardId(v), FrameKind.Card), ow, closed: true);
+            }
+            else if (v != focusV && related[v] != 0)
+                d.Polyline(PanelFrame.Outline(r, t, CardId(v), FrameKind.Card), related[v] == 1 ? t.Semantic.Prerequisite : t.Semantic.Dependent, outlineW, closed: true);
+            if (transient[v] != 0)
+                d.Polyline(PanelFrame.Outline(r, t, CardId(v), FrameKind.Card), transient[v] == 1 ? t.Semantic.Prerequisite : t.Semantic.Dependent, outlineW, closed: true);
         }
 
-        // Edges: ONLY the focused node's, routed orthogonally through row gaps and lane gutters,
-        // prerequisites in one colour, dependents in another. No permanent spaghetti.
+        // Edges: ONLY the focus's (and, while pinned, the hovered card's), routed orthogonally through row gaps and lane
+        // gutters, prerequisites in one colour, dependents in another. No permanent spaghetti. A pinned card's incoming
+        // edges are the cased orange, thicker; "one of" edges keep their dash.
         int routed = 0;
-        if (focusV >= 0)
+        void Edges(int fv, bool pinned)
+        {
             foreach (GraphEdge e in Graph.Edges)
             {
-                if (e.From != focusV && e.To != focusV) continue;
+                if (e.From != fv && e.To != fv) continue;
                 (double X, double Y)[] pts = ResearchTreeLayout.Route(L, e, routed++);
                 if (pts.Length == 0) continue;
-                Rgba col = e.To == focusV ? t.Semantic.Prerequisite : t.Semantic.Dependent;
-                double w = Math.Max(2.2, t.Icons.StrokePx) * Math.Max(0.6, z);
-                (double, double)? dash = e.Kind == EdgeKind.Or ? (6.0 * Math.Max(0.6, z), 4.0 * Math.Max(0.6, z)) : null;
-                for (int k = 0; k + 1 < pts.Length; k++)
-                    d.Line(SX(pts[k].X), SY(pts[k].Y), SX(pts[k + 1].X), SY(pts[k + 1].Y), col, w, dash);
+                bool incoming = e.To == fv;
+                double zs = Math.Max(0.6, z);
+                (double, double)? dash = e.Kind == EdgeKind.Or ? (6.0 * zs, 4.0 * zs) : null;
                 double ex = SX(pts[^1].X), ey = SY(pts[^1].Y);
-                double ah = 6 * Math.Max(0.6, z);
+                if (pinned && incoming)
+                {
+                    double w = PinnedEdgePx * zs;
+                    var line = new (double X, double Y)[pts.Length];
+                    for (int k = 0; k < pts.Length; k++) line[k] = (SX(pts[k].X), SY(pts[k].Y));
+                    PinnedEdge(d, line, w, dash);
+                    double pa = 8 * zs;
+                    d.Polygon([(ex - pa - 1.5, ey - pa * 1.3 - 2), (ex + pa + 1.5, ey - pa * 1.3 - 2), (ex, ey + 1.5)], t.Ink.Text);
+                    d.Polygon([(ex - pa, ey - pa * 1.3), (ex + pa, ey - pa * 1.3), (ex, ey)], t.Semantic.Pinned);
+                    continue;
+                }
+                Rgba col = incoming ? t.Semantic.Prerequisite : t.Semantic.Dependent;
+                double lw = Math.Max(2.2, t.Icons.StrokePx) * zs;
+                for (int k = 0; k + 1 < pts.Length; k++)
+                    d.Line(SX(pts[k].X), SY(pts[k].Y), SX(pts[k + 1].X), SY(pts[k + 1].Y), col, lw, dash);
+                double ah = 6 * zs;
                 d.Polygon([(ex - ah, ey - ah * 1.3), (ex + ah, ey - ah * 1.3), (ex, ey)], col);
             }
+        }
+        if (focusV >= 0) Edges(focusV, pinned: pinV >= 0);
+        if (hoverV >= 0) Edges(hoverV, pinned: false);   // the transient highlight, on top of the orange set
 
         if (MinimapVisible) PaintMinimap(d);
+        if (pinV >= 0) PaintOffscreenMarkers(d, m);
         d.PopClip();
 
         // Header rows sit above the camera canvas (never over a card): the sticky lane header
@@ -1021,6 +1224,83 @@ public sealed partial class ProgressionScreen
             LaneChip(d, m, lane, c.X + Sp(12) + lane.Index * (chipW + gap), hy + (ColumnHeaderH - Sp(30)) / 2, chipW);
         PaintControlRow(d, m);
         d.PopClip();
+    }
+
+    // ---- the orange set (Director playtest 2026-11)
+
+    /// <summary>The pinned card's outline width (screen px at UI scale 1).</summary>
+    public const double PinnedOutlineRef = 4.0;
+    /// <summary>An orange prerequisite's outline width (screen px at UI scale 1).</summary>
+    public const double PinnedPrerequisiteOutlineRef = 3.0;
+    /// <summary>How many times an ordinary highlight edge's width a pinned card's incoming edge is drawn.</summary>
+    public const double PinnedEdgeFactor = 2.0;
+    /// <summary>The casing of the body ink each side of an orange stroke (screen px at UI scale 1): the signal orange is
+    /// vivid, not dark, so on the light card fills it is read by its dark edge (a two-tone stroke, as a focus ring).</summary>
+    public const double PinnedCasingRef = 1.5;
+
+    private double PinnedOutlinePx => Sp(PinnedOutlineRef);
+    private double PinnedPrerequisiteOutlinePx => Sp(PinnedPrerequisiteOutlineRef);
+    private double PinnedEdgePx => PinnedEdgeFactor * Math.Max(2.2, Theme.Icons.StrokePx);
+
+    /// <summary>A cased orange stroke: the body ink <see cref="PinnedCasingRef"/> wider each side, then the signal orange.</summary>
+    private void PinnedStroke(DrawList d, (double X, double Y)[] pts, double width, bool closed)
+    {
+        d.Polyline(pts, Theme.Ink.Text, width + 2 * Sp(PinnedCasingRef), closed);
+        d.Polyline(pts, Theme.Semantic.Pinned, width, closed);
+    }
+
+    /// <summary>A cased orange edge through <paramref name="pts"/> (screen points), dashed for a "one of" edge.</summary>
+    private void PinnedEdge(DrawList d, (double X, double Y)[] pts, double width, (double, double)? dash)
+    {
+        for (int k = 0; k + 1 < pts.Length; k++)
+            d.Line(pts[k].X, pts[k].Y, pts[k + 1].X, pts[k + 1].Y, Theme.Ink.Text, width + 2 * Sp(PinnedCasingRef), dash);
+        for (int k = 0; k + 1 < pts.Length; k++)
+            d.Line(pts[k].X, pts[k].Y, pts[k + 1].X, pts[k + 1].Y, Theme.Semantic.Pinned, width, dash);
+    }
+
+    /// <summary>The era-invariant width estimate of a run at the Body role (geometry only, as <see cref="CapsGeometryWidth"/>).</summary>
+    private double BodyGeometryWidth(ITextMeasure m, string text) =>
+        m.Width(text, TypeScale.Px(TypeRole.Body, TypeFace.Garamond) * _scale, FontRole.Heading) * 1.18;
+
+    /// <summary>The text of the off-screen marker: "2 prerequisites above", "1 prerequisite below".</summary>
+    public static string OffscreenLabel(int count, bool below) =>
+        count.ToString(CultureInfo.InvariantCulture) + (count == 1 ? " prerequisite " : " prerequisites ") + (below ? "below" : "above");
+
+    /// <summary>
+    /// THE OFF-SCREEN MARKERS (Director playtest 2026-11: "I scroll up to see what it depended on"): while the pinned
+    /// card has orange prerequisites above (or below) the canvas, a marker at that edge says how many — "▲ 2 prerequisites
+    /// above" — and a click on it scrolls the nearest one into view (the pin stays). Era-invariant geometry.
+    /// </summary>
+    private void PaintOffscreenMarkers(DrawList d, ITextMeasure m)
+    {
+        EraTheme t = Theme;
+        RectD c = Canvas;
+        double right = DrawerOpen ? DetailRect.X : c.X + TreeViewportWidth;
+        double cx = (c.X + right) / 2.0;
+        double size = Px(TypeRole.Body, FontRole.Heading);
+        foreach (bool below in new[] { false, true })
+        {
+            int n = PinnedOffscreen(below).Count;
+            if (n == 0) continue;
+            string text = OffscreenLabel(n, below);
+            double w = Math.Min(right - c.X - Sp(24), BodyGeometryWidth(m, text) + Sp(52)), h = Sp(36);
+            var r = new RectD(cx - w / 2, below ? c.Bottom - h - Sp(12) : c.Y + Sp(12), w, h);
+            bool hover = Over(r);
+            d.Rect(new RectD(r.X + Sp(2), r.Y + Sp(3), r.W, r.H), A(t.Ink.Text, 0.18), null, 0, Sp(4));
+            PanelFrame.Paint(d, r, t, below ? 187 : 186, FrameKind.Chip, hover ? HoverFill : t.Material.Panel, null, 1.0);
+            PinnedStroke(d, PanelFrame.Outline(r, t, below ? 187 : 186, FrameKind.Chip), Sp(PinnedPrerequisiteOutlineRef), closed: true);
+            double tx = r.X + Sp(22), ty = r.CenterY, a = Sp(7);
+            (double, double)[] tri = below
+                ? [(tx - a, ty - a * 0.6), (tx + a, ty - a * 0.6), (tx, ty + a * 0.8)]
+                : [(tx - a, ty + a * 0.6), (tx + a, ty + a * 0.6), (tx, ty - a * 0.8)];
+            (double, double)[] casing = below
+                ? [(tx - a - 2, ty - a * 0.6 - 1.5), (tx + a + 2, ty - a * 0.6 - 1.5), (tx, ty + a * 0.8 + 2.5)]
+                : [(tx - a - 2, ty + a * 0.6 + 1.5), (tx + a + 2, ty + a * 0.6 + 1.5), (tx, ty - a * 0.8 - 2.5)];
+            d.Polygon(casing, t.Ink.Text);
+            d.Polygon(tri, t.Semantic.Pinned);
+            WriteFit(d, m, r.X + Sp(38), r.Y + (r.H - t.Type.Size(size)) / 2 - Sp(2), text, size, r.Right - Sp(10) - (r.X + Sp(38)), t.Ink.Text, TextAlign.Left, FontRole.Heading);
+            _hits.Add(new HitRegion(r, HitKind.PinnedOffscreen, below ? 1 : -1));
+        }
     }
 
     private double CornerRadius(double z) => Theme.Edge.Corner switch
@@ -1506,6 +1786,25 @@ public sealed partial class ProgressionScreen
             };
             d.Rect(new RectD(r.X + p.X * sx, r.Y + p.Y * sy, Math.Max(1.2, p.W * sx), Math.Max(1.2, p.H * sy)), col);
         }
+        // Director playtest 2026-11: the pin and its orange prerequisites, marked at their heights in the same orange (a tab
+        // left of the strip, cased; the pin's on both sides), so an off-screen prerequisite can be found by its mark.
+        if (Pin >= 0)
+        {
+            int pinV = Graph.VertexOf(Pin);
+            var marked = new List<int>();
+            foreach (int ci in PinnedPrerequisites()) marked.Add(Graph.VertexOf(ci));
+            marked.Add(pinV);
+            foreach (int v in marked)
+            {
+                PlacedVertex p = Layout.Placed[v];
+                if (p.Hidden) continue;
+                double my = r.Y + p.Y * sy, mh = Math.Max(Sp(3), p.H * sy);
+                d.Rect(new RectD(r.X + p.X * sx, my, Math.Max(1.2, p.W * sx), mh), t.Semantic.Pinned);
+                var tab = new RectD(r.X - Sp(6), my + mh / 2 - Sp(2.5), Sp(5), Sp(5));
+                d.Rect(tab, t.Semantic.Pinned, t.Ink.Text, Math.Max(1.0, _scale));
+                if (v == pinV) d.Rect(new RectD(r.Right + Sp(1), tab.Y, Sp(5), Sp(5)), t.Semantic.Pinned, t.Ink.Text, Math.Max(1.0, _scale));
+            }
+        }
         (double _, double y0, double _, double y1) = VisibleWorld();
         double vy0 = Math.Clamp(r.Y + y0 * sy, r.Y, r.Bottom), vy1 = Math.Clamp(r.Y + y1 * sy, r.Y, r.Bottom);
         d.Rect(new RectD(r.X - 2, vy0, r.W + 4, Math.Max(2, vy1 - vy0)), A(t.Material.Accent, 0.12), t.Material.Accent, 1.2);
@@ -1618,7 +1917,7 @@ public sealed partial class ProgressionScreen
         y = Stat(d, m, x, w, y, "Available now", avail.ToString(CultureInfo.InvariantCulture), _availableInk);
         y += Sp(14);
         y = PaintRoute(d, m, x, w, y, _infoClip ?? DetailRect);
-        foreach (string line in FlowText.Wrap(m, "Hover a node for its details. Click an available node to make it the research target; the order applies at End Turn. Shift+click any node or name for its full card. The wheel scrolls; Ctrl + wheel zooms.", TypeRole.Body, _scale, w))
+        foreach (string line in FlowText.Wrap(m, "Hover a node for its details. Click a node to pin it: it and its prerequisites stay lit in orange while you scroll, and the panel stays on it. Double-click a node (or use the panel's button) to make it the research target; the order applies at End Turn. Shift+click any node or name for its full card. The wheel scrolls; Ctrl + wheel zooms.", TypeRole.Body, _scale, w))
         { d.Write(t, x, y, line, body, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
         return y;
     }
@@ -1964,12 +2263,13 @@ public sealed partial class ProgressionScreen
     }
 
     /// <summary>
-    /// THE HOVER TIP (narrow windows, UR-4): with no docked panel, the hovered card's full name, its Age in full and
-    /// its state line appear beside it (the card itself shows the Age numeral); a click opens the drawer.
+    /// THE HOVER TIP (UR-4): the hovered card's full name, its Age in full and its state line beside it (the card itself
+    /// shows the Age numeral) — with no docked panel, and (Director playtest 2026-11) whenever another card is pinned, since
+    /// the panel then stays on the pin. A click pins the hovered card.
     /// </summary>
     private void PaintHoverTip(DrawList d, ITextMeasure m)
     {
-        if (Docked || Hovered < 0 || Hovered == Selected || _pointer is not (double px, double py)) return;
+        if (Hovered < 0 || Hovered == Pin || (Docked && Pin < 0) || _pointer is not (double px, double py)) return;
         EraTheme t = Theme;
         ResearchNodeView n = Snapshot!.Nodes[Hovered];
         double body = Px(TypeRole.Body), name = Px(TypeRole.Body, FontRole.Heading), cap = Px(TypeRole.Caption);

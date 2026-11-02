@@ -2834,3 +2834,49 @@ Later changes to the sections above are recorded here, at the end of the file, a
 >   `shift-click band-civics (status band)`; `band-research (open)` and `K key (close / open)` now also check the
 >   Technology tab. The full smoke was NOT run by this change; §6 was not regenerated.
 
+> **DATED NOTE 2026-11-02 (Director playtest of build 511e70f, research trees): click to pin, double-click to order,
+> orange prerequisites, banked Civics Points.** The Director reported that hovering a civic showed its dependency lines,
+> but scrolling up to find a prerequisite moved the hover away, and the lines were too thin to follow; and that the
+> accumulated Civics Points were shown nowhere. On both trees (Technology and Civics) the research screen now works as
+> follows:
+> - **A click on a card PINS it and orders nothing.** A click on another card moves the pin. A click on empty canvas,
+>   the narrow window's drawer close button, or Escape clears it. Escape clears a pin first and closes the screen on the
+>   next press.
+> - **A double-click on a card orders it** exactly as a click used to (`ResearchOrderFactory.SetTarget`; with
+>   destination routing on, a locked node is ordered as its lane's destination). "Double" means two clicks on the same
+>   card within `CardDoubleClick.WindowSeconds` (0.4 s of host frame time) and `CardDoubleClick.SlopPx` (6 px). The
+>   detail panel's button still orders.
+> - **The pinned card and its direct prerequisites are drawn in `Semantic.Pinned` orange.** The orange set is every
+>   edge into the pin: required, "one of", and the other tree's in the "From …" column. Its incoming edges are orange
+>   and twice as thick ("one of" stays dashed). The orange strokes have a body-ink casing.
+> - **The pin survives** the wheel, keyboard scrolling, zoom, drags, the overview strip, and hovering other cards. A
+>   hovered card adds its own highlight on top. The detail panel stays on the pin, and the hover tip names the hovered
+>   card.
+> - **Off-screen prerequisites:** the overview strip marks the pin and each orange prerequisite at its height. A marker
+>   at the canvas edge ("▲ 2 prerequisites above" / "below") scrolls the nearest one into view and keeps the pin.
+> - **Banked Civics Points.** On the Civics tab (two-lane model) the lens bar's points block shows the bank
+>   ("412.3 CP", caption "banked · +22.0 / turn"). The Civics chip ends with the bank ("… · 412.3 CP banked"; short forms
+>   "· 412.3 CP"). Resting the pointer on the chip paints a card that states the bank and the rate a turn.
+>
+> **Gate rows changed:**
+> - `locked node (<tab>)`: the click pins and queues nothing; a double-click then queues the destination (routing on) or
+>   nothing (routing off).
+> - `available node card: click = select + set target (<tab>)` is renamed `available node card: click = pin,
+>   double-click = set target (<tab>)`.
+> - `Escape (closes the detail drawer, then the screen)` is renamed `Escape (clears the pin and the detail drawer, then
+>   closes the screen)`.
+>
+> **New rows:**
+> - `card click pins it: orange prerequisites, kept through wheel, drag, strip and hover (<tab>)`.
+> - `off-screen prerequisite marker (scrolls the nearest into view, keeps the pin) (<tab>)`. This row covers the new hit
+>   kind `hit:research.PinnedOffscreen`.
+> - `Civics tab: banked Civics Points in the points block` (a LookCheck).
+> - `band-civics (the bank on the chip; hover card: banked and per turn)` (a LookCheck).
+>
+> **MEASURED** (`xvfb-run -a dotnet Sim.Ui/bin/Release/net10.0/Sim.Ui.dll --smoke --ai-empires 1 --monkey 200`, on the
+> Release build of this change): 11 states, 3524 checks, 3259 pass, 265 not offered, 0 FAIL, 0 problems. The run printed
+> SMOKE PASSED. Every new row passes in every state except in the narrow window (1080 px). There, `card click pins it`
+> (both tabs) and `locked node` / `available node card` (Civics) are not offered: no suitable card lies outside the
+> drawer's area.
+>
+> §6 was not regenerated, so its table still lists the old row names. The next integration regenerates it.

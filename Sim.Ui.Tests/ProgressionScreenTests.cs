@@ -20,7 +20,8 @@ public sealed class SteppedWorldFixture
 /// The KNOWLEDGE &amp; TECHNOLOGY progression screen (docs/architecture/research-tree-ui.md):
 /// the graph is the content's graph, the layout is deterministic and complete, the two trees
 /// are separate, the seven lenses are present, every node state is ResearchQuery's own answer,
-/// and a click produces exactly the order the existing factory builds — never a state write.
+/// and a double-click (a click pins, Director playtest 2026-11) produces exactly the order the existing factory builds —
+/// never a state write.
 /// </summary>
 public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<SteppedWorldFixture>
 {
@@ -197,8 +198,11 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
 
     // ------------------------------------------------------------------ input → orders
 
+    /// <summary>Director playtest 2026-11: a click PINS the card and orders nothing; the DOUBLE-click returns exactly the order
+    /// a click used to (the factory's), and writes no state. (Was ClickingAnAvailableNode_ReturnsTheFactoryOrder_AndWritesNoState,
+    /// whose single click ordered.)</summary>
     [Fact]
-    public void ClickingAnAvailableNode_ReturnsTheFactoryOrder_AndWritesNoState()
+    public void DoubleClickingAnAvailableNode_ReturnsTheFactoryOrder_AClickOnlyPins_AndNeitherWritesState()
     {
         ProgressionScreen s = Screen();
         ResearchContent c = fx.Content;
@@ -212,7 +216,13 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
         s.Paint(W, H, ApproxTextMeasure.Instance);
         (double x, double y) = ScreenCenter(s, pick);
         Assert.Equal(pick, s.NodeAt(x, y));
-        ProgressionCommand cmd = s.Click(x, y);
+        s.Selected = -1;
+        ProgressionCommand click = s.Click(x, y);
+        Assert.Null(click.Order);
+        Assert.Null(click.Node);
+        Assert.Equal(pick, s.Pin);
+        Assert.Equal(-1, s.PendingTarget);
+        ProgressionCommand cmd = s.DoubleClick(x, y);
 
         OrderRecord expected = ResearchOrderFactory.SetTarget(fx.Session.World, c, Me, c.Nodes[pick].Key)!.Value;
         Assert.Equal(expected, cmd.Order);
@@ -221,16 +231,17 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
         Assert.Equal(pick, s.Selected);
         Assert.Equal(pick, s.PendingTarget);
         Assert.Equal(hash, WorldHash.ComputeHex(fx.Session.World));
-        // A second click does not re-issue.
-        Assert.Null(s.Click(x, y).Order);
+        // A second double-click does not re-issue.
+        Assert.Null(s.DoubleClick(x, y).Order);
     }
 
-    /// <summary>A completed node or the current target only selects. A LOCKED node only selects with destination routing
-    /// off; D-063 (tranche 2) ships routing on, and then the click orders the locked node as the lane's DESTINATION (ADR-048)
-    /// — exactly the factory's order. Both switches are checked on the fixture's world: the shipped content, and the same
-    /// file with only tuning.destinationRouting off.</summary>
+    /// <summary>A click on any card only pins it (Director playtest 2026-11). A DOUBLE-click on a completed node or the
+    /// current target orders nothing; on a LOCKED node it orders nothing with destination routing off; D-063 (tranche 2)
+    /// ships routing on, and then the double-click orders the locked node as the lane's DESTINATION (ADR-048) — exactly the
+    /// factory's order. Both switches are checked on the fixture's world: the shipped content, and the same file with only
+    /// tuning.destinationRouting off. (Was ClickingLockedOrCompletedNodes_OnlySelects, whose single click ordered.)</summary>
     [Fact]
-    public void ClickingLockedOrCompletedNodes_OnlySelects()
+    public void DoubleClickingLockedOrCompletedNodes_OrdersOnlyTheRoutedDestination_AndAClickOnlyPins()
     {
         Assert.True(fx.Content.Tuning.DestinationRouting);
         using var stream = Sim.Data.DataFiles.OpenResearch();
@@ -252,7 +263,9 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
                 s.Focus(pick, jump: true);
                 s.Paint(W, H, ApproxTextMeasure.Instance);
                 (double x, double y) = ScreenCenter(s, pick);
-                ProgressionCommand cmd = s.Click(x, y);
+                Assert.Null(s.Click(x, y).Order);
+                Assert.Equal(pick, s.Pin);
+                ProgressionCommand cmd = s.DoubleClick(x, y);
                 Assert.Equal(pick, s.Selected);
                 OrderRecord? factory = ResearchOrderFactory.SetTarget(fx.Session.World, c, Me, c.Nodes[pick].Key);
                 if (state == NodeState.Locked && routing)

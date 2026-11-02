@@ -858,6 +858,35 @@ public static partial class PlayabilityGate
                 return Expect(Ui.ProgressionOpen && Screen.Tab == TreeTab.Civics,
                     "the trees did not open on Civics (open " + Ui.ProgressionOpen + ")");
             });
+            // Director playtest 2026-11 ("I can't see accumulated civics points anywhere"): the Civics tab's points block shows
+            // the BANK, and the Civics chip carries it, with a hover card that states the bank and the rate.
+            LookCheck("research", "Civics tab: banked Civics Points in the points block", () =>
+            {
+                if (!Ui.ProgressionOpen || Screen.Tab != TreeTab.Civics) h.Key(Keys.C);
+                if (!Ui.ProgressionOpen || Screen.Tab != TreeTab.Civics || Screen.Snapshot is not { TwoLanes: true } snap)
+                    return (GateResult.NotOffered, "no Civics lane (one-pool research)");
+                h.Idle(1);
+                IReadOnlyList<string> texts = Ui.FrameText.Texts(FrameSurface.Research);
+                string bank = ProgressionScreen.CivicsBankFigure(snap.CivicsBalance), caption = ProgressionScreen.CivicsBankCaption(snap.CivicsPerTurn);
+                return Expect(texts.Contains(bank) && texts.Contains(caption), "the block does not read '" + bank + "' / '" + caption + "'");
+            });
+            CloseEverything();
+            LookCheck("status band", "band-civics (the bank on the chip; hover card: banked and per turn)", () =>
+            {
+                if (Ui.Controls.Find("band-civics") is not { } c) return (GateResult.NotOffered, "no Civics lane (one-pool research)");
+                string bank = StatusFigures.Bank(ResearchQuery.CivicsPointsBalance(S.World, UiPlayer.Empire));
+                // The chip carries the bank in every form but the bare one, which only a band too narrow for the tiny form
+                // draws (the smallest window); the hover card states it whatever the form.
+                bool onChip = false;
+                foreach (string t in Ui.FrameText.Texts(FrameSurface.Status))
+                    if (t.StartsWith("Civics", StringComparison.Ordinal) && (t.Contains(bank, StringComparison.Ordinal) || !t.Contains(" · ", StringComparison.Ordinal))) onChip = true;
+                h.MoveTo((c.X0 + c.X1) / 2.0, (c.Y0 + c.Y1) / 2.0);
+                bool card = Ui.CivicsCardLines.Count >= 2 && Ui.CivicsCardLines[0].Contains(bank, StringComparison.Ordinal)
+                    && Ui.CivicsCardLines[1].StartsWith("Per turn: +", StringComparison.Ordinal);
+                h.MoveTo(Ui.ContextRect.X - 40, Ui.StatusRect.Y + Ui.StatusRect.Height + 200);
+                return Expect(onChip && card && Ui.CivicsCardLines.Count == 0,
+                    "chip carries " + bank + ": " + onChip + "; hover card " + card + "; closes " + (Ui.CivicsCardLines.Count == 0));
+            });
             OpenResearch();
             foreach (TreeTab tab in new[] { TreeTab.Civics, TreeTab.Technology })
                 Check("research", "tab:" + tab, () =>
@@ -905,15 +934,15 @@ public static partial class PlayabilityGate
                 return Expect(!Ui.ProgressionOpen, "still open");
             });
             OpenResearch();
-            // UR-4: in a narrow window a selected node's detail DRAWER is open over the tree; the first Escape closes the
-            // drawer (the screen stays), the next closes the screen.
-            Check("research", "Escape (closes the detail drawer, then the screen)", () =>
+            // UR-4 / Director playtest 2026-11: with a card PINNED (in a narrow window its detail DRAWER is open over the
+            // tree) the first Escape clears the pin and closes the drawer (the screen stays), the next closes the screen.
+            Check("research", "Escape (clears the pin and the detail drawer, then closes the screen)", () =>
             {
-                bool drawer = Screen.DrawerOpen;
+                bool pinned = Screen.Lens == Lens.KnowledgeAndTechnology && Screen.Pin >= 0;
                 h.Key(Keys.Escape);
-                if (drawer)
+                if (pinned)
                 {
-                    if (!Ui.ProgressionOpen || Screen.DrawerOpen) return (GateResult.Fail, "the first Escape did not close only the drawer");
+                    if (!Ui.ProgressionOpen || Screen.Pin >= 0 || Screen.DrawerOpen) return (GateResult.Fail, "the first Escape did not only clear the pin");
                     h.Key(Keys.Escape);
                 }
                 return Expect(!Ui.ProgressionOpen, "still open");
@@ -1042,7 +1071,7 @@ public static partial class PlayabilityGate
                 if (Screen.Graph.Vertices[v].External || Screen.Layout.Placed[v].Hidden) continue;
                 ResearchNodeView view = Screen.Snapshot!.Nodes[ci];
                 (double x, double y) = CardCentre(v);
-                if (!Screen.Canvas.Contains(x, y) || Screen.Obscured(x, y)) continue;
+                if (!Screen.Canvas.Contains(x, y) || Screen.Obscured(x, y) || UnderDrawer(x, y)) continue;
                 if (view.Available && !view.IsTarget && available < 0) available = v;
                 if (view.State == NodeState.Locked && locked < 0) locked = v;
             }
@@ -1061,15 +1090,20 @@ public static partial class PlayabilityGate
                 (double x, double y) = CardCentre(locked);
                 h.Click(x, y);
                 int ci = Screen.Graph.Vertices[locked].ContentIndex;
-                bool selected = Screen.Selected == ci;
-                string detail = "selected " + Screen.Selected + ", queued " + (Queued - q) + ", lock " + Screen.Snapshot!.Nodes[ci].Lock;
-                // A locked node is selected (the detail panel shows WHY it is locked). With destination routing off it never
-                // orders anything; on (ADR-048, shipped with tranche 2, D-063) the click orders it as the lane's DESTINATION —
-                // exactly one SetResearchTarget order naming it, built by the factory.
+                bool pinned = Screen.Pin == ci, none = Queued == q;
+                // Director playtest 2026-11: a click PINS a locked node (the detail panel shows WHY it is locked) and orders
+                // nothing. A double-click orders: with destination routing on (ADR-048, shipped with tranche 2, D-063) it
+                // orders the node as the lane's DESTINATION — exactly one SetResearchTarget order naming it, built by the
+                // factory; with routing off it orders nothing.
+                h.Idle(30);   // past CardDoubleClick.WindowSeconds: the next press is a new click
+                (x, y) = CardCentre(locked);
+                h.DoubleClick(x, y);
+                string detail = "pinned " + pinned + ", the click queued " + (none ? 0 : 1) + ", pin " + Screen.Pin + ", queued " + (Queued - q)
+                    + ", lock " + Screen.Snapshot!.Nodes[ci].Lock;
                 if (Screen.Snapshot!.Routing)
-                    return Expect(selected && Queued == q + 1 && S.QueuedResearchChoice() == Screen.Content.Nodes[ci].Key.Value
+                    return Expect(pinned && none && Screen.Pin == ci && Queued == q + 1 && S.QueuedResearchChoice() == Screen.Content.Nodes[ci].Key.Value
                         && Screen.Snapshot!.Nodes[ci].Lock != LockReason.None, detail + ", queued choice " + S.QueuedResearchChoice());
-                return Expect(selected && Queued == q && Screen.Snapshot!.Nodes[ci].Lock != LockReason.None, detail);
+                return Expect(pinned && none && Screen.Pin == ci && Queued == q && Screen.Snapshot!.Nodes[ci].Lock != LockReason.None, detail);
             });
             Check("research", "jump to frontier, then the detail panel's SET AS RESEARCH TARGET (" + tab + ")", () =>
             {
@@ -1088,7 +1122,7 @@ public static partial class PlayabilityGate
                 ClickHit(HitKind.SetTarget);
                 return Expect(S.QueuedResearchChoice() == Screen.Content.Nodes[f].Key.Value, "no order for the frontier");
             });
-            Check("research", "available node card: click = select + set target (" + tab + ")", () =>
+            Check("research", "available node card: click = pin, double-click = set target (" + tab + ")", () =>
             {
                 int pick = -1;
                 foreach (int v in Screen.VisibleVertices())
@@ -1097,17 +1131,120 @@ public static partial class PlayabilityGate
                     if (Screen.Graph.Vertices[v].External || Screen.Layout.Placed[v].Hidden) continue;
                     ResearchNodeView view = Screen.Snapshot!.Nodes[ci];
                     (double x, double y) = CardCentre(v);
-                    if (!Screen.Canvas.Contains(x, y) || Screen.Obscured(x, y)) continue;
+                    if (!Screen.Canvas.Contains(x, y) || Screen.Obscured(x, y) || UnderDrawer(x, y)) continue;
                     if (view.Available && !view.IsTarget && Screen.PendingTarget != ci) { pick = v; break; }
                 }
                 if (pick < 0) return (GateResult.NotOffered, "no other available card in view");
                 int node = Screen.Graph.Vertices[pick].ContentIndex;
+                int q = Queued;
                 (double px, double py) = CardCentre(pick);
                 h.Click(px, py);
-                return Expect(Screen.Selected == node && S.QueuedResearchChoice() == Screen.Content.Nodes[node].Key.Value,
-                    "selected " + Screen.Selected + ", queued choice " + S.QueuedResearchChoice());
+                bool pinned = Screen.Pin == node && Queued == q;
+                h.Idle(30);   // past CardDoubleClick.WindowSeconds
+                (px, py) = CardCentre(pick);
+                h.DoubleClick(px, py);
+                return Expect(pinned && Screen.Pin == node && S.QueuedResearchChoice() == Screen.Content.Nodes[node].Key.Value,
+                    "the click pinned " + pinned + ", pin " + Screen.Pin + ", queued choice " + S.QueuedResearchChoice());
+            });
+            PinnedPrerequisites(tab);
+        }
+
+        /// <summary>A card of the tree on show with at least one prerequisite drawn above it (its card lies higher in the
+        /// tree), first by vertex; −1 when there is none.</summary>
+        private int CardWithPrerequisiteAbove()
+        {
+            for (int v = 0; v < Screen.Graph.OwnCount; v++)
+            {
+                PlacedVertex p = Screen.Layout.Placed[v];
+                if (p.Hidden) continue;
+                foreach (GraphEdge e in Screen.Graph.Edges)
+                    if (e.To == v && !Screen.Layout.Placed[e.From].Hidden && Screen.Layout.Placed[e.From].Y < p.Y) return v;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Director playtest 2026-11 — CLICK TO PIN: a click on a card pins it (no order); the pin's direct prerequisites are
+        /// the orange set (every edge into it, "one of" and the other tree's included); the pin survives the wheel, a drag,
+        /// an overview-strip click and hovering another card, and the detail panel stays on it. Then the OFF-SCREEN MARKER:
+        /// with the pinned card scrolled to the canvas's top, its prerequisites above are announced at the top edge, and a
+        /// click on the marker scrolls the nearest one wholly into view, keeping the pin.
+        /// </summary>
+        private void PinnedPrerequisites(TreeTab tab)
+        {
+            Check("research", "card click pins it: orange prerequisites, kept through wheel, drag, strip and hover (" + tab + ")", () =>
+            {
+                Screen.ResetView();
+                h.Idle(30);
+                int pick = -1;
+                foreach (int v in Screen.VisibleVertices())
+                {
+                    if (Screen.Graph.Vertices[v].External || Screen.Layout.Placed[v].Hidden) continue;
+                    (double x, double y) = CardCentre(v);
+                    if (!Screen.Canvas.Contains(x, y) || Screen.Obscured(x, y) || UnderDrawer(x, y)) continue;
+                    bool hasPre = false;
+                    foreach (GraphEdge e in Screen.Graph.Edges) if (e.To == v) { hasPre = true; break; }
+                    if (hasPre) { pick = v; break; }
+                }
+                if (pick < 0) return (GateResult.NotOffered, "no card with a prerequisite in view");
+                int node = Screen.Graph.Vertices[pick].ContentIndex, q = Queued;
+                h.Idle(30);   // past CardDoubleClick.WindowSeconds of any earlier click
+                (double px, double py) = CardCentre(pick);
+                h.Click(px, py);
+                var want = new SortedSet<int>();
+                foreach (GraphEdge e in Screen.Graph.Edges) if (e.To == pick) want.Add(Screen.Graph.Vertices[e.From].ContentIndex);
+                bool orange = Screen.Pin == node && Queued == q && want.SetEquals(Screen.PinnedPrerequisites());
+                RectD c = Screen.Canvas;
+                h.Wheel(c.X + c.W * 0.4, c.Y + c.H * 0.5, -2);
+                bool wheel = Screen.Pin == node;
+                h.Drag(c.X + c.W * 0.4, c.Y + c.H * 0.7, c.X + c.W * 0.4, c.Y + c.H * 0.4);
+                bool drag = Screen.Pin == node;
+                bool strip = true;
+                if (FindHit(HitKind.Minimap) is { } mm) { h.Click(mm.Rect.CenterX, mm.Rect.Y + mm.Rect.H * 0.1); strip = Screen.Pin == node; }
+                h.Idle(30);
+                bool hover = true;
+                foreach (int v in Screen.VisibleVertices())
+                {
+                    int other = Screen.Graph.Vertices[v].ContentIndex;
+                    if (other == node || Screen.Layout.Placed[v].Hidden) continue;
+                    (double x, double y) = CardCentre(v);
+                    if (!Screen.Canvas.Contains(x, y) || Screen.Obscured(x, y) || UnderDrawer(x, y)) continue;
+                    h.MoveTo(x, y);
+                    hover = Screen.Hovered == other && Screen.Pin == node && Screen.DetailNode == node;
+                    break;
+                }
+                return Expect(orange && wheel && drag && strip && hover && Queued == q,
+                    "orange set " + orange + ", after the wheel " + wheel + ", the drag " + drag + ", the strip " + strip + ", hovering another " + hover
+                    + ", queued +" + (Queued - q));
+            });
+            Check("research", "off-screen prerequisite marker (scrolls the nearest into view, keeps the pin) (" + tab + ")", () =>
+            {
+                int pick = CardWithPrerequisiteAbove();
+                if (pick < 0) return (GateResult.NotOffered, "no card with a prerequisite above it in this tree");
+                int node = Screen.Graph.Vertices[pick].ContentIndex, q = Queued;
+                Screen.Focus(node, jump: true);
+                PlacedVertex p = Screen.Layout.Placed[pick];
+                Screen.Camera.Set(Screen.Camera.TargetZoom, Screen.Camera.TargetPanX, p.Y - 20 / Screen.Camera.TargetZoom);
+                h.Idle(2);
+                List<int> above = Screen.PinnedOffscreen(below: false);
+                if (above.Count == 0 || FindHit(HitKind.PinnedOffscreen, -1) is null)
+                    return (GateResult.Fail, "the pinned card's prerequisites above (" + above.Count + ") drew no marker");
+                ClickHit(HitKind.PinnedOffscreen, -1);
+                h.Idle(60);
+                PlacedVertex n = Screen.Layout.Placed[Screen.Graph.VertexOf(above[0])];
+                RectD c = Screen.Canvas;
+                double top = Screen.Camera.ToScreenY(n.Y, c.Y), bottom = Screen.Camera.ToScreenY(n.Bottom, c.Y);
+                return Expect(Screen.Pin == node && top >= c.Y - 0.5 && bottom <= c.Bottom + 0.5 && Queued == q,
+                    "pin " + Screen.Pin + " (want " + node + "), nearest prerequisite at " + top.ToString("0", CultureInfo.InvariantCulture)
+                    + ".." + bottom.ToString("0", CultureInfo.InvariantCulture) + " in a canvas " + c.Y.ToString("0", CultureInfo.InvariantCulture)
+                    + ".." + c.Bottom.ToString("0", CultureInfo.InvariantCulture));
             });
         }
+
+        /// <summary>Whether a point lies where the narrow window's detail drawer opens once a card is pinned: the rows that
+        /// click a card, wait, then double-click it pick cards outside it (the pin's drawer would cover the card for the
+        /// later double-click; a double-click made at once still reaches it — ResearchPinTests pins that).</summary>
+        private bool UnderDrawer(double x, double y) => !Screen.Docked && Screen.DetailRect.Contains(x, y);
 
         private (double X, double Y) CardCentre(int v)
         {
