@@ -37876,7 +37876,7 @@
    "key": 1001,
    "id": "law_code",
    "name": "Written law",
-   "desc": "Laws set down in writing, so that judgement no longer rests on memory and custom alone, as in the law codes of Ur-Nammu and Hammurabi. Your society can found a law court, and grievance builds more slowly.",
+   "desc": "Laws set down in writing, so that judgement no longer rests on memory and custom alone, as in the law codes of Ur-Nammu and Hammurabi. Your society can found a law court, which lightens how heavily your tax is felt in its town, and grievance builds more slowly. Choosing laws and forms of government is not yet part of the game.",
    "age": "A3",
    "frontier": false,
    "emerged": null,

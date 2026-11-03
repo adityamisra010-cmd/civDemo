@@ -1,6 +1,15 @@
 # CURRENT STATE — the routing document
 
-> **2026-11-03 (latest): RESEARCH PIN HOLDS ACROSS THE TWO TREES (D-073); PLAYTEST ALL PASS; M6 NOT CLOSED.**
+> **2026-11-03 (latest): M6 CLOSED AT ITS EXIT GATE (D-074).**
+> - **Ruling:** [D-074](d074-m6-closure-and-law-court-clarity.md) records the following.
+>   - R1: M6 is CLOSED. Every exit criterion is PASS or deferred by ruling. The playtest, the Part G visual gate (the eight-part cap is final), the workbook open, and Windows smoke and CI are all held (`m6-exit-inventory.md`, dated note 2026-11-03).
+>   - R2: the law court's effect is said honestly (its panel line and information card), and the End Turn that founds an institution announces it. Written law's description adds the same (TC-5, text only).
+>   - R3: the authorizations.
+> - **Moved pins:** tree-closure TEXT (TC-5). No simulation hash moves.
+> - **Authorized (D-074 R3):** commit and push. Once that commit's CI and Windows smoke are green, fast-forward `main`, tag `m6-exit` and publish the Release. The `CLAUDE.md` milestone line is updated in this commit.
+> - **Carried, not waived:** D-074 §1. M7 is next. Its spec is in preparation and not ratified.
+
+> **2026-11-03 (earlier): RESEARCH PIN HOLDS ACROSS THE TWO TREES (D-073); PLAYTEST ALL PASS; M6 NOT CLOSED.**
 > - **Ruling:** [D-073](d073-research-pin-across-trees.md): a pinned research node stays pinned on the other tab, and that tab outlines in orange its prerequisites that live there (Written law → its writing technologies). The Director's playtest of `1d4a4ba`: all rows pass, including row 3, the law court (researched turn 279, founded 345, mature 355). The M6 playtest checklist and the Part G visual gate are both PASS (D-073 R2), so the eight-part cap is no longer provisional.
 > - **Moved pins:** none. No simulation hash moves.
 > - **Authorized:** commit and push for the playtest build (Director, 2026-11-03). No merge, tag or release.

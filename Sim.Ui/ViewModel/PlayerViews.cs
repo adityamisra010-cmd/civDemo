@@ -563,7 +563,24 @@ public static class PlayerViews
                 ? Fig(density, "Research in " + s.Branch + " is cheaper", "cost x" + F2(s.ResearchFactor))
                 : "It does not yet make research in " + s.Branch + " cheaper.";
         }
-        return "Its effect is not measured.";
+        return ServiceEffect(world, cfg, v, density);
+    }
+
+    /// <summary>D-074 (Director playtest 2026-11-03: the law court's panel said "Its effect is not measured", and in a game
+    /// with no tax it had no effect at all): every other institution — the law court — counts in its town's PUBLIC
+    /// SERVICES, which lighten how heavily the levy is felt there (Unrest.FeltBurden's service factor 1 − max × V,
+    /// V = Unrest.ServiceOffset, which the town's granary and workshop share). Said honestly: with no tax declared it has
+    /// no effect yet; under a tax the factor is shown as it stands now.</summary>
+    public static ViewLine ServiceEffect(IReadOnlyWorldState world, SimConfig cfg, InstitutionInstanceView v, int density)
+    {
+        double serviceMax = cfg.Needs?.Unrest?.TaxServiceOffsetMax ?? 0.0;
+        if (!(serviceMax > 0.0)) return "It does not lighten the tax here.";
+        if (!(Governance.NominalTaxRate(world, v.Owner) > 0.0))
+            return "It lightens how heavily your tax is felt here; you levy no tax, so it has no effect yet.";
+        double factor = 1.0 - serviceMax * Math.Clamp(Unrest.ServiceOffset(world, v.Settlement, cfg), 0.0, 1.0);
+        return factor < 1.0
+            ? Fig(density, "Your tax is felt more lightly here (public services, this one among them)", "felt x" + F2(factor))
+            : "It does not yet lighten your tax here.";
     }
 
     /// <summary>

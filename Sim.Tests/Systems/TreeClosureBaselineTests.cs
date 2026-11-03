@@ -33,7 +33,14 @@ public sealed class TreeClosureBaselineTests
     // TC-4 (Director, 2026-11-02: player-facing descriptions rewritten without developer language): TEXT-only — 87 node
     // descriptions (20 technologies, 67 civics; the old texts are PreTc4Descriptions below and, with the developer notes
     // they carried, docs/m6-plan/research-description-notes.md). TEXT was Tc3TextSha256; STRUCTURE unchanged.
-    internal const string TextSha256 = "32a6f56fe0f03160d10d0803c9a7590b71641e025a50d6ec14f2302d44a0e931";
+    internal const string Tc4TextSha256 = "32a6f56fe0f03160d10d0803c9a7590b71641e025a50d6ec14f2302d44a0e931";
+    // TC-5 (D-074, Director 2026-11-03: the law court's effect said honestly): TEXT-only — Written law's description adds what
+    // the court does (it lightens how heavily the tax is felt in its town) and that choosing laws is not yet part of the
+    // game. TEXT was Tc4TextSha256; STRUCTURE unchanged.
+    internal const string TextSha256 = "4399a4099e684337c6fe7a4018992ba85bbf72201d7d07a41fa7c246c60d6256";
+
+    /// <summary>TC-5: Written law's description as it stood at TC-4.</summary>
+    internal const string PreTc5LawCodeDesc = "Laws set down in writing, so that judgement no longer rests on memory and custom alone, as in the law codes of Ur-Nammu and Hammurabi. Your society can found a law court, and grievance builds more slowly.";
 
     internal static (string Structure, string Text) Hashes()
     {
@@ -204,6 +211,22 @@ public sealed class TreeClosureBaselineTests
         Assert.Equal(TextSha256, Hashes(doc).Text);
         Assert.Equal(87, RestorePreTc4Descriptions(doc));
         Assert.Equal(Tc3TextSha256, Hashes(doc).Text);
+        Assert.Equal(StructureSha256, Hashes(doc).Structure);
+    }
+
+    /// <summary>TC-5 attribution (D-074): restoring Written law's TC-4 description reproduces the TC-4 TEXT hash, and STRUCTURE
+    /// is the closure value throughout, so the one rewrite is the ONE change and it is text-only. No name changed.</summary>
+    [Fact]
+    public void ThePreTc5LawCodeDescription_ReproducesTheTc4Text_Tc5IsTextOnly()
+    {
+        JsonObject doc;
+        using (var s = Sim.Data.DataFiles.OpenResearch()) doc = JsonNode.Parse(s)!.AsObject();
+        Assert.Equal(TextSha256, Hashes(doc).Text);
+        JsonNode law = doc["civics"]!.AsArray().Single(n => (string?)n!["id"] == "law_code")!;
+        Assert.Equal("Written law", (string?)law["name"]);
+        Assert.NotEqual(PreTc5LawCodeDesc, (string?)law["desc"]);
+        law["desc"] = PreTc5LawCodeDesc;
+        Assert.Equal(Tc4TextSha256, Hashes(doc).Text);
         Assert.Equal(StructureSha256, Hashes(doc).Structure);
     }
 

@@ -1913,9 +1913,9 @@ public static class InfoQuery
         else
         {
             b.Kind = "Institution";
-            b.What = "Founded when its building is completed in a town able to sustain it; as it matures its maturity counts in the "
-                + "public services of its town - the offset that lightens how heavily the levy is felt there (Unrest.ServiceOffset). "
-                + "Its staff are withdrawn from labour.";
+            b.What = "Founded when its building is completed in a town able to sustain it. As it matures it adds to the public services "
+                + "of its town, which lighten how heavily your tax is felt there; with no tax it has no effect. "
+                + "Its staff are withdrawn from labour. Choosing laws and forms of government is not yet part of the game.";
             b.RealizedBy = "ConstructionSystem builds its building; InstitutionsSystem founds it and matures it; the levy's felt burden reads its maturity.";
         }
         b.Effect = InfoEffect.Simulated;

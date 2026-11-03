@@ -1410,6 +1410,7 @@ public static class ActionSurface
         {
             foreach (ResearchNodeId k in ResearchQuery.CompletedBetween(prev, input.World, input.Player))
                 if (content.IndexOf(k) is int i and >= 0) lines.Add("learned: " + content.Nodes[i].Name);
+            lines.AddRange(FoundedInstitutions(input, prev));
             lines.AddRange(identities);
             ImmutableArray<ActionDescriptor> before = AvailableActionsQuery.For(prev, input.Config, input.Player);
             foreach (ActionDomain d in new[] { ActionDomain.Construction, ActionDomain.Roads, ActionDomain.Governance, ActionDomain.Institutions, ActionDomain.Age })
@@ -1432,6 +1433,29 @@ public static class ActionSurface
             }
         }
         return [.. lines];
+    }
+
+    /// <summary>D-074 (Director playtest 2026-11-03: "once it was built, i couldnt do anything about it. i thought it would open
+    /// a policies window"): every institution of the player's FOUNDED at the last End Turn (in the instances now, not
+    /// before), in instance order, with what it does — a university its branch, any other type (the law court) the tax
+    /// it lightens and, for the law court, that choosing laws is not yet part of the game.</summary>
+    public static List<string> FoundedInstitutions(ActionSurfaceInput input, IReadOnlyWorldState prev)
+    {
+        var lines = new List<string>();
+        InstitutionInstanceView[] before = InstitutionsQuery.Instances(prev, input.Config, input.Player);
+        foreach (InstitutionInstanceView v in InstitutionsQuery.Instances(input.World, input.Config, input.Player))
+        {
+            bool existed = false;
+            foreach (InstitutionInstanceView b in before) if (b.Id == v.Id) { existed = true; break; }
+            if (existed) continue;
+            lines.Add("founded: " + v.TypeName + " at " + input.Name(v.Settlement.Value));
+            if (v.Branch is { Length: > 0 } branch) lines.Add("  as it matures, research in " + branch + " gets cheaper");
+            else if (!v.Heals)
+                lines.Add(Sim.Core.State.Governance.NominalTaxRate(input.World, input.Player) > 0.0
+                    ? "  as it matures, your tax is felt more lightly there; choosing laws is not yet part of the game"
+                    : "  it lightens how heavily a tax is felt there - you levy none yet; choosing laws is not yet part of the game");
+        }
+        return lines;
     }
 
     /// <summary>A domain as the notices and the grouped headers name it.</summary>

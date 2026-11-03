@@ -1,6 +1,8 @@
 # M6 playtest checklist (the Director's playtest of the M6 slice; D-066 R8)
 
 > **2026-11-03 — HELD AND PASSED.** The Director ruled this checklist PASS from the playtest of build `1d4a4ba` ([D-073](../d073-research-pin-across-trees.md) R2). The text below is kept as it was written.
+> - **The law court (vertical slice), from the session workbook** (seed 42, 368 turns): Written law researched turn 279, the court ordered turn 343, built 344, founded 345, mature 355. Every stage the checklist names was reached.
+> - **M6 closed** at its exit gate on this result ([D-074](../d074-m6-closure-and-law-court-clarity.md) R1).
 
 **Status:** READY TO RUN, NOT YET HELD.
 - This is the human gate for exit criterion 10 (the vertical slice).

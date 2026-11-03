@@ -1,5 +1,7 @@
 # M6 exit inventory: Knowledge / Research / Technology (prepared 2026-10-28 for the Director's exit gate)
 
+> **2026-11-03 — M6 CLOSED** at its exit gate by the Director ([D-074](d074-m6-closure-and-law-court-clarity.md) R1). The §4 gates and the §8.2 rows that were open are closed as recorded in the dated note at the end. The text below is kept as it was written.
+
 **Status (updated 2026-10-28, D-067 pass):** TECHNICALLY READY FOR THE EXIT GATE. M6 is NOT closed. The Director's
 rulings (D-067) are recorded, and the final tree is re-validated (§8). The human and external gates in §4 / §8 are still
 open, and closing the milestone is the Director's ruling. Nothing is committed, pushed or merged.
@@ -253,3 +255,24 @@ outside the gate.
   commit message.
 - **Authorization:** the Director authorized one commit and push of this batch, for the Windows playtest build.
 - **Unchanged:** M6 is NOT closed. The §4 gates (playtest, visual gate, Excel open, exit ruling) remain.
+
+## Dated note — 2026-11-03 (D-073, D-074: the gates held; M6 CLOSED)
+
+- **§4 gates:**
+  1. The Director's playtest: **PASS** (D-073 R2), on build `1d4a4ba`, every row. The law court: Written law researched turn 279, court ordered 343, built 344, founded 345, mature 355 (seed 42, 368 turns).
+  2. The Part G visual gate: **PASS** (D-073 R2). The eight-part cap is **final** (D-067 R3). The frame-budget choice is **carried open**.
+  3. Opening an exported workbook: **PASS**. The Director played from and returned the exported workbooks of 2026-11-02 and 2026-11-03, and ruled the one-file export row PASS.
+  4. Windows smoke and CI on a pushed tree: **PASS** on every push since D-068. The final commit's own runs are on GitHub and are named in the `m6-exit` Release notes. The 20-seed nightly runs on `main` on its schedule from the merge on.
+  9. The exit ruling: **M6 CLOSED** (D-074 R1). The `CLAUDE.md` milestone line is updated in the same commit (D-074 R3).
+- **§8.2 rows that were open:**
+  - **5, E1 at the visual gate:** PASS.
+  - **6, Export (Excel open):** PASS, per gate 3.
+  - **9, Windows smoke and CI:** PASS, per gate 4.
+  - **10, Slice acceptance:** PASS.
+- **Fixes from the playtest:**
+  - D-072, the research detail panel in its own column.
+  - D-073, the pin across the two trees.
+  - D-074 R2, the law court's effect said honestly, with the founding notice (TC-5, text only).
+- **Carried, not waived:** listed in D-074 §1. They are §3 of this inventory, the frame-budget choice, M6.24, the research-economy candidate and pacing, and the PROPOSED status headers of ADR-047/048/049 and TC-1.
+- **Authorized (D-074 R3):** once the final commit's CI and Windows smoke are green, fast-forward `main`, tag `m6-exit` and publish the Release.
+

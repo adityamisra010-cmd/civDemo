@@ -1,6 +1,8 @@
 # E1 visual acceptance — the Director's Part G gate checklist (M6 E1)
 
 > **2026-11-03 — HELD AND PASSED.** The Director ruled this checklist PASS from the playtest of build `1d4a4ba` ([D-073](../d073-research-pin-across-trees.md) R2). The text below is kept as it was written.
+> - **The eight-part cap is FINAL** (`parts.maxParts` = 8): it was provisional until this gate (D-067 R3), and is now final ([D-074](../d074-m6-closure-and-law-court-clarity.md) §1 G2).
+> - The frame-budget choice (E1 over-run on 20 of 48 near-empty-map rows) is carried open, not waived.
 
 **Status: NOT YET HELD.** This is the checklist for the Director's visual gate on the E1 object layer (D-038 Part G;
 D-066 A3: "One Part G gate for the E1 batch, held at the playtest"; D-066 R6: human gates are never claimed unless
