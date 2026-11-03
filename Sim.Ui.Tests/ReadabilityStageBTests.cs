@@ -174,15 +174,16 @@ public class ReadabilityStageBTests(ReadabilityWorldsFixture fx) : IClassFixture
     // ================================================================== UR-4: the detail panel
 
     [Fact]
-    public void BelowSixteenHundred_TheDetailIsADrawer_ThatOpensOnSelect_LeavesTheStripFree_AndCloses()
+    public void BelowOneThousand_TheDetailIsADrawer_ThatOpensOnSelect_LeavesTheStripFree_AndCloses()
     {
-        ProgressionScreen s = Research(fx.Session.World, 1366, 768, ApproxTextMeasure.Instance);
+        // D-072: the drawer is only the fallback for windows too narrow for two columns (below 1000 px at UI scale 1).
+        ProgressionScreen s = Research(fx.Session.World, 960, 640, ApproxTextMeasure.Instance);
         Assert.False(s.Docked);
         Assert.False(s.DrawerOpen);
-        Assert.Equal(1366 - s.StripW, s.TreeViewportWidth, 6);   // the tree takes the whole window
+        Assert.Equal(960 - s.StripW, s.TreeViewportWidth, 6);   // the tree takes the whole window
         int pick = s.FrontierNode();
         s.Focus(pick, jump: true);
-        s.Paint(1366, 768, ApproxTextMeasure.Instance);
+        s.Paint(960, 640, ApproxTextMeasure.Instance);
         Assert.True(s.DrawerOpen);
         RectD drawer = s.DetailRect;
         Assert.True(drawer.Right <= s.MinimapRect().X, "the overview strip stays usable beside the drawer");
@@ -204,10 +205,59 @@ public class ReadabilityStageBTests(ReadabilityWorldsFixture fx) : IClassFixture
         s.Focus(pick, jump: true);
         Assert.True(s.CloseDrawer());
         Assert.False(s.CloseDrawer());
-        // From 1600 px it is docked beside the tree.
+        // From 1000 px (D-072; it was 1600) it is docked beside the tree.
         ProgressionScreen wide = Research(fx.Session.World, 1920, 1080, ApproxTextMeasure.Instance);
         Assert.True(wide.Docked);
         Assert.Equal(1920 - wide.DetailW - wide.StripW, wide.TreeViewportWidth, 6);
+    }
+
+    /// <summary>D-072 (Director playtest 2026-11-03, on a 1920 px screen with Windows display scaling: "the details kinda
+    /// overlap on the nodes. Once i click the nodes, the detail box opens and then it hides the right side of the tree. This
+    /// needs its own separate section"). At every common window and UI scale the detail panel is a column of its own: the
+    /// tree canvas ends where the panel begins, pinning a node does not narrow or reflow the tree, and no card the tree shows
+    /// is covered by the panel — on both tabs.</summary>
+    [Theory]
+    [InlineData(1920, 1080, 1.25)]   // the Director's screen: 1920 px at 125% (1536 logical px; it was a drawer)
+    [InlineData(1920, 1080, 1.5)]    // 150% (1280 logical px)
+    [InlineData(1920, 1080, 1.0)]
+    [InlineData(1366, 768, 1.0)]     // was a drawer
+    [InlineData(1280, 800, 1.0)]     // the gate's window; was a drawer
+    [InlineData(1000, 700, 1.0)]     // the threshold itself
+    public void TheDetailPanel_IsItsOwnColumn_AndCoversNoCard_AtCommonWindowsAndScales(int w, int h, double scale)
+    {
+        foreach (TreeTab tab in new[] { TreeTab.Technology, TreeTab.Civics })
+        {
+            ProgressionScreen s = Research(fx.Session.World, w, h, ApproxTextMeasure.Instance, tab, scale);
+            Assert.True(s.Docked, $"{w}x{h} at {scale}: the detail panel has its own column");
+            double treeW = s.TreeViewportWidth;
+            int pick = s.FrontierNode();
+            Assert.True(pick >= 0, "anti-vacuity: a frontier node to pin");
+            s.Focus(pick, jump: true);
+            s.PointerMove(-1, -1);
+            s.Paint(w, h, ApproxTextMeasure.Instance);
+            Assert.Equal(pick, s.Pin);
+            Assert.False(s.DrawerOpen);
+            Assert.Equal(treeW, s.TreeViewportWidth, 6);   // the pin neither narrows nor reflows the tree
+            RectD panel = s.DetailRect, c = s.Canvas;
+            Assert.True(c.Right <= panel.X + 0.5, "the tree canvas ends where the panel begins");
+            Assert.True(s.MinimapRect().Right <= panel.X + 0.5, "the overview strip stays beside the panel, not under it");
+            Assert.True(panel.Right <= w + 0.5 && panel.W >= 200);
+            int seen = 0;
+            foreach (PlacedVertex p in s.Layout.Placed)
+            {
+                if (p.Hidden) continue;
+                double cx = s.Camera.ToScreenX(p.CenterX, c.X), cy = s.Camera.ToScreenY(p.CenterY, c.Y);
+                if (!c.Contains(cx, cy) || (s.MinimapVisible && s.MinimapRect().Contains(cx, cy))) continue;
+                seen++;
+                Assert.False(panel.Contains(cx, cy), "no card the tree shows lies under the detail panel");
+                Assert.False(s.Obscured(cx, cy));
+            }
+            Assert.True(seen > 0, "anti-vacuity: cards in view");
+        }
+        // Just below the threshold the narrow window's drawer is the fallback.
+        double below = ProgressionScreen.DockMinWidth * scale - 1;
+        ProgressionScreen narrow = Research(fx.Session.World, below, h, ApproxTextMeasure.Instance, TreeTab.Technology, scale);
+        Assert.False(narrow.Docked);
     }
 
     [Fact]

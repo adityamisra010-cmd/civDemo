@@ -142,13 +142,14 @@ public class ResearchPinTests(SteppedWorldFixture fx) : IClassFixture<SteppedWor
         Assert.Equal(b, s.Pin);
     }
 
-    /// <summary>In a narrow window the first click's pin opens the detail drawer over the tree's right edge — over the very
-    /// card, when it sits there. The second click of the double-click still belongs to that card (its own place), and
-    /// orders it; a lone click there afterwards is the drawer's (it orders nothing).</summary>
+    /// <summary>In a window too narrow for the docked column (below <see cref="ProgressionScreen.DockMinWidth"/>, D-072) the
+    /// first click's pin opens the detail drawer over the tree's right edge — over the very card, when it sits there. The
+    /// second click of the double-click still belongs to that card (its own place), and orders it; a lone click there
+    /// afterwards is the drawer's (it orders nothing).</summary>
     [Fact]
     public void ADoubleClick_OnACardTheFirstClicksDrawerCovers_StillOrdersThatCard()
     {
-        const double nw = 1366, nh = 768;
+        const double nw = 960, nh = 640;
         ProgressionScreen s = Screen(TreeTab.Technology, nw, nh);
         Assert.False(s.Docked);
         RectD drawer = s.DetailRect;   // where the drawer opens (the geometry does not depend on the pin)
@@ -435,10 +436,10 @@ public class ResearchPinTests(SteppedWorldFixture fx) : IClassFixture<SteppedWor
         Assert.Equal(-1, s.Pin);
         Assert.Equal(-1, s.DetailNode);
 
-        // The drawer's close button (narrow window).
-        ProgressionScreen n = Screen(TreeTab.Technology, 1366, 768);
+        // The drawer's close button (a window too narrow for the docked column, D-072).
+        ProgressionScreen n = Screen(TreeTab.Technology, 960, 640);
         n.Focus(pick, jump: true);
-        n.Paint(1366, 768, ApproxTextMeasure.Instance);
+        n.Paint(960, 640, ApproxTextMeasure.Instance);
         Assert.True(n.DrawerOpen);
         HitRegion close = n.Hits.Single(h => h.Kind == HitKind.CloseDetail);
         n.Click(close.Rect.CenterX, close.Rect.CenterY);

@@ -50,9 +50,12 @@ public sealed partial class ProgressionScreen
     // text at the type scale's roles (nothing below Caption); every length is × Scale.
     public const double LensBarRef = 66, TabBarRef = 58, ColumnHeaderRef = 40, ControlRowRef = 44, DetailRef = 440, StripRef = 64;
 
-    /// <summary>The window width (at UI scale 1) from which the detail panel is DOCKED beside the tree; below it the
-    /// panel is an overlay DRAWER that opens over the tree's right edge when a node is selected (UR-4).</summary>
-    public const double DockMinWidth = 1600;
+    /// <summary>The window width (at UI scale 1) from which the detail panel is DOCKED beside the tree, in its own column;
+    /// below it the panel is an overlay DRAWER that opens over the tree's right edge when a node is selected (UR-4). D-072
+    /// (Director playtest 2026-11-03: the drawer "hides the right side of the tree. This needs its own separate section")
+    /// lowers it from 1600 to 1000, so a 1920 px screen at 125–150% Windows scaling (1536–1280 logical px), 1366 × 768
+    /// and 1280 × 800 all dock; the drawer is kept only as the fallback for windows too narrow for two columns.</summary>
+    public const double DockMinWidth = 1000;
 
     /// <summary>The UI scale the screen is set at (UR-1): every strip, card, gap and role size is × this.</summary>
     public double Scale

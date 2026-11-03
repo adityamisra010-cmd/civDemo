@@ -1,6 +1,11 @@
 # CURRENT STATE — the routing document
 
-> **2026-11-02 (latest): ORIGINALITY (D-069), RESEARCH-TREE PLAYTEST FIXES (D-070), ONE EXCEL FILE AND PLAIN DESCRIPTIONS (D-071); M6 NOT CLOSED.**
+> **2026-11-03 (latest): RESEARCH DETAIL PANEL IN ITS OWN COLUMN (D-072); M6 NOT CLOSED.**
+> - **Ruling:** [D-072](d072-research-detail-column.md): the research screen's detail panel docks in its own column from 1000 px at UI scale 1 (it was 1600), so it no longer covers the tree at common screens and Windows scaling. Playtest rows A–H, I and J passed on `1d4a4ba`.
+> - **Moved pins:** none. No simulation hash moves.
+> - **Authorized:** commit and push for the playtest build (Director, 2026-11-03). No merge, tag or release.
+>
+> **2026-11-02 (earlier): ORIGINALITY (D-069), RESEARCH-TREE PLAYTEST FIXES (D-070), ONE EXCEL FILE AND PLAIN DESCRIPTIONS (D-071); M6 NOT CLOSED.**
 > - **Rulings:** [D-069](d069-originality-and-third-party-game-references.md): no third-party game names in shipped content; real historical names stay; "Eureka" shown as "Idea". [D-070](d070-research-tree-pin-and-banked-civics.md): click pins a research node, double-click orders it, prerequisites in orange; banked Civics Points shown. [D-071](d071-one-file-runs-and-plain-descriptions.md): after a session closes `runs\` shows only the workbook (record files move to hidden `runs\.record\`); 87 research descriptions rewritten in plain language.
 > - **Moved pins:** tree-closure TEXT (D-069 R2, then D-071 TC-4); `EraSeparationTests.A6CanonicalHash` (D-070, one added token line). No simulation hash moves.
 > - **Authorized:** commit and push for the Windows playtest build (Director, 2026-11-02). No merge, tag or release.

@@ -46,6 +46,11 @@ real `ProgressionScreen`, replayed by the real `DrawListImGuiBackend` into a rea
 > contract). In a window narrower than 1600 px a selected node's detail is an overlay drawer: the gate's research
 > checks skip cards under it (`ProgressionScreen.Obscured`) and its Escape check closes the drawer, then the screen.
 > The game now opens at 90 % of the display (`PanelLayout.OpeningWindow`); the gate's windows are unchanged.
+>
+> **DATED NOTE 2026-11-03 (D-072).** The detail panel now docks from 1000 px at UI scale 1, not 1600
+> ([D-072](d072-research-detail-column.md)). Both of the gate's windows (1280 × 800 and 1920 × 1080) dock, so the row
+> `detail drawer close button (narrow windows: …)` is not offered in any state; the drawer fallback is covered by unit
+> tests at 960 × 640.
 
 **Root cause (IMPLEMENTED, MEASURED).** ImGui indexes vertices with 16-bit indices. A draw list may pass 65,535
 vertices only if the renderer declares `ImGuiBackendFlags.RendererHasVtxOffset`; ImGui then opens a new draw

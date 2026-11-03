@@ -108,7 +108,7 @@ public sealed class ResearchPinHostTests : IDisposable
         (double x, double y) = Centre(s, a);
         h.Click(x, y);
         Assert.Equal(s.Graph.Vertices[a].ContentIndex, s.Pin);
-        Assert.True(s.DrawerOpen);   // 1280 px: the narrow window's drawer
+        Assert.True(s.Docked && !s.DrawerOpen);   // 1280 px: since D-072 the detail panel is docked in its own column
         h.Key(Keys.Escape);
         Assert.True(h.Ui.ProgressionOpen);
         Assert.Equal(-1, s.Pin);
