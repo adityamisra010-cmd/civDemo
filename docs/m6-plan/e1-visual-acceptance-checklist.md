@@ -1,5 +1,7 @@
 # E1 visual acceptance — the Director's Part G gate checklist (M6 E1)
 
+> **2026-11-03 — HELD AND PASSED.** The Director ruled this checklist PASS from the playtest of build `1d4a4ba` ([D-073](../d073-research-pin-across-trees.md) R2). The text below is kept as it was written.
+
 **Status: NOT YET HELD.** This is the checklist for the Director's visual gate on the E1 object layer (D-038 Part G;
 D-066 A3: "One Part G gate for the E1 batch, held at the playtest"; D-066 R6: human gates are never claimed unless
 performed). Nothing in this document, in the tests or in the hand-back claims that the gate passed. Automated tests cover

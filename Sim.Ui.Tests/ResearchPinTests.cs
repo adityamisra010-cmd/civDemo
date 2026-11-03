@@ -566,6 +566,143 @@ public class ResearchPinTests(SteppedWorldFixture fx) : IClassFixture<SteppedWor
         Assert.Equal(2 * want.Count + 1, marks.Count(m => m.Rect.X >= r.X - 8 && m.Rect.Right <= r.Right + 8));
     }
 
+    // ================================================================== D-073: the pin is carried across the tabs
+
+    /// <summary>The content index of the node with data key <paramref name="key"/>.</summary>
+    private int NodeOfKey(int key)
+    {
+        for (int i = 0; i < fx.Content.Nodes.Count; i++) if (fx.Content.Nodes[i].Key.Value == key) return i;
+        return -1;
+    }
+
+    /// <summary>D-073 (Director playtest 2026-11-03): EVERY node, pinned and then viewed on EITHER tab, stays the pin, and
+    /// the orange set on the tab shown is exactly its direct prerequisites that have a card there — on its own tab all of
+    /// them (unchanged), on the other tab the ones that live in that tree (or show there as a "From …" token).</summary>
+    [Fact]
+    public void ThePin_IsCarriedToTheOtherTab_ForEveryNode_AndItsOrangeSetThereIsItsPrerequisitesWithACardThere()
+    {
+        ResearchContent c = fx.Content;
+        ProgressionScreen s = Screen();
+        int carriedWithOrange = 0, tokenWithOrange = 0;
+        for (int ci = 0; ci < c.Nodes.Count; ci++)
+            foreach (TreeTab tab in new[] { TreeTab.Technology, TreeTab.Civics })
+            {
+                s.Tab = tab;
+                s.Selected = ci;
+                Assert.Equal(ci, s.Pin);
+                Assert.Equal(ci, s.DetailNode);
+                int[] want = [.. Prerequisites(c, ci).Where(p => s.Graph.VertexOf(p) >= 0)];
+                Assert.Equal(want, s.PinnedPrerequisites());
+                if (tab == TabOf(c, ci)) { Assert.Equal(Prerequisites(c, ci), want); continue; }
+                if (want.Length == 0) continue;
+                carriedWithOrange++;
+                if (s.Graph.VertexOf(ci) >= 0) tokenWithOrange++;
+            }
+        Assert.True(carriedWithOrange > 0, "anti-vacuity: a node pinned on one tab lights prerequisites on the other");
+        Assert.True(tokenWithOrange > 0, "anti-vacuity: a node shown as a 'From …' token on the other tab, pinned there, lights its prerequisites");
+        s.Selected = -1;
+        Assert.Equal(-1, s.Pin);
+        Assert.Empty(s.PinnedPrerequisites());
+    }
+
+    /// <summary>D-073, the Director's case: Written law pinned with a single click on the Civics tab, then the Technology
+    /// tab opened. The pin holds there: its writing prerequisites (cuneiform, hieroglyphic, Chinese script — "one of") are
+    /// outlined in the orange and nothing else is; the cards that are not its prerequisites recede; the overview strip marks
+    /// them; the detail panel stays on Written law; Escape clears it; and back on the Civics tab it is still pinned with its
+    /// orange edges.</summary>
+    [Fact]
+    public void WrittenLaw_PinnedOnCivics_KeepsItsTechnologyPrerequisitesOrange_OnTheTechnologyTab()
+    {
+        ResearchContent c = fx.Content;
+        int law = NodeOfKey(1001);
+        Assert.True(law >= 0 && c.Nodes[law].Tree == ResearchTree.Civics, "Written law is the civic with key 1001");
+        ProgressionScreen s = Screen(TreeTab.Civics);
+        s.Focus(law, jump: true);
+        Assert.Equal(law, s.Pin);
+
+        s.Tab = TreeTab.Technology;
+        s.FitAll();   // every card in view
+        DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
+        Assert.Equal(law, s.Pin);
+        Assert.Equal(law, s.DetailNode);
+        Assert.True(s.Graph.VertexOf(law) < 0, "Written law has no card on the Technology tab");
+        int[] want = s.PinnedPrerequisites();
+        Assert.Equal(Prerequisites(c, law), want);   // every prerequisite of Written law is a technology
+        Assert.True(want.Length >= 2, "anti-vacuity: Written law needs one of several writing technologies");
+        Assert.All(want, ci => Assert.Equal(ResearchTree.Technology, c.Nodes[ci].Tree));
+
+        // The orange outlines surround exactly the visible prerequisite cards (no pin card on this tab).
+        Rgba pinned = s.Theme.Semantic.Pinned;
+        RectD canvas = s.Canvas, strip = s.MinimapRect();
+        var outlined = new SortedSet<int>();
+        foreach (PolylineCmd p in d.Commands.OfType<PolylineCmd>().Where(p => p.Color == pinned && p.Closed))
+        {
+            double cx = (p.Points.Min(q => q.X) + p.Points.Max(q => q.X)) / 2, cy = (p.Points.Min(q => q.Y) + p.Points.Max(q => q.Y)) / 2;
+            if (!canvas.Contains(cx, cy) || strip.Contains(cx, cy)) continue;
+            int hit = -1;
+            for (int v = 0; v < s.Graph.Vertices.Count; v++) if (CardRect(s, v).Contains(cx, cy)) hit = v;
+            Assert.True(hit >= 0, "an orange outline around no card");
+            outlined.Add(s.Graph.Vertices[hit].ContentIndex);
+        }
+        var visible = new HashSet<int>(s.VisibleVertices().Select(v => s.Graph.Vertices[v].ContentIndex));
+        var wantVisible = new SortedSet<int>(want);
+        wantVisible.IntersectWith(visible);
+        Assert.True(wantVisible.Count >= 1, "anti-vacuity: a writing technology in view");
+        Assert.Equal(wantVisible, outlined);
+
+        // The overview strip marks each prerequisite (its own mark and its tab), and nothing for a pin card it does not have.
+        RectD r = s.MinimapRect();
+        RectCmd[] marks = [.. d.Commands.OfType<RectCmd>().Where(m => m.Fill == pinned && m.Rect.X >= r.X - 8 && m.Rect.Right <= r.Right + 8)];
+        Assert.Equal(2 * want.Length, marks.Length);
+
+        // The same view with nothing pinned: no orange anywhere.
+        s.Selected = -1;
+        DrawList none = s.Paint(W, H, ApproxTextMeasure.Instance);
+        Assert.DoesNotContain(none.Commands, cmd => IsPinnedInk(cmd, pinned));
+
+        // Escape clears the carried pin; pinned again, the Civics tab still shows it with its orange edges.
+        s.Selected = law;
+        Assert.True(s.ClearPin());
+        Assert.Equal(-1, s.Pin);
+        s.Selected = law;
+        s.Tab = TreeTab.Civics;
+        Assert.Equal(law, s.Pin);
+        Assert.Equal(Prerequisites(c, law), s.PinnedPrerequisites());
+        s.Focus(law, jump: true);
+        DrawList back = s.Paint(W, H, ApproxTextMeasure.Instance);
+        Assert.Contains(back.Commands, cmd => cmd is LineCmd l && l.Color == pinned);
+    }
+
+    /// <summary>D-073: with a carried pin whose prerequisites are out of view on this tab, the off-screen marker appears and
+    /// its click brings the nearest one in, keeping the pin.</summary>
+    [Fact]
+    public void ACarriedPin_ShowsTheOffscreenMarker_ForItsPrerequisitesOnThisTab_AndItsClickBringsOneIn()
+    {
+        ResearchContent c = fx.Content;
+        int law = NodeOfKey(1001);
+        ProgressionScreen s = Screen(TreeTab.Technology);
+        // Scroll the Technology tab to the far end from the writing technologies, then pin Written law (as from Civics).
+        int far = -1; double farGap = -1;
+        PlacedVertex anyWriting = s.Layout.Placed[s.Graph.VertexOf(Prerequisites(c, law)[0])];
+        for (int v = 0; v < s.Graph.OwnCount; v++)
+        {
+            double gap = Math.Abs(s.Layout.Placed[v].Y - anyWriting.Y);
+            if (!s.Layout.Placed[v].Hidden && gap > farGap) { farGap = gap; far = s.Graph.Vertices[v].ContentIndex; }
+        }
+        s.Focus(far, jump: true);
+        s.Selected = law;
+        s.Paint(W, H, ApproxTextMeasure.Instance);
+        bool below = s.PinnedOffscreen(below: true).Count > 0;
+        List<int> off = s.PinnedOffscreen(below);
+        Assert.True(off.Count > 0, "anti-vacuity: a writing technology out of view");
+        Assert.Contains(s.Hits, h => h.Kind == HitKind.PinnedOffscreen);
+        s.ScrollToPinnedOffscreen(below);
+        for (int i = 0; i < 400; i++) s.Advance(1.0 / 60);
+        s.Paint(W, H, ApproxTextMeasure.Instance);
+        Assert.Equal(law, s.Pin);
+        Assert.DoesNotContain(off[0], s.PinnedOffscreen(below));
+    }
+
     // ================================================================== banked Civics Points
 
     [Fact]

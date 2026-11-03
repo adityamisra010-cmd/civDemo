@@ -86,8 +86,19 @@ public sealed partial class ProgressionScreen
     /// selected node while it has a visible card in the tree on show (its own nodes, and the other tree's prerequisites in
     /// the "From …" column), else −1. It survives scrolling, zooming, dragging, the overview strip and hovering other
     /// cards; a click on empty canvas, the drawer's close button or Escape clears it.
+    /// D-073 (Director playtest 2026-11-03: "when there are cross prerequisites, such as from civics to knowledge, it should
+    /// still hold when single clicked … I single clicked the written law node, went over to the knowledge tree and couldn't
+    /// see the prerequisites"): a node of the OTHER tree stays pinned when the tab changes — CARRIED — so the tree on show
+    /// outlines its prerequisites that live here in the orange, the off-screen markers and the overview strip find them, and
+    /// the detail panel stays on it. A node of this tree hidden in a collapsed lane is still no pin.
     /// </summary>
-    public int Pin => Selected >= 0 && Graph.VertexOf(Selected) is int v && v >= 0 && !Layout.Placed[v].Hidden ? Selected : -1;
+    public int Pin => Selected >= 0 && (CarriedHere(Selected) || ShownHere(Selected)) ? Selected : -1;
+
+    /// <summary>Whether <paramref name="node"/> has a visible card in the tree on show (its own, or a "From …" token).</summary>
+    private bool ShownHere(int node) => Graph.VertexOf(node) is int v && v >= 0 && !Layout.Placed[v].Hidden;
+
+    /// <summary>D-073: whether <paramref name="node"/> belongs to the OTHER tree (pinned there and carried to this tab).</summary>
+    private bool CarriedHere(int node) => node < Content.Nodes.Count && Content.Nodes[node].Tree != Graph.Tree;
 
     /// <summary>The node the highlight follows: the pin, else the hovered card, else −1.</summary>
     public int FocusNode => Pin >= 0 ? Pin : Hovered;
@@ -275,11 +286,21 @@ public sealed partial class ProgressionScreen
         if (pin < 0) return [];
         int pv = Graph.VertexOf(pin);
         var r = new List<int>();
-        foreach (GraphEdge e in Graph.Edges)
+        if (pv >= 0 && !Graph.Vertices[pv].External)
         {
-            if (e.To != pv) continue;
-            int ci = Graph.Vertices[e.From].ContentIndex;
-            if (!r.Contains(ci)) r.Add(ci);
+            foreach (GraphEdge e in Graph.Edges)
+            {
+                if (e.To != pv) continue;
+                int ci = Graph.Vertices[e.From].ContentIndex;
+                if (!r.Contains(ci)) r.Add(ci);
+            }
+        }
+        else
+        {
+            // D-073: a pin CARRIED from the other tree (no card here, or only a "From …" token, which has no incoming
+            // edges) lights up its direct prerequisites that have a card in this tree — the content's own list.
+            foreach (int ci in Content.Nodes[pin].PrerequisiteNodes)
+                if (Graph.VertexOf(ci) >= 0 && !r.Contains(ci)) r.Add(ci);
         }
         r.Sort();
         return [.. r];
@@ -1128,8 +1149,9 @@ public sealed partial class ProgressionScreen
         // set and the hovered card (another one) adds its own transient highlight on top (Director playtest 2026-11).
         int VertexShown(int node) => node >= 0 && Graph.VertexOf(node) is int vx && vx >= 0 && !L.Placed[vx].Hidden ? vx : -1;
         int pinV = VertexShown(Pin);
+        bool held = Pin >= 0;   // D-073: a pin carried from the other tree has no card here (pinV −1) but still holds
         int focusV = VertexShown(FocusNode);
-        int hoverV = pinV >= 0 && VertexShown(Hovered) is int hv && hv != pinV ? hv : -1;
+        int hoverV = held && VertexShown(Hovered) is int hv && hv != pinV ? hv : -1;
         var related = new int[Graph.Vertices.Count];   // 0 none, 1 prerequisite, 2 dependent (of the focus)
         var transient = new int[Graph.Vertices.Count];   // the same for the hovered card while another is pinned
         var orange = new bool[Graph.Vertices.Count];
@@ -1139,7 +1161,7 @@ public sealed partial class ProgressionScreen
             foreach (int ci in dep) related[Graph.VertexOf(ci)] = 2;
             foreach (int ci in pre) related[Graph.VertexOf(ci)] = 1;
         }
-        if (pinV >= 0) foreach (int ci in PinnedPrerequisites()) orange[Graph.VertexOf(ci)] = true;
+        if (held) foreach (int ci in PinnedPrerequisites()) orange[Graph.VertexOf(ci)] = true;
         if (hoverV >= 0)
         {
             (int[] pre, int[] dep) = HoverHighlight();
@@ -1157,9 +1179,9 @@ public sealed partial class ProgressionScreen
             PlacedVertex p = L.Placed[v];
             if (p.Hidden) continue;
             double x = SX(p.X), y = SY(p.Y);
-            bool recede = focusV >= 0 && v != focusV && v != hoverV && related[v] == 0 && transient[v] == 0 && !orange[v];
+            bool recede = (focusV >= 0 || held) && v != focusV && v != hoverV && related[v] == 0 && transient[v] == 0 && !orange[v];
             PaintCard(d, m, v, x, y, z, v == hoveredV, recede);
-            if (focusV < 0 || recede) continue;
+            if ((focusV < 0 && !held) || recede) continue;
             var r = new RectD(x - 2, y - 2, p.W * z + 4, p.H * z + 4);
             if (v == pinV || orange[v])
             {
@@ -1211,7 +1233,7 @@ public sealed partial class ProgressionScreen
         if (hoverV >= 0) Edges(hoverV, pinned: false);   // the transient highlight, on top of the orange set
 
         if (MinimapVisible) PaintMinimap(d);
-        if (pinV >= 0) PaintOffscreenMarkers(d, m);
+        if (held) PaintOffscreenMarkers(d, m);
         d.PopClip();
 
         // Header rows sit above the camera canvas (never over a card): the sticky lane header
@@ -1796,7 +1818,7 @@ public sealed partial class ProgressionScreen
             int pinV = Graph.VertexOf(Pin);
             var marked = new List<int>();
             foreach (int ci in PinnedPrerequisites()) marked.Add(Graph.VertexOf(ci));
-            marked.Add(pinV);
+            if (pinV >= 0) marked.Add(pinV);   // D-073: a carried pin with no card here marks only its prerequisites
             foreach (int v in marked)
             {
                 PlacedVertex p = Layout.Placed[v];

@@ -1,6 +1,12 @@
 # CURRENT STATE — the routing document
 
-> **2026-11-03 (latest): RESEARCH DETAIL PANEL IN ITS OWN COLUMN (D-072); M6 NOT CLOSED.**
+> **2026-11-03 (latest): RESEARCH PIN HOLDS ACROSS THE TWO TREES (D-073); PLAYTEST ALL PASS; M6 NOT CLOSED.**
+> - **Ruling:** [D-073](d073-research-pin-across-trees.md): a pinned research node stays pinned on the other tab, and that tab outlines in orange its prerequisites that live there (Written law → its writing technologies). The Director's playtest of `1d4a4ba`: all rows pass, including row 3, the law court (researched turn 279, founded 345, mature 355). The M6 playtest checklist and the Part G visual gate are both PASS (D-073 R2), so the eight-part cap is no longer provisional.
+> - **Moved pins:** none. No simulation hash moves.
+> - **Authorized:** commit and push for the playtest build (Director, 2026-11-03). No merge, tag or release.
+> - **Still open:** the Director's exit ruling; then merge, tag and the `CLAUDE.md` milestone line, each on separate authorization.
+
+> **2026-11-03 (earlier): RESEARCH DETAIL PANEL IN ITS OWN COLUMN (D-072); M6 NOT CLOSED.**
 > - **Ruling:** [D-072](d072-research-detail-column.md): the research screen's detail panel docks in its own column from 1000 px at UI scale 1 (it was 1600), so it no longer covers the tree at common screens and Windows scaling. Playtest rows A–H, I and J passed on `1d4a4ba`.
 > - **Moved pins:** none. No simulation hash moves.
 > - **Authorized:** commit and push for the playtest build (Director, 2026-11-03). No merge, tag or release.
