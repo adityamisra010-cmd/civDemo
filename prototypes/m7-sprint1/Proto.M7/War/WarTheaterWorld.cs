@@ -19,6 +19,12 @@ public static class WarKinds
     /// <summary>Campaign-turn order: set the issuer's war upkeep rate (money per sim-year per war). A = Pack(issuer, 0), B = rate.</summary>
     public const int OrderUpkeepRate = 141;
 
+    /// <summary>T3 agent actions (ActionKinds.OrderBase + ActionKind): A = Pack(issuer, agentId), B = cell / target agent / amount.</summary>
+    public const int ActMove = ActionKinds.OrderBase + (int)ActionKind.Move;
+    public const int ActAttack = ActionKinds.OrderBase + (int)ActionKind.Attack;
+    public const int ActRetreat = ActionKinds.OrderBase + (int)ActionKind.Retreat;
+    public const int ActRecruit = ActionKinds.OrderBase + (int)ActionKind.Recruit;
+
     /// <summary>Order operand packing (prototype-local; the kernel OrderRecord is untouched): A = issuer * 65536 + warId.</summary>
     public const long PolityStride = 65_536;
     public static long Pack(int issuer, int warId) => issuer * PolityStride + warId;
@@ -32,6 +38,15 @@ public static class WarRefusal
     public const int WarEnded = 3;
     public const int BadValue = 4;
     public const int UnknownKind = 5;
+    // T3 action economy (ActionRules): a refused action changes no state.
+    public const int SlotsExhausted = 10;
+    public const int CapacityExhausted = 11;
+    public const int NotInActionSet = 12;
+    public const int KindRepeated = 13;
+    public const int CombinationForbidden = 14;
+    public const int HitAndRun = 15;
+    public const int NotOwnAgent = 16;
+    public const int OutOfReach = 17;
 }
 
 /// <summary>
@@ -87,6 +102,9 @@ public sealed record PolityWindow(long InstantMs, SignificantHit[] Hits);
 ///     start (zero simulated time has passed in it) it applies to the current pulse; otherwise from the next pulse.
 ///   Turn order: takes effect at the first turn start S with S &gt;= T, by the same rule.
 ///   An issuer that is not a recipient of the window at T (fog) gets a recorded refusal.
+///   T3 agent action: applies AT T and spends a slot of the enclosing window that contains T (ActionRules): at a pulse
+///     start X the agent is already in pulse n+1's fresh window; at X - 1 it is still in pulse n's. Same for turn starts.
+///     The fog gate above applies first, so a polity that cannot see the triggering event gets no action from it.
 /// </summary>
 public sealed class WarTheaterWorld : IEventWorld
 {
@@ -137,9 +155,12 @@ public sealed class WarTheaterWorld : IEventWorld
     private readonly List<TurnSnapshot> _snapshots = new();
     private long _sigInstant = -1;
     private ulong _sigMask;
+    private readonly ActionWindowBook? _book;
+    private readonly int _recruitSink = -1;
 
     public WarTheaterWorld(CampaignCalendar calendar, WarPulseSchedule schedule, int polityCount, WarSpec[] wars, WarFog fog,
-                           SignificantKinds significant, long[] upkeepRatePerYear, long openingMoney, long openingGoods)
+                           SignificantKinds significant, long[] upkeepRatePerYear, long openingMoney, long openingGoods,
+                           ActionLayerSpec? actions = null)
     {
         if (polityCount <= 0 || polityCount > 64) throw new ArgumentOutOfRangeException(nameof(polityCount), "1..64 polities (recipient mask)");
         if (upkeepRatePerYear.Length != polityCount) throw new ArgumentException("one upkeep rate per polity");
@@ -178,6 +199,26 @@ public sealed class WarTheaterWorld : IEventWorld
         }
         _upkeepSink = _ledger.Open(Commodity.Money, 0);
         _supplySink = _ledger.Open(Commodity.Goods, 0);
+        if (actions is not null && actions.Agents.Length > 0)
+        {
+            // T3: the sink opens only with an action layer, so a world without agents keeps T2's ledger and hashes.
+            _recruitSink = _ledger.Open(Commodity.Money, 0);
+            var specs = new WarSpec[_wars.Length];
+            for (int i = 0; i < specs.Length; i++) specs[i] = _wars[i].Spec;
+            _book = new ActionWindowBook(actions, polityCount, specs, OperationalWindow, _ledger, _treasury, _recruitSink);
+        }
+    }
+
+    /// <summary>The T3 action layer (null when the world has no agents).</summary>
+    public ActionWindowBook? Actions => _book;
+    public int RecruitSink => _recruitSink;
+
+    /// <summary>The current pulse index of war warId if it is in progress (started, not ended), else -1 (campaign layer).</summary>
+    private long OperationalWindow(int warId)
+    {
+        if (warId < 0) return -1;
+        var w = _wars[warId];
+        return w.Ended || w.Pulse.EndMs == 0 ? -1 : w.Pulse.Index;
     }
 
     public WarLedger Ledger => _ledger;
@@ -209,8 +250,9 @@ public sealed class WarTheaterWorld : IEventWorld
             s.Schedule(p.StartMs, EventClass.System, 2, w.Spec.Id, WarKinds.PulseStart, p.Index, p.StartMs, p.EndMs);
         }
         long now = s.NowMs;
-        if (now >= _cal.CampaignEnd.Ms) return;
+        if (now >= _cal.CampaignEnd.Ms) { _book?.Begin(now, _cal.TotalTurns); return; }
         long turn = _cal.TurnOf(new SimInstant(now));
+        _book?.Begin(now, turn);
         if (_cal.TurnStart(turn).Ms < now) turn++;
         if (turn < _cal.TotalTurns) s.Schedule(_cal.TurnStart(turn).Ms, EventClass.System, 1, 0, WarKinds.TurnStart, turn);
     }
@@ -299,6 +341,7 @@ public sealed class WarTheaterWorld : IEventWorld
             w.SupplyPendingLog[i] = -1;
         }
         Know(w.Spec.Id, p.Index, WarKinds.PulseStart, now);
+        _book?.OnPulseStart(now, w.Spec.Id, p.Index);
         s.Schedule(p.EndMs, EventClass.System, 0, w.Spec.Id, WarKinds.PulseEnd, p.Index, p.StartMs, p.EndMs);
     }
 
@@ -316,6 +359,7 @@ public sealed class WarTheaterWorld : IEventWorld
             _upkeepPendingLog[p] = -1;
         }
         _snapshots.Add(new TurnSnapshot(turn, now, _ledger.Snapshot()));
+        _book?.OnTurnStart(now, turn);
         if (turn + 1 < _cal.TotalTurns)
             s.Schedule(_cal.TurnStart(turn + 1).Ms, EventClass.System, 1, 0, WarKinds.TurnStart, turn + 1);
     }
@@ -386,6 +430,13 @@ public sealed class WarTheaterWorld : IEventWorld
         // Per-polity recipients (fog): only a polity that received the window at this instant may act at it.
         if (now != _sigInstant || (_sigMask & (1UL << issuer)) == 0) { Refuse(log, issuer, ev.Kind, now, WarRefusal.NotARecipient); return; }
         if (ev.B < 0) { Refuse(log, issuer, ev.Kind, now, WarRefusal.BadValue); return; }
+        if (_book is not null && ActionKinds.IsAction(ev.Kind))
+        {
+            // T3: an agent action spends a slot of the issuer's enclosing window and the agent's Action Capacity.
+            int r = _book.TryAct(log, issuer, ev.Kind, warId, ev.B, now);
+            if (r != 0) Refuse(log, issuer, ev.Kind, now, r);
+            return;
+        }
         switch (ev.Kind)
         {
             case WarKinds.OrderSupplyRate:
@@ -472,6 +523,7 @@ public sealed class WarTheaterWorld : IEventWorld
         L(_snapshots.Count);
         foreach (var x in _snapshots) { L(x.Turn); L(x.AtMs); foreach (var v in x.Balances) L(v); }
         L(_sigInstant); L((long)_sigMask);
+        _book?.AppendTo(h);   // T3 action layer; absent (no bytes) in a world without agents
         return Convert.ToHexString(h.GetHashAndReset());
     }
 
