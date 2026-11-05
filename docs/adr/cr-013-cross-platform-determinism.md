@@ -354,3 +354,19 @@ between the two platforms has not been measured beyond turn 5 (§2). The
 surveillance report records the first differing HASH turn on the 300-turn
 founded golden at every commit; an integer-column horizon is a `sim diff`
 exercise on the uploaded saves and is one of the reopen triggers.
+
+## Dated note — 2026-11-04 (D-076; appended, the text above is unchanged)
+
+Record: `docs/d076-m7-decision-reconciliation.md` (Director decisions of 2026-11-04).
+- **S81: reopened.** The Director's target is Windows/Linux hash equality; Windows is the primary gameplay platform (D-076 N22). The investigation of the existing divergence is part of the 2026-11-04 sprint. The golden reference platform during the transition is open (Q-D1). No cross-platform equality is claimed until it is tested on both platforms.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S136** (`cr-013-cross-platform-determinism.md:3`) — "Status: CLOSED / ACCEPTED (director, T4.19 finalization) — as implemented in T4.19-B and ADR-022: options 1 + 3 ACCEPTED (Linux x64 reference; Windows under non-blocking surveillance), option 2 (Math.Exp/Sqrt replacement) REJECTED FOR NOW and REOPENABLE" — In full as status: REOPENED ("Reopen CR-013"), equality required. Retained: status line as history; §2/§8 measurements as evidence. **Replaced by** DIR5 §3.2 (D-079 DR35). [DIRECTOR DECISION]
+- **S137** (`cr-013-cross-platform-determinism.md:295`) — "(1) Linux x64 is the canonical reference platform: the deterministic artifact — goldens, replay evidence, FOUNDED_GOLDEN — is defined there, and law 5 is scoped to it." — In full: Law 5 is not scoped to Linux. Retained: Linux pins as CI instrument during transition [DELEG]. **Replaced by** DIR5 §3.2 (D-079 DR35). [DIRECTOR DECISION; DELEGATED TECHNICAL DECISION]
+- **S138** (`cr-013-cross-platform-determinism.md:301`) — "(3) The Windows determinism job is a permanent standing report that surfaces divergence clearly and never treats a Windows divergence as a simulation failure." — In part: a Windows divergence IS a defect. Retained: the standing report. **Replaced by** DIR5 §3.2 (D-079 DR35). [DIRECTOR DECISION]
+- **S139** (`cr-013-cross-platform-determinism.md:303`) — "(2) A correctly-rounded Exp/Sqrt is rejected for now — no simulation expression changed — and this CR stays reopenable;" — In full as a rejection: fix required; specific fix [DELEG] (correctly-rounded Exp/Sqrt is one candidate; revision C11 counts 48 transcendental sites in 15 Sim.Core files). Retained: §6 "Do not tune anything to make the hashes agree.". **Replaced by** DIR5 §3.2 (D-079 DR35). [DIRECTOR DECISION; DELEGATED TECHNICAL DECISION]
+- **S140** (`cr-013-cross-platform-determinism.md:352`) — "Still open, deliberately. The first turn on which a `long` column differs" — In part: no longer a reopen trigger; the measurement remains part of the required investigation. **Replaced by** DIR5 §3.2 (D-079 DR35). [DIRECTOR DECISION]
+- **S141** (`cr-013-cross-platform-determinism.md:361`) — "The Director's target is Windows/Linux hash equality … The golden reference platform during the transition is open (Q-D1)." — In part: target → required; Linux verification platform, not a release target; Q-D1 narrowed to transition sequencing [DELEG, READING]. Retained: no equality claim until tested on both. **Replaced by** DIR5 §3.2 (D-079 DR35). [DIRECTOR DECISION; DELEGATED TECHNICAL DECISION; READING]

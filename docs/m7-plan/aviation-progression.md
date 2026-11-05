@@ -478,3 +478,21 @@ consumption, and conservation tests. **No good is added to any recipe by this fi
 | **OD-3** | When EC-4a (light fuels and engines) lands | A material scope and cost trade-off: without it, no A8–A9 military mechanised or air identity is realizable in M10's integrated validation | M7 (widens M7) / M10 / M11+ | M10, so the integrated validation covers mechanised and air militaries; not M7 | a sized packet plan; the list of identities it unblocks (§4) |
 | **OD-4** = R4 (Q8 / B5) | Who owns the energy system | **Open by ruling.** Not answered here. | M10 / M11+ | none made | a measured list of mechanics that read electricity (aluminium smelting, electric traction, radar, grids); whether ADR-019 §5's electricity-as-capacity is enough for EC-5a; the M10 scope cost |
 | OD-5 | Carriers in Flight II (here) vs Flight III (the brief) | A routine choice, recorded because it deviates from the brief | II / III | II for 908, III for jet carriers | none (chronology and the live entity gate, §3) |
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Rows S49–S53 of D-075 §2.4, and the stage-label alias of D-075 §4.5. This plan's status stays PROPOSED. Content not listed stays as written, including the not-in-scope list (line 464). Naval resolution ("naval battle stays auto-resolve") is NOT decided and remains OPEN (D-075 O-1).
+
+- Line 160 — "Light bombing on the battle map (D-011 §5 strike mission)." — SUPERSEDED IN PART: the strike mechanism, now air-to-ground in the air module through combined arms. Replaced by D-075 R7, R9; Director's revision §B2, §B3 and §G (REV:421, :430, :513), docs/d075-m7-unified-warfare-direction.md (S49).
+- Line 274 — "Strike mission on the battle map; intercept reaction" — SUPERSEDED IN PART: the strike mechanism, and intercept as only a reaction (ground air defence engages aircraft through combined arms). Replaced by D-075 R7, R9; Director's revision §B2, §B3 (REV:421, :430), docs/d075-m7-unified-warfare-direction.md (S50).
+- Lines 282–283 — "carrier combat as its own battle mode: naval battle stays auto-resolve (D-011 §5); carrier sorties feed the ordinary strike verb;" — SUPERSEDED IN PART: only in that ship–aircraft engagements are M7 content (retained, not addressed: carrier combat as a battle mode and carrier sorties; "naval battle stays auto-resolve" is OPEN, O-1). Replaced by D-075 R9, R51; Director's revision §B3, §G and §I (REV:430, :513), docs/d075-m7-unified-warfare-direction.md (S51).
+- Line 284 — "air-to-air 'dogfight' simulation, which is barred by D-011 §5." — SUPERSEDED: air-to-air is within the air module. Replaced by D-075 R7, R12; Director's revision §B2, §G and §H (REV:421, :512, :537), docs/d075-m7-unified-warfare-direction.md (S52).
+- Lines 370–373 — "**Carrier combat is not M7 battle content.** … Naval battle stays auto-resolve … A naval command battle is a post-M7 candidate." — SUPERSEDED IN PART: only in that it would bar aircraft–ship engagements involving carriers as ships (retained: carrier sorties, carrier battle mode, and carriers realized at M11+; the naval resolution lines are OPEN, O-1). Replaced by D-075 R9; Director's revision §B3 and §G (REV:430, :513), docs/d075-m7-unified-warfare-direction.md (S53).
+- Stage-label alias (not a supersession; historical label, never reused): "M7.5" at line 379 is charter stage M7.5; reconnaissance now belongs to M7.8 (B7-10), per D-075 §4.5.
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-04 (D-076; appended, the text above is unchanged)
+
+Record: `docs/d076-m7-decision-reconciliation.md` (Director decisions of 2026-11-04).
+- **S77:** the clauses "naval battle stays auto-resolve (D-011 §5)" (lines 282–283) and the naval-resolution lines at 370–373 are superseded: naval battles support full tactical control; auto-resolve is optional, never the default (D-076 N8). Carrier combat as a battle mode and carrier sorties are not addressed and stay as written.

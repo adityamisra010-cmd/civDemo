@@ -176,3 +176,14 @@ no change: `EraTable` steps dt 10 → 5 → 3 → 2 → 1 → 0.5 sim-years by e
 BCE/CE converter exists anywhere in the tree — `SimClock.WorldDateYears` is
 simply years since epoch, and the calendar mapping is unowned. It can be
 specified freely as a presentation-layer requirement.
+
+## Dated note — 2026-11-04 (D-076; appended, the text above is unchanged)
+
+Record: `docs/d076-m7-decision-reconciliation.md` (Director decisions of 2026-11-04).
+- **§1 is ruled: Option A (sub-stepping)** (D-076 N2). §1.5's recommendation (Option C) is not adopted (S69). §1.3's requirement that the interrupt point is recorded as data for replay is retained. **§2 (the 10,000 BCE epoch) stays OPEN.** The Status line above is kept as historical text.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S135** (`cr-006-continuous-time-and-campaign-epoch.md:171`) — ""Turn duration may vary by historical period" is ALREADY SATISFIED and needs no change" — In part: a turn-duration change now requires a proportional fractional-time carry (no leftover time discarded) — new kernel behaviour. Retained: EraTable's varying dt; SimClock.DtYears as the rate basis. **Replaced by** DIR5 §2.5 (D-079 DR15–DR18). [DIRECTOR DECISION; ADMINISTRATIVE CONSEQUENCE; DELEGATED TECHNICAL DECISION]

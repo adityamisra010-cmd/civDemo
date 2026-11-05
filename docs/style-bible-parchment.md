@@ -221,3 +221,20 @@ the map); selecting it names the composition on the card.
 canonical sweep at 300 and 800 settlements). MEASURED at E1: **not met in 20 of 48 rows** — all of them near-empty-map rows
 (base 0.14–1.3 ms); the most expensive row of every world is unchanged within noise. The terrain marks are bounded per frame
 (at most ~1,150 places in any viewport). Numbers and the options: `docs/m6-plan/e1-object-layer-note.md` §2.
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Row S25 of D-075 §2.2. This style bible governs the campaign map; its map restatements (including lines 84, 87 and 214) are compatible with the Director's decisions of 2026-11-03 and are not superseded.
+
+- §7, line 122 — "**NO ANATOMICALLY DETAILED CHARACTERS.** Not now, not later, at any milestone." (restating D-038 C1) — SUPERSEDED IN PART, for the M7 battlefield and War Sandbox only (retained: the map). Replaced by D-075 R16, R22, R24, supported by R13; Director's revision §A, §C and §E (REV:383, :450, :454, :473), docs/d075-m7-unified-warfare-direction.md (S25).
+- §7, line 124 — "**Where people must appear they are silhouettes or tokens.** Already ruled for battles — D-011 §4 …" (restating D-038 C3) — SUPERSEDED IN PART, for the M7 battlefield and War Sandbox only (retained: the map). Replaced as above (S25).
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S473** (`style-bible-parchment.md:2`) — "The single source of truth for all generated art. Every asset is generated and judged against this document." — in part [DIRECTOR DECISION]: M7 3D battlefield, character, avatar and cinematic assets are judged against DIR5 §6's quality standard and asset strategy, not this map bible (consistent with D-075's scoping note at line 226); retained: all campaign-map art. **Replaced by** DIR5 §6, §6.2–§6.4 (D-079 DR43, DR45–DR47). [DIRECTOR DECISION]
+- **S474** (`style-bible-parchment.md:122`) — "**NO ANATOMICALLY DETAILED CHARACTERS.** Not now, not later, at any milestone." — in part, widened beyond D-075 S25 [DIRECTOR DECISION]: avatar and cinematic characters with detailed faces join the battlefield and sandbox; retained: the map. **Replaced by** DIR5 §5.1, §6.2 (D-079 DR39, DR45). [DIRECTOR DECISION]
+- **S475** (`style-bible-parchment.md:124`) — "**Where people must appear they are silhouettes or tokens.**" — in part, as line 122 [DIRECTOR DECISION]; retained: the map. **Replaced by** DIR5 §5.1, §6.2 (D-079 DR39, DR45). [DIRECTOR DECISION]

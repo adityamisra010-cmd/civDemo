@@ -69,3 +69,9 @@ section 61 `ConstructionHolds` (Purse, Good, Units; 16 bytes), after ResourceAll
   Good < 0) with `SnapshotFormatException`.
 - Every other version is still refused with the D-008 message. The topology trailer is unchanged (v33 and v34 carry it).
 - Contract: D-055 and ADR-040 (assembled at the batch-4 integration).
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S115** (`adr-005-canonical-schema.md:40`) — "Turn semantics: an order with Turn = t is delivered to the step executing from turn-t state." — In part: an order issued at an event-triggered decision window (non-integer time) needs a sub-turn stamp and delivery to the sub-step starting at that window; record shape / IoVersion / BatchFor change via ADR-061 [ADMIN], rules [DELEG]. Retained: turn-t delivery for boundary orders; append-only log; replay identity. **Replaced by** DIR5 §2.5 (D-079 DR15–DR18). [DIRECTOR DECISION; ADMINISTRATIVE CONSEQUENCE; DELEGATED TECHNICAL DECISION]

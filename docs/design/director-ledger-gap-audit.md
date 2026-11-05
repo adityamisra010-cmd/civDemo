@@ -962,3 +962,12 @@ commit; each status below is measured on that tree.
 | §3 UNRESOLVED rows (fire, hafting, fish weir, fishhook, coastal shipping, track_road, macadam) | **CLOSED** | D-047 Part E |
 | §6 M5 gate items 8 and 9 | **MET for the named content** | D-047 Part B |
 | Every other G-item | unchanged | — |
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+Grouped in D-079 §2 as **S478** (2 statements). This is a report, not a ruling: the notes below correct its status against DIR5 and the Phase B audit.
+
+- (`director-ledger-gap-audit.md:561`) — "| §3 | Action Capacity per turn, against Law 3 |" — in part [DIRECTOR DECISION + DELEGATED]: two-action maximum decided; legal-action rules delegated; retained: §7 row. **Replaced by** DIR5 §2.8 (D-079 DR22). [DIRECTOR DECISION; DELEGATED TECHNICAL DECISION]
+- (`director-ledger-gap-audit.md:589`) — "CR-017 §6, ruled together with CR-006 §1" — closes the §19 half of G-28 ("Both stay OPEN", line 584) [DIRECTOR DECISION]: sub-stepping (D-076 N2; DIR5 §2.4); retained OPEN: the §18 half (CR-017 §5, O-9). **Replaced by** DIR5 §2.4 (D-079 DR11–DR14). [DIRECTOR DECISION; OPEN residue]

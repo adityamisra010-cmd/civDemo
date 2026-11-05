@@ -359,3 +359,14 @@ Appended under gov-4 §6. The body of this report is historical and is not rewri
 - **ADR-056 EC-1, EC-2 and EC-3 are RATIFIED separately (D-067 R16, R17, R18),** each after the ADR-056 amendments.
 - **Commit order (D-067 R20):** the intended order is this M7 execution pass first, the M6 closure second. **No commit, push or merge is authorized yet.** §10 step 2 and the ready-to-copy prompt above are superseded on this point.
 - **Pins and telemetry in this report are historical.** The values in §3 (for example AI world `S1cTurn300` `ac4554bf…`; AI integration levy 380/381 and Age 3 at 345) are those of the M7 pass. The M6 closure moved some of them (AI world now `5458cb3d…`; levy 373/374, Age 3 at 344). Current values are in `docs/m6-plan/golden-attribution-register.md`. The telemetry line shape this pass introduced under the `telemetry/v4` tag is now written as `telemetry/v5` (D-066 A15, ADR-059).
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+Grouped in D-079 §2 as **S477** (4 statements). This is a report, not a ruling: the notes below correct its status against DIR5 and the Phase B audit.
+
+- (`m7-execution-pass-report.md:286`) — "| D4 | Soldiers immortal until M7.4 |" — IN PART: attrition and mortality land in M7.14. **Replaced by** DIR5 §2.9 (D-079 DR23). [DIRECTOR DECISION]
+- (`m7-execution-pass-report.md:289`) — "Amend: transport becomes implicit (category E)" — IN FULL: controllable transport vessels included. **Replaced by** DIR5 §2.1 (D-079 DR8). [DIRECTOR DECISION]
+- (`m7-execution-pass-report.md:290`) — "| D8 | Q10 snipers · GA garrisoning placement (M7.8)" — IN PART: Q10 and CR-017 §3 count decided; GA in M7 (R54) with DIR5 scope; retained: OD-2, OD-3, Q4, Q8/B5, CR-017 §5 open. **Replaced by** DIR5 §2.15, §2.8, §2.3 (D-079 DR10, DR22, DR33). [DIRECTOR DECISION]
+- (`m7-execution-pass-report.md:341`) — "M7.4 supply and attrition (D4);" — IN PART: alias -> M7.14. **Replaced by** DIR5 §2.9 (D-079 DR23). [DIRECTOR DECISION]

@@ -613,3 +613,9 @@ band, quarantine or test was touched. No packet was created. No implementation w
 No milestone was rewritten. Every status in the tables above was taken from the source document,
 not from this author's judgement; where a document says "awaiting director ruling", the row says
 OPEN even where the code behaves as though the question were settled.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S355** (`recovered-decisions-civics-institutions.md:386`) — "G-193 — CR-006 OPEN: mid-turn hand-backs vs the atomic turn of kernel contract §3.2-3.4" — closes the hand-back half [DIRECTOR DECISION]: CR-006 §1 ruled (D-076 N2; DIR5 §2.5); retained OPEN: the 10,000 BCE epoch; "Variable turn duration by era is ALREADY SATISFIED" retained. **Replaced by** DIR5 §2.4, §2.5 (D-079 DR11–DR18). [DIRECTOR DECISION; OPEN residue]

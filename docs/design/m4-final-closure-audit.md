@@ -217,3 +217,11 @@ phase begins only after M4 CLOSED.
 ---
 
 **M4 NOT CLOSED**
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+Grouped in D-079 §2 as **S481** (1 statements). This is a report, not a ruling: the notes below correct its status against DIR5 and the Phase B audit.
+
+- (`m4-final-closure-audit.md:75`) — "CR-013 **CLOSED / ACCEPTED**; ADR-022 **ACCEPTED** — Linux x64 is the reference platform, Windows under non-blocking surveillance" — in part, status only [DIRECTOR DECISION]: CR-013 reopened; Windows is primary and Windows/Linux equality is required; the M4 closure finding stands as history. **Replaced by** DIR5 §3.2 (D-079 DR35). [DIRECTOR DECISION]

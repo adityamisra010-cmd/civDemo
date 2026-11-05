@@ -1,6 +1,13 @@
 # CURRENT STATE — the routing document
 
-> **2026-11-03 (latest): M6 CLOSED AT ITS EXIT GATE (D-074).**
+> **2026-11-03 (latest): M7 UNIFIED WARFARE DIRECTION RECORDED (D-075, ADR-060); NO M7 PACKET AUTHORIZED.**
+> - **Ruling:** [D-075](d075-m7-unified-warfare-direction.md) records the Director's decisions of 2026-11-03: the "Director's Revision: Unified Warfare Architecture and M7.1–M7.20" (§A–J) is FINAL, together with the Director's clarification of the same day, including the corrected M7 critical path B7-11 → B7-12 → B7-15 → B7-16 → B7-18 → B7-24 → B7-25 → B7-29. [ADR-060](adr/adr-060-unified-warfare-simulation-architecture.md) records the architecture (one simulation kernel, land/air/naval domain modules, combined arms) as the administrative consequence. The revision and a dated note stand in [m7-spec.md](m7-spec.md).
+> - **Supersessions:** earlier conflicting rulings and plans (D-011 and other battle and visual records, milestone and governance records, the M7 planning charters, the earlier agent draft) are recorded as superseded, scoped to the conflict, in D-075 §2, and on each affected record by an appended "Dated note — 2026-11-03 (D-075)". The text above each note is unchanged.
+> - **Plan:** the revised M7.2 docket, M7.3 contracts and dependency plan: [m7-plan/m7-2-docket-m7-3-contracts.md](m7-plan/m7-2-docket-m7-3-contracts.md).
+> - **Open for the Director:** D-075 §5 (O-1 to O-37, plus O-7a), including naval resolution, pulse durations and counts, the spatial model, Action Capacity, entity persistence, caps, target hardware, the host engine and per-packet authorization. None is decided.
+> - **Not authorized:** implementation, builds, commits and pushes. M7.1–M7.20 and every B7 packet wait for explicit authorization, packet by packet (D-075 O-22).
+
+> **2026-11-03 (earlier): M6 CLOSED AT ITS EXIT GATE (D-074).**
 > - **Ruling:** [D-074](d074-m6-closure-and-law-court-clarity.md) records the following.
 >   - R1: M6 is CLOSED. Every exit criterion is PASS or deferred by ruling. The playtest, the Part G visual gate (the eight-part cap is final), the workbook open, and Windows smoke and CI are all held (`m6-exit-inventory.md`, dated note 2026-11-03).
 >   - R2: the law court's effect is said honestly (its panel line and information card), and the End Turn that founds an institution announces it. Written law's description adds the same (TC-5, text only).
@@ -1237,3 +1244,30 @@ the list of open CRs. Each is verifiable — the CRs as files under `docs/adr/`,
 from the session record — but none was re-derived from git for this file.
 
 `UNVERIFIED` values are marked inline. There is one: the M3→M4 exit-gate ruling (§2).
+
+## Dated note — 2026-11-04 (D-076; appended, the text above is unchanged)
+
+**Routing (2026-11-04):** the Director's decisions of 2026-11-04 are recorded in `docs/d076-m7-decision-reconciliation.md` (decision register N1–N24, supersessions S62–S85, open questions §4, recovered caps §5). The revised M7.2 docket, M7.3 contracts and dependency plan: `docs/m7-plan/m7-2-m7-3-revision-2026-11-04.md`. All LOCAL and uncommitted.
+
+## Dated note — 2026-11-04 (D-077; appended, the text above is unchanged)
+
+**Routing (2026-11-04, visual):** the Director's visual-workstream decisions are recorded in `docs/d077-visual-workstream-procedural-graphics-avatar-cinematics.md`; the graphics prototype lives under `prototypes/m7-gfx1/`. LOCAL and uncommitted.
+
+## Dated note — 2026-11-05 (D-078; appended, the text above is unchanged)
+
+Record: `docs/d078-graphics-quality-mandate.md` (Director graphics quality mandate of 2026-11-05). D-078 §3 (A-28) lists this note; it was appended on 2026-11-05 during the D-079 pass (D-079 A-30).
+
+**Routing (2026-11-05, graphics quality):** the Director's graphics quality mandate is recorded in `docs/d078-graphics-quality-mandate.md` (decisions QM1–QM11, supersessions S97–S102, open questions Q-QM1–Q-QM5). The quality demonstrator is planned under `prototypes/m7-gfx2/` (not yet present on 2026-11-05); G1 under `prototypes/m7-gfx1/` is kept unchanged as the "before" baseline. LOCAL and uncommitted.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+**Routing (2026-11-05):** the Director's final decisions of 2026-11-05 (DIR5) are recorded in `docs/d079-m7-governance-reconciliation-2026-11-05.md`: decision register DR1–DR53; status of every earlier open item (§1.2: D-075 O-items, D-076 §4, D-077 Q-V1–Q-V6, D-078 Q-QM1–Q-QM5); the E2 path (§1.3); the O-14 correction (§1.4); readings (§1.5); Phase B results (§1.6); supersessions S103–S499 (§2); administrative consequences A-29–A-48 and the crosswalk to the plan revision's identifiers (§3); delegated technical decisions (§4); remaining open questions Q1–Q15 and the readings flagged for the Director (§5). The banner at the top of this file (lines 3–8) is stale and is not edited in this pass (D-079 A-48): read this note first. **Authorized now:** M7.2/M7.3 documentation, contracts and dependency planning; the bounded foundational simulation and graphics prototype work and its builds and tests; commits and pushes to the development branch, after the commit scope is reported. **Not authorized:** merge to `main`, tags, releases, permanent projects before the architecture review, the wider M7 programme. The 2026-11-05 plan revision (`docs/m7-plan/m7-2-m7-3-revision-2026-11-05.md`), ADR-061 (time and event model), ADR-062 (`Sim.Battle` direction) and the ADR-022/CR-013 reopening are written in the same pass; their state is in D-079 §3. All LOCAL and uncommitted.
+
+Grouped in D-079 §2 as **S476** (4 statements). This is a report, not a ruling: the notes below correct its status against DIR5 and the Phase B audit.
+
+- (`current-state.md:3`) — "2026-11-03 (latest): M7 UNIFIED WARFARE DIRECTION RECORDED (D-075, ADR-060); NO M7 PACKET AUTHORIZED." — in part [DIRECTOR DECISION]: no longer the latest status (D-076, D-077, D-078 and this note followed); M7.2 and M7.3 governance documentation, contracts and dependency planning, and the bounded foundational simulation and graphics prototype work, are authorized; retained: no M7.n execution packet is authorized. The banner itself is not edited in this pass (D-079 A-48). Added in the D-079 Phase A fix pass (2026-11-05). **Replaced by** DIR5 §1.3 (D-079 DR4–DR6). [DIRECTOR DECISION; ADMINISTRATIVE CONSEQUENCE]
+- (`current-state.md:7`) — "None is decided." — in part (already overtaken by D-076/D-077) [DIRECTOR DECISION]: naval resolution (§2.1), pulse counts (§2.6), spatial model (§2.7), Action Capacity maximum (§2.8), entity persistence (§2.9), caps (§2.10), target hardware (§6.5), host engine (§6.1), Sim.Battle (§1.3) and sandbox questions (§2.13) are decided; retained OPEN: pulse durations (proposal due), significant-event list, legal-action rules (DELEGATED), food allocation, parity criteria, project boundaries. **Replaced by** DIR5 §1.3, §2.1, §2.4, §2.6–§2.10, §2.13, §6.1, §6.5 (D-079 DR4–DR6, DR8, DR11–DR14, DR19–DR25, DR30, DR44, DR48). [DIRECTOR DECISION; DELEGATED TECHNICAL DECISION]
+- (`current-state.md:8`) — "Not authorized:** implementation, builds, commits and pushes." — in part [DIRECTOR DECISION]: bounded foundational simulation and graphics prototype work, its builds and tests, and commits and pushes to the development branch are authorized; retained: no merge to main, tags or releases; no permanent projects before the architecture review; the rest of M7 still needs authorization. **Replaced by** DIR5 §1.3 (D-079 DR4–DR6). [DIRECTOR DECISION]
+- (`current-state.md:107`) — "Open: snipers' form (Q10); the family-10 naval transport reclassification (ADR-031 amendment)." — closes both [DIRECTOR DECISION]: snipers are independent small specialist formations (O-32 → (a)); controllable transport vessels are included (Q-B5) — ADMIN: ADR-031 amendment and save migration. **Replaced by** DIR5 §2.15, §2.1 (D-079 DR8, DR33). [DIRECTOR DECISION; ADMINISTRATIVE CONSEQUENCE]

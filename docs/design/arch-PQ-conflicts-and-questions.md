@@ -893,3 +893,11 @@ question was answered. No status was upgraded or downgraded from what its source
 opened or closed. No ruling was made, proposed as ratified, or implied. No production code, schema,
 data file, golden, corridor, quarantine, test or gate script was touched. No existing document was
 edited. No milestone was moved.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+Grouped in D-079 §2 as **S480** (1 statements). This is a report, not a ruling: the notes below correct its status against DIR5 and the Phase B audit.
+
+- (`arch-PQ-conflicts-and-questions.md:712`) — "D-011 §6 does not name **Environment & climate** or **Military full**" — in part [DIRECTOR DECISION]: Military full is now M7 (D-075 R48; DIR5 §2.1–§2.2); retained OPEN: Environment & climate. **Replaced by** DIR5 §2, §2.1, §2.2 (D-079 DR7–DR9). [DIRECTOR DECISION]

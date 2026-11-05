@@ -112,3 +112,24 @@ The rows above are unchanged. D-067 affects M7's inheritance in five places:
 - **D-051 §4 primitive toolmaking** is deferred until after the M6 playtest, with no milestone named (D-067 R19). The
   M7 economy track (EC-1 toolmaking) is a coupled alternative, **not an assignment**.
 - **Migration policy is not M7 work.** M8 owns it (D-067 R13).
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Rows S54–S57 of D-075 §2.4, and the stage-label alias of D-075 §4.5. This register's status stays PROPOSED.
+
+- Header, lines 5–6 — "D-011 (frozen, `spine-s8:16`) owns battle mechanics" — SUPERSEDED IN PART: D-011's ownership yields to D-075 for atomicity (S8), air-to-air (S12), air defence and combined arms (R9), and the pulse structure (R27–R33) (retained: "CONSUMES M6's authoritative technology/capability state"; naval resolution is OPEN, D-075 O-1). Replaced by D-075 R9, R13–R15, R27–R33; Director's revision §A, §B3, §C, §D and §H (REV:383, :385, :430, :448–449, :462–469, :533), docs/d075-m7-unified-warfare-direction.md (S54).
+- Recorded as data, not edited: the header cites `docs/milestones.md:53-58`; at `7d5defc` the quoted text is at `docs/milestones.md:93-98`.
+- H7-04, line 14 — "Everything in D-011 §1–§3 and §8; D-012/D-013 close at the M7 spec" — SUPERSEDED IN PART: to the extent of D-075 S1–S15 (recorded on `docs/d011-battle-layer-addendum.md`) (retained: the rest; D-012 and D-013 remain OPEN, D-075 O-7 and O-4). Replaced as D-075 S1–S15 (S55).
+- H7-14, line 24 — "the Director confirms the M7.8 placement (D-065 Addendum 3)" — SUPERSEDED: answered; GA is B7-25 in M7 (its design remains OPEN, D-075 O-36). Replaced by D-075 R54; the Director's clarification of 2026-11-03, item 9, docs/d075-m7-unified-warfare-direction.md (S56).
+- Lines 51–54 — "It depends on M7.2 (location, orders), M7.4 (battle, fortification term), M7.7 (city buildings) and save/load. … The Director confirms the placement." — SUPERSEDED as to placement (GA is B7-25); the stage labels are charter aliases for B7-09, B7-14 and B7-24. Replaced by D-075 R54, docs/d075-m7-unified-warfare-direction.md (S57).
+- Stage-label alias (not a supersession; historical label, never reused): "M7.4" at line 108 is charter stage M7.4; which packet ends soldier immortality is OPEN (D-075 O-35).
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S466** (`m7-handoff-register.md:12`) — "CR-017 §3 (Action Capacity vs Law 3) — still owed before any M7 movement packet" — IN PART: action count decided; A-15 ADMIN; retained: CR-017 §5 owed. **Replaced by** DIR5 §2.8 (D-079 DR22). [DIRECTOR DECISION]
+- **S467** (`m7-handoff-register.md:108`) — "soldiers have no attrition until **M7.4** (H7-04 battle resolution, and its supply attrition);" — IN PART: the packet is M7.14; retained: alias. **Replaced by** DIR5 §2.9 (D-079 DR23). [DIRECTOR DECISION]
+- **S468** (`m7-handoff-register.md:125`) — "which packet ends soldier immortality is OPEN (D-075 O-35)." — IN FULL: M7.14. **Replaced by** DIR5 §2.9 (D-079 DR23). [DIRECTOR DECISION]

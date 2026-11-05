@@ -1863,3 +1863,44 @@ Empires II units) and the third-party mentions in its doc text were moved to
 reads the field and the unit identity record (`Sim.Core/Systems/Ages/UnitFamilyContent.cs`) no longer carries it. The
 "References" bullet above, which says Civilization VI was used as a pattern reference only, stays as written; it is
 design history in `docs/`, which D-069 allows. New unit briefs follow [ip-originality.md](../ip-originality.md) §1.
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Rows S38–S48 of D-075 §2.4, and the stage-label aliases of D-075 §4.5. This charter's status stays PROPOSED; the rows are recorded so the charter is not read against the Director's decisions of 2026-11-03. Content not listed stays as written, including "Verbs stay era-constant" (line 136) and carriers realized at M11+ (line 1646).
+
+- §1 item 4, lines 93–98 — "**Formation-level battle stays.** D-011 is unchanged: formations are atomic; …" — SUPERSEDED IN PART: "D-011 is unchanged" and "atomic" (retained: WEGO, the shared contract, the parity rule, and "There is no individual-soldier control."; pulse count is OPEN, D-075 O-4). Replaced by D-075 R13, R14, R15, R19; Director's revision §A, §C and §H (REV:383, :448–449, :538), docs/d075-m7-unified-warfare-direction.md (S38).
+- Line 136 — "There are no per-soldier stats." — SUPERSEDED: entities carry "type-appropriate state" (retained in the same cell: "Verbs stay era-constant"). Replaced by D-075 R14; Director's revision §C (REV:448), docs/d075-m7-unified-warfare-direction.md (S39).
+- Line 192 — "An atomic formation inside an Army MobileAgent" — SUPERSEDED IN PART: "atomic", as D-075 S8 (retained: the formation inside an Army MobileAgent). Replaced as S38 above (S40).
+- Line 487 — "D-011 verbs: … bombard; air strike" — SUPERSEDED IN PART: the air-strike mechanism, now air-to-ground in the air module through combined arms (retained: the formation-level order set). Replaced by D-075 R7, R9; Director's revision §B2, §B3 and §G (REV:421, :430, :513), docs/d075-m7-unified-warfare-direction.md (S41).
+- Line 848 — "Intercept (a reaction against strike missions on the battle map, D-011 §5)" — SUPERSEDED IN PART: ground air defence engages aircraft through combined arms, not only as a reaction against strike missions. Replaced by D-075 R9; Director's revision §B3 (REV:430), docs/d075-m7-unified-warfare-direction.md (S42).
+- Line 1025 — "Strike missions on the battle map, never dogfight simulation (D-011 §5)." — SUPERSEDED: air-to-air is within the air module. Replaced by D-075 R7, R12; Director's revision §B2, §G and §H (REV:421, :512, :537), docs/d075-m7-unified-warfare-direction.md (S43).
+- Line 1100 — "Strike: on the battle map (D-011 §5)" — SUPERSEDED IN PART: the strike mechanism, as line 487 (retained: the structure strike as a construction-state debit). Replaced as S41 (S44).
+- Line 1538 — "strike missions on the battle map (D-011 §5)" — SUPERSEDED IN PART, as line 487. Replaced as S41 (S45).
+- §14, lines 1633–1640 — stages M7.0–M7.7 — SUPERSEDED as plan stages by the Director's M7.1–M7.20 decomposition; their content is redistributed through D-075 §4.5's alias table (retained/OPEN: the M7.0 rulings items stay OPEN as D-075 O-4, O-7, O-8, O-9, and Q4 stays open; M7.3 is historical, delivered under ADR-055; "(auto-resolve)" at line 1639 is OPEN, O-1; M7.7 is B7-24). Replaced by D-075 R48, R53; Director's revision §G (REV:497–516) and clarification item 9, docs/d075-m7-unified-warfare-direction.md (S46).
+- §14, line 1641 — "M7 (proposed placement; the Director confirms)" — SUPERSEDED: GA is in M7 as B7-25; its dependency labels "M7.2 … M7.4 … M7.7" are charter aliases for B7-09, B7-14 and B7-24 (retained/OPEN: the seven-part design is not decided, D-075 O-36). Replaced by D-075 R54; the Director's clarification of 2026-11-03, item 9, docs/d075-m7-unified-warfare-direction.md (S47).
+- §16, line 1803 — "the Director confirms the M7.8 placement" — SUPERSEDED: answered by D-075 R54 (GA is B7-25 in M7). docs/d075-m7-unified-warfare-direction.md (S48).
+- Stage-label aliases (not supersessions; historical labels, never reused): "M7.3" at line 560, "M7.4" at line 736 and "M7 slice 6" at line 1594 are charter stage labels; their current owners are given in D-075 §4.5 (charter M7.3 → delivered under ADR-055; charter M7.4 → M7.11 (B7-15), M7.13 (B7-18), M7.19 (B7-23); charter M7.6 → M7.15 (B7-19)).
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-04 (D-076; appended, the text above is unchanged)
+
+Record: `docs/d076-m7-decision-reconciliation.md` (Director decisions of 2026-11-04).
+- **S78:** "(auto-resolve)" in the §14 stage M7.6 row (line 1639) is superseded (D-076 N8). Caps are recovered verbatim and unchanged in D-076 §5; shipped personnel values are not changed.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S454** (`unit-catalogue-and-progression.md:288`) — "| **Snipers** | A **or** an attached specialist capability: **open (Q10)** |" — IN FULL: category A. **Replaced by** DIR5 §2.15 (D-079 DR33). [DIRECTOR DECISION]
+- **S455** (`unit-catalogue-and-progression.md:298`) — "An A family only if controllable transport is approved." — IN PART: controllable transport vessels are included (condition met); retained: commercial shipping category E. **Replaced by** DIR5 §2.1 (D-079 DR8). [DIRECTOR DECISION]
+- **S456** (`unit-catalogue-and-progression.md:332`) — "`naval_transport` (10): **under reconsideration (D-065 R13)**, default category E / B lift" — IN PART: military transport is controllable vessels; retained: commercial E. **Replaced by** DIR5 §2.1 (D-079 DR8). [DIRECTOR DECISION]
+- **S457** (`unit-catalogue-and-progression.md:374`) — "a family exists only if controllable transport is approved." — IN PART: condition met; ADR-031 amendment and migration owed. **Replaced by** DIR5 §2.1 (D-079 DR8). [DIRECTOR DECISION]
+- **S458** (`unit-catalogue-and-progression.md:734`) — "- **Open (Q10):** an independent controllable formation (category A, with its own identity and gate), or a specialist" — IN FULL: category A. **Replaced by** DIR5 §2.15 (D-079 DR33). [DIRECTOR DECISION]
+- **S459** (`unit-catalogue-and-progression.md:935`) — "Naval command battles are post-slice; navies auto-resolve (D-011 §5)." — IN FULL: naval tactical control; not annotated by D-076 S78. **Replaced by** DIR5 §2.1 (D-079 DR8). [DIRECTOR DECISION]
+- **S460** (`unit-catalogue-and-progression.md:942`) — "Military amphibious lift is a **category B** capability." — IN PART: military lift by controllable vessels; retained: commercial E. **Replaced by** DIR5 §2.1 (D-079 DR8). [DIRECTOR DECISION]
+- **S461** (`unit-catalogue-and-progression.md:943`) — "A controllable transport family is kept only if an approved design gives transport vessels independent movement" — IN FULL (condition met): controllable transport included. **Replaced by** DIR5 §2.1 (D-079 DR8). [DIRECTOR DECISION]
+- **S462** (`unit-catalogue-and-progression.md:1766`) — "10. **Q10 — Snipers (D-065 R14).** Is the sniper an independent controllable formation or a specialist capability" — IN FULL: independent formation. **Replaced by** DIR5 §2.15 (D-079 DR33). [DIRECTOR DECISION]
+- **S463** (`unit-catalogue-and-progression.md:1799`) — "| CR-017 §3, §5 | **Stays open** (an existing CR) |" — IN PART: §3 count decided; retained: §5 open. **Replaced by** DIR5 §2.8 (D-079 DR22). [DIRECTOR DECISION]
+- **S464** (`unit-catalogue-and-progression.md:1801`) — "| Q10 snipers | **Open**: an independent formation (A) or an attached specialist capability (B) |" — IN FULL: (A). **Replaced by** DIR5 §2.15 (D-079 DR33). [DIRECTOR DECISION]
+- **S465** (`unit-catalogue-and-progression.md:1802`) — "| Naval transport (family 10) | **Open data change**: reclassify under R13 (E/B), or keep a controllable transport family only if one is approved |" — IN PART: controllable transport approved; ADR-031 amendment + migration owed; retained: commercial E. **Replaced by** DIR5 §2.1 (D-079 DR8). [DIRECTOR DECISION]

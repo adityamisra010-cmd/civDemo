@@ -749,3 +749,25 @@ remaining stale claims in `docs/current-state.md`. None blocks M4 under these ru
 ## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
 
 D-062 (Director, 2026-10-22) fixes M6's scope: knowledge, research, technology, civic eligibility, and a minimal exploration/prospecting mechanic; M7 keeps movement and Action Points; M8 keeps civic adoption and active political effects. The D-062 slice is authorized for implementation; the remainder of the M6 spec stays DRAFT. Record: `docs/d062-m6-director-final-rulings.md`.
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Rows S31–S32 of D-075 §2.3. The ladder order is unchanged; no milestone moves. M7's exit-criteria definition gains the Director's acceptance criteria I.1–I.12 (D-075 R51; Director's revision §I, REV:540–553), recorded through ADR-060.
+
+- Line 24 — "| M7 | Battle Layer | future |" — SUPERSEDED IN PART: the scope; M7 builds "a reusable military simulation environment and standalone War Sandbox, not merely a campaign battle viewer" (retained: the position in the ladder; whether to rename "Battle Layer" is OPEN, D-075 O-28). Replaced by D-075 R1; Director's revision §A (REV:380), docs/d075-m7-unified-warfare-direction.md (S31).
+- Lines 97–98 — "D-011's battle mechanics are unchanged — only their milestone number and their dependency on M6." — SUPERSEDED IN PART: "unchanged", to the extent of D-075 S1–S15 (recorded on `docs/d011-battle-layer-addendum.md`) (retained: the M6 dependency and line 93, "CONSUMES M6's authoritative technology/capability state", consistent with D-075 R11). Replaced as D-075 S1–S15; docs/d075-m7-unified-warfare-direction.md (S32).
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+### Correction — 2026-11-03 (D-075)
+
+*Appended after the dated note above; no line above is edited.*
+
+- The bullet above for line 24 (D-075 row S31) is **withdrawn**. Line 24, "| M7 | Battle Layer | future |", states a name, a position and a status, and no scope, so D-075 R1 supersedes nothing in it. The whole row stands. Whether to rename "Battle Layer" against R1's wider scope stays OPEN (D-075 O-28).
+- The bullet for lines 97–98 (S32) stands. Its range "S1–S15" excludes the withdrawn S4 (see the correction appended to `docs/d011-battle-layer-addendum.md`).
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S470** (`milestones.md:98`) — "mechanics are unchanged — only their milestone number and their dependency on M6." — IN PART: "unchanged" also yields to D-076 S72–S76 and DIR5 (naval tactical, siege three-turn maximum, no pulse ceiling); retained: M6 dependency; line 93. **Replaced by** DIR5 §2.1, §2.2, §2.6 (D-079 DR8, DR9, DR19, DR20). [DIRECTOR DECISION]

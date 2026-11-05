@@ -62,3 +62,15 @@ sits strictly outside it:
   Linux CI runner is a plain `dotnet publish`.
 - Windowed/manual criteria (continent look, 60 fps feel, zoom smoothness) are
   the director's half of the D-023 Visual Gate — deliberately not automated.
+
+## Dated note — 2026-11-04 (D-077; appended, the text above is unchanged)
+
+Record: `docs/d077-visual-workstream-procedural-graphics-avatar-cinematics.md` (Director visual decisions of 2026-11-04).
+- **S90, in part:** the visual workstream may add presentation-side packages (proposed SharpGLTF, MIT) and presentation projects; an amendment ADR is pending (D-077 A-22). MonoGame is the explicitly selected engine (D-077 V6). Nothing in the simulation references presentation code (retained).
+- **S91 (no content pipeline), retained as a reading:** custom shaders are packed from GLSL into MonoGame effect bytes without MGCB; reliance on that undocumented format is part of A-22.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S116** (`adr-009-ui-stack.md:69`) — "the visual workstream may add presentation-side packages (proposed SharpGLTF, MIT) and presentation projects; an amendment ADR is pending (D-077 A-22)." — In part: permanent presentation projects may not be created from prototypes before the architecture review; project boundaries need a technical recommendation [DELEG→Director review]. Retained: packages inside the isolated prototypes; MonoGame (no Godot); renderer independent of simulation; A-22 pending [ADMIN]. **Replaced by** DIR5 §1.3, §6.1 (D-079 DR4–DR6, DR44). [DIRECTOR DECISION; ADMINISTRATIVE CONSEQUENCE; DELEGATED TECHNICAL DECISION]

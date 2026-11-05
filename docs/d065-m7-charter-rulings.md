@@ -55,3 +55,21 @@ Architecture").** It applies to every current and future entity proposal. The de
 | R12 | **Category D.** Prospecting is a one-shot action: one completed operation reveals one resource, subject to the existing discovery mechanics. No prospector stays as a map unit. Future task tokens are actions, not units. | Consistent with the existing Prospect order (kind 15, ADR-044). |
 | R13 | **Category E.** Traders, commercial shipping, convoys, shipping capacity and trade volume stay abstract unless an approved design introduces controllable physical formations. **Naval transport is reconsidered under R8.** Military lift is an abstract capability unless transport vessels need independent movement and control. | **Pending data change:** `naval_transport` (family 10) exists in `unit-families.json` under ADR-031. Reclassifying it needs a future ADR-031 amendment and a save migration; no data is removed now. |
 | R14 | **Snipers** are an approved design requirement, distinct from `sharpshooters` (407) unless an analysis justifies a merge. **Open:** independent formation, or a specialist capability attached to another formation. | New. Recorded as open question Q10 (unit charter §16.4). |
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Row S37 of D-075 §2.3, and D-075 R54. R1–R4, R8's body, R9, R10, R12, R13 and R14 otherwise stand. R10 (category B as "persisted quantities or allocations") against the Director's individual entities is OPEN (D-075 O-33); R13 (naval transport) is OPEN (O-1); R14 (sniper form) is OPEN (O-32). R3 is applied through D-075 R12 ("Build generic contracts; implement only ratified era/capability scope", REV:537).
+
+- R8, line 51 (relation column) — "D-011 (formations are atomic)" — SUPERSEDED IN PART, as D-011 §3's "atomic" (D-075 S8): atomicity no longer bars individually simulated member entities (retained: R8's body, the architecture rule; subordinate members are not new player-commandable families, D-075 R19). Replaced by D-075 R13, R15, R19; Director's revision §A, §C and §H (REV:383, :449, :538), docs/d075-m7-unified-warfare-direction.md (S37).
+- R11, line 54 — "Garrisoning is an approved future feature requirement." — placement now DECIDED: Garrisoning (GA) is an M7 packet, B7-25, on M7's critical path into B7-29 (not a supersession of R11's text; GA's design remains OPEN, D-075 O-36). Decided by D-075 R53, R54; the Director's clarification of 2026-11-03, item 9, docs/d075-m7-unified-warfare-direction.md.
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S237** (`d065-m7-charter-rulings.md:54`) — "**Garrisoning is an approved future feature requirement.**" — IN PART: full garrison functionality is M7 scope (cities, forts, airports, harbours, installations); retained: category C, never counted twice. **Replaced by** DIR5 §2.3 (D-079 DR10). [DIRECTOR DECISION]
+- **S238** (`d065-m7-charter-rulings.md:56`) — "**Naval transport is reconsidered under R8.** Military lift is an abstract capability unless transport vessels need independent movement and control." — IN PART: controllable transport vessels included; retained: category E commercial shipping. **Replaced by** DIR5 §2.1 (D-079 DR8). [DIRECTOR DECISION]
+- **S239** (`d065-m7-charter-rulings.md:57`) — "**Open:** independent formation, or a specialist capability attached to another formation." — IN FULL: independent small specialist formations; retained: distinct from 407. **Replaced by** DIR5 §2.15 (D-079 DR33). [DIRECTOR DECISION]
+- **S240** (`d065-m7-charter-rulings.md:61`) — "R14 (sniper form) is OPEN (O-32)." — IN FULL: R10 (O-33 a), R13 transport and R14 form all answered. **Replaced by** DIR5 §2.12, §2.1, §2.15 (D-079 DR8, DR29, DR33). [DIRECTOR DECISION]

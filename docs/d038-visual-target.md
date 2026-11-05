@@ -210,3 +210,38 @@ H8. **ONE OPEN QUESTION, NOT RULED:** how many distinct parts a settlement may s
     the sprite abstract upward, or does the settlement show only its most significant works? This
     is a legibility question that **cannot be answered before the parts exist.** The visual
     milestone owns it; **name it there rather than discovering it mid-packet.**
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Rows S19–S23 of D-075 §2.2. D-038's C1, C3 and E4 reach battles (C3 at line 33 and E4 at line 64 say so in terms). The supersession below is bounded by the Director's decision of 2026-11-03 — the M7 battlefield and the War Sandbox — and not by any scope statement in this record. For the campaign map, D-038 stands unchanged (A3, B1/B2, C1–C4, D1–D3, E6, F1–F4, G1–G4, Part H); whether the map should change is OPEN and raised only for awareness (D-075 O-26). How battlefield assets are produced (F4, line 75; D1–D3) is OPEN (D-075 O-25); the host engine is OPEN (D-075 O-13).
+
+- A3, line 13 — "The rendered 3D world (Civilization VI proper) is REJECTED" — SUPERSEDED IN PART: only as the rejection reaches the battlefield through E4 (retained: the campaign map). Replaced by D-075 R21; Director's revision §A and §E (REV:382, :473), docs/d075-m7-unified-warfare-direction.md (S19).
+- C1, line 29 — "NO ANATOMICALLY DETAILED CHARACTERS. Not now, not later, at any milestone. People never render as figures with faces, limbs or animation cycles." — SUPERSEDED IN PART, for the M7 battlefield and War Sandbox: animated individual figures are decided; superseding the prohibition does not mandate faces (retained: the campaign map). Replaced by D-075 R16, R22, R24, supported by R13; Director's revision §A, §C and §E (REV:383, :450, :454, :473), docs/d075-m7-unified-warfare-direction.md (S20).
+- C3, line 33 — "WHERE PEOPLE MUST APPEAR THEY ARE SILHOUETTES OR TOKENS. This is already ruled for battles — D-011 §4 …" — SUPERSEDED IN PART, for the battlefield and War Sandbox (follows D-011 §4's supersession, D-075 S9) (retained: the campaign map). Replaced as C1 above (S21).
+- Dated note of 2026-10-12, line 58 — "C1 (no figures) stands." — SUPERSEDED IN PART, as C1 above (retained: the campaign map). Replaced as C1 above (S22).
+- E4, line 64 — "D-011 §4 already specifies how battle formations render. If the visual language exists first, M6 INHERITS it rather than inventing a second one." — SUPERSEDED IN PART: the M7 3D battlefield's visual language is not inherited from the map's token language (retained: the map's own inheritance). Replaced by D-075 R21, R22; Director's revision §A and §E (REV:382, :473), docs/d075-m7-unified-warfare-direction.md (S23).
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-04 (D-077; appended, the text above is unchanged)
+
+Record: `docs/d077-visual-workstream-procedural-graphics-avatar-cinematics.md` (Director visual decisions of 2026-11-04).
+- **S86 (C1), S87 (C3), in part, widened beyond D-075 S20:** the player's persistent avatar (customizable face and body) and the opposing leader or representative render as detailed animated figures in cinematics, diplomatic encounters and campaign-event scenes (D-077 V3, V4). The campaign map itself is retained under C1/C3.
+
+## Dated note — 2026-11-05 (D-078; appended, the text above is unchanged)
+
+Record: `docs/d078-graphics-quality-mandate.md` (Director graphics quality mandate of 2026-11-05). D-078 §3 (A-28) lists this note; it was appended on 2026-11-05 during the D-079 pass (D-079 A-30).
+
+- **S100** (C1, line 29, "NO ANATOMICALLY DETAILED CHARACTERS. Not now, not later, at any milestone."; C3, line 33, "WHERE PEOPLE MUST APPEAR THEY ARE SILHOUETTES OR TOKENS."), as already superseded in part by D-075 S20–S22 and D-077 S86–S87 — **widened:** detailed faces, eyes, hair and skin are now **mandated** for battlefield soldiers and commanders (D-078 QM4). The D-075 note's "superseding the prohibition does not mandate faces" (line 219) no longer holds. Retained: the campaign map itself (D-075 O-26 and D-038 A3 as to the map), subject to D-078 Q-QM1.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S215** (`d038-visual-target.md:29`) — "NO ANATOMICALLY DETAILED CHARACTERS. Not now, not later, at any milestone." — in part, widened again after D-075 S20, D-077 S86, D-078 S100 [DIRECTOR DECISION]: detailed human anatomy, credible faces, eyes, skin, hair and facial topology are mandated for battlefield soldiers, commanders and the player avatar, with full animation (locomotion, combat, death, surrender); retained: the campaign map (D-075 O-26 and D-078 Q-QM1 OPEN). **Replaced by** DIR5 §5.1, §6.2 (D-079 DR39, DR45). [DIRECTOR DECISION]
+- **S216** (`d038-visual-target.md:33`) — "WHERE PEOPLE MUST APPEAR THEY ARE SILHOUETTES OR TOKENS." — in part, as C1 (after D-075 S21, D-077 S87) [DIRECTOR DECISION]; retained: the campaign map. **Replaced by** DIR5 §5.1, §6.2 (D-079 DR39, DR45). [DIRECTOR DECISION]
+- **S217** (`d038-visual-target.md:39`) — "D1. TWO PRODUCTION METHODS ARE NOW SANCTIONED, and the choice is by asset kind, not by convenience." — in part, for M7 battlefield, character, avatar and cinematic assets [DIRECTOR DECISION]: a mixed procedural/purchased/commissioned/custom-rendered strategy with high-quality authored base assets and procedural variation, provenance and licensing tracked; retained: the campaign map's procedural-in-code and parametric-render methods, D2's record on image generation. **Replaced by** DIR5 §6.4 (D-079 DR47). [DIRECTOR DECISION]
+- **S218** (`d038-visual-target.md:58`) — "C1 (no figures) stands." — in part, as C1 (after D-075 S22) [DIRECTOR DECISION]; retained: the campaign map. **Replaced by** DIR5 §5.1, §6.2 (D-079 DR39, DR45). [DIRECTOR DECISION]
+- **S219** (`d038-visual-target.md:75`) — "Whether objects are procedural, rendered, purchased or commissioned is the visual packet's decision, against D1's ordering." — in part, for M7 visuals [DIRECTOR DECISION]: the Director has fixed the mix (all four sources, D-077 V10) and the ordering (authored base assets first, procedural variation multiplies quality), so "against D1's ordering" no longer governs them; retained: the map. **Replaced by** DIR5 §6.4 (D-079 DR47). [DIRECTOR DECISION]
+- **S220** (`d038-visual-target.md:216`) — "How battlefield assets are produced (F4, line 75; D1–D3) is OPEN (D-075 O-25); the host engine is OPEN (D-075 O-13)." — closes both (already D-077 V6, V10, S94) [DIRECTOR DECISION]; retained: the rest of the note, including O-26 for the campaign map. **Replaced by** DIR5 §6.1, §6.4 (D-079 DR44, DR47). [DIRECTOR DECISION]
+- **S221** (`d038-visual-target.md:219`) — "superseding the prohibition does not mandate faces" — in full [DIRECTOR DECISION]: faces are mandated ("Credible faces, eyes, skin, hair and facial topology"; avatar "Convincing face and body"); already D-078 QM4/S100, whose dated note on this file was appended in the same pass (line 231 above). **Replaced by** DIR5 §6.2, §5.1 (D-079 DR39, DR45). [DIRECTOR DECISION]

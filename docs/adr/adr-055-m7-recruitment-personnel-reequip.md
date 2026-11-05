@@ -263,3 +263,25 @@ mechanism or behaviour was changed.** Each fact was checked against the integrat
 - **The founding warband's draw changes early history.** Its 20 adults leave the capital by `Ledger.Transfer` at founding
   (§4), which moves early pins (§9.1; for example the first merchant town, 39 → 120).
 - No new behaviour is introduced to remove either limitation.
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Alias only. No supersession of content.
+
+- The label "M7.4" at lines 89 ("the M7.4 supply slice"), 243 ("upkeep shortfall consequences (M7.4)") and 261 ("Soldiers are immortal until M7.4") is a charter-stage label (unit charter §14). Under the Director's decisions of 2026-11-03 the M7 packets are the revision's M7.1–M7.20, and old labels are historical aliases that are never reused for new work.
+- The alias is mapped in D-075 §4.5 (`docs/d075-m7-unified-warfare-direction.md`): "M7.4" here means the packet that ends soldier immortality. Which packet that is stays OPEN for the Director (D-075 O-35: M7.14, M7.19 or v2's B7-04), bound to O-10 (entity persistence).
+- Every rule in this ADR stands as written.
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S146** (`adr-055-m7-recruitment-personnel-reequip.md:31`) — "no sniper identity (R14: form open, Q10; `sharpshooters` 407 untouched)" — In part: form decided — independent small specialist formations. Retained: no identity added by this ADR; 407 untouched; cap 2 (§2.10). **Replaced by** DIR5 §2.15 (D-079 DR33). [DIRECTOR DECISION]
+- **S147** (`adr-055-m7-recruitment-personnel-reequip.md:33`) — "removed or migrated — pending the ADR-031 amendment R13 names." — In part: controllable transport vessels are included (O-1 transport / Q-B5 closed); ADR-031 amendment and any save migration [ADMIN/DELEG]. Retained: family 10 data unchanged until then. **Replaced by** DIR5 §2.1 (D-079 DR8). [DIRECTOR DECISION; ADMINISTRATIVE CONSEQUENCE; DELEGATED TECHNICAL DECISION]
+- **S148** (`adr-055-m7-recruitment-personnel-reequip.md:89`) — "`UnfedUnits` (no consumer yet — attrition/desertion is the M7.4 supply slice)." — In part: alias M7.4 → M7.14 ("Soldier attrition and mortality belong to M7.14"). Retained: no consumer until M7.14; upkeep rule unchanged. **Replaced by** DIR5 §2.9 (D-079 DR23). [DIRECTOR DECISION]
+- **S149** (`adr-055-m7-recruitment-personnel-reequip.md:239`) — "R11 garrisoning, R13 naval transport's reclassification (ADR-031 amendment) and R14 / Q10 snipers are open and untouched here." — In part: R11 → full garrison scope (§2.3); R13 → controllable vessels (§2.1); R14/Q10 → independent formations (§2.15). Retained: "untouched here" as history; GA mechanics [DELEG] in B7-25. **Replaced by** DIR5 §2.3, §2.1, §2.15 (D-079 DR8, DR10, DR33). [DIRECTOR DECISION; DELEGATED TECHNICAL DECISION]
+- **S150** (`adr-055-m7-recruitment-personnel-reequip.md:243`) — "Deferred: upkeep shortfall consequences (M7.4)" — In part: alias → M7.14. The order of consequences under shortage is DIR5 §2.11's automatic priority, but the food-allocation interpretation is NOT chosen (evidence first) [OPEN]. Retained: deferral to M7.14. **Replaced by** DIR5 §2.9 (D-079 DR23). [DIRECTOR DECISION; OPEN residue]
+- **S151** (`adr-055-m7-recruitment-personnel-reequip.md:261`) — "Soldiers are immortal until M7.4." — In part: M7.4 → M7.14. Retained: immortality until M7.14 lands. **Replaced by** DIR5 §2.9 (D-079 DR23). [DIRECTOR DECISION]
+- **S152** (`adr-055-m7-recruitment-personnel-reequip.md:272`) — "Which packet that is stays OPEN for the Director (D-075 O-35: M7.14, M7.19 or v2's B7-04), bound to O-10 (entity persistence)." — In full as an open question: O-35 closed → M7.14; O-10 (a) confirmed ("No persistent individual veteran table"). **Replaced by** DIR5 §2.9 (D-079 DR23). [DIRECTOR DECISION]

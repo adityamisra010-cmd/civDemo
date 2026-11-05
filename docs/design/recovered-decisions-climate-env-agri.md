@@ -401,3 +401,9 @@ from its source in the same way as every other row, and because the design phase
 5. **Nothing in this document is a ruling, a proposal or a design.** Where a subject has no recorded
    decision it appears in §12 as a question, not as a recommendation. Where two documents disagree it
    appears in §10 as a pair, not as a resolution.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S354** (`recovered-decisions-climate-env-agri.md:124`) — "OPEN (carried, not blocking)" — in part [DIRECTOR DECISION]: libm transcendentals in the hashed surface are now inside the required Windows/Linux equality investigation ("Do not dismiss floating-point or platform divergence"); "not blocking" yields; retained: the E-42 analysis. **Replaced by** DIR5 §3.2 (D-079 DR35). [DIRECTOR DECISION]

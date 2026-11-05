@@ -712,3 +712,27 @@ INFERRED, and the Director may overrule it.
 3. The freeze resumes.
 
 **No collision is resolved here. Nothing is implemented. Awaiting ruling.**
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Row S36 of D-075 §2.3. §3 (Action Capacity against Law 3, Options A–C) and §5 (off-road movement against the D-009/D-010 graph) are NOT decided by the Director's decisions of 2026-11-03; REV:536 says "Resolve before movement implementation". They remain OPEN (D-075 O-8, O-9). The §6 options for pulses crossing turn boundaries remain OPEN (D-075 O-3).
+
+- Lines 320–321 — "The ruling should also say explicitly whether a War Pulse is a fixed span of sim-time." — ANSWERED (superseded as an open question): both the operational war pulse and the tactical battle pulse are fixed intervals, whichever of them the §19 War Pulse corresponds to (retained/OPEN: their durations, D-075 O-2/O-4). Replaced by D-075 R29, R30; Director's revision §D (REV:463, :464), docs/d075-m7-unified-warfare-direction.md (S36).
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-04 (D-076; appended, the text above is unchanged)
+
+Record: `docs/d076-m7-decision-reconciliation.md` (Director decisions of 2026-11-04).
+- **§6 is ruled: §6.4 Option B together with CR-006 §1, choosing CR-006 Option A** (D-076 N2, S70).
+- **§3 (Action Capacity), shape only, as a labelled reading:** the Director's "strict total action budget of approximately two or three actions" per decision interval (D-076 N15) has the shape of Option B. The scoped exemption ADR (§3, line 314) is pending (D-076 A-15); 2 versus 3, the decision interval and the mapping to AC route cost stay open (Q-A1–Q-A3).
+- §5 (off-road movement) is not ruled (O-9).
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S142** (`cr-017-ages-surge-and-mobile-agents-vs-frozen-items.md:10`) — "§3 (its Action Capacity half) and §5 (off-road movement) are therefore M7's, and must be ruled before any M7 movement packet. No collision below is resolved, and this CR stays OPEN." — In part: §3 AC half ruled in substance (max two actions per decision window, integrated with AC); §6 ruled (D-076 N2; DIR5 §2.4). Retained/OPEN: §5 (O-9); §3 surge half. **Replaced by** DIR5 §2.8, §2.4 (D-079 DR11–DR14, DR22). [DIRECTOR DECISION; OPEN residue]
+- **S143** (`cr-017-ages-surge-and-mobile-agents-vs-frozen-items.md:319`) — "Option A for the surge, and Option B for Action Capacity." — In part: the AC recommendation is now ruled in shape — a per-decision-window budget (max 2) that moves no stock; integration with AC accrual/route cost [DELEG]; the scoped Law 3 exemption ADR (§3.5, line 314) [ADMIN]. Retained: surge recommendation (not addressed). **Replaced by** DIR5 §2.8 (D-079 DR22). [DIRECTOR DECISION; ADMINISTRATIVE CONSEQUENCE; DELEGATED TECHNICAL DECISION]
+- **S144** (`cr-017-ages-surge-and-mobile-agents-vs-frozen-items.md:718`) — "§3 (Action Capacity against Law 3, Options A–C) and §5 (…) are NOT decided … They remain OPEN (D-075 O-8, O-9). The §6 options … remain OPEN (D-075 O-3)." — In part: O-8 decided in substance; O-3 closed. Retained: §5 / O-9 OPEN. **Replaced by** DIR5 §2.8, §2.4 (D-079 DR11–DR14, DR22). [DIRECTOR DECISION]
+- **S145** (`cr-017-ages-surge-and-mobile-agents-vs-frozen-items.md:728`) — ""strict total action budget of approximately two or three actions" … 2 versus 3, the decision interval and the mapping to AC route cost stay open (Q-A1–Q-A3)." — In part: Q-A1 closed (two) [DIR]; Q-A2 → DIR5's unit is the "decision window", its exploit-safe per-layer definition [DELEG] ("You own the detailed legal-action rules"); Q-A3 → [DELEG] ("Integrate this with the already-ratified agent-specific Action Capacity rule"); A-15 no longer waits on Q-A1–Q-A3 [ADMIN]. Retained: Option B shape (still labelled reading as to the option letter). **Replaced by** DIR5 §2.8 (D-079 DR22). [DIRECTOR DECISION; ADMINISTRATIVE CONSEQUENCE; DELEGATED TECHNICAL DECISION]

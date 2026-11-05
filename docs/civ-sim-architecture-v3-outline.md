@@ -165,3 +165,33 @@ Template trimmed from 16 to 12 fields: Purpose & realism target · Fidelity tier
 6. dt table + campaign turn budget + dt-authority rule (drafted above; ratify).
 7. 1 pop unit = N persons; money-unit strategy.
 8. Battles: resolved-only vs watchable — DEV's values call (S1). Architecture reserves a replaceable battle-resolution interface either way.
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Rows S28–S30 of D-075 §2.2. The sub-step rule (line 33) holds for campaign battles; how operational pulses relate to it is OPEN (D-075 O-3/O-14). Line 148 (spatial LOD tiers replaced by the small-world commitment) is compatible: D-075 R17 and R20 confine LOD to rendering.
+
+- Line 52 — "**UI doctrine — the debug UI IS the game UI.**" — SUPERSEDED IN PART, for the M7 battlefield only (retained: panels and data display, and the campaign map). Replaced by D-075 R21, R22; Director's revision §A, §E and §G (REV:382, :473, :500), docs/d075-m7-unified-warfare-direction.md (S28).
+- Line 150 — "Localization pipeline, accessibility program, premium visual direction, asset plan beyond icons+counters+map — audience of one." — SUPERSEDED IN PART, for the M7 battlefield only: "premium visual direction" and "asset plan beyond icons+counters+map" (retained: localization and accessibility, which today's decisions do not address, and the campaign map). Replaced by D-075 R21, R22; Director's revision §A, §E and §G (REV:382, :473, :500), docs/d075-m7-unified-warfare-direction.md (S29).
+- Line 90 — "Military full (ops, siege, naval) | M9+ | T2 | battle module behind replaceable interface" — SUPERSEDED IN PART: the M9+ placement of operations, siege and naval, which are M7 packets M7.13, M7.14 and M7.15 (retained: "battle module behind replaceable interface"; "T2" is not addressed; air in M7 is new scope, not a supersession of this row). Replaced by D-075 R48; Director's revision §G (REV:509–511), docs/d075-m7-unified-warfare-direction.md (S30).
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-04 (D-076; appended, the text above is unchanged)
+
+Record: `docs/d076-m7-decision-reconciliation.md` (Director decisions of 2026-11-04).
+- **S64, the sub-step rule (line 33), in part:** "turn-start" reads as "sub-step-start" under CR-006 Option A sub-stepping (D-076 N2). No reads of other systems' fresh writes within one sub-step is retained.
+
+## Dated note — 2026-11-04 (D-077; appended, the text above is unchanged)
+
+Record: `docs/d077-visual-workstream-procedural-graphics-avatar-cinematics.md` (Director visual decisions of 2026-11-04).
+- **S89 (line 150), in part, widened beyond D-075 S29:** premium visual direction and an asset plan apply to the battlefield, the avatar and cinematics (D-077 V1, V10). Localization, accessibility and the campaign map's direction are not addressed.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S110** (`civ-sim-architecture-v3-outline.md:27`) — "9. Single-machine determinism. Same seed + same order log ⇒ identical world, on the dev machine. Standard float64 permitted under fixed evaluation order; … (v2's fixed-point-math analysis and lockstep-multiplayer provision are deleted …)" — In part: Windows/Linux hash equality required; fixed-point returns for battle positions/kinematics; campaign float64 permitted only where platform-equal. Retained: seed + log ⇒ identical world; deterministic reduction; lockstep multiplayer deleted. Frozen Spine law: recorded via the cross-platform amendment ADR (S8:13, :37) [ADMIN]. **Replaced by** DIR5 §3.2, §2.7 (D-079 DR21, DR35). [DIRECTOR DECISION; ADMINISTRATIVE CONSEQUENCE]
+- **S111** (`civ-sim-architecture-v3-outline.md:36`) — "Numeric policy: float64; explicit clamps and growth bounds on all exponential processes" — In part: battle positions/kinematics fixed-point; campaign float64 must be platform-equal. Retained: clamps, bounds, overflow discipline. **Replaced by** DIR5 §2.7, §3.2 (D-079 DR21, DR35). [DIRECTOR DECISION]
+- **S112** (`civ-sim-architecture-v3-outline.md:52`) — "UI doctrine — the debug UI IS the game UI. … v2's "premium cartographic aesthetic," bespoke UI kit, and 23.10 visual direction are deleted." — In part, widened beyond D-075 S28 (battlefield only): high-quality visual direction also covers avatar, cinematic camera, contextual cinematics; graphics are a major M7 pillar. Retained: data instruments as interface; campaign-map cartographic direction (Q-QM1). **Replaced by** DIR5 §5, §6 (D-079 DR39–DR43). [DIRECTOR DECISION]
+- **S113** (`civ-sim-architecture-v3-outline.md:147`) — "Fixed-point math analysis (28.2) — single-machine float64 determinism suffices." — In part: fixed-point mandated for battle positions/kinematics; single-machine determinism no longer suffices. Retained: lockstep deletion (:146). **Replaced by** DIR5 §2.7, §3.2 (D-079 DR21, DR35). [DIRECTOR DECISION]
+- **S114** (`civ-sim-architecture-v3-outline.md:171`) — "how operational pulses relate to it is OPEN (D-075 O-3/O-14)." — In full as an open question: O-3 closed (sub-stepping; crossing allowed); O-14 decided as direction (Sim.Battle; creation awaits review). Retained: sub-step rule with "turn-start" read "sub-step-start" (S64). **Replaced by** DIR5 §2.4, §1.3 (D-079 DR4–DR6, DR11–DR14). [DIRECTOR DECISION]

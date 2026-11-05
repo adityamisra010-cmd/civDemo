@@ -1759,3 +1759,10 @@
   trade flow ever exists (trade is research-gated at both endpoints; the AI learns it ~turn 540, city states and an
   order-less player never), so contact exposure writes nothing. Director question for the playtest: should contact also be
   carried by proximity/sighting alone, or stay trade-only (D-066 A7 as adopted)?
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S471** (`queue.md:1200`) — "- **M5 temporal control / player agency — CR-006 OPEN, not a queue item.**" — in part (lines 1200–1208) [DIRECTOR DECISION]: the mid-turn hand-back conflict (CR-006 §1) is ruled — CR-006 Option A sub-stepping (D-076 N2) and event-triggered decision windows at non-integer time (DIR5 §2.5); retained OPEN: the 10,000 BCE epoch (CR-006 §2); "Variable turn duration by era is ALREADY SATISFIED" retained. **Replaced by** DIR5 §2.4, §2.5 (D-079 DR11–DR18). [DIRECTOR DECISION; OPEN residue]
+- **S472** (`queue.md:1738`) — "Director decision: accept until M7.4, or" — in part (lines 1735–1739) [DIRECTOR DECISION]: soldier attrition and mortality belong to M7.14 (alias "M7.4" resolved); when food or resources are constrained, growth falls first, movement is restricted next and starvation is last, automatically; retained: the measurement and the pinning test. **Replaced by** DIR5 §2.9, §2.11 (D-079 DR23, DR26–DR28). [DIRECTOR DECISION]

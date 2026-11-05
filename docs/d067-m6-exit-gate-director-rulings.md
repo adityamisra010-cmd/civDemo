@@ -197,3 +197,19 @@ The separation procedure and its consequences are in `docs/m6-exit-inventory.md`
 [D-068](d068-m6-playtest-fix-rulings.md) R3 supersedes R6 (A14) **for the workbook container only**. The workbook is now
 deflated, so its `.xlsx` bytes are no longer a cross-runtime goal; the decoded part contents stay pinned. D-068 R5 also
 moves the workbook content goldens (coded sheets). R6's text above stays as written.
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Alias only. No supersession of content.
+
+- The label "M7.4" at line 88 ("Soldiers remain immortal until M7.4.") is a charter-stage label (unit charter §14). Under the Director's decisions of 2026-11-03 the M7 packets are the revision's M7.1–M7.20, and old labels are historical aliases that are never reused for new work.
+- The alias is mapped in D-075 §4.5 (`docs/d075-m7-unified-warfare-direction.md`): "M7.4" here means the packet that ends soldier immortality. Which packet that is stays OPEN for the Director (D-075 O-35), bound to O-10.
+- Every ruling in this record stands as written, including R15–R19. EC-1..EC-3 (R16–R18, lines 99–101) are ratified and delivered (commit `f7a59b8`); D-075 §4.5 maps them as done, not as M7 packets.
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S241** (`d067-m6-exit-gate-director-rulings.md:206`) — "Which packet that is stays OPEN for the Director (D-075 O-35), bound to O-10." — closes O-35 [DIRECTOR DECISION]: soldier attrition and mortality belong to M7.14; the alias "M7.4" at line 88 ("Soldiers remain immortal until M7.4.") therefore resolves to M7.14; O-10 already closed (D-076 N12; DIR5 §2.9); R15 and line 88 retained as the accepted limitation until then. **Replaced by** DIR5 §2.9 (D-079 DR23). [DIRECTOR DECISION; OPEN residue]

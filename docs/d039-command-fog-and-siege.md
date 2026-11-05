@@ -227,3 +227,27 @@ either reading.
 ## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
 
 B1 and B3 are SUPERSEDED in part by D-062 R1/R11 for M6: a minimal Explore order widens a settlement's explored radius at a food cost (no people leave, no unit moves); M7's mobile units replace it. C1's ghost display waits for movement in M7 (ADR-044). Record: `docs/d062-m6-director-final-rulings.md`.
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Rows S16–S18 of D-075 §2.2. Parts A–E otherwise stand; D5 (starvation on the food system) against the siege's ownership of starvation state is OPEN (D-075 O-21).
+
+- C4, lines 99–100 — "The visual treatment falls under D-038's object layer and the M6 symbology inheritance (D-038 E4)." — SUPERSEDED IN PART, for the M7 3D battle view (retained: the campaign map). Replaced by D-075 R21, R22; Director's revision §A and §E (REV:382, :473), docs/d075-m7-unified-warfare-direction.md (S16).
+- E3, lines 152–153 — "Battles that arise drop into D-011's existing pulse layer." — SUPERSEDED IN PART: the pulse layer is restructured into fixed tactical pulses with internal steps (retained: E3's campaign layer as "STRATEGIC DECISIONS BETWEEN BATTLES", lines 149–151; how the operational war pulse relates to E3's intervals is OPEN, D-075 O-2/O-3). Replaced by D-075 R27, R30, R31; Director's revision §A and §D (REV:385, :464–465), docs/d075-m7-unified-warfare-direction.md (S17).
+- F1, line 179 — "Does not amend D-011's verbs, formations-as-tokens, or WEGO structure." — SUPERSEDED IN PART: "formations-as-tokens" (retained: the verbs, WEGO, and the formation as the command unit). Replaced by D-075 R15, R21, R22; Director's revision §A, §C and §E (REV:382, :449, :473), docs/d075-m7-unified-warfare-direction.md (S18).
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-04 (D-076; appended, the text above is unchanged)
+
+Record: `docs/d076-m7-decision-reconciliation.md` (Director decisions of 2026-11-04).
+- **S71 (E3, "NOT A FINER-GRAINED TURN … the player does not play out months of movement"), in part:** the turn is finer-grained where a war pulse or a significant event splits it, and the player acts at those points (D-076 N2, N4; ledger §19). The campaign presenting decision points and resolving the intervals between them is retained. D5 (starvation on the food system) is retained (O-21).
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S222** (`d039-command-fog-and-siege.md:137`) — "E1. D-011 already sub-steps BATTLES: 6-12 command pulses, roughly one day (D-013)." — in part [DIRECTOR DECISION]: "6-12 command pulses" (no fixed ceiling; D-076 S72/S73 superseded the source); retained: battles are sub-stepped; "roughly one day" falls with the count, pulse length OPEN (Q-B1). **Replaced by** DIR5 §2.6 (D-079 DR19, DR20). [DIRECTOR DECISION]
+- **S223** (`d039-command-fog-and-siege.md:149`) — "E3. THE CAMPAIGN LAYER IS STRATEGIC DECISIONS BETWEEN BATTLES, NOT A FINER-GRAINED" — in part (already D-076 S71) [DIRECTOR DECISION]: the campaign turn is split at War Pulses (which may cross turn boundaries by sub-stepping) and at event-triggered decision windows at non-integer time, where players act before the next normal boundary; retained: decision points with resolved intervals between them. **Replaced by** DIR5 §2.4, §2.5 (D-079 DR11–DR18). [DIRECTOR DECISION]
+- **S224** (`d039-command-fog-and-siege.md:233`) — "D5 (starvation on the food system) against the siege's ownership of starvation state is OPEN (D-075 O-21)." — in part, status only [DELEGATED, READING]: DIR5 §2.2 delegates the siege equations under fixed principles (three-turn maximum, per-pulse siege health, rationing trade-off) and §2.11 bars duplicating existing resource models, which points to O-21 (a) (the food system computes starvation; the siege owns state); D5's substance (starvation is a first-class siege outcome on the food system) is retained. **Replaced by** DIR5 §2.2, §2.11 (D-079 DR9, DR26–DR28). [DELEGATED TECHNICAL DECISION; READING]
+- **S225** (`d039-command-fog-and-siege.md:236`) — "how the operational war pulse relates to E3's intervals is OPEN, D-075 O-2/O-3" — closes the open item (already D-076 N1/N2) [DIRECTOR DECISION]: era-varying fixed War Pulses, local to wars and participants, crossing turn boundaries by sub-stepping; exact durations OPEN for a proposal (DIR5 §2.4). **Replaced by** DIR5 §2.4 (D-079 DR11–DR14). [DIRECTOR DECISION]

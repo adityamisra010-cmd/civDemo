@@ -118,3 +118,17 @@ cultivation is realized, silhouettes convex and bounded (C1 extended), grouped t
 | G3 single cartographer | | | | |
 | C1–C4 anatomy fence | | | | |
 | E1 batch (D-066 A3: one Part G gate) | | | | |
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Row S26 of D-075 §2.2.
+
+- Row C1, line 87 — "No anatomically detailed characters, ever" — SUPERSEDED IN PART: "ever", as to the M7 battlefield and War Sandbox (retained: the row as M6 E1's campaign-map check). Replaced by D-075 R16, R22, R24, supported by R13; Director's revision §A, §C and §E (REV:383, :450, :454, :473), docs/d075-m7-unified-warfare-direction.md (S26).
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S469** (`e1-visual-acceptance-checklist.md:87`) — "No anatomically detailed characters, ever" — in part, widened beyond D-075 S26 [DIRECTOR DECISION]: "ever" yields for the battlefield, sandbox, avatar and cinematics; retained: the row as M6 E1's campaign-map check. **Replaced by** DIR5 §5.1, §6.2 (D-079 DR39, DR45). [DIRECTOR DECISION]

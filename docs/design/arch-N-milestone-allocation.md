@@ -332,3 +332,11 @@ Both sources named; nothing reconciled. Consolidated, de-duplicated and ordered 
 content. No conflict was reconciled. No CR was opened, closed or answered. No status was changed.
 No system was designed, scheduled or authorised. No production code, schema, data file, golden,
 corridor, quarantine or test was touched. No existing document was edited.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+Grouped in D-079 §2 as **S479** (1 statements). This is a report, not a ruling: the notes below correct its status against DIR5 and the Phase B audit.
+
+- (`arch-N-milestone-allocation.md:185`) — "| **Military full (ops, siege, naval)** | Spine `:90` M9+; **D-011 §6 does not name it**; §5 keeps naval auto-resolve *"until post-slice"* | **AMBIGUOUS** — GOV-2 §1c, finding F3 |" — closes the AMBIGUOUS placement [DIRECTOR DECISION]: operations, siege and naval are M7 (D-075 R48/S30), naval with full tactical control (DIR5 §2.1), siege as persistent operation (§2.2). **Replaced by** DIR5 §2, §2.1, §2.2 (D-079 DR7–DR9). [DIRECTOR DECISION]

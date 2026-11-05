@@ -256,3 +256,18 @@ and does not say whether the M5 exit waits for them. Both stay open for the M5 e
 ## Dated note — 2026-10-22 (D-062; appended, the text above is unchanged)
 
 §4 (movement and Action Points in M7) is CONFIRMED by D-062 R2. §5 (full fog, LIVE/GHOST/UNKNOWN, scouts, sighting memory in M6) is SUPERSEDED in part by D-062 R1/R11: M6 ships a minimal fog (UNKNOWN / VISIBLE / REMEMBERED, settlement sighting memory, rival formations only while visible) with Explore and Prospect orders; scouts and formation ghost rows move with movement to M7 (ADR-044). Record: `docs/d062-m6-director-final-rulings.md`.
+
+## Dated note — 2026-11-03 (D-075; appended, the text above is unchanged)
+
+Row S24 of D-075 §2.2.
+
+- Lines 77–78 — "D-038 C1 (no figures) stands." — SUPERSEDED IN PART, for the M7 battlefield and War Sandbox, as D-038 C1 (retained: the campaign map, and the M6 scheduling around it at lines 72–77). Replaced by D-075 R16, R22, R24, supported by R13; Director's revision §A, §C and §E (REV:383, :450, :454, :473), docs/d075-m7-unified-warfare-direction.md (S24).
+
+Recorded administratively under the Director's decisions of 2026-11-03; the historical text above is preserved.
+
+## Dated note — 2026-11-05 (D-079; appended, the text above is unchanged)
+
+Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisions of 2026-11-05, cited DIR5). Each bullet quotes the superseded line, states the extent and what is retained, and cites the replacing DIR5 section and D-079 decision row (DR). Categories: DIRECTOR DECISION, ADMINISTRATIVE CONSEQUENCE, DELEGATED TECHNICAL DECISION, OPEN (needs the Director), READING (labelled interpretation).
+
+- **S235** (`d052-m5-integration-audit-rulings.md:48`) — "CR-017 §3 (its Action" — in part, status of lines 48–50 ("CR-017 §3 (its Action Capacity half) and §5 (off-road movement) are scheduled for M7 and must be ruled before any M7 movement packet. Their substance is not ruled here, and CR-017 stays OPEN.") [DIRECTOR DECISION + DELEGATED]: CR-017 §3 is ruled as to the action maximum (two per decision window, integrated with Action Capacity); the legal-action rules are DELEGATED; CR-017 §5 (off-road vs network, O-9) stays OPEN; retained: movement and Action Capacity are M7 work. **Replaced by** DIR5 §2.8 (D-079 DR22). [DIRECTOR DECISION; DELEGATED TECHNICAL DECISION; OPEN residue]
+- **S236** (`d052-m5-integration-audit-rulings.md:77`) — "D-038 C1 (no" — in part, widened beyond D-075 S24 (lines 77–78, "D-038 C1 (no figures) stands.") [DIRECTOR DECISION]: the player avatar and cinematic characters, with detailed faces, join the battlefield and sandbox; retained: the campaign map and the M6 scheduling at lines 72–77. **Replaced by** DIR5 §5.1, §6.2 (D-079 DR39, DR45). [DIRECTOR DECISION]
