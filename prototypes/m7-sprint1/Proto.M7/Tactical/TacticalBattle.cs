@@ -40,6 +40,11 @@ public readonly record struct EntityView(long Id, long FormationId, int Side, En
 ///
 /// TERMINATION (O-4: no pulse ceiling): elimination of Active entities on a side, or the five-pulse inactivity rule with the
 /// active-concealment clause (see <see cref="PulseEnd"/>). There is NO maximum pulse count anywhere in this class.
+/// [TR] Default inactivity model since lane TR: the DIR5 §2.6 hidden-stationary rule (<see cref="HiddenStationaryRule"/>:
+/// per formation, routed after five hidden pulses without progress unless exempt; mutual guard; whole-field Standoff). The
+/// Sprint 1 side-disengage rule above remains selectable as <see cref="InactivityModel.LegacySideDisengage"/> (AutoResolver
+/// parity only). TERRAIN ([TR], DIR5 §2.7): <see cref="TerrainEffects"/> coefficients enter movement (Naismith climb),
+/// sight (<see cref="TerrainSight"/>), and the hit chances (<see cref="TerrainCombat"/>); identity on flat Road/Open ground.
 /// </summary>
 public sealed partial class TacticalBattle : IEventWorld
 {
@@ -51,6 +56,8 @@ public sealed partial class TacticalBattle : IEventWorld
         public long BestEnemy = -1, BestObj = -1, BestEdge = -1;
         public bool RoutedEscape, Disengaged;
         public long Speed;
+        /// <summary>[TR] Distance (mm) the entity moved in the current step (charge impetus).</summary>
+        public long LastStepMm;
         /// <summary>lane N (snipers): earliest instant of the next legacy ranged shot (FireIntervalSteps).</summary>
         public long NextRangedMs = long.MinValue;
         public bool OnField => State == EntityState.Active || State == EntityState.Routing;
@@ -67,6 +74,19 @@ public sealed partial class TacticalBattle : IEventWorld
         public long DamageDealt, DamageTaken, Attacks;
         /// <summary>Slice E: effective stats through <see cref="ConditionMath"/> (identity at default conditions).</summary>
         public long EffMelee, EffRanged, EffDefence;
+        // ---- [TR] lane TR state
+        /// <summary>[TR] The current Hold directive was set by an ACCEPTED explicit Hold order (not the default standing state).</summary>
+        public bool HoldExplicit;
+        /// <summary>[TR] DIR5 hidden-stationary counter c_p(f), saturating at InactivityPulses.</summary>
+        public long Idle;
+        /// <summary>[TR] Formation cohesion: mean OrderCap of its Active members' cells (One on open ground).</summary>
+        public Q32 Cohesion = Q32.One;
+        /// <summary>[TR] Exemptions of the last verdict logged in the current idle stretch (-1 = none logged yet).</summary>
+        public int LastLoggedEx = -1;
+        /// <summary>[TR, verify-TR-r1 V1] Goal-cell minima of the movement orders executed (DIR5 model; null until the first).</summary>
+        public GoalMinima? Goals;
+        /// <summary>[TR, verify-TR-r1 V1] The anchor set a new goal minimum in this pulse (march progress; reset at pulse start).</summary>
+        public bool MarchProgress;
     }
 
     private sealed class Knowledge
@@ -81,6 +101,10 @@ public sealed partial class TacticalBattle : IEventWorld
     private readonly TerrainGrid _grid;
     private readonly TerrainCostTable _costs;
     private readonly ConcealmentTable _conceal;
+    private readonly TerrainEffects _fx;                 // [TR]
+    private readonly bool _flat;                         // [TR] every cell has the same ground height (no climb, no gradient)
+    private readonly List<InactivityVerdict> _verdicts = new();   // [TR]
+    private long _fieldIdle;                             // [TR] whole-field idle counter G (saturating)
     private readonly GridPathfinder _pf;
     private readonly EdgeField[] _edge;
     private readonly IFormationController[] _ctl;
@@ -107,10 +131,13 @@ public sealed partial class TacticalBattle : IEventWorld
         _r = setup.Rules;
         _r.Validate();
         _grid = setup.Grid; _costs = setup.Costs; _conceal = setup.Concealment;
+        _fx = setup.Effects ?? throw new ArgumentNullException(nameof(setup), "terrain effects");   // [TR]
+        _flat = true;
+        for (int i = 1; i < _grid.CellCount; i++) if (_grid.HeightAtIndex(i) != _grid.HeightAtIndex(0)) { _flat = false; break; }
         if (setup.Sides.Length != 2) throw new ArgumentException("exactly two sides");
         _ctl = new[] { side0, side1 };
-        _pf = new GridPathfinder(_grid, _costs);
-        _edge = new[] { new EdgeField(_grid, _costs, setup.Sides[0].Exit), new EdgeField(_grid, _costs, setup.Sides[1].Exit) };
+        _pf = new GridPathfinder(_grid, _costs, default, _fx);                                    // [TR] + Naismith climb
+        _edge = new[] { new EdgeField(_grid, _costs, setup.Sides[0].Exit, _fx), new EdgeField(_grid, _costs, setup.Sides[1].Exit, _fx) };
         _stepsPerPulse = checked((int)(_r.PulseMs / _r.StepMs));
         _contactMm = 2 * _r.EntityRadiusMm + _r.ContactReachMm;
 
@@ -205,7 +232,19 @@ public sealed partial class TacticalBattle : IEventWorld
                 LastSeen = new Vec2L[_e.Length], LastSeenMs = new long[_e.Length],
             };
         _s = new EventScheduler(setup.StartMs);
+        // [TR] DIR5 §2.14: a battle that came out of a deployment phase re-checks the thirds rule (defence in depth). Only land
+        // entities deployed ON THE GROUND are checked (DeploymentZones.Placements): vessel / aircraft formations (lane N) and
+        // land formations that start aboard a transport are not ground deployments.
+        if (setup.Deployment == DeploymentRule.Thirds)
+        {
+            var pl = new List<(long, int, Vec2L)>(_e.Length);
+            for (int i = 0; i < _e.Length; i++)
+                if (_f[_e[i].F].Spec.EmbarkedOn is null) pl.Add((_e[i].Id, _e[i].Side, _e[i].Pos));
+            var v = DeploymentZones.Check(_grid, _costs, setup.Sides, _r.EntityRadiusMm, pl.ToArray());
+            if (!v.Accepted) throw new ArgumentException($"deployment refused: {v.Refusal} (entity {v.EntityId})");
+        }
         DomainInit(domainSpecs);      // lane N hook
+        foreach (var f in _f) UpdateCohesion(f);   // [TR] after DomainInit: members that start aboard are not on the ground
     }
 
     // ------------------------------------------------------------------ public surface
@@ -228,7 +267,58 @@ public sealed partial class TacticalBattle : IEventWorld
         return v;
     }
 
+    /// <summary>The Sprint 1 (LEGACY side-disengage) inactivity counter; stays 0 under the DIR5 model ([TR]: see
+    /// <see cref="IdleCounter"/>).</summary>
     public int InactivityCounter(long formationId) => _f[FormIndex(formationId)].Inactive;
+    // ---- [TR] lane TR inspection surface
+    /// <summary>[TR] DIR5 hidden-stationary counter c_p(f) of a formation (saturating at InactivityPulses).</summary>
+    public long IdleCounter(long formationId) => _f[FormIndex(formationId)].Idle;
+    /// <summary>[TR] Whole-field idle counter G (pulses in a row in which no formation made progress; saturating).</summary>
+    public long FieldIdleCounter => _fieldIdle;
+    /// <summary>[TR] True iff the formation's current Hold directive came from an accepted explicit Hold order.</summary>
+    public bool HoldExplicit(long formationId) => _f[FormIndex(formationId)].HoldExplicit;
+    /// <summary>[TR] Formation cohesion (mean OrderCap of its Active members' cells).</summary>
+    public Q32 Cohesion(long formationId) => _f[FormIndex(formationId)].Cohesion;
+    /// <summary>[TR] The hidden-stationary judgements at pulse ends (counter at threshold), in time order: the first of each idle
+    /// stretch, every change of a formation's exemption set, and every rout (bounded by state changes, not by pulses).</summary>
+    public IReadOnlyList<InactivityVerdict> InactivityVerdicts => _verdicts;
+    /// <summary>[TR] Hidden from all enemies right now: no on-field member is tracked by the enemy side.</summary>
+    public bool IsHidden(long formationId) => HiddenNow(_f[FormIndex(formationId)]);
+    /// <summary>[TR] The exemptions that hold for the formation right now (see <see cref="HiddenStationaryRule"/>).</summary>
+    public InactivityExemption Exemptions(long formationId) => ExemptionsNow(_f[FormIndex(formationId)]);
+
+    /// <summary>[TR] Inspection: the melee hit chance the engine would use NOW for a blow of attacker on target (every terrain
+    /// term included; uses the attacker's last-step displacement for impetus). Pure read.</summary>
+    public Q32 MeleeHitChanceOf(long attackerId, long targetId)
+    {
+        var a = _e[EntIndex(attackerId)];
+        return MeleeHitChance(a, _f[a.F], _e[EntIndex(targetId)]);
+    }
+
+    /// <summary>[TR] Inspection: the missile hit chance the engine would use NOW for a direct-fire shot of shooter aimed at
+    /// target, against whatever enemy disc the shot geometrically strikes first (Zero when the shot is blocked by Wall, ground,
+    /// a structure, or misses). Returns the struck entity id (-1 when none). Pure read: builds its own enemy-disc list.</summary>
+    public Q32 MissileHitChanceOf(long shooterId, long targetId, out long struckId)
+    {
+        struckId = -1;
+        var a = _e[EntIndex(shooterId)];
+        var tg = _e[EntIndex(targetId)];
+        int nd = 0;
+        foreach (var e in _e) if (e.Side != a.Side && e.OnField) nd++;
+        var discs = new Disc[nd];
+        int m = 0;
+        foreach (var e in _e) if (e.Side != a.Side && e.OnField) discs[m++] = new Disc(e.Id, e.Pos, _r.EntityRadiusMm);
+        var r = Projectiles.DirectFire(_grid, a.Pos, _r.MuzzleHeightMm, tg.Pos, _r.AimHeightMm, discs, a.Id);
+        if (r.Outcome != FireOutcome.Hit) return Q32.Zero;
+        var struck = _e[EntIndex(r.EntityId)];
+        var fp = TerrainSight.FirePath(_grid, _fx, a.Pos, _r.MuzzleHeightMm, tg.Pos, _r.AimHeightMm, struck.Pos, r.TNum, r.TDen);
+        if (fp.Blocked) return Q32.Zero;
+        struckId = struck.Id;
+        return MissileHitChance(a, _f[a.F], struck, fp.Transmission);
+    }
+
+    /// <summary>[TR] Inspection: distance (mm) the entity moved in the most recent step (charge run-up).</summary>
+    public long LastStepMm(long entityId) => _e[EntIndex(entityId)].LastStepMm;
     public long Morale(long formationId) => _f[FormIndex(formationId)].Morale;
     public Vec2L Anchor(long formationId) => _f[FormIndex(formationId)].Anchor;
     public OrderKind Directive(long formationId) => _f[FormIndex(formationId)].Dir;
@@ -301,7 +391,7 @@ public sealed partial class TacticalBattle : IEventWorld
     {
         _pulse = p;
         _pulseStartMs = t;
-        foreach (var f in _f) { f.Budget.Refresh(); f.StateChanged = false; f.CasualtiesPulse = 0; }
+        foreach (var f in _f) { f.Budget.Refresh(); f.StateChanged = false; f.CasualtiesPulse = 0; f.MarchProgress = false; }   // [TR] V1 flag
         foreach (var e in _e) e.Primary = false;
         DomainPulseStart();       // lane N hook
         for (int side = 0; side < 2; side++)
@@ -328,7 +418,7 @@ public sealed partial class TacticalBattle : IEventWorld
 
     private void ApplyOrder(long t, long index)
     {
-        if (TryApplyDomainOrder(t, (int)index)) return;     // lane N hook (false: the land path below handles it unchanged)
+        if (TryApplyDomainOrder(t, (int)index)) { ClearHoldExplicitIfAccepted((int)index); return; }   // lane N hook; [TR] V11
         var entry = _log[(int)index];
         var o = entry.Request;
         OrderInvalid inv = OrderInvalid.None;
@@ -367,6 +457,7 @@ public sealed partial class TacticalBattle : IEventWorld
         _log[(int)index] = entry with { Invalid = inv, Budget = br };
         if (inv != OrderInvalid.None || br != BudgetRefusal.None) return;
 
+        f!.HoldExplicit = o.Kind == OrderKind.Hold;                                               // [TR] every accepted order resets it
         switch (o.Kind)
         {
             case OrderKind.Hold: f!.Dir = OrderKind.Hold; ClearPath(f); break;
@@ -422,9 +513,12 @@ public sealed partial class TacticalBattle : IEventWorld
         {
             var e = _e[(int)(res[i].Id & MoverIndexMask)];
             e.Moved = res[i].Pos != e.Pos;
+            e.LastStepMm = e.Moved ? Vec2L.Distance(e.Pos, res[i].Pos) : 0;                     // [TR] charge run-up
             e.Pos = res[i].Pos;
         }
+        foreach (var f in _f) UpdateCohesion(f);                                                 // [TR]
         UpdateMinima();
+        UpdateMarchProgress();                // [TR] verify-TR-r1 V1 (DIR5 model only)
         if (_hasDomain) DomainStep(t);        // lane N hook: vessels, aircraft, embark / landing
         _s.Schedule(t, EventClass.Detection, 0, 0, TacticalKinds.Detect, p, j);
         _s.Schedule(t, EventClass.Resolve, 0, 0, TacticalKinds.Resolve, p, j);
@@ -470,6 +564,7 @@ public sealed partial class TacticalBattle : IEventWorld
         else if (f.Dir != OrderKind.MoveTo) return;
         var ac = _grid.CellOf(f.Anchor);
         long cost = _costs.Cost(_grid.ClassAt(ac.X, ac.Y));
+        if (f.PathIdx < f.Path.Length) cost = checked(cost + ClimbPerMm(f.Anchor, f.Path[f.PathIdx]));   // [TR] Naismith on the segment ahead
         long adv = FixedMath.MulDivFloor(f.Speed, _r.StepMs, cost);   // mm = speed[mm/s] * step[ms] / 1000 * 1000/cost
         while (adv > 0 && f.PathIdx < f.Path.Length)
         {
@@ -486,34 +581,88 @@ public sealed partial class TacticalBattle : IEventWorld
         var c = _grid.CellOf(e.Pos);
         int ci = _grid.Index(c.X, c.Y);
         long cost = _costs.Cost(_grid.ClassAtIndex(ci));
-        long maxStep = FixedMath.MulDivFloor(checked(e.Speed * _r.CatchUpNum), _r.StepMs, checked(cost * _r.CatchUpDen));
         if (e.State == EntityState.Routing || f.Dir == OrderKind.Retreat)
         {
             int next = _edge[e.Side].NextCell(ci);
             if (next < 0) return e.Pos;
-            return Toward(e.Pos, _grid.CellCenter(_grid.IndexX(next), _grid.IndexY(next)), maxStep);
+            Vec2L goal = _grid.CellCenter(_grid.IndexX(next), _grid.IndexY(next));
+            return Toward(e.Pos, goal, MaxStep(e, cost, goal));
         }
         if (NearestTracked(e, _contactMm, out _) >= 0) return e.Pos;                       // in contact: stand and fight
         if (e.P.IsRanged && FiringStance(f.Dir) && NearestTracked(e, e.P.RangeCells * _grid.CellSizeMm, out _) >= 0) return e.Pos;
         if (!e.P.IsRanged && f.Dir == OrderKind.Attack)
         {
             int en = NearestTracked(e, _r.EngageRadiusCells * _grid.CellSizeMm, out _);
-            if (en >= 0) return Toward(e.Pos, _e[en].Pos, maxStep);
+            if (en >= 0) return Toward(e.Pos, _e[en].Pos, MaxStep(e, cost, _e[en].Pos));
         }
-        return Toward(e.Pos, f.Anchor + SlotOffset(f, e.Slot), maxStep);
+        Vec2L slot = f.Anchor + SlotOffset(f, e.Slot);
+        return Toward(e.Pos, slot, MaxStep(e, cost, slot));
+    }
+
+    /// <summary>Per-step move limit of an entity at catch-up pace on ground of class cost <paramref name="cost"/>, plus [TR] the
+    /// Naismith climb term toward <paramref name="goal"/> (zero on the flat: the Slice D value exactly).</summary>
+    private long MaxStep(Ent e, long cost, Vec2L goal)
+    {
+        long c = checked(cost + ClimbPerMm(e.Pos, goal));
+        return FixedMath.MulDivFloor(checked(e.Speed * _r.CatchUpNum), _r.StepMs, checked(c * _r.CatchUpDen));
+    }
+
+    /// <summary>
+    /// [TR] Naismith climb cost per mm of horizontal travel for a move from p toward q (cost x1000 per mm, the unit of the
+    /// class cost): the cell-centre gradient between cell(p) and the cell one cell-length ahead toward q (cell(q) when q is
+    /// nearer than that), ascent only: ClimbCostPerMm(h(ahead) - h(cell p), |centre(ahead) - centre(cell p)|). Zero when the
+    /// cell ahead is the same cell, off the grid, or not higher.
+    /// </summary>
+    private long ClimbPerMm(Vec2L p, Vec2L q)
+    {
+        if (_flat || _fx.ClimbNum == 0 || p == q) return 0;
+        long S = _grid.CellSizeMm;
+        long d = Vec2L.Distance(p, q);
+        Vec2L ahead = d <= S ? q : new Vec2L(p.X + ScaleTowardZero(q.X - p.X, S, d), p.Y + ScaleTowardZero(q.Y - p.Y, S, d));
+        CellCoord c0 = _grid.CellOf(p), c1 = _grid.CellOf(ahead);
+        if (c0 == c1 || !_grid.InBounds(c1.X, c1.Y)) return 0;
+        long dh = _grid.HeightAt(c1.X, c1.Y) - _grid.HeightAt(c0.X, c0.Y);
+        if (dh <= 0) return 0;
+        long run = Vec2L.Distance(_grid.CellCenter(c0.X, c0.Y), _grid.CellCenter(c1.X, c1.Y));
+        return _fx.ClimbCostPerMm(dh, run);
+    }
+
+    /// <summary>[TR] Cohesion = mean OrderCap (Q32 floor) over the formation's Active members' cells; unchanged when it has none.</summary>
+    private void UpdateCohesion(Form f)
+    {
+        long sum = 0, n = 0;
+        foreach (int i in f.Members)
+        {
+            var e = _e[i];
+            if (e.State != EntityState.Active) continue;
+            var c = _grid.CellOf(e.Pos);
+            sum = checked(sum + _fx.OrderCap(_grid.ClassAt(c.X, c.Y)).Raw);
+            n++;
+        }
+        if (n > 0) f.Cohesion = new Q32(sum / n);
     }
 
     private static bool FiringStance(OrderKind d) => d == OrderKind.Attack || d == OrderKind.Hold || d == OrderKind.Rally;
 
-    private Vec2L SlotOffset(Form f, int slot)
+    private Vec2L SlotOffset(Form f, int slot) => SlotOffsetCore(_r, f.Start, slot, f.FwdX, f.FwdY);
+
+    /// <summary>[TR] The generated slot offset of slot <paramref name="slot"/> in a formation of <paramref name="count"/> of a
+    /// side exiting through <paramref name="exit"/> — the exact positions the battle generates (used by the deployment phase).</summary>
+    public static Vec2L SlotOffsetFor(TacticalRules r, ExitEdge exit, int count, int slot)
     {
-        int cols = Math.Min(f.Start, _r.FormationColumns);
+        var (fx, fy) = exit switch { ExitEdge.West => (1L, 0L), ExitEdge.East => (-1L, 0L), ExitEdge.North => (0L, 1L), _ => (0L, -1L) };
+        return SlotOffsetCore(r, count, slot, fx, fy);
+    }
+
+    private static Vec2L SlotOffsetCore(TacticalRules r, int start, int slot, long fwdX, long fwdY)
+    {
+        int cols = Math.Min(start, r.FormationColumns);
         long row = slot / cols, col = slot % cols;
-        long sp = _r.SlotSpacingMm;
+        long sp = r.SlotSpacingMm;
         long fwd = -row * sp;
         long lat = col * sp - (cols - 1) * sp / 2;
         // forward unit (fx, fy); lateral unit (-fy, fx)
-        return new Vec2L(fwd * f.FwdX - lat * f.FwdY, fwd * f.FwdY + lat * f.FwdX);
+        return new Vec2L(fwd * fwdX - lat * fwdY, fwd * fwdY + lat * fwdX);
     }
 
     private static Vec2L Toward(Vec2L a, Vec2L b, long maxStep)
@@ -593,7 +742,7 @@ public sealed partial class TacticalBattle : IEventWorld
                     long sight = ob.P.SightCells * S;
                     if (dsq > (Int128)sight * sight) continue;
                     if (visible && (k.Tracked[ti] || best == Q32.One)) continue;   // a tracked target needs one LOS; clarity cannot exceed 1
-                    var los = LineOfSight.Query(_grid, _conceal, ob.Pos, _r.EyeHeightMm, tg.Pos, _r.EyeHeightMm);
+                    var los = TerrainSight.Query(_grid, _conceal, _fx, ob.Pos, _r.EyeHeightMm, tg.Pos, _r.EyeHeightMm);   // [TR] layers + structures
                     if (!los.Visible) continue;
                     visible = true;
                     if (bestObs < 0 || los.Clarity > best) { best = los.Clarity; bestObs = oi; }
@@ -691,6 +840,30 @@ public sealed partial class TacticalBattle : IEventWorld
 
     private long DamageOf(long attack) => Math.Max(1, attack / _r.DamageDivisor);
 
+    /// <summary>[TR] Melee hit chance with the terrain terms of <see cref="TerrainCombat"/> (slope, impetus, footing, cohesion).
+    /// Exactly <see cref="HitChance"/> when every factor is One (flat Road/Open, no impetus).</summary>
+    private Q32 MeleeHitChance(Ent a, Form fa, Ent t)
+    {
+        var ft = _f[t.F];
+        long g = _flat ? 0 : TerrainCombat.GradientRaw(_grid, a.Pos, t.Pos, _fx.GradientCap);
+        long refMm = FixedMath.MulDivFloor(checked(a.Speed * _r.CatchUpNum), _r.StepMs, checked(1000 * _r.CatchUpDen));
+        Q32 imp = TerrainCombat.ImpetusFactor(a.P.Impetus, a.LastStepMm, refMm);
+        var ca = _grid.CellOf(a.Pos); var ct = _grid.CellOf(t.Pos);
+        Q32 fA = TerrainCombat.MeleeAttackFactor(_fx, g, imp, _grid.ClassAt(ca.X, ca.Y), fa.Cohesion);
+        Q32 fD = TerrainCombat.MeleeDefenceFactor(_fx, _grid.ClassAt(ct.X, ct.Y), ft.Cohesion);
+        return TerrainCombat.HitChance(fa.EffMelee, fA, ft.EffDefence, fD, _r.HitMin, _r.HitMax);
+    }
+
+    /// <summary>[TR] Missile hit chance: clamp(A*E/(A*E + D)) * cover (elevation of shooter over the struck entity; the cover
+    /// the missile passed). Exactly <see cref="HitChance"/> when E = cover = One.</summary>
+    private Q32 MissileHitChance(Ent a, Form fa, Ent s, Q32 cover)
+    {
+        long g = _flat ? 0 : TerrainCombat.GradientRaw(_grid, s.Pos, a.Pos, _fx.GradientCap);   // > 0: shooter higher (downhill shot)
+        Q32 e = TerrainCombat.MissileElevationFactor(_fx, g);
+        Q32 p = TerrainCombat.HitChance(fa.EffRanged, e, _f[s.F].EffDefence, Q32.One, _r.HitMin, _r.HitMax);
+        return cover == Q32.One ? p : p.Mul(cover);
+    }
+
     private void Fire(long t, in ScheduledEvent ev)
     {
         var a = _e[EntIndex(ev.Source.Id)];
@@ -699,17 +872,25 @@ public sealed partial class TacticalBattle : IEventWorld
         if (ev.A == 1)
         {
             a.Primary = true; a.RevealUntilMs = t + _r.StepMs; fa.Attacks++;
-            if (CounterRng.Chance(_setup.Seed, TacticalStreams.Hit, a.Id, t, tg.Id, 0, HitChance(fa.EffMelee, _f[tg.F].EffDefence)))
+            if (CounterRng.Chance(_setup.Seed, TacticalStreams.Hit, a.Id, t, tg.Id, 0, MeleeHitChance(a, fa, tg)))   // [TR] terrain terms
                 _s.Schedule(t, EventClass.Damage, 0, tg.Id, TacticalKinds.Damage, new EntityRef(tg.Id, tg.Gen), new EntityRef(a.Id, a.Gen), DamageOf(fa.EffMelee));
             return;
         }
         var r = Projectiles.DirectFire(_grid, a.Pos, _r.MuzzleHeightMm, tg.Pos, _r.AimHeightMm, _enemyDiscs[a.Side], a.Id);
         if (r.Outcome == FireOutcome.Blocked) return;          // not a valid shot: no activity
+        // [TR] the layer part of the shot: a building in the way blocks it (not a valid shot); otherwise the cover it passes.
+        Q32 cover = Q32.One;
+        if (r.Outcome == FireOutcome.Hit)
+        {
+            var fp = TerrainSight.FirePath(_grid, _fx, a.Pos, _r.MuzzleHeightMm, tg.Pos, _r.AimHeightMm, _e[EntIndex(r.EntityId)].Pos, r.TNum, r.TDen);
+            if (fp.Blocked) return;
+            cover = fp.Transmission;
+        }
         a.Primary = true; a.RevealUntilMs = t + _r.StepMs; fa.Attacks++;
         a.NextRangedMs = t + a.P.FireIntervalSteps * _r.StepMs;      // lane N: FireIntervalSteps (default 1 = next step)
         if (r.Outcome != FireOutcome.Hit) return;
         var struck = _e[EntIndex(r.EntityId)];
-        if (CounterRng.Chance(_setup.Seed, TacticalStreams.Hit, a.Id, t, struck.Id, 0, HitChance(fa.EffRanged, _f[struck.F].EffDefence)))
+        if (CounterRng.Chance(_setup.Seed, TacticalStreams.Hit, a.Id, t, struck.Id, 0, MissileHitChance(a, fa, struck, cover)))
             _s.Schedule(t, EventClass.Damage, 0, struck.Id, TacticalKinds.Damage, new EntityRef(struck.Id, struck.Gen), new EntityRef(a.Id, a.Gen), DamageOf(fa.EffRanged));
     }
 
@@ -822,6 +1003,7 @@ public sealed partial class TacticalBattle : IEventWorld
             long rec = f.Dir == OrderKind.Hold ? _r.HoldRecovery : f.Dir == OrderKind.Rally ? _r.RallyRecovery : 0;
             f.Morale = Math.Min(_r.MoraleMax, f.Morale + rec);
         }
+        if (_r.Inactivity == InactivityModel.HiddenStationary) { PulseEndHiddenStationary(t, p); return; }   // [TR] DIR5 §2.6
         var activeEnt = new bool[_e.Length];
         for (int i = 0; i < _e.Length; i++)
         {
@@ -850,6 +1032,118 @@ public sealed partial class TacticalBattle : IEventWorld
             return;
         }
         _s.Schedule(t, EventClass.System, 1, 0, TacticalKinds.PulseStart, p + 1, t);
+    }
+
+    // ------------------------------------------------------------------ [TR] DIR5 §2.6 hidden-stationary rule
+
+    /// <summary>
+    /// [TR] Pulse end under <see cref="InactivityModel.HiddenStationary"/> — the exact predicate is documented on
+    /// <see cref="HiddenStationaryRule"/>. Order: (1) per formation with Active members (ascending id): Progress, Hidden, the
+    /// counter c; (2) the whole-field counter G; (3) the formations meeting ROUT (counter at N, no exemption) — if the
+    /// optional mutual guard is ON and their routs would leave neither side an Active entity, the battle ends as a Standoff;
+    /// else each routs
+    /// (Active members -&gt; Routing) and the elimination check runs; (4) else G &gt;= N ends the battle as a Standoff; (5) else
+    /// the next pulse starts. Every judgement at the threshold is appended to <see cref="InactivityVerdicts"/>.
+    /// </summary>
+    private void PulseEndHiddenStationary(long t, long p)
+    {
+        int n = _r.InactivityPulses;
+        if (_hasDomain) DomainPulseEndBookkeeping();       // [TR x lane N] vessel morale, lane N counters (HiddenStationaryDomain.cs)
+        bool anyProgress = false;
+        foreach (var f in _f)
+        {
+            bool onField = false, progress = f.StateChanged || f.MarchProgress;                  // [TR] V1: marching is progress
+            foreach (int i in f.Members) if (_e[i].OnField) { onField = true; if (_e[i].Primary) progress = true; }
+            if (!onField) continue;
+            if (progress) anyProgress = true;
+            bool eligible = !f.Routed && CountState(f, EntityState.Active) > 0;
+            f.Idle = eligible ? HiddenStationaryRule.NextCounter(f.Idle, HiddenNow(f), progress, n) : 0;
+            if (f.Idle < n) f.LastLoggedEx = -1;                  // a new idle stretch logs its first judgement again
+        }
+        if (_hasDomain && DomainProgressThisPulse()) anyProgress = true;   // [TR x lane N] vessels / aircraft progress too
+        _fieldIdle = anyProgress ? 0 : Math.Min(_fieldIdle + 1, n);
+
+        var rout = new bool[_f.Length];
+        var judged = new List<InactivityVerdict>();
+        int routCount = 0;
+        for (int i = 0; i < _f.Length; i++)
+        {
+            var f = _f[i];
+            if (f.Routed || CountState(f, EntityState.Active) == 0) continue;
+            if (f.Idle < n) continue;
+            var ex = ExemptionsNow(f);
+            rout[i] = HiddenStationaryRule.Routs(f.Idle, n, ex);
+            if (rout[i]) routCount++;
+            // Log the first judgement of an idle stretch, every change of the exemption set, and every rout — not one entry per
+            // pulse, so the log (and the state hash input) is bounded by state changes, not by battle length.
+            if (rout[i] || (int)ex != f.LastLoggedEx) { judged.Add(new InactivityVerdict(p, f.Id, f.Side, f.Idle, ex, rout[i])); f.LastLoggedEx = (int)ex; }
+        }
+        // Mutual guard (OPTION, default OFF since verify-TR-r1 V3 — D-079 S304: the consequence is "routed or lost, per unit; not
+        // a draw ... by default"): if the routs would leave NEITHER side an Active entity (of any domain), nobody routs
+        // (Standoff). Off: both sides' inactive formations rout and the battle ends BothEliminated. [TR x lane N] domains counted.
+        bool mutual = _r.MutualStandoffGuard && routCount > 0 && NoSideKeepsAnActiveEntityAfter(rout);
+        foreach (var v in judged) _verdicts.Add(mutual ? v with { Routed = false } : v);
+        if (mutual) { End(t, BattleEndReason.Standoff, -1); return; }
+        if (routCount > 0)
+        {
+            for (int i = 0; i < _f.Length; i++)
+            {
+                if (!rout[i]) continue;
+                var f = _f[i];
+                f.Routed = true;
+                foreach (int m in f.Members) if (_e[m].State == EntityState.Active) SetState(_e[m], EntityState.Routing);
+            }
+            CheckElimination(t);
+            if (_result is not null) return;
+        }
+        else if (_fieldIdle >= n)
+        {
+            End(t, BattleEndReason.Standoff, -1);
+            return;
+        }
+        _s.Schedule(t, EventClass.System, 1, 0, TacticalKinds.PulseStart, p + 1, t);
+    }
+
+    /// <summary>[TR] Hidden from all enemies: no on-field member is tracked by the enemy side.</summary>
+    private bool HiddenNow(Form f)
+    {
+        var k = _k[1 - f.Side];
+        foreach (int i in f.Members) if (_e[i].OnField && k.Tracked[i]) return false;
+        return true;
+    }
+
+    /// <summary>[TR] The DIR5 §2.6 exemptions of a formation now (definitions on <see cref="HiddenStationaryRule"/>).</summary>
+    private InactivityExemption ExemptionsNow(Form f)
+    {
+        var ex = InactivityExemption.None;
+        long S = _grid.CellSizeMm;
+        // (a) concealed (terrain, or lane N personal concealment) with an Active enemy within engagement reach (weapon reach +
+        //     one pulse at the open pace); the enemy may be an on-field vessel / aircraft (HiddenStationaryDomain.cs).
+        if (_r.ActiveConcealmentRule)
+        {
+            long move = FixedMath.MulDivFloor(f.Speed, _r.PulseMs, 1000);
+            foreach (int i in f.Members)
+            {
+                var e = _e[i];
+                if (e.State != EntityState.Active) continue;
+                long reach = checked((e.P.IsRanged ? e.P.RangeCells * S : _contactMm) + move);
+                Int128 lim = (Int128)reach * reach;
+                bool near = false;
+                // [TR, verify-TR-r1 V4] concealed FROM that enemy: own cell, personal concealment, or terrain on the sight line
+                foreach (var x in _e)
+                    if (x.Side != e.Side && x.State == EntityState.Active && Vec2L.DistanceSq(x.Pos, e.Pos) <= lim && ConcealedFrom(e, x)) { near = true; break; }
+                if (!near && _hasDomain && ConcealedForExemption(e)) near = DomainEnemyWithin(e.Side, e.Pos, lim);   // [TR x lane N] vessels / aircraft
+                if (near) { ex |= InactivityExemption.ConcealedEnemyInReach; break; }
+            }
+        }
+        // (b) an explicit Hold order in force, or standing on an own objective (anchor within one cell).
+        bool onObjective = false;
+        foreach (var o in _setup.Sides[f.Side].Objectives)
+            if (Vec2L.DistanceSq(f.Anchor, o) <= (Int128)S * S) { onObjective = true; break; }
+        if ((f.Dir == OrderKind.Hold && f.HoldExplicit) || onObjective) ex |= InactivityExemption.DefensiveHold;
+        // (c) deployed under an ambush (wait) order that is still in force.
+        if (f.Spec.Posture == Posture.Ambush && f.Dir == OrderKind.Hold) ex |= InactivityExemption.AmbushWait;
+        return ex;
     }
 
     private bool IsConcealed(int i)
@@ -928,6 +1222,10 @@ public sealed partial class TacticalBattle : IEventWorld
         }
         L(_f.Length);
         foreach (var f in _f) { L(f.Id); L(f.Morale); L(f.Inactive); L((long)f.Dir); L(f.DirTarget); L(f.Anchor.X); L(f.Anchor.Y); }
+        // [TR] lane TR state (appended; the Slice D part of the encoding is unchanged)
+        L(_fieldIdle); L(_verdicts.Count);
+        foreach (var f in _f) { L(f.Idle); L(f.HoldExplicit ? 1 : 0); L(f.Cohesion.Raw); L(f.Routed ? 1 : 0); L(f.LastLoggedEx); }
+        foreach (var v in _verdicts) { L(v.Pulse); L(v.FormationId); L(v.IdlePulses); L((long)v.Exemptions); L(v.Routed ? 1 : 0); }
         L(_log.Count);
         foreach (var o in _log)
         {
@@ -937,6 +1235,7 @@ public sealed partial class TacticalBattle : IEventWorld
         for (int s = 0; s < 2; s++)
             for (int i = 0; i < _e.Length; i++) L((_k[s].Tracked[i] ? 1 : 0) | (_k[s].Ever[i] ? 2 : 0) | (_k[s].Gone[i] ? 4 : 0));
         if (_hasDomain) AppendDomainState(h);     // lane N hook
+        AppendRound1State(h);                     // [TR] verify-TR-r1 V1/V13 (appended only when present)
         return Convert.ToHexString(h.GetHashAndReset());
     }
 

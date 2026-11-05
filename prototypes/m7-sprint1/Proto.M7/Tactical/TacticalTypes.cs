@@ -98,6 +98,11 @@ public enum BattleEndReason : byte
     SideDisengaged = 3,
     /// <summary>Both sides disengaged at the same pulse end.</summary>
     BothDisengaged = 4,
+    /// <summary>[TR] No formation on the field made progress for InactivityPulses consecutive pulses (or, only with the optional
+    /// TacticalRules.MutualStandoffGuard, every remaining formation of both sides met the hidden-stationary rout condition at
+    /// once): the battle ends with nobody routed or removed; Active entities stay Active. NOT one of DIR5 §2.6's listed ends —
+    /// an UNRATIFIED lane-TR end condition (PROPOSAL P-TR1, see HiddenStationaryRule).</summary>
+    Standoff = 5,
 }
 
 /// <summary>Event kinds of the tactical world (stable codes; part of the trace hash).</summary>

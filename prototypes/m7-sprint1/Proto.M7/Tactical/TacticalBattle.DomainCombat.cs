@@ -76,7 +76,7 @@ public sealed partial class TacticalBattle
                     }
                     else
                     {
-                        var los = LineOfSight.Query(_grid, _conceal, ob.Pos, ob.V!.HeightMm, tg.Pos, _r.EyeHeightMm);
+                        var los = TerrainSight.Query(_grid, _conceal, _fx, ob.Pos, ob.V!.HeightMm, tg.Pos, _r.EyeHeightMm);   // [TR] terrain layers + structures
                         if (!los.Visible) continue;
                         clarity = los.Clarity;
                     }
@@ -127,7 +127,7 @@ public sealed partial class TacticalBattle
                     if (Vec2L.DistanceSq(ob.Pos, tg.Pos) > (Int128)range * range) continue;
                     if (ob.Dom == Domain.Naval)
                     {
-                        var los = LineOfSight.Query(_grid, _conceal, ob.Pos, ob.V!.HeightMm, tg.Pos, th);
+                        var los = TerrainSight.Query(_grid, _conceal, _fx, ob.Pos, ob.V!.HeightMm, tg.Pos, th);   // [TR] terrain layers + structures
                         if (!los.Visible) continue;
                     }
                     visible = true; domObs = oi;
@@ -139,7 +139,7 @@ public sealed partial class TacticalBattle
                     if (ob.Side != side || !ob.OnField) continue;
                     long range = FixedMath.MulDivFloor(ob.P.SightCells * S, sig, 100);
                     if (Vec2L.DistanceSq(ob.Pos, tg.Pos) > (Int128)range * range) continue;
-                    var los = LineOfSight.Query(_grid, _conceal, ob.Pos, _r.EyeHeightMm, tg.Pos, th);
+                    var los = TerrainSight.Query(_grid, _conceal, _fx, ob.Pos, _r.EyeHeightMm, tg.Pos, th);   // [TR] terrain layers + structures
                     if (!los.Visible) continue;
                     visible = true; landObs = oi;
                 }
@@ -318,7 +318,7 @@ public sealed partial class TacticalBattle
                     Int128 dsq = Vec2L.DistanceSq(sh.Pos, e.Pos);
                     if (found && (prio > bp || (prio == bp && (dsq > bd || (dsq == bd && e.Id >= bid))))) continue;
                     if (w.Indirect) { if (DangerClose(sh.Side, e.Pos, w, d)) continue; }
-                    else if (sh.Alt == 0 && !LineOfSight.Query(_grid, _conceal, sh.Pos, sh.Eye, e.Pos, _r.AimHeightMm).Visible) continue;
+                    else if (sh.Alt == 0 && !TerrainSight.Query(_grid, _conceal, _fx, sh.Pos, sh.Eye, e.Pos, _r.AimHeightMm).Visible) continue;   // [TR] terrain layers + structures
                     Offer(prio, dsq, e.Id, new EntityRef(e.Id, e.Gen), e.Pos);
                 }
             }
@@ -337,7 +337,7 @@ public sealed partial class TacticalBattle
                     if (d < w.MinRangeMm || d > w.MaxRangeMm || !InArc(sh, w, x.Pos)) continue;
                     Int128 dsq = Vec2L.DistanceSq(sh.Pos, x.Pos);
                     if (found && (prio > bp || (prio == bp && (dsq > bd || (dsq == bd && x.Id >= bid))))) continue;
-                    if (sh.Alt == 0 && !LineOfSight.Query(_grid, _conceal, sh.Pos, sh.Eye, x.Pos, TargetHeight(x)).Visible) continue;
+                    if (sh.Alt == 0 && !TerrainSight.Query(_grid, _conceal, _fx, sh.Pos, sh.Eye, x.Pos, TargetHeight(x)).Visible) continue;   // [TR] terrain layers + structures
                     Offer(prio, dsq, x.Id, new EntityRef(x.Id, x.Gen), x.Pos);
                 }
             }
@@ -359,6 +359,7 @@ public sealed partial class TacticalBattle
     {
         int li = Array.BinarySearch(_ids, ev.Source.Id);
         int m = (int)ev.A;
+        bool primaryBefore = ShooterPrimary(ev.Source.Id);      // [TR x lane N] see UndoBarePointShotProgress
         WeaponSpec w; Vec2L pos; long alt; int side;
         if (li >= 0)
         {
@@ -379,6 +380,7 @@ public sealed partial class TacticalBattle
             d.NextFireMs[m] = checked(t + reload);
             d.Primary = true; _df[d.F].Attacks++;
         }
+        if (ev.Target.IsNone) UndoBarePointShotProgress(ev.Source.Id, primaryBefore);   // [TR x lane N] DIR5 only
         long sid = ev.Source.Id;
         bool landTarget = !ev.Target.IsNone && Array.BinarySearch(_ids, ev.Target.Id) >= 0;
         if (ev.Target.IsNone || (landTarget && w.Indirect))

@@ -326,7 +326,7 @@ public class AutoResolverTests
         // Neither side has an objective and they start beyond sight: no activity => the five-pulse rule ends both resolvers'
         // battles at the same pulse with everybody preserved as disengaged survivors.
         var s = Meeting(UnitProfiles.HeavyInfantry, 20, UnitProfiles.HeavyInfantry, 20, 9);
-        s = s with { Sides = DefaultSides() };
+        s = s with { Sides = DefaultSides(), Rules = TT.Legacy };   // [TR] parity on the legacy inactivity rule
         var t = TT.RunGuarded(new TacticalBattle(s, new KnowledgeAi(), new KnowledgeAi()));
         var a = Auto(s);
         foreach (var r in new[] { t, a })

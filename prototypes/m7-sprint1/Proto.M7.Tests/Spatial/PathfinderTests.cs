@@ -23,17 +23,17 @@ public class PathfinderTests
 
     //                     Road Open Forest Jungle Hills Mountain Water Wall
     [Theory]
-    [InlineData(new long[] { 1000, 1000, 1500, 2500, 1800, 4000, 0, 0 }, "Road must be cheaper")]
-    [InlineData(new long[] { 1100, 1000, 1500, 2500, 1800, 4000, 0, 0 }, "Road must be cheaper")]
-    [InlineData(new long[] { 700, 1000, 1500, 1000, 1800, 4000, 0, 0 }, "Jungle must be dearer")]
-    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 2500, 0, 0 }, "Mountain must be dearer")]
-    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 2400, 0, 0 }, "Mountain must be dearer")]
-    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 4000, 5, 0 }, "Water must be impassable")]
-    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 4000, 0, 5 }, "Wall must be impassable")]
-    [InlineData(new long[] { 700, 1000, 0, 2500, 1800, 4000, 0, 0 }, "must be passable")]
-    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 4000, 0 }, "expected 8")]
-    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 1_000_001, 0, 0 }, "outside")]
-    [InlineData(new long[] { -1, 1000, 1500, 2500, 1800, 4000, 0, 0 }, "outside")]
+    [InlineData(new long[] { 1000, 1000, 1500, 2500, 1800, 4000, 0, 0, 3000, 3000, 0 }, "Road must be cheaper")]
+    [InlineData(new long[] { 1100, 1000, 1500, 2500, 1800, 4000, 0, 0, 3000, 3000, 0 }, "Road must be cheaper")]
+    [InlineData(new long[] { 700, 1000, 1500, 1000, 1800, 4000, 0, 0, 3000, 3000, 0 }, "Jungle must be dearer")]
+    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 2500, 0, 0, 3000, 3000, 0 }, "Mountain must be dearer")]
+    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 2400, 0, 0, 3000, 3000, 0 }, "Mountain must be dearer")]
+    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 4000, 5, 0, 3000, 3000, 0 }, "Water must be impassable")]
+    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 4000, 0, 5, 3000, 3000, 0 }, "Wall must be impassable")]
+    [InlineData(new long[] { 700, 1000, 0, 2500, 1800, 4000, 0, 0, 3000, 3000, 0 }, "must be passable")]
+    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 4000, 0, 0 }, "expected 11")]   // [TR] 8 classes are now too few (11)
+    [InlineData(new long[] { 700, 1000, 1500, 2500, 1800, 1_000_001, 0, 0, 3000, 3000, 0 }, "outside")]
+    [InlineData(new long[] { -1, 1000, 1500, 2500, 1800, 4000, 0, 0, 3000, 3000, 0 }, "outside")]
     public void Cost_validator_rejects_violations(long[] table, string why)
     {
         var e = Assert.Throws<ArgumentException>(() => TerrainCostTable.Create(table));
@@ -44,17 +44,19 @@ public class PathfinderTests
     public void Forest_and_hills_position_is_not_constrained()
     {
         // Only road<open<jungle<mountain is binding; Forest dearer than Mountain must still validate.
-        Assert.Null(TerrainCostTable.Validate(new long[] { 700, 1000, 9000, 2500, 1, 4000, 0, 0 }));
+        Assert.Null(TerrainCostTable.Validate(new long[] { 700, 1000, 9000, 2500, 1, 4000, 0, 0, 3000, 3000, 0 }));   // [TR] + Marsh, Ford, Building
     }
 
     [Fact]
     public void Concealment_validator()
     {
         Q32 h = Q32.FromRatio(1, 2), o = Q32.One;
-        Assert.Contains("Road and Open", ConcealmentTable.Validate(new[] { h, o, h, h, o, o, o, o }));
-        Assert.Contains("Forest and Jungle", ConcealmentTable.Validate(new[] { o, o, o, h, o, o, o, o }));
-        Assert.Contains("not in [0,1]", ConcealmentTable.Validate(new[] { o, o, h, h, new Q32(Q32.OneRaw + 1), o, o, o }));
-        Assert.Null(ConcealmentTable.Validate(new[] { o, o, h, h, o, o, o, Q32.Zero }));
+        // [TR] 11 classes (Marsh, Ford, Building appended).
+        Assert.Contains("Road and Open", ConcealmentTable.Validate(new[] { h, o, h, h, o, o, o, o, o, o, Q32.Zero }));
+        Assert.Contains("Forest and Jungle", ConcealmentTable.Validate(new[] { o, o, o, h, o, o, o, o, o, o, Q32.Zero }));
+        Assert.Contains("not in [0,1]", ConcealmentTable.Validate(new[] { o, o, h, h, new Q32(Q32.OneRaw + 1), o, o, o, o, o, Q32.Zero }));
+        Assert.Null(ConcealmentTable.Validate(new[] { o, o, h, h, o, o, o, Q32.Zero, o, o, Q32.Zero }));
+        Assert.Contains("expected 11", ConcealmentTable.Validate(new[] { o, o, h, h, o, o, o, Q32.Zero }));
     }
 
     [Fact]

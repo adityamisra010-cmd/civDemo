@@ -21,7 +21,9 @@ public sealed class EdgeField
     private readonly GridPathfinder _pf;
     public ExitEdge Edge { get; }
 
-    public EdgeField(TerrainGrid grid, TerrainCostTable costs, ExitEdge edge)
+    /// <param name="climb">[TR] Optional Naismith climb term (lane TR): the distance is the cost of walking FROM a cell TO the
+    /// edge, so a step n-&gt;c toward the edge pays ClimbCost(height[c] - height[n]) (fleeing uphill is slow). Null = Slice D.</param>
+    public EdgeField(TerrainGrid grid, TerrainCostTable costs, ExitEdge edge, TerrainEffects? climb = null)
     {
         _grid = grid; Edge = edge;
         int n = grid.CellCount, W = grid.Width, H = grid.Height;
@@ -29,7 +31,7 @@ public sealed class EdgeField
         for (int i = 0; i < n; i++) _cost[i] = costs.Cost(grid.ClassAtIndex(i));
         _dist = new long[n];
         Array.Fill(_dist, Unreachable);
-        var pf = new GridPathfinder(grid, costs);
+        var pf = new GridPathfinder(grid, costs, default, climb);
         _pf = pf;
         var hd = new List<long>(); var hi = new List<int>();
         for (int i = 0; i < n; i++)
@@ -52,6 +54,7 @@ public sealed class EdgeField
                     step = pf.DiagStep(_cost[c], _cost[ni]);
                 }
                 else step = pf.OrthStep(_cost[c], _cost[ni]);
+                step += pf.ClimbStep(ni, c);                      // [TR] the walker goes ni -> c (toward the edge)
                 long nd = d + step;
                 if (nd < _dist[ni]) { _dist[ni] = nd; Push(hd, hi, nd, ni); }
             }
@@ -96,7 +99,7 @@ public sealed class EdgeField
             if (_cost[ni] == 0 || _dist[ni] >= dc) continue;
             bool diag = Dx[k] != 0 && Dy[k] != 0;
             if (diag && (_cost[y * W + nx] == 0 || _cost[ny * W + x] == 0)) continue;
-            long key = _dist[ni] + (diag ? _pf.DiagStep(_cost[c], _cost[ni]) : _pf.OrthStep(_cost[c], _cost[ni]));
+            long key = _dist[ni] + (diag ? _pf.DiagStep(_cost[c], _cost[ni]) : _pf.OrthStep(_cost[c], _cost[ni])) + _pf.ClimbStep(c, ni);   // [TR] climb c -> ni
             if (best < 0 || key < bk || (key == bk && ni < best)) { bk = key; best = ni; }
         }
         return best;

@@ -44,10 +44,20 @@ internal static class TT
         }
     }
 
-    /// <summary>Tight test rules for the inactivity scenarios (test inputs): near-perfect stationary concealment.</summary>
+    /// <summary>Tight test rules for the inactivity scenarios (test inputs): near-perfect stationary concealment.
+    /// [TR] Pinned to the Sprint 1 LEGACY inactivity rule: its users are the legacy-rule tests (InactivityRuleTests) and the
+    /// resolver-parity tests, and the AutoResolver (lane P) still implements only the legacy rule. DIR5 tests use
+    /// <see cref="HideRulesDir5"/>.</summary>
     public static TacticalRules HideRules(bool activeConcealment = true) => new()
     {
         StationaryConcealment = Q32.FromRatio(1, 1 << 20),     // TEST INPUT
         ActiveConcealmentRule = activeConcealment,
+        Inactivity = InactivityModel.LegacySideDisengage,      // [TR]
     };
+
+    /// <summary>[TR] The same tight concealment under the DIR5 hidden-stationary rule (the default model).</summary>
+    public static TacticalRules HideRulesDir5(bool activeConcealment = true) => HideRules(activeConcealment) with { Inactivity = InactivityModel.HiddenStationary };
+
+    /// <summary>[TR] Default rules pinned to the legacy inactivity rule (legacy-rule and resolver-parity tests).</summary>
+    public static TacticalRules Legacy => new() { Inactivity = InactivityModel.LegacySideDisengage };
 }

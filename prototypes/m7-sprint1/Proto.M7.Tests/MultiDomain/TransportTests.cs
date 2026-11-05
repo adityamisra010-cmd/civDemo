@@ -147,7 +147,9 @@ public class TransportTests
             new FormationSpec(5, 1, DomainProfiles.Riflemen, 5, C(20, 6)),
             new FormationSpec(6, 1, DomainProfiles.Riflemen, 5, C(20, 6)) { EmbarkedOn = 4 },
         };
-        var setup = OnGrid(Coast(Cell, 20), 1, null, null, forms);
+        // [TR] BothDisengaged is a LEGACY end: this test pins lane N's activity definition under the legacy inactivity model.
+        // The DIR5 §2.6 counterpart is EmbarkDisembarkLoopIsNotProgressUnderDir5 below.
+        var setup = OnGrid(Coast(Cell, 20), 1, null, new TacticalRules { Inactivity = InactivityModel.LegacySideDisengage }, forms);
         ScriptedController Swap(long a, long b, long ship, long y)
         {
             var c = new ScriptedController();
@@ -167,6 +169,49 @@ public class TransportTests
         Assert.Contains(b.Personnel.Flows, f => f.Reason == PersonnelFlowReason.Embark && b.Personnel.AccountInfo(f.From).FormationId == 2);
         Assert.Contains(b.Personnel.Flows, f => f.Reason == PersonnelFlowReason.Disembark && b.Personnel.AccountInfo(f.To).FormationId == 3);
         Assert.Contains(b.Personnel.Flows, f => f.Reason == PersonnelFlowReason.Embark && b.Personnel.AccountInfo(f.From).FormationId == 5);
+    }
+
+    /// <summary>
+    /// [TR] DIR5 §2.6 counterpart of <see cref="EmbarkDisembarkLoopIsNotActivitySoTheBattleStillEnds"/>: under the default
+    /// hidden-stationary rule the swap loop is not progress either (embarking / landing is a reversible move, not a state
+    /// change of the formation): the whole-field idle counter reaches five and the battle ends as a Standoff (measured: 6
+    /// pulses). No formation is ever judged — each formation spends a pulse end aboard (no Active member) at least every
+    /// other pulse, which resets its own counter — so nobody routs. If the loop counted as progress the battle would never end
+    /// (the 40-pulse harness guard would fail).
+    /// </summary>
+    [Fact]
+    public void EmbarkDisembarkLoopIsNotProgressUnderDir5()
+    {
+        var t = T30 with { SightMm = 500_000 };          // TEST INPUT: the transports must not see the distant enemy
+        var forms = new[]
+        {
+            Ship(1, 0, t, C(19, 30)),
+            new FormationSpec(2, 0, DomainProfiles.Riflemen, 5, C(20, 30)),
+            new FormationSpec(3, 0, DomainProfiles.Riflemen, 5, C(20, 30)) { EmbarkedOn = 1 },
+            Ship(4, 1, t, C(19, 6)),
+            new FormationSpec(5, 1, DomainProfiles.Riflemen, 5, C(20, 6)),
+            new FormationSpec(6, 1, DomainProfiles.Riflemen, 5, C(20, 6)) { EmbarkedOn = 4 },
+        };
+        var setup = OnGrid(Coast(Cell, 20), 1, null, null, forms);
+        ScriptedController Swap(long a, long b, long ship, long y)
+        {
+            var c = new ScriptedController();
+            for (int p = 0; p < 40; p++)
+            {
+                long boarding = p % 2 == 0 ? a : b, landing = p % 2 == 0 ? b : a;
+                c.Add(p, new OrderRequest(boarding, OrderKind.Embark, 0, ship));
+                c.Add(p, new OrderRequest(landing, OrderKind.Disembark, 0, -1, C(21, y)));
+            }
+            return c;
+        }
+        var b = new TacticalBattle(setup, Swap(2, 3, 1, 30), Swap(5, 6, 4, 6));
+        var r = RunChecked(b, 40);
+        Assert.Equal(BattleEndReason.Standoff, r.Reason);           // measured: 6 pulses
+        Assert.Equal(6, r.Pulses);
+        Assert.Empty(b.InactivityVerdicts);                          // nobody is ever judged: no ashore stretch reaches five
+        Assert.All(r.Formations, f => Assert.Equal(0, f.Killed + f.Surrendered + f.RoutedEscaped));
+        Assert.Contains(b.Personnel.Flows, f => f.Reason == PersonnelFlowReason.Embark && b.Personnel.AccountInfo(f.From).FormationId == 2);
+        Assert.Contains(b.Personnel.Flows, f => f.Reason == PersonnelFlowReason.Disembark && b.Personnel.AccountInfo(f.To).FormationId == 3);
     }
 
     // ---------------------------------------------------------------- verification round 1 (N-R1-01, -02b, -03a, -04)

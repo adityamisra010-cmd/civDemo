@@ -7,6 +7,9 @@ namespace Proto.M7.Tests.Tactical;
 /// <summary>
 /// The Director's five-pulse inactivity rule with the active-concealment clause (spec §4 tests (i)-(iv)).
 /// Every scenario runs under the HARNESS guard only; the engine itself has no pulse cap.
+/// [TR] These pin the SPRINT 1 (LEGACY) side-disengagement rule, superseded for the tactical resolver by DIR5 §2.6 / D-079
+/// R17 (tests of the DIR5 rule: HiddenStationaryRuleTests). Kept, pinned to InactivityModel.LegacySideDisengage, because the
+/// AutoResolver still implements the legacy rule and the parity tests compare both resolvers on it.
 /// </summary>
 public class InactivityRuleTests
 {
@@ -111,7 +114,7 @@ public class InactivityRuleTests
         var osc = new ScriptedController();
         for (int p = 0; p < 40; p++)
             osc.Add(p, new OrderRequest(1, OrderKind.MoveTo, 0, -1, p % 2 == 0 ? Cell(10, 10) : Cell(10, 22)));
-        var setup = TT.Setup(OpenField(), DefaultSides(), 13, null,
+        var setup = TT.Setup(OpenField(), DefaultSides(), 13, TT.Legacy,   // [TR] legacy rule
             new FormationSpec(1, 0, UnitProfiles.HeavyInfantry, 10, Cell(10, 16)),
             new FormationSpec(2, 1, UnitProfiles.HeavyInfantry, 10, Cell(40, 16)));
         var b = new TacticalBattle(setup, osc, PassiveController.Instance);
@@ -137,7 +140,7 @@ public class InactivityRuleTests
         var osc = new ScriptedController();
         for (int p = 0; p < 40; p++)
             osc.Add(p, new OrderRequest(1, OrderKind.MoveTo, 0, -1, p % 2 == 0 ? Cell(12, 16) : Cell(5, 16)));   // toward / away from the enemy
-        var setup = TT.Setup(OpenField(), DefaultSides(), 14, null,
+        var setup = TT.Setup(OpenField(), DefaultSides(), 14, TT.Legacy,   // [TR] legacy rule
             new FormationSpec(1, 0, UnitProfiles.HeavyInfantry, 10, Cell(10, 16)),
             new FormationSpec(2, 1, UnitProfiles.HeavyInfantry, 10, Cell(20, 16)));
         var b = new TacticalBattle(setup, osc, PassiveController.Instance);

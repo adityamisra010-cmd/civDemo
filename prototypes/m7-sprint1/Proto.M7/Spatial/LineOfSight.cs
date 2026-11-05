@@ -2,7 +2,9 @@ using Proto.M7.Fixed;
 
 namespace Proto.M7.Spatial;
 
-public enum LosBlock : byte { None = 0, Wall = 1, Height = 2, OffGrid = 3 }
+/// <summary>Why a line is blocked. [TR] Structure = an opaque terrain layer (Building) the line passes through (lane TR,
+/// <see cref="TerrainSight"/>; Slice C queries never return it).</summary>
+public enum LosBlock : byte { None = 0, Wall = 1, Height = 2, OffGrid = 3, Structure = 4 }
 
 /// <summary>Visible = no wall/height/off-grid block; Clarity = product of concealment multipliers (Zero when not visible).</summary>
 public readonly record struct LosResult(bool Visible, Q32 Clarity, LosBlock Block, CellCoord BlockCell);

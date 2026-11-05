@@ -609,6 +609,7 @@ public sealed partial class TacticalBattle
                     e.Pos = spot;
                     e.RevealUntilMs = t + _dr.LandingExposureMs;
                     e.Moved = true; e.WantedMove = false;
+                    e.LastStepMm = 0;                                      // [TR] verify-TR-r1 V13: a landing is not a run-up
                     landed++;
                     if (first)
                     {

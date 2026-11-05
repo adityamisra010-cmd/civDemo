@@ -11,7 +11,17 @@ public class ReplayAndMetamorphicTests
     /// is UNTESTED (O-17). Moves whenever a tactical rule, placeholder or event encoding changes (re-pin with attribution).
     /// </summary>
     public const string GoldenTraceHash = "E53AA685CACD9B206B777DB77F23BE72934DA8FC9B1BEFEDAB23454BF2AC44E3";
-    public const string GoldenStateHash = "88F6322C135B38F0E75858F29E2214D43C5A614B65E0FC58A586ED5A1FFE67E1";
+    /// <summary>[TR] Re-pinned 2026-11-05 (lane TR, measured on Linux x64 .NET 10): the state-hash ENCODING was extended with
+    /// lane-TR state (field idle counter, per-formation idle counter / explicit-hold flag / cohesion / routed flag, inactivity
+    /// verdicts, last-logged exemption). The battle itself is unchanged: <see cref="GoldenTraceHash"/> (every event, in order) did NOT move.
+    /// Previous value: 88F6322C135B38F0E75858F29E2214D43C5A614B65E0FC58A586ED5A1FFE67E1.
+    /// [TR] Re-pinned again in verification round 1 (verify-TR-r1 V1): the encoding appends the march-progress goal minima
+    /// (TacticalBattle.Round1.cs, AppendRound1State). MEASURED attribution: with that one appended block disabled, the previous
+    /// value 92EA64F3951ACA3B796086C6A04AB6780C2811C8E71BB846BB5872ADE7AB6F07 is reproduced exactly; the trace hash did not move.
+    /// [TR] Re-pinned in verification round 2 (verify-TR-r2 V1; was 81492070BF44BFBA0CC11F1AC8860F34DED95AC5525C78A4BD530A549DD234D6):
+    /// the goal-minimum VALUES are now remaining path lengths. MEASURED attribution: with only those values left out of the
+    /// appended block, the r1 and the r2 potential give the same state hash (18F5198DC0EECE45…); the trace hash did not move.</summary>
+    public const string GoldenStateHash = "E04D50B0A0D42363215FED5D73A35EF3D558C9FAE04474FAA41CB514BDDD172A";
 
     [Fact]
     public void ReplayFromRecordedOrdersReproducesTraceAndResult()

@@ -23,6 +23,10 @@ public sealed record PathResult(bool Found, long Cost, int[] Cells, int Expanded
 ///   (canonical tie-break). Together these make the returned path independent of neighbour enumeration / insertion order
 ///   (tie-dense test permutes the neighbour order).
 /// The instance holds reusable work arrays (stamp-cleared); it is NOT thread-safe. Pure function of (grid, costs, start, goal).
+/// [TR] CLIMB (lane TR, optional): with a <see cref="TerrainEffects"/> every step a-&gt;b also costs
+/// TerrainEffects.ClimbCost(height[b] - height[a]) (Naismith: ascent costs, descent is free), so a path over a hill is dearer
+/// than the same path on the flat and routes around steep ground when that is cheaper. The term is &gt;= 0, so the heuristic
+/// (a lower bound of the climb-free cost) stays admissible and consistent. Without it (null) costs are exactly Slice C's.
 /// </summary>
 public sealed class GridPathfinder
 {
@@ -42,6 +46,8 @@ public sealed class GridPathfinder
     private readonly int[] _closed;           // stamp: closed
     private int _stamp;
     private long _minCost;
+    private readonly TerrainEffects? _climb;   // [TR] null = Slice C costs
+    private readonly long[] _cellHeight;       // [TR] per cell ground height (climb term)
 
     // Heap (struct-of-arrays).
     private long[] _hf = new long[1024], _hh = new long[1024];
@@ -49,9 +55,10 @@ public sealed class GridPathfinder
     private int _hn;
 
     /// <param name="neighbourOrder">Optional permutation of 0..7 over the default direction list (W,E,N,S,NW,NE,SW,SE) — test hook to prove order independence.</param>
-    public GridPathfinder(TerrainGrid grid, TerrainCostTable costs, ReadOnlySpan<int> neighbourOrder = default)
+    /// <param name="climb">[TR] Optional Naismith climb term (lane TR); null = Slice C step costs exactly.</param>
+    public GridPathfinder(TerrainGrid grid, TerrainCostTable costs, ReadOnlySpan<int> neighbourOrder = default, TerrainEffects? climb = null)
     {
-        _grid = grid; _costs = costs;
+        _grid = grid; _costs = costs; _climb = climb;
         if (neighbourOrder.IsEmpty) { DefaultDx.CopyTo(_dx, 0); DefaultDy.CopyTo(_dy, 0); }
         else
         {
@@ -66,6 +73,7 @@ public sealed class GridPathfinder
         }
         int n = grid.CellCount;
         _cellCost = new long[n];
+        _cellHeight = new long[n];
         _g = new long[n]; _parent = new int[n]; _seen = new int[n]; _closed = new int[n];
         RefreshCosts();
     }
@@ -79,6 +87,7 @@ public sealed class GridPathfinder
         {
             long c = _costs.Cost(_grid.ClassAtIndex(i));
             _cellCost[i] = c;
+            _cellHeight[i] = _grid.HeightAtIndex(i);
             if (c != 0 && c < gridMin) gridMin = c;
         }
         _minCost = gridMin == long.MaxValue ? min : gridMin;
@@ -89,6 +98,9 @@ public sealed class GridPathfinder
 
     public long OrthStep(long ca, long cb) => (ca + cb) * _grid.CellSizeMm / 2;
     public long DiagStep(long ca, long cb) => (ca + cb) * _grid.CellSizeMm * DiagNum / (2 * DiagDen);
+
+    /// <summary>[TR] Climb term of a step from cell index a to its neighbour b (0 without a climb table or when not ascending).</summary>
+    public long ClimbStep(int a, int b) => _climb is null ? 0 : _climb.ClimbCost(_cellHeight[b] - _cellHeight[a]);
 
     public long Heuristic(int cx, int cy, int gx, int gy)
     {
@@ -138,6 +150,7 @@ public sealed class GridPathfinder
                     step = DiagStep(cc, nc);
                 }
                 else step = OrthStep(cc, nc);
+                if (_climb is not null) step += _climb.ClimbCost(_cellHeight[ni] - _cellHeight[ci]);   // [TR]
                 long ng = gc + step;
                 if (_seen[ni] != stamp || ng < _g[ni])
                 {

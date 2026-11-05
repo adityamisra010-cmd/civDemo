@@ -20,6 +20,16 @@ public enum TerrainClass : byte
     Water = 6,
     /// <summary>Impassable; blocks LOS and direct fire (treated as infinitely tall).</summary>
     Wall = 7,
+    // ---- [TR] lane TR (M7 Phase C) additions: classes the DIR5 §2.7 terrain mandate needs ("rivers, marsh, forest",
+    // "buildings occlude"). Appended (never reorder): codes 0-7 keep their meaning, so every Slice C hash is unchanged.
+    /// <summary>[TR] Marsh / bog: passable, slow, poor footing, breaks close order. No vegetation layer (feature height 0).</summary>
+    Marsh = 8,
+    /// <summary>[TR] Fordable river or stream crossing: passable water (deep river stays <see cref="Water"/>), slow, poor
+    /// footing, breaks close order.</summary>
+    Ford = 9,
+    /// <summary>[TR] Building / built-up block: impassable to formations; OPAQUE up to its finite structure height (unlike
+    /// <see cref="Wall"/>, an observer high enough above it sees over it).</summary>
+    Building = 10,
 }
 
 /// <summary>
@@ -31,7 +41,8 @@ public enum TerrainClass : byte
 /// </summary>
 public sealed class TerrainCostTable
 {
-    public const int ClassCount = 8;
+    /// <summary>Number of terrain classes (codes 0..ClassCount-1). [TR] 8 -> 11 (Marsh, Ford, Building appended).</summary>
+    public const int ClassCount = 11;
     public const long Impassable = 0;
     /// <summary>Upper bound per class (bounds A* step costs: (2*MaxCost)*CellSize*1414 fits long for CellSize &lt;= MaxCellSizeMm).</summary>
     public const long MaxCost = 1_000_000;
@@ -68,7 +79,8 @@ public sealed class TerrainCostTable
         }
         if (c[(int)TerrainClass.Water] != Impassable) return "Water must be impassable for land movement";
         if (c[(int)TerrainClass.Wall] != Impassable) return "Wall must be impassable";
-        foreach (var k in new[] { TerrainClass.Road, TerrainClass.Open, TerrainClass.Forest, TerrainClass.Jungle, TerrainClass.Hills, TerrainClass.Mountain })
+        foreach (var k in new[] { TerrainClass.Road, TerrainClass.Open, TerrainClass.Forest, TerrainClass.Jungle, TerrainClass.Hills, TerrainClass.Mountain,
+                                  TerrainClass.Marsh, TerrainClass.Ford })
             if (c[(int)k] == Impassable) return $"class {k} must be passable (cost >= 1)";
         // Director's binding ordering (brief §2 Logistics): roads cheaper than open; jungle dearer than open; mountains dearer still.
         if (!(c[(int)TerrainClass.Road] < c[(int)TerrainClass.Open])) return "ordering violated: Road must be cheaper than Open";
@@ -93,6 +105,9 @@ public sealed class TerrainCostTable
         4000,  // Mountain PLACEHOLDER
         Impassable, // Water
         Impassable, // Wall
+        3000,  // Marsh    [TR] PLACEHOLDER (slower than Jungle is NOT asserted; only passable is validated)
+        3000,  // Ford     [TR] PLACEHOLDER (wading a fordable stream)
+        Impassable, // Building [TR] PLACEHOLDER (formations do not march through built blocks; streets are Road)
     });
 }
 
@@ -127,7 +142,8 @@ public sealed class ConcealmentTable
     /// <summary>
     /// PLACEHOLDER test table (spec §3: "placeholder input table"): Forest 1/2, Jungle 1/4 — PLACEHOLDER values;
     /// Road/Open/Hills/Mountain/Water 1 (no concealment; Hills/Mountain/Water = 1 is also PLACEHOLDER: nothing decides them);
-    /// Wall 0 (irrelevant: Wall blocks LOS outright).
+    /// Wall 0 (irrelevant: Wall blocks LOS outright). [TR] Marsh 1, Ford 1 (PLACEHOLDER: no vegetation layer); Building 0
+    /// (irrelevant: opaque below its structure height, see TerrainEffects).
     /// </summary>
     public static ConcealmentTable PlaceholderTestTable() => Create(new[]
     {
@@ -139,5 +155,8 @@ public sealed class ConcealmentTable
         Q32.One,                // Mountain PLACEHOLDER
         Q32.One,                // Water    PLACEHOLDER
         Q32.Zero,               // Wall (opaque; LOS is blocked before this matters)
+        Q32.One,                // Marsh    [TR] PLACEHOLDER
+        Q32.One,                // Ford     [TR] PLACEHOLDER
+        Q32.Zero,               // Building [TR] (opaque below its structure height; never an entity's own cell: impassable)
     });
 }

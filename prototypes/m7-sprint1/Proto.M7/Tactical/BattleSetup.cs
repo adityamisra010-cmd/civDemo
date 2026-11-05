@@ -75,6 +75,18 @@ public sealed record TacticalRules
     /// <summary>Action budget N per formation per pulse. INPUT (2 vs 3 is OPEN; default 2 is PLACEHOLDER).</summary>
     public int ActionBudgetN { get; init; } = 2;
 
+    /// <summary>[TR] Which inactivity rule applies. Default: the DIR5 §2.6 per-formation hidden-stationary rule
+    /// (<see cref="HiddenStationaryRule"/>). LegacySideDisengage exists only for resolver-parity tests against the
+    /// AutoResolver, which still implements the superseded Sprint 1 rule (lane P).</summary>
+    public InactivityModel Inactivity { get; init; } = InactivityModel.HiddenStationary;
+
+    /// <summary>[TR, verify-TR-r1 V3] The DIR5-model MUTUAL GUARD (lane TR's PROPOSAL P-TR1, not ratified): when the routs of
+    /// one pulse end would leave neither side an Active entity, nobody routs and the battle ends as a Standoff. Default OFF:
+    /// D-079 S304 records the five-pulse consequence as "routed or lost, per unit; not a draw or intact escape by default",
+    /// so genuinely inactive formations on BOTH sides are routed and the battle ends BothEliminated. ON exists so the
+    /// Director can rule on the alternative with a measured implementation (tests pin both).</summary>
+    public bool MutualStandoffGuard { get; init; }
+
     public void Validate()
     {
         if (PulseMs <= 0 || StepMs <= 0 || PulseMs % StepMs != 0) throw new ArgumentException("StepMs must divide PulseMs");
@@ -90,6 +102,7 @@ public sealed record TacticalRules
         if (HealPerStep < 0 || HealPoolNum < 0 || HealPoolDen <= 0) throw new ArgumentException("heal");
         if (!StationaryConcealment.IsProbability) throw new ArgumentException("stationary concealment");
         if (InactivityPulses < 1) throw new ArgumentException("inactivity");
+        if (Inactivity != InactivityModel.HiddenStationary && Inactivity != InactivityModel.LegacySideDisengage) throw new ArgumentException("inactivity model");
         _ = new ActionBudget(ActionBudgetN);
     }
 }
@@ -147,6 +160,12 @@ public sealed record BattleSetup(
     public ProposedCaps Caps { get; init; } = ProposedCaps.Proposed;
     /// <summary>Global instant (ms on the B timeline) at which the battle starts.</summary>
     public long StartMs { get; init; }
+    /// <summary>[TR] Terrain properties and coefficients of the resolution equations (DIR5 §2.7). Default: the lane-TR
+    /// PLACEHOLDER table, which is the exact identity on flat Road/Open ground.</summary>
+    public TerrainEffects Effects { get; init; } = TerrainEffects.Placeholder;
+    /// <summary>[TR] Start-position rule (DIR5 §2.14). Unrestricted for unit-level probes; a battle produced by
+    /// <see cref="DeploymentPhase.Close"/> carries Thirds, and the battle re-checks it at construction.</summary>
+    public DeploymentRule Deployment { get; init; } = DeploymentRule.Unrestricted;
     /// <summary>Lane N: rules and air bases of the naval / air / combined-arms modules (null = defaults).</summary>
     public MultiDomainSetup? MultiDomain { get; init; }
 }

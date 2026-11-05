@@ -19,10 +19,23 @@ public class DomainOrdersAndGoldenTests
     /// only (the side view's Ready count now applies the launch gate's fitness check). Measured attribution: the tree with only
     /// the N-R2-01 elimination change reproduces the old hashes; the tree with only N-R2-03 reproduces the new ones; the order
     /// logs differ by exactly one order — the defence DomainAi's "p14 s1 F24 Attack" (refused NotReady before) is no longer
-    /// issued.</summary>
-    public const string AmphibTrace = "5B72E7570A0C988C45AF695EB6CC22CD61D19B334F89788024477D7C1AA39AAF";
-    public const string AmphibState = "6E3963D9996E73C487C4DB1C2EADD77065BF6FB085181C39AF4065C8BFAF44A0";
-    public const string AmphibPersonnel = "E28B1BE9CB570C32707A6757BBDC22F3A33891C64A15CB9C95245CA20765C963";
+    /// issued.
+    /// [TR] RE-PINNED on the lane TR merge: was trace 5B72E757…9AAF / state 6E3963D9…44A0 / personnel E28B1BE9…C963. Causes
+    /// (measured, pinned by TerrainDomainInterplayTests.TheAmphibiousGoldenMovesOnlyThroughMissileTransmissionAndTheDir5Rule):
+    /// (1) the lane-TR missile transmission of the forest belt (the defending snipers deal 192 instead of 428 damage) — with
+    /// only that coefficient set to One, or with the whole Slice-C-equivalent table, under the legacy inactivity model, the
+    /// trace, result and personnel hashes are lane N's; (2) the DIR5 §2.6 inactivity model (Standoff after 19 pulses instead
+    /// of SideDisengaged after 15); (3) the state-hash encoding, which lane TR extended with its own state.
+    /// [TR] verification round 1 (verify-TR-r1 V1): AmphibState re-pinned (was 736BB5069BF4A7D550D16BC8BFEEDD1B512418EC63D4D67CC9C683BBB35414F4)
+    /// because the encoding appends the march-progress goal minima. MEASURED attribution: with that appended block disabled the
+    /// previous value is reproduced exactly; trace and personnel hashes did not move (the battle is unchanged).
+    /// [TR] verification round 2 (verify-TR-r2 V1): AmphibState re-pinned again (was 4F258FDCF7F67BC8603ABEB480253F5BAA8EDBBAE353ACD6C524FEDCFBB1B31E)
+    /// because the goal-minimum VALUES changed (remaining path length instead of the straight-line distance). MEASURED
+    /// attribution: with only the minimum values left out of the appended block, the r1 and the r2 potential give the same state
+    /// hash (0ACE9B0697BA2338…); trace and personnel hashes did not move.</summary>
+    public const string AmphibTrace = "075371D6B76D42F78134D38790105C95096C903CE0BC1C21B51132E8684AD6C0";
+    public const string AmphibState = "5F3F0088D42110F584D3FA3AFB2C8896A78512B105BEEB93578B27DBC79CFD3A";
+    public const string AmphibPersonnel = "6B252A73C8FEE91A06D008DFBC61A94D9699BCE37952591422016BF1E5427103";
     /// <summary>GOLDEN: sail line battle with wind, seed 42, both sides Attack at pulse 0.</summary>
     public const string SailTrace = "8433C5E996DC2D8579E063A0E7FDC4C8466EB079DBBD65DEF248C5C3CC077685";
 

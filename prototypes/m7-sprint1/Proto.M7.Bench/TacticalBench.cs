@@ -15,7 +15,8 @@ static class TacticalBench
         }
         int seeds = args.Length > 1 ? int.Parse(args[1], System.Globalization.CultureInfo.InvariantCulture) : 5;
         Console.WriteLine($"Proto.M7.Bench tactical: seeds={seeds} cpu={Environment.ProcessorCount} os={System.Runtime.InteropServices.RuntimeInformation.OSDescription}");
-        Case("50v50 heavy_infantry", s => TacticalScenarios.Meeting(UnitProfiles.HeavyInfantry, 50, UnitProfiles.HeavyInfantry, 50, s), seeds);
+        Case("50v50 heavy_infantry", s => TacticalScenarios.Meeting(UnitProfiles.HeavyInfantry, 50, UnitProfiles.HeavyInfantry, 50, s), seeds);   // mirrored F1 control
+        Case("50v50 heavy_infantry 20 m asymmetric (DR32)", s => TacticalScenarios.MeetingAsymmetric(UnitProfiles.HeavyInfantry, 50, UnitProfiles.HeavyInfantry, 50, s), seeds);   // [TR] verify-TR-r1 V10
         Case("60v60 archers", s => TacticalScenarios.Meeting(UnitProfiles.Archers, 60, UnitProfiles.Archers, 60, s), seeds);
         Case("50v60 heavy_infantry vs archers", s => TacticalScenarios.Meeting(UnitProfiles.HeavyInfantry, 50, UnitProfiles.Archers, 60, s), seeds);
         Case("110v110 combined arms", s => TacticalScenarios.CombinedArms(s), seeds);

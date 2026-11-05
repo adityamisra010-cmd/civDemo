@@ -213,6 +213,7 @@ public class AutoResolverVerificationFixTests
         var rules = new TacticalRules();
         var s = Meeting(UnitProfiles.HeavyInfantry, 20, UnitProfiles.HeavyInfantry, 20, 9);
         s = s with { Sides = DefaultSides(), Formations = new[] { s.Formations[0] with { Morale = 800 }, s.Formations[1] with { Morale = 990 } } };
+        s = s with { Rules = TT.Legacy };   // [TR] parity on the legacy inactivity rule (the AutoResolver implements only that one)
         foreach (var r in new[] { Tactical(s), Auto(s) })
         {
             Assert.Equal(BattleEndReason.BothDisengaged, r.Reason);
@@ -257,7 +258,7 @@ public class AutoResolverVerificationFixTests
     [InlineData(13L, 5L)]
     public void FirstDetectionIsActivityInBothResolvers(long gapCells, long pulses)
     {
-        var s = Setup(OpenField(), DefaultSides(), 2, null,
+        var s = Setup(OpenField(), DefaultSides(), 2, TT.Legacy,   // [TR] parity on the legacy inactivity rule
             new FormationSpec(1, 0, UnitProfiles.HeavyInfantry, 20, Cell(20, 16)) { Posture = Posture.Ambush },
             new FormationSpec(2, 1, UnitProfiles.HeavyInfantry, 20, Cell(20 + gapCells, 16)) { Posture = Posture.Ambush });
         foreach (var r in new[] { Tactical(s), Auto(s) })

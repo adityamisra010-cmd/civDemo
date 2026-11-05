@@ -82,6 +82,8 @@ public class SniperTests
         // enemy that is making progress (searching) passes within its sight, the sniper's formation stays active; the same
         // entity without camouflage is plainly inactive. (The sniper does not shoot here: Ranged 0, and its camouflage is a
         // TEST INPUT of 2^-20 so it is not found during the test.)
+        // [TR] This pins the LEGACY active-concealment clause and its counter, so it runs under the legacy inactivity model; the
+        // DIR5 §2.6 counterpart is TerrainDomainInterplayTests.ACamouflagedSniperInTheOpenWithAnEnemyInReachIsExempt.
         long Counter(Q32 pc)
         {
             var s = new BattleSetup(OpenField(), TerrainCostTable.PlaceholderTestTable(), ConcealmentTable.PlaceholderTestTable(),
@@ -90,7 +92,7 @@ public class SniperTests
                 {
                     new FormationSpec(1, 0, DomainProfiles.Sniper with { PersonalConcealment = pc, Ranged = 0, RangeCells = 0 }, 1, Cell(10, 16)),
                     new FormationSpec(2, 1, UnitProfiles.HeavyInfantry, 5, Cell(20, 8)),
-                }, 9);
+                }, 9) { Rules = new TacticalRules { Inactivity = InactivityModel.LegacySideDisengage } };
             var b = new TacticalBattle(s, PassiveController.Instance, Script((0, new OrderRequest(2, OrderKind.MoveTo, 0, -1, Cell(20, 28)))));
             b.RunUntilPulse(3);
             Assert.False(b.EverDetected(1, 1000) && pc != Q32.One);

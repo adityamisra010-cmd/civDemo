@@ -209,6 +209,9 @@ public class VerificationFixDTests
     /// information: after the first detections nothing is primary (the shuttle sets no new minimum and nobody is concealed),
     /// so both sides disengage five idle pulses after the first approach. Mutant Mi (credit every re-acquisition) resets both
     /// counters every second pulse and the battle lives as long as the shuttle (40+ pulses).
+    /// [TR] Under the DIR5 default rule the same idle stretch ends the battle as a STANDOFF (whole-field idle counter G = 5;
+    /// the hidden-stationary counters never reach 5 because each side is seen every second pulse); nobody escapes or routs.
+    /// The property pinned (re-acquisition is not progress) is shared by both models.
     /// </summary>
     [Fact]
     public void ReacquiringALostEnemyIsNotNewActivity()
@@ -235,9 +238,9 @@ public class VerificationFixDTests
         // The scenario really flickers: first acquisition plus at least two re-acquisitions per side before the end.
         Assert.True(acq0 >= 3, $"side 0 acquisitions {acq0}");
         Assert.True(acq1 >= 3, $"side 1 acquisitions {acq1}");
-        Assert.Equal(BattleEndReason.BothDisengaged, r.Reason);
+        Assert.Equal(BattleEndReason.Standoff, r.Reason);                        // [TR] was BothDisengaged (legacy rule)
         Assert.InRange(r.Pulses, 5, 8);
-        Assert.All(r.Formations, f => { Assert.Equal(0, f.Killed); Assert.Equal(1, f.DisengagedEscaped); });
+        Assert.All(r.Formations, f => { Assert.Equal(0, f.Killed); Assert.Equal(1, f.ActiveAtEnd); Assert.Equal(0, f.Escaped); });
     }
 
     // ---------------- F5 / Mj: EdgeField descent tie-break (composite key (dist + step, cell index)) ----------------

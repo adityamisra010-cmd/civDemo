@@ -91,6 +91,10 @@ public sealed record UnitProfile(
     /// <summary>Per-entity hit points. Mapping Integrity band value -&gt; entity HP 1:1 is PLACEHOLDER (invented).</summary>
     public long MaxHp => Integrity;
     public bool IsRanged => Ranged > 0 && RangeCells > 0;
+    /// <summary>[TR] Charge impetus coefficient chi (Q32 in [0, 1]): a melee blow struck at the end of a run-up gets the factor
+    /// 1 + chi * min(1, distance covered this step / open-ground sprint per step) (TerrainCombat). Default 0 = no shock
+    /// charge (the shipped Sprint 1 profiles carry none; no value is invented for them — tests use a labelled TEST INPUT).</summary>
+    public Fixed.Q32 Impetus { get; init; }
 
     // ---- lane N (snipers, M7 Phase C): both default to the identity, so every existing profile behaves exactly as before.
     /// <summary>Legacy ranged fire: at most one shot per this many internal steps (low fire rate). Default 1 = every step.</summary>
