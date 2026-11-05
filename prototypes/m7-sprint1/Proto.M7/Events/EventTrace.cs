@@ -10,6 +10,8 @@ public enum TraceOutcome : byte
     Dropped = 2,
     /// <summary>Cancelled by event id (Seq) before it came due.</summary>
     Cancelled = 3,
+    /// <summary>A PlayerOrder-class event whose instant is not a decision-window instant (ADR-061 §3.7): changes no state.</summary>
+    Refused = 4,
 }
 
 public readonly record struct TraceEntry(EventKey Key, int Kind, TraceOutcome Outcome, EntityRef Target, EntityRef Source, long A, long B, long C);

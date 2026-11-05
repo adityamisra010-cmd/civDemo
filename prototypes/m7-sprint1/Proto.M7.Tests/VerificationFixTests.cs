@@ -63,10 +63,10 @@ public class VerificationFixTests
         Assert.Equal(44_434_285_715L, res.AtMs);
     }
 
-    // ======================= F2 / mutant MH: carry rescale at an era-band boundary =======================
+    // ======================= F2 / mutant MH, superseded by DIR5 (lane T1): the carry is preserved EXACTLY =======================
 
     [Fact]
-    public void Carry_is_rescaled_by_floor_at_the_3600_to_1800_day_band_boundary_and_completion_follows_it()
+    public void Carry_is_preserved_exactly_at_the_3600_to_1800_day_band_boundary_and_completion_follows_it()
     {
         var cal = ShippedCalendar();
         long last = cal.Bands[1].FirstTurn - 1;              // last 3600-day turn
@@ -75,14 +75,18 @@ public class VerificationFixTests
         Assert.Equal(1800 * Day, newLen);
         long start = cal.TurnStart(last).Ms + 1;
         const long R = 10, U = 7;
-        // Independent derivation. Turn `last`: dt = oldLen-1, total = 7*(oldLen-1) = 6*oldLen + (oldLen-7).
+        // Independent derivation. Turn `last`: dt = oldLen-1, total = 7*(oldLen-1)/oldLen = 6 + (oldLen-7)/oldLen units.
         long accrued1 = (long)((Int128)U * (oldLen - 1) / oldLen);           // 6
-        long carry1 = (long)((Int128)U * (oldLen - 1) - (Int128)accrued1 * oldLen); // oldLen - 7
         Assert.Equal(6, accrued1);
-        Assert.True(carry1 >= newLen);                         // premise: an unrescaled carry would break carry < L
-        long carry2 = (long)((Int128)carry1 * newLen / oldLen); // documented rule: floor(carry*Lnew/Lold)
+        var carry1 = ExactFraction.Of(oldLen - 7, oldLen);                    // fraction of a unit; turn-length independent
+        // The superseded Slice B rule floor(c * Lnew / Lold) = 155_519_999_996 over Lnew: NOT the same fraction (lost 1/2 ms-numerator).
+        long legacyNumerator = (long)((Int128)(oldLen - 7) * newLen / oldLen);
+        Assert.Equal(155_519_999_996L, legacyNumerator);
+        Assert.True(ExactFraction.Of(legacyNumerator, newLen) < carry1);
+        Assert.Equal(ExactFraction.Of(1, 2 * newLen), carry1 - ExactFraction.Of(legacyNumerator, newLen));
         long remaining = R - accrued1;
-        long expectedDone = cal.TurnStart(last + 1).Ms + (long)(((Int128)remaining * newLen - carry2 + U - 1) / U);
+        long expectedDone = cal.TurnStart(last + 1).Ms
+            + (long)((((Int128)remaining * carry1.Den - carry1.Num) * newLen + (Int128)carry1.Den * U - 1) / ((Int128)carry1.Den * U));
 
         var s = new EventScheduler(start);
         var w = new CampaignDemoWorld(cal);
@@ -92,15 +96,15 @@ public class VerificationFixTests
         var p = w.Process(id);
         Assert.Equal(last + 1, p.CurrentTurn);
         Assert.Equal(remaining, p.RemainingUnits);
-        Assert.Equal(carry2, p.Carry);
-        Assert.True(p.Carry < newLen);
+        Assert.Equal(carry1, p.Carry);                        // unchanged by the duration change: nothing discarded
         runner.RunUntil(cal.TurnEnd(last + 1).Ms - 1);
         Assert.True(p.Completed);
         Assert.Equal(expectedDone, p.CompletedAtMs);
+        Assert.Equal(cal.TurnStart(last + 1).Ms + 66_651_428_572L, p.CompletedAtMs); // ceil((3*Lold + 7) / 14)
     }
 
     [Fact]
-    public void Processes_crossing_every_band_boundary_keep_carry_below_the_turn_length()
+    public void Processes_crossing_every_band_boundary_keep_carry_a_proper_fraction_of_a_unit()
     {
         var cal = ShippedCalendar();
         for (int b = 1; b < cal.Bands.Count; b++)
@@ -119,7 +123,7 @@ public class VerificationFixTests
                 {
                     runner.RunUntil(cal.TurnEnd(t).Ms);   // includes the next turn's TurnStart (rescale) event
                     var p = w.Process(id);
-                    Assert.True(p.Carry >= 0 && p.Carry < cal.TurnLengthMs(p.CurrentTurn), $"band {b} r={r} u={u} carry={p.Carry}");
+                    Assert.True(!p.Carry.IsNegative && p.Carry < ExactFraction.One, $"band {b} r={r} u={u} carry={p.Carry}");
                 }
             }
         }

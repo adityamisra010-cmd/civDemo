@@ -156,7 +156,7 @@ public class RunnerTests
         }
     }
 
-    private static (string trace, string state, SubTurnOrderLog log, long liveOrderSeq) LiveRun()
+    private static (string trace, string state, SubTurnOrderLog log, long liveOrderSeq, CampaignDemoWorld world, CampaignCalendar cal) LiveRun()
     {
         var x = NewSetup();
         var runner = new Runner(x.S, x.W, Sig);
@@ -175,7 +175,7 @@ public class RunnerTests
             }
         }
         long seq = x.S.Trace.Entries.First(e => e.Key.Class == (byte)EventClass.PlayerOrder).Key.Seq;
-        return (x.S.Trace.HashHex(), x.W.StateHashHex(), runner.Orders, seq);
+        return (x.S.Trace.HashHex(), x.W.StateHashHex(), runner.Orders, seq, x.W, x.Cal);
     }
 
     private static (string trace, string state, long orderSeq) Replay(SubTurnOrderLog log)
@@ -213,9 +213,34 @@ public class RunnerTests
     public void Live_interrupted_scenario_hashes_are_pinned()
     {
         var live = LiveRun();
-        Assert.Equal("10BBF4EE2184E81428B387FBEDFB6C00791FFEA6BD118B427B187953441B6E48", live.trace);
-        Assert.Equal("41191E3543CE36CD9C4CF36BD7FA912E09711C201AA9AD17DD4252CD7B7BC0F2", live.state);
+        Assert.Equal("10BBF4EE2184E81428B387FBEDFB6C00791FFEA6BD118B427B187953441B6E48", live.trace);   // unchanged by lane T1
+        // MOVED by lane T1 (DIR5 exact carry): the state encoding now writes the carry as (Num, Den), not as a remainder
+        // over the turn length. Old golden 41191E35…C0F2. The move is the encoding ONLY: the Slice B encoding of the
+        // same final state still reproduces the old golden exactly (no band change in turns 0-3, so carry*L is integral).
+        Assert.Equal("41191E3543CE36CD9C4CF36BD7FA912E09711C201AA9AD17DD4252CD7B7BC0F2", LegacyEncodedStateHash(live.world, live.cal));
+        Assert.Equal("2E3D9E5BED96B0FE1353E592B0B899EDCFD9559217676CB09A062745FB7EE4B7", live.state);
         Assert.Equal("8617BDA73A213B5E6A2FBC75DE62F0A6FDB0BFF835845C692B49A372C2B35864", live.log.HashHex());
+    }
+
+    /// <summary>The Slice B state encoding (carry as an integer remainder over the current turn length), for golden attribution.</summary>
+    private static string LegacyEncodedStateHash(CampaignDemoWorld w, CampaignCalendar cal)
+    {
+        using var h = System.Security.Cryptography.IncrementalHash.CreateHash(System.Security.Cryptography.HashAlgorithmName.SHA256);
+        var b = new byte[8];
+        void L(long v) { System.Buffers.Binary.BinaryPrimitives.WriteInt64LittleEndian(b, v); h.AppendData(b); }
+        L(w.Processes.Count);
+        foreach (var p in w.Processes)
+        {
+            Int128 scaled = (Int128)p.Carry.Num * cal.TurnLengthMs(p.CurrentTurn);
+            Assert.Equal(0, scaled % p.Carry.Den);
+            L(p.Id); L(p.Generation); L(p.RemainingUnits); L(p.UnitsPerTurn); L(p.CurrentTurn);
+            L(p.AnchorMs); L((long)(scaled / p.Carry.Den)); L(p.Completed ? 1 : 0); L(p.CompletedAtMs);
+        }
+        L(w.Units.Count);
+        foreach (var u in w.Units) { L(u.Id); L(u.Generation); L(u.Hp); L(u.Alive ? 1 : 0); L(u.DiedAtMs); }
+        L(w.Effects.Count);
+        foreach (var e in w.Effects) { L(e.LogIndex); L(e.Kind); L(e.TargetId); L(e.Accepted ? 1 : 0); L(e.AppliedAtMs); }
+        return Convert.ToHexString(h.GetHashAndReset());
     }
 
     [Fact]
@@ -302,6 +327,6 @@ public class RunnerTests
         Assert.Equal(a.W.StateHashHex(), b.W.StateHashHex());
         Assert.Equal(a.S.Trace.HashHex(), b.S.Trace.HashHex());
         Assert.Equal(1000 - 300, b.W.Process(b.Slow).RemainingUnits);     // 3 whole turns x 100, carry 0
-        Assert.Equal(0, b.W.Process(b.Slow).Carry);
+        Assert.Equal(ExactFraction.Zero, b.W.Process(b.Slow).Carry);
     }
 }

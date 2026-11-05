@@ -23,4 +23,24 @@ public static class RateIntegrator
         carry = (long)(total - q * turnLengthMs);
         return (long)q;
     }
+
+    /// <summary>
+    /// The DIR5 exact form (ADR-061 §3.10, T3): the carry is held as an EXACT fraction of one unit, in [0, 1), not as a
+    /// remainder over the turn length. Units accrued = Floor(carry + rate * dtMs / turnLengthMs); the new carry is the
+    /// fractional part. Because the carry is denominated in units, not in turn-length milliseconds, a change of turn
+    /// duration leaves it untouched: the in-progress fraction is preserved proportionally with zero loss (no rescale
+    /// step exists to lose anything). Within one turn length it is bit-identical in effect to <see cref="Integrate"/>
+    /// (carry = c / turnLengthMs). The canonical carry's denominator divides the lcm of the turn lengths integrated
+    /// over, so it stays bounded. Atomic: on OverflowException the ref carry is unchanged.
+    /// </summary>
+    public static long IntegrateExact(long ratePerTurn, long dtMs, long turnLengthMs, ref ExactFraction carry)
+    {
+        if (ratePerTurn < 0 || dtMs < 0 || turnLengthMs <= 0 || carry.IsNegative || carry >= ExactFraction.One)
+            throw new ArgumentOutOfRangeException(nameof(dtMs), "invalid integration input");
+        var total = carry + ExactFraction.Ratio((Int128)ratePerTurn * dtMs, turnLengthMs);
+        long q = total.Floor();
+        var next = total - ExactFraction.FromInteger(q);
+        carry = next;
+        return q;
+    }
 }

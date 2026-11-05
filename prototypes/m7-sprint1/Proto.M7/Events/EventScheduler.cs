@@ -28,6 +28,13 @@ public sealed class EventScheduler
     public long ExecutedCount { get; private set; }
     public long DroppedCount { get; private set; }
     public long CancelledCount { get; private set; }
+    public long RefusedCount { get; private set; }
+
+    /// <summary>
+    /// Delivery gate for PlayerOrder-class events, set by the Runner (ADR-061 §3.7): an order whose gate returns false is
+    /// traced as Refused and never reaches the world. Null = every order is delivered (scheduler used without a Runner).
+    /// </summary>
+    internal Func<ScheduledEvent, bool>? OrderGate { get; set; }
 
     /// <summary>The key of the event currently executing, or the last one executed.</summary>
     public EventKey CurrentKey => _lastKey;
@@ -90,6 +97,11 @@ public sealed class EventScheduler
         {
             outcome = TraceOutcome.Cancelled;
             CancelledCount++;
+        }
+        else if (ev.Key.Class == (byte)EventClass.PlayerOrder && OrderGate is not null && !OrderGate(ev))
+        {
+            outcome = TraceOutcome.Refused;
+            RefusedCount++;
         }
         else if ((!ev.Target.IsNone && !world.IsLive(ev.Target)) || (!ev.Source.IsNone && !world.IsLive(ev.Source)))
         {

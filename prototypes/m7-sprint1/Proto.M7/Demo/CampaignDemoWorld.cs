@@ -18,7 +18,8 @@ public sealed class ConstructionProcess
     public long UnitsPerTurn { get; set; }
     public long CurrentTurn { get; set; }
     public long AnchorMs { get; set; }
-    public long Carry { get; set; }
+    /// <summary>Sub-unit progress as an EXACT fraction of one unit in [0, 1) (DIR5 carry; independent of turn length).</summary>
+    public ExactFraction Carry { get; set; }
     public bool Completed { get; set; }
     public long CompletedAtMs { get; set; } = -1;
     /// <summary>Id (Seq) of the pending TurnStart/Complete event. Scheduler-internal, deliberately NOT in the state hash.</summary>
@@ -89,8 +90,10 @@ public sealed class CampaignDemoWorld : IEventWorld
         if (p.UnitsPerTurn == 0) return -1;
         long len = _cal.TurnLengthMs(p.CurrentTurn);
         // Smallest t with floor((U*(t-anchor) + carry)/L) >= R  <=>  t - anchor >= ceil((R*L - carry)/U).
-        Int128 need = (Int128)p.RemainingUnits * len - p.Carry;
-        Int128 dt = (need + p.UnitsPerTurn - 1) / p.UnitsPerTurn; // need > 0 whenever R > 0 (carry < L)
+        // Exact carry n/d: t - anchor >= ceil((R*d - n) * L / (d*U)). need > 0 whenever R > 0 (carry < 1).
+        Int128 need = ((Int128)p.RemainingUnits * p.Carry.Den - p.Carry.Num) * len;
+        Int128 per = (Int128)p.Carry.Den * p.UnitsPerTurn;
+        Int128 dt = (need + per - 1) / per;
         Int128 t = p.AnchorMs + dt;
         long turnEnd = _cal.TurnEnd(p.CurrentTurn).Ms;
         return t <= turnEnd ? (long)t : -1;
@@ -114,8 +117,8 @@ public sealed class CampaignDemoWorld : IEventWorld
     private void Integrate(ConstructionProcess p, long t)
     {
         if (t == p.AnchorMs) return;
-        long carry = p.Carry;
-        long accrued = RateIntegrator.Integrate(p.UnitsPerTurn, t - p.AnchorMs, _cal.TurnLengthMs(p.CurrentTurn), ref carry);
+        var carry = p.Carry;
+        long accrued = RateIntegrator.IntegrateExact(p.UnitsPerTurn, t - p.AnchorMs, _cal.TurnLengthMs(p.CurrentTurn), ref carry);
         p.Carry = carry;
         p.RemainingUnits -= Math.Min(p.RemainingUnits, accrued);
         p.AnchorMs = t;
@@ -124,11 +127,10 @@ public sealed class CampaignDemoWorld : IEventWorld
     private void OnTurnStart(EventScheduler s, ConstructionProcess p, long now)
     {
         Integrate(p, now);
-        long oldLen = _cal.TurnLengthMs(p.CurrentTurn);
         p.CurrentTurn += 1;
-        long newLen = _cal.TurnLengthMs(p.CurrentTurn);
-        // Sub-unit residue carried into a turn of a different length: rescaled with floor (deterministic, < 1 unit).
-        p.Carry = Fixed.FixedMath.MulDivFloor(p.Carry, newLen, oldLen);
+        // DIR5 §2.5 / ADR-061 §3.10: the sub-unit residue is an exact fraction of a unit, so a change of turn length
+        // leaves it unchanged; nothing is rescaled and nothing is discarded. (Superseded Slice B rule, removed:
+        // carry = floor(carry * newLen / oldLen), which dropped up to one ms-numerator unit at every band change.)
         Plan(s, p);
     }
 
@@ -264,7 +266,7 @@ public sealed class CampaignDemoWorld : IEventWorld
         foreach (var p in _processes)
         {
             L(p.Id); L(p.Generation); L(p.RemainingUnits); L(p.UnitsPerTurn); L(p.CurrentTurn);
-            L(p.AnchorMs); L(p.Carry); L(p.Completed ? 1 : 0); L(p.CompletedAtMs);
+            L(p.AnchorMs); L(p.Carry.Num); L(p.Carry.Den); L(p.Completed ? 1 : 0); L(p.CompletedAtMs);
         }
         L(_units.Count);
         foreach (var u in _units) { L(u.Id); L(u.Generation); L(u.Hp); L(u.Alive ? 1 : 0); L(u.DiedAtMs); }

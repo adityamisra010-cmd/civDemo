@@ -1,3 +1,6 @@
+using System.Buffers.Binary;
+using System.Security.Cryptography;
+
 namespace Proto.M7.Events;
 
 public enum RunStatus
@@ -10,14 +13,42 @@ public enum RunStatus
 
 public readonly record struct RunResult(RunStatus Status, long AtMs);
 
+/// <summary>One significant event listed in a decision window, in execution (key) order.</summary>
+public readonly record struct SignificantHit(byte Class, int Priority, long SourceId, int Kind, long TargetId);
+
 /// <summary>
-/// Drives the scheduler with turn interruption (spec §2.4; Taj Mahal rule; CR-006 §1.4 Option A semantics).
+/// A decision window (ADR-061 §3.5/§3.6): ONE per instant at which at least one significant event executed, listing ALL
+/// of them in key order. Its identity is (Index, InstantMs); both are functions of world state only, so a live run, a
+/// run with stops disabled and a replay produce the same windows.
+/// </summary>
+public sealed class DecisionWindow
+{
+    private readonly SignificantHit[] _hits;
+
+    public DecisionWindow(int index, long instantMs, SignificantHit[] hits)
+    {
+        Index = index;
+        InstantMs = instantMs;
+        _hits = hits;
+    }
+
+    public int Index { get; }
+    public long InstantMs { get; }
+    public IReadOnlyList<SignificantHit> Hits => _hits;
+}
+
+/// <summary>
+/// Drives the scheduler with turn interruption (spec §2.4; Taj Mahal rule; ADR-061 §3.6–§3.8). Rules: EventRules.
 ///
-/// RunUntil(limit) processes events in key order with Time &lt;= limit. When an event whose KIND is in the
-/// SignificantKinds data set executes at instant T, the runner keeps processing only events at T with class
-/// &lt; PlayerOrder, then stops and returns Interrupted(T). While stopped, IssueOrder appends to the
-/// SubTurnOrderLog and schedules the order at key (T, PlayerOrder, 0, SourceId = log index, Seq). The next
-/// RunUntil resumes the same turn; the orders execute first (they are the minimum keys left) and take effect at T.
+/// RunUntil(limit) processes events in key order with Time &lt;= limit. A window opens at instant T when an EXECUTED event
+/// of class &lt; PlayerOrder has a KIND in SignificantKinds; it collects every such event at T and closes when the next key
+/// has time &gt; T or class &gt;= PlayerOrder, or the run ends. Windows are recorded in EVERY mode. With stops enabled the
+/// runner then stops and returns Interrupted(T). While stopped, IssueOrder appends to the SubTurnOrderLog and schedules
+/// the order at key (T, PlayerOrder, 0, SourceId = log index, Seq). The next RunUntil resumes the same turn; the orders
+/// execute first (they are the minimum keys left) and take effect at T.
+///
+/// Order gate: an order is delivered only if its instant is the instant of the latest closed window; otherwise it is
+/// traced Refused and changes nothing. A hand-made or edited log therefore cannot force a split that state did not produce.
 ///
 /// Replay (CreateReplay): a fresh scheduler + world, all logged orders pre-scheduled, stops disabled.
 /// Why seq differences cannot reorder anything:
@@ -36,6 +67,9 @@ public sealed class Runner
     private readonly IEventWorld _world;
     private readonly SignificantKinds _significant;
     private readonly List<long> _interrupts = new();
+    private readonly List<DecisionWindow> _windows = new();
+    private readonly List<SignificantHit> _hits = new();
+    private long _collectAt = -1;
 
     public Runner(EventScheduler scheduler, IEventWorld world, SignificantKinds significant, bool stopOnSignificant = true)
     {
@@ -43,6 +77,7 @@ public sealed class Runner
         _world = world;
         _significant = significant;
         StopOnSignificant = stopOnSignificant;
+        _scheduler.OrderGate = IsDeliverable;
     }
 
     public bool StopOnSignificant { get; }
@@ -51,33 +86,55 @@ public sealed class Runner
     public bool IsStopped { get; private set; }
     public long StoppedAtMs { get; private set; } = -1;
     public IReadOnlyList<long> Interrupts => _interrupts;
+    public IReadOnlyList<DecisionWindow> Windows => _windows;
 
     public RunResult RunUntil(long limitMs)
     {
         if (limitMs < _scheduler.NowMs) throw new ArgumentOutOfRangeException(nameof(limitMs), "limit is in the past");
         IsStopped = false;
-        bool pending = false;
-        long stopAt = 0;
         while (_scheduler.TryPeekKey(out var key) && key.TimeMs <= limitMs)
         {
-            if (pending && (key.TimeMs != stopAt || key.Class >= (byte)EventClass.PlayerOrder)) break;
-            var outcome = _scheduler.ExecuteNext(_world, out var ev);
-            if (!pending && StopOnSignificant && outcome == TraceOutcome.Executed && _significant.Contains(ev.Kind))
+            if (_collectAt >= 0 && (key.TimeMs != _collectAt || key.Class >= (byte)EventClass.PlayerOrder))
             {
-                pending = true;
-                stopAt = ev.Key.TimeMs;
+                long at = CloseWindow();
+                if (StopOnSignificant) return Stop(at);
+            }
+            var outcome = _scheduler.ExecuteNext(_world, out var ev);
+            if (outcome == TraceOutcome.Executed && ev.Key.Class < (byte)EventClass.PlayerOrder && _significant.Contains(ev.Kind))
+            {
+                if (_collectAt < 0) _collectAt = ev.Key.TimeMs;
+                _hits.Add(new SignificantHit(ev.Key.Class, ev.Key.Priority, ev.Key.SourceId, ev.Kind, ev.Target.Id));
             }
         }
-        if (pending)
+        if (_collectAt >= 0)
         {
-            IsStopped = true;
-            StoppedAtMs = stopAt;
-            _interrupts.Add(stopAt);
-            return new RunResult(RunStatus.Interrupted, stopAt);
+            long at = CloseWindow();
+            if (StopOnSignificant) return Stop(at);
         }
         _scheduler.AdvanceTo(limitMs);
         return new RunResult(RunStatus.ReachedLimit, limitMs);
     }
+
+    private long CloseWindow()
+    {
+        long at = _collectAt;
+        _windows.Add(new DecisionWindow(_windows.Count, at, _hits.ToArray()));
+        _hits.Clear();
+        _collectAt = -1;
+        return at;
+    }
+
+    private RunResult Stop(long at)
+    {
+        IsStopped = true;
+        StoppedAtMs = at;
+        _interrupts.Add(at);
+        return new RunResult(RunStatus.Interrupted, at);
+    }
+
+    /// <summary>An order is deliverable only at the instant of the latest closed decision window (ADR-061 §3.7).</summary>
+    private bool IsDeliverable(ScheduledEvent order)
+        => _collectAt < 0 && _windows.Count > 0 && _windows[^1].InstantMs == order.Key.TimeMs;
 
     /// <summary>Issue a player order while stopped at an interrupt instant T; it is delivered AT T.</summary>
     public SubTurnOrder IssueOrder(int kind, long a, long b)
@@ -86,6 +143,21 @@ public sealed class Runner
         var o = Orders.Append(StoppedAtMs, kind, a, b);
         _scheduler.ScheduleOrder(o.InstantMs, o.Seq, o.Kind, o.A, o.B);
         return o;
+    }
+
+    /// <summary>SHA-256 over a canonical little-endian encoding of every decision window (index, instant, hits in order).</summary>
+    public string WindowsHashHex()
+    {
+        using var h = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        var b = new byte[8];
+        void L(long v) { BinaryPrimitives.WriteInt64LittleEndian(b, v); h.AppendData(b); }
+        L(_windows.Count);
+        foreach (var w in _windows)
+        {
+            L(w.Index); L(w.InstantMs); L(w.Hits.Count);
+            foreach (var x in w.Hits) { L(x.Class); L(x.Priority); L(x.SourceId); L(x.Kind); L(x.TargetId); }
+        }
+        return Convert.ToHexString(h.GetHashAndReset());
     }
 
     /// <summary>
