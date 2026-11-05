@@ -117,15 +117,27 @@ public class ProfilesCapsDomainTests
         Assert.Equal(1, auto.Calls);
     }
 
+    /// <summary>
+    /// MOVED PIN (lane N, M7 Phase C, 2026-11-05): until Sprint 1 the tactical engine refused a naval formation with
+    /// NotSupportedException("module is not built"). DIR5 §2.1 orders full TacticalResolver naval support, which lane N
+    /// built; the invariant this test protects — the default resolver for a naval battle is Tactical and the AutoResolver
+    /// is never called implicitly — is unchanged. A formation tagged Naval without a vessel class is now refused as an
+    /// invalid setup (ArgumentException), still without touching the AutoResolver. A naval battle that IS valid resolves
+    /// tactically: Proto.M7.Tests.Tactical.Domain.CombinedArmsTests.NavalBattleDefaultsToTheTacticalResolverAndIsResolvedTactically.
+    /// </summary>
     [Fact]
     public void NavalDomainIsNeverSilentlyAutoResolved()
     {
         var s = Meeting(UnitProfiles.HeavyInfantry, 10, UnitProfiles.HeavyInfantry, 10, 3);
         var naval = s with { Formations = new[] { s.Formations[0] with { Domain = Domain.Naval }, s.Formations[1] } };
         var auto = new StubAuto();
-        var ex = Assert.Throws<NotSupportedException>(() => BattleResolution.Resolve(naval, new KnowledgeAi(), new KnowledgeAi(), auto: auto));
-        Assert.Contains("Naval", ex.Message);
+        var ex = Assert.Throws<ArgumentException>(() => BattleResolution.Resolve(naval, new KnowledgeAi(), new KnowledgeAi(), auto: auto));
+        Assert.Contains("VesselClass", ex.Message);
         Assert.Equal(0, auto.Calls);   // default = Tactical even for naval; no fallback
+        var valid = MultiDomainScenarios.LineBattle(DomainProfiles.TurretWarship, 200_000, 3);
+        var r = BattleResolution.Resolve(valid, PassiveController.Instance, PassiveController.Instance, auto: auto);
+        Assert.Equal(ResolverKind.Tactical, r.Resolver);
+        Assert.Equal(0, auto.Calls);
     }
 
     [Fact]

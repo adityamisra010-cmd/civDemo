@@ -3,8 +3,9 @@ namespace Proto.M7.Tactical;
 /// <summary>
 /// Domain tag carried by formations, entities and results (spec §4 "Naval": O-1 decided full tactical control for naval
 /// battles, auto-resolve optional and never the default). The order / entity / event interfaces of this slice carry NO
-/// domain-specific field: the tag is the only place the domain appears. Only <see cref="Land"/> has a tactical module in
-/// Sprint 1; the naval and air modules are NOT built (brief §4).
+/// domain-specific field: the tag is the only place the domain appears. Sprint 1 built only <see cref="Land"/>; M7 Phase C
+/// lane N adds the naval and air modules to the same TacticalBattle (DIR5 §2.1: full tactical naval support, never
+/// auto-resolved by default) — see TacticalBattle.Domain*.cs.
 /// </summary>
 public enum Domain : byte
 {
@@ -32,6 +33,9 @@ public enum EntityState : byte
     Surrendered = 2,
     Dead = 3,
     Escaped = 4,
+    /// <summary>Lane N: a land entity aboard a transport vessel. Reversible (Active &lt;-&gt; Embarked); not on the field (cannot
+    /// see, be seen, fight or move on its own). Leaves the vessel only by landing, or with it (sinking, capture, escape).</summary>
+    Embarked = 5,
 }
 
 /// <summary>
@@ -49,6 +53,21 @@ public enum OrderKind : byte
     Rally = 4,
     /// <summary>Resume an attack after a Retreat issued in an EARLIER interval.</summary>
     Reengage = 5,
+
+    // ---- lane N (naval / air / combined arms). Each new kind is charged to the action budget AS one of the six classes
+    // above (TacticalBattle.BudgetClass), so the Director's two-action maximum and the anti-loop rules apply unchanged.
+    /// <summary>Land formation: board the transport formation TargetFormationId (budget class MoveTo).</summary>
+    Embark = 6,
+    /// <summary>Land formation: land from its transports and move to Pos (budget class MoveTo).</summary>
+    Disembark = 7,
+    /// <summary>Vessel formation: close with and board the enemy vessel formation TargetFormationId (budget class Attack).</summary>
+    Board = 8,
+    /// <summary>Area fire on TargetFormationId (if &gt;= 0) or on the point Pos (budget class Attack).</summary>
+    Bombard = 9,
+    /// <summary>Vessels / aircraft: go to Pos and hold station (aircraft orbit or hover); weapons free (budget class MoveTo).</summary>
+    Patrol = 10,
+    /// <summary>Vessels / aircraft: keep station on the OWN formation TargetFormationId and engage threats (budget class MoveTo).</summary>
+    Escort = 11,
 }
 
 /// <summary>Map edge a side withdraws / routs toward.</summary>

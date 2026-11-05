@@ -9,6 +9,10 @@ namespace Proto.M7.Tactical;
 /// Survivors = ActiveAtEnd + Escaped (Escaped = RoutedEscaped + DisengagedEscaped + orderly-retreat escapes).
 /// Killed and Surrendered are the personnel deltas a future Ledger.Transfer would move (integration is a dependency:
 /// ADR-055 tables, O-35 immortality) — nothing is transferred here.
+/// Lane N (verification round 1, N-R1-05): the counted unit is the formation's ENTITY — a person for a land formation, a
+/// HULL for a vessel formation, an AIRFRAME for an aircraft formation (CAP-3 counted objects). Crew casualties on a hull
+/// that stays afloat do not appear here; the people of every domain (crew, troops aboard, their losses by place) are in
+/// <see cref="BattleResult.Personnel"/>, the source for any per-person casualty measure of a multi-domain battle.
 /// </summary>
 public sealed record FormationResult(
     long FormationId, int Side, Domain Domain, int FamilyKey,
@@ -16,8 +20,11 @@ public sealed record FormationResult(
     long ActiveAtEnd, long Escaped, long RoutedEscaped, long DisengagedEscaped,
     long MoraleEnd, long DamageDealt, long DamageTaken, long AttacksMade)
 {
+    /// <summary>Lane N: land entities still aboard a transport when the battle ended (included in Survivors).</summary>
+    public long EmbarkedAtEnd { get; init; }
     public bool Conserved => Start == Survivors + Killed + Surrendered;
-    /// <summary>Personnel leaving the formation's count (killed + captured).</summary>
+    /// <summary>Entities leaving the formation's count (killed + captured): people for a land formation, hulls / airframes
+    /// for a vessel / aircraft formation (see the type summary).</summary>
     public long PersonnelLoss => Killed + Surrendered;
 }
 
@@ -29,6 +36,10 @@ public sealed record BattleResult(
     long Pulses, long EndMs, long EventsExecuted, long EventsDropped,
     string TraceHash, string StateHash, FormationResult[] Formations)
 {
+    /// <summary>Lane N: the battle's personnel ledger (every person's location at the end, every flow). Not part of
+    /// <see cref="ResultHash"/> (it has its own hash); null only for results not produced by the tactical engine.</summary>
+    public PersonnelReport? Personnel { get; init; }
+
     /// <summary>Canonical hash of the result (no trace/state hash inside; used for equality across resolvers' runs).</summary>
     public string ResultHash()
     {
@@ -64,8 +75,8 @@ public sealed class TacticalResolver : IBattleResolver
 /// <summary>
 /// Resolver selection (spec §4 Naval / O-1): the resolver is an EXPLICIT parameter that defaults to Tactical. AutoResolver is
 /// used only when explicitly requested AND supplied; there is no implicit fallback to auto for any domain (a naval battle
-/// with the default resolver goes to the tactical engine, which reports that the naval module is not built — it is never
-/// silently auto-resolved).
+/// with the default resolver goes to the tactical engine, which since lane N resolves it tactically — it is never silently
+/// auto-resolved).
 /// </summary>
 public static class BattleResolution
 {

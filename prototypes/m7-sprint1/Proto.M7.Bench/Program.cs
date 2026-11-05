@@ -9,6 +9,7 @@ using Proto.M7.Time;
 if (args.Length > 0 && args[0] == "spatial") { SpatialBench.Run(args); return; }
 if (args.Length > 0 && args[0] == "tactical") { TacticalBench.Run(args); return; }   // Slice D
 if (args.Length > 0 && args[0] == "parity") { ParityBench.Run(args); return; }       // Slice E
+if (args.Length > 0 && args[0] == "domain") { DomainBench.Run(args); return; }       // lane N (naval / air / combined arms)
 long n = args.Length > 0 ? long.Parse(args[0], System.Globalization.CultureInfo.InvariantCulture) : 2_000_000;
 int reps = args.Length > 1 ? int.Parse(args[1], System.Globalization.CultureInfo.InvariantCulture) : 5;
 Console.WriteLine($"Proto.M7.Bench scheduler: events={n} reps={reps} cpu={Environment.ProcessorCount} os={System.Runtime.InteropServices.RuntimeInformation.OSDescription}");

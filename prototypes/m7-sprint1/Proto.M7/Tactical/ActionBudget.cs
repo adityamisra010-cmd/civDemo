@@ -57,9 +57,22 @@ public sealed class ActionBudget
 
     private bool AttackUsed => HasUsed(OrderKind.Attack) || HasUsed(OrderKind.Reengage);
 
+    /// <summary>
+    /// Lane N: the budget class of an order kind. The six land kinds are their own class; every naval / air / combined-arms
+    /// kind is charged as one of them (Embark, Disembark, Patrol, Escort as MoveTo; Board, Bombard as Attack), so the
+    /// two-action maximum and the anti-loop rules above apply to every domain unchanged. Unknown values map to themselves.
+    /// </summary>
+    public static OrderKind ClassOf(OrderKind k) => k switch
+    {
+        OrderKind.Embark or OrderKind.Disembark or OrderKind.Patrol or OrderKind.Escort => OrderKind.MoveTo,
+        OrderKind.Board or OrderKind.Bombard => OrderKind.Attack,
+        _ => k,
+    };
+
     /// <summary>The refusal an order of this kind WOULD get now (None = acceptable). Pure.</summary>
     public BudgetRefusal Check(OrderKind k)
     {
+        k = ClassOf(k);       // lane N
         if ((byte)k > (byte)OrderKind.Reengage) throw new ArgumentOutOfRangeException(nameof(k));
         if (HasUsed(k)) return BudgetRefusal.KindRepeated;
         if (Used >= N) return BudgetRefusal.TotalExhausted;
@@ -75,6 +88,7 @@ public sealed class ActionBudget
     {
         var r = Check(k);
         if (r != BudgetRefusal.None) return r;
+        k = ClassOf(k);       // lane N
         Used++;
         _kindMask |= 1 << (int)k;
         return BudgetRefusal.None;

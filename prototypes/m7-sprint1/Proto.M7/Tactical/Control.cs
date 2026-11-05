@@ -19,6 +19,17 @@ public enum OrderInvalid : byte
     NoPath = 5,
     NothingToReengage = 6,
     BadStep = 7,
+    // ---- lane N
+    /// <summary>The formation's domain or equipment cannot execute this order kind.</summary>
+    NotCapable = 8,
+    /// <summary>Embark: the transport formation lacks the free capacity for the whole formation.</summary>
+    NoCapacity = 9,
+    /// <summary>Disembark: the formation has nobody aboard a transport.</summary>
+    NotEmbarked = 10,
+    /// <summary>Aircraft: none ready (turnaround not finished).</summary>
+    NotReady = 11,
+    /// <summary>Aircraft: no sorties left.</summary>
+    NoSorties = 12,
 }
 
 /// <summary>
@@ -58,6 +69,9 @@ public sealed class SideView
     /// <summary>Known enemy entities, ascending entity id.</summary>
     public IReadOnlyList<KnownEnemy> Known { get; }
     public IReadOnlyList<Vec2L> Objectives { get; }
+    /// <summary>Lane N: own vessels / aircraft / embarked formations and the side's knowledge of enemy vessels and aircraft.
+    /// Empty (never null) in a land-only battle.</summary>
+    public DomainView Domain { get; internal set; } = DomainView.Empty;
 }
 
 /// <summary>Decides one side's formation orders at each pulse start.</summary>

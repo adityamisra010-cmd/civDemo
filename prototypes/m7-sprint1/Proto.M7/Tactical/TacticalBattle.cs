@@ -41,7 +41,7 @@ public readonly record struct EntityView(long Id, long FormationId, int Side, En
 /// TERMINATION (O-4: no pulse ceiling): elimination of Active entities on a side, or the five-pulse inactivity rule with the
 /// active-concealment clause (see <see cref="PulseEnd"/>). There is NO maximum pulse count anywhere in this class.
 /// </summary>
-public sealed class TacticalBattle : IEventWorld
+public sealed partial class TacticalBattle : IEventWorld
 {
     private sealed class Ent
     {
@@ -51,6 +51,8 @@ public sealed class TacticalBattle : IEventWorld
         public long BestEnemy = -1, BestObj = -1, BestEdge = -1;
         public bool RoutedEscape, Disengaged;
         public long Speed;
+        /// <summary>lane N (snipers): earliest instant of the next legacy ranged shot (FireIntervalSteps).</summary>
+        public long NextRangedMs = long.MinValue;
         public bool OnField => State == EntityState.Active || State == EntityState.Routing;
     }
 
@@ -113,8 +115,13 @@ public sealed class TacticalBattle : IEventWorld
         _contactMm = 2 * _r.EntityRadiusMm + _r.ContactReachMm;
 
         // Formations: sorted by id (input order irrelevant).
-        var specs = (FormationSpec[])setup.Formations.Clone();
-        Array.Sort(specs, static (a, b) => a.Id.CompareTo(b.Id));
+        var allSpecs = (FormationSpec[])setup.Formations.Clone();
+        Array.Sort(allSpecs, static (a, b) => a.Id.CompareTo(b.Id));
+        // lane N hook: vessel / air formations go to the domain modules (TacticalBattle.Domain.cs); ids are unique across all.
+        for (int i = 1; i < allSpecs.Length; i++)
+            if (allSpecs[i].Id == allSpecs[i - 1].Id) throw new ArgumentException($"duplicate formation id {allSpecs[i].Id}");
+        var specs = Array.FindAll(allSpecs, static x => x.Domain == Domain.Land);
+        var domainSpecs = Array.FindAll(allSpecs, static x => x.Domain != Domain.Land);
         _f = new Form[specs.Length];
         _fids = new long[specs.Length];
         var ents = new List<Ent>();
@@ -124,11 +131,10 @@ public sealed class TacticalBattle : IEventWorld
             if (i > 0 && s.Id == specs[i - 1].Id) throw new ArgumentException($"duplicate formation id {s.Id}");
             if (s.Id < 0 || s.Id > 1_000_000_000) throw new ArgumentOutOfRangeException(nameof(setup), "formation id out of range");
             if (s.Side != 0 && s.Side != 1) throw new ArgumentException("side must be 0 or 1");
-            if (s.Domain != Domain.Land)
-                throw new NotSupportedException($"formation {s.Id}: the {s.Domain} tactical module is not built in Sprint 1 (O-1 decides full tactical control; the module is out of scope). No implicit auto-resolve.");
             string? capErr = setup.Caps.Check(s.Profile.CapFamily, s.Count);
             if (capErr is not null) throw new ArgumentException($"formation {s.Id}: {capErr}");
-            RequirePassable(s.Anchor, $"formation {s.Id} anchor");
+            bool aboard = s.EmbarkedOn is not null;          // lane N: starts aboard a transport (placed by DomainInit)
+            if (!aboard) RequirePassable(s.Anchor, $"formation {s.Id} anchor");
             var f = new Form
             {
                 Id = s.Id, Side = s.Side, Spec = s, P = s.Profile, Start = s.Count,
@@ -164,7 +170,7 @@ public sealed class TacticalBattle : IEventWorld
             }
             for (int k = 0; k < eid.Length; k++)
             {
-                RequirePassable(epos[k], $"entity {eid[k]}");
+                if (!aboard) RequirePassable(epos[k], $"entity {eid[k]}");
                 ents.Add(new Ent
                 {
                     Id = eid[k], F = i, Side = s.Side, Slot = k, P = s.Profile, Pos = epos[k], Hp = s.Profile.MaxHp,
@@ -184,7 +190,8 @@ public sealed class TacticalBattle : IEventWorld
         }
         for (int i = 0; i < _e.Length; i++)
             for (int j = i + 1; j < _e.Length; j++)
-                if (Separation.Overlaps(_e[i].Pos, _r.EntityRadiusMm, _e[j].Pos, _r.EntityRadiusMm))
+                if (_f[_e[i].F].Spec.EmbarkedOn is null && _f[_e[j].F].Spec.EmbarkedOn is null
+                    && Separation.Overlaps(_e[i].Pos, _r.EntityRadiusMm, _e[j].Pos, _r.EntityRadiusMm))
                     throw new ArgumentException($"entities {_e[i].Id} and {_e[j].Id} overlap at start");
         var members = new List<int>[_f.Length];
         for (int i = 0; i < _f.Length; i++) members[i] = new List<int>();
@@ -198,6 +205,7 @@ public sealed class TacticalBattle : IEventWorld
                 LastSeen = new Vec2L[_e.Length], LastSeenMs = new long[_e.Length],
             };
         _s = new EventScheduler(setup.StartMs);
+        DomainInit(domainSpecs);      // lane N hook
     }
 
     // ------------------------------------------------------------------ public surface
@@ -264,7 +272,8 @@ public sealed class TacticalBattle : IEventWorld
     public bool IsLive(EntityRef r)
     {
         int i = Array.BinarySearch(_ids, r.Id);
-        return i >= 0 && _e[i].Gen == r.Generation;
+        if (i >= 0) return _e[i].Gen == r.Generation;
+        return DomainIsLive(r);       // lane N hook (false when there are no vessels / aircraft)
     }
 
     public void Execute(in ScheduledEvent ev, EventScheduler s)
@@ -280,7 +289,9 @@ public sealed class TacticalBattle : IEventWorld
             case TacticalKinds.Damage: Damage(ev); break;
             case TacticalKinds.Resolve: Resolve(t); break;
             case TacticalKinds.PulseEnd: PulseEnd(t, ev.A); break;
-            default: throw new InvalidOperationException($"unknown tactical event kind {ev.Kind}");
+            default:
+                if (ExecuteDomain(ev)) break;     // lane N hook
+                throw new InvalidOperationException($"unknown tactical event kind {ev.Kind}");
         }
     }
 
@@ -292,6 +303,7 @@ public sealed class TacticalBattle : IEventWorld
         _pulseStartMs = t;
         foreach (var f in _f) { f.Budget.Refresh(); f.StateChanged = false; f.CasualtiesPulse = 0; }
         foreach (var e in _e) e.Primary = false;
+        DomainPulseStart();       // lane N hook
         for (int side = 0; side < 2; side++)
         {
             var view = BuildView(side, t);
@@ -316,6 +328,7 @@ public sealed class TacticalBattle : IEventWorld
 
     private void ApplyOrder(long t, long index)
     {
+        if (TryApplyDomainOrder(t, (int)index)) return;     // lane N hook (false: the land path below handles it unchanged)
         var entry = _log[(int)index];
         var o = entry.Request;
         OrderInvalid inv = OrderInvalid.None;
@@ -382,7 +395,9 @@ public sealed class TacticalBattle : IEventWorld
         var known = new List<KnownEnemy>();
         for (int i = 0; i < _e.Length; i++)
             if (k.Ever[i] && !k.Gone[i]) known.Add(new KnownEnemy(_e[i].Id, _f[_e[i].F].Id, k.LastSeen[i], k.LastSeenMs[i], k.Tracked[i]));
-        return new SideView(side, _pulse, t, _grid.CellSizeMm, own.ToArray(), known.ToArray(), _setup.Sides[side].Objectives);
+        var view = new SideView(side, _pulse, t, _grid.CellSizeMm, own.ToArray(), known.ToArray(), _setup.Sides[side].Objectives);
+        FillDomainView(view, side);       // lane N hook
+        return view;
     }
 
     // ------------------------------------------------------------------ step: movement
@@ -410,6 +425,7 @@ public sealed class TacticalBattle : IEventWorld
             e.Pos = res[i].Pos;
         }
         UpdateMinima();
+        if (_hasDomain) DomainStep(t);        // lane N hook: vessels, aircraft, embark / landing
         _s.Schedule(t, EventClass.Detection, 0, 0, TacticalKinds.Detect, p, j);
         _s.Schedule(t, EventClass.Resolve, 0, 0, TacticalKinds.Resolve, p, j);
         if (j + 1 < _stepsPerPulse) _s.Schedule(t + _r.StepMs, EventClass.Arrival, 0, 0, TacticalKinds.Step, p, j + 1);
@@ -553,6 +569,7 @@ public sealed class TacticalBattle : IEventWorld
     private void Detect(long t)
     {
         long S = _grid.CellSizeMm;
+        if (_hasDomain) DomainPreDetect();        // lane N hook
         for (int side = 0; side < 2; side++)
         {
             var k = _k[side];
@@ -592,6 +609,7 @@ public sealed class TacticalBattle : IEventWorld
                 {
                     bool exposed = tg.Moved || tg.RevealUntilMs >= t || best == Q32.One;
                     Q32 p = exposed ? best : best.Mul(_r.StationaryConcealment);
+                    if (tg.P.PersonalConcealment != Q32.One && tg.RevealUntilMs < t) p = p.Mul(tg.P.PersonalConcealment);   // lane N: snipers
                     detect = CounterRng.Chance(_setup.Seed, TacticalStreams.Detection, tg.Id, t, side, 0, p);
                 }
                 if (!detect) continue;
@@ -603,6 +621,8 @@ public sealed class TacticalBattle : IEventWorld
                 }
             }
         }
+
+        if (_hasDomain) DomainKnowledge(t);       // lane N hook: vessel / aircraft observers; knowledge of vessels / aircraft
 
         // Enemy discs per side for direct fire (positions are fixed until the next Step).
         for (int side = 0; side < 2; side++)
@@ -627,12 +647,13 @@ public sealed class TacticalBattle : IEventWorld
                 if (a.P.Melee > 0) ScheduleFire(t, a, _e[tgt], 1);
                 continue;
             }
-            if (a.P.IsRanged && FiringStance(f.Dir) && !a.Moved)
+            if (a.P.IsRanged && FiringStance(f.Dir) && !a.Moved && t >= a.NextRangedMs)   // lane N: fire interval (snipers)
             {
                 tgt = NearestTracked(a, a.P.RangeCells * S, out _);
                 if (tgt >= 0) ScheduleFire(t, a, _e[tgt], 2);
             }
         }
+        if (_hasDomain) DomainTargets(t);         // lane N hook: domain weapons, boarding, ramming
     }
 
     private void ScheduleFire(long t, Ent a, Ent tg, long mode)
@@ -685,6 +706,7 @@ public sealed class TacticalBattle : IEventWorld
         var r = Projectiles.DirectFire(_grid, a.Pos, _r.MuzzleHeightMm, tg.Pos, _r.AimHeightMm, _enemyDiscs[a.Side], a.Id);
         if (r.Outcome == FireOutcome.Blocked) return;          // not a valid shot: no activity
         a.Primary = true; a.RevealUntilMs = t + _r.StepMs; fa.Attacks++;
+        a.NextRangedMs = t + a.P.FireIntervalSteps * _r.StepMs;      // lane N: FireIntervalSteps (default 1 = next step)
         if (r.Outcome != FireOutcome.Hit) return;
         var struck = _e[EntIndex(r.EntityId)];
         if (CounterRng.Chance(_setup.Seed, TacticalStreams.Hit, a.Id, t, struck.Id, 0, HitChance(fa.EffRanged, _f[struck.F].EffDefence)))
@@ -705,6 +727,7 @@ public sealed class TacticalBattle : IEventWorld
 
     private void Resolve(long t)
     {
+        if (_hasDomain) DomainResolve(t);         // lane N hook: losses aboard, sinking, capture, aircraft down, vessel morale
         foreach (var e in _e)
             if (e.OnField && e.Hp <= 0) { SetState(e, EntityState.Dead); _f[e.F].KilledStep++; }
         foreach (var f in _f)
@@ -751,6 +774,7 @@ public sealed class TacticalBattle : IEventWorld
 
     private void SetState(Ent e, EntityState s)
     {
+        var old = e.State;
         e.State = s;
         e.Gen = checked(e.Gen + 1);
         e.Primary = true;
@@ -761,12 +785,14 @@ public sealed class TacticalBattle : IEventWorld
             var k = _k[1 - e.Side];
             if (k.Tracked[i]) { k.Tracked[i] = false; k.Gone[i] = true; }   // the enemy saw it fall / leave
         }
+        OnLandStateChanged(e, old, s);        // lane N hook: personnel ledger transfer
     }
 
     private void CheckElimination(long t)
     {
         int a0 = 0, a1 = 0;
         foreach (var e in _e) if (e.State == EntityState.Active) { if (e.Side == 0) a0++; else a1++; }
+        if (_hasDomain) DomainActiveCounts(ref a0, ref a1);       // lane N hook
         if (a0 > 0 && a1 > 0) return;
         if (a0 == 0 && a1 == 0) End(t, BattleEndReason.BothEliminated, -1);
         else End(t, BattleEndReason.SideEliminated, a0 == 0 ? 0 : 1);
@@ -813,11 +839,13 @@ public sealed class TacticalBattle : IEventWorld
             hasField[f.Side] = true;
             if (f.Inactive < _r.InactivityPulses) allInactive[f.Side] = false;
         }
+        if (_hasDomain) DomainPulseEnd(hasField, allInactive);        // lane N hook
         bool d0 = hasField[0] && allInactive[0], d1 = hasField[1] && allInactive[1];
         if (d0 || d1)
         {
             foreach (var e in _e)
                 if (e.OnField && ((e.Side == 0 && d0) || (e.Side == 1 && d1))) { e.Disengaged = true; SetState(e, EntityState.Escaped); }
+            if (_hasDomain) DomainDisengage(d0, d1);                    // lane N hook
             End(t, d0 && d1 ? BattleEndReason.BothDisengaged : BattleEndReason.SideDisengaged, d0 && d1 ? -1 : (d0 ? 0 : 1));
             return;
         }
@@ -828,7 +856,8 @@ public sealed class TacticalBattle : IEventWorld
     {
         var e = _e[i];
         var c = _grid.CellOf(e.Pos);
-        return _conceal.Multiplier(_grid.ClassAt(c.X, c.Y)) < Q32.One && !_k[1 - e.Side].Tracked[i];
+        return (_conceal.Multiplier(_grid.ClassAt(c.X, c.Y)) < Q32.One || e.P.PersonalConcealment < Q32.One)   // lane N: snipers
+               && !_k[1 - e.Side].Tracked[i];
     }
 
     private bool SearcherNear(Ent e)
@@ -839,7 +868,7 @@ public sealed class TacticalBattle : IEventWorld
             long env = x.P.SightCells * _grid.CellSizeMm;
             if (Vec2L.DistanceSq(x.Pos, e.Pos) <= (Int128)env * env) return true;
         }
-        return false;
+        return _hasDomain && DomainSearcherNear(e);       // lane N hook
     }
 
     // ------------------------------------------------------------------ end + aggregation
@@ -848,33 +877,42 @@ public sealed class TacticalBattle : IEventWorld
     {
         foreach (var e in _e)
             if (e.State == EntityState.Routing) { e.RoutedEscape = true; SetState(e, EntityState.Escaped); }   // fled when the field was decided
+        if (_hasDomain) DomainEndStart();         // lane N hook
         var fr = new FormationResult[_f.Length];
         for (int i = 0; i < _f.Length; i++)
         {
             var f = _f[i];
-            long act = 0, esc = 0, resc = 0, desc = 0, dead = 0, sur = 0;
+            long act = 0, esc = 0, resc = 0, desc = 0, dead = 0, sur = 0, emb = 0;
             foreach (int m in f.Members)
             {
                 var e = _e[m];
                 switch (e.State)
                 {
                     case EntityState.Active: act++; break;
+                    case EntityState.Embarked: emb++; break;       // lane N: still aboard a transport (a survivor)
                     case EntityState.Escaped: esc++; if (e.RoutedEscape) resc++; if (e.Disengaged) desc++; break;
                     case EntityState.Dead: dead++; break;
                     case EntityState.Surrendered: sur++; break;
                     default: throw new InvalidOperationException("routing entity left after End");
                 }
             }
-            fr[i] = new FormationResult(f.Id, f.Side, f.Spec.Domain, f.P.FamilyKey, f.Start, act + esc, dead, sur, act, esc, resc, desc,
-                                        f.Morale, f.DamageDealt, f.DamageTaken, f.Attacks);
+            fr[i] = new FormationResult(f.Id, f.Side, f.Spec.Domain, f.P.FamilyKey, f.Start, act + esc + emb, dead, sur, act, esc, resc, desc,
+                                        f.Morale, f.DamageDealt, f.DamageTaken, f.Attacks) { EmbarkedAtEnd = emb };
             if (!fr[i].Conserved) throw new InvalidOperationException($"conservation violated for formation {f.Id}");
         }
         int holds = -1;
         bool any0 = false, any1 = false;
         foreach (var e in _e) if (e.State == EntityState.Active) { if (e.Side == 0) any0 = true; else any1 = true; }
+        if (_hasDomain)       // lane N hook: vessels and aircraft also hold the field
+        {
+            int h0 = 0, h1 = 0;
+            DomainActiveCounts(ref h0, ref h1, onFieldOnly: true);
+            any0 |= h0 > 0; any1 |= h1 > 0;
+        }
         if (any0 && !any1) holds = 0; else if (any1 && !any0) holds = 1;
+        fr = DomainResults(fr);       // lane N hook (unchanged when there are no vessel / air formations)
         _result = new BattleResult(ResolverKind.Tactical, reason, side, holds, _pulse + 1, t, _s.ExecutedCount, _s.DroppedCount,
-                                   _s.Trace.HashHex(), StateHashHex(), fr);
+                                   _s.Trace.HashHex(), StateHashHex(), fr) { Personnel = _ledger.Report() };
     }
 
     public string StateHashHex()
@@ -898,6 +936,7 @@ public sealed class TacticalBattle : IEventWorld
         }
         for (int s = 0; s < 2; s++)
             for (int i = 0; i < _e.Length; i++) L((_k[s].Tracked[i] ? 1 : 0) | (_k[s].Ever[i] ? 2 : 0) | (_k[s].Gone[i] ? 4 : 0));
+        if (_hasDomain) AppendDomainState(h);     // lane N hook
         return Convert.ToHexString(h.GetHashAndReset());
     }
 

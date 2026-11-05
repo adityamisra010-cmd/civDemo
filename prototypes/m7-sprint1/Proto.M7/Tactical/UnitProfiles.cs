@@ -1,3 +1,5 @@
+using Proto.M7.Fixed;
+
 namespace Proto.M7.Tactical;
 
 /// <summary>
@@ -14,6 +16,12 @@ public enum CapFamily : byte
     FixedWing = 5,              // :400
     Snipers = 6,                // :401
     Mortars = 7,                // :402
+    /// <summary>
+    /// Lane N: a family with NO per-formation cap. D-076 §5 CAP-5 lists families without a cap ("Any cap for them would be
+    /// invented"); D-079 R6 keeps cavalry, siege (rams to field artillery), air defence, missiles and reconnaissance
+    /// uncapped (economy-governed). <see cref="ProposedCaps.Check"/> never refuses a positive count for it.
+    /// </summary>
+    Uncapped = 8,
 }
 
 /// <summary>
@@ -34,12 +42,14 @@ public sealed class ProposedCaps
     /// <summary>The proposed caps exactly as listed at docs/m7-spec.md:395-402.</summary>
     public static ProposedCaps Proposed { get; } = new(new[] { 50, 60, 5, 3, 5, 1, 2, 5 });
 
-    public int CapOf(CapFamily f) => _cap[(int)f];
+    /// <summary>The cap of a family; <see cref="int.MaxValue"/> for <see cref="CapFamily.Uncapped"/> (no cap — lane N).</summary>
+    public int CapOf(CapFamily f) => f == CapFamily.Uncapped ? int.MaxValue : _cap[(int)f];
 
     /// <summary>A copy with one family's cap replaced (configurability; the shipped proposal is untouched).</summary>
     public ProposedCaps WithOverride(CapFamily f, int cap)
     {
         if (cap <= 0) throw new ArgumentOutOfRangeException(nameof(cap));
+        if (f == CapFamily.Uncapped) throw new ArgumentException("an uncapped family has no cap to override (lane N: no cap is invented)", nameof(f));
         var c = (int[])_cap.Clone();
         c[(int)f] = cap;
         return new ProposedCaps(c);
@@ -49,6 +59,7 @@ public sealed class ProposedCaps
     public string? Check(CapFamily f, long count)
     {
         if (count <= 0) return "formation must have at least one entity";
+        if (f == CapFamily.Uncapped) return null;          // lane N: D-076 CAP-5 / D-079 R6
         if (count > _cap[(int)f]) return $"formation of {count} exceeds the proposed {f} cap {_cap[(int)f]} ({Citation})";
         return null;
     }
@@ -80,6 +91,13 @@ public sealed record UnitProfile(
     /// <summary>Per-entity hit points. Mapping Integrity band value -&gt; entity HP 1:1 is PLACEHOLDER (invented).</summary>
     public long MaxHp => Integrity;
     public bool IsRanged => Ranged > 0 && RangeCells > 0;
+
+    // ---- lane N (snipers, M7 Phase C): both default to the identity, so every existing profile behaves exactly as before.
+    /// <summary>Legacy ranged fire: at most one shot per this many internal steps (low fire rate). Default 1 = every step.</summary>
+    public int FireIntervalSteps { get; init; } = 1;
+    /// <summary>Personal concealment (camouflage): multiplies the enemy's acquisition chance unless the entity fired within the
+    /// last step. Default One = none. Also makes the entity "concealed" for the active-concealment clause.</summary>
+    public Q32 PersonalConcealment { get; init; } = Q32.One;
 }
 
 /// <summary>The two profiles the vertical slice needs (spec §4: "do not invent other stats beyond what is needed").</summary>

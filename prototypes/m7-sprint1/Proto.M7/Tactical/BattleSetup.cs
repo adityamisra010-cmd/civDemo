@@ -114,6 +114,17 @@ public sealed record FormationSpec(long Id, int Side, UnitProfile Profile, int C
     public long Leadership { get; init; }
     /// <summary>Slice E condition input: supply fraction met, Q32 in [0, 1] (see <see cref="ConditionMath"/>; PLACEHOLDER mapping). Default One = identity.</summary>
     public Q32 Supply { get; init; } = Q32.One;
+
+    // ---- lane N (naval / air / combined arms). Land formations leave all four null.
+    /// <summary>Domain Naval: the vessel class of every hull (Count = hulls; Profile = the crew's personal profile).</summary>
+    public VesselClass? Vessel { get; init; }
+    /// <summary>Domain Air: the airframe class of every aircraft (Count = airframes; Profile = the aircrew's personal profile).</summary>
+    public AirframeClass? Airframe { get; init; }
+    /// <summary>Land only: domain weapons of each entity (crew-served guns: coastal, field, air defence), resolved by the
+    /// combined-arms layer. Null = none (legacy land fire only).</summary>
+    public WeaponSpec[]? Weapons { get; init; }
+    /// <summary>Land only: the formation starts the battle aboard this own transport formation (Anchor is then unused).</summary>
+    public long? EmbarkedOn { get; init; }
 }
 
 /// <summary>Per-side configuration.</summary>
@@ -136,4 +147,6 @@ public sealed record BattleSetup(
     public ProposedCaps Caps { get; init; } = ProposedCaps.Proposed;
     /// <summary>Global instant (ms on the B timeline) at which the battle starts.</summary>
     public long StartMs { get; init; }
+    /// <summary>Lane N: rules and air bases of the naval / air / combined-arms modules (null = defaults).</summary>
+    public MultiDomainSetup? MultiDomain { get; init; }
 }
