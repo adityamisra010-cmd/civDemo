@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Gfx.Demo</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gfx.Engine\Gfx.Engine.csproj" />
+    <ProjectReference Include="..\Gfx.Proc\Gfx.Proc.csproj" />
+    <ProjectReference Include="..\Gfx.Units\Gfx.Units.csproj" />
+    <ProjectReference Include="..\Gfx.Avatar\Gfx.Avatar.csproj" />
+    <ProjectReference Include="..\Gfx.Cinematics\Gfx.Cinematics.csproj" />
+    <!-- Other lanes: add your library ProjectReference here (Gfx.Proc, Gfx.Units, Gfx.Avatar, Gfx.Cinematics). -->
+  </ItemGroup>
+</Project>

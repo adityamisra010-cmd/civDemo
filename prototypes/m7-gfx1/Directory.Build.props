@@ -1,0 +1,22 @@
+<Project>
+  <!--
+    M7 graphics prototype G1: SELF-CONTAINED build settings.
+    Deliberately does NOT import the repository-root Directory.Build.props, so this folder builds on
+    its own and can be deleted to revert (implementation-spec §0). Settings copied from
+    prototypes/m7-sprint1/Directory.Build.props (which copies the root props: D-001, Law 5).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Law 5: culture-sensitive parse/format is banned; run everything culture-invariant. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <!-- Pinned MonoGame version (same as Sim.Ui). One place to change it. -->
+  <PropertyGroup>
+    <MonoGameVersion>3.8.5</MonoGameVersion>
+  </PropertyGroup>
+</Project>

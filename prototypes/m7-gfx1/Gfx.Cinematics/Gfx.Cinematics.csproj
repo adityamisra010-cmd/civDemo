@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Lane A: outcome-driven cinematic planner (pure, integer) + player (presentation). Reads a LABELLED WarOutcome
+       fixture and two AvatarProfiles; never writes them. -->
+  <PropertyGroup>
+    <RootNamespace>Gfx.Cinematics</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gfx.Engine\Gfx.Engine.csproj" />
+    <ProjectReference Include="..\Gfx.Avatar\Gfx.Avatar.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Gfx.Tests" />
+  </ItemGroup>
+</Project>

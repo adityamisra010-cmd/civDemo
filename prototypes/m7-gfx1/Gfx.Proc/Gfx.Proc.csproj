@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Lane T: procedural terrain. Authoritative/ is INTEGER-ONLY (scanned by scripts/check-gfx-determinism.sh);
+       Presentation/ and Scenes/ are float presentation code that only READ the authoritative grid. -->
+  <PropertyGroup>
+    <RootNamespace>Gfx.Proc</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Gfx.Tests" />
+    <ProjectReference Include="..\Gfx.Engine\Gfx.Engine.csproj" />
+  </ItemGroup>
+</Project>
