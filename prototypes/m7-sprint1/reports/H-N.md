@@ -126,6 +126,7 @@ over: hull damage `⌊RamDamage · v / vmax⌋` (≥ 1), rammer stops, cooldown 
 exactly the target's hull loss; no ram at boarding speed below max/2. (Round 2, N-R2-07, measured: against a single hull the
 cooldown never binds — the rammer is held in contact at speed 0 and never regains ramming speed there; it binds when the
 rammed hull sinks and the next one is near: a 2 s cooldown rams again 10 s later, the 30 s cooldown does not — §12.)
+Superseded in part by D-081 (2026-11-05); see H-RAM.md
 
 **Boarding.** Board directive, speed ≤ 2.5 m/s, enemy hull within `rA + rB + 5 m`: one fight per unordered pair per step;
 casualties on B = `aboardA · p(meleeA, defenceB) · 20‰/s · dt` with the integer part plus a counter-RNG Bernoulli on the

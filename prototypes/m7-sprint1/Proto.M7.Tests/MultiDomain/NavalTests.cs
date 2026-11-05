@@ -200,21 +200,38 @@ public class NavalTests
     [Fact]
     public void RamDamageScalesWithClosingSpeedAndOnlyAtRammingSpeed()
     {
+        // [RAM] Re-pinned for D-081 (2026-11-05; lane N asserted damage in [Ram/2, Ram] from v / vmax at speed >= max/2):
+        // a ram needs closing speed >= the class's ramming speed and a breach does EXACTLY RamDamage * v_n^2 / MaxSpeed^2
+        // (kinetic energy of the normal closing speed, RamPhysics); the breaching rammer is stopped (its beak is embedded).
         var g = DomainProfiles.Galley;
         var s = Sea(50_000, 4, null, Ship(1, 0, g, M(1000, 1000)), Ship(2, 1, g, M(1110, 1000)));
         var b = new TacticalBattle(s, Script((0, new OrderRequest(1, OrderKind.Attack, 0, 2))), PassiveController.Instance);
         RunUntil(b, () => Executed(b, DomainKinds.Ram).Any());
-        var ram = Executed(b, DomainKinds.Ram).First();
-        var hit = Executed(b, DomainKinds.DomainHit).First(e => e.Key.TimeMs == ram.Key.TimeMs && e.Source.Id == 1000 && e.A == 1);
-        Assert.InRange(hit.B, g.RamDamage / 2, g.RamDamage);                         // speed in [max/2, max]
-        Assert.Equal(g.Hull - hit.B, D(b, 2000).Hp);                                 // deck archers never hole a hull
-        Assert.Equal(0, D(b, 1000).Speed);                                           // the impact stops the rammer
+        var ram = Executed(b, DomainKinds.Ram).Single();
+        Assert.True(ram.B >= g.RamSpeedMmPerS, $"normal {ram.B}");                // [RAM r2] the gate is the normal speed
+        var hits = Executed(b, DomainKinds.DomainHit).Where(e => e.Key.TimeMs == ram.Key.TimeMs && e.Source.Id == 1000 && e.Target.Id == 2000 && e.A == 1).ToArray();
+        if (ram.A == (long)RamOutcome.Breach)
+        {
+            Assert.Equal(Math.Max(1, RamPhysics.EnergyScaled(g.RamDamage, ram.B, g.MaxSpeedMmPerS)), Assert.Single(hits).B);
+            Assert.Equal(g.Hull - hits[0].B, D(b, 2000).Hp);                         // deck archers never hole a hull
+            Assert.Equal(0, D(b, 1000).Speed);                                       // the impact stops the rammer
+        }
+        else
+        {
+            Assert.Empty(hits);                                                      // a glancing blow does not hole
+            Assert.Equal(g.Hull, D(b, 2000).Hp);
+        }
         // Boarding approach capped below ramming speed: no ram at all.
+        // [RAM r1 V7] Board rams again under D-081 (ramming speed, once per pair). With the cited galley acceleration
+        // (0.11 m/s^2, lane RAM) a hull starting 110 m off can no longer brake to the 1 m/s cap inside the 37 m contact zone
+        // (measured: it struck at 3 300 mm/s), so the premise "capped below ramming speed" now needs the boarder to START
+        // inside the zone (30 m, centre to centre): it never exceeds the cap.
         var slow = new DomainRules { BoardingSpeedMmPerS = 1_000 };
-        var b2 = new TacticalBattle(Sea(50_000, 4, slow, Ship(1, 0, g, M(1000, 1000)), Ship(2, 1, g, M(1110, 1000))),
+        var b2 = new TacticalBattle(Sea(50_000, 4, slow, Ship(1, 0, g, M(1000, 1000)), Ship(2, 1, g, M(1030, 1000))),
                                     Script((0, new OrderRequest(1, OrderKind.Board, 0, 2))), PassiveController.Instance);
         RunUntil(b2, () => Executed(b2, DomainKinds.Boarding).Any(), 10);
         Assert.Empty(Executed(b2, DomainKinds.Ram));
+        Assert.Empty(Executed(b2, DomainKinds.RamCollision));                        // [RAM r1] a boarder's slow contact is the grapple
     }
 
     [Fact]

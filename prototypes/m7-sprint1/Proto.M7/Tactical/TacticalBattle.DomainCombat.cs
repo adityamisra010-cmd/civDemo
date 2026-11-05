@@ -221,13 +221,9 @@ public sealed partial class TacticalBattle
                     }
                 }
             }
-            // Ram: a ram-equipped hull at ramming speed, target inside its bow arc and in contact.
-            if (d.V!.RamDamage > 0 && (f.Dir == OrderKind.Attack || f.Dir == OrderKind.Board) && t >= d.RamReadyMs
-                && d.Speed * 2 >= d.V.MaxSpeedMmPerS)
-            {
-                int b = ContactVessel(d, f.DirTarget, requireBowArc: true);
-                if (b >= 0) _s.Schedule(t, EventClass.Fire, 2, d.Id, DomainKinds.Ram, new EntityRef(_d[b].Id, _d[b].Gen), new EntityRef(d.Id, d.Gen));
-            }
+            // [RAM] D-081: ram or collision of a ram-equipped hull's beak (TacticalBattle.Ram.cs; lane N's speed >= max/2 and
+            // 30 s cooldown rule is superseded).
+            RamContacts(t, i, d, f);
         }
     }
 
@@ -424,7 +420,7 @@ public sealed partial class TacticalBattle
         }
         var x2 = _d[DIndex(ev.Target.Id)];
         long dist = RangeOf(pos, alt, x2.Pos, x2.AltitudeMm);
-        long evasion = x2.V?.Evasion ?? x2.A!.Evasion;
+        long evasion = x2.V is not null ? VesselEvasion(x2, t) : x2.A!.Evasion;      // [RAM] 0 while backing a beak out
         Q32 ph = WithFalloff(HitChance(w.Accuracy, evasion), dist, w.MaxRangeMm);
         if (!CounterRng.Chance(_setup.Seed, DomainStreams.Hit, sid, t, x2.Id, (uint)m, ph)) return;
         if (x2.Dom == Domain.Air) _s.Schedule(t, EventClass.Damage, 0, x2.Id, DomainKinds.DomainHit, ev.Target, ev.Source, 2, w.Damage);
@@ -460,16 +456,6 @@ public sealed partial class TacticalBattle
         Q32 frac = new(FixedMath.MulDivFloor(rem, Q32.OneRaw, (long)den));
         if (CounterRng.Chance(_setup.Seed, DomainStreams.Boarding, attackerId, t, defenderId, idx, frac)) whole++;
         return Math.Min(whole, cap);
-    }
-
-    private void RamStrike(long t, in ScheduledEvent ev)
-    {
-        var a = _d[DIndex(ev.Source.Id)];
-        long dmg = Math.Max(1, FixedMath.MulDivFloor(a.V!.RamDamage, a.Speed, a.V.MaxSpeedMmPerS));
-        a.RamReadyMs = checked(t + a.V.RamCooldownMs);
-        a.Speed = 0;
-        a.Primary = true; _df[a.F].Attacks++;
-        _s.Schedule(t, EventClass.Damage, 0, ev.Target.Id, DomainKinds.DomainHit, ev.Target, ev.Source, 1, dmg, 0);
     }
 
     // ------------------------------------------------------------------ damage
@@ -515,7 +501,7 @@ public sealed partial class TacticalBattle
             amount = hull + people;
             f.DamageTaken += amount;
         }
-        CreditSource(ev.Source.Id, amount);
+        if (ev.A != BowHitKind) CreditSource(ev.Source.Id, amount);                  // [RAM r1 V10] a rammer's bow damage is self-inflicted
     }
 
     private void CreditSource(long id, long amount)

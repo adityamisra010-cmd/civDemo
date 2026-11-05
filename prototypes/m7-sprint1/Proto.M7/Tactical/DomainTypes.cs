@@ -111,9 +111,21 @@ public sealed record VesselClass(
     public long Evasion { get; init; } = 20;
     /// <summary>Detection-range multiplier (percent) for observers looking at this vessel: hulls are large.</summary>
     public long SignaturePercent { get; init; } = 300;
-    /// <summary>Ram: hull damage at full speed (scaled by speed / MaxSpeed). 0 = no ram.</summary>
+    // ---- [RAM] D-081 ramming (lane RAM). Lane N's 30 s RamCooldownMs is REMOVED (superseded per D-081 RM-R: the run-up is
+    // the physical mechanism a timer only approximated). Every value is a PLACEHOLDER; the rationale is on DomainProfiles.Galley.
+    /// <summary>Ram: hull damage of a PERPENDICULAR strike whose normal closing speed equals MaxSpeedMmPerS; every ram effect
+    /// scales with the kinetic energy of the normal component, (v_n / MaxSpeed)^2 (<see cref="RamPhysics"/>). 0 = no ram.</summary>
     public long RamDamage { get; init; }
-    public long RamCooldownMs { get; init; } = 30_000;
+    /// <summary>Ramming speed: the closing speed a contact needs to be a ram (D-081 RM3), and the normal impact speed a ram
+    /// needs to breach a side. Below it a bow contact is a collision. Must be in (0, MaxSpeed] for a ram class.</summary>
+    public long RamSpeedMmPerS { get; init; }
+    /// <summary>People killed aboard the struck hull by a perpendicular breach at MaxSpeed (energy-scaled like the hull damage).</summary>
+    public long RamCrewDamage { get; init; }
+    /// <summary>Share (permille) of the ram's energy-scaled damage taken by the rammer's own bow, on every bow contact.</summary>
+    public long RamBowDamagePermille { get; init; }
+    /// <summary>Reach of the beak beyond the hull disc (contact distance) and its full embedding depth in a breach, mm.</summary>
+    public long RamLengthMm { get; init; }
+    // ---- [RAM] end
     /// <summary>Per-person melee value of the people aboard in a boarding fight.</summary>
     public long BoardingMelee { get; init; } = 30;
     /// <summary>Per-person defence value in a boarding fight.</summary>
@@ -133,7 +145,10 @@ public sealed record VesselClass(
         if (MaxSpeedMmPerS <= 0 || AccelMmPerS2 <= 0 || TurnRatePerS <= 0) throw new ArgumentException($"vessel {Name}: kinematics");
         if (Hull <= 0 || Crew <= 0 || Capacity < 0) throw new ArgumentException($"vessel {Name}: hull/crew/capacity");
         if (HeightMm <= 0 || SightMm <= 0 || Evasion < 0 || SignaturePercent <= 0) throw new ArgumentException($"vessel {Name}: sensors");
-        if (RamDamage < 0 || RamCooldownMs <= 0 || BoardingMelee < 0 || BoardingDefence < 0) throw new ArgumentException($"vessel {Name}: ram/boarding");
+        if (RamDamage < 0 || BoardingMelee < 0 || BoardingDefence < 0) throw new ArgumentException($"vessel {Name}: ram/boarding");
+        if (RamDamage > 0 && (RamSpeedMmPerS <= 0 || RamSpeedMmPerS > MaxSpeedMmPerS || RamCrewDamage < 0 || RamBowDamagePermille < 0
+                              || RamBowDamagePermille >= 1000 || RamLengthMm <= 0))
+            throw new ArgumentException($"vessel {Name}: ram (ramming speed in (0, MaxSpeed], crew damage >= 0, bow share in [0, 1000), beak > 0)");
         if (EmbarkMsPerPerson <= 0 || DisembarkMsPerPerson <= 0 || RepairPerS < 0 || RepairPoolPercent < 0) throw new ArgumentException($"vessel {Name}: transport/repair");
         foreach (var w in Weapons) w.Validate();
     }
@@ -211,6 +226,18 @@ public sealed record DomainRules
     /// <summary>Preferred engagement range as a fraction (permille) of the main battery's maximum range.</summary>
     public long PreferredRangePermille { get; init; } = 700;
 
+    // ---- [RAM] D-081 ramming rules (lane RAM). PLACEHOLDER values, rationale in reports/H-RAM.md.
+    /// <summary>Below this impact angle (between the closing velocity and the struck hull's keel line) a ram glances off
+    /// whatever its speed: the beak skids along the planking. PLACEHOLDER 20 deg.</summary>
+    public int RamGlanceAngle { get; init; } = FixedTrig.FromDegrees(20);
+    /// <summary>The ram directive starts an attack run only when the rammer lies at least this far off the target's keel line
+    /// (it manoeuvres for the beam); a run is aborted below <see cref="RamGlanceAngle"/>. PLACEHOLDER 45 deg.</summary>
+    public int RamAttackAngle { get; init; } = FixedTrig.FromDegrees(45);
+    /// <summary>Backing water (astern) acceleration as a fraction (permille) of the forward acceleration: the time to back an
+    /// embedded beak out of a breach. PLACEHOLDER 500.</summary>
+    public long BackingAccelPermille { get; init; } = 500;
+    // ---- [RAM] end
+
     /// <summary>Wind on/off. Off = sail behaves like any other propulsion (factor 1).</summary>
     public bool Wind { get; init; }
     /// <summary>Direction the wind blows FROM (angle units).</summary>
@@ -245,6 +272,8 @@ public sealed record DomainRules
         if (AirReserveMs < 0 || AirLandRadiusMm <= 0 || DamagedAbortPermille < 0 || DamagedAbortPermille > 1000) throw new ArgumentException("air");
         if (LineSpacingRadii < 3 || PreferredRangePermille <= 0 || PreferredRangePermille > 1000) throw new ArgumentException("formation");
         if (SailNoGo < 0 || SailNoGo >= FixedTrig.Quarter) throw new ArgumentException("sail no-go zone");
+        if (RamGlanceAngle < 0 || RamGlanceAngle > FixedTrig.Quarter || RamAttackAngle < RamGlanceAngle || RamAttackAngle > FixedTrig.Quarter
+            || BackingAccelPermille <= 0 || BackingAccelPermille > 1000) throw new ArgumentException("ram rules");   // [RAM]
     }
 }
 

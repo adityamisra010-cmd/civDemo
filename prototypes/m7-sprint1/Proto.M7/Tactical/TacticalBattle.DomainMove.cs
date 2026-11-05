@@ -81,6 +81,7 @@ public sealed partial class TacticalBattle
             target = Math.Min(target, FixedMath.MulDivFloor(vmax, Math.Max(250, cosErr), 1000));
             long sp = HeadingMotion.Approach(d.Speed, Math.Min(target, vmax), v.AccelMmPerS2, dt, 0, Math.Max(vmax, 0));
             d.Heading = h; d.Speed = sp;
+            RamRecordWay(i, sp, d.Pos);                                              // [RAM] impact speed = way before truncation; step start
             Vec2L want2 = d.Pos + HeadingMotion.Offset(h, HeadingMotion.Distance(sp, dt));
             ulong draw = CounterRng.Draw(_setup.Seed, DomainStreams.MovePriority, d.Id, t, 0, 0);
             movers[m++] = new Mover((long)(draw >> 17) << 16 | (long)i, d.Pos, v.RadiusMm, want2);
@@ -212,6 +213,7 @@ public sealed partial class TacticalBattle
         var v = d.V!;
         long vmax = VesselMaxSpeed(d);
         heading = d.Heading; speed = 0;
+        if (v.RamDamage > 0 && RamLocked(DIndex(d.Id), _s.NowMs)) return;          // [RAM] beak embedded: backing water, whatever the order
         if (d.State == EntityState.Routing || f.Dir == OrderKind.Retreat)
         {
             var c = _grid.CellOf(d.Pos);
@@ -258,6 +260,8 @@ public sealed partial class TacticalBattle
             {
                 int tl = FindForm(f.DirTarget);
                 if (tl >= 0 && f.Dir == OrderKind.Attack) { BombardIntent(d, f, vmax, out heading, out speed); return; }
+                // [RAM] D-081 ram planner (run-up, steer away, once per pair); false = nothing to ram: stand off below.
+                if (f.Dir == OrderKind.Attack && v.RamDamage > 0 && RamIntent(d, vmax, f.DirTarget, out heading, out speed)) return;
                 Vec2L tp;
                 if (!NearestTrackedMember(d.Side, f.DirTarget, d.Pos, out tp, out _) && !KnownCentroidAny(d.Side, f.DirTarget, out tp)) return;
                 if (f.Dir == OrderKind.Board)
@@ -267,7 +271,6 @@ public sealed partial class TacticalBattle
                     GoTo(d, tp, cap, false, out heading, out speed);
                     return;
                 }
-                if (v.RamDamage > 0) { GoTo(d, tp, vmax, false, out heading, out speed); return; }
                 var w = MainBattery(v, TargetDomains.Surface);
                 if (w is null) return;
                 long R = FixedMath.MulDivFloor(w.MaxRangeMm, _dr.PreferredRangePermille, 1000);

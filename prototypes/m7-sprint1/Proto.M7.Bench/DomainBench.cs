@@ -19,6 +19,7 @@ static class DomainBench
                 Console.WriteLine(Inv($"{name}: trace {r.TraceHash}\n  state {r.StateHash}\n  result {r.ResultHash()}\n  personnel {r.Personnel!.Hash}\n  {r.Reason} side={r.Side} holds={r.HoldsField} pulses={r.Pulses} events={r.EventsExecuted}"));
                 foreach (var f in r.Formations) Console.WriteLine(Inv($"    F{f.FormationId} {f.Domain}: {f.Start}={f.Survivors}+{f.Killed}+{f.Surrendered} act={f.ActiveAtEnd} esc={f.Escaped} emb={f.EmbarkedAtEnd} dmgDealt={f.DamageDealt} dmgTaken={f.DamageTaken} attacks={f.AttacksMade} morale={f.MoraleEnd}"));
                 foreach (var l in r.Personnel.Lines) Console.WriteLine(Inv($"    P F{l.FormationId} {l.Place} carrier={l.CarrierId} {l.Count}"));
+                Console.WriteLine(RamStats(b));                                      // [RAM] D-081 contact counts
             }
             return;
         }
@@ -44,6 +45,19 @@ static class DomainBench
         int seeds = args.Length > 1 ? int.Parse(args[1], System.Globalization.CultureInfo.InvariantCulture) : 5;
         Console.WriteLine(Inv($"Proto.M7.Bench domain: seeds={seeds} cpu={Environment.ProcessorCount} os={System.Runtime.InteropServices.RuntimeInformation.OSDescription}"));
         foreach (var (name, make, c0, c1) in Cases()) Case(name, make, c0, c1, seeds);
+    }
+
+    /// <summary>[RAM] Executed rams (breach / glance) and non-ram bow collisions, with the closing speeds of the rams.</summary>
+    static string RamStats(TacticalBattle b)
+    {
+        int breach = 0, glance = 0, coll = 0; long minVc = long.MaxValue, maxVc = 0;
+        foreach (var e in b.Scheduler.Trace.Entries)
+        {
+            if (e.Outcome != Proto.M7.Events.TraceOutcome.Executed) continue;
+            if (e.Kind == DomainKinds.Ram) { if (e.A == 0) breach++; else glance++; minVc = Math.Min(minVc, e.C); maxVc = Math.Max(maxVc, e.C); }
+            else if (e.Kind == DomainKinds.RamCollision) coll++;
+        }
+        return Inv($"    rams breach={breach} glance={glance} collisions={coll} closing={(breach + glance > 0 ? minVc : 0)}..{maxVc} mm/s");
     }
 
     static ScriptedController Both(long a, long b) => new ScriptedController().Add(0, new OrderRequest(a, OrderKind.Attack, 0, b));

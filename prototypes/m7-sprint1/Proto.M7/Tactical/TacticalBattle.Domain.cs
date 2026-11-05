@@ -11,12 +11,16 @@ public static class DomainKinds
 {
     /// <summary>A domain weapon fires (Fire class). A = mount index, B/C = aim point (area fire), Target = entity or none.</summary>
     public const int DomainFire = 121;
-    /// <summary>Effect lands (Damage class). A = effect kind (0 land HP, 1 vessel hull+people, 2 airframe HP), B, C = amounts.</summary>
+    /// <summary>Effect lands (Damage class). A = effect kind (0 land HP, 1 vessel hull+people, 2 airframe HP; [RAM] 3 a rammer's
+    /// own bow — vessel hull, no people, applied like 1), B, C = amounts.</summary>
     public const int DomainHit = 122;
     /// <summary>Boarding fight between two grappled vessels (Fire class).</summary>
     public const int Boarding = 123;
-    /// <summary>Ram strike (Fire class).</summary>
+    /// <summary>Ram strike (Fire class). [RAM] A = <see cref="RamOutcome"/>, B = normal closing speed v_n, C = closing speed v_c (mm/s).</summary>
     public const int Ram = 124;
+    /// <summary>[RAM] Bow contact under the ram directive that is NOT a ram (D-081): normal closing speed v_n below ramming speed
+    /// ([r2] was the centre-line v_c), or a hull this rammer has already rammed (RM1). B = v_n, C = v_c (mm/s). Fire class.</summary>
+    public const int RamCollision = 125;
 }
 
 /// <summary>Counter-RNG streams of the domain modules (distinct from the land streams).</summary>
@@ -61,7 +65,6 @@ public sealed partial class TacticalBattle
         public bool Primary, Moved, RoutedEscape, Disengaged;
         public long BestEnemy = -1, BestObj = -1, BestEdge = -1;
         public long OpCarryMs;
-        public long RamReadyMs = long.MinValue;
         public long RepairPool;
         public long Embarked;
         public long PendingEmbarkedCasualties;
@@ -238,6 +241,7 @@ public sealed partial class TacticalBattle
         for (int i = 0; i < _d.Length; i++) members[_d[i].F].Add(i);
         _grappledAt = new long[_d.Length];
         Array.Fill(_grappledAt, long.MinValue);
+        RamInit();                                                                   // [RAM] D-081 per-hull ram state
         for (int i = 0; i < _df.Length; i++) _df[i].Members = members[i].ToArray();
         for (int i = 0; i < _d.Length; i++)
             for (int j = i + 1; j < _d.Length; j++)
@@ -360,6 +364,7 @@ public sealed partial class TacticalBattle
             case DomainKinds.DomainHit: DomainHit(t, ev); return true;
             case DomainKinds.Boarding: BoardingFight(t, ev); return true;
             case DomainKinds.Ram: RamStrike(t, ev); return true;
+            case DomainKinds.RamCollision: RamCollisionStrike(t, ev); return true;     // [RAM]
             default: return false;
         }
     }
@@ -938,7 +943,7 @@ public sealed partial class TacticalBattle
         foreach (var d in _d)
         {
             L(d.Id); L((long)d.State); L((long)d.Phase); L(d.Pos.X); L(d.Pos.Y); L(d.Heading); L(d.Speed); L(d.Hp); L(d.Crew);
-            L(d.Embarked); L(d.Fuel); L(d.SortiesLeft); L(d.ReadyAtMs); L(d.Gen); L(d.OpCarryMs); L(d.RamReadyMs); L(d.RepairPool);
+            L(d.Embarked); L(d.Fuel); L(d.SortiesLeft); L(d.ReadyAtMs); L(d.Gen); L(d.OpCarryMs); L(RamHashSlot(DIndex(d.Id))); L(d.RepairPool);   // [RAM] slot was RamReadyMs
             L(d.BestEnemy); L(d.BestObj); L(d.BestEdge); L(d.RoutedEscape ? 1 : 0); L(d.Disengaged ? 1 : 0);
             L(d.FightStartAboard); L(d.BoardedBy);
             foreach (var x in d.NextFireMs) L(x);
@@ -953,6 +958,7 @@ public sealed partial class TacticalBattle
         if (_lwNext is not null)
             for (int i = 0; i < _e.Length; i++)
                 if (_lwNext[i] is { } nx) { foreach (var x in nx) L(x); foreach (var x in _lwAmmo![i]) L(x); }
+        AppendRamState(h);                                                           // [RAM] empty without ram ships
         _ledger.AppendTo(h);
     }
 

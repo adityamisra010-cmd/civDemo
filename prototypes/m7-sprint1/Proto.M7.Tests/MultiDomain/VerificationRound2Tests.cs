@@ -283,38 +283,10 @@ public class VerificationRound2Tests
     }
 
     // ---------------------------------------------------------------- N-R2-07
-
-    /// <summary>Times of the rams galley 1000 makes on a line of three hulls 40 m apart that a full-speed ram sinks (TEST
-    /// INPUT: unarmed, hull 50): after each impact the rammer stops and must regain ramming speed before the next hull.</summary>
-    private static long[] RamTimes(long cooldownMs, long pulses = 6)
-    {
-        var g = DomainProfiles.Galley with { Weapons = Array.Empty<WeaponSpec>(), RamCooldownMs = cooldownMs };
-        var target = DomainProfiles.Galley with { Weapons = Array.Empty<WeaponSpec>(), RamDamage = 0, Hull = 50 };
-        var tf = MultiDomainScenarios.Fleet(2, 1, target, 3, M(1110, 1000)) with
-        { Entities = new[] { new EntitySpec(2000, M(1110, 960)), new EntitySpec(2001, M(1110, 1000)), new EntitySpec(2002, M(1110, 1040)) } };
-        var s = Sea(50_000, 4, null, Ship(1, 0, g, M(1000, 1000)), tf);
-        var b = new TacticalBattle(s, Script((0, new OrderRequest(1, OrderKind.Attack, 0, 2))), PassiveController.Instance);
-        RunUntil(b, () => b.CurrentPulse >= pulses, pulses + 2);
-        return Executed(b, DomainKinds.Ram).Where(e => e.Source.Id == 1000).Select(e => e.Key.TimeMs).ToArray();
-    }
-
-    /// <summary>
-    /// N-R2-07: the ram cooldown (RamCooldownMs, 30 s) spaces a hull's rams. Against a single hull it never binds (measured:
-    /// after the impact the rammer is held in contact at speed 0 and never regains ramming speed there), but when the first
-    /// hull sinks and the next one lies 40 m on, the rammer is back at ramming speed within ten seconds: with a 2 s cooldown
-    /// (TEST INPUT) it rams again at once; with the 30 s cooldown no two of its rams are closer than 30 s.
-    /// </summary>
-    [Fact]
-    public void TheRamCooldownSpacesAHullsRams()
-    {
-        var quick = RamTimes(2_000);
-        var real = RamTimes(DomainProfiles.Galley.RamCooldownMs);
-        Assert.Equal(30_000, DomainProfiles.Galley.RamCooldownMs);
-        Assert.True(quick.Length >= 2 && quick[1] - quick[0] < 30_000, $"premise: the scenario must allow a quick second ram ([{string.Join(",", quick)}])");
-        Assert.Equal(quick[0], real[0]);                                            // identical up to the first impact
-        for (int i = 1; i < real.Length; i++) Assert.True(real[i] - real[i - 1] >= 30_000, $"rams at {real[i - 1]} and {real[i]}");
-        Assert.DoesNotContain(quick[1], real);
-    }
+    // [RAM] TheRamCooldownSpacesAHullsRams (and its RamTimes helper) was REMOVED with the 30 s cooldown it pinned: D-081
+    // (2026-11-05) RM-R reads the cooldown as superseded by RM1-RM3 — a hull rams a given hull at most once, and a rammer's
+    // rams are spaced by physics (backing its beak out of the breach, opening the range, the run-up to ramming speed). The
+    // replacement pins are in RamTests (RamsOnALineOfHullsAreSpacedByTheFreeTimeAndTheRunUpNotByATimer and the RM1 tests).
 
     // ---------------------------------------------------------------- N-R2-08
 

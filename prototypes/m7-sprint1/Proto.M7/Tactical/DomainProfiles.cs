@@ -79,10 +79,29 @@ public static class DomainProfiles
 
     // ------------------------------------------------------------------ vessels (capability-defined; see NavalDesign)
 
-    /// <summary>Oared warship with a ram (trireme-like): ~9 knots sprint, rams and boards; deck archers.</summary>
+    /// <summary>
+    /// Oared warship with a ram (trireme-like): ~9 knots sprint, rams and boards; deck archers.
+    /// [RAM] D-081 ram values, all PLACEHOLDER with their rationale (secondary sources read through search summaries in the RAM
+    /// lane; the primary texts were not consulted — see reports/H-RAM.md §2):
+    /// - AccelMmPerS2 110 (lane N had 500): the Olympias sea trials (Morrison, Coates &amp; Rankov, The Athenian Trireme, 2nd ed.
+    ///   2000; trial reports 1987-88) reached about 7 knots (3.6 m/s) from a standing start in 32 s, ~0.11 m/s^2 on average
+    ///   (another account: 6 knots in 30 s, ~0.10 m/s^2). The run-up to ramming speed is integrated from this value.
+    /// - RamSpeedMmPerS 1 542 (3 knots): Itzhack, Cvikel &amp; Me-Bar, "Damaging a trireme by ramming: The kinetics", Journal of
+    ///   Archaeological Science: Reports 57 (2024) 104678 — energy balance / three-point bending of the struck planking gives a
+    ///   minimum damaging impact speed of about 1.3-3 knots; the upper end is used. Other summaries of the literature put
+    ///   penetration at 4 knots at 60 degrees and 8 knots at 30 degrees (normal components 3.5 and 4 knots); the gap is noted.
+    /// - RamDamage 90 hull points at MaxSpeed (lane N value, now the PERPENDICULAR full-speed reference of a v_n^2 law).
+    /// - RamCrewDamage 6: the beak strikes at the waterline where the lowest oar bank sits (27 thalamites a side over roughly
+    ///   22 m of oar bank in the reconstruction, ~1.2 men per metre); a smashed zone of 4-5 m kills or disables about 6.
+    /// - RamBowDamagePermille 100: the rammer's bow takes a small share — the cast bronze ram spreads the load into the bow
+    ///   timbers and wales (Athlit ram analyses); at Lissa (1866) the purpose-built ram ship Erzherzog Ferdinand Max was only
+    ///   slightly damaged in the bow after sinking Re d'Italia.
+    /// - RamLengthMm 2 000: the Athlit ram is about 2.26 m long; the embedded beak is taken as 2 m.
+    /// </summary>
     public static VesselClass Galley { get; } = new(101, "oared_ram_galley", Propulsion.Oar, RadiusMm: 8_000, MaxSpeedMmPerS: 4_600,
-        AccelMmPerS2: 500, TurnRatePerS: FixedTrig.FromDegrees(10), Hull: 120, Crew: 200, Citation: Ph)
-        { Weapons = new[] { DeckArchers }, RamDamage = 90, HeightMm = 5_000, SightMm = 2_000_000, Evasion = 25, BoardingMelee = 25, BoardingDefence = 25 };
+        AccelMmPerS2: 110, TurnRatePerS: FixedTrig.FromDegrees(10), Hull: 120, Crew: 200, Citation: Ph + "; ram values D-081 lane RAM, see doc comment")
+        { Weapons = new[] { DeckArchers }, RamDamage = 90, RamSpeedMmPerS = 1_542, RamCrewDamage = 6, RamBowDamagePermille = 100, RamLengthMm = 2_000,
+          HeightMm = 5_000, SightMm = 2_000_000, Evasion = 25, BoardingMelee = 25, BoardingDefence = 25 };
 
     /// <summary>Sailing warship without guns (cog-like): boards; deck archers.</summary>
     public static VesselClass Cog { get; } = new(102, "sailing_boarding_ship", Propulsion.Sail, RadiusMm: 8_000, MaxSpeedMmPerS: 3_000,
