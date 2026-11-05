@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    M7 Sprint 1, Slice F (implementation-spec §6): economy/logistics prototype.
+    READ-ONLY use of Sim.Core and Sim.Data: this project calls their public API (WorldFounding, TurnExecutor, Pathfinder,
+    queries, state tables) and never changes them. It is an Exe so the calibration runs are a headless console command.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <RootNamespace>Proto.M7.Econ</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Sim.Core\Sim.Core.csproj" />
+    <ProjectReference Include="..\..\..\Sim.Data\Sim.Data.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- O-17 prototype (implementation-spec §7): libm-free Exp/Log/Pow/Cos. No Sim.* reference. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Proto.DetMath</RootNamespace>
+  </PropertyGroup>
+</Project>

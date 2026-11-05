@@ -1,0 +1,20 @@
+<Project>
+  <!--
+    M7 Sprint 1 prototype: SELF-CONTAINED build settings.
+    This file deliberately does NOT import the repository-root Directory.Build.props, so the
+    prototypes/m7-sprint1 folder can be copied anywhere and still build (implementation-spec §0).
+    The settings below are copied from the root props (D-001, Law 5) so behaviour matches.
+  -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Law 5: culture-sensitive parse/format is banned; run everything culture-invariant. -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <!-- Spec §1: authoritative prototype code runs with overflow checking ON (silent wrap-around is a determinism hazard). -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Proto.M7'">
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+  </PropertyGroup>
+</Project>

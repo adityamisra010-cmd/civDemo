@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Proto.DetMath/Proto.DetMath.csproj" />
+  <Project Path="Proto.DetMath.Tests/Proto.DetMath.Tests.csproj" />
+</Solution>

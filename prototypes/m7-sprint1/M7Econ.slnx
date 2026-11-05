@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Proto.M7.Econ/Proto.M7.Econ.csproj" />
+  <Project Path="Proto.M7.Econ.Tests/Proto.M7.Econ.Tests.csproj" />
+</Solution>

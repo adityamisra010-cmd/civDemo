@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="Proto.M7/Proto.M7.csproj" />
+  <Project Path="Proto.M7.Tests/Proto.M7.Tests.csproj" />
+  <Project Path="Proto.M7.Bench/Proto.M7.Bench.csproj" />
+</Solution>
