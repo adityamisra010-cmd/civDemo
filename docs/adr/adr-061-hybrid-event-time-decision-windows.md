@@ -527,3 +527,7 @@ These are added to the packet's own acceptance tests; they do not replace them.
   accepted Director decisions from the proposed mechanism and the OPEN landing (no claim of kernel-freeze sign-off);
   the two-action rules are contract C23, not C4; the D_T value is 933,120,000,000 ms; the landing recommendation is worded
   as in D-079 Q5 and OD-1; RDG-5 is DELEGATED; R8 is flagged for confirmation; the `main` reference names `github/main`.
+
+## Dated note — 2026-11-05 (D-080; appended, the text above is unchanged)
+
+- D-080 records the Director's answers to the T2 War Pulse questions: boundary-instant orders apply to the pulse or turn starting at that instant (WA1); a pulse crossing an era change keeps its starting era's length, and era bands change only at turn boundaries (WA2, WA2-F); non-participant observers may see battle results as a click-to-open notification (WA3); per-pulse economics and insolvency are delegated with a realism criterion (WA4), narrowing §3.11 "[DELEG pending]". See `docs/d080-war-pulse-director-answers-2026-11-05.md`.
