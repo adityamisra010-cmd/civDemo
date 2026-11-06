@@ -15,7 +15,22 @@ public enum MoveOutcome
 /// <summary>The decision on one move: granted grain and days (≤ requested), and why.</summary>
 public readonly record struct MoveDecision(long Id, int Priority, long Requested, long RequestedDays, long Granted, long GrantedDays, MoveOutcome Outcome);
 
-/// <summary>The furthest stage the automatic priority had to reach this period.</summary>
+/// <summary>
+/// M7 Phase C lane F (DIR5 §2.11, D-079 Q3 — OPEN, the Director's): which claim is served second when food is short.
+/// Civilians are always first. NEITHER value is the adopted rule; the comparison runs both with identical inputs.
+/// </summary>
+public enum AllocationOrder
+{
+    /// <summary>Civilian requirements → military → growth (the Slice F prototype's only ordering; growth is cut first).</summary>
+    CivilianMilitaryGrowth = 1,
+    /// <summary>Civilian requirements → growth → military (military moves are restricted before growth is cut).</summary>
+    CivilianGrowthMilitary = 2,
+}
+
+/// <summary>The furthest stage the automatic priority had to reach this period. The values are named for
+/// <see cref="AllocationOrder.CivilianMilitaryGrowth"/>; under <see cref="AllocationOrder.CivilianGrowthMilitary"/> the
+/// sequence is Unconstrained → MilitaryRestricted (growth intact) → GrowthReduced (military got nothing) →
+/// CivilianShortfall, and <see cref="LogisticsDecision.Stage"/> reports the furthest one reached in THAT sequence.</summary>
 public enum ConstraintStage
 {
     /// <summary>Everything asked for was granted.</summary>
@@ -45,9 +60,21 @@ public sealed record LogisticsDecision(
     long MilitaryGranted,
     long Unallocated,
     ConstraintStage Stage,
-    MoveDecision[] Moves)
+    MoveDecision[] Moves,
+    AllocationOrder Order = AllocationOrder.CivilianMilitaryGrowth)
 {
     public long GrowthCut => GrowthDemand - GrowthGranted;
+    /// <summary>Growth got less than it asked for (either ordering).</summary>
+    public bool GrowthWasReduced => GrowthGranted < GrowthDemand;
+    /// <summary>At least one military move was shortened or denied (either ordering).</summary>
+    public bool MilitaryWasRestricted
+    {
+        get
+        {
+            for (int i = 0; i < Moves.Length; i++) if (Moves[i].Outcome != MoveOutcome.Granted) return true;
+            return false;
+        }
+    }
     public long MilitaryCausedStarvation => 0;
 }
 
@@ -73,8 +100,22 @@ public sealed record LogisticsDecision(
 /// </summary>
 public static class LogisticsPriority
 {
-    public static LogisticsDecision Resolve(long freeGrain, long civilianRequirement, long growthHeadroomDemand, ReadOnlySpan<MoveRequest> moves)
+    public static LogisticsDecision Resolve(long freeGrain, long civilianRequirement, long growthHeadroomDemand, ReadOnlySpan<MoveRequest> moves) =>
+        Resolve(freeGrain, civilianRequirement, growthHeadroomDemand, moves, AllocationOrder.CivilianMilitaryGrowth);
+
+    /// <summary>
+    /// The same allocation with the second claim chosen by <paramref name="allocationOrder"/> (M7 Phase C lane F). Under
+    /// <see cref="AllocationOrder.CivilianMilitaryGrowth"/> it is EXACTLY the algorithm above (the overload above delegates
+    /// here). Under <see cref="AllocationOrder.CivilianGrowthMilitary"/>: civilians first as above; then growth gets
+    /// min(surplus, demand); then the moves are served from what is left with the same (Priority, Id) order, the same
+    /// shorten/deny arithmetic and the same "everything after a restricted move is denied" rule. Same conservation
+    /// identity and the same never-out-of-the-civilian-requirement guarantee in both orders.
+    /// </summary>
+    public static LogisticsDecision Resolve(long freeGrain, long civilianRequirement, long growthHeadroomDemand, ReadOnlySpan<MoveRequest> moves,
+        AllocationOrder allocationOrder)
     {
+        if (allocationOrder != AllocationOrder.CivilianMilitaryGrowth && allocationOrder != AllocationOrder.CivilianGrowthMilitary)
+            throw new ArgumentOutOfRangeException(nameof(allocationOrder));
         ArgumentOutOfRangeException.ThrowIfNegative(freeGrain);
         ArgumentOutOfRangeException.ThrowIfNegative(civilianRequirement);
         ArgumentOutOfRangeException.ThrowIfNegative(growthHeadroomDemand);
@@ -95,6 +136,14 @@ public static class LogisticsPriority
         long civilian = Math.Min(freeGrain, civilianRequirement);
         long shortfall = civilianRequirement - civilian;
         long remaining = freeGrain - civilian;   // = max(0, Free − R)
+
+        // Lane F: growth served BEFORE the moves under CivilianGrowthMilitary (nothing when civilians are short).
+        long growthFirst = 0;
+        if (allocationOrder == AllocationOrder.CivilianGrowthMilitary)
+        {
+            growthFirst = shortfall > 0 ? 0 : Math.Min(remaining, growthHeadroomDemand);
+            remaining -= growthFirst;
+        }
 
         var decisions = new MoveDecision[order.Length];
         long militaryGranted = 0;
@@ -127,16 +176,30 @@ public static class LogisticsPriority
 
         // A restricted period gives growth NOTHING (growth is cut to zero before any move is restricted): the sub-day
         // residue a shortened move could not use stays in store (Unallocated), it is not handed back to growth.
-        long growth = restricted || shortfall > 0 ? 0 : Math.Min(remaining, growthHeadroomDemand);
-        remaining -= growth;
-
-        ConstraintStage stage = shortfall > 0 ? ConstraintStage.CivilianShortfall
-            : restricted ? ConstraintStage.MilitaryRestricted
-            : growth < growthHeadroomDemand ? ConstraintStage.GrowthReduced
-            : ConstraintStage.Unconstrained;
+        long growth;
+        ConstraintStage stage;
+        if (allocationOrder == AllocationOrder.CivilianMilitaryGrowth)
+        {
+            growth = restricted || shortfall > 0 ? 0 : Math.Min(remaining, growthHeadroomDemand);
+            remaining -= growth;
+            stage = shortfall > 0 ? ConstraintStage.CivilianShortfall
+                : restricted ? ConstraintStage.MilitaryRestricted
+                : growth < growthHeadroomDemand ? ConstraintStage.GrowthReduced
+                : ConstraintStage.Unconstrained;
+        }
+        else
+        {
+            // Lane F, CivilianGrowthMilitary: growth was served above; the sub-day residue of a shortened move stays in
+            // store exactly as in the other order. Stage = the furthest point of THIS order's sequence.
+            growth = growthFirst;
+            stage = shortfall > 0 ? ConstraintStage.CivilianShortfall
+                : growth < growthHeadroomDemand ? ConstraintStage.GrowthReduced
+                : restricted ? ConstraintStage.MilitaryRestricted
+                : ConstraintStage.Unconstrained;
+        }
 
         var decision = new LogisticsDecision(freeGrain, civilianRequirement, civilian, shortfall, growthHeadroomDemand, growth,
-            requested, militaryGranted, remaining, stage, decisions);
+            requested, militaryGranted, remaining, stage, decisions, allocationOrder);
         if (checked(decision.CivilianGranted + decision.GrowthGranted + decision.MilitaryGranted + decision.Unallocated) != freeGrain)
             throw new InvalidOperationException("allocation does not conserve the free grain");
         if (decision.MilitaryGranted > 0 && decision.CivilianGranted < civilianRequirement)

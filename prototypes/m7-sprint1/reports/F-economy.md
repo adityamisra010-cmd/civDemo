@@ -155,3 +155,22 @@ Grouped in D-079 §2 as **S486** (6 statements). This is a report, not a ruling:
 - (`F-economy.md:91`) — "**O-30 / ADR-019 §1.2:** an intra-turn economic causal chain (per-pulse food) is forbidden." — in full: O-30 closed as option (b) - 'Economic effects occur per operational pulse, not exclusively at campaign-turn boundaries' (DIRECTOR DECISION, DIR5 §2.4); ADR-019 §1.2 is superseded in part (ADMINISTRATIVE, ADR lane). Retained: the historical citation. **Replaced by** DIR5 §2.4 (D-079 DR11–DR14). [DIRECTOR DECISION; ADMINISTRATIVE CONSEQUENCE]
 - (`F-economy.md:92`) — "**O-35:** the consequence of unfed soldiers." — in part: the packet is decided (attrition and mortality in M7.14) and the automatic priority is fixed (growth reduced first, movement restricted next, starvation last resort; not player-controlled). Retained: the exact UnfedUnits consequence is DELEGATED design inside M7.14, informed by the food-allocation comparison the Director has not decided. **Replaced by** DIR5 §2.9, §2.11 (D-079 DR23, DR26–DR28). [DELEGATED TECHNICAL DECISION]
 - (`F-economy.md:95`) — "**O-14:** where the framework lives." — in part: DIRECTOR DECISION (DIR5 §1.3) - the separate Sim.Battle project is the chosen architecture direction (O-14 option a); retained: Sim.Battle is NOT created until the architecture review, the prototype stays isolated; presentation/rendering project boundaries remain a technical recommendation (DELEGATED TECHNICAL). **Replaced by** DIR5 §1.3 (D-079 DR4–DR6). [DIRECTOR DECISION; DELEGATED TECHNICAL DECISION]
+
+## Dated note — 2026-11-05 (M7 Phase C lane F; appended, the text above is unchanged)
+
+- (`F-economy.md:23`) — "`Passed! Failed: 0, Passed: 23, Skipped: 0, Total: 23`, in both Debug and Release" — the stale count is already reconciled by the D-079 note above. Lane F re-measured it on `fc5230c` before any change: **34 passed, 0 failed, 0 skipped in Debug and 34 in Release** (`dotnet test prototypes/m7-sprint1/M7Econ.slnx`). After lane F the solution has 62 tests (34 + 28 in `FoodAllocationComparisonTests.cs`); see `H-F.md` §10. [ADMINISTRATIVE CONSEQUENCE]
+- (`F-economy.md:83-84`, "Allocator period = one turn" and "A restricted period gives growth 0") — lane F adds the second ordering (`AllocationOrder.CivilianGrowthMilitary`) beside the one implemented here (civilian → military → growth, still the default of the 4-argument `Resolve`). It measures both per War Pulse and per campaign turn in `H-F.md`. Neither ordering is adopted (D-079 Q3 stays the Director's). [READING; evidence only]
+- (`F-economy.md:142`, "Which allocator reading is right. Free net of spoilage and/or overflow?") — `H-F.md` §3 measures the overflow over 20 turns on 6 seeds (14.1–17.1 % of the harvest; 41.9–47.7 % with spoilage), and the real recruitment twins in which 980 soldiers went unfed in 19 of 20 turns while 387–523 k grain was destroyed. §6.2 and §6.3 measure the overflow rule per pulse and per turn. [EVIDENCE; no rule adopted]
+
+## Dated note — 2026-11-06 (M7 Phase C lane F, revision 3; appended, the text above is unchanged)
+
+- (`F-economy.md:23`) — the count again, after lane F merged dev `444b85e`: **34 passed, 0 failed, 0 skipped in Debug and 34 in Release** on `444b85e` itself (measured in the lane clone), and **68** in both configurations after lane F revision 3 (34 + 34 in `FoodAllocationComparisonTests.cs`); see `H-F.md` §10. The 62 of the note above was the revision-1 count. [ADMINISTRATIVE CONSEQUENCE]
+- (`F-economy.md:142`, "Free net of spoilage and/or overflow?") — revision 3 adds the trade fate of the overflow as two bounding PROPOSALS (`TradeCredit`, `TradeCreditSinceFounding`; `H-F.md` §6.6). No rule is adopted. [EVIDENCE; no rule adopted]
+
+## Dated note — 2026-11-06 (M7 Phase C lane F, verification round 1; appended, the text above is unchanged)
+
+- (`F-economy.md:23`) — the count after lane F's verification round 1: **85 passed, 0 failed, 0 skipped in Debug and 85 in Release** (34 + 51 in `FoodAllocationComparisonTests.cs`; 17 test cases added); see `H-F.md` §14. [ADMINISTRATIVE CONSEQUENCE]
+
+## Dated note — 2026-11-06 (M7 Phase C lane F, verification round 2; appended, the text above is unchanged)
+
+- (`F-economy.md:23`) — the count after lane F's verification round 2: **101 passed, 0 failed, 0 skipped in Debug and 101 in Release** (34 + 67 in `FoodAllocationComparisonTests.cs`; 16 test cases added); see `H-F.md` §15. [ADMINISTRATIVE CONSEQUENCE]
