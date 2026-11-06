@@ -710,15 +710,11 @@ public sealed class WarEconomyWorld : IEventWorld
             // Latched rates for the pulse (state at the pulse start: morale, arrears age, hunger, kit, mutiny, sanitation).
             long ageMonths = ArrearsMonths(a, now);
             long hungerPm = a.HungerPpm / 1000;
-            long des = _r.DesertionBasePermilleYear
-                       + _r.DesertionLowMoralePermilleYear * (1000 * 1000 - a.Morale) / (1000 * 1000)
-                       + Math.Min(_r.DesertionArrearsCapPermilleYear, ageMonths * _r.DesertionPerArrearsMonthPermilleYear)
-                       + _r.DesertionHungerPermilleYear * hungerPm / 1000
-                       + (a.Cond == ArmyCondition.Mutinous ? _r.DesertionMutinyPermilleYear : 0);
+            // [lane S] the rate formulas moved, unchanged, to TroopLossRates (shared with the siege world).
+            long des = TroopLossRates.DesertionPermilleYear(_r, a.Morale, ageMonths, hungerPm, a.Cond == ArmyCondition.Mutinous);
             long kitDefPm = men == 0 ? 0 : Math.Min(1000, a.KitDeficit / men);
-            long dis = _r.DiseaseBasePermilleYear * (1000 + _r.DiseaseHungerFactorPermille * hungerPm / 1000 + _r.DiseaseExposureFactorPermille * kitDefPm / 1000) / 1000;
-            if (cap.Has(WarTech.Sanitation)) dis = dis * _r.DiseaseSanitationPermille / 1000;
-            dis += _r.StarvationDeathPermilleYear * hungerPm / 1000;   // starvation itself
+            long dis = TroopLossRates.DiseasePermilleYear(_r, hungerPm, kitDefPm, cap.Has(WarTech.Sanitation));
+            dis += TroopLossRates.StarvationPermilleYear(_r, hungerPm);   // starvation itself
             // Scurvy (naval forces): time since fresh food at the pulse start; not reduced by Sanitation (it is dietary).
             a.ScurvyPm = a.C.Naval ? NavalLogistics.ScurvyPermilleYear(now - a.FreshSinceMs, cap, _r) : 0;
             dis += a.ScurvyPm;

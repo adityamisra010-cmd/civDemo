@@ -23,6 +23,15 @@ public enum Commodity : byte
     Fuel = 7,
     /// <summary>Bunker coal in kilograms (steam-powered vessels only; lane E naval logistics).</summary>
     Coal = 8,
+    // ---- Phase C lane S (siege and garrisons): appended after lane E's codes; 0-8 are unchanged. The siege uses lane E's
+    // People, Grain (food, gm) and Munitions (gunpowder ammunition, kg); the codes below are what lane E does not model.
+    /// <summary>Drinking water in person-days of the full need (cisterns, wells, the outside inflow).</summary>
+    Water = 9,
+    /// <summary>Missiles of non-gunpowder ranged arms (arrows, bolts, sling shot) in shooter-days of siege fire.</summary>
+    Missiles = 10,
+    /// <summary>Ordnance in pieces: siege machines (rams, towers, throwers, bombards, modern guns) and installed fortress guns.</summary>
+    Ordnance = 11,
+    // ---- end lane S
 }
 
 /// <summary>
