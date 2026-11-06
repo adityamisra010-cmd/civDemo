@@ -32,6 +32,11 @@ public enum Commodity : byte
     /// <summary>Ordnance in pieces: siege machines (rams, towers, throwers, bombards, modern guns) and installed fortress guns.</summary>
     Ordnance = 11,
     // ---- end lane S
+    // ---- Phase C lane W (war outcomes): appended; 0-11 are unchanged.
+    /// <summary>Buildings of a settlement in building units (a sack burns some, a raze all of them; destroyed ones go to a ruins
+    /// sink, so the count of buildings ever built is conserved).</summary>
+    Structures = 12,
+    // ---- end lane W
 }
 
 /// <summary>
