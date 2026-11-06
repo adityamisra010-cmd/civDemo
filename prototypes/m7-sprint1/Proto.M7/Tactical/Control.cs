@@ -117,6 +117,8 @@ public enum AiReason : byte
     LowMorale = 4,
     Withdrawing = 5,
     AlreadyEngaged = 6,
+    /// <summary>[P] A Defend-posture formation holds its line (explicit Hold at pulse 0, nothing afterwards).</summary>
+    HoldingLine = 7,
 }
 
 /// <summary>An inspectable AI decision (m7-spec.md:389 "Enemy AI makes inspectable decisions based on its knowledge").</summary>
@@ -132,6 +134,8 @@ public readonly record struct AiDecision(long Pulse, long FormationId, AiReason 
 ///      Ambush posture and that enemy farther than AmbushTriggerCells =&gt; Hold (once); else Attack(target) unless already so;
 ///   4. no known enemy and the side has objectives =&gt; MoveTo nearest objective, key (distance², index), unless already so;
 ///   5. otherwise nothing (standing directive).
+/// [P] Between 2 and 3: a <see cref="Posture.Defend"/> formation gets an explicit Hold at pulse 0 and no order afterwards
+/// (it never attacks or advances; step 1 still withdraws it below RetreatMorale).
 /// Every decision is appended to <see cref="Decisions"/>. All thresholds are PLACEHOLDER inputs.
 /// </summary>
 public sealed class KnowledgeAi : IFormationController
@@ -157,6 +161,12 @@ public sealed class KnowledgeAi : IFormationController
                 continue;
             }
             if (f.Directive == OrderKind.Retreat) { Note(view, f, AiReason.Withdrawing); continue; }
+            if (f.Posture == Posture.Defend)                       // [P] hold the line: one explicit Hold at pulse 0, then nothing
+            {
+                if (view.Pulse == 0) Emit(view, f, AiReason.HoldingLine, new OrderRequest(f.Id, OrderKind.Hold), orders);
+                else Note(view, f, AiReason.HoldingLine);
+                continue;
+            }
 
             bool found = false;
             Int128 bestD = 0; long bestForm = 0, bestEnt = 0;

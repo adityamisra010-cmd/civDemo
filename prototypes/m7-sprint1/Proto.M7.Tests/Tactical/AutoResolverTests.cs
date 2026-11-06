@@ -5,15 +5,19 @@ using static Proto.M7.Tactical.TacticalScenarios;
 
 namespace Proto.M7.Tests.Tactical;
 
-/// <summary>Slice E: the AutoResolver (spec §5) and the shared condition equations (ConditionMath).</summary>
+/// <summary>Slice E: the AutoResolver (spec §5) and the shared condition equations (ConditionMath).
+/// [P] Lane P: the default AutoCoefficients are now the lane-P model (ModelVersion 2); every test here pins the Sprint 1
+/// model explicitly (<see cref="AutoCoefficients.Sprint1"/>) and passes unchanged, which proves model 1 is bit-exact.
+/// The lane-P model has its own tests (AutoResolverPTests); [P fix r1, P-V2] the Slice E rules of this file that bind model 2 too
+/// (rout threshold, withdrawal travel time) are re-stated for model 2 in AutoResolverPRuleTests.</summary>
 public class AutoResolverTests
 {
     private static BattleResult Auto(BattleSetup s, AutoCoefficients? c = null, bool log = false)
-        => RunBounded(() => new AutoBattle(s, c ?? new AutoCoefficients()) { RecordLog = log }.Run());
+        => RunBounded(() => new AutoBattle(s, c ?? AutoCoefficients.Sprint1) { RecordLog = log }.Run());
 
     private static AutoBattle AutoLogged(BattleSetup s, AutoCoefficients? c = null)
     {
-        var b = new AutoBattle(s, c ?? new AutoCoefficients()) { RecordLog = true };
+        var b = new AutoBattle(s, c ?? AutoCoefficients.Sprint1) { RecordLog = true };
         RunBounded(b.Run);
         return b;
     }
@@ -65,7 +69,7 @@ public class AutoResolverTests
         var s = Meeting(UnitProfiles.HeavyInfantry, 10, UnitProfiles.HeavyInfantry, 10, 1);
         var bad = s with { Formations = new[] { s.Formations[0] with { Experience = 101 }, s.Formations[1] } };
         Assert.Throws<ArgumentOutOfRangeException>(() => new TacticalBattle(bad, new KnowledgeAi(), new KnowledgeAi()));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new AutoBattle(bad, new AutoCoefficients()));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new AutoBattle(bad, AutoCoefficients.Sprint1));
     }
 
     // ------------------------------------------------------------------ the tactical engine consumes the conditions
@@ -192,9 +196,9 @@ public class AutoResolverTests
     [Fact]
     public void CoefficientValidationKeepsEveryContactStepDamaging()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new AutoResolver(new AutoCoefficients { FortunePermille = 500, NoisePermille = 401 }));
-        Assert.Throws<ArgumentOutOfRangeException>(() => new AutoResolver(new AutoCoefficients { MeleeEngagePermille = 0 }));
-        _ = new AutoResolver(new AutoCoefficients { FortunePermille = 500, NoisePermille = 400 });
+        Assert.Throws<ArgumentOutOfRangeException>(() => new AutoResolver(AutoCoefficients.Sprint1 with { FortunePermille = 500, NoisePermille = 401 }));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new AutoResolver(AutoCoefficients.Sprint1 with { MeleeEngagePermille = 0 }));
+        _ = new AutoResolver(AutoCoefficients.Sprint1 with { FortunePermille = 500, NoisePermille = 400 });
     }
 
     /// <summary>Tie-dense target choice: two enemy formations at the SAME axis gap; the lower formation id is attacked,
@@ -224,7 +228,7 @@ public class AutoResolverTests
     public void AmbushSurpriseWindowSilencesTheVictimForExactlyTheFittedSteps()
     {
         const long window = 5;   // TEST INPUT
-        var b = AutoLogged(ParityScenarios.Build(ParityScenarioId.Ambush, 3, false), new AutoCoefficients { AmbushFirstStrikeSteps = window });
+        var b = AutoLogged(ParityScenarios.Build(ParityScenarioId.Ambush, 3, false), AutoCoefficients.Sprint1 with { AmbushFirstStrikeSteps = window });
         long first = b.Log.First(r => r.Target >= 0).Step;
         for (long k = first; k < first + window; k++)
         {
@@ -244,7 +248,7 @@ public class AutoResolverTests
         // the only asymmetry left is the per-formation casualty-staircase phase. Without it every battle is a simultaneous
         // rout (BothEliminated); with it 5 of these 40 are decided (measured 2026-11-04; expectation ~ E|phase gap| / deaths per
         // step = (1/3)/1.58 ~ 21 %). The phase is a weak de-synchroniser by design (it must stay unbiased).
-        var c = new AutoCoefficients { FortunePermille = 0, NoisePermille = 0 };
+        var c = AutoCoefficients.Sprint1 with { FortunePermille = 0, NoisePermille = 0 };
         int decided = 0;
         for (ulong seed = 1; seed <= 40; seed++)
             if (Auto(ParityScenarios.Build(ParityScenarioId.EqualInfantry, seed, false), c).Reason == BattleEndReason.SideEliminated) decided++;
@@ -259,7 +263,7 @@ public class AutoResolverTests
         long Dealt(long maxPerTarget)
         {
             var b = AutoLogged(ParityScenarios.Build(ParityScenarioId.Numbers2To1, 2, false),
-                new AutoCoefficients { MaxAttackersPerTargetPermille = maxPerTarget, FortunePermille = 0, NoisePermille = 0 });
+                AutoCoefficients.Sprint1 with { MaxAttackersPerTargetPermille = maxPerTarget, FortunePermille = 0, NoisePermille = 0 });
             var first = b.Log.First(r => r.FormationId == 1 && r.Mode == 1);
             long before = b.Log.Single(r => r.FormationId == 1 && r.Step == first.Step - 1).DamageDealtMilli;
             return first.DamageDealtMilli - before;
@@ -274,7 +278,7 @@ public class AutoResolverTests
     [Fact]
     public void DoctrineWithdrawalBelowTheRetreatMoraleEscapesWithoutLosses()
     {
-        var r = Auto(ParityScenarios.Build(ParityScenarioId.LowMorale, 1, false), new AutoCoefficients { DoctrineRetreatMorale = 600 });
+        var r = Auto(ParityScenarios.Build(ParityScenarioId.LowMorale, 1, false), AutoCoefficients.Sprint1 with { DoctrineRetreatMorale = 600 });
         var a = r.Formations[0];
         Assert.Equal(0, a.Killed);
         Assert.Equal(50, a.Escaped);
@@ -293,7 +297,7 @@ public class AutoResolverTests
         var rules = new TacticalRules();
         var s = ParityScenarios.Build(ParityScenarioId.EqualInfantry, 1, false);
         s = s with { Formations = new[] { s.Formations[0] with { Morale = rules.RoutThreshold + offset }, s.Formations[1] } };
-        var r = Auto(s, new AutoCoefficients { DoctrineRetreatMorale = 0 });   // TEST INPUT: no withdrawal, rout rule only
+        var r = Auto(s, AutoCoefficients.Sprint1 with { DoctrineRetreatMorale = 0 });   // TEST INPUT: no withdrawal, rout rule only
         var a = r.Formations[0];
         if (routsAtOnce)
         {
@@ -312,7 +316,7 @@ public class AutoResolverTests
     [Fact]
     public void RoutedLoserIsRecordedAsRoutedEscapeAndSurrenderFraction()
     {
-        var r = Auto(ParityScenarios.Build(ParityScenarioId.ArchersVsInfantryOpen, 2, false), new AutoCoefficients { SurrenderPermille = 100 });
+        var r = Auto(ParityScenarios.Build(ParityScenarioId.ArchersVsInfantryOpen, 2, false), AutoCoefficients.Sprint1 with { SurrenderPermille = 100 });
         var hi = r.Formations[1];
         Assert.Equal(0, r.HoldsField);
         Assert.True(hi.RoutedEscaped > 0);

@@ -85,6 +85,12 @@ public enum Posture : byte
     Normal = 0,
     /// <summary>Hold (concealed) until a known enemy comes within the AI's ambush trigger distance, then Attack.</summary>
     Ambush = 1,
+    /// <summary>[P] Lane P (parity battery): HOLD THE LINE. The knowledge-only AI orders an explicit Hold at pulse 0 and never
+    /// orders this formation to Attack or MoveTo; it fights what reaches it (melee in contact, missiles at known targets in
+    /// range) and still withdraws below the AI's retreat morale. Appended (never renumber): codes 0-1 keep their meaning.
+    /// The terrain-defence scenarios need a defender that stays on its hill, bank or defile (a Normal or Ambush formation
+    /// leaves it to attack).</summary>
+    Defend = 2,
 }
 
 public enum BattleEndReason : byte

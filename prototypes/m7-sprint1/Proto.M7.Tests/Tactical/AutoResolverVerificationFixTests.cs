@@ -9,13 +9,19 @@ namespace Proto.M7.Tests.Tactical;
 /// Slice E verification round (verify-E findings E-V1, E-V3, E-V4 and surviving mutants V1, V2, V3, V4, V6). Every test states
 /// a rule of the model and, where the rule is shared, checks it in BOTH resolvers. All setups and profile variants are TEST
 /// INPUTS.
+/// [P] Lane P: pins the Sprint 1 model explicitly (<see cref="AutoCoefficients.Sprint1"/>). [P fix r1, P-V2] Correction: the
+/// earlier claim that "the lane-P model's versions of these rules are in AutoResolverPTests" was false for most of them; the
+/// model-2 versions are in AutoResolverPRuleTests: trapped-rout surrender, impassable withdrawal, stationary concealment
+/// (which exposed P-V1), hold-morale recovery (both inactivity rules, both resolvers) and the withdrawal travel time. The
+/// ambusher-springs and first-detection tests here are legacy-rule tests of model 1; under the setup's legacy rule model 2 now
+/// applies the legacy rule too (P-V4(c)).
 /// </summary>
 public class AutoResolverVerificationFixTests
 {
     /// <summary>HARNESS GUARD: the AutoResolver has no round cap (O-4); not finishing in 10 s is a FAILURE (non-termination),
     /// never a rule. A normal auto battle takes well under 10 ms.</summary>
     private static BattleResult Auto(BattleSetup s, AutoCoefficients? c = null)
-        => Run(new AutoBattle(s, c ?? new AutoCoefficients()));
+        => Run(new AutoBattle(s, c ?? AutoCoefficients.Sprint1));
 
     private static BattleResult Run(AutoBattle b)
     {
@@ -76,7 +82,7 @@ public class AutoResolverVerificationFixTests
             Assert.True(r.Formations[0].DamageDealt > 0 && r.Formations[1].DamageDealt > 0, $"{r.Resolver}: zero-attack melee must still wound");
             Assert.True(r.Formations[0].Killed + r.Formations[1].Killed > 0, $"{r.Resolver}: and eventually kill");
         }
-        var b = new AutoBattle(s, new AutoCoefficients { FortunePermille = 0, NoisePermille = 0 }) { RecordLog = true };
+        var b = new AutoBattle(s, AutoCoefficients.Sprint1 with { FortunePermille = 0, NoisePermille = 0 }) { RecordLog = true };
         Run(b);
         var first = b.Log.First(r => r.FormationId == 1 && r.Mode == 1);
         Assert.Equal(FixedMath.MulDivFloor(10 * 1 * 1000, new TacticalRules().HitMin.Raw, Q32.OneRaw), first.DamageDealtMilli);
@@ -113,7 +119,7 @@ public class AutoResolverVerificationFixTests
         }
         // The rout rule alone (doctrine withdrawal off, TEST INPUT): trapped -> all surrender; on open ground the routed
         // formation escapes except the fitted surrender share.
-        var noDoctrine = new AutoCoefficients { DoctrineRetreatMorale = 0 };
+        var noDoctrine = AutoCoefficients.Sprint1 with { DoctrineRetreatMorale = 0 };
         Assert.Equal(20, Auto(s, noDoctrine).Formations[0].Surrendered);
         var open = Auto(Island(OpenField(), 290), noDoctrine).Formations[0];
         Assert.Equal(FixedMath.MulDivFloor(20, noDoctrine.SurrenderPermille, 1000), open.Surrendered);
@@ -241,7 +247,7 @@ public class AutoResolverVerificationFixTests
         long perStep = FixedMath.MulDivFloor(rules.RefFootSpeedMmPerS * rules.CatchUpNum, rules.StepMs, 1000 * rules.CatchUpDen);
         Assert.Equal(3_900, perStep);
         Assert.Equal(steps, FixedMath.DivCeil(distanceMm, perStep));
-        var r = Auto(s, new AutoCoefficients { DoctrineRetreatMorale = 600 });
+        var r = Auto(s, AutoCoefficients.Sprint1 with { DoctrineRetreatMorale = 600 });
         Assert.Equal(50, WithdrawnEscaped(r.Formations[0]));
         Assert.Equal(BattleEndReason.SideEliminated, r.Reason);
         Assert.Equal((steps - 1) * rules.StepMs, r.EndMs);

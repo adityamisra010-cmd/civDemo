@@ -11,6 +11,7 @@ if (args.Length > 0 && args[0] == "tactical") { TacticalBench.Run(args); return;
 if (args.Length > 0 && args[0] == "parity") { ParityBench.Run(args); return; }       // Slice E
 if (args.Length > 0 && args[0] == "terrain") { TerrainBench.Run(args); return; }     // [TR] lane TR
 if (args.Length > 0 && args[0] == "domain") { DomainBench.Run(args); return; }       // lane N (naval / air / combined arms)
+if (args.Length > 0 && args[0] == "parityp") { ParityPBench.Run(args); return; }     // [P] lane P parity battery
 long n = args.Length > 0 ? long.Parse(args[0], System.Globalization.CultureInfo.InvariantCulture) : 2_000_000;
 int reps = args.Length > 1 ? int.Parse(args[1], System.Globalization.CultureInfo.InvariantCulture) : 5;
 Console.WriteLine($"Proto.M7.Bench scheduler: events={n} reps={reps} cpu={Environment.ProcessorCount} os={System.Runtime.InteropServices.RuntimeInformation.OSDescription}");

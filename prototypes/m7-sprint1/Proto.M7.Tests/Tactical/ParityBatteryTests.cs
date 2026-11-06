@@ -7,6 +7,8 @@ namespace Proto.M7.Tests.Tactical;
 /// <summary>
 /// Slice E: integer statistics, tolerance derivation, the calibration procedure, and the REDUCED deterministic battery subset
 /// (the full battery — 10 scenarios x 40 seeds x 2 orientations — is the Bench `parity` mode, reports/parity-report.md).
+/// [P] Lane P: the auto side pins the Sprint 1 model explicitly (<see cref="AutoCoefficients.Sprint1"/>), so the Sprint 1
+/// golden below stays the bit-exactness proof of model 1; the lane-P battery is ParityPTests / AutoResolverPTests.
 /// </summary>
 public class ParityBatteryTests
 {
@@ -119,7 +121,7 @@ public class ParityBatteryTests
     {
         var cases = ParityBattery.Cases(SubsetScenarios, 1, 3);
         var tac = cases.Select(c => ParityBattery.RunTactical(c)).ToArray();
-        var auto = cases.Select(c => ParityBattery.RunAuto(c, new AutoCoefficients())).ToArray();
+        var auto = cases.Select(c => ParityBattery.RunAuto(c, AutoCoefficients.Sprint1)).ToArray();
         return (cases, tac, auto);
     }
 
@@ -216,7 +218,7 @@ public class ParityBatteryTests
         var fc = fit.Select(i => cases[i]).ToArray();
         var ft = fit.Select(i => tac[i]).ToArray();
         var axes = AutoCalibration.DefaultAxes().Where(a => a.Name is "MeleeEngagePermille" or "FortunePermille").ToArray();
-        var start = new AutoCoefficients { MeleeEngagePermille = 1000, FortunePermille = 0 };
+        var start = AutoCoefficients.Sprint1 with { MeleeEngagePermille = 1000, FortunePermille = 0 };
         var r1 = AutoCalibration.Fit(start, axes, fc, ft, SubsetScenarios, 3);
         var r2 = AutoCalibration.Fit(start, axes, fc, ft, SubsetScenarios, 3);
         Assert.Equal(r1.Fitted, r2.Fitted);
@@ -257,9 +259,9 @@ public class ParityBatteryTests
         var (cases, tac, _) = RunSubset();
         // An axis whose setter ignores the value: every candidate has the same loss -> no move is ever accepted.
         var inert = new CoefficientAxis("Inert", new long[] { 1, 2, 3 }, c => 0, (c, v) => c);
-        var r = AutoCalibration.Fit(new AutoCoefficients(), new[] { inert }, cases, tac, SubsetScenarios, 2);
+        var r = AutoCalibration.Fit(AutoCoefficients.Sprint1, new[] { inert }, cases, tac, SubsetScenarios, 2);
         Assert.Empty(r.Steps);
-        Assert.Equal(new AutoCoefficients(), r.Fitted);
+        Assert.Equal(AutoCoefficients.Sprint1, r.Fitted);
     }
 
     [Fact]
