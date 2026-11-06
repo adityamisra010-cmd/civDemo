@@ -263,6 +263,10 @@ public sealed class WarTheaterWorld : IEventWorld
 
     public bool IsLive(EntityRef entity) => true;
 
+    // ---- lane E (WarEcon) addition, fix round 1: a read-only participant query; nothing else in this file changed ----
+    /// <summary>True when the polity is a participant of the war (WarSpec.Participants).</summary>
+    public bool IsParticipant(int warId, int polity) => Array.BinarySearch(_wars[warId].Spec.Participants, polity) >= 0;
+
     /// <summary>The fog rule (WarFog): a participant always sees its war; anyone else only through a present observer.</summary>
     public bool CanSee(int polity, int warId, long t)
     {

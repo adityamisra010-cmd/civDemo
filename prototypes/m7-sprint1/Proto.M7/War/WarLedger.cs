@@ -8,6 +8,21 @@ public enum Commodity : byte
 {
     Money = 0,
     Goods = 1,
+    // ---- Phase C lane E (Proto.M7/WarEcon): further conserved commodities of the per-pulse war economy. ----
+    /// <summary>Persons (soldiers, civilians, the dead): a person moves between accounts, never appears or vanishes.</summary>
+    People = 2,
+    /// <summary>Grain in milli-units of the shipped grain unit (D-015: one unit is one adult's year of food).</summary>
+    Grain = 3,
+    /// <summary>Riding horses and draft animals (head).</summary>
+    Animals = 4,
+    /// <summary>Powder and shot (one unit is about one kilogram; gunpowder capability only).</summary>
+    Munitions = 5,
+    /// <summary>Equipment in milli-kits (one kit is one man's full set of arms, clothing and shoes).</summary>
+    Kit = 6,
+    /// <summary>Motor fuel in litres (motor transport capability only).</summary>
+    Fuel = 7,
+    /// <summary>Bunker coal in kilograms (steam-powered vessels only; lane E naval logistics).</summary>
+    Coal = 8,
 }
 
 /// <summary>
