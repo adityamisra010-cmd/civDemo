@@ -5,10 +5,10 @@ using Gfx.Engine.Rendering;
 namespace Gfx.Perf.Measurement;
 
 /// <summary>
-/// Pass-level probe that wraps a scene as the <see cref="IRenderContent"/> handed to the UNCHANGED G1
-/// <see cref="ForwardRenderer"/>. The renderer calls <c>DrawShadowCasters</c> (shadow pass) and <c>DrawOpaque</c>
-/// (HDR pass, after the sky); the tap forwards each call untouched and brackets it with GPU timestamps and CPU
-/// stopwatch readings. It is also the <see cref="IPerfMarkerSink"/> for named segments and counters that
+/// Pass-level probe that wraps a scene as the <see cref="IRenderContent"/> handed to the engine's
+/// <see cref="ForwardRenderer"/>, which the harness does not change. The renderer calls <c>DrawShadowCasters</c>
+/// (shadow pass: once in the G1 frame, once per cascade in the G2 frame) and <c>DrawOpaque</c> (HDR pass, after
+/// the sky); the tap forwards each call untouched and brackets it with GPU timestamps and CPU stopwatch readings. It is also the <see cref="IPerfMarkerSink"/> for named segments and counters that
 /// instrumented (later G2) code may report. It draws nothing itself and changes no GL state.
 /// </summary>
 public sealed class ContentTap : IRenderContent, IPerfMarkerSink

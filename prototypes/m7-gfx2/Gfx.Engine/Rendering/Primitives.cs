@@ -26,6 +26,30 @@ public static class Primitives
         }
     }
 
+    /// <summary>UV sphere centred on the origin (smooth normals).</summary>
+    public static MeshData<VertexPNC> Sphere(float radius, int segments, Color color)
+    {
+        int rings = Math.Max(3, segments / 2), segs = Math.Max(4, segments);
+        var v = new List<VertexPNC>((rings + 1) * (segs + 1)); var ix = new List<int>(rings * segs * 6);
+        for (int r = 0; r <= rings; r++)
+        {
+            float phi = MathF.PI * r / rings;
+            for (int k = 0; k <= segs; k++)
+            {
+                float th = MathHelper.TwoPi * k / segs;
+                var n = new Vector3(MathF.Sin(phi) * MathF.Cos(th), MathF.Cos(phi), MathF.Sin(phi) * MathF.Sin(th));
+                v.Add(new VertexPNC(n * radius, n, color));
+            }
+        }
+        for (int r = 0; r < rings; r++)
+            for (int k = 0; k < segs; k++)
+            {
+                int a = r * (segs + 1) + k, b = a + 1, c = a + segs + 1, d = c + 1;
+                ix.AddRange(new[] { a, c, b, b, c, d });
+            }
+        return new MeshData<VertexPNC>(v.ToArray(), ix.ToArray());
+    }
+
     /// <summary>Flat XZ grid centred on the origin, normal +Y.</summary>
     public static MeshData<VertexPNC> Plane(float size, int segments, Color color)
     {

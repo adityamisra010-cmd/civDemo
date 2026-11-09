@@ -42,6 +42,7 @@ statement elsewhere, for example a project-wide relicensing or an attribution li
 | `drei-assets` | `github.com/pmndrs/drei-assets` @ `456060a26bbeb8fdf79326f224b6d99b8bcce736` (2023-01-04) | raw.githubusercontent.com | `README.md`: "HDRIs from HDRI Haven". The repository has no licence file. HDRI Haven (now Poly Haven) publishes its assets as CC0, but its site is unreachable from this container, so that statement was not read here. |
 | `ez-tree` | `github.com/dgreenheck/ez-tree` @ `dcf309bd86bd521083d9c70f01f2de45fdc7c457` (main, 2026-07-16) | raw.githubusercontent.com; media.githubusercontent.com for Git-LFS textures | `LICENSE`: MIT, "Copyright (c) 2024 Daniel Greenheck". `src/app/public/textures/LICENSE.md`: the bark textures "are sourced from ambientcg.com and are released under the Creative Commons CC0 1.0 Universal license", with the eleven `BarkNNN` ids listed. "The leaf textures in `leaves/` … are licensed under the project's own license (see repository LICENSE)." `textures/ground/` and `models/` are not mentioned. |
 | `smaa` | `github.com/iryoku/smaa` @ `71c806a838bdd7d517df19192a20f0c61b3ca29d` (master, 2013-11-06) | raw.githubusercontent.com | `LICENSE.txt`: MIT permission notice, "Copyright (C) 2013 Jorge Jimenez … Jose I. Echevarria … Belen Masia … Fernando Navarro … Diego Gutierrez". |
+| `threejs-ref` | `github.com/mrdoob/three.js` tag `r180` @ `0af9729d0c143a86a1d725d6e2c3ad83301f3f34` (added by stage render1, 2026-11-09) | raw.githubusercontent.com | `LICENSE`: "The MIT License", "Copyright © 2010-2025 three.js authors". The tonemapping chunk is the reference for the G2 PBR Neutral, ACES (Hill fit) and AgX tonemappers (ported to GLSL 1.20 in `Gfx.Engine/Effects/PostEffects.cs`); the chunk itself cites its upstream sources (Khronos PBR Neutral, Stephen Hill's ACES fit, Filament/Blender AgX, Wrensch's minimal AgX fit). |
 | `meshoptimizer` | `github.com/zeux/meshoptimizer` tag `v1.3` @ `9e1f07b159d3cb777f1c67ed31fc11fd117986f4` (2026-09-25) | raw.githubusercontent.com | `LICENSE.md`: MIT, "Copyright (c) 2016-2026 Arseny Kapoulkine". |
 
 ## 3. Assets
@@ -160,6 +161,44 @@ are NuGet packages pinned by version and NuGet sha512; the package carries `THIR
 | NVML (NVIDIA Management Library) | none | NVIDIA driver component | not redistributed | — | Loaded at run time from the user's NVIDIA driver (`System32\nvml.dll`) when present; read only. |
 | Wine 9.0 (apt `wine64` 9.0~repack-4build3) and Xvfb (apt `xvfb` 2:21.1.12-1ubuntu1.9) | none | LGPL-2.1-or-later (Wine), MIT/X11 (Xvfb) | test tools only | — | Used in this container to run the Windows package on software GL; nothing from them ships. |
 
+### 3.8 Stage render1 (renderer core): files used, bake outputs and runtime transformations
+
+Added 2026-11-09 by stage render1 as §3.7; renumbered §3.8 when `g2/perf` and `g2/render1` were merged into
+`g2/trunk` (both stages had added a §3.7). `reports/render1.md`, written on its branch before the merge, cites this
+section as §3.7. Every input below is an existing SHIP-OK row above; nothing PROTOTYPE-ONLY is
+used by the renderer core, so no render1 capture needs a PROTOTYPE-ONLY legend (the G1 placeholder props, soldiers
+and avatars that appear in the same frames are procedural code, not external assets).
+
+**Bake** (`scripts/bake-render1.sh`, which verifies each input's sha256 against `assets/manifest.tsv` and then runs
+`scripts/bake-render1-terrain.py`). Outputs go to `$G2_ASSETS/baked/render1/terrain/` and are never committed;
+`MANIFEST.tsv` there records each output's sha256 and bytes, the numpy and Pillow versions, and `calibration.json` the
+measured albedo means. Output container: `R1TX` (RGBA8, full mip chain; header documented in the script and in
+`Gfx.Engine/Assets/AssetRoot.cs`). Measured run (2026-11-09): 10 files of 5,592,428 bytes each, 4 s.
+
+| Set | Inputs (raw) | Transformations | Licence of the output | Status |
+|---|---|---|---|---|
+| grass | `terrain3d/…/ground037_alb_ht.png`, `ground037_nrm_rgh.png` | Albedo to linear light, scaled ×0.336 (mean linear luminance 0.312 → 0.105, a natural meadow albedo), back to sRGB. Height (alpha) and normal (OpenGL +Y, verified by height-gradient correlation +0.78) kept; roughness kept, floored at 0.62. Mips: box filter in linear light, mean height and mean normal, roughness widened by the Toksvig factor of the mean normal's length, renormalised | CC0-1.0 AND MIT (as the input) | SHIP-OK |
+| gravel | `babylon-assets/textures/rockyGround_basecolor.png`, `rockyGround_normal.png` | Albedo ×0.579 (0.328 → 0.19). Height derived from albedo luminance (3×3 blur, 2–98 % stretch). Normal map Y flipped (DirectX −Y to OpenGL +Y; luminance-gradient correlation −0.42 before the flip). Roughness derived (0.80 + 0.14 × (1 − height)). The upstream `metalRough` map is not used (its blue channel is 1.0 everywhere, which would read as metal). Mips as above | CC-BY-4.0 (attribution, §5) | SHIP-OK (attribution) |
+| rock | `terrain3d/…/rock023_alb_ht.png`, `rock023_nrm_rgh.png` | Albedo ×0.780 (0.269 → 0.21). Height and normal kept (OpenGL +Y, correlation +0.83). Roughness remapped from 0.557–0.788 to 0.72–0.97 so dry rock never mirrors the sky. Mips as above | CC0-1.0 AND MIT | SHIP-OK |
+| sand | `babylon-assets/textures/sand.jpg` (894²) | Resized to 1024² with wrap (3×3 tile, Lanczos, centre crop: no border seam). Albedo ×0.809 (0.371 → 0.30). Height derived from luminance (two 3×3 blurs, stretch); normal derived from height (Sobel with wrap, strength 3, OpenGL +Y); roughness 0.90–0.98. Mips as above | CC-BY-4.0 (attribution) | SHIP-OK (attribution) |
+| soil | `babylon-assets/textures/dirt.jpg` | Albedo ×0.644 (0.202 → 0.13). Height, normal (strength 4) and roughness (0.84–0.92) derived as for sand. Mips as above | CC-BY-4.0 (attribution) | SHIP-OK (attribution) |
+
+**Runtime use of the CC0 HDRI** (`babylon-assets/ibl/harties_cliff_view/harties_cliff_view_4k.hdr`, §3.5, SHIP-OK),
+only when a frame runs with `ibl=hdri`: decoded from RGBE, area-resampled to 1024×512, texels brighter than 16× the
+99th-percentile luminance clamped (the sun; the engine's analytic sun light carries it, with shadows), turned about
+the vertical axis so its brightest spot lies at the analytic sun's azimuth, scaled so its level-ground sky irradiance
+equals the analytic sky's, then GGX-prefiltered into a 256×128 mip chain plus nine irradiance SH coefficients. Nothing
+is written to disk.
+
+**Algorithms implemented from publications** (no code copied, no asset): clear-sky single scattering with Earth
+coefficients and the multiple-scattering approximation (Bruneton 2017; Hillaire 2020, "A Scalable and Production
+Ready Sky and Atmosphere Rendering Technique"); GGX prefiltering with filtered importance sampling (Křivánek and
+Colbert 2008); irradiance spherical harmonics (Ramamoorthi and Hanrahan 2001); the split-sum environment BRDF (Karis
+2013) with height-correlated Smith visibility (Heitz 2014); specular occlusion (Lagarde and de Rousiers 2014);
+Toksvig roughness; hex-tiling (Mikkelsen 2022, JCGT); the 13-tap bloom downsample and Karis average (Jimenez 2014);
+FXAA's edge test, edge walk and sub-pixel blend (Lottes 2009); practical split scheme for cascades (Zhang et al.
+2006). The tonemapper constants come from the `threejs-ref` row (MIT).
+
 ## 4. Licence identifiers used for non-standard terms
 
 | Id | Meaning |
@@ -174,9 +213,10 @@ are NuGet packages pinned by version and NuGet sha512; the package carries `THIR
 
 - **CC BY 4.0, Babylon.js Assets** (`babylon-assets/textures/*`): "Textures from the Babylon.js Assets repository
   (https://github.com/BabylonJS/Assets), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)",
-  plus a note of any changes made in the bake.
+  plus a note of any changes made in the bake (render1: the transformations in §3.8).
 - **MIT notices:** Terrain3D (channel-packed ambientCG maps), ez-tree (leaf cards; generator code if ported),
-  SMAA, and meshoptimizer if any of it ships (it is planned as a bake tool only).
+  SMAA, meshoptimizer if any of it ships (it is planned as a bake tool only), and three.js (`threejs-ref`: the G2
+  PBR Neutral, ACES and AgX tonemapper code is a port of its tonemapping chunk).
 - **CC0 items** need no notice. Courtesy credits: MakeHuman Team (Data Collection AB), ambientCG, Poly Haven
   (Dimitrios Savva, Jarod Guest).
 - **CMU acknowledgement** (requested by CMU, if the clips are used): "The data used in this project was obtained

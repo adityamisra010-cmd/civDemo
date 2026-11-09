@@ -9,6 +9,12 @@ public sealed record GpuFrame(long FrameId, string[] Names, long[] TimesNs, bool
         for (int i = 0; i < Names.Length; i++) if (Names[i] == name) return TimesNs[i];
         return -1;
     }
+    /// <summary>Time (ns since frame start) of the last marker with this name, or -1 (for a pass the renderer repeats, such as one shadow-caster call per cascade).</summary>
+    public long LastAt(string name)
+    {
+        for (int i = Names.Length - 1; i >= 0; i--) if (Names[i] == name) return TimesNs[i];
+        return -1;
+    }
     public long TotalNs => TimesNs.Length == 0 ? 0 : TimesNs[^1];
 }
 

@@ -280,6 +280,58 @@ public class PerfUnitTests
         }
         Assert.Equal(shot.Position.X, p.At(0).Camera.Position.X, 3);
     }
+
+    /// <summary>
+    /// Integration pin (perf + render1): the G2 frame calls the shadow casters once per cascade, so the GPU casters span
+    /// runs from the first begin to the last end and the passes still partition the frame; the G1 frame's single call
+    /// splits as before.
+    /// </summary>
+    [Fact]
+    public void GpuPassSplitSpansEveryShadowCascade()
+    {
+        string cb = ContentTap.MarkCastersBegin, ce = ContentTap.MarkCastersEnd, ob = ContentTap.MarkOpaqueBegin, oe = ContentTap.MarkOpaqueEnd;
+        string upd = PerfSession.MarkUpdateEnd, re = PerfSession.MarkRenderEnd, be = PerfSession.MarkBlitEnd;
+        const long ms = 1_000_000;
+        // four cascades at 2-3, 3-4, 4-5 and 5-6 ms; opaque 7-9 ms; render end 10 ms; blit end 11 ms
+        var g2 = new GpuFrame(1, new[] { "frame.begin", upd, cb, ce, cb, ce, cb, ce, cb, ce, ob, oe, re, be, "frame.end" },
+            new[] { 0, 1 * ms, 2 * ms, 3 * ms, 3 * ms, 4 * ms, 4 * ms, 5 * ms, 5 * ms, 6 * ms, 7 * ms, 9 * ms, 10 * ms, 11 * ms, 11 * ms }, true);
+        var f = FrameRecord.New(1);
+        f.ApplyGpu(g2, null);
+        Assert.Equal(1.0, f.GpuShadowClearMs, 9);
+        Assert.Equal(4.0, f.GpuCastersMs, 9);
+        Assert.Equal(1.0, f.GpuSkyMs, 9);
+        Assert.Equal((2.0, 1.0, 1.0, 11.0), (f.GpuOpaqueMs, f.GpuPostMs, f.GpuBlitMs, f.GpuMs));
+        Assert.Equal(f.GpuMs, f.GpuUploadMs + f.GpuShadowClearMs + f.GpuCastersMs + f.GpuSkyMs + f.GpuOpaqueMs + f.GpuPostMs + f.GpuBlitMs, 9);
+        var g1 = new GpuFrame(2, new[] { "frame.begin", upd, cb, ce, ob, oe, re, be, "frame.end" },
+            new[] { 0, 1 * ms, 2 * ms, 3 * ms, 7 * ms, 9 * ms, 10 * ms, 11 * ms, 11 * ms }, true);
+        var h = FrameRecord.New(2);
+        h.ApplyGpu(g1, null);
+        Assert.Equal((1.0, 1.0, 4.0), (h.GpuShadowClearMs, h.GpuCastersMs, h.GpuSkyMs));
+    }
+
+    /// <summary>
+    /// Integration pin (perf + render1): the shadow sweep sets the resolution of the shadow maps the frame really uses,
+    /// G1's single map or each cascade of the G2 frame (whose default, 2048, equals G1's single map).
+    /// </summary>
+    [Fact]
+    public void ShadowSweepSetsTheShadowMapsOfTheFrameInUse()
+    {
+        foreach (var (mode, size) in new[] { (ShadowMode.S1024, 1024), (ShadowMode.Default, 2048), (ShadowMode.S4096, 4096) })
+        {
+            var g2 = new RenderSettings();
+            Assert.Equal(ShadowTechnique.Cascaded, g2.Features.ShadowTechnique);
+            Assert.Equal(size, PerfSession.ApplyShadowMode(g2, mode));
+            Assert.Equal(size, g2.Features.CascadeSize);
+            Assert.True(g2.Shadows);
+            var g1 = new RenderSettings { Features = RenderFeatures.G1() };
+            Assert.Equal(size, PerfSession.ApplyShadowMode(g1, mode));
+            Assert.Equal(size, g1.ShadowMapSize);
+            Assert.True(g1.Shadows);
+        }
+        var off = new RenderSettings();
+        Assert.Equal(0, PerfSession.ApplyShadowMode(off, ShadowMode.Off));
+        Assert.False(off.Shadows);
+    }
 }
 
 /// <summary>G2 perf stage on the shared headless device (llvmpipe here): timers, census, pass tap, sessions.</summary>
@@ -393,7 +445,11 @@ public class PerfDeviceTests
         Assert.Equal(0, stale);
     }
 
-    /// <summary>The harness must not change what is drawn: a frame through the tap equals the untapped G1 frame, pixel for pixel.</summary>
+    /// <summary>
+    /// The harness must not change what is drawn: a frame through the tap equals the untapped frame, pixel for pixel,
+    /// in the G1 frame (one shadow-caster call) and in the G2 frame of render1 (one call per cascade). Auto exposure is
+    /// re-primed before every frame, so the frames are metered alike.
+    /// </summary>
     [GfxFact]
     public void TappedRenderIsPixelIdenticalToTheG1Renderer()
     {
@@ -401,29 +457,84 @@ public class PerfDeviceTests
         {
             using var scene = new Gfx.Units.Demo.UnitsCloseupScene();
             scene.Load(gd, TestGfx.Host.Effects);
-            using var r = new ForwardRenderer(gd, TestGfx.Host.Effects);
-            scene.Configure(r.Settings);
             using var rt = new RenderTarget2D(gd, 320, 180, false, SurfaceFormat.Color, DepthFormat.None);
             var shot = scene.Shots[0];
-            Color[] Frame(IRenderContent c)
-            {
-                scene.Update(shot.SceneTime);
-                r.Render(c, shot.Camera, SunModel.At(shot.HourOfDay), rt, shot.SceneTime);
-                var px = new Color[rt.Width * rt.Height]; rt.GetData(px); return px;
-            }
-            var direct1 = Frame(scene);
-            var direct2 = Frame(scene);
-            Assert.Equal(direct1, direct2); // the device itself is deterministic for this frame
             var gl = GlApi.TryCreate(out _);
             using var timer = gl is { HasTimerQueries: true } ? new GpuTimer(gl) : null;
-            var tap = new ContentTap(scene, timer);
-            timer?.BeginFrame(1);
-            var tapped = Frame(tap);
-            timer?.EndFrame();
-            Assert.Equal(direct1, tapped);
-            Assert.Equal(1, tap.CastersCalls);
-            Assert.Equal(1, tap.OpaqueCalls);
-            Assert.True(Gfx.Engine.Diagnostics.Capture.DistinctColors(tapped) > 100);
+            long frameId = 0;
+            foreach (bool g1Frame in new[] { true, false })
+            {
+                using var r = new ForwardRenderer(gd, TestGfx.Host.Effects);
+                scene.Configure(r.Settings);
+                if (g1Frame) r.Settings.Features = RenderFeatures.G1();
+                Assert.Equal(g1Frame, r.Settings.Features.IsG1Frame);
+                Assert.True(r.Settings.Shadows);
+                Color[] Frame(IRenderContent c)
+                {
+                    scene.Update(shot.SceneTime);
+                    r.ResetAdaptation = true;
+                    r.Render(c, shot.Camera, SunModel.At(shot.HourOfDay), rt, shot.SceneTime);
+                    var px = new Color[rt.Width * rt.Height]; rt.GetData(px); return px;
+                }
+                var direct1 = Frame(scene);
+                var direct2 = Frame(scene);
+                Assert.Equal(direct1, direct2); // the device itself is deterministic for this frame
+                var inner = new CountingContent(scene);
+                var tap = new ContentTap(inner, timer);
+                timer?.BeginFrame(++frameId);
+                var tapped = Frame(tap);
+                timer?.EndFrame();
+                Assert.Equal(direct1, tapped);
+                int shadowMaps = g1Frame ? 1 : r.Cascades!.Count;
+                Assert.True(g1Frame || shadowMaps > 1, $"G2 frame with {shadowMaps} cascade(s)");
+                Assert.Equal((shadowMaps, 1), (tap.CastersCalls, tap.OpaqueCalls));
+                Assert.Equal((shadowMaps, 1), (inner.Casters, inner.Opaque)); // every call reached the scene
+                Assert.True(Gfx.Engine.Diagnostics.Capture.DistinctColors(tapped) > 100);
+            }
+        });
+    }
+
+    sealed class CountingContent(IRenderContent inner) : IRenderContent
+    {
+        public int Casters, Opaque;
+        public void DrawShadowCasters(RenderContext rc) { Casters++; inner.DrawShadowCasters(rc); }
+        public void DrawOpaque(RenderContext rc) { Opaque++; inner.DrawOpaque(rc); }
+    }
+
+    /// <summary>
+    /// Integration pin (perf + render1): the review capture is metered on its own view. The run's renderer has adapted
+    /// its auto exposure to other frames (here a camera looking up into the sky, at later scene times); the capture
+    /// still equals the same frame from a fresh renderer, pixel for pixel.
+    /// </summary>
+    [GfxFact]
+    public void CaptureFrameMetersItsOwnExposure()
+    {
+        TestGfx.Host.Invoke(gd =>
+        {
+            using var scene = new Gfx.Units.Demo.UnitsCloseupScene();
+            scene.Load(gd, TestGfx.Host.Effects);
+            using var rt = new RenderTarget2D(gd, 160, 90, false, SurfaceFormat.Color, DepthFormat.None);
+            var shot = scene.Shots[0];
+            var pf = new PathFrame(shot.Camera, shot.SceneTime, shot.HourOfDay);
+            Color[] Pixels() { var px = new Color[rt.Width * rt.Height]; rt.GetData(px); return px; }
+
+            using var fresh = new ForwardRenderer(gd, TestGfx.Host.Effects);
+            scene.Configure(fresh.Settings);
+            Assert.True(fresh.Settings.Features.AutoExposure && !fresh.Settings.Features.IsG1Frame);
+            PerfSession.RenderCaptureFrame(fresh, scene, pf, rt);
+            var expected = Pixels();
+
+            using var used = new ForwardRenderer(gd, TestGfx.Host.Effects);
+            scene.Configure(used.Settings);
+            var up = shot.Camera with { Target = shot.Camera.Position + new Vector3(0, 30, 10) };
+            for (int i = 0; i < 4; i++)
+            {
+                float t = shot.SceneTime + 1 + i / 30f;
+                scene.Update(t);
+                used.Render(scene, up, SunModel.At(shot.HourOfDay), rt, t);
+            }
+            PerfSession.RenderCaptureFrame(used, scene, pf, rt);
+            Assert.Equal(expected, Pixels());
         });
     }
 
@@ -487,17 +598,24 @@ public class PerfDeviceTests
         var run = root.GetProperty("runs")[0];
         Assert.Equal(6, run.GetProperty("measured_frames").GetInt32());
         Assert.Equal(6, run.GetProperty("per_frame").GetProperty("frame_ms").GetArrayLength());
+        Assert.Equal(r.RenderFeatures, run.GetProperty("render_features").GetString());
+        Assert.StartsWith("sky=Analytic ", r.RenderFeatures); // the merged renderer's default: the G2 frame
         Assert.Contains("INVALID - NOT VICTUS EVIDENCE", File.ReadAllText(Directory.GetFiles(dir, "perf-*-summary.txt").Single()));
         Assert.Single(Directory.GetFiles(Path.Combine(dir, "captures"), "*.jpg"));
     }
 
-    /// <summary>The warm-up lasts at least its minimum time (here 1 s at 160x90: many more frames than the 2-frame minimum); the measured frames do not change.</summary>
+    /// <summary>
+    /// The warm-up lasts at least its minimum time (here 3 s at 160x90: many more frames than the 2-frame minimum); the
+    /// measured frames do not change. Since the render1 merge the first frame of each run's new renderer builds the
+    /// sky table and the IBL on the CPU (about 1.25 s in a Debug build on llvmpipe here), so the minimum time is 3 s,
+    /// not 1 s: the frames after the first must still fill most of it.
+    /// </summary>
     [GfxFact]
     public void WarmupLastsAtLeastItsMinimumTime()
     {
         var dir = TempDir("warmup");
         var cfg = new RunConfig("t-A", "single", 'A', 160, 90, 1f, ShadowMode.Off, null, "A", false);
-        var plan = Plan(dir, new SuiteSpec("test", 1, 2, 4, new[] { cfg }, WarmupMinSeconds: 1.0), capture: false);
+        var plan = Plan(dir, new SuiteSpec("test", 1, 2, 4, new[] { cfg }, WarmupMinSeconds: 3.0), capture: false);
         PerfSession? s = null;
         using var log = new PerfLog(null);
         var sw = Stopwatch.StartNew();
@@ -506,7 +624,7 @@ public class PerfDeviceTests
         Assert.Equal("ok", r.Status);
         Assert.Equal(4, r.Frames.Length);
         Assert.True(r.WarmupFrames >= 5, $"warm-up frames {r.WarmupFrames}");
-        Assert.True(sw.Elapsed.TotalSeconds >= 1.0);
+        Assert.True(sw.Elapsed.TotalSeconds >= 3.0);
     }
 
     /// <summary>Semantic pin of the LOD sweep: larger multipliers move soldiers to finer LODs, smaller ones to the proxy.</summary>

@@ -12,6 +12,11 @@ public sealed record SysInfo(
     string GlVendor, string GlRenderer, string GlVersion, string GlslVersion, string MonoGameVersion,
     GraphicsProfile Profile, int CpuCount, long TotalMemoryBytes, string Os, string Runtime)
 {
+    /// <summary>GL extensions the G2 renderer uses when present (render1): anisotropic filtering, fragment-stage LOD/gradient sampling.</summary>
+    public string Extensions { get; init; } = "";
+    public bool HasAnisotropic => Extensions.Contains("GL_EXT_texture_filter_anisotropic", StringComparison.Ordinal) || Extensions.Contains("GL_ARB_texture_filter_anisotropic", StringComparison.Ordinal);
+    public bool HasTextureLod => Extensions.Contains("GL_ARB_shader_texture_lod", StringComparison.Ordinal);
+
     public bool IsSoftware => GlRenderer.Contains("llvmpipe", StringComparison.OrdinalIgnoreCase)
                               || GlRenderer.Contains("softpipe", StringComparison.OrdinalIgnoreCase)
                               || GlRenderer.Contains("swrast", StringComparison.OrdinalIgnoreCase);
@@ -51,7 +56,7 @@ public sealed record SysInfo(
                  ?? typeof(Game).Assembly.GetName().Version?.ToString() ?? "?";
         return new SysInfo(Gl(0x1F00), Gl(0x1F01), Gl(0x1F02), Gl(0x8B8C), mg, gd.GraphicsProfile,
             Environment.ProcessorCount, GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
-            RuntimeInformation.OSDescription, RuntimeInformation.FrameworkDescription);
+            RuntimeInformation.OSDescription, RuntimeInformation.FrameworkDescription) { Extensions = Gl(0x1F03) };
     }
 
     public string ToText()
@@ -63,6 +68,7 @@ public sealed record SysInfo(
         L("RAM", string.Create(CultureInfo.InvariantCulture, $"{TotalMemoryBytes / (1024.0 * 1024 * 1024):F1} GiB visible to .NET"));
         L("OS", Os); L("Runtime", Runtime);
         L("Flags", (IsSoftware ? "Software " : "") + (IsIntelIGpu ? "IntelIGPU " : "") + (IsNvidia ? "NVIDIA" : ""));
+        L("G2 exts", $"anisotropic={(HasAnisotropic ? "yes" : "no")} shader_texture_lod={(HasTextureLod ? "yes" : "no")}");
         foreach (var w in Warnings) sb.Append("WARNING: ").Append(w).Append('\n');
         return sb.ToString();
     }

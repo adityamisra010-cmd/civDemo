@@ -183,15 +183,19 @@ public sealed class TerrainMeshData
         {
             int ci = cy * CW + cx;
             if (map[ci] >= 0) return map[ci];
-            float surf = 0, depth = 0; int wet = 0;
+            float surf = 0, depth = 0; int wet = 0, inMap = 0;
             for (int dy = -1; dy <= 0; dy++)
                 for (int dx = -1; dx <= 0; dx++)
                 {
                     int x = cx + dx, y = cy + dy;
                     if (x < 0 || y < 0 || x >= W || y >= H) continue;
+                    inMap++;
                     int i = Grid.Index(x, y), d = Grid.WaterDepthMm[i];
                     if (d > 0) { surf += (Grid.HeightMm[i] + d) / 1000f; depth += d / 1000f; wet++; }
                 }
+            // G1 divides by 4 even on the map edge, where only 2 (or 1) cells exist: edge water came out half as deep.
+            // Data.x keeps G1's value for the G1 frame; Data.z is the in-map average the G2 water uses (render1).
+            float depthInMap = depth / Math.Max(1, inMap);
             if (wet == 0)
                 for (int dy = -2; dy <= 1; dy++)
                     for (int dx = -2; dx <= 1; dx++)
@@ -203,7 +207,7 @@ public sealed class TerrainMeshData
                     }
             surf /= Math.Max(1, wet); depth /= 4f;
             map[ci] = verts.Count;
-            verts.Add(new VertexWater(new Vector3((cx - 0.5f - W / 2) * CellM, surf, (cy - 0.5f - H / 2) * CellM), depth));
+            verts.Add(new VertexWater(new Vector3((cx - 0.5f - W / 2) * CellM, surf, (cy - 0.5f - H / 2) * CellM), depth) { Data = new Vector4(depth, 0, depthInMap, 0) });
             return map[ci];
         }
         for (int y = 0; y < H; y++)

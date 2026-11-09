@@ -115,6 +115,15 @@ dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --interactive [scene]      # ne
   - The determinism scan is clean.
   - `--sysinfo`: llvmpipe (LLVM 20.1.2), Mesa 25.2.8, GL 4.5. All numbers here are llvmpipe, not Victus evidence.
 
+## Renderer core (stage render1)
+
+The G2 frame (analytic atmosphere, far field, PBR with image-based lighting, cascaded shadows, photographic terrain,
+bloom, auto exposure, tonemapper and LUT, FXAA, jittered stills) is described in `reports/render1.md`. Every part is a
+switch: `Gfx.Demo --capture <scene> --set name=value[,name=value]`, or `--preset g1` for the G1 frame (list:
+`Gfx.Demo --help`). The photographic terrain needs `scripts/bake-render1.sh`; without the bake, G1's procedural
+materials are used (the load failure is kept in `TerrainScenery.MaterialsFailure`; nothing is printed). `scripts/capture-render1.sh` and `scripts/bench-render1.sh` reproduce the render1 captures and the
+per-switch llvmpipe costs.
+
 ## Victus (reference machine)
 
 The Victus benchmark (DR48, DR49 item 1) needs a Windows build of `Gfx.Demo` on the Director's HP Victus (RTX 4050
@@ -126,3 +135,12 @@ is evidence of Victus performance.
 exist: `scripts/package-victus.sh` builds `g2-before-<commit>.zip` (self-contained win-x64, `run-benchmark.bat`,
 `README-VICTUS.txt`); `scripts/compare-perf.py` compares two result files. Details, the MonoGame 3.8.5
 render-target leak it works around, and what is still unverified: `reports/perf.md`.
+
+**Since the perf + render1 merge (`g2/trunk`, 2026-11-09):** the harness measures the G2 frame by default (the
+scenes' own switches; there is no harness option for `--preset g1`). The shadow sweep sets the G2 cascade size as
+well as G1's single map, each JSON run records `render_features`, the GPU casters span covers every cascade, and the
+review capture re-primes auto exposure. Not yet adapted: `scripts/package-victus.sh` still defaults to the name
+`g2-before` and `README-VICTUS.txt` still describes the BEFORE package (G1 renderer), and the package has no
+`assets/` folder next to the executable (where `AssetRoot` looks), so on Windows the G2 frame would fall back to G1's
+procedural ground materials (the HDRI is needed only for `ibl=hdri`). An AFTER package needs its own name, README
+text and the render1 terrain bake (with its CC-BY notice).

@@ -24,6 +24,8 @@ public abstract class TerrainSceneBase : DemoScene
     {
         base.Configure(settings);
         settings.FogParams = Scenery.Weather.FogParams;
+        settings.ShadowCasterBounds = Scenery.CasterBounds;
+        settings.Features.Haze = Scenery.Haze;
     }
 
     public override float ShadowRadius => 260f;

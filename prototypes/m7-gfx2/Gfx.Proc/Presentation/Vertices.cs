@@ -17,7 +17,8 @@ public struct VertexTerrain : IVertexType
     readonly VertexDeclaration IVertexType.VertexDeclaration => Decl;
 }
 
-/// <summary>Water vertex: position (on the water surface) and data (x = water depth m at this vertex).</summary>
+/// <summary>Water vertex: position (on the water surface) and data (x = water depth m at this vertex, G1; y = far-sea fade and
+/// z = water depth averaged over in-map cells only, both added by render1 for the G2 water).</summary>
 [StructLayout(LayoutKind.Sequential, Pack = 1)]
 public struct VertexWater : IVertexType
 {

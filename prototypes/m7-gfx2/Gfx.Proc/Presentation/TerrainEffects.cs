@@ -10,6 +10,12 @@ public static class TerrainEffectNames
     public const string TerrainSplat = EffectNames.TerrainSplat;
     public const string TerrainDepth = "TerrainDepth";
     public const string Water = "Water";
+    /// <summary>G2 (render1): photographic PBR terrain.</summary>
+    public const string TerrainPbr = "TerrainPbr";
+    /// <summary>G2 (render1): water with distance-filtered ripples and sky-table reflections.</summary>
+    public const string WaterPbr = "WaterPbr";
+    /// <summary>G2 (render1): the fogged land beyond the battle map.</summary>
+    public const string FarField = "FarField";
 }
 
 /// <summary>
@@ -24,6 +30,9 @@ public sealed class TerrainEffects : IEffectSource
         yield return Splat();
         yield return Depth();
         yield return WaterFx();
+        yield return G2TerrainEffects.TerrainPbr();
+        yield return G2TerrainEffects.WaterPbr();
+        yield return G2TerrainEffects.FarField();
     }
 
     static EffectBuilder Splat()

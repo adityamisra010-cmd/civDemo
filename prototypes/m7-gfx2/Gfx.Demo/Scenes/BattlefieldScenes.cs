@@ -131,6 +131,8 @@ public sealed class BattlefieldScene : DemoScene
     {
         base.Configure(settings);
         settings.FogParams = Scenery.Weather.FogParams;
+        settings.ShadowCasterBounds = Scenery.CasterBounds;
+        settings.Features.Haze = Scenery.Haze;
     }
 
     public override float ShadowRadius => 200f;
@@ -238,6 +240,7 @@ public sealed class BattlefieldCinematicScene() : CinematicSceneBase(WarOutcomeF
     }
 
     public override void Update(float t) { if (Scenery != null) Scenery.TimeSeconds = t; base.Update(t); }
+    public override void Configure(RenderSettings s) { base.Configure(s); s.ShadowCasterBounds = Scenery.CasterBounds; s.Features.Haze = Scenery.Haze; }
     protected override void DrawBackground(RenderContext rc)
     {
         if (rc.IsShadowPass) Scenery.DrawShadowCasters(rc); else Scenery.DrawOpaque(rc);

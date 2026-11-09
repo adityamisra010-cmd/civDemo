@@ -14,6 +14,12 @@ public static class EffectNames
     public const string Post = "Post";                     // exposure + ACES + gamma
     /// <summary>NOT shipped by the engine: lane T registers it through an <see cref="IEffectSource"/>.</summary>
     public const string TerrainSplat = "TerrainSplat";
+    /// <summary>
+    /// G2 (render1): instanced PBR with per-instance material. Instance tint rgb = linear base colour; tint a packs the
+    /// material: a in [0, 1] → dielectric with roughness a; a in [2, 3] → metal with roughness a − 2. Vertex colour
+    /// (sRGB) multiplies the base colour.
+    /// </summary>
+    public const string InstancedPbr = "InstancedPbr";
 }
 
 /// <summary>The engine's own effect set (discovered like any other <see cref="IEffectSource"/>).</summary>
@@ -27,7 +33,24 @@ public sealed class BuiltinEffects : IEffectSource
         yield return Skinned(depth: true);
         yield return Sky();
         yield return Post();
+        yield return InstancedPbrFx();
     }
+
+    static EffectBuilder InstancedPbrFx() => MeshAttrs(new EffectBuilder(EffectNames.InstancedPbr))
+        .AddStandardLit().Varyings("vec3 v_wpos; vec3 v_nrm; vec4 v_col; vec4 v_tint; vec4 v_lpos;")
+        .VertexMain(@"
+    vec3 wp = instPos(vec4(a_pos.xyz, 1.0));
+    v_wpos = wp; v_nrm = instDir(a_nrm); v_col = a_col; v_tint = i_tint;
+    v_lpos = shadowLookup(wp, v_nrm);
+    gl_Position = ViewProj_mul(vec4(wp, 1.0));")
+        .VertexLib(GlslLib.ShadowLookup)
+        .PixelMain(@"
+    vec3 n = normalize(v_nrm);
+    float metal = v_tint.a >= 1.5 ? 1.0 : 0.0;
+    float rough = v_tint.a - 2.0 * metal;
+    vec3 albedo = srgbToLinear(v_col.rgb) * v_tint.rgb;
+    vec3 c = shadePbr(albedo, rough, metal, 1.0, n, v_wpos, shadowPcf(v_lpos));
+    gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);");
 
     static EffectBuilder MeshAttrs(EffectBuilder b) => b
         .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)

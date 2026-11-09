@@ -43,10 +43,13 @@ public sealed class PerfPlan
 /// Runs a <see cref="PerfPlan"/> one frame at a time. Per run: load the bound scene (timed), apply the
 /// configuration (resolution, shadow setting, LOD multiplier, crowd size), render warm-up frames, then the
 /// measured frames along the slot's fixed camera path, then collect the remaining GPU timestamps, compute the
-/// statistics and flags, append the CSV row and optionally save a JPEG. The scene is rendered by the UNCHANGED
-/// G1 <see cref="ForwardRenderer"/>; the harness only wraps the scene in a <see cref="ContentTap"/>.
-/// GPU marker order per frame: frame.begin, update.end, [shadow.casters.begin, shadow.casters.end],
-/// opaque.begin, opaque.end, render.end, present.blit.end, frame.end.
+/// statistics and flags, append the CSV row and optionally save a JPEG. The scene is rendered by the engine's
+/// <see cref="ForwardRenderer"/>, unchanged by the harness (since the render1 merge: the G2 frame, unless the
+/// scene's switches select the G1 frame); the harness only wraps the scene in a <see cref="ContentTap"/>.
+/// GPU marker order per frame: frame.begin, update.end, [shadow.casters.begin, shadow.casters.end] (once per
+/// shadow map: once in the G1 frame, once per cascade in the G2 frame), opaque.begin, opaque.end, render.end,
+/// present.blit.end, frame.end. Each run gets a new renderer, so G2 auto exposure starts primed on the run's first
+/// warm-up frame; the capture frame re-primes it (<see cref="RenderCaptureFrame"/>).
 /// </summary>
 public sealed class PerfSession : IBenchDriver, IDisposable
 {
@@ -300,13 +303,12 @@ public sealed class PerfSession : IBenchDriver, IDisposable
                 scene.Load(_gd, _fx);
                 renderer = new ForwardRenderer(_gd, _fx);
                 scene.Configure(renderer.Settings);
-                switch (cfg.Shadows)
-                {
-                    case ShadowMode.Off: renderer.Settings.Shadows = false; break;
-                    case ShadowMode.S1024: renderer.Settings.Shadows = true; renderer.Settings.ShadowMapSize = 1024; break;
-                    case ShadowMode.S4096: renderer.Settings.Shadows = true; renderer.Settings.ShadowMapSize = 4096; break;
-                }
-                res.ShadowsOn = renderer.Settings.Shadows; res.ShadowMapSize = renderer.Settings.Shadows ? renderer.Settings.ShadowMapSize : 0;
+                res.ShadowMapSize = ApplyShadowMode(renderer.Settings, cfg.Shadows);
+                res.ShadowsOn = renderer.Settings.Shadows;
+                res.RenderFeatures = renderer.Settings.Features.Describe();
+                // A new renderer per run starts with auto exposure primed: the run's first warm-up frame meters its own
+                // view instead of inheriting the previous configuration's exposure. Kept explicit in case renderers are reused.
+                renderer.ResetAdaptation = true;
                 var knobs = SceneKnobs.Discover(scene);
                 res.Knobs = knobs.ApplyLodMultiplier(cfg.LodMult);
                 rt = new RenderTarget2D(_gd, cfg.Width, cfg.Height, false, SurfaceFormat.Color, DepthFormat.None);
@@ -481,9 +483,7 @@ public sealed class PerfSession : IBenchDriver, IDisposable
     RenderTarget2D? CaptureFrame(RunState r)
     {
         var res = r.Result;
-        var pf = r.Path.At(0.5f);
-        r.Scene.Update(pf.SceneTime);
-        r.Renderer.Render(r.Scene, pf.Camera, SunModel.At(pf.Hour), r.Target, pf.SceneTime);
+        RenderCaptureFrame(r.Renderer, r.Scene, r.Path.At(0.5f), r.Target);
         string dir = Path.Combine(_plan.OutDir, "captures");
         Directory.CreateDirectory(dir);
         string file = Path.Combine(dir, $"{res.Config.Id}-{Sanitize(res.SceneSpec)}-{Info.Validity.Label}.jpg");
@@ -491,6 +491,37 @@ public sealed class PerfSession : IBenchDriver, IDisposable
         res.CapturePath = file;
         _log.Line("    capture " + file + " (u=0.5 of the camera path; " + Info.TimingLabel + ")");
         return r.Target;
+    }
+
+    /// <summary>
+    /// Renders the review capture of a run: the frame at <paramref name="pf"/>, after the measured frames, with the
+    /// run's renderer. G2 auto exposure is re-primed first, so the capture is metered on its own view: without it the
+    /// capture would keep the exposure the measured frames ended on (its scene time lies before theirs, so the
+    /// adaptation step is zero).
+    /// </summary>
+    internal static void RenderCaptureFrame(ForwardRenderer renderer, DemoScene scene, PathFrame pf, RenderTarget2D target)
+    {
+        renderer.ResetAdaptation = true;
+        scene.Update(pf.SceneTime);
+        renderer.Render(scene, pf.Camera, SunModel.At(pf.Hour), target, pf.SceneTime);
+    }
+
+    /// <summary>
+    /// Applies a configuration's shadow setting. The size is that of each shadow map: G1's single map
+    /// (<see cref="RenderSettings.ShadowMapSize"/>) and, in the G2 frame, each cascade
+    /// (<see cref="RenderFeatures.CascadeSize"/>; the default 2048 matches G1's single map). Returns the size the
+    /// frame will use (0 = shadows off).
+    /// </summary>
+    internal static int ApplyShadowMode(RenderSettings s, ShadowMode mode)
+    {
+        switch (mode)
+        {
+            case ShadowMode.Off: s.Shadows = false; break;
+            case ShadowMode.S1024: s.Shadows = true; s.ShadowMapSize = 1024; s.Features.CascadeSize = 1024; break;
+            case ShadowMode.S4096: s.Shadows = true; s.ShadowMapSize = 4096; s.Features.CascadeSize = 4096; break;
+        }
+        if (!s.Shadows) return 0;
+        return s.Features.ShadowTechnique == ShadowTechnique.Cascaded ? s.Features.CascadeSize : s.ShadowMapSize;
     }
 
     static string Sanitize(string s) => new(s.Select(c => char.IsLetterOrDigit(c) || c == '-' ? c : '-').ToArray());

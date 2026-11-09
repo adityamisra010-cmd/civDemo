@@ -350,6 +350,7 @@ public sealed class ResultWriter : IDisposable
         w.WriteString("scene", r.SceneSpec); w.WriteString("scene_type", r.SceneType); w.WriteString("stand_in_gap", r.StandInGap);
         w.WriteString("camera_path", r.PathDescription); w.WriteString("status", r.Status);
         w.WriteBoolean("shadows_on", r.ShadowsOn); w.WriteNumber("shadow_map_size", r.ShadowMapSize);
+        w.WriteString("render_features", r.RenderFeatures);
         w.WriteStartArray("lod_knobs"); foreach (var k in r.Knobs) w.WriteStringValue(k); w.WriteEndArray();
         Num(w, "load_ms", r.LoadMs); Num(w, "first_frame_ms", r.FirstFrameMs); Num(w, "wall_s", r.WallSeconds);
         w.WriteNumber("warmup_frames", r.WarmupFrames); w.WriteNumber("measured_frames", r.Frames.Length);

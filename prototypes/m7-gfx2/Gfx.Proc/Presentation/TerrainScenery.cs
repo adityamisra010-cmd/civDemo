@@ -27,6 +27,14 @@ public sealed class TerrainScenery : IDisposable
     readonly Texture2D _detailA, _detailB;
     readonly Vector3[] _palette;
     readonly List<GpuGroup> _groups = new();
+    // G2 (stage render1): photographic materials and the far field, built on first use
+    TerrainMaterials? _materials; bool _materialsTried;
+    VertexBuffer? _farVb, _seaVb; IndexBuffer? _farIb, _seaIb; int _farTris, _seaTris; bool _farBuilt;
+    readonly MaterialLook.Entry[] _look;
+    /// <summary>Why the photographic materials are not in use (null when they are, or before the first G2 frame).</summary>
+    public string? MaterialsFailure { get; private set; }
+    public bool UsingPhotoMaterials => _materials != null;
+    public FarFieldMesh? FarField { get; private set; }
 
     public BattleTerrainGrid Grid { get; }
     public TerrainMeshData Mesh { get; }
@@ -47,6 +55,7 @@ public sealed class TerrainScenery : IDisposable
         uint seed = (uint)(grid.Seed ^ (grid.Seed >> 32));
         Weather = WeatherParams.For(grid.Biome, Mesh.MinHeightM, seed);
         _palette = SplatModel.Palette(grid.Biome);
+        _look = MaterialLook.For(grid.Biome);
         (_detailA, _detailB) = MaterialTextures.Create(gd, 1234u);
 
         _chunks = new Chunk[Mesh.Chunks.Length]; _bounds = new BoundingBox[_chunks.Length]; _visible = new (int, int)[_chunks.Length];
@@ -84,24 +93,135 @@ public sealed class TerrainScenery : IDisposable
     }
 
     public float HeightAt(float x, float z) => Mesh.HeightAt(x, z);
+    /// <summary>
+    /// G2 aerosol haze for this biome (multiplier on the clear-sky Mie density): humid and dusty biomes are hazier.
+    /// Presentation only; scenes pass it to <see cref="RenderFeatures.Haze"/> in Configure.
+    /// </summary>
+    public float Haze => Grid.Biome switch { Biome.Arid => 3.5f, Biome.Tropical => 4.0f, Biome.Cold => 2.0f, _ => 3.0f };
+
+    /// <summary>World box holding every shadow caster of this scenery (terrain and props, 40 m headroom for trees).</summary>
+    public BoundingBox CasterBounds => new(new Vector3(-Mesh.HalfExtentX, Mesh.MinHeightM - 10f, -Mesh.HalfExtentZ),
+                                           new Vector3(Mesh.HalfExtentX, Mesh.MaxHeightM + 40f, Mesh.HalfExtentZ));
     public IReadOnlyList<PropGroup> PropGroups => _groups.Select(g => g.Data).ToArray();
 
     public void DrawShadowCasters(RenderContext rc)
     {
         var depth = rc.Effects.Get(TerrainEffectNames.TerrainDepth);
         DrawChunks(rc, depth);
-        if (DrawProps) DrawPropGroups(rc, rc.Effects.Get(Gfx.Engine.Effects.EffectNames.InstancedDepth), ShadowCastDistance);
+        // cascaded shadows: every cascade culls by its own light frustum, so trees cast up to the shadow distance
+        float reach = rc.ShadowFrustum.HasValue ? MathF.Max(ShadowCastDistance, rc.Features.ShadowDistance) : ShadowCastDistance;
+        if (DrawProps) DrawPropGroups(rc, rc.Effects.Get(Gfx.Engine.Effects.EffectNames.InstancedDepth), reach);
     }
 
     public void DrawOpaque(RenderContext rc)
     {
-        var fx = rc.Effects.Get(TerrainEffectNames.TerrainSplat);
-        for (int i = 0; i < _palette.Length; i++) fx.Parameters["MatColor" + i].SetValue(new Vector4(_palette[i], 1));
-        fx.Parameters["TerrainParams"].SetValue(new Vector4(1f / 6f, 1f / 310f, 3f, 0));
-        fx.Parameters["DetailA"].SetValue(_detailA); fx.Parameters["DetailB"].SetValue(_detailB);
+        bool photo = rc.IsG2Frame && rc.Features.PhotoTerrain && EnsureMaterials(rc.Device);
+        Effect fx;
+        if (photo) fx = PhotoTerrainEffect(rc);
+        else
+        {
+            fx = rc.Effects.Get(TerrainEffectNames.TerrainSplat);
+            for (int i = 0; i < _palette.Length; i++) fx.Parameters["MatColor" + i].SetValue(new Vector4(_palette[i], 1));
+            fx.Parameters["TerrainParams"].SetValue(new Vector4(1f / 6f, 1f / 310f, 3f, 0));
+            fx.Parameters["DetailA"].SetValue(_detailA); fx.Parameters["DetailB"].SetValue(_detailB);
+        }
         LastVisibleChunks = DrawChunks(rc, fx);
         LastPropInstances = DrawProps ? DrawPropGroups(rc, rc.Effects.Get(Gfx.Engine.Effects.EffectNames.InstancedLit), float.MaxValue) : 0;
-        DrawWater(rc);
+        if (rc.IsG2Frame && rc.Features.FarField) DrawFarField(rc);
+        if (rc.IsG2Frame) DrawWaterG2(rc); else DrawWater(rc);
+    }
+
+    bool EnsureMaterials(GraphicsDevice gd)
+    {
+        if (!_materialsTried)
+        {
+            _materialsTried = true;
+            _materials = TerrainMaterials.TryLoad(gd, out var why);
+            MaterialsFailure = why;
+            // texture creation mid-frame re-binds GL units behind MonoGame's cache: force every slot to re-bind
+            for (int i = 0; i < 16; i++) gd.Textures[i] = null;
+        }
+        return _materials != null;
+    }
+
+    Effect PhotoTerrainEffect(RenderContext rc)
+    {
+        var fx = rc.Effects.Get(TerrainEffectNames.TerrainPbr);
+        var m = _materials!;
+        var p = fx.Parameters;
+        for (int i = 0; i < 8; i++) p["MatTint" + i].SetValue(new Vector4(_look[i].Tint, _look[i].Saturation));
+        p["MatRoughA"].SetValue(new Vector4(_look[0].RoughMul, _look[1].RoughMul, _look[2].RoughMul, _look[3].RoughMul));
+        p["MatRoughB"].SetValue(new Vector4(_look[4].RoughMul, _look[5].RoughMul, _look[6].RoughMul, _look[7].RoughMul));
+        var ts = TerrainMaterials.TileMetres;
+        p["TileScaleA"].SetValue(new Vector4(1f / ts[0], 1f / ts[1], 1f / ts[2], 1f / ts[3]));
+        p["TileScaleB"].SetValue(new Vector4(1f / ts[4], 1f / 190f, 1f / 53f, 0));
+        p["TerrainOpts"].SetValue(new Vector4(rc.Features.HexTiling ? 1 : 0, rc.Features.MacroVariation ? 1 : 0, 0.22f, 0));
+        for (int i = 0; i < 5; i++) { p["Alb" + i].SetValue(m.AlbHt[i]); p["Nrm" + i].SetValue(m.NrmRgh[i]); }
+        p["Macro"].SetValue(m.Macro);
+        return fx;
+    }
+
+    void EnsureFarField(GraphicsDevice gd)
+    {
+        if (_farBuilt) return;
+        _farBuilt = true;
+        FarField = FarFieldMesh.Build(Mesh, (uint)(Grid.Seed ^ (Grid.Seed >> 32)));
+        var land = FarField.Land;
+        _farVb = new VertexBuffer(gd, VertexPNC.Decl, land.Vertices.Length, BufferUsage.WriteOnly); _farVb.SetData(land.Vertices);
+        _farIb = new IndexBuffer(gd, IndexElementSize.ThirtyTwoBits, land.Indices.Length, BufferUsage.WriteOnly); _farIb.SetData(land.Indices);
+        _farTris = land.TriangleCount;
+        if (FarField.Sea is { } sea)
+        {
+            _seaVb = new VertexBuffer(gd, VertexWater.Decl, sea.Vertices.Length, BufferUsage.WriteOnly); _seaVb.SetData(sea.Vertices);
+            _seaIb = new IndexBuffer(gd, IndexElementSize.ThirtyTwoBits, sea.Indices.Length, BufferUsage.WriteOnly); _seaIb.SetData(sea.Indices);
+            _seaTris = sea.TriangleCount;
+        }
+    }
+
+    void DrawFarField(RenderContext rc)
+    {
+        EnsureFarField(rc.Device);
+        if (_farVb == null || _farIb == null) return;
+        var fx = rc.Effects.Get(TerrainEffectNames.FarField);
+        fx.Parameters["FarParams"].SetValue(new Vector4(FarFieldMesh.OuterHalfSize * 0.35f, FarFieldMesh.OuterHalfSize * 0.95f, 0, 0));
+        fx.Parameters["Macro"]?.SetValue(_materials?.Macro ?? _detailA);
+        _gd.SetVertexBuffer(_farVb); _gd.Indices = _farIb;
+        rc.Apply(fx);
+        _gd.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _farTris);
+        rc.Stats.RecordDraw(_farTris, 1);
+        if (_seaVb != null && _seaIb != null)
+        {
+            var w = rc.Effects.Get(TerrainEffectNames.WaterPbr);
+            SetWaterParams(rc, w, farSea: true); // depth-driven opacity like the in-map sea, faded in across the map edge
+            _gd.BlendState = BlendState.AlphaBlend; _gd.DepthStencilState = DepthStencilState.DepthRead;
+            _gd.SetVertexBuffer(_seaVb); _gd.Indices = _seaIb;
+            rc.Apply(w);
+            _gd.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _seaTris);
+            rc.Stats.RecordDraw(_seaTris, 1);
+            _gd.BlendState = BlendState.Opaque; _gd.DepthStencilState = DepthStencilState.Default;
+        }
+    }
+
+    void SetWaterParams(RenderContext rc, Effect fx, bool farSea)
+    {
+        bool arid = Grid.Biome == Biome.Arid || Grid.Biome == Biome.Tropical;
+        fx.Parameters["WaterParams"].SetValue(new Vector4(TimeSeconds, rc.Features.WaterRippleFade ? 1 : 0, 0, farSea ? 1 : 0));
+        // single-scattering albedo of the water body and its absorption per metre (red goes first)
+        fx.Parameters["WaterScatter"].SetValue(arid ? new Vector4(0.035f, 0.075f, 0.075f, 0) : new Vector4(0.025f, 0.05f, 0.045f, 0));
+        fx.Parameters["WaterAbsorb"].SetValue(new Vector4(0.45f, 0.20f, 0.13f, 0));
+    }
+
+    void DrawWaterG2(RenderContext rc)
+    {
+        if (_waterVb == null || _waterIb == null) return;
+        var fx = rc.Effects.Get(TerrainEffectNames.WaterPbr);
+        SetWaterParams(rc, fx, farSea: false);
+        _gd.BlendState = BlendState.AlphaBlend; _gd.DepthStencilState = DepthStencilState.DepthRead;
+        _gd.SetVertexBuffer(_waterVb); _gd.Indices = _waterIb;
+        rc.Apply(fx);
+        _gd.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _waterTris);
+        rc.Stats.RecordDraw(_waterTris, 1);
+        _gd.BlendState = BlendState.Opaque; _gd.DepthStencilState = DepthStencilState.Default;
     }
 
     int DrawChunks(RenderContext rc, Effect fx)
@@ -109,13 +229,16 @@ public sealed class TerrainScenery : IDisposable
         int n = Lod.Visible(rc.Frustum, rc.Camera.Position, _bounds, _visible);
         if (rc.IsShadowPass)
         {
-            // every chunk casts, at the LOD the camera will see (a coarser caster mesh self-shadows the finer one)
-            n = _chunks.Length;
-            for (int i = 0; i < n; i++)
+            // every chunk casts, at the LOD the camera will see (a coarser caster mesh self-shadows the finer one);
+            // with cascades, only the chunks inside this cascade's light frustum
+            n = 0;
+            for (int i = 0; i < _chunks.Length; i++)
             {
-                var b = _bounds[i]; var cp = Vector3.Clamp(rc.Camera.Position, b.Min, b.Max);
+                var b = _bounds[i];
+                if (rc.ShadowFrustum is { } sf && !sf.IntersectsBox(b.Min, b.Max)) continue;
+                var cp = Vector3.Clamp(rc.Camera.Position, b.Min, b.Max);
                 int l = Lod.Select(Vector3.Distance(rc.Camera.Position, cp));
-                _visible[i] = (i, l < 0 ? LastLod : l);
+                _visible[n++] = (i, l < 0 ? LastLod : l);
             }
         }
         for (int k = 0; k < n; k++)
@@ -123,6 +246,8 @@ public sealed class TerrainScenery : IDisposable
             var (ci, lod) = _visible[k]; var c = _chunks[ci];
             _gd.SetVertexBuffer(c.Vb); _gd.Indices = c.Ib[lod];
             rc.Apply(fx);
+            // the macro-variation texture is low-frequency: plain trilinear, no anisotropic taps
+            if (fx.Name == TerrainEffectNames.TerrainPbr) _gd.SamplerStates[G2TerrainEffects.MacroSlot] = SamplerState.LinearWrap;
             _gd.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, c.Tris[lod]);
             rc.Stats.RecordDraw(c.Tris[lod], 1);
         }
@@ -135,7 +260,7 @@ public sealed class TerrainScenery : IDisposable
         foreach (var g in _groups)
         {
             if (g.All.Length == 0) continue;
-            int vis = rc.IsShadowPass ? FillAll(g) : rc.Frustum.CullSpheres(g.Spheres, g.Visible);
+            int vis = rc.IsShadowPass ? (rc.ShadowFrustum is { } sf ? sf.CullSpheres(g.Spheres, g.Visible) : FillAll(g)) : rc.Frustum.CullSpheres(g.Spheres, g.Visible);
             float near = g.Data.Distances[0], far = MathF.Min(g.Data.Distances[1], maxDistance);
             float near2 = near * near, far2 = far * far; int nn = 0, nf = 0;
             for (int i = 0; i < vis; i++)
@@ -177,6 +302,7 @@ public sealed class TerrainScenery : IDisposable
     {
         foreach (var c in _chunks) { c.Vb.Dispose(); foreach (var ib in c.Ib) ib.Dispose(); }
         _waterVb?.Dispose(); _waterIb?.Dispose(); _detailA.Dispose(); _detailB.Dispose();
+        _materials?.Dispose(); _farVb?.Dispose(); _farIb?.Dispose(); _seaVb?.Dispose(); _seaIb?.Dispose();
         foreach (var g in _groups) { g.Meshes[0].Dispose(); g.Meshes[1].Dispose(); g.NearBuf.Dispose(); g.FarBuf.Dispose(); }
     }
 }

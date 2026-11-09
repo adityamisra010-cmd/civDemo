@@ -29,7 +29,9 @@ public struct FrameRecord
         GpuReceived = true; GpuMonotonic = g.Monotonic;
         if (!g.Monotonic) return;
         static double Ms(long ns) => ns / 1e6;
-        long upd = g.At(PerfSession.MarkUpdateEnd), cb = g.At(ContentTap.MarkCastersBegin), ce = g.At(ContentTap.MarkCastersEnd);
+        // The G2 frame (render1) calls the shadow casters once per cascade: the casters span runs from the first begin
+        // to the LAST end, so every cascade is in it; the G1 frame calls them once.
+        long upd = g.At(PerfSession.MarkUpdateEnd), cb = g.At(ContentTap.MarkCastersBegin), ce = g.LastAt(ContentTap.MarkCastersEnd);
         long ob = g.At(ContentTap.MarkOpaqueBegin), oe = g.At(ContentTap.MarkOpaqueEnd), re = g.At(PerfSession.MarkRenderEnd), be = g.At(PerfSession.MarkBlitEnd);
         if (upd < 0 || ob < 0 || oe < 0 || re < 0) return;
         long end = be >= 0 ? be : re;
@@ -97,7 +99,10 @@ public sealed class RunResult
     public double FirstFrameMs { get; set; } = double.NaN;
     public IReadOnlyList<string> Knobs { get; set; } = Array.Empty<string>();
     public bool ShadowsOn { get; set; }
+    /// <summary>Resolution of each shadow map: G1's single map, or each cascade of the G2 frame (0 = shadows off).</summary>
     public int ShadowMapSize { get; set; }
+    /// <summary>The renderer's switches for this run (<see cref="Gfx.Engine.Rendering.RenderFeatures.Describe"/>): G1 or G2 frame, and which G2 parts.</summary>
+    public string RenderFeatures { get; set; } = "";
     public string HdrFormat { get; set; } = "";
     public FrameRecord[] Frames { get; set; } = Array.Empty<FrameRecord>();
     public int WarmupFrames { get; set; }

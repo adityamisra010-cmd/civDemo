@@ -27,10 +27,24 @@ public sealed class EffectBuilder
     readonly List<(string name, int slot)> _textures = new();
     readonly List<(string decl, VertexElementUsage usage, int index)> _attrs = new();
     readonly StringBuilder _varyings = new(), _vsLib = new(), _psLib = new();
+    readonly List<string> _extensions = new();
     string _vsMain = "", _psMain = "";
 
     public string Name { get; }
     public EffectBuilder(string name) { Name = name; }
+
+    /// <summary>
+    /// Enables a GLSL extension in both stages (<c>#extension NAME : enable</c> right after <c>#version</c>). Guard its
+    /// use with <c>#ifdef NAME</c> and keep a GLSL 1.20 fallback: a driver without it still compiles the effect.
+    /// </summary>
+    public EffectBuilder Extension(string name)
+    {
+        if (!_extensions.Contains(name)) _extensions.Add(name);
+        return this;
+    }
+
+    /// <summary>True when a texture of this name is declared.</summary>
+    public bool HasTexture(string name) { foreach (var (n, _) in _textures) if (n == name) return true; return false; }
 
     public EffectBuilder Vec4(string name, Stage stage) { _params.Add(new P(name, false, stage)); return this; }
     public EffectBuilder Matrix(string name, Stage stage) { _params.Add(new P(name, true, stage)); return this; }
@@ -81,6 +95,7 @@ public sealed class EffectBuilder
         string Header(bool vertex)
         {
             var sb = new StringBuilder("#version 120\n");
+            foreach (var ext in _extensions) sb.Append("#extension ").Append(ext).Append(" : enable\n");
             string arr = vertex ? "vs_uniforms_vec4" : "ps_uniforms_vec4";
             int n = vertex ? vsN : psN;
             if (n > 0) sb.Append("uniform vec4 ").Append(arr).Append('[').Append(n).Append("];\n");

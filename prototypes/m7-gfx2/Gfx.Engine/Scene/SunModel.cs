@@ -8,6 +8,12 @@ public readonly record struct SunState(
     Vector3 SkyZenith, Vector3 SkyHorizon, Vector3 FogColor, float SunElevationRadians)
 {
     public bool IsNight => SunElevationRadians < -0.05f;
+    /// <summary>
+    /// The sun's own direction even at night (when <see cref="DirectionToLight"/> is the moon). The G2 sky model uses it
+    /// for twilight; zero means "same as DirectionToLight" (states built by hand).
+    /// </summary>
+    public Vector3 TrueSunDirection { get; init; }
+    public Vector3 SunDirectionOrLight => TrueSunDirection == Vector3.Zero ? DirectionToLight : TrueSunDirection;
 }
 
 /// <summary>
@@ -47,7 +53,7 @@ public static class SunModel
             dir = Vector3.Normalize(flat * MathF.Cos(me) + Vector3.Up * MathF.Sin(me));
             col = new Vector3(0.10f, 0.13f, 0.22f) * (1f - day);
         }
-        return new SunState(dir, col, ambSky, ambGround, zenith, horizon, Vector3.Lerp(horizon, zenith, 0.25f), elev);
+        return new SunState(dir, col, ambSky, ambGround, zenith, horizon, Vector3.Lerp(horizon, zenith, 0.25f), elev) { TrueSunDirection = toSun };
     }
 
     static float Smooth(float a, float b, float x) { float t = Math.Clamp((x - a) / (b - a), 0f, 1f); return t * t * (3 - 2 * t); }
