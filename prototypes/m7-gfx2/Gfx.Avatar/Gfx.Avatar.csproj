@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Lane A: persistent player avatar (presentation only; reads an AvatarProfile, never writes sim state).
+       References Gfx.Units only for the canonical 20-joint Skeleton/Pose (one skeleton for soldiers and avatars). -->
+  <PropertyGroup>
+    <RootNamespace>Gfx.Avatar</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gfx.Engine\Gfx.Engine.csproj" />
+    <ProjectReference Include="..\Gfx.Units\Gfx.Units.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Gfx.Tests" />
+  </ItemGroup>
+</Project>

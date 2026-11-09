@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="Gfx.Engine/Gfx.Engine.csproj" />
+  <Project Path="Gfx.Proc/Gfx.Proc.csproj" />
+  <Project Path="Gfx.Units/Gfx.Units.csproj" />
+  <Project Path="Gfx.Avatar/Gfx.Avatar.csproj" />
+  <Project Path="Gfx.Cinematics/Gfx.Cinematics.csproj" />
+  <Project Path="Gfx.Demo/Gfx.Demo.csproj" />
+  <Project Path="Gfx.Tests/Gfx.Tests.csproj" />
+</Solution>

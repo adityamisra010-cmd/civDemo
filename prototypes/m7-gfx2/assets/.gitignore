@@ -1,0 +1,6 @@
+# Large binaries are never committed. Fetched (raw/) and baked (baked/) assets live under $G2_ASSETS
+# (default /home/user/g2w/assets); these patterns guard against an in-tree asset root
+# (G2_ASSETS=prototypes/m7-gfx2/assets) and against interrupted downloads.
+raw/
+baked/
+*.part.*
