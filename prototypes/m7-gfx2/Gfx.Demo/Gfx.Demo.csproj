@@ -4,11 +4,18 @@
     <RootNamespace>Gfx.Demo</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <!-- The battle-trace fixture travels with every build and publish (BattleTrace.FindFixture walks up from the
+         app directory to fixtures/); without it a published package cannot load the battlefield or clash scenes. -->
+    <None Include="..\fixtures\battle-trace-combinedarms-s7.json" Link="fixtures\battle-trace-combinedarms-s7.json"
+          CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Gfx.Engine\Gfx.Engine.csproj" />
     <ProjectReference Include="..\Gfx.Proc\Gfx.Proc.csproj" />
     <ProjectReference Include="..\Gfx.Units\Gfx.Units.csproj" />
     <ProjectReference Include="..\Gfx.Avatar\Gfx.Avatar.csproj" />
     <ProjectReference Include="..\Gfx.Cinematics\Gfx.Cinematics.csproj" />
+    <ProjectReference Include="..\Gfx.Perf\Gfx.Perf.csproj" />
     <!-- Other lanes: add your library ProjectReference here (Gfx.Proc, Gfx.Units, Gfx.Avatar, Gfx.Cinematics). -->
   </ItemGroup>
 </Project>

@@ -142,6 +142,24 @@ evidence rows.
 | SMAA shader and lookup textures | `smaa/SMAA.hlsl`, `smaa/Textures/{AreaTex.h,SearchTex.h,AreaTexDX10.dds,SearchTex.dds}`, `smaa/Scripts/*.py` | MIT | SHIP-OK | DIRECT (`LICENSE.txt`) | The HLSL/GLSL source is a porting reference for the MGFX/GLSL 1.20 path; the area and search textures are runtime data. |
 | meshoptimizer v1.3 sources | `meshoptimizer/src/*` (22 files) | MIT | SHIP-OK (tool) | DIRECT (`LICENSE.md`) | Bake-time tool only (LOD simplification, vertex-cache ordering); nothing from it ships. |
 
+### 3.7 Perf stage (2026-11-09): no assets; runtime binaries in the Windows benchmark package, build and test tools
+
+The perf stage uses **no art, model, texture, animation or sound asset**: every frame it measures is drawn by the
+unchanged G1 code. It adds no row to `manifest.tsv`. What it does redistribute is the Windows benchmark package
+(`scripts/package-victus.sh`, a private benchmark build for the Director, not a release). Its third-party binaries
+are NuGet packages pinned by version and NuGet sha512; the package carries `THIRD-PARTY-NOTICES.txt`.
+
+| Component | Files in the package | Licence | Status | Evidence | Notes |
+|---|---|---|---|---|---|
+| .NET runtime 10.0.14, win-x64 (`Microsoft.NETCore.App.Runtime.win-x64` sha512 `mLWGagTP…ybVweCN9A==`; apphost from `Microsoft.NETCore.App.Host.win-x64` 10.0.14) | `coreclr.dll`, `clrjit.dll`, `hostfxr.dll`, `hostpolicy.dll`, `System.*.dll`, `Microsoft.Win32.Registry.dll`, `netstandard.dll`, `clretwrc.dll`, `mscorrc.dll`, `System.IO.Compression.Native.dll`, `Gfx.Demo.exe` (apphost) | MIT | SHIP-OK (runtime) | DIRECT (NuGet licence expression MIT) | Framework assemblies trimmed by the SDK trimmer (`TrimMode=partial`: only assemblies marked trimmable; MonoGame rooted). Not packaged because the benchmark never loads them: `createdump.exe`, `mscordbi.dll`, `mscordaccore*.dll`, `Microsoft.DiaSymReader.Native.amd64.dll`, `msquic.dll`, `clrgc.dll`, `clrgcexp.dll`. |
+| MonoGame.Framework.DesktopGL 3.8.5 (sha512 `hiHrjmNe…7LPTQ==`, commit `4f9e3727`) | `MonoGame.Framework.dll` | MS-PL | SHIP-OK (runtime) | DIRECT (nuspec `license` MS-PL) | Already G1's engine dependency; redistributed unmodified. |
+| MonoGame.Library.SDL 2.32.10.2 (sha512 `a9GYQtVj…yqVeGw==`) | `SDL2.dll` | Zlib | SHIP-OK (runtime) | DIRECT (`LICENSE.txt` in the NuGet package: the SDL zlib licence, "Copyright (C) 1997-2025 Sam Lantinga") | Unmodified. |
+| NVorbis 0.10.4 (sha512 `VvDbbWwK…kj3By6Q==`) | `NVorbis.dll` | MIT | SHIP-OK (runtime) | DIRECT (`LICENSE`: "MIT License, Copyright (c) 2020 Andrew Ward") | A MonoGame dependency listed in `Gfx.Demo.deps.json`, so it must be present; the benchmark never calls it. |
+| MonoGame.Library.OpenAL 1.24.3.4 (OpenAL Soft) | none (**not packaged**) | upstream OpenAL Soft is LGPL; the NuGet package's `LICENSE` file quotes only BSD-3-Clause portions | not redistributed | INDIRECT, incomplete | Native audio backend, loaded only when audio is used. An `LD_DEBUG=libs` trace of `--gpu-selftest` (Linux) shows it is never loaded, and the Wine run of the package without it passed. |
+| CivSimBench.exe (built here from `Gfx.Perf/launcher/civsimbench.c`) | `CivSimBench.exe` (5,120 bytes) | project code | own code | — | Compiled with mingw-w64 GCC 13.2.0 (apt `gcc-mingw-w64-x86-64` 13.2.0-6ubuntu1+26.1, a GPL-3.0 compiler used as a tool) with `-nostdlib`: no C runtime or libgcc code is linked, only the mingw-w64 import libraries for kernel32 and shell32 (apt `mingw-w64-x86-64-dev` 11.0.1-3build1). |
+| NVML (NVIDIA Management Library) | none | NVIDIA driver component | not redistributed | — | Loaded at run time from the user's NVIDIA driver (`System32\nvml.dll`) when present; read only. |
+| Wine 9.0 (apt `wine64` 9.0~repack-4build3) and Xvfb (apt `xvfb` 2:21.1.12-1ubuntu1.9) | none | LGPL-2.1-or-later (Wine), MIT/X11 (Xvfb) | test tools only | — | Used in this container to run the Windows package on software GL; nothing from them ships. |
+
 ## 4. Licence identifiers used for non-standard terms
 
 | Id | Meaning |

@@ -4,6 +4,7 @@
   <Project Path="Gfx.Units/Gfx.Units.csproj" />
   <Project Path="Gfx.Avatar/Gfx.Avatar.csproj" />
   <Project Path="Gfx.Cinematics/Gfx.Cinematics.csproj" />
+  <Project Path="Gfx.Perf/Gfx.Perf.csproj" />
   <Project Path="Gfx.Demo/Gfx.Demo.csproj" />
   <Project Path="Gfx.Tests/Gfx.Tests.csproj" />
 </Solution>

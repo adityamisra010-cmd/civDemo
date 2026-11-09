@@ -22,7 +22,9 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
     {
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-        if (args.Length == 0 || args[0] is "-h" or "--help") { Console.WriteLine(Usage); return 0; }
+        if (args.Length == 0 || args[0] is "-h" or "--help") { Console.WriteLine(Usage); Console.WriteLine(); Console.WriteLine(Gfx.Perf.PerfOptions.Usage); return 0; }
+        // G2 perf stage: the benchmark harness (Gfx.Perf) owns its own window/device; the G1 paths below are unchanged.
+        if (Gfx.Perf.PerfCli.Handles(args)) return Gfx.Perf.PerfCli.Run(args, typeof(Program).Assembly);
         string Opt(string name, string def) { int i = Array.IndexOf(args, name); return i >= 0 && i + 1 < args.Length ? args[i + 1] : def; }
         bool shadows = Array.IndexOf(args, "--no-shadows") < 0;
         var size = Opt("--size", "1280x720").Split('x');

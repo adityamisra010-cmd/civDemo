@@ -44,7 +44,8 @@ external assets in `assets/` are pinned and fetched, but **no code uses them yet
 | `Gfx.Proc/` | `Authoritative/`: integer-only seeded battlefield grid (SHA-256 pinned). `Presentation/`: terrain mesh, splats, scatter, water, props |
 | `Gfx.Units/` | Skeleton, procedural soldier meshes and variation, clip library baked to a bone texture, instanced GPU crowd, battle-trace playback |
 | `Gfx.Avatar/`, `Gfx.Cinematics/` | Persistent avatar profile and era dress; outcome-driven cinematic planner and player |
-| `Gfx.Demo/` | Executable: `--sysinfo`, `--list`, `--capture`, `--bench`, `--interactive` |
+| `Gfx.Demo/` | Executable: `--sysinfo`, `--list`, `--capture`, `--bench`, `--interactive`; forwards the benchmark options to `Gfx.Perf` |
+| `Gfx.Perf/` | Victus benchmark harness (perf stage): `--suite`, `--sweep`, `--scene`, `--gpu-selftest`; `launcher/` (CivSimBench.exe source), `package/` (Windows package files). See `reports/perf.md` |
 | `Gfx.Tests/` | xunit; `[GfxFact]` device tests skip, not fail, when no GL device can be created |
 | `fixtures/` | `battle-trace-combinedarms-s7.json`, the labelled battle-trace fixture from G1 |
 | `scripts/check-gfx-determinism.sh` | Integer-only scan of `Gfx.Proc/Authoritative` |
@@ -120,3 +121,8 @@ The Victus benchmark (DR48, DR49 item 1) needs a Windows build of `Gfx.Demo` on 
 Laptop GPU), forced onto the discrete GPU. G1's plan (`prototypes/m7-gfx1/reports/g1-summary.md` §6, as amended by
 its D-079 dated note) still applies. The build route is DELEGATED (D-079 D16). No measurement from this container
 is evidence of Victus performance.
+
+**Perf stage (2026-11-09):** the harness (`Gfx.Perf`), the discrete-GPU launcher and the Windows package script
+exist: `scripts/package-victus.sh` builds `g2-before-<commit>.zip` (self-contained win-x64, `run-benchmark.bat`,
+`README-VICTUS.txt`); `scripts/compare-perf.py` compares two result files. Details, the MonoGame 3.8.5
+render-target leak it works around, and what is still unverified: `reports/perf.md`.

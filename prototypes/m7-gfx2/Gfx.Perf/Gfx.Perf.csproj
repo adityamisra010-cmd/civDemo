@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- G2 stage 'perf': the Victus benchmark harness (DR48, DR49 item 1). PRESENTATION-SIDE MEASUREMENT ONLY: it
+       renders the existing scenes through the unchanged G1 ForwardRenderer and records timings; it never writes
+       simulation state, the battle trace or the authoritative grid. Entry point: Gfx.Demo forwards the scene,
+       sweep, suite and gpu-selftest options here (PerfCli). -->
+  <PropertyGroup>
+    <RootNamespace>Gfx.Perf</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gfx.Engine\Gfx.Engine.csproj" />
+    <ProjectReference Include="..\Gfx.Proc\Gfx.Proc.csproj" />
+    <ProjectReference Include="..\Gfx.Units\Gfx.Units.csproj" />
+    <ProjectReference Include="..\Gfx.Avatar\Gfx.Avatar.csproj" />
+    <ProjectReference Include="..\Gfx.Cinematics\Gfx.Cinematics.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Gfx.Tests" />
+  </ItemGroup>
+  <!-- scripts/package-victus.sh stamps the source commit into the build (shown in every result file). -->
+  <ItemGroup Condition="'$(SourceCommit)' != ''">
+    <AssemblyMetadata Include="SourceCommit" Value="$(SourceCommit)" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Windows package files (not compiled; scripts/package-victus.sh copies them, converting to CRLF). -->
+    <None Remove="package\**;launcher\**" />
+  </ItemGroup>
+</Project>
