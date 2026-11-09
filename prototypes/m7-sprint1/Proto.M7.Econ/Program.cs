@@ -21,6 +21,8 @@ public static class Program
         // M7 Phase C lane F: food-allocation comparison commands (FoodComparisonCli); every other argument list is the
         // Slice F calibration command below, unchanged.
         if (FoodComparisonCli.TryRun(args, out int laneF)) return laneF;
+        // M7 lane D: the economic-scale probe (D-079 D20, Q-L2; ScaleProbe.cs).
+        if (ScaleProbeCli.TryRun(args, out int laneD)) return laneD;
         ulong[] seeds = ParseList(Arg(args, "--seeds") ?? "1,2,42,7", s => ulong.Parse(s, Inv));
         long[] turns = ParseList(Arg(args, "--turns") ?? "0,1,25,50,100,200", s => long.Parse(s, Inv));
         long[] twinAts = ParseList(Arg(args, "--twin-at") ?? "25", x => long.Parse(x, Inv));

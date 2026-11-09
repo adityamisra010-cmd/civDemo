@@ -34,7 +34,12 @@ public sealed record ArmySetup(int Id, int Owner, int WarId, int Priority, ArmyC
                                bool March, long TrainGrain, long PayChest, long Munitions, (long Pulse, long Days)[] CombatDays);
 
 public sealed record WarEconSetup(FoodOrdering Ordering, LogisticsRates Rates, TerrainLogistics Terrain, PolitySetup[] Polities,
-                                  LocalitySetup[] Localities, ArmySetup[] Armies);
+                                  LocalitySetup[] Localities, ArmySetup[] Armies)
+{
+    /// <summary>[D] Optional support-capability overlay (lane D, <see cref="ISupportOverlay"/>). Null = no support layer: the
+    /// world behaves exactly as before the hook existed (every lane E pin unchanged, measured).</summary>
+    public ISupportOverlay? Support { get; init; }
+}
 
 public enum ArmyCondition : byte { Loyal = 0, Mutinous = 1, Disbanded = 2 }
 
@@ -149,6 +154,8 @@ public sealed class WarEconomyWorld : IEventWorld
         /// <summary>Persistent carries of the head-loss flows (fix round 2, E2-1: a part-head is no longer discarded at each
         /// pulse end, which made small armies under short pulses never lose anyone).</summary>
         public ExactFraction DesC, DisC, AniHC, AniDC;
+        /// <summary>[D] The support latched for the current pulse (None without a support overlay).</summary>
+        public SupportComposition Sup;
         // row accumulators
         public ArmyCondition CondStart;
         public long MenStart, NS, NM, Foraged, Seized, Shipped, Delivered, Loss, HungerPpm, MovePpm, PayDue, PayPaid, BackPay;
@@ -325,6 +332,22 @@ public sealed class WarEconomyWorld : IEventWorld
     public int DeadAccount => _dead;
     public int GrainEatenAccount => _grainEaten;
     public int CarriageLossAccount => _carriageLoss;
+    // ---- [D] lane D support layer: read access to the accounts a battle collapse moves people between, the latched support,
+    // and ONE mutator, the morale a battle leaves (the TacticalResolver's end morale, DIR5 §2.12 "Morale decreases when troops
+    // participate in combat"). Nothing else of this world is writable from outside.
+    public int MenAccountOf(int army) => _a[army].Men;
+    public int CivilianAccountOf(int polity) => _p[polity].Civ;
+    public SupportComposition SupportOf(int army) => _a[army].Sup;
+    public long MenLatchedOf(int army) => _a[army].MenLatched;
+
+    /// <summary>[D] Sets the army's campaign morale (micro units, 0..1,000,000) to what a battle left it. Pulse-end recovery and
+    /// penalties then run on it as before. Refused for a disbanded army or an out-of-range value.</summary>
+    public void SetMoraleAfterBattle(int army, long moraleMicro)
+    {
+        if (moraleMicro < 0 || moraleMicro > 1000 * 1000) throw new ArgumentOutOfRangeException(nameof(moraleMicro));
+        if (_a[army].Cond == ArmyCondition.Disbanded) throw new InvalidOperationException("a disbanded army has no morale");
+        _a[army].Morale = moraleMicro;
+    }
 
     public void Begin(EventScheduler s)
     {
@@ -462,8 +485,12 @@ public sealed class WarEconomyWorld : IEventWorld
             long men = a.MenLatched;
             a.HorsesLatched = _l.Balance(a.Horses);
             a.DraftLatched = _l.Balance(a.Draft);
+            // [D] Panel-managed support for this pulse (None without an overlay): its wagons and draft animals join the army's
+            // own train in lane E's logistics arithmetic below; its staff, animals and patients add to the needs.
+            a.Sup = _setup.Support?.Latch(a.S.Id, a.S.Owner, warId, pulse.Index, now, men, a.C.Naval) ?? SupportComposition.None;
+            var ce = SupportedComposition(a);
             bool moving = a.S.March && a.Cond == ArmyCondition.Loyal && a.Position < a.S.Route.Length;
-            march[id] = moving ? ArmyLogistics.PlanMarch(a.S.Route, a.Position, w, a.C, cap, _r, _setup.Terrain) : default;
+            march[id] = moving ? ArmyLogistics.PlanMarch(a.S.Route, a.Position, w, ce, cap, _r, _setup.Terrain) : default;
             var seg = StandingSegment(a);
             long graze = _setup.Terrain.GrazePermille(seg.Terrain);
             // Standing need over W: rations (base + field), animals' rest feed, roughage not met by grazing (as grain).
@@ -471,20 +498,24 @@ public sealed class WarEconomyWorld : IEventWorld
             long extra = a.C.Naval ? _r.RationSeaExtra : _r.RationFieldExtra;
             long standScaled = checked(men * (_r.RationBase + extra) * 1000
                 + a.HorsesLatched * _r.HorseHardRest * 1000 + a.DraftLatched * _r.DraftHardRest * 1000
-                + (a.HorsesLatched * _r.HorseRoughageAsGrain + a.DraftLatched * _r.DraftRoughageAsGrain) * (1000 - graze));
+                + (a.HorsesLatched * _r.HorseRoughageAsGrain + a.DraftLatched * _r.DraftRoughageAsGrain) * (1000 - graze)
+                // [D] support staff (field ration), patients (base ration), support draft animals (rest feed, roughage)
+                + a.Sup.Staff * (_r.RationBase + extra) * 1000 + a.Sup.Patients * _r.RationBase * 1000
+                + a.Sup.DraftAnimals * _r.DraftHardRest * 1000 + a.Sup.DraftAnimals * _r.DraftRoughageAsGrain * (1000 - graze));
             a.NS = RateIntegrator.IntegrateExact(standScaled, w, Y * 1000, ref a.StandCarry);
             // Movement need over the marching time: exertion of men, working feed of animals.
             // A naval force: only rowers labour to move it (sail and steam have no exertion term; NavalLogistics).
             long moveRate = a.C.Naval
                 ? checked(NavalLogistics.Rowers(a.C, men, _r) * _r.RationRowExtra)
-                : checked(men * _r.RationMarchExtra + a.HorsesLatched * _r.HorseHardWorkExtra + a.DraftLatched * _r.DraftHardWorkExtra);
+                : checked(men * _r.RationMarchExtra + a.HorsesLatched * _r.HorseHardWorkExtra + a.DraftLatched * _r.DraftHardWorkExtra
+                          + a.Sup.Staff * _r.RationMarchExtra + a.Sup.DraftAnimals * _r.DraftHardWorkExtra);   // [D] support marches too
             a.NM = RateIntegrator.IntegrateExact(moveRate, march[id].MarchMs, Y, ref a.MoveCarry);
 
             // Orderly foraging (own locality: only the surplus above its civilians' reserve; enemy: a stock draw at a per-year
             // rate) and, in an enemy locality, contributions in money. A mutinous army plunders instead (forced rate, any owner;
             // soldiers pay themselves). A neutral locality (owner outside the war) gives nothing (E-V6). Every share of a stock
             // is a StockDraw over the pulse length (Law 3, E-V1).
-            long trainCap = TrainCapacity(a, men);
+            long trainCap = TrainCapacity(a, ce, checked(men + a.Sup.Staff));   // [D] support wagons and staff carry too
             long want = Math.Max(0, checked(a.NS + a.NM + trainCap - _l.Balance(a.Train)));
             if (seg.Locality >= 0)
             {
@@ -532,13 +563,15 @@ public sealed class WarEconomyWorld : IEventWorld
             a.PayRateScaled = checked(men * (coin
                 ? a.C.Foot * _r.PayFoot + a.C.Mounted * _r.PayMounted + a.C.GunCrew * _r.PayGunCrew + a.C.Seamen * _r.PaySeaman
                 : a.C.Foot * _r.WageInKindFoot + a.C.Mounted * _r.WageInKindMounted + a.C.GunCrew * _r.WageInKindGunCrew
-                  + a.C.Seamen * _r.WageInKindSeaman));
+                  + a.C.Seamen * _r.WageInKindSeaman)
+                // [D] support staff draw a foot soldier's pay (PROPOSAL); the scale InitialMen matches PayLen = Y * InitialMen
+                + a.Sup.Staff * (coin ? _r.PayFoot : _r.WageInKindFoot) * a.InitialMen);
             var probe = a.PayCarry;
             long pulseDue = RateIntegrator.IntegrateExact(a.PayRateScaled, w, a.PayLen, ref probe);
             long reqW = coin ? 0 : Math.Max(0, checked(a.Arrears + pulseDue - _l.Balance(a.WageChest)));
             wagesDue[id] = pulseDue;
 
-            var line = ArmyLogistics.Evaluate(a.S.Route, a.Position, w, a.C, cap, _r, _setup.Terrain);
+            var line = ArmyLogistics.Evaluate(a.S.Route, a.Position, w, ce, cap, _r, _setup.Terrain);   // [D] supported train
             lines[id] = line;
             long capLeft = line.CapacityPerPulse;
             long FuelCap(long left)
@@ -756,11 +789,22 @@ public sealed class WarEconomyWorld : IEventWorld
         if (w <= 0) throw new InvalidOperationException("empty pulse");
     }
 
-    private long TrainCapacity(Army a, long men)
+    /// <summary>What the army can carry: its wagons' and trucks' payload plus the rations its people carry. [D] c is the
+    /// composition with the pulse's support wagons (<see cref="SupportedComposition"/>), men the people who carry their own
+    /// rations (soldiers and support staff); with no support both equal the original inputs exactly.</summary>
+    private long TrainCapacity(Army a, ArmyComposition c, long men)
         => a.C.Naval
             ? FixedMath.MulDivFloor(checked(men * (_r.RationBase + _r.RationSeaExtra)), NavalLogistics.StoresDays(a.C.Vessel!, _r), SimInstant.YearDays)
-            : checked(a.C.Wagons * _r.WagonPayloadGm + a.C.Trucks * _r.TruckPayloadGm
+            : checked(c.Wagons * _r.WagonPayloadGm + c.Trucks * _r.TruckPayloadGm
                       + FixedMath.MulDivFloor(men * _r.RationBase, _r.CarryDaysPerMan, SimInstant.YearDays));
+
+    /// <summary>[D] The army's composition for the pulse's logistics: its own, plus the latched support wagons and their draft
+    /// animals (the very object lane E's train arithmetic already models; no second supply model). The same instance when
+    /// nothing is attached.</summary>
+    private static ArmyComposition SupportedComposition(Army a)
+        => a.Sup.Wagons == 0 && a.Sup.DraftAnimals == 0
+            ? a.C
+            : a.C with { Wagons = checked(a.C.Wagons + a.Sup.Wagons), DraftAnimals = checked(a.C.DraftAnimals + a.Sup.DraftAnimals) };
 
     /// <summary>The locals' reserve: exactly what the next campaign settlement will charge them — their consumption over the
     /// whole interval since their LAST settlement (eaten or not yet; with its carry), not only from now on — before any

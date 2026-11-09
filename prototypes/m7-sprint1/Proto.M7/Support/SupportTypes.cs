@@ -1,0 +1,135 @@
+using Proto.M7.War.Outcomes;
+
+namespace Proto.M7.Support;
+
+/// <summary>
+/// [D] The implemented support capabilities (DIR5 §2.12 examples, D-079 DR29: "medics and supply wagons"; category B abstract
+/// military support, charter §7.11 military supply and §7.12 field medical, D-065 R10). Any further capability (combat
+/// engineers, charter §7.9) is a labelled PROPOSAL in docs/m7-plan/support-capabilities-proposal.md and is NOT implemented.
+/// Stable codes.
+/// </summary>
+public enum SupportKind : byte
+{
+    /// <summary>Medical staff (surgeons, orderlies): coverage acts on the casualty split and on the care of the wounded.</summary>
+    FieldMedical = 1,
+    /// <summary>A supply train (wagons, their draft animals and drivers): joins the army's own train in lane E's logistics.</summary>
+    SupplyTrain = 2,
+}
+
+/// <summary>[D] Why an allocation order is refused (it is recorded and changes nothing). Stable codes.</summary>
+public enum SupportRefusal : byte
+{
+    None = 0,
+    /// <summary>No such army, or an A outside 0..<see cref="SupportKinds.MaxPacked"/> (verification round 2, D-R2-04).</summary>
+    UnknownArmy = 1,
+    /// <summary>The issuing polity does not own the army (a panel allocates only its own support to its own armies).</summary>
+    NotOwner = 2,
+    /// <summary>B ≥ 0 and ⌊B ÷ 2^32⌋ is neither 1 nor 2.</summary>
+    UnknownKind = 3,
+    /// <summary>B &lt; 0: its target part is negative under the documented decoding; checked before the kind (verification round 2,
+    /// D-R2-04: before, a negative B decoded to kind 0 and was refused UnknownKind first, so this code could not occur).</summary>
+    NegativeTarget = 4,
+    /// <summary>Naval forces: no naval support capability is designed (ships' surgeons and colliers are lane E's own terms).</summary>
+    NavalForce = 5,
+    ArmyDisbanded = 6,
+}
+
+/// <summary>[D] Event and order kinds of the support layer. Disjoint from T2 (40-43, 140-141), T3 (150-153), lane S (60-70,
+/// 180-187), lane W (80-87, 200-205) and the tactical world (101-108).</summary>
+public static class SupportKinds
+{
+    /// <summary>World event: a battle the army fought ended; its entities collapse (A = index into the scheduled battles).</summary>
+    public const int BattleEnded = 90;
+    /// <summary>Order: A = Pack(polity, army), B = kind × <see cref="TargetStride"/> + target amount (wagons or medical staff).</summary>
+    public const int OrderAllocate = 230;
+    public const long TargetStride = 1L << 32;
+    /// <summary>[D, verification round 2, D-R2-04] The largest A that <see cref="Unpack"/> decodes without overflow: polity
+    /// int.MaxValue, army 65,535 (= 2^47 − 1). The support world refuses an A outside 0..MaxPacked as UnknownArmy.</summary>
+    public const long MaxPacked = (long)int.MaxValue * 65_536 + 65_535;
+
+    public static long Pack(int polity, int army) => checked((long)polity * 65_536 + army);
+    public static (int Polity, int Army) Unpack(long a) => ((int)(a / 65_536), (int)(a % 65_536));
+    public static long PackTarget(SupportKind kind, long target)
+    {
+        if (target < 0 || target >= TargetStride) throw new ArgumentOutOfRangeException(nameof(target));
+        return checked((long)kind * TargetStride + target);
+    }
+}
+
+/// <summary>
+/// [D] Every coefficient of the support layer. ALL are PROPOSALS (TUNE), placeholders for the M7.9 effects and M7.14 costs
+/// (D-079 §4 D8) — DIR5: "These figures are examples, not approved formulas". Rates are per sim-year (Law 3) and are integrated
+/// with the exact elapsed time. The PROPOSAL values and the reasoning behind each are in
+/// docs/m7-plan/support-capabilities-proposal.md §5.
+/// </summary>
+public sealed record SupportRates
+{
+    /// <summary>Draft animals per support wagon: lane E's hitch rule ("two per wagon", ArmyLogistics.Evaluate). CITED.</summary>
+    public long DraftPerWagon { get; init; } = 2;
+    /// <summary>Drivers (support staff) per support wagon. PROPOSAL.</summary>
+    public long DriversPerWagon { get; init; } = 1;
+    /// <summary>LIMIT: medical staff at most this many per 1000 men of the army at the latch. PROPOSAL.</summary>
+    public long MedicsPerThousandMax { get; init; } = 50;
+    /// <summary>LIMIT: support wagons at most this many per 1000 men of the army at the latch. PROPOSAL.</summary>
+    public long WagonsPerThousandMax { get; init; } = 100;
+    /// <summary>Coverage (medical staff per 1000 men) at which a medical effect reaches its midpoint; the effect saturates as
+    /// u(c) = c / (c + this) — diminishing returns, so stacking more staff on one army never multiplies the effect. PROPOSAL.</summary>
+    public long SaturationCoverage { get; init; } = 10;
+    /// <summary>The share (ppm) of men put out of action (the battle's dead) that full coverage would save as wounded; the save
+    /// at coverage c is this × u(c). Without staff it is 0, so the casualty split is lane W's exactly. PROPOSAL.</summary>
+    public long SaveMaxPpm { get; init; } = 400_000;
+    /// <summary>Wounded returning to duty, ‰ per sim-year, without care. PROPOSAL.</summary>
+    public long RecoveryBasePermilleYear { get; init; } = 3_000;
+    /// <summary>Extra return-to-duty rate at full coverage (× u(c)), ‰ per sim-year. PROPOSAL.</summary>
+    public long RecoveryCarePermilleYear { get; init; } = 6_000;
+    /// <summary>Deaths from wounds among the wounded, ‰ per sim-year, without care. PROPOSAL.</summary>
+    public long DiedOfWoundsBasePermilleYear { get; init; } = 1_500;
+    /// <summary>The share (‰) of deaths from wounds that full coverage prevents (× u(c)). PROPOSAL.</summary>
+    public long DiedOfWoundsCareCutPermille { get; init; } = 800;
+    /// <summary>The share (‰) of the casualty-driven morale loss of a man who is saved (not dead) that is restored after the
+    /// battle (the TacticalResolver's own loss formula, ConditionMath.MoraleLoss). PROPOSAL.</summary>
+    public long MoraleRestorePermille { get; init; } = 500;
+
+    public static SupportRates Proposal() => new();
+
+    public void Validate()
+    {
+        if (DraftPerWagon < 0 || DriversPerWagon < 0 || MedicsPerThousandMax < 0 || WagonsPerThousandMax < 0) throw new ArgumentOutOfRangeException(nameof(DraftPerWagon));
+        if (SaturationCoverage <= 0) throw new ArgumentOutOfRangeException(nameof(SaturationCoverage));
+        if (SaveMaxPpm < 0 || SaveMaxPpm > 1_000_000) throw new ArgumentOutOfRangeException(nameof(SaveMaxPpm));
+        if (RecoveryBasePermilleYear < 0 || RecoveryCarePermilleYear < 0 || DiedOfWoundsBasePermilleYear < 0) throw new ArgumentOutOfRangeException(nameof(RecoveryBasePermilleYear));
+        if (DiedOfWoundsCareCutPermille < 0 || DiedOfWoundsCareCutPermille > 1000) throw new ArgumentOutOfRangeException(nameof(DiedOfWoundsCareCutPermille));
+        if (MoraleRestorePermille < 0 || MoraleRestorePermille > 1000) throw new ArgumentOutOfRangeException(nameof(MoraleRestorePermille));
+    }
+}
+
+/// <summary>[D] A polity's support pool at the start: medical staff (people), wagons, draft animals, drivers (people). People
+/// and animals here are in addition to lane E's polity accounts (the stand-in for staff already raised).</summary>
+public sealed record SupportPool(int Polity, long Medics, long Wagons, long DraftAnimals, long Drivers);
+
+/// <summary>[D] A finished battle of one army (the stand-in for the M7.15 battle → campaign hand-off): lane W's collapse input
+/// (entity counts by end category, end morale on the tactical scale), whether its side held the field, the tactical start
+/// morale (the army's campaign morale on the tactical scale at the battle start) and the TacticalResolver's morale terms.
+/// [D, verification round 2, D-R2-01] The campaign morale falls by MoraleStart − Collapse.MoraleEnd (less the medical restore) and
+/// never rises, so MoraleStart must be the battle's real start morale; that it is so is the stand-in's assumption.</summary>
+public sealed record SupportBattle(int ArmyId, long AtMs, CollapseInput Collapse, bool HeldField, long MoraleStart,
+                                   long MoraleLossFullStrength, long Leadership);
+
+// ------------------------------------------------------------------ serialized rows (SupportCodec; populated-table tests)
+
+/// <summary>One panel allocation order as executed (Refusal 0 = accepted: it becomes the army's target for that kind).</summary>
+public readonly record struct SupportOrderRow(int Index, long AtMs, int Polity, int ArmyId, byte Kind, long Target, byte Refusal);
+
+/// <summary>One latch: at an army's pulse start, the target in force, the army's limit, what was granted (the army holds Granted
+/// afterwards) and what the pool held afterwards (wagons for a supply train, staff for medical).</summary>
+public readonly record struct SupportAllocationRow(int ArmyId, int WarId, long PulseIndex, long AtMs, byte Kind, long Requested, long Limit,
+                                                   long Granted, long PoolAfter);
+
+/// <summary>One settlement of the care of an army's wounded over [FromMs, ToMs): the coverage in force, the wounded at the start,
+/// the recovered (back to the ranks) and the dead of wounds.</summary>
+public readonly record struct SupportCareRow(int ArmyId, long FromMs, long ToMs, long Coverage, long WoundedBefore, long Recovered, long Died);
+
+/// <summary>One battle collapse with the medical save: persons before, the battle's dead before the save, the saved, then the
+/// final dead, wounded, captured, deserted, the coverage, and the campaign morale before and after (micro units).</summary>
+public readonly record struct SupportBattleRow(int Seq, int ArmyId, long AtMs, long Persons, long DeadBefore, long Saved, long Dead,
+                                               long Wounded, long Captured, long Deserted, long Coverage, long MoraleBefore, long MoraleAfter);

@@ -37,6 +37,11 @@ public enum Commodity : byte
     /// sink, so the count of buildings ever built is conserved).</summary>
     Structures = 12,
     // ---- end lane W
+    // ---- lane D (support capabilities): appended; 0-12 are unchanged.
+    /// <summary>Wagons of a support train (pieces). Lane E keeps an army's own wagons as a composition count; panel-managed
+    /// support wagons move between a polity's pool and an army, so they are a conserved stock here.</summary>
+    Vehicles = 13,
+    // ---- end lane D
 }
 
 /// <summary>
