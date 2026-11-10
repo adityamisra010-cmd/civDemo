@@ -5,6 +5,10 @@
     <RootNamespace>Gfx.Proc</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <!-- G2 stage env: ez-tree presets (MIT, unmodified copies of the pinned files; see Environment/EzTree) -->
+    <EmbeddedResource Include="Environment\EzTree\presets\*.json" LogicalName="ez-tree/%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="Gfx.Tests" />
     <ProjectReference Include="..\Gfx.Engine\Gfx.Engine.csproj" />
   </ItemGroup>

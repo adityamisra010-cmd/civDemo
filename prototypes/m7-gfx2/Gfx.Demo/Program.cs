@@ -15,6 +15,7 @@ public static class Program
   --list                            registered demo scenes
   --capture <scene|all> [--out DIR] [--size WxH] [--no-shadows] [--shots a,b] [--preset g1|g2] [--set k=v[,k=v]]...
   --bench <scene> [--frames N] [--size WxH] [--no-shadows] [--shot NAME] [--profile] [--preset g1|g2] [--set k=v]...
+                                    [--variants ""g2;g1;k=v;..""]  several switch sets on one loaded scene
   --interactive [scene]             windowed; WASD pan, Q/E rotate, wheel zoom, F1..F12 switch scene, Esc quit
   --chars-costs                     stage chars: CPU cost of animation, skinning prep and expression blending
 Render switches (--set, comma-separated or repeated; --preset g1 = every switch at its G1 value):
@@ -102,7 +103,10 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
     static int CaptureScene(GraphicsDevice gd, GfxHost host, SceneRegistry.Entry e, string outDir, int w, int h, bool shadows, SysInfo info, string[] args)
     {
         using var scene = e.Create();
+        var load = System.Diagnostics.Stopwatch.StartNew();
         scene.Load(gd, host.Effects);
+        Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "[load] {0}: {1:F0} ms [{2}]", e.Name, load.Elapsed.TotalMilliseconds, info.TimingLabel));
+        if (scene is Gfx.Proc.Environment.EnvSceneBase envScene) Console.WriteLine(envScene.Env.LoadReport());
         using var renderer = new ForwardRenderer(gd, host.Effects);
         scene.Configure(renderer.Settings); renderer.Settings.Shadows = shadows;
         ApplyRenderSwitches(renderer.Settings, args);
@@ -124,6 +128,7 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
                 "[capture] {0} {1}x{2} shadows={3} hdr={4} distinctColors={5} draws={6} tris={7} frame={8:F1} ms [{9}]",
                 path, w, h, shadows, renderer.HdrFormat, Capture.DistinctColors(px), renderer.Stats.LastDrawCalls,
                 renderer.Stats.LastTriangles, ms, info.TimingLabel));
+            if (scene is Gfx.Proc.Environment.EnvSceneBase envShot) Console.WriteLine(envShot.Env.FrameReport());
         }
         return 0;
     }
@@ -131,34 +136,48 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
     static int Bench(GraphicsDevice gd, GfxHost host, SceneRegistry.Entry e, int frames, int w, int h, bool shadows, SysInfo info, string[] args)
     {
         using var scene = e.Create();
+        var load = System.Diagnostics.Stopwatch.StartNew();
         scene.Load(gd, host.Effects);
-        using var renderer = new ForwardRenderer(gd, host.Effects);
-        scene.Configure(renderer.Settings); renderer.Settings.Shadows = shadows;
-        ApplyRenderSwitches(renderer.Settings, args);
-        renderer.ProfilePasses = Array.IndexOf(args, "--profile") >= 0;
+        Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "[load] {0}: {1:F0} ms [{2}]", e.Name, load.Elapsed.TotalMilliseconds, info.TimingLabel));
+        if (scene is Gfx.Proc.Environment.EnvSceneBase envScene) Console.WriteLine(envScene.Env.LoadReport());
         using var rt = new RenderTarget2D(gd, w, h, false, SurfaceFormat.Color, DepthFormat.None);
         string? shotName = Opt(args, "--shot", null);
         var shot = shotName == null ? scene.Shots[0] : scene.Shots.First(s => s.Name == shotName);
-        var sun = SunModel.At(shot.HourOfDay); var one = new Color[1];
-        for (int f = -3; f < frames; f++)
+        // --variants "g2;g1;trees=0;..." benches several switch sets on one loaded scene (g2 = the scene's own
+        // settings plus the command line's, g1 = the G1 preset, anything else = one --set value); without it, one run
+        string? variantList = Opt(args, "--variants", null);
+        var variants = variantList?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? new[] { "" };
+        foreach (var variant in variants)
         {
-            float t = shot.SceneTime + Math.Max(f, 0) / 30f;
-            if (f == 0) { renderer.Stats.Reset(); renderer.PassMs.Clear(); }
-            renderer.Stats.BeginFrame();
-            scene.Update(t);
-            renderer.Render(scene, shot.Camera, sun, rt, t);
-            rt.GetData(0, new Rectangle(0, 0, 1, 1), one, 0, 1); // wait for the GPU (llvmpipe) to finish
-            renderer.Stats.EndFrame();
+            using var renderer = new ForwardRenderer(gd, host.Effects);
+            scene.Configure(renderer.Settings); renderer.Settings.Shadows = shadows;
+            ApplyRenderSwitches(renderer.Settings, args);
+            if (variant == "g1") renderer.Settings.Features = RenderFeatures.G1();
+            else if (variant.Length > 0 && variant != "g2") renderer.Settings.Features.SetMany(variant);
+            renderer.ProfilePasses = Array.IndexOf(args, "--profile") >= 0;
+            var sun = SunModel.At(shot.HourOfDay); var one = new Color[1];
+            for (int f = -3; f < frames; f++)
+            {
+                float t = shot.SceneTime + Math.Max(f, 0) / 30f;
+                if (f == 0) { renderer.Stats.Reset(); renderer.PassMs.Clear(); }
+                renderer.Stats.BeginFrame();
+                scene.Update(t);
+                renderer.Render(scene, shot.Camera, sun, rt, t);
+                rt.GetData(0, new Rectangle(0, 0, 1, 1), one, 0, 1); // wait for the GPU (llvmpipe) to finish
+                renderer.Stats.EndFrame();
+            }
+            if (variantList != null) Console.WriteLine($"[variant] {variant}");
+            Console.WriteLine($"[bench] scene={e.Name} shot={shot.Name} {w}x{h} shadows={shadows} hdr={renderer.HdrFormat}");
+            Console.WriteLine($"[bench] {renderer.Settings.Features.Describe()}");
+            Console.WriteLine(renderer.Stats.Format(info.TimingLabel));
+            if (scene is Gfx.Proc.Environment.EnvSceneBase envFrame) Console.WriteLine(envFrame.Env.FrameReport());
+            if (renderer.Sky != null)
+                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "[cpu] last sky-table build {0:F1} ms; last IBL build {1:F1} ms ({2}); both run only when the sun or the IBL source changes",
+                    renderer.Sky.LastBuildMs, renderer.Environment?.LastBuildMs ?? 0, renderer.Environment?.SourceDescription ?? "none"));
+            if (renderer.ProfilePasses)
+                foreach (var (pass, total) in renderer.PassMs)
+                    Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "[pass] {0,-16} {1,8:F2} ms/frame [{2}]", pass, total / Math.Max(1, frames), info.TimingLabel));
         }
-        Console.WriteLine($"[bench] scene={e.Name} shot={shot.Name} {w}x{h} shadows={shadows} hdr={renderer.HdrFormat}");
-        Console.WriteLine($"[bench] {renderer.Settings.Features.Describe()}");
-        Console.WriteLine(renderer.Stats.Format(info.TimingLabel));
-        if (renderer.Sky != null)
-            Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "[cpu] last sky-table build {0:F1} ms; last IBL build {1:F1} ms ({2}); both run only when the sun or the IBL source changes",
-                renderer.Sky.LastBuildMs, renderer.Environment?.LastBuildMs ?? 0, renderer.Environment?.SourceDescription ?? "none"));
-        if (renderer.ProfilePasses)
-            foreach (var (pass, total) in renderer.PassMs)
-                Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "[pass] {0,-16} {1,8:F2} ms/frame [{2}]", pass, total / Math.Max(1, frames), info.TimingLabel));
         return 0;
     }
 

@@ -21,6 +21,31 @@ public interface IRenderContent
     void DrawOpaque(RenderContext rc);
 }
 
+/// <summary>
+/// Optional (stage env): content with a transparent pass. The renderer calls <see cref="DrawTransparent"/> right after
+/// <see cref="IRenderContent.DrawOpaque"/> into the same HDR target and depth buffer; when <see cref="NeedsSceneColor"/>
+/// is true it first copies the opaque scene into <see cref="RenderContext.SceneColor"/> (refraction source).
+/// </summary>
+public interface ITransparentContent
+{
+    bool NeedsSceneColor(RenderContext rc);
+    void DrawTransparent(RenderContext rc);
+}
+
+/// <summary>
+/// Optional (stage env): content that wants a planar reflection. When <see cref="ReflectionPlane"/> returns a world plane
+/// (xyz unit normal, w = −normal·point; only horizontal planes are supported), the renderer draws the sky and
+/// <see cref="IRenderContent.DrawOpaque"/> mirrored about it, clipped at the plane by an oblique near plane, into
+/// <see cref="RenderContext.Reflection"/> before the main scene pass (<see cref="RenderContext.IsReflectionPass"/> is
+/// true meanwhile; content skips water and small detail). Stills render it once, like the shadows.
+/// </summary>
+public interface IPlanarReflectionContent
+{
+    Vector4? ReflectionPlane(RenderContext rc);
+    /// <summary>Reflection target size relative to the frame (0.25..1).</summary>
+    float ReflectionScale { get; }
+}
+
 /// <summary>Per-frame state passed to content. <see cref="Apply"/> fills every standard parameter an effect declares.</summary>
 public sealed class RenderContext
 {
@@ -72,6 +97,23 @@ public sealed class RenderContext
     public Texture2D? SkyView { get; internal set; }
     /// <summary>Sampler for material slots 2–12: anisotropic (G2) or bilinear wrap (G1).</summary>
     public SamplerState MaterialSampler { get; internal set; } = SamplerState.LinearWrap;
+
+    // ---------------------------------------------------------------- stage env
+    /// <summary>Index of the jittered sample within a still (0 for single frames): stochastic transparency and LOD
+    /// dithering vary with it, so the accumulated still averages them.</summary>
+    public int SampleIndex { get; internal set; }
+    /// <summary>Number of jittered samples of the still being rendered (1 for single frames).</summary>
+    public int SampleCount { get; internal set; } = 1;
+    /// <summary>Render-target size of the current pass: x = width, y = height, z = 1/width, w = 1/height.</summary>
+    public Vector4 ViewportSize { get; internal set; }
+    /// <summary>True while the renderer draws the mirrored planar-reflection pass.</summary>
+    public bool IsReflectionPass { get; internal set; }
+    /// <summary>The opaque scene (linear HDR) copied before <see cref="ITransparentContent.DrawTransparent"/>, when requested.</summary>
+    public Texture2D? SceneColor { get; internal set; }
+    /// <summary>This frame's planar reflection (linear HDR, screen-aligned with the main view), or null.</summary>
+    public Texture2D? Reflection { get; internal set; }
+    /// <summary>The reflection plane of <see cref="Reflection"/> (xyz normal, w = −normal·point).</summary>
+    public Vector4 ReflectionPlane { get; internal set; }
 
     static readonly SamplerState IblSampler = new()
     {

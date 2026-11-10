@@ -38,6 +38,8 @@ public sealed class ForwardRenderer : IDisposable
     float _lastTime = float.NaN;
     SamplerState? _aniso; int _anisoLevel;
     bool _warnedHdri;
+    // stage env: refraction copy and planar reflection
+    RenderTarget2D? _sceneCopy, _reflection;
 
     static readonly BlendState AddBlend = new()
     {
@@ -75,17 +77,20 @@ public sealed class ForwardRenderer : IDisposable
     {
         if (_hdr != null && _hdr.Width == w && _hdr.Height == h) return;
         _hdr?.Dispose();
-        try { _hdr = new RenderTarget2D(_gd, w, h, false, HdrFormat, DepthFormat.Depth24Stencil8); }
+        // PreserveContents: the transparent pass re-binds the scene target after copying it (stage env); MonoGame clears a
+        // DiscardContents target on every bind. Every frame clears it explicitly anyway.
+        try { _hdr = new RenderTarget2D(_gd, w, h, false, HdrFormat, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PreserveContents); }
         catch (Exception) when (HdrFormat != SurfaceFormat.Color)
         {
             HdrFormat = SurfaceFormat.Color;
-            _hdr = new RenderTarget2D(_gd, w, h, false, HdrFormat, DepthFormat.Depth24Stencil8);
+            _hdr = new RenderTarget2D(_gd, w, h, false, HdrFormat, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.PreserveContents);
         }
     }
 
     /// <summary>Renders one frame of <paramref name="content"/> into <paramref name="output"/> (back buffer if null).</summary>
     public void Render(IRenderContent content, CameraPose camera, SunState sun, RenderTarget2D? output, float timeSeconds = 0)
     {
+        Context.SampleIndex = 0; Context.SampleCount = 1;
         if (Settings.Features.IsG1Frame) { RenderG1(content, camera, sun, output, timeSeconds); return; }
         RenderG2(content, camera, sun, output, timeSeconds, Vector2.Zero, -1f, reuseShadows: false, meter: true);
     }
@@ -112,8 +117,10 @@ public sealed class ForwardRenderer : IDisposable
         for (int i = 0; i < n; i++)
         {
             var j = Jitter(i);
+            Context.SampleIndex = i; Context.SampleCount = n;
             RenderG2(content, camera, sun, output, timeSeconds, j, 1f / n, reuseShadows: i > 0, meter: i == 0);
         }
+        Context.SampleIndex = 0; Context.SampleCount = 1;
         var copy = _fx.Get(G2EffectNames.Copy);
         _gd.SetRenderTarget(output);
         _gd.BlendState = BlendState.Opaque; _gd.DepthStencilState = DepthStencilState.None;
@@ -149,6 +156,7 @@ public sealed class ForwardRenderer : IDisposable
         rc.Camera = camera; rc.Sun = sun; rc.TimeSeconds = timeSeconds; rc.FogParams = Settings.FogParams;
         rc.View = camera.View; rc.Projection = camera.Projection(w / (float)h); rc.ViewProj = rc.View * rc.Projection;
         rc.Frustum = new Frustum(rc.ViewProj);
+        rc.ViewportSize = new Vector4(w, h, 1f / w, 1f / h); rc.IsReflectionPass = false; rc.SceneColor = null; rc.Reflection = null;
         for (int i = 0; i < 4; i++) _gd.Textures[i] = null;
 
         // 1. shadow depth
@@ -181,6 +189,7 @@ public sealed class ForwardRenderer : IDisposable
         Stats.RecordDraw(1, 1);
         _gd.DepthStencilState = DepthStencilState.Default;
         content.DrawOpaque(rc);
+        if (content is ITransparentContent tc) tc.DrawTransparent(rc);
 
         // 3. post → output
         _gd.SetRenderTarget(output);
@@ -247,6 +256,8 @@ public sealed class ForwardRenderer : IDisposable
         rc.Frustum = new Frustum(rc.View * proj);
         if (jitterPx != Vector2.Zero) proj *= Matrix.CreateTranslation(jitterPx.X * 2f / w, jitterPx.Y * 2f / h, 0);
         rc.Projection = proj; rc.ViewProj = rc.View * proj;
+        rc.ViewportSize = new Vector4(w, h, 1f / w, 1f / h); rc.IsReflectionPass = false; rc.SceneColor = null;
+        if (!reuseShadows) rc.Reflection = null;
         for (int i = 0; i < 16; i++) _gd.Textures[i] = null;
 
         // 1. atmosphere and image-based lighting
@@ -338,6 +349,14 @@ public sealed class ForwardRenderer : IDisposable
         }
         else { rc.LightViewProj = Matrix.Identity; rc.ShadowParams = Vector4.Zero; rc.ShadowTexture = null; }
 
+        // 2b. planar reflection (stage env): once per still, like the shadows
+        if (content is IPlanarReflectionContent prc && !reuseShadows)
+        {
+            PassBegin();
+            RenderReflection(content, prc, viewCam, aspect, w, h, analytic, s2);
+            PassEnd("reflection", _reflection);
+        }
+
         // 3. HDR scene: sky, then opaque content
         PassBegin();
         _gd.SetRenderTarget(_hdr);
@@ -372,10 +391,126 @@ public sealed class ForwardRenderer : IDisposable
         Stats.RecordDraw(1, 1);
         _gd.DepthStencilState = DepthStencilState.Default;
         content.DrawOpaque(rc);
+        if (content is ITransparentContent tc)
+        {
+            if (tc.NeedsSceneColor(rc)) CopySceneColor(w, h);
+            tc.DrawTransparent(rc);
+            rc.SceneColor = null;
+        }
         PassEnd("scene", _hdr);
 
         // 4. post
         Post(output, w, h, accumWeight, meter, timeSeconds, f, analytic);
+    }
+
+    /// <summary>Copies the opaque HDR scene into <see cref="RenderContext.SceneColor"/> and re-binds the scene target
+    /// (PreserveContents: colour and depth survive the re-bind).</summary>
+    void CopySceneColor(int w, int h)
+    {
+        if (_sceneCopy == null || _sceneCopy.Width != w || _sceneCopy.Height != h)
+        {
+            _sceneCopy?.Dispose();
+            _sceneCopy = new RenderTarget2D(_gd, w, h, false, HdrFormat, DepthFormat.None);
+        }
+        var copy = _fx.Get(G2EffectNames.Copy);
+        _gd.SetRenderTarget(_sceneCopy);
+        _gd.BlendState = BlendState.Opaque; _gd.DepthStencilState = DepthStencilState.None;
+        copy.Parameters["Src"].SetValue(_hdr);
+        copy.Parameters["CopyParams"].SetValue(new Vector4(1, 0, 0, 0));
+        copy.CurrentTechnique.Passes[0].Apply();
+        _gd.SamplerStates[0] = SamplerState.PointClamp;
+        _gd.DrawUserPrimitives(PrimitiveType.TriangleList, FullScreen.Triangle, 0, 1);
+        Stats.RecordDraw(1, 1);
+        _gd.Textures[0] = null;
+        _gd.SetRenderTarget(_hdr);
+        _gd.DepthStencilState = DepthStencilState.Default;
+        Context.SceneColor = _sceneCopy;
+    }
+
+    /// <summary>
+    /// Mirrored scene for planar reflections: view reflected about the plane, projection with an oblique near plane on
+    /// the reflection plane (Lengyel 2005, D3D depth range), sky then <see cref="IRenderContent.DrawOpaque"/> with
+    /// <see cref="RenderContext.IsReflectionPass"/>. The main view's jitter is not applied (one reflection per still).
+    /// </summary>
+    void RenderReflection(IRenderContent content, IPlanarReflectionContent prc, in CameraPose viewCam, float aspect, int w, int h, bool analytic, SunState sun)
+    {
+        var rc = Context;
+        if (!rc.Features.EnvReflections || prc.ReflectionPlane(rc) is not { } plane) { rc.Reflection = null; return; }
+        float scale = Math.Clamp(prc.ReflectionScale, 0.25f, 1f);
+        int rw = Math.Max(16, (int)(w * scale)), rh = Math.Max(16, (int)(h * scale));
+        if (_reflection == null || _reflection.Width != rw || _reflection.Height != rh)
+        {
+            _reflection?.Dispose();
+            _reflection = new RenderTarget2D(_gd, rw, rh, false, HdrFormat, DepthFormat.Depth24Stencil8);
+        }
+        var saved = (rc.Camera, rc.View, rc.Projection, rc.ViewProj, rc.Frustum, rc.ViewportSize);
+        var n = new Vector3(plane.X, plane.Y, plane.Z);
+        var mirror = Matrix.CreateReflection(new Plane(n, plane.W));
+        var view = mirror * rc.View;
+        var proj = viewCam.Projection(aspect);
+        var mpos = Vector3.Transform(rc.Camera.Position, mirror);
+        var mcam = rc.Camera with { Position = mpos, Target = Vector3.Transform(rc.Camera.Target, mirror) };
+        // clip plane in view space (visible side: above the water), offset a little so the waterline does not shimmer
+        var pointOnPlane = -n * plane.W;
+        var pv = Vector3.Transform(pointOnPlane + n * 0.02f, view);
+        var nv = Vector3.Normalize(Vector3.TransformNormal(n, view));
+        var clipView = new Vector4(nv, -Vector3.Dot(nv, pv));
+        var oblique = ObliqueNearPlane(proj, clipView);
+        rc.Camera = mcam; rc.View = view; rc.Projection = oblique; rc.ViewProj = view * oblique;
+        rc.Frustum = new Frustum(view * proj);
+        rc.ViewportSize = new Vector4(rw, rh, 1f / rw, 1f / rh);
+        rc.IsReflectionPass = true; rc.ReflectionPlane = plane;
+        _gd.SetRenderTarget(_reflection);
+        _gd.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Black, 1f, 0);
+        _gd.BlendState = BlendState.Opaque; _gd.DepthStencilState = DepthStencilState.None; _gd.RasterizerState = RasterizerState.CullNone;
+        if (analytic)
+        {
+            var sky = _fx.Get(G2EffectNames.SkyAnalytic);
+            sky.Parameters["InvViewProj"].SetValue(Matrix.Invert(view * proj));
+            const float sunRadius = 0.0047f * 1.3f;
+            float cosR = MathF.Cos(sunRadius);
+            var disc = sun.LightColor / (MathF.PI * sunRadius * sunRadius);
+            float peak = MathF.Max(disc.X, MathF.Max(disc.Y, disc.Z));
+            if (peak > 4000f) disc *= 4000f / peak;
+            sky.Parameters["SunDisc"].SetValue(new Vector4(cosR, 1 - cosR, 0, 0));
+            sky.Parameters["SunDiscColor"].SetValue(new Vector4(disc, 1));
+            sky.Parameters["SkyMode"].SetValue(Vector4.Zero);
+            sky.Parameters["Backdrop"]?.SetValue((Texture2D?)null);
+            rc.Apply(sky);
+            _gd.SamplerStates[GlslLib.FirstMaterialSlot] = SamplerState.LinearWrap;
+        }
+        else
+        {
+            var sky = _fx.Get(EffectNames.Sky);
+            sky.Parameters["InvViewProj"].SetValue(Matrix.Invert(view * proj));
+            sky.Parameters["SkyZenith"].SetValue(new Vector4(sun.SkyZenith, 1));
+            sky.Parameters["SkyHorizon"].SetValue(new Vector4(sun.SkyHorizon, 1));
+            rc.Apply(sky);
+        }
+        _gd.DrawUserPrimitives(PrimitiveType.TriangleList, FullScreen.Triangle, 0, 1);
+        Stats.RecordDraw(1, 1);
+        _gd.DepthStencilState = DepthStencilState.Default;
+        content.DrawOpaque(rc);
+        rc.IsReflectionPass = false;
+        (rc.Camera, rc.View, rc.Projection, rc.ViewProj, rc.Frustum, rc.ViewportSize) = saved;
+        rc.Reflection = _reflection;
+        for (int i = 0; i < 16; i++) _gd.Textures[i] = null;
+    }
+
+    /// <summary>
+    /// Lengyel's oblique near-plane projection for a D3D-style depth range (z in [0, w]) in XNA's row-vector convention:
+    /// the projection's third column becomes the view-space clip plane <paramref name="c"/> (visible where c·v ≥ 0),
+    /// scaled so the far plane still bounds the frustum.
+    /// </summary>
+    public static Matrix ObliqueNearPlane(Matrix proj, Vector4 c)
+    {
+        var inv = Matrix.Invert(proj);
+        var q = Vector4.Transform(new Vector4(MathF.Sign(c.X), MathF.Sign(c.Y), 1f, 1f), inv);
+        float d = Vector4.Dot(c, q);
+        var cc = c * (1f / d);
+        var m = proj;
+        m.M13 = cc.X; m.M23 = cc.Y; m.M33 = cc.Z; m.M43 = cc.W;
+        return m;
     }
 
     void EnsurePostTargets(int w, int h, bool fxaa)
@@ -535,5 +670,6 @@ public sealed class ForwardRenderer : IDisposable
         _hdr?.Dispose(); _shadow?.Dispose(); _csm?.Dispose(); _sky?.Dispose(); _env?.Dispose();
         foreach (var b in _bloom) b.Dispose();
         _ldr?.Dispose(); _accum?.Dispose(); _exposure[0]?.Dispose(); _exposure[1]?.Dispose(); _lutTex?.Dispose();
+        _sceneCopy?.Dispose(); _reflection?.Dispose();
     }
 }

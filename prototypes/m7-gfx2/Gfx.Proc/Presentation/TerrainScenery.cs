@@ -43,6 +43,20 @@ public sealed class TerrainScenery : IDisposable
     const int LastLod = 2;
     public float TimeSeconds { get; set; }
     public bool DrawProps { get; set; } = true;
+    // ---- stage env hooks (defaults keep the G1/render1 behaviour)
+    /// <summary>When set, only prop groups whose name it accepts are drawn (e.g. "rock-0"; groups are tree-*, bush-*, rock-*).</summary>
+    public Func<string, bool>? PropFilter { get; set; }
+    /// <summary>False hides this scenery's own water surface (the environment stage draws its own).</summary>
+    public bool DrawWaterSurface { get; set; } = true;
+    /// <summary>True draws the terrain with the alternative splat weights given to <see cref="SetAltSplats"/>.</summary>
+    public bool UseAltSplats { get; set; }
+    /// <summary>Stage env: wet banks. Float texture of the nearby water surface height per grid sample (−10000 where none).</summary>
+    public Texture2D? WetMap { get; set; }
+    public bool UseWetMap { get; set; }
+    Texture2D? _wetDummy;
+    /// <summary>Material looks used with the alternative splats (null keeps the biome's own).</summary>
+    public MaterialLook.Entry[]? AltLook { get; set; }
+    VertexBuffer[]? _altVbs;
     public float ShadowCastDistance { get; set; } = 320f;
     public int LastVisibleChunks { get; private set; }
     public int LastPropInstances { get; private set; }
@@ -128,6 +142,7 @@ public sealed class TerrainScenery : IDisposable
         LastVisibleChunks = DrawChunks(rc, fx);
         LastPropInstances = DrawProps ? DrawPropGroups(rc, rc.Effects.Get(Gfx.Engine.Effects.EffectNames.InstancedLit), float.MaxValue) : 0;
         if (rc.IsG2Frame && rc.Features.FarField) DrawFarField(rc);
+        if (!DrawWaterSurface) return;
         if (rc.IsG2Frame) DrawWaterG2(rc); else DrawWater(rc);
     }
 
@@ -149,13 +164,24 @@ public sealed class TerrainScenery : IDisposable
         var fx = rc.Effects.Get(TerrainEffectNames.TerrainPbr);
         var m = _materials!;
         var p = fx.Parameters;
-        for (int i = 0; i < 8; i++) p["MatTint" + i].SetValue(new Vector4(_look[i].Tint, _look[i].Saturation));
-        p["MatRoughA"].SetValue(new Vector4(_look[0].RoughMul, _look[1].RoughMul, _look[2].RoughMul, _look[3].RoughMul));
-        p["MatRoughB"].SetValue(new Vector4(_look[4].RoughMul, _look[5].RoughMul, _look[6].RoughMul, _look[7].RoughMul));
+        var look = UseAltSplats && AltLook != null ? AltLook : _look;
+        for (int i = 0; i < 8; i++) p["MatTint" + i].SetValue(new Vector4(look[i].Tint, look[i].Saturation));
+        p["MatRoughA"].SetValue(new Vector4(look[0].RoughMul, look[1].RoughMul, look[2].RoughMul, look[3].RoughMul));
+        p["MatRoughB"].SetValue(new Vector4(look[4].RoughMul, look[5].RoughMul, look[6].RoughMul, look[7].RoughMul));
         var ts = TerrainMaterials.TileMetres;
         p["TileScaleA"].SetValue(new Vector4(1f / ts[0], 1f / ts[1], 1f / ts[2], 1f / ts[3]));
         p["TileScaleB"].SetValue(new Vector4(1f / ts[4], 1f / 190f, 1f / 53f, 0));
-        p["TerrainOpts"].SetValue(new Vector4(rc.Features.HexTiling ? 1 : 0, rc.Features.MacroVariation ? 1 : 0, 0.22f, 0));
+        bool wet = UseWetMap && WetMap != null;
+        p["TerrainOpts"].SetValue(new Vector4(rc.Features.HexTiling ? 1 : 0, rc.Features.MacroVariation ? 1 : 0, 0.22f, wet ? 1 : 0));
+        if (_wetDummy == null)
+        {
+            _wetDummy = new Texture2D(_gd, 1, 1, false, SurfaceFormat.Single);
+            _wetDummy.SetData(new[] { -10000f });
+            for (int i = 0; i < 16; i++) _gd.Textures[i] = null;
+        }
+        p["WetMap"].SetValue(wet ? WetMap : _wetDummy);
+        float W = Grid.Width, H = Grid.Height, cell = Mesh.CellM;
+        p["WetParams"].SetValue(new Vector4(1f / (cell * W), (W / 2 + 0.5f) / W, 1f / (cell * H), (H / 2 + 0.5f) / H));
         for (int i = 0; i < 5; i++) { p["Alb" + i].SetValue(m.AlbHt[i]); p["Nrm" + i].SetValue(m.NrmRgh[i]); }
         p["Macro"].SetValue(m.Macro);
         return fx;
@@ -211,6 +237,13 @@ public sealed class TerrainScenery : IDisposable
         fx.Parameters["WaterAbsorb"].SetValue(new Vector4(0.45f, 0.20f, 0.13f, 0));
     }
 
+    /// <summary>Draws this scenery's water surface (G1 or G2 path) on its own, for content that draws water after all opaque
+    /// geometry (stage env). Use with <see cref="DrawWaterSurface"/> = false.</summary>
+    public void DrawWaterOnly(RenderContext rc)
+    {
+        if (rc.IsG2Frame) DrawWaterG2(rc); else DrawWater(rc);
+    }
+
     void DrawWaterG2(RenderContext rc)
     {
         if (_waterVb == null || _waterIb == null) return;
@@ -244,10 +277,14 @@ public sealed class TerrainScenery : IDisposable
         for (int k = 0; k < n; k++)
         {
             var (ci, lod) = _visible[k]; var c = _chunks[ci];
-            _gd.SetVertexBuffer(c.Vb); _gd.Indices = c.Ib[lod];
+            _gd.SetVertexBuffer(UseAltSplats && _altVbs != null ? _altVbs[ci] : c.Vb); _gd.Indices = c.Ib[lod];
             rc.Apply(fx);
             // the macro-variation texture is low-frequency: plain trilinear, no anisotropic taps
-            if (fx.Name == TerrainEffectNames.TerrainPbr) _gd.SamplerStates[G2TerrainEffects.MacroSlot] = SamplerState.LinearWrap;
+            if (fx.Name == TerrainEffectNames.TerrainPbr)
+            {
+                _gd.SamplerStates[G2TerrainEffects.MacroSlot] = SamplerState.LinearWrap;
+                _gd.SamplerStates[G2TerrainEffects.WetSlot] = SamplerState.LinearClamp;
+            }
             _gd.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, c.Tris[lod]);
             rc.Stats.RecordDraw(c.Tris[lod], 1);
         }
@@ -260,6 +297,7 @@ public sealed class TerrainScenery : IDisposable
         foreach (var g in _groups)
         {
             if (g.All.Length == 0) continue;
+            if (PropFilter != null && !PropFilter(g.Data.Name)) continue;
             int vis = rc.IsShadowPass ? (rc.ShadowFrustum is { } sf ? sf.CullSpheres(g.Spheres, g.Visible) : FillAll(g)) : rc.Frustum.CullSpheres(g.Spheres, g.Visible);
             float near = g.Data.Distances[0], far = MathF.Min(g.Data.Distances[1], maxDistance);
             float near2 = near * near, far2 = far * far; int nn = 0, nf = 0;
@@ -298,8 +336,39 @@ public sealed class TerrainScenery : IDisposable
         _gd.BlendState = BlendState.Opaque; _gd.DepthStencilState = DepthStencilState.Default;
     }
 
+    /// <summary>
+    /// Builds alternative chunk vertex buffers whose splat weights come from <paramref name="sampleSplats"/> (same layout as
+    /// <see cref="TerrainMeshData.SampleSplats"/>: 8 weights per grid sample); null removes them. Positions are unchanged.
+    /// </summary>
+    public void SetAltSplats(float[]? sampleSplats)
+    {
+        if (_altVbs != null) foreach (var vb in _altVbs) vb.Dispose();
+        _altVbs = null;
+        if (sampleSplats == null) return;
+        int W = Grid.Width, H = Grid.Height; float cell = Mesh.CellM;
+        _altVbs = new VertexBuffer[_chunks.Length];
+        for (int i = 0; i < _chunks.Length; i++)
+        {
+            var src = Mesh.Chunks[i].Vertices;
+            var v = new VertexTerrain[src.Length];
+            for (int k = 0; k < v.Length; k++)
+            {
+                v[k] = src[k];
+                int gx = Math.Clamp((int)MathF.Round(src[k].Position.X / cell + W / 2), 0, W - 1);
+                int gy = Math.Clamp((int)MathF.Round(src[k].Position.Z / cell + H / 2), 0, H - 1);
+                int o = (gy * W + gx) * SplatModel.Count;
+                v[k].SplatA = new Vector4(sampleSplats[o], sampleSplats[o + 1], sampleSplats[o + 2], sampleSplats[o + 3]);
+                v[k].SplatB = new Vector4(sampleSplats[o + 4], sampleSplats[o + 5], sampleSplats[o + 6], sampleSplats[o + 7]);
+            }
+            _altVbs[i] = new VertexBuffer(_gd, VertexTerrain.Decl, v.Length, BufferUsage.WriteOnly);
+            _altVbs[i].SetData(v);
+        }
+    }
+
     public void Dispose()
     {
+        if (_altVbs != null) foreach (var vb in _altVbs) vb.Dispose();
+        _wetDummy?.Dispose();
         foreach (var c in _chunks) { c.Vb.Dispose(); foreach (var ib in c.Ib) ib.Dispose(); }
         _waterVb?.Dispose(); _waterIb?.Dispose(); _detailA.Dispose(); _detailB.Dispose();
         _materials?.Dispose(); _farVb?.Dispose(); _farIb?.Dispose(); _seaVb?.Dispose(); _seaIb?.Dispose();

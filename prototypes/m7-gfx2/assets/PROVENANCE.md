@@ -15,6 +15,10 @@ Written at the G2 setup stage, 2026-11-09, from files fetched and inspected in t
 - **Totals after stage chars (measured 2026-11-10 with `scripts/fetch-assets.sh --summary`):** 1,546 files,
   295,884,503 bytes, from 11 sources (the setup totals above plus the render1 reference rows and the 12 CMU clips of
   §3.4). The setup line above is kept as written.
+- **Totals after the chars + env merge (measured 2026-11-10 with `scripts/fetch-assets.sh --summary` on the merged
+  `g2/trunk`):** 1,561 files, 295,906,616 bytes, from 11 sources (the chars totals above plus the 15 ez-tree preset rows
+  of §3.10, 22,113 bytes); 1,471 SHIP-OK and 90 PROTOTYPE-ONLY. `--verify` re-hashed all 1,561 files on disk: 0 missing,
+  0 mismatched. The lines above are kept as written.
 - **Licence policy:** D-079 §5 Q8 (D-078 Q-QM3) is **OPEN**. Until the Director rules, this file applies the working
   default of the G2 brief: ship-clean first; PROTOTYPE-ONLY only where nothing clean exists.
 
@@ -250,6 +254,53 @@ every output byte for byte.
 ground is the render1 terrain bake (§3.8: grass CC0+MIT; gravel, sand and soil CC-BY-4.0). Every stage-chars capture
 shows characters posed by CMU clips, so every legend names the CMU data as PROTOTYPE-ONLY.
 
+### 3.10 Stage env (battlefield environment): files used, bake outputs and runtime transformations
+
+Added 2026-11-10 by stage env on `g2/env` (cut from `g2/trunk` 808d88c) as §3.9; renumbered §3.10 when `g2/chars` and
+`g2/env` were merged into `g2/trunk` (both stages had added a §3.9; chars was merged first and keeps §3.9).
+`reports/env.md`, written on its branch before the merge, cites this section as §3.9. Every external input below is an
+existing SHIP-OK row of §3.5 except the ez-tree presets, which this stage pinned (15 new rows in `manifest.tsv`).
+**No PROTOTYPE-ONLY file is used by the environment**: the ez-tree ground textures and `.glb` grass, flower and rock
+models (§3.5, PROTOTYPE-ONLY) are not read by any code or script. No env capture therefore needs a PROTOTYPE-ONLY
+legend.
+
+**Bake** (`scripts/bake-env.sh`, which verifies each of its 23 raw inputs' sha256 against `assets/manifest.tsv` and then
+runs `scripts/bake-env.py`). Outputs go to `$G2_ASSETS/baked/env/` and are never committed. `MANIFEST.tsv` there
+records each output's sha256 and bytes and the numpy and Pillow versions, and `calibration.json` the measured means.
+Output container: `R1TX` (render1's, RGBA8 with mips). Measured run (2026-11-10, numpy 2.5.3, Pillow 12.3.0): 45 files,
+301 MB on disk, 137 s; a second full run reproduced every sha256.
+
+| Set | Inputs (raw) | Transformations | Licence of the output | Status |
+|---|---|---|---|---|
+| bark (6 sets: oak, ash, aspen, pine, shrub, scrub) | `ez-tree/src/app/public/textures/bark/Bark{001,004,007,014,002,012}_1K-JPG/*_{Color,NormalGL,Roughness}.jpg` (18 files) | Albedo to linear light and scaled to a natural mean linear luminance (Bark001 0.222 → 0.12, Bark004 0.292 → 0.15, Bark007 0.356 → 0.28, Bark014 0.149 → 0.11, Bark002 0.187 → 0.11, Bark012 0.208 → 0.13). Roughness remapped to [floor, 1] (floor 0.70–0.82). OpenGL normals kept. A cavity term derived from how far the normal map bends from flat (blurred, clamped 0.35–1) packed with the normal. Mips in linear light, mean normal renormalised, roughness widened by the Toksvig factor. The oak set is also the palisade and log material of the structures | CC0-1.0 | SHIP-OK |
+| leaves (6 cards: oak, ash, aspen, pine, scrub, juniper) | `ez-tree/src/app/public/textures/leaves/{oak,ash,aspen,pine}.png` | Colour bled into the transparent texels (no dark fringes in mips). Albedo scaled to a target mean linear luminance of the opaque texels (oak 0.192 → 0.075, ash 0.170 → 0.080, aspen 0.482 → 0.085, pine 0.156 → 0.055). Recolours in HSV keeping the card's own hue spread at half strength: aspen autumn yellow → summer green (hue 0.235, saturation ×0.78); scrub = the ash card as dusty olive (hue 0.17, ×0.42, target 0.062); juniper = the pine card as blue-grey-green (hue 0.30, ×0.35, target 0.050). Translucency from normalised luminance (0.35–1), a mild normal from luminance. Mips keep the alpha-tested coverage of level 0 (per-level alpha scale) | MIT (notice §5) | SHIP-OK |
+| ground-cover atlas | none: 16 cards drawn in code (four grasses, two dry grasses, sedge, two fern fronds, daisy, buttercup, knapweed, poppy, dock, thistle, cushion plant) | Drawn at 2× and box-filtered; colour, coverage, height and translucency layers; coverage-preserving alpha mips; 10 levels kept | project code | own |
+| water normal map | none: a tileable sum of directional wave octaves drawn in code | — | project code | own |
+| structure materials (wood, planks, daub, thatch, plaster, tiles: drawn; ashlar, rubble, paving: drawn block layouts over stone) | `terrain3d/project/demo/assets/textures/rock023_alb_ht.png` for the stone surface of ashlar, rubble and paving | Rock023 albedo resized (2048² for ashlar, 1024² otherwise) and offset per use. Ashlar: each block takes its own seeded patch, whose luminance modulates a warm limestone colour (the photo's own colour is not kept); drafted margins, mortar joints and chipped arrises drawn in code. Rubble: Voronoi fieldstones in mortar, a tone per stone, the photo's luminance as surface detail. Paving: rectangular slabs, the photo's luminance as surface detail. Height, normal (OpenGL +Y) and roughness derived; mips as for bark | CC0-1.0 AND MIT for the three stone sets (as the input), project code otherwise | SHIP-OK |
+
+**Runtime reuse of render1 bakes:** the boulders use render1's `rock` set (Rock023, §3.8) triplanar, with a moss term
+and a damp base drawn in the shader. The terrain keeps render1's sets; the environment only changes the splat
+weights it draws with (forest floor from the canopy, trampled ground, grassy talus).
+
+**Code ported or embedded:**
+
+| Item | Source | Licence | Status | Transformation |
+|---|---|---|---|---|
+| ez-tree presets (15 JSON: ash, aspen, oak, pine × small/medium/large, bush_1–3) | `ez-tree/src/lib/presets/*.json` at the pinned commit (15 new manifest rows, role `tool`) | MIT | SHIP-OK | Embedded unmodified as resources of `Gfx.Proc` (`Environment/EzTree/presets/`); a test checks their sha256 against the manifest pins. The MIT notice travels as `presets/LICENSE-ez-tree.txt` |
+| ez-tree generator | `ez-tree/src/lib/{rng,tree,branch,options,enums}.js` and the three.js math they call (the trellis growth of `trellis.js` is not ported: no preset enables it, and a preset that did would be refused) | MIT (ez-tree; three.js for the Euler/quaternion formulas) | SHIP-OK (port) | Ported to C# (`Gfx.Proc/Environment/EzTree/`): the RNG with JavaScript int32 semantics, the branch/leaf generator and its mesh output, in double precision, with additions for this game (two reduced detail levels, per-vertex extras for wind and occlusion). Verified three ways: an independent Python oracle (`scripts/ez-rng-oracle.py`, written from the ECMAScript rules) reproduces the RNG bit for bit (`fixtures/ez-rng-oracle.txt`, 1,920 lines, identical to the JavaScript original's output under Node); the generator's geometry matches the original run under Node with three r180 (all fifteen presets while porting, largest difference 3.7e-11 relative; committed check `fixtures/ez-tree-js-reference.json`: four presets, counts, index SHA-256 and every 97th vertex value within 1e-9) |
+
+**Cross-check tools (not committed, not shipped):** Node.js v22.23.4 and the npm package `three` 0.180.0 (MIT), used
+once in `/home/user/g2w/env-work/node` to run the original JavaScript generator and write the two fixtures.
+
+**Algorithms implemented from publications or common practice** (no code copied, no asset): hemi-octahedral
+impostors (after Ryan Brucks' octahedral impostors, 2018) with depth and normal atlases; screen-space dithered LOD
+cross-fades with complementary masks (interleaved gradient noise, Jimenez 2014); coverage-preserving alpha mips
+(Castaño 2010); flow-mapped water normals with two phases (Vlachos 2010); Beer–Lambert absorption; Schlick's Fresnel;
+oblique near-plane clipping for the planar reflection (Lengyel 2005). One formula is taken as published: the
+three-line sine-free value hash `envHash` (`EnvGlsl.Common`) is Dave Hoskins' "hash12" from his "Hash without Sine"
+shader, which its author's header releases under the MIT licence (that page was not re-read from this container;
+the formula is short enough to replace if the notice is not wanted).
+
 ## 4. Licence identifiers used for non-standard terms
 
 | Id | Meaning |
@@ -265,9 +316,11 @@ shows characters posed by CMU clips, so every legend names the CMU data as PROTO
 - **CC BY 4.0, Babylon.js Assets** (`babylon-assets/textures/*`): "Textures from the Babylon.js Assets repository
   (https://github.com/BabylonJS/Assets), licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/)",
   plus a note of any changes made in the bake (render1: the transformations in §3.8).
-- **MIT notices:** Terrain3D (channel-packed ambientCG maps), ez-tree (leaf cards; generator code if ported),
-  SMAA, meshoptimizer if any of it ships (it is planned as a bake tool only), and three.js (`threejs-ref`: the G2
-  PBR Neutral, ACES and AgX tonemapper code is a port of its tonemapping chunk).
+- **MIT notices:** Terrain3D (channel-packed ambientCG maps), ez-tree (leaf cards; the C# port of its generator and the
+  embedded presets, stage env §3.10: `Gfx.Proc/Environment/EzTree/presets/LICENSE-ez-tree.txt`),
+  SMAA, meshoptimizer if any of it ships (it is planned as a bake tool only), three.js (`threejs-ref`: the G2
+  PBR Neutral, ACES and AgX tonemapper code is a port of its tonemapping chunk), and Dave Hoskins' "Hash without
+  Sine" (the `envHash` formula of stage env, §3.10).
 - **CC0 items** need no notice. Courtesy credits: MakeHuman Team (Data Collection AB), ambientCG, Poly Haven
   (Dimitrios Savva, Jarod Guest).
 - **CMU acknowledgement** (requested by CMU, if the clips are used): "The data used in this project was obtained

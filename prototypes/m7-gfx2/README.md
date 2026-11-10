@@ -41,13 +41,13 @@ external assets in `assets/` are pinned and fetched, but **no code uses them yet
 |---|---|
 | `M7Gfx2.slnx`, `Directory.Build.props` | Solution and isolated build settings (net10.0, warnings as errors, invariant globalization, MonoGame 3.8.5 pinned) |
 | `Gfx.Engine/` | MGFX-from-GLSL effects, forward renderer (shadow → HDR → ACES post), cameras, culling/LOD, capture, frame stats, `--sysinfo`, headless host, scene registry |
-| `Gfx.Proc/` | `Authoritative/`: integer-only seeded battlefield grid (SHA-256 pinned). `Presentation/`: terrain mesh, splats, scatter, water, props |
+| `Gfx.Proc/` | `Authoritative/`: integer-only seeded battlefield grid (SHA-256 pinned). `Presentation/`: terrain mesh, splats, scatter, water, props. `Environment/` (stage env): ez-tree C# port, tree species, impostors and forest layout, ground cover, boulders, river water, structure kit and settlements, the `env-*` scenes |
 | `Gfx.Units/` | Skeleton, procedural soldier meshes and variation, clip library baked to a bone texture, instanced GPU crowd, battle-trace playback |
 | `Gfx.Avatar/`, `Gfx.Cinematics/` | Persistent avatar profile and era dress; outcome-driven cinematic planner and player |
 | `Gfx.Demo/` | Executable: `--sysinfo`, `--list`, `--capture`, `--bench`, `--interactive`; forwards the benchmark options to `Gfx.Perf` |
 | `Gfx.Perf/` | Victus benchmark harness (perf stage): `--suite`, `--sweep`, `--scene`, `--gpu-selftest`; `launcher/` (CivSimBench.exe source), `package/` (Windows package files). See `reports/perf.md` |
 | `Gfx.Tests/` | xunit; `[GfxFact]` device tests skip, not fail, when no GL device can be created |
-| `fixtures/` | `battle-trace-combinedarms-s7.json`, the labelled battle-trace fixture from G1 |
+| `fixtures/` | `battle-trace-combinedarms-s7.json`, the labelled battle-trace fixture from G1; `ez-rng-oracle.txt` and `ez-tree-js-reference.json`, the ez-tree port's reference outputs (stage env) |
 | `scripts/check-gfx-determinism.sh` | Integer-only scan of `Gfx.Proc/Authoritative` |
 | `scripts/fetch-assets.sh`, `scripts/pin-assets.sh`, `scripts/assets-common.sh` | Asset fetch, verify and pin tools (below) |
 | `assets/manifest.tsv`, `assets/lists/` | sha256 pins for every external file |
@@ -123,6 +123,24 @@ switch: `Gfx.Demo --capture <scene> --set name=value[,name=value]`, or `--preset
 `Gfx.Demo --help`). The photographic terrain needs `scripts/bake-render1.sh`; without the bake, G1's procedural
 materials are used (the load failure is kept in `TerrainScenery.MaterialsFailure`; nothing is printed). `scripts/capture-render1.sh` and `scripts/bench-render1.sh` reproduce the render1 captures and the
 per-switch llvmpipe costs.
+
+## Battlefield environment (stage env)
+
+One detailed battlefield environment on the generated grid, presentation only (it reads the grid and the generation
+trace and never writes them; a GPU test proves the grid hash unchanged). Code in `Gfx.Proc/Environment/`, scenes
+`env-trees`, `env-temperate` and `env-arid` (`Gfx.Demo --list`), report `reports/env.md`.
+
+- **Bake first:** `scripts/bake-env.sh` (bark, leaf cards, ground-cover atlas, water normals, structure materials into
+  `$G2_ASSETS/baked/env`; it checks every raw input's sha256 against the manifest). The render1 bake is needed too.
+- **Switches** (`--set`, or `env=0|1` for all of them; `--preset g1` turns them all off): `trees`, `impostors`,
+  `lodfade`, `wind`, `groundcover`, `rocks`, `water`, `reflect`, `structures`, `forestfloor`. A switch off draws
+  that part's G1 content; with all of them off the frame is bit-identical to the plain G1 terrain scenery, in the
+  G2 frame and through the G1 preset (a GPU test).
+- **Reproduce:** `scripts/capture-env.sh OUT_DIR` (deliverable stills, BEFORE frames, per-switch A/B),
+  `scripts/review-sheets-env.py OUT_DIR reports/captures/env`, `scripts/bench-env.sh OUT_DIR` (per-switch llvmpipe
+  costs; `Gfx.Demo --bench … --variants "g2;env=0;trees=0"` benches several switch sets on one loaded scene).
+- **Review aid:** `G2_ENV_LOD="lod1At,impostorAt"` moves the tree LOD distances (for example `1,2` draws every tree as
+  an impostor).
 
 ## Victus (reference machine)
 

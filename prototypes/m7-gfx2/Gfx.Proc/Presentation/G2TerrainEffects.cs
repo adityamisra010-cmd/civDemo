@@ -21,6 +21,8 @@ public static class G2TerrainEffects
     public const int AlbSlot = GlslLib.FirstMaterialSlot;          // 2..6
     public const int NrmSlot = GlslLib.FirstMaterialSlot + 5;      // 7..11
     public const int MacroSlot = GlslLib.FirstMaterialSlot + 10;   // 12
+    /// <summary>Stage env: the wet-bank map uses slot 1 (bone slot; terrain has no bones).</summary>
+    public const int WetSlot = GlslLib.BoneSlot;
 
     const string Sampling = @"
 #ifdef GL_ARB_shader_texture_lod
@@ -89,6 +91,8 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
          .Vec4("TileScaleA", Stage.Pixel).Vec4("TileScaleB", Stage.Pixel).Vec4("TerrainOpts", Stage.Pixel);
         for (int i = 0; i < 5; i++) b.Texture("Alb" + i, AlbSlot + i);
         for (int i = 0; i < 5; i++) b.Texture("Nrm" + i, NrmSlot + i);
+        // stage env: wet banks (TerrainOpts.w = 1): WetMap holds the nearby water surface height per grid sample
+        b.Vec4("WetParams", Stage.Pixel).Texture("WetMap", WetSlot);
         return b.Texture("Macro", MacroSlot)
             .Varyings("vec3 v_wpos; vec3 v_nrm; vec4 v_wa; vec4 v_wb; vec4 v_lpos;")
             .VertexMain(@"
@@ -183,6 +187,17 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
         alb *= mix(0.86, 1.14, m1.r * 0.65 + m2.r * 0.35);
         float grassy = bw.x;
         alb = mix(alb, alb * vec3(1.12, 1.03, 0.80), clamp(m1.b * 0.7 + m2.g * 0.3, 0.0, 1.0) * grassy * 0.45);
+    }
+    if (TerrainOpts.w > 0.5) {
+        // wet banks: darker and glossier up to about 0.6 m above the nearby water surface, fading with height
+        float hw = texture2D(WetMap, vec2(p.x * WetParams.x + WetParams.y, p.z * WetParams.z + WetParams.w)).r;
+        float above = p.y - hw;
+        float wet = (1.0 - smoothstep(0.0, 0.6, above)) * step(-50.0, above);
+        // under water: silt evens out the bed (lower contrast)
+        float sub = (1.0 - smoothstep(-0.05, 0.0, above)) * step(-50.0, above);
+        alb = mix(alb, vec3(dot(alb, vec3(0.3333))) * vec3(1.0, 0.98, 0.9), sub * 0.55);
+        alb *= mix(1.0, 0.55, wet);
+        rough = mix(rough, 0.28, wet * 0.85);
     }
     float ao = mix(0.62, 1.0, smoothstep(0.0, 0.55, h));
     vec3 c = shadePbrFull(alb, clamp(rough, 0.05, 1.0), 0.0, ao, n, N, p, shadowPcf(v_lpos));

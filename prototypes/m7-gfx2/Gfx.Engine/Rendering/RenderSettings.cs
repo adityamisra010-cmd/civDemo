@@ -62,6 +62,27 @@ public sealed class RenderFeatures
     public bool HexTiling { get; set; } = true;
     public bool MacroVariation { get; set; } = true;
     public bool WaterRippleFade { get; set; } = true;
+    // environment (stage env): content switches read by the environment scenes; each one off draws the G1 content
+    /// <summary>ez-tree forest (species, LODs, wind); off = G1's procedural trees and bushes.</summary>
+    public bool EnvTrees { get; set; } = true;
+    /// <summary>Far trees as lit multi-view impostors; off = the LOD1 meshes out to the cull distance.</summary>
+    public bool EnvImpostors { get; set; } = true;
+    /// <summary>Dithered cross-fade between tree detail levels; off = a hard switch at each distance.</summary>
+    public bool EnvLodFade { get; set; } = true;
+    /// <summary>Vertex wind on trees and ground cover (deterministic in scene time).</summary>
+    public bool EnvWind { get; set; } = true;
+    /// <summary>Grass, flower, fern and weed cards chosen by the terrain material, thinned with distance.</summary>
+    public bool EnvGroundCover { get; set; } = true;
+    /// <summary>Boulders, pebbles and twigs; off = G1's rock blobs.</summary>
+    public bool EnvRocks { get; set; } = true;
+    /// <summary>Environment water (flow normals, refraction, foam, wet banks); off = the render1 water.</summary>
+    public bool EnvWater { get; set; } = true;
+    /// <summary>Planar reflection on the environment water (an extra scene pass); off = sky reflection only.</summary>
+    public bool EnvReflections { get; set; } = true;
+    /// <summary>Settlements and fortifications; off = none (G1 had no structures).</summary>
+    public bool EnvStructures { get; set; } = true;
+    /// <summary>Forest floor from the placed canopy (smooth edges); off = the cell-based forest-floor splat.</summary>
+    public bool EnvForestFloor { get; set; } = true;
 
     /// <summary>All G1 behaviour (the BEFORE baseline inside the G2 code).</summary>
     public static RenderFeatures G1() => new()
@@ -70,6 +91,8 @@ public sealed class RenderFeatures
         ShadowTechnique = ShadowTechnique.Single, ToneMapper = ToneMapper.AcesFit, AutoExposure = false, Bloom = false,
         ColorGrade = false, Aa = AntiAliasing.None, StillSamples = 1, PhotoTerrain = false, Anisotropy = 1, HexTiling = false,
         MacroVariation = false, WaterRippleFade = false,
+        EnvTrees = false, EnvImpostors = false, EnvLodFade = false, EnvWind = false, EnvGroundCover = false, EnvRocks = false,
+        EnvWater = false, EnvReflections = false, EnvStructures = false, EnvForestFloor = false,
     };
 
     /// <summary>True when every switch is at its G1 value, so the frame uses the unchanged G1 path.</summary>
@@ -86,7 +109,8 @@ public sealed class RenderFeatures
         "hdrirot=<deg>", "hdribg=0|1", "shadows=single|csm", "cascades=1..4", "cascadesize=<px>", "shadowdist=<m>",
         "tonemap=acesfit|neutral|aces|agx|linear", "autoexposure=0|1", "ev=<bias>", "bloom=0|1", "bloomstrength=<x>",
         "grade=0|1", "aa=none|fxaa", "samples=<n>", "terrain=procedural|photo", "aniso=<1..16>", "hex=0|1", "macro=0|1",
-        "ripplefade=0|1",
+        "ripplefade=0|1", "trees=0|1", "impostors=0|1", "lodfade=0|1", "wind=0|1", "groundcover=0|1", "rocks=0|1", "water=0|1",
+        "reflect=0|1", "structures=0|1", "forestfloor=0|1", "env=0|1",
     };
 
     /// <summary>Applies one <c>key=value</c> switch (case-insensitive key). Throws on an unknown key or value.</summary>
@@ -136,6 +160,22 @@ public sealed class RenderFeatures
             case "hex": HexTiling = B(lv); break;
             case "macro": MacroVariation = B(lv); break;
             case "ripplefade": WaterRippleFade = B(lv); break;
+            case "trees": EnvTrees = B(lv); break;
+            case "impostors": EnvImpostors = B(lv); break;
+            case "lodfade": EnvLodFade = B(lv); break;
+            case "wind": EnvWind = B(lv); break;
+            case "groundcover": EnvGroundCover = B(lv); break;
+            case "rocks": EnvRocks = B(lv); break;
+            case "water": EnvWater = B(lv); break;
+            case "reflect": EnvReflections = B(lv); break;
+            case "structures": EnvStructures = B(lv); break;
+            case "forestfloor": EnvForestFloor = B(lv); break;
+            case "env":
+            {
+                bool on = B(lv);
+                EnvTrees = EnvImpostors = EnvLodFade = EnvWind = EnvGroundCover = EnvRocks = EnvWater = EnvReflections = EnvStructures = EnvForestFloor = on;
+                break;
+            }
             default: throw new ArgumentException($"unknown render switch '{key}'. Known: {string.Join(", ", Keys)}");
         }
     }
@@ -158,7 +198,9 @@ public sealed class RenderFeatures
         $"sky={Sky} aerial={On(AerialPerspective)} farfield={On(FarField)} haze={Haze:0.##} pbr={On(Pbr)} ibl={Ibl} " +
         $"shadows={ShadowTechnique}x{(ShadowTechnique == ShadowTechnique.Cascaded ? Cascades : 1)} tonemap={ToneMapper} " +
         $"autoexposure={On(AutoExposure)} ev={ExposureBiasEv:0.##} bloom={On(Bloom)} grade={On(ColorGrade)} aa={Aa} samples={StillSamples} " +
-        $"terrain={(PhotoTerrain ? "photo" : "procedural")} aniso={Anisotropy} hex={On(HexTiling)} macro={On(MacroVariation)} ripplefade={On(WaterRippleFade)}");
+        $"terrain={(PhotoTerrain ? "photo" : "procedural")} aniso={Anisotropy} hex={On(HexTiling)} macro={On(MacroVariation)} ripplefade={On(WaterRippleFade)}" +
+        $" trees={On(EnvTrees)} impostors={On(EnvImpostors)} lodfade={On(EnvLodFade)} wind={On(EnvWind)} groundcover={On(EnvGroundCover)} rocks={On(EnvRocks)}" +
+        $" water={On(EnvWater)} reflect={On(EnvReflections)} structures={On(EnvStructures)} forestfloor={On(EnvForestFloor)}");
 
     static string On(bool b) => b ? "1" : "0";
 }
