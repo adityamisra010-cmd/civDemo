@@ -432,3 +432,11 @@ Also seen (same series, not used): in Three Kingdoms a duel's winner lifts his a
   patterns of A.5; DA1); the battle starting from the campaign value (A.5's starting morale).
 - **Not taken:** the reference's campaign design (no stock, percentage modifiers, faction resources): our Law 2 bans standing
   modifiers, and DA1 asks for a rise of the army's morale itself. Its names, numbers, tooltips and text: none is used.
+
+## Dated note — 2026-11-10 (D-083; appended, the text above is unchanged)
+
+- §8's READING M (b) is no longer OPEN. The Director ruled that entering a battle costs morale, with or without casualties
+  (`docs/d083-entering-battle-costs-morale-2026-11-10.md`, DB1). The statements that (b) is OPEN or (a) applied are superseded:
+  §3.3 (the "Fire without casualties" row), §8 and §9 here, and H-MOR §3, §9, §10.9 and §11.9. Under DB1, a battle won without
+  loss changes the winner's morale by DA1's rise less the entry cost, and a battle lost without loss costs the entry cost. The
+  prototype at 7f0cb92 has no entry cost yet.

@@ -1014,3 +1014,10 @@ These reports live in the session scratchpad (`/tmp/claude-0/-home-user-civDemo/
   DR29's decrease); DR25's numbers hold at every stage (DA3, narrowing §4 D20); DR24's caps apply in the sandbox (DA4) and
   count battlefield units, not people (DA5); equal sides give the battle to the defender except in an ambush (DA6, DA7);
   units can spend action points to hide, entrench or camouflage (DA8). READING A stays open.
+
+## Dated note — 2026-11-10 (D-083; appended, the text above is unchanged)
+
+- The Director answered READING M (b): entering a battle costs morale, with or without casualties; recorded in
+  `docs/d083-entering-battle-costs-morale-2026-11-10.md` (DB1, DB2). A battle changes morale through an entry cost, DR29's
+  decrease through combat and D-082 DA1's rise for the winner. Who pays, how often, and how the cost combines with DA1's rise
+  are READINGS (DB1-R1..R3); the size of the cost and where it is charged are delegated.
