@@ -16,6 +16,7 @@ public static class Program
   --capture <scene|all> [--out DIR] [--size WxH] [--no-shadows] [--shots a,b] [--preset g1|g2] [--set k=v[,k=v]]...
   --bench <scene> [--frames N] [--size WxH] [--no-shadows] [--shot NAME] [--profile] [--preset g1|g2] [--set k=v]...
   --interactive [scene]             windowed; WASD pan, Q/E rotate, wheel zoom, F1..F12 switch scene, Esc quit
+  --chars-costs                     stage chars: CPU cost of animation, skinning prep and expression blending
 Render switches (--set, comma-separated or repeated; --preset g1 = every switch at its G1 value):
   " + string.Join(" ", RenderFeatures.Keys) + @"
 Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automatically when no display).";
@@ -70,6 +71,8 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
             var info = SysInfo.Collect(gd);
             switch (args[0])
             {
+                case "--chars-costs":
+                    return CharsCosts.Run(gd, info);
                 case "--sysinfo":
                     Console.Write(info.ToText());
                     foreach (var (name, err) in host.Effects.WarmupAll())

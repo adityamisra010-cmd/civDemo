@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Stage chars: baked MakeHuman-based characters (soldiers, commander, avatar) with GPU skinning, morphs,
+       material shaders and the animation layer. PRESENTATION ONLY: reads baked files and published state,
+       never writes simulation state. -->
+  <PropertyGroup>
+    <RootNamespace>Gfx.Chars</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gfx.Engine\Gfx.Engine.csproj" />
+    <ProjectReference Include="..\Gfx.Avatar\Gfx.Avatar.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Gfx.Tests" />
+  </ItemGroup>
+</Project>

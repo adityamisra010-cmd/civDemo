@@ -3,6 +3,7 @@
   <Project Path="Gfx.Proc/Gfx.Proc.csproj" />
   <Project Path="Gfx.Units/Gfx.Units.csproj" />
   <Project Path="Gfx.Avatar/Gfx.Avatar.csproj" />
+  <Project Path="Gfx.Chars/Gfx.Chars.csproj" />
   <Project Path="Gfx.Cinematics/Gfx.Cinematics.csproj" />
   <Project Path="Gfx.Perf/Gfx.Perf.csproj" />
   <Project Path="Gfx.Demo/Gfx.Demo.csproj" />

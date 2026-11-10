@@ -12,6 +12,9 @@ Written at the G2 setup stage, 2026-11-09, from files fetched and inspected in t
 - **Totals (measured 2026-11-09):** 1,532 files, 275,968,449 bytes, from 10 sources. 1,454 files are SHIP-OK and
   78 are PROTOTYPE-ONLY. Counting renderable assets only (no tools, licence texts or index), 1,403 are SHIP-OK and
   73 are PROTOTYPE-ONLY. Every byte is an unmodified copy of the upstream file at the pinned commit.
+- **Totals after stage chars (measured 2026-11-10 with `scripts/fetch-assets.sh --summary`):** 1,546 files,
+  295,884,503 bytes, from 11 sources (the setup totals above plus the render1 reference rows and the 12 CMU clips of
+  §3.4). The setup line above is kept as written.
 - **Licence policy:** D-079 §5 Q8 (D-078 Q-QM3) is **OPEN**. Until the Director rules, this file applies the working
   default of the G2 brief: ship-clean first; PROTOTYPE-ONLY only where nothing clean exists.
 
@@ -115,6 +118,29 @@ sessions and may be of lower quality.
 | 02_07 | swordplay (subject 2, an early session) | 2252 | 18.8 s | weapon-handling reference |
 | 79_86 | shooting bow and arrow | 682 | 5.7 s | archer reference |
 
+**Added by stage chars (2026-11-10, pinned in `manifest.tsv` with the same status and evidence):** 12 more clips from
+the same conversion, for idles, march, guard, blocks and lunges. Descriptions from the pinned CMU index; frames and
+durations from each file's header.
+
+| Clip | CMU description | Frames | Duration | Intended use |
+|---|---|---:|---:|---|
+| 20_07 | soldiers march (2 subjects - subject A) | 244 | 2.0 s | march cycle (`march`) |
+| 76_04 | defensive guard pose | 418 | 3.5 s | cower or guard (`cower`) |
+| 77_02 | standing | 938 | 7.8 s | the default idle (`idle`) |
+| 82_08 | stand still; casual walk forward | 1700 | 14.2 s | not used by the current bake |
+| 113_21 | Standing Still | 1368 | 11.4 s | not used by the current bake |
+| 137_28 | Normal Wait | 3723 | 31.0 s | not used by the current bake |
+| 137_41 | Strong Man Wait | 5195 | 43.3 s | a second idle (`idle_proud`, frames 2160–3000) |
+| 141_20 | Waiting | 764 | 6.4 s | not used by the current bake |
+| 144_07 | Left_Blocks | 2449 | 20.4 s | not used by the current bake |
+| 144_11 | Left_Lunges | 3430 | 28.6 s | not used by the current bake |
+| 144_17 | Lunges | 2821 | 23.5 s | thrust (`thrust`, frames 708–948) |
+| 144_26 | Right_Blocks | 3348 | 27.9 s | block (`block`, frames 1848–2016) |
+
+The current bake (`tools/charbake/clips.py`) uses 16_15, 35_01, 20_07, 35_22, 143_01, 77_02, 137_41, 144_17, 02_07 (two
+cuts), 144_26, 76_04, 23_03, 90_16, 90_18, 104_13, 139_19 and 79_86; the other pinned clips are unused. Their
+retargets are written to separate `<identity>__clips.g2ch` files (§3.9), so no identity or outfit file contains CMU data.
+
 The CMU index (`cmu-bvh/cmu-mocap-index-text.txt`) and the converter's `READMEFIRST.txt` are pinned as reference and
 evidence rows.
 
@@ -199,6 +225,31 @@ Toksvig roughness; hex-tiling (Mikkelsen 2022, JCGT); the 13-tap bloom downsampl
 FXAA's edge test, edge walk and sub-pixel blend (Lottes 2009); practical split scheme for cascades (Zhang et al.
 2006). The tonemapper constants come from the `threejs-ref` row (MIT).
 
+### 3.9 Stage chars (characters): files used, bake outputs and transformations
+
+Added 2026-11-10 by stage chars. Every input is an existing row above; nothing new is downloaded except the 12 CMU
+clips listed in §3.4. Bake: `scripts/bake-chars.sh` (re-hashes every source it reads with `scripts/fetch-assets.sh
+--verify`, builds meshoptimizer, runs `tools/charbake/charbake.py`); outputs go to `$G2_ASSETS/baked/chars/` and are
+never committed; `MANIFEST.tsv` there lists each output's sha256 and bytes. `--check` re-bakes in memory and compares
+every output byte for byte.
+
+| Output | Inputs (raw) | Transformations | Licence of the output | Status |
+|---|---|---|---|---|
+| Identity bodies (`<id>.g2ch` MESH body): 10 identities | `mh-core` base.obj, 1,280 targets (macro and regional modifiers used per identity), `mpfb2` `rig/weights.game_engine.json` | Base mesh morphed by the identity's macro (gender, age, muscle, weight, height solved for the stature, proportions, ancestry mix) and regional modifiers; converted to metres (ground at y = 0); helper geometry stripped (body group only); triangulated; split at UV seams; 4 joint influences per vertex from the MPFB2 weights, quantised to bytes summing to 255 | CC0-1.0 | SHIP-OK |
+| Skeleton and sockets (SKEL, SOCK) | `mpfb2` game_engine rig (53 bones) | Joint positions from MPFB2's joint-cube strategy on each identity's morphed mesh; two eye bones added at the fitted eye centres; grip and shield sockets computed from the hand and forearm joints | CC0-1.0 | SHIP-OK |
+| Expressions (MRPH: blink, battlecry, pain, grim, calm) | `mh-core` `face-poseunits.{bvh,json}`, `default.mhskel`, `default_weights.mhw` | Weighted pose units (choices in `expressions.py`) posed on the default skeleton; posed minus rest mesh = sparse per-vertex deltas (positions and normals); carried onto teeth, tongue, lashes, brows and beard through the skin vertex under each part | CC0-1.0 | SHIP-OK |
+| Eyes (MESH eyes, cornea) and iris texture (`tex/<id>_eye.r1tx`) | `mh-core` high-poly eye proxy (mhclo, obj), `brown_eye.png` | Proxy fitted to the morphed face; split into eyeball and clear cornea shell by the texture's alpha; iris hue and value moved to the identity's eye colour | CC0-1.0 | SHIP-OK |
+| Skin albedo and masks (`tex/<id>_skin.r1tx`, `_skinmask.r1tx`) | `mhjs-data` skins `young_caucasian_male`, `middleage_caucasian_male`, `old_caucasian_male`, `young_african_male`, `middleage_african_male`, `young_asian_male` (512², CC0 badge); `mpfb2` region masks (face, lips, eyelids, ears, inside-mouth) | Upscaled (Lanczos) to 1,024² (soldiers) or 2,048² (avatar, commander); tone-matched in linear light to the identity's skin tone (a READING of G1's display tones: chroma pulled 30 % to grey, scaled to 90 %); procedural mottling, capillary redness, cavity occlusion (alpha); painted hair: flow-aligned strand strokes rasterised in UV space under the scalp hair, beard and brows; the CC0 badge strip is checked to lie outside every UV island | CC0-1.0 | SHIP-OK |
+| Hair, beards, brows, lashes, teeth, tongue | `mh-core` base mesh (scalp, face, lash and teeth helper geometry as surfaces only) | Generated in code: scalp hair and beards as fur shells over the identity's skin (flow-aligned UVs), a tied-back tail and long hair as cards grown on the scalp, brows as cards, lashes on the CC0 lash helpers, procedural dentition on the teeth helper bands. No MakeHuman proxy mesh (the AGPL-labelled 2015 ones, §3.3) is used | CC0-1.0 (inputs) + generated | SHIP-OK |
+| Garments, armour, helmets, shields, weapons (`<id>__<outfit>.g2ch`) | the identity's own body (above) | Generated in code: shells of the skin cut by smooth fields with woven borders and hems (cut-out islands of under 150 skin vertices kept, so no pinholes), parametric skirts fitted to the body and to the legwear under them, shoes fitted to the feet, skull-fitted helmet bowls; the bronze cuirass and the crested helmet are shells of the torso and of the whole head whose edges are cut on a smoothed copy of the shell itself and faired; boot shafts worn over hose are the hose's own surface (the MakeHuman CC0 tights helper) 4 mm further out; lathe and extrusion shapes for weapons and shields; original geometric heraldry painted in code | generated | SHIP-OK |
+| LODs (MESH lod1, lod2 in each outfit file) | the meshes above; `meshoptimizer` v1.3 sources (tool) | Inner garment layers under an outer layer dropped; per part `meshopt_simplifyWithAttributes` (positions and normals, absolute error 12 mm at LOD1 and 30 mm at LOD2, retried at 2.5x and 6x) to an area-weighted budget, `meshopt_simplifySloppy` (2 % of the extent) only for a part still at more than three times its budget; merged into one single-material mesh per identity × outfit (about 3,000 and 1,500 triangles); meshoptimizer is compiled into a shared library at bake time and never ships | CC0-1.0 (inputs) + generated | SHIP-OK |
+| Procedural textures (`tex/fabric`, `wood`, `trim`, `hair_atlas`, `hair_lying`, `fur`, `skin_detail`, `emblem_*`) | none | Generated in code (`materials.py`, `hair.py`, `skin.py`) | generated | SHIP-OK |
+| Clips (`<id>__clips.g2ch`, CLIP chunks) | `cmu-bvh` clips listed in §3.4 | Rotation transfer onto each identity's rig with a matched T-pose (limbs aligned to the source's frame 0, spine and neck keep the rig's rest posture), resampled to 30 fps, hips translation scaled by leg length, turned to travel along +Z; cycles cut between left foot strikes, made in place (average horizontal velocity removed and stored as the clip's natural speed), loop-corrected; one-shots grounded on their first 0.5 s; planted-foot bits from height and speed thresholds | LicenseRef-CMU-Mocap | PROTOTYPE-ONLY (provisional) |
+
+**Runtime use:** characters are drawn with code-defined shaders (`Gfx.Chars/Rendering/CharEffects.cs`); the scenes'
+ground is the render1 terrain bake (§3.8: grass CC0+MIT; gravel, sand and soil CC-BY-4.0). Every stage-chars capture
+shows characters posed by CMU clips, so every legend names the CMU data as PROTOTYPE-ONLY.
+
 ## 4. Licence identifiers used for non-standard terms
 
 | Id | Meaning |
@@ -220,7 +271,8 @@ FXAA's edge test, edge walk and sub-pixel blend (Lottes 2009); practical split s
 - **CC0 items** need no notice. Courtesy credits: MakeHuman Team (Data Collection AB), ambientCG, Poly Haven
   (Dimitrios Savva, Jarod Guest).
 - **CMU acknowledgement** (requested by CMU, if the clips are used): "The data used in this project was obtained
-  from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217."
+  from mocap.cs.cmu.edu. The database was created with funding from NSF EIA-0196217." Stage chars uses the clips
+  (§3.9) and writes this sentence into every `<identity>__clips.g2ch` INFO chunk.
 
 ## 6. Changes from the earlier, lost G2 attempt's classification
 

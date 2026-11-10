@@ -144,3 +144,14 @@ review capture re-primes auto exposure. Not yet adapted: `scripts/package-victus
 `assets/` folder next to the executable (where `AssetRoot` looks), so on Windows the G2 frame would fall back to G1's
 procedural ground materials (the HDRI is needed only for `ibl=hdri`). An AFTER package needs its own name, README
 text and the render1 terrain bake (with its CC-BY notice).
+
+## Characters (stage chars)
+
+Soldiers, the force A commander and the player avatar (G1 PlayerFixture identity) built from the MakeHuman CC0 core
+and the MPFB2 53-bone game-engine rig: `tools/charbake` (Python, numpy; `scripts/bake-chars.sh`, `--check` for a
+byte-for-byte re-bake) writes identities, outfits, LODs and clip files to `$G2_ASSETS/baked/chars`; `Gfx.Chars` draws
+and animates them (GPU skinning with a morph stream, material shaders, LODs, sockets, the cosmetic animation layer);
+`Gfx.Demo --capture chars-hero|chars-eras|chars-forces|chars-lod|chars-anim` and `Gfx.Demo --chars-costs`
+(`scripts/capture-chars.sh`); review sheets from `scripts/review-sheets-chars.py`. Details, captures, costs and what
+still looks placeholder: `reports/chars.md`. The CMU clips are PROTOTYPE-ONLY and live in their own
+`<identity>__clips.g2ch` files (assets/PROVENANCE.md §3.9).
