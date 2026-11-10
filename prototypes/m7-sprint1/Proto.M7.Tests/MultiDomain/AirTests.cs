@@ -252,6 +252,8 @@ public class AirTests
                 Proto.M7.Fixed.Q32.One, Proto.M7.Fixed.Q32.One, Proto.M7.Fixed.Q32.One, Proto.M7.Fixed.Q32.Zero,
                 // [TR] ClassCount 8 -> 11 (Marsh, Ford, Building appended); none of the three occurs on this grid.
                 Proto.M7.Fixed.Q32.One, Proto.M7.Fixed.Q32.One, Proto.M7.Fixed.Q32.Zero,
+                // [AP] ClassCount 11 -> 13 (Earthwork, Ditch appended; placeholder values); neither occurs on this grid.
+                Proto.M7.Fixed.Q32.FromRatio(1, 2), Proto.M7.Fixed.Q32.One,
             });
             var setup = Land(4, recon) with { Grid = g, Concealment = conceal };
             var b = new TacticalBattle(setup, Script((0, new OrderRequest(3, OrderKind.Patrol, 0, -1, C(36, 20)))), PassiveController.Instance);

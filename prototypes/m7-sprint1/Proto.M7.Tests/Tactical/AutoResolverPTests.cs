@@ -438,6 +438,7 @@ public class AutoResolverPTests
         var conceal = ConcealmentTable.Create(new[]
         {
             Q32.One, Q32.One, Q32.FromRatio(1, 2), Q32.Zero, Q32.One, Q32.One, Q32.One, Q32.Zero, Q32.One, Q32.One, Q32.Zero,
+            Q32.FromRatio(1, 2), Q32.One,   // [AP] ClassCount 11 -> 13 (Earthwork, Ditch: the placeholder values); neither occurs on this grid
         });
         Vec2L a = Cell(5, 16);
         Vec2L bpos = f2X < 0 ? Cell(42, 16) : new Vec2L(f2X, a.Y);

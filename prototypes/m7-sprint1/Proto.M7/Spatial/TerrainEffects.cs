@@ -148,8 +148,8 @@ public sealed class TerrainEffects
     public static TerrainEffects Placeholder => _placeholder ??= PlaceholderTestTable();
 
     /// <summary>
-    /// PLACEHOLDER test table (lane TR). Values, by class (Road, Open, Forest, Jungle, Hills, Mountain, Water, Wall, Marsh,
-    /// Ford, Building):
+    /// PLACEHOLDER test table (lane TR; [AP] two field-works classes appended). Values, by class (Road, Open, Forest, Jungle,
+    /// Hills, Mountain, Water, Wall, Marsh, Ford, Building, [AP] Earthwork, Ditch):
     ///  - FeatureHeightMm: 0, 0, 15,000, 25,000, 0, 0, 0, 0, 0, 0, 8,000 — PLACEHOLDER (order of magnitude: mature temperate
     ///    canopy 15-30 m, tropical canopy 25-45 m, the low ends used; two-storey building ~8 m).
     ///  - Opaque: Building only.
@@ -157,16 +157,20 @@ public sealed class TerrainEffects
     ///  - Footing: Marsh 1/2, Ford 1/2, else 1 — PLACEHOLDER.
     ///  - OrderCap: Forest 1/2, Jungle 1/4, Mountain 1/2, Marsh 1/2, Ford 1/2, else 1 — PLACEHOLDER.
     ///  - Climb 25/3 — CITED (Naismith 1892); beta = gamma = 1/2 at a cap of 1 (45 degrees) — PLACEHOLDER; c0 = 1/2 — PLACEHOLDER.
+    ///  - [AP] Earthwork: a 1,500 mm parapet layer, not opaque, missile transmission 1/4 (cover), footing 1, order cap 1 (the
+    ///    occupant keeps its order); Ditch: no layer, transmission 1, footing 1/2, order cap 1/2 (an obstacle breaks close order:
+    ///    Polybius, Histories XVIII.31 names ditches among the ground that breaks the phalanx — direction CITED, magnitudes
+    ///    PLACEHOLDER, the same as lane TR's Ford). docs/m7-plan/concealment-actions-proposal.md §4.3.
     /// </summary>
     public static TerrainEffects PlaceholderTestTable()
     {
         var one = Q32.One;
         return Create(
-            featureHeightMm: new long[] { 0, 0, 15_000, 25_000, 0, 0, 0, 0, 0, 0, 8_000 },
-            opaque: new[] { false, false, false, false, false, false, false, false, false, false, true },
-            transmission: new[] { one, one, ThreeQuarters, OneHalf, one, one, one, one, one, one, one },
-            footing: new[] { one, one, one, one, one, one, one, one, OneHalf, OneHalf, one },
-            orderCap: new[] { one, one, OneHalf, OneQuarter, one, OneHalf, one, one, OneHalf, OneHalf, one },
+            featureHeightMm: new long[] { 0, 0, 15_000, 25_000, 0, 0, 0, 0, 0, 0, 8_000, 1_500, 0 },
+            opaque: new[] { false, false, false, false, false, false, false, false, false, false, true, false, false },
+            transmission: new[] { one, one, ThreeQuarters, OneHalf, one, one, one, one, one, one, one, OneQuarter, one },
+            footing: new[] { one, one, one, one, one, one, one, one, OneHalf, OneHalf, one, one, OneHalf },
+            orderCap: new[] { one, one, OneHalf, OneQuarter, one, OneHalf, one, one, OneHalf, OneHalf, one, one, OneHalf },
             climbNum: 25, climbDen: 3,
             meleeSlope: OneHalf, missileElevation: OneHalf, gradientCap: one, cohesionFloor: OneHalf);
     }

@@ -98,6 +98,9 @@ public static class MultiDomainScenarios
             MultiDomain = new MultiDomainSetup { Rules = rules ?? new DomainRules() },
             // Firearm-era dispersion: 5 m between soldiers / gun teams instead of the close-order 1.5 m default (TEST INPUT).
             Rules = new TacticalRules { SlotSpacingMm = 5_000 },
+            // [AP] D-082 DA6: side 1 holds the shore the landing attacks (docs/m7-plan/concealment-actions-proposal.md §5.4). The
+            // battle ends as a Standoff under the DIR5 rule, so the role reports a winner only with the DA6-R Standoff extension ON.
+            Defender = 1,
         };
     }
 

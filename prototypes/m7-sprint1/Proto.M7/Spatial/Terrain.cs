@@ -30,6 +30,15 @@ public enum TerrainClass : byte
     /// <summary>[TR] Building / built-up block: impassable to formations; OPAQUE up to its finite structure height (unlike
     /// <see cref="Wall"/>, an observer high enough above it sees over it).</summary>
     Building = 10,
+    // ---- [AP] lane AP (D-082 DA8): FIELD WORKS realized on the battle grid by an entrenched formation (docs/m7-plan/
+    // concealment-actions-proposal.md §4.3). Appended (never reorder): codes 0-10 keep their meaning, so no earlier hash moves.
+    /// <summary>[AP] Earthwork: the parapet and trench line an entrenched formation occupies. Cover (missile transmission below 1
+    /// for an entity in it), a low layer (a line below its parapet height inside the cell is attenuated), some concealment; firm
+    /// footing and close order for the occupant; slow to cross.</summary>
+    Earthwork = 11,
+    /// <summary>[AP] Ditch: the obstacle dug in front of an earthwork. Poor footing and broken order for anyone standing in it (an
+    /// attacker in contact with the earthwork stands in it), slow to cross; no layer, no cover, no concealment.</summary>
+    Ditch = 12,
 }
 
 /// <summary>
@@ -41,8 +50,9 @@ public enum TerrainClass : byte
 /// </summary>
 public sealed class TerrainCostTable
 {
-    /// <summary>Number of terrain classes (codes 0..ClassCount-1). [TR] 8 -> 11 (Marsh, Ford, Building appended).</summary>
-    public const int ClassCount = 11;
+    /// <summary>Number of terrain classes (codes 0..ClassCount-1). [TR] 8 -> 11 (Marsh, Ford, Building appended). [AP] 11 -> 13
+    /// (Earthwork, Ditch appended: the field works of an entrenched formation).</summary>
+    public const int ClassCount = 13;
     public const long Impassable = 0;
     /// <summary>Upper bound per class (bounds A* step costs: (2*MaxCost)*CellSize*1414 fits long for CellSize &lt;= MaxCellSizeMm).</summary>
     public const long MaxCost = 1_000_000;
@@ -80,7 +90,7 @@ public sealed class TerrainCostTable
         if (c[(int)TerrainClass.Water] != Impassable) return "Water must be impassable for land movement";
         if (c[(int)TerrainClass.Wall] != Impassable) return "Wall must be impassable";
         foreach (var k in new[] { TerrainClass.Road, TerrainClass.Open, TerrainClass.Forest, TerrainClass.Jungle, TerrainClass.Hills, TerrainClass.Mountain,
-                                  TerrainClass.Marsh, TerrainClass.Ford })
+                                  TerrainClass.Marsh, TerrainClass.Ford, TerrainClass.Earthwork, TerrainClass.Ditch })     // [AP] works are crossable
             if (c[(int)k] == Impassable) return $"class {k} must be passable (cost >= 1)";
         // Director's binding ordering (brief §2 Logistics): roads cheaper than open; jungle dearer than open; mountains dearer still.
         if (!(c[(int)TerrainClass.Road] < c[(int)TerrainClass.Open])) return "ordering violated: Road must be cheaper than Open";
@@ -108,6 +118,8 @@ public sealed class TerrainCostTable
         3000,  // Marsh    [TR] PLACEHOLDER (slower than Jungle is NOT asserted; only passable is validated)
         3000,  // Ford     [TR] PLACEHOLDER (wading a fordable stream)
         Impassable, // Building [TR] PLACEHOLDER (formations do not march through built blocks; streets are Road)
+        2000,  // Earthwork [AP] PLACEHOLDER (crossing a parapet and trench line)
+        3000,  // Ditch     [AP] PLACEHOLDER (climbing through a dug obstacle, as slow as wading a ford)
     });
 }
 
@@ -143,7 +155,8 @@ public sealed class ConcealmentTable
     /// PLACEHOLDER test table (spec §3: "placeholder input table"): Forest 1/2, Jungle 1/4 — PLACEHOLDER values;
     /// Road/Open/Hills/Mountain/Water 1 (no concealment; Hills/Mountain/Water = 1 is also PLACEHOLDER: nothing decides them);
     /// Wall 0 (irrelevant: Wall blocks LOS outright). [TR] Marsh 1, Ford 1 (PLACEHOLDER: no vegetation layer); Building 0
-    /// (irrelevant: opaque below its structure height, see TerrainEffects).
+    /// (irrelevant: opaque below its structure height, see TerrainEffects). [AP] Earthwork 1/2 (dug-in troops show less of
+    /// themselves; PLACEHOLDER), Ditch 1 (no cover from view).
     /// </summary>
     public static ConcealmentTable PlaceholderTestTable() => Create(new[]
     {
@@ -158,5 +171,7 @@ public sealed class ConcealmentTable
         Q32.One,                // Marsh    [TR] PLACEHOLDER
         Q32.One,                // Ford     [TR] PLACEHOLDER
         Q32.Zero,               // Building [TR] (opaque below its structure height; never an entity's own cell: impassable)
+        Q32.FromRatio(1, 2),    // Earthwork [AP] PLACEHOLDER
+        Q32.One,                // Ditch     [AP] PLACEHOLDER
     });
 }

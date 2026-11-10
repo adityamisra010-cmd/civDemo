@@ -86,17 +86,24 @@ public static class CampaignMorale
 /// <item>SideEliminated: the other side has no Active entity left (its men are dead, surrendered, routed or withdrawn) → the side
 ///   that still has some wins.</item>
 /// <item>SideDisengaged (the legacy inactivity rule): the other side withdrew → the side that stayed wins.</item>
-/// <item>BothEliminated, BothDisengaged, Standoff: today's resolvers separate neither side → no winner is reported (−1). DA6 gives
-///   such a battle to the defender and DA7 an ambush to the ambusher (DA7-R (a)); lane AP implements both in the AutoResolver (and the
-///   Standoff extension is a PROPOSAL, DA6-R). Until a resolver reports that winner, no rise is given; once it does, the hand-off
-///   passes it and the rule is unchanged.</item>
+/// <item>BothEliminated, BothDisengaged (and a Standoff only with the DA6-R extension TacticalRules.EqualSidesAtStandoff): the
+///   result separates neither side. [AP] Both resolvers now report DA6's and DA7's winner on the result itself
+///   (<see cref="BattleResult.Winner"/> with <see cref="BattleResult.WinBasis"/> DefenderOnEqualSides or AmbusherOnEqualSides,
+///   <see cref="EqualSides"/>): the designated defender, or in an ambush launched from concealment the ambusher (DA7-R (a)); with
+///   no designated role (a meeting engagement), no winner (−1), as before. The DA1 rule is unchanged: it gives the rise to whatever
+///   side this function names.</item>
 /// </list>
 /// </summary>
 public static class BattleWinner
 {
-    public static int Reported(BattleResult r) => r.Reason switch
+    public static int Reported(BattleResult r)
     {
-        BattleEndReason.SideEliminated or BattleEndReason.SideDisengaged when r.Side is 0 or 1 => 1 - r.Side,
-        _ => -1,
-    };
+        // [AP] D-082 DA6 / DA7, decided by the resolver at the battle end (EqualSides): the equal-sides winner the result carries.
+        if ((r.WinBasis is WinBasis.DefenderOnEqualSides or WinBasis.AmbusherOnEqualSides) && (r.Winner is 0 or 1)) return r.Winner;
+        return r.Reason switch
+        {
+            BattleEndReason.SideEliminated or BattleEndReason.SideDisengaged when r.Side is 0 or 1 => 1 - r.Side,
+            _ => -1,
+        };
+    }
 }

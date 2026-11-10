@@ -1,6 +1,8 @@
 using System.Buffers.Binary;
 using System.Security.Cryptography;
+using Proto.M7.Fixed;
 using Proto.M7.Rng;
+using Proto.M7.Spatial;
 
 namespace Proto.M7.War;
 
@@ -14,16 +16,33 @@ public enum ActionKind : byte
     Move = 0,
     /// <summary>Attack enemy agent B, which must be within the attacker's AttackRange.</summary>
     Attack = 1,
-    /// <summary>Withdraw to cell B: needs contact with an enemy, moves at most RetreatMaxCells, away from EVERY contact.</summary>
+    /// <summary>Withdraw to cell B: needs contact with an enemy, moves at most RetreatMaxCells, away from EVERY contact. [AP round 2,
+    /// AP-R2-01] A contact is an agent of another polity within the attack range that the issuer's polity DETECTS: an unseen agent
+    /// neither enables a retreat nor constrains its direction (with T3's default unlimited sight every agent is detected).</summary>
     Retreat = 2,
     /// <summary>Raise levies for this agent: pays B money from the issuer's treasury to the recruit sink (Ledger transfer).</summary>
     Recruit = 3,
+    // ---- [AP] lane AP (D-082 DA8 "Units can spend action points to hide/entrench/camouflage etc."; DA8-R: the action points are
+    // this book's Action Capacity). docs/m7-plan/concealment-actions-proposal.md §3, §4. Appended: codes 0-3 keep their meaning.
+    /// <summary>[AP] Hide in the cover of the agent's cell: its detection distance is multiplied by the cell's terrain concealment
+    /// (ConcealmentTable). Needs a concealing cell, no enemy in contact, not observed. Ends on move, retreat, attack, or being
+    /// spotted. B unused (0). [AP round 2] "In contact" and "observed" are judged on the enemy agents the issuer's polity detects;
+    /// an enemy polity that detects the concealed agent at the order's instant spots it at once (the cost is spent).</summary>
+    Hide = 4,
+    /// <summary>[AP] Camouflage: the detection distance is multiplied by ConcealmentRules.CamouflageFactor, in any terrain. Needs
+    /// no enemy in contact and not observed. Ends like a hide. B unused (0). [AP round 2] Judged as a hide is.</summary>
+    Camouflage = 5,
+    /// <summary>[AP] Entrench: dig field works at the agent's cell, accruing at ConcealmentRules.WorksRatePpmPerYear up to complete
+    /// works; the works are lost when the agent moves or retreats. Needs diggable ground. B unused (0).</summary>
+    Entrench = 6,
 }
 
 public static class ActionKinds
 {
-    public const int Count = 4;
-    /// <summary>Order kinds 150..153 carry agent actions: A = WarKinds.Pack(issuer, agentId), B = the argument.</summary>
+    /// <summary>[AP] 4 -> 7 (Hide, Camouflage, Entrench appended).</summary>
+    public const int Count = 7;
+    /// <summary>Order kinds 150..153 carry agent actions: A = WarKinds.Pack(issuer, agentId), B = the argument. [AP] 154..156: Hide,
+    /// Camouflage, Entrench.</summary>
     public const int OrderBase = 150;
     public static bool IsAction(int orderKind) => orderKind >= OrderBase && orderKind < OrderBase + Count;
     public static int Bit(ActionKind k) => 1 << (int)k;
@@ -34,14 +53,33 @@ public static class ActionKinds
 /// costs are integer Action Capacity units. Capacity is the full budget granted at each refresh (a refresh RESETS to it).
 /// </summary>
 public sealed record AgentProfile(int Id, int ActionMask, long Capacity, long MoveCostPerCell, long AttackCost, long RetreatCost,
-                                  long RecruitCost, long AttackRange, long RetreatMaxCells);
+                                  long RecruitCost, long AttackRange, long RetreatMaxCells)
+{
+    /// <summary>[AP] Action Capacity cost of Hide / Camouflage / Entrench (PROPOSAL; profile data, 0 by default).</summary>
+    public long HideCost { get; init; }
+    public long CamouflageCost { get; init; }
+    public long EntrenchCost { get; init; }
+    /// <summary>[AP] Cells within which this agent detects an UNCONCEALED enemy agent on the line (a concealed one only within
+    /// SightCells × its concealment factor). long.MaxValue (default): detection is not modelled for this observer — it sees every
+    /// agent, as T3 did, so a world without sight values behaves exactly as before.</summary>
+    public long SightCells { get; init; } = long.MaxValue;
+}
 
 /// <summary>A MobileAgent of a polity. WarId &gt;= 0: a military agent assigned to that war (the polity must take part);
 /// -1: a campaign-layer agent. X is the starting cell.</summary>
 public sealed record WarAgentSpec(int Id, int Polity, int ProfileId, int WarId, long X);
 
 /// <summary>The action layer of a war world: profiles, agents (ids 0..n-1) and the seed of identity-keyed engagement rolls.</summary>
-public sealed record ActionLayerSpec(AgentProfile[] Profiles, WarAgentSpec[] Agents, ulong Seed);
+public sealed record ActionLayerSpec(AgentProfile[] Profiles, WarAgentSpec[] Agents, ulong Seed)
+{
+    /// <summary>[AP] The terrain class of each cell of the line (index = cell X; cells beyond the array are Open). Null: all Open.
+    /// The stand-in for the campaign map's cover at an agent's location (lane E's war-economy routes use the same classes).</summary>
+    public TerrainClass[]? LineTerrain { get; init; }
+    /// <summary>[AP] The terrain concealment multipliers a hide uses (lane TR's / Slice C's table). Null: the placeholder table.</summary>
+    public ConcealmentTable? Concealment { get; init; }
+    /// <summary>[AP] Camouflage factor, works rate and works thresholds. Null: <see cref="War.ConcealmentRules.Proposal"/>.</summary>
+    public ConcealmentRules? ConcealmentRules { get; init; }
+}
 
 /// <summary>
 /// The action-economy rules (Phase C lane T3). The count is a DIRECTOR DECISION; everything else is a PROPOSAL under DIR5
@@ -56,7 +94,14 @@ public sealed record ActionLayerSpec(AgentProfile[] Profiles, WarAgentSpec[] Age
 ///      DIFFERENT agents always combine;
 ///   5. cross-window hit-and-run: an agent that retreated from enemy E may not attack E in the same or the next
 ///      HitAndRunCooldownWindows window(s) of its own, unless E has since attacked it or closed on it (HitAndRun);
-///   6. target/argument legality (OutOfReach, BadValue);
+///   6. target/argument legality (OutOfReach, BadValue); [AP] for an Attack, the target must be DETECTED by the issuer's polity
+///      (TargetUndetected, checked before the reach); for Hide / Camouflage / Entrench, the state is not already held
+///      (AlreadyInState), the cell conceals (Hide: NoCover) or can be dug (Entrench: CannotDig), no enemy agent is in contact
+///      (Hide, Camouflage: EnemyInContact), and no enemy polity detects the agent now (Hide, Camouflage: Observed);
+///      [AP round 2, AP-R2-01: an order's legality depends only on what the issuer's polity knows — its own agents and the agents it
+///      detects. TargetUndetected comes before the hit-and-run check (rule 5 is then read only for a detected target);
+///      EnemyInContact and Observed count only enemy agents the issuer's polity detects; Retreat's contacts likewise. AP-R2-04:
+///      the concealment mechanics' "enemy" is a polity that shares a war with the agent's polity (AreEnemies).]
 ///   7. its Action Capacity cost does not exceed the agent's remaining capacity (CapacityExhausted).
 /// ENCLOSING WINDOW (C23 item 1–2; reading RDG-10/R8): an agent of an active war is in the OPERATIONAL window = the
 /// current War Pulse of that war; any other agent is in the CAMPAIGN window = the current strategic turn. Event-triggered
@@ -75,18 +120,26 @@ public static class ActionRules
     /// <summary>
     /// PROPOSAL — same-agent combination matrix, row = an earlier action of the agent in this window, column = the next.
     /// The diagonal is refused as KindRepeated before this table is read (no splitting one action into two).
-    ///                 Move   Attack Retreat Recruit
-    ///   Move           -      yes    no      yes      advance-and-strike; no advance-then-withdraw loop
-    ///   Attack         no     -      no      no       no strike-then-reposition, no strike-then-retreat (hit-and-run)
-    ///   Retreat        no     no     -       no       a retreat ends the agent's window
-    ///   Recruit        yes    no     yes     -        no reinforcement in a window with an attack (prototype rule 4)
+    ///                 Move   Attack Retreat Recruit [AP] Hide Camo Entrench
+    ///   Move           -      yes    no      yes          yes  yes  yes      advance-and-strike; advance then conceal / dig in
+    ///   Attack         no     -      no      no           no   no   no       no strike-then-anything (hit-and-run, strike-and-vanish)
+    ///   Retreat        no     no     -       no           no   no   no       a retreat ends the agent's window
+    ///   Recruit        yes    no     yes     -            yes  yes  yes      no reinforcement in a window with an attack (rule 4)
+    ///   [AP] Hide      no     no     no      yes          -    yes  yes      concealment holds still; no hide-and-strike in one window
+    ///   [AP] Camo      no     no     no      yes          yes  -    yes      as Hide
+    ///   [AP] Entrench  no     yes    no      yes          yes  yes  -        dig in then strike from the works; no dig-then-leave
+    /// The 4 x 4 block of T3's kinds is unchanged. An ambush (an attack from concealment) therefore needs the concealment ordered in
+    /// an EARLIER window than the attack (docs/m7-plan/concealment-actions-proposal.md §3.4).
     /// </summary>
     private static readonly bool[] SameAgent =
     {
-        false, true,  false, true,
-        false, false, false, false,
-        false, false, false, false,
-        true,  false, true,  false,
+        false, true,  false, true,  true,  true,  true,
+        false, false, false, false, false, false, false,
+        false, false, false, false, false, false, false,
+        true,  false, true,  false, true,  true,  true,
+        false, false, false, true,  false, true,  true,
+        false, false, false, true,  true,  false, true,
+        false, true,  false, true,  true,  true,  false,
     };
 
     public static bool SameAgentAllowed(ActionKind first, ActionKind second) => SameAgent[(int)first * ActionKinds.Count + (int)second];
@@ -146,6 +199,20 @@ public sealed class ActionWindowBook
     private readonly List<Disengagement> _disengaged = new();
     private readonly List<ActionRecord> _actions = new();
     private readonly List<ActionRefresh> _refreshes = new();
+    // ---- [AP] concealment and preparation (lane AP, D-082 DA8): per-agent states as the instant each began (-1 = not held), the
+    // change log and the engagement log. Hashed only when some profile enables Hide, Camouflage or Entrench (_concealOn), so a T3
+    // world keeps its hashes byte for byte.
+    private readonly bool _concealOn;
+    private readonly TerrainClass[] _terrain;
+    private readonly ConcealmentTable _conceal;
+    private readonly ConcealmentRules _cr;
+    private readonly long[] _hiddenSince, _camoSince, _entrenchSince;
+    private readonly List<ConcealmentChange> _changes = new();
+    private readonly List<EngagementRecord> _engagements = new();
+    // [AP round 2, AP-R2-04] The ENEMY relation of the concealment mechanics (who can spot, watch or be in contact with a concealed
+    // agent): polities p != q are enemies iff some war of the world lists both as participants. Row-major polityCount x polityCount,
+    // fixed at construction (a war's span is not consulted). T3's Attack and Retreat keep T3's own convention (any other polity).
+    private readonly bool[] _enemies;
 
     public ActionWindowBook(ActionLayerSpec spec, int polityCount, WarSpec[] warsById, Func<int, long> operationalWindowOf,
                             WarLedger ledger, int[] treasury, int recruitSink)
@@ -155,9 +222,17 @@ public sealed class ActionWindowBook
         {
             var p = _profiles[i];
             if (p.Id != i || p.Capacity < 0 || p.MoveCostPerCell < 0 || p.AttackCost < 0 || p.RetreatCost < 0 || p.RecruitCost < 0
-                || p.AttackRange < 0 || p.RetreatMaxCells < 1 || (p.ActionMask & ~((1 << ActionKinds.Count) - 1)) != 0)
+                || p.AttackRange < 0 || p.RetreatMaxCells < 1 || (p.ActionMask & ~((1 << ActionKinds.Count) - 1)) != 0
+                || p.HideCost < 0 || p.CamouflageCost < 0 || p.EntrenchCost < 0 || p.SightCells < 0)          // [AP]
                 throw new ArgumentException($"bad profile {i}");
         }
+        const int concealBits = (1 << (int)ActionKind.Hide) | (1 << (int)ActionKind.Camouflage) | (1 << (int)ActionKind.Entrench);
+        foreach (var p in _profiles) if ((p.ActionMask & concealBits) != 0) _concealOn = true;              // [AP]
+        _terrain = spec.LineTerrain is null ? Array.Empty<TerrainClass>() : (TerrainClass[])spec.LineTerrain.Clone();
+        foreach (var c in _terrain) if ((int)c >= TerrainCostTable.ClassCount) throw new ArgumentException("line terrain class");
+        _conceal = spec.Concealment ?? ConcealmentTable.PlaceholderTestTable();
+        _cr = spec.ConcealmentRules ?? ConcealmentRules.Proposal();
+        _cr.Validate();
         _agents = (WarAgentSpec[])spec.Agents.Clone();
         _seed = spec.Seed;
         _polityCount = polityCount;
@@ -168,6 +243,11 @@ public sealed class ActionWindowBook
             _participants[w] = (int[])warsById[w].Participants.Clone();
             _operational[w] = new WindowUse?[_participants[w].Length];
         }
+        _enemies = new bool[polityCount * polityCount];                                                    // [AP round 2]
+        foreach (var parts in _participants)
+            foreach (int p in parts)
+                foreach (int q in parts)
+                    if (p != q) _enemies[p * polityCount + q] = true;
         for (int i = 0; i < _agents.Length; i++)
         {
             var a = _agents[i];
@@ -186,6 +266,8 @@ public sealed class ActionWindowBook
         _serial = new long[n];
         _levies = new long[n];
         for (int i = 0; i < n; i++) _x[i] = _agents[i].X;
+        _hiddenSince = new long[n]; _camoSince = new long[n]; _entrenchSince = new long[n];                  // [AP]
+        Array.Fill(_hiddenSince, -1L); Array.Fill(_camoSince, -1L); Array.Fill(_entrenchSince, -1L);
         _campaign = new WindowUse[polityCount];
         for (int p = 0; p < polityCount; p++) _campaign[p] = new WindowUse(-1, -1);
     }
@@ -198,6 +280,126 @@ public sealed class ActionWindowBook
     public long RemainingOf(int agent) => _remaining[agent];
     public long LeviesOf(int agent) => _levies[agent];
     public long WindowSerialOf(int agent) => _serial[agent];
+
+    // ---- [AP] concealment and preparation: read-only queries (pure; a query never changes state or a hash)
+    public bool IsHidden(int agent) => _hiddenSince[agent] >= 0;
+    public bool IsCamouflaged(int agent) => _camoSince[agent] >= 0;
+    public bool IsEntrenched(int agent) => _entrenchSince[agent] >= 0;
+    public long EntrenchSince(int agent) => _entrenchSince[agent];
+    public ConcealKind StatesOf(int agent)
+        => (IsHidden(agent) ? ConcealKind.Hidden : 0) | (IsCamouflaged(agent) ? ConcealKind.Camouflaged : 0) | (IsEntrenched(agent) ? ConcealKind.Entrenched : 0);
+    /// <summary>The agent's field works at <paramref name="nowMs"/> (ppm of complete works; 0 when it is not entrenched).</summary>
+    public long WorksOf(int agent, long nowMs) => FieldWorks.WorksAt(_entrenchSince[agent], nowMs, _cr.WorksRatePpmPerYear);
+    public IReadOnlyList<ConcealmentChange> ConcealmentChanges => _changes;
+    public IReadOnlyList<EngagementRecord> Engagements => _engagements;
+    public ConcealmentRules ConcealmentRules => _cr;
+    public TerrainClass TerrainAt(long x) => x >= 0 && x < _terrain.Length ? _terrain[x] : TerrainClass.Open;
+
+    /// <summary>The factor on the distance at which an observer detects the agent: the terrain concealment of its cell while it is
+    /// hidden, times the camouflage factor while it is camouflaged (Q32, floor); One with neither.</summary>
+    public Q32 ConcealmentFactor(int agent)
+    {
+        Q32 c = Q32.One;
+        if (IsHidden(agent)) c = c.Mul(_conceal.Multiplier(TerrainAt(_x[agent])));
+        if (IsCamouflaged(agent)) c = c.Mul(_cr.CamouflageFactor);
+        return c;
+    }
+
+    /// <summary>
+    /// [AP] The war-pulse DETECTION rule (docs/m7-plan/concealment-actions-proposal.md §2): polity <paramref name="polity"/> detects
+    /// agent <paramref name="agent"/> now iff the agent is its own, or some agent o of the polity has |x_o − x_agent| ≤ SightCells(o) ×
+    /// ConcealmentFactor(agent), compared exactly (|dx| × 2^32 ≤ sight × factor.Raw, Int128). An observer of unlimited sight
+    /// (long.MaxValue, the default) detects every agent. A pure function of the positions and states, so it is identical in a live
+    /// run, a run without stops and a replay. The knowledge-seam counterpart (PolityKnowledge.KnowsUnit, ADR-037) is §2.3.
+    /// </summary>
+    public bool Detects(int polity, int agent)
+    {
+        if (_agents[agent].Polity == polity) return true;
+        Q32 f = ConcealmentFactor(agent);
+        for (int o = 0; o < _agents.Length; o++)
+            if (_agents[o].Polity == polity && Sees(o, agent, f)) return true;
+        return false;
+    }
+
+    /// <summary>[AP] Whether observer agent <paramref name="o"/> detects agent <paramref name="agent"/> whose concealment factor is
+    /// <paramref name="f"/>: |x_o − x_agent| × 2^32 ≤ SightCells(o) × f.Raw (Int128); an observer of unlimited sight sees every agent.
+    /// [AP round 2: factored out of <see cref="Detects"/> unchanged, for the watcher test of Hide and Camouflage.]</summary>
+    private bool Sees(int o, int agent, Q32 f)
+    {
+        long sight = _profiles[_agents[o].ProfileId].SightCells;
+        if (sight == long.MaxValue) return true;
+        Int128 lhs = (Int128)Abs(_x[o] - _x[agent]) * Q32.OneRaw, rhs = (Int128)sight * f.Raw;
+        return lhs <= rhs;
+    }
+
+    /// <summary>[AP round 2, AP-R2-04] Whether polities <paramref name="p"/> and <paramref name="q"/> are ENEMIES for the concealment
+    /// mechanics: p ≠ q and some war of the world lists both as participants (PROPOSAL; docs/m7-plan/concealment-actions-proposal.md
+    /// §3.7). Only an enemy polity spots a concealed agent, watches it (Observed) or is in contact with it (EnemyInContact).</summary>
+    public bool AreEnemies(int p, int q) => _enemies[p * _polityCount + q];
+
+    /// <summary>Whether an ENEMY polity of the agent's polity (<see cref="AreEnemies"/>; [AP round 2], before: any other polity)
+    /// detects it now. The world's truth, which the agent's own polity may not know: used to spot a concealment at the instant it
+    /// begins, never to refuse an order.</summary>
+    private bool DetectedByAnEnemy(int agent)
+    {
+        int own = _agents[agent].Polity;
+        for (int p = 0; p < _polityCount; p++) if (AreEnemies(own, p) && Detects(p, agent)) return true;
+        return false;
+    }
+
+    /// <summary>[AP round 2, AP-R2-01] An agent of an enemy polity that the agent's own polity DETECTS stands within
+    /// <paramref name="range"/> cells: what the issuer can know of a contact. An enemy it does not detect never refuses an order, so
+    /// the order's outcome reveals nothing about it (proposal §3.6).</summary>
+    private bool KnownEnemyInContact(int agent, long range)
+    {
+        int own = _agents[agent].Polity;
+        for (int e = 0; e < _agents.Length; e++)
+            if (AreEnemies(own, _agents[e].Polity) && Abs(_x[e] - _x[agent]) <= range && Detects(own, e)) return true;
+        return false;
+    }
+
+    /// <summary>[AP round 2, AP-R2-01] An agent of an enemy polity that the agent's own polity DETECTS detects the agent now (with its
+    /// current concealment factor): what the issuer can know of being watched. An unseen watcher is judged after the order instead —
+    /// the new concealment is spotted at once if an enemy polity detects it (proposal §3.6).</summary>
+    private bool WatchedByAKnownEnemy(int agent)
+    {
+        int own = _agents[agent].Polity;
+        Q32 f = ConcealmentFactor(agent);
+        for (int o = 0; o < _agents.Length; o++)
+            if (AreEnemies(own, _agents[o].Polity) && Detects(own, o) && Sees(o, agent, f)) return true;
+        return false;
+    }
+
+    private void Change(int log, long now, int agent, ConcealKind kind, bool begin, ConcealEnd cause)
+        => _changes.Add(new ConcealmentChange(_changes.Count, log, now, agent, kind, begin, cause));
+
+    /// <summary>End the agent's hide and camouflage (and, when <paramref name="works"/>, its entrenchment: the works are lost).</summary>
+    private void EndStates(int log, long now, int agent, ConcealEnd cause, bool works)
+    {
+        if (_hiddenSince[agent] >= 0) { _hiddenSince[agent] = -1; Change(log, now, agent, ConcealKind.Hidden, false, cause); }
+        if (_camoSince[agent] >= 0) { _camoSince[agent] = -1; Change(log, now, agent, ConcealKind.Camouflaged, false, cause); }
+        if (works && _entrenchSince[agent] >= 0) { _entrenchSince[agent] = -1; Change(log, now, agent, ConcealKind.Entrenched, false, cause); }
+    }
+
+    /// <summary>After an agent of <paramref name="moverPolity"/> moved: every concealed agent of another polity that this polity now
+    /// detects is SPOTTED (its hide and camouflage end), in ascending agent id. [AP round 2, AP-R2-04] Only a polity at war with the
+    /// concealed agent's polity spots it (<see cref="AreEnemies"/>; a polity is never its own enemy).</summary>
+    private void Spot(int log, long now, int moverPolity)
+    {
+        for (int j = 0; j < _agents.Length; j++)
+        {
+            if (!AreEnemies(moverPolity, _agents[j].Polity) || (!IsHidden(j) && !IsCamouflaged(j))) continue;
+            if (Detects(moverPolity, j)) EndStates(log, now, j, ConcealEnd.Spotted, works: false);
+        }
+    }
+
+    /// <summary>The persisted state of every agent (codec rows), ascending id.</summary>
+    public ConcealmentStateRow[] StateRows()
+    {
+        var r = new ConcealmentStateRow[_agents.Length];
+        for (int i = 0; i < r.Length; i++) r[i] = new ConcealmentStateRow(i, StatesOf(i), _hiddenSince[i], _camoSince[i], _entrenchSince[i]);
+        return r;
+    }
 
     /// <summary>Slots the polity has used in the campaign window (warId -1) or in its current window of war warId.</summary>
     public int SlotsUsed(int polity, int warId)
@@ -290,6 +492,9 @@ public sealed class ActionWindowBook
                 break;
             case ActionKind.Attack:
                 if (arg >= _agents.Length) return WarRefusal.OutOfReach;
+                // [AP] (round 2, AP-R2-01: before the hit-and-run check, whose record is lifted by the target's own approach, so an
+                // order on an unseen agent says nothing of its distance or its movements)
+                if (_agents[arg].Polity != issuer && !Detects(issuer, (int)arg)) return WarRefusal.TargetUndetected;
                 if (HitAndRunBanned(agent, (int)arg)) return WarRefusal.HitAndRun;
                 if (!InContact(agent, (int)arg, prof.AttackRange)) return WarRefusal.OutOfReach;
                 cost = prof.AttackCost;
@@ -300,7 +505,7 @@ public sealed class ActionWindowBook
                 bool contact = false;
                 for (int e = 0; e < _agents.Length; e++)
                 {
-                    if (!InContact(agent, e, prof.AttackRange)) continue;
+                    if (!InContact(agent, e, prof.AttackRange) || !Detects(issuer, e)) continue;   // [AP round 2] a contact it can see
                     contact = true;
                     if (Abs(arg - _x[e]) <= Abs(x - _x[e])) return WarRefusal.OutOfReach;   // must move away from every contact
                 }
@@ -311,6 +516,28 @@ public sealed class ActionWindowBook
             case ActionKind.Recruit:
                 if (arg <= 0 || arg > _ledger.Balance(_treasury[issuer])) return WarRefusal.BadValue;
                 cost = prof.RecruitCost;
+                break;
+            // ---- [AP] concealment and preparation (docs/m7-plan/concealment-actions-proposal.md §3)
+            case ActionKind.Hide:
+                if (arg != 0) return WarRefusal.BadValue;
+                if (IsHidden(agent)) return WarRefusal.AlreadyInState;
+                if (_conceal.Multiplier(TerrainAt(x)) == Q32.One) return WarRefusal.NoCover;
+                if (KnownEnemyInContact(agent, prof.AttackRange)) return WarRefusal.EnemyInContact;   // [AP round 2] seen enemies only
+                if (WatchedByAKnownEnemy(agent)) return WarRefusal.Observed;                         // [AP round 2] seen watchers only
+                cost = prof.HideCost;
+                break;
+            case ActionKind.Camouflage:
+                if (arg != 0) return WarRefusal.BadValue;
+                if (IsCamouflaged(agent)) return WarRefusal.AlreadyInState;
+                if (KnownEnemyInContact(agent, prof.AttackRange)) return WarRefusal.EnemyInContact;   // [AP round 2]
+                if (WatchedByAKnownEnemy(agent)) return WarRefusal.Observed;                         // [AP round 2]
+                cost = prof.CamouflageCost;
+                break;
+            case ActionKind.Entrench:
+                if (arg != 0) return WarRefusal.BadValue;
+                if (IsEntrenched(agent)) return WarRefusal.AlreadyInState;
+                if (!FieldWorks.Diggable(TerrainAt(x))) return WarRefusal.CannotDig;
+                cost = prof.EntrenchCost;
                 break;
             default: throw new InvalidOperationException("unreachable");
         }
@@ -328,23 +555,48 @@ public sealed class ActionWindowBook
                         _disengaged[i] = d with { Lifted = true };   // the enemy closed on the retreated agent
                 }
                 _x[agent] = arg;
+                EndStates(log, now, agent, ConcealEnd.Moved, works: true);   // [AP] it left its cover, camouflage and works
+                Spot(log, now, issuer);                                        // [AP] its new position may spot hidden enemies
                 break;
             case ActionKind.Attack:
+            {
                 for (int i = 0; i < _disengaged.Count; i++)
                 {
                     var d = _disengaged[i];
                     if (d.AgentId == arg && d.EnemyId == agent && !d.Lifted) _disengaged[i] = d with { Lifted = true };
                 }
                 roll = (long)CounterRng.NextBelow(_seed, EngagementStream, agent, arg, now, 0, 1000);
+                // [AP] An AMBUSH: the attacker held a hide or camouflage and the target's polity did not detect it at this instant.
+                int target = (int)arg;
+                var states = StatesOf(agent);
+                bool ambush = (states & (ConcealKind.Hidden | ConcealKind.Camouflaged)) != 0 && !Detects(_agents[target].Polity, agent);
+                _engagements.Add(new EngagementRecord(log, now, agent, target, issuer, _agents[target].Polity, ambush, states, WorksOf(target, now), _x[target]));
+                EndStates(log, now, agent, ConcealEnd.Attacked, works: false);   // an attack reveals the attacker; its works stay
                 break;
+            }
             case ActionKind.Retreat:
-                for (int e = 0; e < _agents.Length; e++)
-                    if (InContact(agent, e, prof.AttackRange)) _disengaged.Add(new Disengagement(agent, e, _serial[agent], now, false));
+                for (int e = 0; e < _agents.Length; e++)                     // [AP round 2] from the contacts it can see only
+                    if (InContact(agent, e, prof.AttackRange) && Detects(issuer, e)) _disengaged.Add(new Disengagement(agent, e, _serial[agent], now, false));
                 _x[agent] = arg;
+                EndStates(log, now, agent, ConcealEnd.Moved, works: true);   // [AP]
+                Spot(log, now, issuer);                                        // [AP]
                 break;
             case ActionKind.Recruit:
                 _ledger.Transfer(_treasury[issuer], _recruitSink, arg);
                 _levies[agent] = checked(_levies[agent] + arg);
+                break;
+            case ActionKind.Hide:                                              // [AP] from this instant (log order at T)
+                _hiddenSince[agent] = now; Change(log, now, agent, ConcealKind.Hidden, true, ConcealEnd.None);
+                // [AP round 2, AP-R2-01] an enemy polity that detects the concealed agent at this instant (an unseen watcher: a seen one
+                // refused the order above) spots it at once, with this order's log index; the cost is spent (proposal §3.6)
+                if (DetectedByAnEnemy(agent)) EndStates(log, now, agent, ConcealEnd.Spotted, works: false);
+                break;
+            case ActionKind.Camouflage:
+                _camoSince[agent] = now; Change(log, now, agent, ConcealKind.Camouflaged, true, ConcealEnd.None);
+                if (DetectedByAnEnemy(agent)) EndStates(log, now, agent, ConcealEnd.Spotted, works: false);   // [AP round 2]
+                break;
+            case ActionKind.Entrench:
+                _entrenchSince[agent] = now; Change(log, now, agent, ConcealKind.Entrenched, true, ConcealEnd.None);
                 break;
         }
         _remaining[agent] -= cost;
@@ -376,6 +628,16 @@ public sealed class ActionWindowBook
         foreach (var a in _actions) { L(a.LogIndex); L(a.Polity); L(a.AgentId); L((long)a.Kind); L(a.AtMs); L(a.WarId); L(a.WindowIndex); L(a.Arg); L(a.Cost); L(a.Roll); }
         L(_refreshes.Count);
         foreach (var r in _refreshes) { L(r.AtMs); L(r.AgentId); L((long)r.Cause); L(r.WarId); L(r.WindowIndex); L(r.Capacity); }
+        if (!_concealOn) return;                 // [AP] appended only when some profile enables the lane-AP actions (T3 hashes unchanged)
+        for (int i = 0; i < _agents.Length; i++) { L(_hiddenSince[i]); L(_camoSince[i]); L(_entrenchSince[i]); }
+        L(_changes.Count);
+        foreach (var c in _changes) { L(c.Seq); L(c.LogIndex); L(c.AtMs); L(c.AgentId); L((long)c.Kind); L(c.Begin ? 1 : 0); L((long)c.Cause); }
+        L(_engagements.Count);
+        foreach (var e in _engagements)
+        {
+            L(e.LogIndex); L(e.AtMs); L(e.Attacker); L(e.Target); L(e.AttackerPolity); L(e.TargetPolity); L(e.Ambush ? 1 : 0);
+            L((long)e.AttackerStates); L(e.TargetWorksPpm); L(e.TargetCell);
+        }
     }
 
     public string HashHex()

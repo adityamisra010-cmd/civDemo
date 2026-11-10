@@ -95,6 +95,12 @@ public sealed record TacticalRules
     /// Director can rule on the alternative with a measured implementation (tests pin both).</summary>
     public bool MutualStandoffGuard { get; init; }
 
+    /// <summary>[AP] D-082 DA6-R's PROPOSAL (not decided; docs/m7-plan/concealment-actions-proposal.md §6.4): when ON, lane TR's
+    /// UNRATIFIED Standoff end (P-TR1: whole-field idle, nobody routed) counts as a result that separates neither side, so the
+    /// designated defender (or, in an ambush, the ambusher) is reported the winner (<see cref="EqualSides"/>), in both resolvers.
+    /// Default OFF: a Standoff reports no winner, as before. It changes the reported winner only, never the battle.</summary>
+    public bool EqualSidesAtStandoff { get; init; }
+
     public void Validate()
     {
         if (PulseMs <= 0 || StepMs <= 0 || PulseMs % StepMs != 0) throw new ArgumentException("StepMs must divide PulseMs");
@@ -177,4 +183,16 @@ public sealed record BattleSetup(
     public DeploymentRule Deployment { get; init; } = DeploymentRule.Unrestricted;
     /// <summary>Lane N: rules and air bases of the naval / air / combined-arms modules (null = defaults).</summary>
     public MultiDomainSetup? MultiDomain { get; init; }
+
+    /// <summary>[AP] The battle's DEFENDER for D-082 DA6 (READING AP-1 (a), applied: the side the engagement that opened the
+    /// battle names as attacked — the target side of the opening war-pulse Attack, the garrison of a siege assault, the side
+    /// whose position the other advances on in a hand-built scenario; docs/m7-plan/concealment-actions-proposal.md §5). -1: none
+    /// designated (a meeting engagement), so equal sides report no winner. Read only by <see cref="EqualSides"/> at the battle
+    /// end: it never changes the battle itself.</summary>
+    public int Defender { get; init; } = -1;
+    /// <summary>[AP] D-082 DA7: the side that opened this battle as an AMBUSH launched from concealment (the AMBUSH definition of
+    /// the proposal §5.2: its engaging agent was hidden or camouflaged and undetected by the defender's polity at the instant the
+    /// engagement was made; set by the battle's creator — the war-pulse hand-off <c>EngagementBattle</c>, the sandbox, a
+    /// scenario author). -1: not an ambush. On equal sides the ambusher wins (DA7-R (a)). Never changes the battle itself.</summary>
+    public int Ambusher { get; init; } = -1;
 }

@@ -40,7 +40,17 @@ public sealed record BattleResult(
     /// <see cref="ResultHash"/> (it has its own hash); null only for results not produced by the tactical engine.</summary>
     public PersonnelReport? Personnel { get; init; }
 
-    /// <summary>Canonical hash of the result (no trace/state hash inside; used for equality across resolvers' runs).</summary>
+    /// <summary>[AP] The reported winner (0 or 1; -1 none) and how it was decided (<see cref="EqualSides.Decide"/>): both resolvers
+    /// set it at the battle end from the end reason and the setup's Defender / Ambusher (D-082 DA6, DA7). Results built elsewhere
+    /// (stand-ins, tests) leave the defaults, and <see cref="Proto.M7.Morale.BattleWinner.Reported"/> then reads the end reason as
+    /// before.</summary>
+    public int Winner { get; init; } = -1;
+    /// <summary>[AP] See <see cref="Winner"/>.</summary>
+    public WinBasis WinBasis { get; init; }
+
+    /// <summary>Canonical hash of the result (no trace/state hash inside; used for equality across resolvers' runs).
+    /// [AP] The winner and its basis are appended ONLY when DA6 or DA7 decided it (equal sides), so every result whose end already
+    /// named a winner (or none) hashes exactly as before.</summary>
     public string ResultHash()
     {
         using var h = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
@@ -53,6 +63,7 @@ public sealed record BattleResult(
             L(f.FormationId); L(f.Side); L((long)f.Domain); L(f.FamilyKey); L(f.Start); L(f.Survivors); L(f.Killed); L(f.Surrendered);
             L(f.ActiveAtEnd); L(f.Escaped); L(f.RoutedEscaped); L(f.DisengagedEscaped); L(f.MoraleEnd); L(f.DamageDealt); L(f.DamageTaken); L(f.AttacksMade);
         }
+        if (WinBasis is WinBasis.DefenderOnEqualSides or WinBasis.AmbusherOnEqualSides) { L(Winner); L((long)WinBasis); }   // [AP]
         return Convert.ToHexString(h.GetHashAndReset());
     }
 }

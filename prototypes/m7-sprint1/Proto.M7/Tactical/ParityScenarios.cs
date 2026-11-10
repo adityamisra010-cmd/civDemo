@@ -145,7 +145,10 @@ public static class ParityScenarios
             }
             default: throw new ArgumentOutOfRangeException(nameof(id));
         }
+        // [AP] D-082 DA6 defender (docs/m7-plan/concealment-actions-proposal.md §5.4): role B in #4 (it holds its forest block until
+        // it knows an enemy) and #8 (it waits in ambush where role A advances); none in the meeting engagements. Reported winner only.
+        int defender = id is ParityScenarioId.ArchersVsInfantryForest or ParityScenarioId.Ambush ? 1 : -1;
         return new BattleSetup(grid, TerrainCostTable.PlaceholderTestTable(), ConcealmentTable.PlaceholderTestTable(), sides, forms, seed)
-        { Rules = rules ?? new TacticalRules() };
+        { Rules = rules ?? new TacticalRules(), Defender = defender };
     }
 }

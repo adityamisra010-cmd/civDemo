@@ -72,14 +72,31 @@ public readonly record struct PCase(PScenario Scenario, ulong Seed);
 /// </summary>
 public readonly record struct POutcome(int Winner, long CasA, long CasB, long Pulses, long DurationMs, BattleEndReason Reason)
 {
-    public static POutcome Of(BattleResult r, long startMs)
+    public static POutcome Of(BattleResult r, long startMs) => Of(r, startMs, POutcomeWinner.HoldsField);
+
+    /// <summary>[AP] The outcome with the winner read on the given basis (<see cref="POutcomeWinner"/>); every other field is the same
+    /// on every basis. <see cref="Of(BattleResult, long)"/> (the pre-committed battery, rule P1 as committed) is the HoldsField basis.</summary>
+    public static POutcome Of(BattleResult r, long startMs, POutcomeWinner basis)
     {
         long[] start = new long[2], loss = new long[2];
         foreach (var f in r.Formations) { start[f.Side] += f.Start; loss[f.Side] += f.PersonnelLoss; }
-        return new POutcome(r.HoldsField, FixedMath.MulDivFloor(loss[0], 1000, start[0]), FixedMath.MulDivFloor(loss[1], 1000, start[1]),
+        int winner = basis switch
+        {
+            POutcomeWinner.HoldsField => r.HoldsField,
+            POutcomeWinner.ReportedDecisive => (r.Reason is BattleEndReason.SideEliminated or BattleEndReason.SideDisengaged) && (r.Side is 0 or 1) ? 1 - r.Side : -1,
+            POutcomeWinner.Reported => Proto.M7.Morale.BattleWinner.Reported(r),
+            _ => throw new ArgumentOutOfRangeException(nameof(basis)),
+        };
+        return new POutcome(winner, FixedMath.MulDivFloor(loss[0], 1000, start[0]), FixedMath.MulDivFloor(loss[1], 1000, start[1]),
                             r.Pulses, r.EndMs - startMs, r.Reason);
     }
 }
+
+/// <summary>[AP] Which "winner" a parity outcome carries (lane AP's measurement of D-082 DA6 / DA7 on lane P's battery; rule P1 itself
+/// is unchanged). HoldsField: the side left with Active entities (lane P's pre-committed definition). ReportedDecisive: the side the
+/// result names when it separates the sides (lane MOR's BattleWinner before DA6 / DA7). Reported: the side the result names,
+/// DA6 / DA7 included on equal sides (BattleWinner.Reported on this tree).</summary>
+public enum POutcomeWinner : byte { HoldsField = 0, ReportedDecisive = 1, Reported = 2 }
 
 /// <summary>
 /// [P] Lane P's repeatable parity battery (DIR5 §3.1; D-079 Q4 PROPOSAL). Families x scenarios x seeds, land only.
@@ -218,8 +235,30 @@ public static class ParityBatteryP
     private const long DefenderX = 640_400;
     private const long MidY = 16 * TacticalScenarios.CellMm + TacticalScenarios.CellMm / 2;   // row 16 centre, 330,000 mm
 
-    /// <summary>Builds the battle setup of (scenario, seed); orientation = <see cref="Mirrored"/>(seed).</summary>
-    public static BattleSetup Build(PScenario id, ulong seed)
+    /// <summary>
+    /// [AP] The D-082 DA6 DEFENDER each scenario names (docs/m7-plan/concealment-actions-proposal.md §5.4; READING AP-1 — both
+    /// alternatives give the same side in every scenario here): role B (side 1) wherever role A advances on role B's position and
+    /// role B holds it — every Defend scenario (the terrain family), the forest block of archers-vs-infantry-forest (B "holds until
+    /// it knows an enemy"), and the two ambush scenarios (B waits in its own third; A enters its reach) — and none (-1) in the
+    /// meeting engagements, where both sides advance on each other. No scenario is a battle-level AMBUSH (the setup's Ambusher stays
+    /// -1): an Ambush POSTURE is a tactic inside a battle that B holds as the defender, not a battle opened by an attack from
+    /// concealment (proposal §5.2). The role changes only the reported winner of an equal result, never the battle (MEASURED: the
+    /// pre-committed battery's tactical and auto digests are unchanged, reports/H-AP.md).
+    /// </summary>
+    public static int DefenderOf(PScenario id) => id switch
+    {
+        PScenario.ArchersVsInfantryForest or PScenario.JungleAmbush or PScenario.ForestAmbushArchers
+            or PScenario.HillCrest or PScenario.FordCrossing or PScenario.MarshFront or PScenario.ForestHoldArchers or PScenario.Defile
+            or PScenario.ArchersOnHill or PScenario.HoldLineOpen or PScenario.HighRidge or PScenario.NarrowFordArchers
+            or PScenario.UrbanStreet => 1,
+        _ => -1,
+    };
+
+    /// <summary>Builds the battle setup of (scenario, seed); orientation = <see cref="Mirrored"/>(seed). [AP] The setup carries the
+    /// scenario's DA6 defender (<see cref="DefenderOf"/>).</summary>
+    public static BattleSetup Build(PScenario id, ulong seed) => BuildCore(id, seed) with { Defender = DefenderOf(id) };
+
+    private static BattleSetup BuildCore(PScenario id, ulong seed)
     {
         bool mir = Mirrored(seed);
         // Sprint 1 builders (deployment-legal ones; H-TR V8 pins that only #8 violates the thirds).

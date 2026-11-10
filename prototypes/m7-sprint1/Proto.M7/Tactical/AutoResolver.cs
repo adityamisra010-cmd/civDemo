@@ -292,6 +292,7 @@ public sealed class AutoBattle
         if (FixedMath.MulDivFloor(FixedMath.MulDivFloor(1000, _r.HitMin.Raw, Q32.OneRaw), 1000 - _c.FortunePermille - _c.NoisePermille, 1000) <= 0)
             throw new ArgumentException("rules.HitMin is too small for the AutoResolver: a minimal attack would deal 0 milli-HP (no termination)");
         if (setup.Sides.Length != 2) throw new ArgumentException("exactly two sides");
+        EqualSides.ValidateRoles(setup);                                                           // [AP] DA6 / DA7 roles
         var specs = (FormationSpec[])setup.Formations.Clone();
         Array.Sort(specs, static (a, b) => a.Id.CompareTo(b.Id));
         _f = new AF[specs.Length];
@@ -1200,6 +1201,10 @@ public sealed class AutoBattle
             S(_lastHitStep.Length); foreach (long v in _lastHitStep) S(v);
             S(_localWins.Count); foreach (var x in _localWins) { S(x.AtMs); S(x.FormationId); S(x.BrokenFormationId); S(x.Rise); }
         }
-        return new BattleResult(ResolverKind.Auto, reason, side, holds, pulse + 1, endMs, _steps, 0, trace, Convert.ToHexString(h.GetHashAndReset()), fr);
+        // [AP] D-082 DA6 / DA7 (DA6-R: "The rule is applied to the AutoResolver"): the reported winner, from the end reason and the
+        // setup's roles, through the function the TacticalResolver calls too (EqualSides). The battle itself is unchanged.
+        var (winner, basis) = EqualSides.Decide(reason, side, _s.Defender, _s.Ambusher, _r.EqualSidesAtStandoff);
+        return new BattleResult(ResolverKind.Auto, reason, side, holds, pulse + 1, endMs, _steps, 0, trace, Convert.ToHexString(h.GetHashAndReset()), fr)
+        { Winner = winner, WinBasis = basis };
     }
 }

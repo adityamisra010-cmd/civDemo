@@ -277,10 +277,11 @@ public sealed class TerrainLogistics
         var cost = TerrainCostTable.PlaceholderTestTable();
         var march = new long[TerrainCostTable.ClassCount];
         for (int i = 0; i < march.Length; i++) march[i] = cost.Cost((TerrainClass)i);
-        // One entry per TerrainClass code (TerrainCostTable.ClassCount; lane TR appended Marsh, Ford, Building).
-        //                     Road Open Forest Jungle Hills Mountain Water Wall Marsh Ford Building
-        var graze = new long[] { 600, 800, 400, 300, 600, 250, 0, 0, 500, 600, 0 };
-        var wear = new long[] { 800, 1000, 1300, 1800, 1400, 2000, 0, 0, 1600, 1300, 0 };
+        // One entry per TerrainClass code (TerrainCostTable.ClassCount; lane TR appended Marsh, Ford, Building; [AP] lane AP appended
+        // Earthwork and Ditch, battle-grid field works that never lie on a campaign route: Open's values, PROPOSAL).
+        //                     Road Open Forest Jungle Hills Mountain Water Wall Marsh Ford Building Earthwork Ditch
+        var graze = new long[] { 600, 800, 400, 300, 600, 250, 0, 0, 500, 600, 0, 800, 800 };
+        var wear = new long[] { 800, 1000, 1300, 1800, 1400, 2000, 0, 0, 1600, 1300, 0, 1000, 1000 };
         if (graze.Length != TerrainCostTable.ClassCount || wear.Length != TerrainCostTable.ClassCount)
             throw new InvalidOperationException("terrain logistics needs one entry per terrain class");
         return new TerrainLogistics(march, graze, wear);

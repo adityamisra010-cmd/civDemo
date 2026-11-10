@@ -243,6 +243,7 @@ public class AutoResolverPRound2Tests
         var conceal = ConcealmentTable.Create(new[]
         {
             Q32.One, Q32.One, Q32.FromRatio(1, 2), Q32.Zero, Q32.One, Q32.One, Q32.One, Q32.Zero, Q32.One, Q32.One, Q32.Zero,
+            Q32.FromRatio(1, 2), Q32.One,   // [AP] ClassCount 11 -> 13 (Earthwork, Ditch: the placeholder values); neither occurs on this grid
         });
         var s = new BattleSetup(g, TerrainCostTable.PlaceholderTestTable(), conceal, DefaultSides(null, null), new[]
         {

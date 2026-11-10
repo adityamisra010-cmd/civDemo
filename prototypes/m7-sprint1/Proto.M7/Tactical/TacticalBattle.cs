@@ -140,6 +140,7 @@ public sealed partial class TacticalBattle : IEventWorld
         _flat = true;
         for (int i = 1; i < _grid.CellCount; i++) if (_grid.HeightAtIndex(i) != _grid.HeightAtIndex(0)) { _flat = false; break; }
         if (setup.Sides.Length != 2) throw new ArgumentException("exactly two sides");
+        EqualSides.ValidateRoles(setup);                                                           // [AP] DA6 / DA7 roles
         _ctl = new[] { side0, side1 };
         _pf = new GridPathfinder(_grid, _costs, default, _fx);                                    // [TR] + Naismith climb
         _edge = new[] { new EdgeField(_grid, _costs, setup.Sides[0].Exit, _fx), new EdgeField(_grid, _costs, setup.Sides[1].Exit, _fx) };
@@ -1256,8 +1257,11 @@ public sealed partial class TacticalBattle : IEventWorld
         }
         if (any0 && !any1) holds = 0; else if (any1 && !any0) holds = 1;
         fr = DomainResults(fr);       // lane N hook (unchanged when there are no vessel / air formations)
+        // [AP] D-082 DA6 / DA7: the reported winner, from the end reason and the setup's roles (EqualSides, shared with the AutoResolver).
+        // READING AP-2 (a): applying it in this resolver goes beyond DA6-R's applied reading (the AutoResolver); Director question Q-AP4.
+        var (winner, basis) = EqualSides.Decide(reason, side, _setup.Defender, _setup.Ambusher, _r.EqualSidesAtStandoff);
         _result = new BattleResult(ResolverKind.Tactical, reason, side, holds, _pulse + 1, t, _s.ExecutedCount, _s.DroppedCount,
-                                   _s.Trace.HashHex(), StateHashHex(), fr) { Personnel = _ledger.Report() };
+                                   _s.Trace.HashHex(), StateHashHex(), fr) { Personnel = _ledger.Report(), Winner = winner, WinBasis = basis };
     }
 
     public string StateHashHex()

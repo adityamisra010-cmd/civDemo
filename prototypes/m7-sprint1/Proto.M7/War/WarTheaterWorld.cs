@@ -24,6 +24,10 @@ public static class WarKinds
     public const int ActAttack = ActionKinds.OrderBase + (int)ActionKind.Attack;
     public const int ActRetreat = ActionKinds.OrderBase + (int)ActionKind.Retreat;
     public const int ActRecruit = ActionKinds.OrderBase + (int)ActionKind.Recruit;
+    /// <summary>[AP] Lane AP concealment and preparation actions (D-082 DA8): A = Pack(issuer, agentId), B = 0.</summary>
+    public const int ActHide = ActionKinds.OrderBase + (int)ActionKind.Hide;
+    public const int ActCamouflage = ActionKinds.OrderBase + (int)ActionKind.Camouflage;
+    public const int ActEntrench = ActionKinds.OrderBase + (int)ActionKind.Entrench;
 
     /// <summary>Order operand packing (prototype-local; the kernel OrderRecord is untouched): A = issuer * 65536 + warId.</summary>
     public const long PolityStride = 65_536;
@@ -47,6 +51,22 @@ public static class WarRefusal
     public const int HitAndRun = 15;
     public const int NotOwnAgent = 16;
     public const int OutOfReach = 17;
+    // [AP] lane AP concealment and preparation (ActionRules; docs/m7-plan/concealment-actions-proposal.md §3): a refused action
+    // changes no state.
+    /// <summary>An Attack on an agent the issuer's polity does not detect (it cannot be targeted).</summary>
+    public const int TargetUndetected = 18;
+    /// <summary>A Hide in a cell whose terrain does not conceal (multiplier 1).</summary>
+    public const int NoCover = 19;
+    /// <summary>A Hide or Camouflage with an enemy agent in contact (within the agent's attack range). [AP round 2] Only an enemy agent
+    /// the issuer's polity detects counts: an unseen one never refuses the order.</summary>
+    public const int EnemyInContact = 20;
+    /// <summary>A Hide or Camouflage while an enemy polity detects the agent: one cannot vanish under observation. [AP round 2] Only a
+    /// watcher the issuer's polity detects refuses; an unseen watcher spots the new concealment at the order's instant instead.</summary>
+    public const int Observed = 21;
+    /// <summary>The agent already holds the state (hidden, camouflaged, entrenched): ordering it again would only spend capacity.</summary>
+    public const int AlreadyInState = 22;
+    /// <summary>An Entrench where the ground cannot be dug (FieldWorks.Diggable).</summary>
+    public const int CannotDig = 23;
 }
 
 /// <summary>
