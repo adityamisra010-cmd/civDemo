@@ -1006,3 +1006,11 @@ These reports live in the session scratchpad (`/tmp/claude-0/-home-user-civDemo/
 ## Dated note — 2026-11-05 (D-080; appended, the text above is unchanged)
 
 - The Director answered the four T2 War Pulse questions; recorded in `docs/d080-war-pulse-director-answers-2026-11-05.md` (WA1–WA4). Q1 (pulse durations) and Q2 (significant events) stay open as proposals.
+
+## Dated note — 2026-11-10 (D-082; appended, the text above is unchanged)
+
+- The Director answered lane D's questions and gave new direction; recorded in
+  `docs/d082-morale-caps-ties-director-answers-2026-11-10.md` (DA1–DA9). Winning a battle raises morale (DA1, alongside
+  DR29's decrease); DR25's numbers hold at every stage (DA3, narrowing §4 D20); DR24's caps apply in the sandbox (DA4) and
+  count battlefield units, not people (DA5); equal sides give the battle to the defender except in an ambush (DA6, DA7);
+  units can spend action points to hide, entrench or camouflage (DA8). READING A stays open.
