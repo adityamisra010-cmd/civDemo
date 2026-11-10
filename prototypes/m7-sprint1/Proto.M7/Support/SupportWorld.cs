@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using Proto.M7.Events;
+using Proto.M7.Morale;
 using Proto.M7.Time;
 using Proto.M7.War;
 using Proto.M7.War.Outcomes;
@@ -33,6 +34,9 @@ namespace Proto.M7.Support;
 /// units), less the restore of the saved, and never raises it ([D, verification round 2, D-R2-01]: the round-1 rule set it to the
 /// end morale, which the in-battle recovery can lift above the start); afterwards lane E's pulse-end recovery and penalties apply as
 /// before (hunger, arrears).
+/// [MOR, D-082 DA1] Superseded for the winning side: DR29's decrease above stands for every participant, and an army whose side the
+/// battle report names the winner also gains the DA1 rise (<see cref="CampaignMorale"/>; docs/m7-plan/morale-proposal.md §4), both in
+/// one clamp; each settlement is recorded as a <see cref="MoraleSettlementRow"/>. The in-battle recovery's gain is still not carried.
 /// CONSERVATION. Every person, animal and wagon moves by a ledger transfer between accounts of lane E's ledger (pools, army
 /// attachments, the wounded, the dead, the captured sink, the civilians); totals are constant (tests: exact equality).
 /// </summary>
@@ -60,11 +64,17 @@ public sealed class SupportWorld : IEventWorld, ISupportOverlay
     private readonly List<SupportAllocationRow> _allocs = new();
     private readonly List<SupportCareRow> _care = new();
     private readonly List<SupportBattleRow> _battleRows = new();
+    private readonly MoraleRates _m;                                      // [MOR]
+    private readonly List<MoraleSettlementRow> _moraleRows = new();       // [MOR]
 
-    public SupportWorld(WarTheaterWorld inner, CampaignCalendar turnCalendar, WarEconSetup setup, SupportPool[] pools, SupportRates rates)
+    /// <summary>[MOR] <paramref name="morale"/>: the DA1 coefficients (null = <see cref="MoraleRates.Proposal"/>).</summary>
+    public SupportWorld(WarTheaterWorld inner, CampaignCalendar turnCalendar, WarEconSetup setup, SupportPool[] pools, SupportRates rates,
+                        MoraleRates? morale = null)
     {
         _r = rates;
         rates.Validate();
+        _m = morale ?? MoraleRates.Proposal();                          // [MOR]
+        _m.Validate();
         if (setup.Support is not null) throw new ArgumentException("the setup already carries a support overlay");
         _econ = new WarEconomyWorld(inner, turnCalendar, setup with { Support = this });
         _l = _econ.Ledger;
@@ -104,6 +114,9 @@ public sealed class SupportWorld : IEventWorld, ISupportOverlay
     public IReadOnlyList<SupportAllocationRow> AllocationRows => _allocs;
     public IReadOnlyList<SupportCareRow> CareRows => _care;
     public IReadOnlyList<SupportBattleRow> BattleRows => _battleRows;
+    /// <summary>[MOR] Every campaign-morale settlement at a battle's end, in execution order.</summary>
+    public IReadOnlyList<MoraleSettlementRow> MoraleRows => _moraleRows;
+    public MoraleRates Morale => _m;
     public int CapturedAccount => _captured;
     public long MedicsOf(int army) => _l.Balance(_a[army].Medics);
     public long WagonsOf(int army) => _l.Balance(_a[army].Wagons);
@@ -128,6 +141,11 @@ public sealed class SupportWorld : IEventWorld, ISupportOverlay
         if (b.ArmyId < 0 || b.ArmyId >= _a.Length) throw new ArgumentOutOfRangeException(nameof(b));
         if (b.Collapse.EntityCounts.Length != BattleCollapse.CategoryCount) throw new ArgumentException("one count per collapse category");
         if (b.MoraleStart < 0 || b.MoraleStart > b.Collapse.MoraleMax) throw new ArgumentOutOfRangeException(nameof(b), "start morale");
+        if (b.WinnerSide < -1 || b.WinnerSide > 1) throw new ArgumentOutOfRangeException(nameof(b), "winner side");                     // [MOR]
+        if (b.BeatenPersons < 0 || b.WinnerSidePersons < 0) throw new ArgumentOutOfRangeException(nameof(b), "side strengths");       // [MOR]
+        // [MOR, verification round 1, MOR-V1-11] a reported winner needs the strength of the side it beat: without it the DA1 rise would
+        // silently be 0 (CampaignMorale.VictoryRisePpm: "a win over nobody"), so the hand-off refuses it instead of settling a rise-less win.
+        if (b.WinnerSide >= 0 && b.BeatenPersons == 0) throw new ArgumentOutOfRangeException(nameof(b), "a reported winner needs the beaten side's persons");
         _battles.Add(b);
         s.Schedule(b.AtMs, EventClass.CampaignProcess, 0, b.ArmyId, SupportKinds.BattleEnded, _battles.Count - 1);
     }
@@ -300,10 +318,18 @@ public sealed class SupportWorld : IEventWorld, ISupportOverlay
         long restore = SupportMath.MoraleRestore(b.Collapse, split.Dead, saved, b.MoraleLossFullStrength, b.Leadership, _r);
         // [D, verification round 2, D-R2-01] the battle's net loss (start − end, less the restore), never a rise: the round-1 rule set
         // the campaign morale to the battle's end morale, which the TacticalResolver's in-battle recovery can lift above its start.
-        long after = SupportMath.MoraleAfterBattle(before, b.MoraleStart, b.Collapse.MoraleEnd, restore, b.Collapse.MoraleMax);
+        // [MOR, D-082 DA1] that decrease (DR29) stands for every participant; an army of the side the report names the winner also gains
+        // the DA1 rise; one clamp over both terms (CampaignMorale.After).
+        long decrease = CampaignMorale.CombatDecreasePpm(b.MoraleStart, b.Collapse.MoraleEnd, restore, b.Collapse.MoraleMax);
+        bool won = b.WinnerSide >= 0 && b.WinnerSide == b.Collapse.Side;
+        long winnerSide = won && b.WinnerSidePersons == 0 ? persons : b.WinnerSidePersons;   // 0 = this army alone (the one-army stand-in)
+        long rise = CampaignMorale.VictoryRisePpm(won, b.BeatenPersons, winnerSide, _m);
+        long after = CampaignMorale.After(before, decrease, rise);
         _econ.SetMoraleAfterBattle(b.ArmyId, after);
         _battleRows.Add(new SupportBattleRow(_battleRows.Count, b.ArmyId, now, persons, split.Dead, saved, final.Dead, final.Wounded,
             final.Captured, final.Deserted, a.Coverage, before, after));
+        _moraleRows.Add(new MoraleSettlementRow(_moraleRows.Count, b.ArmyId, now, (byte)b.Collapse.Side, b.WinnerSide, b.MoraleStart,
+            b.Collapse.MoraleEnd, restore, decrease, b.BeatenPersons, winnerSide, rise, before, after));
     }
 
     // ------------------------------------------------------------------ hashes
@@ -329,5 +355,6 @@ public sealed class SupportWorld : IEventWorld, ISupportOverlay
     public List<byte[]> EncodedTables() => new()
     {
         SupportCodec.EncodeOrders(_orders), SupportCodec.EncodeAllocations(_allocs), SupportCodec.EncodeCare(_care), SupportCodec.EncodeBattles(_battleRows),
+        MoraleCodec.Encode(_moraleRows),                                  // [MOR]
     };
 }

@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Security.Cryptography;
 using Proto.M7.Events;
+using Proto.M7.Morale;
 using Proto.M7.Spatial;
 using Proto.M7.Support;
 using Proto.M7.Tactical;
@@ -694,11 +695,17 @@ public class SupportCapabilityTests
     /// hold and fight without loss ABOVE their start morale (800 → 880 here). The battle starts at the army's own campaign morale
     /// (800,000 micro units = 800 on the tactical scale), so the round-1 rule ("set the campaign morale to the battle's end
     /// morale") RAISED it to 880,000 through combat (verifier probe P_M: 24 of 24 runs). A battle now changes the campaign morale
-    /// by its net loss only and never raises it: unchanged here, with and without medical staff.</summary>
+    /// by its net loss only and never raises it: unchanged here, with and without medical staff.
+    /// [MOR, D-082 DA1] Superseded in part. This test was named Morale_ABattleNeverRaisesCampaignMorale_…, and "a battle never raises
+    /// the campaign morale" is superseded for the winning side ("Winning a battle should raise morale too"). These archers WON: the
+    /// infantry broke and the report names side 0. What stands is lane D's point: the in-battle recovery's gain (880 − 800) is never
+    /// carried. Pinned both ways: a stand-in that reports no winner gives lane D's numbers unchanged (800,000), and one that passes the
+    /// report's winner gives 800,000 plus the DA1 rise floor(400,000 × B ÷ (B + W)) exactly, never 880,000 plus anything. The strengths
+    /// are the battle's entity counts (the enemy is a tactical formation with no campaign persons here): B = enemies, W = 60.</summary>
     [Theory]
     [InlineData(1UL, 10)]
     [InlineData(7UL, 20)]
-    public void Morale_ABattleNeverRaisesCampaignMorale_ArchersHoldingWithoutLossEndAboveTheirStart(ulong seed, int enemies)
+    public void Morale_TheInBattleGainIsNeverCarried_OnlyDA1RaisesTheWinners_ArchersHoldingWithoutLossEndAboveTheirStart(ulong seed, int enemies)
     {
         var setup = TacticalScenarios.MeetingAsymmetric(UnitProfiles.Archers, 60, UnitProfiles.HeavyInfantry, enemies, seed);
         setup = setup with { Formations = new[] { setup.Formations[0] with { Morale = 800 }, setup.Formations[1] } };
@@ -708,18 +715,22 @@ public class SupportCapabilityTests
         Assert.Equal(0, res.Formations.Single(x => x.Side == 0).Killed);                   // none of the archers fell ...
         Assert.True(res.Formations.Single(x => x.Side == 1).Killed > 0);                 // ... and they did fight: enemies fell
         Assert.True(mine.MoraleEnd > 800, "the in-battle recovery lifts the holding archers above their start");
+        Assert.Equal(0, BattleWinner.Reported(res));                                     // [MOR] the infantry broke: side 0 won
         long start = SupportRig.WarStart();
         var wars = new[] { WarOf(0, start, start + 4 * Week, 0, 1) };
         foreach (long medics in new long[] { 0, 100 })
-        {
-            var rig = SupportRig.Build(SupportRig.FootArmy(march: false, trainGrain: 50_000_000), wars, 2, start, new[] { new SupportPool(0, medics, 0, 0, 0) },
-                                       probes: new[] { start - 1 });
-            rig.W.ScheduleBattle(rig.S, new SupportBattle(0, start + 3 * Day, mine, res.HoldsField == 0, 800, setup.Rules.MoraleLossFullStrength, 0));
-            SupportRig.Drive(rig, start + 3 * Day + 1, t => t == start - 1 ? new[] { SupportRig.Allocate(0, 0, SupportKind.FieldMedical, medics) } : Array.Empty<(int, long, long)>());
-            var b = rig.W.BattleRows.Single();
-            Assert.Equal((800_000L, 800_000L), (b.MoraleBefore, b.MoraleAfter));          // not 880,000: combat never raises it
-            Assert.Equal(800_000, rig.W.Economy.MoraleOf(0));
-        }
+            foreach (bool reported in new[] { false, true })
+            {
+                var rig = SupportRig.Build(SupportRig.FootArmy(march: false, trainGrain: 50_000_000), wars, 2, start, new[] { new SupportPool(0, medics, 0, 0, 0) },
+                                           probes: new[] { start - 1 });
+                rig.W.ScheduleBattle(rig.S, new SupportBattle(0, start + 3 * Day, mine, res.HoldsField == 0, 800, setup.Rules.MoraleLossFullStrength, 0)
+                    { WinnerSide = reported ? BattleWinner.Reported(res) : -1, BeatenPersons = enemies, WinnerSidePersons = 60 });
+                SupportRig.Drive(rig, start + 3 * Day + 1, t => t == start - 1 ? new[] { SupportRig.Allocate(0, 0, SupportKind.FieldMedical, medics) } : Array.Empty<(int, long, long)>());
+                var b = rig.W.BattleRows.Single();
+                long rise = reported ? 400_000L * enemies / (enemies + 60) : 0;          // 57,142 (10 enemies) or 100,000 (20)
+                Assert.Equal((800_000L, 800_000L + rise), (b.MoraleBefore, b.MoraleAfter));   // never 880,000 (+ rise): the gain is not carried
+                Assert.Equal(800_000 + rise, rig.W.Economy.MoraleOf(0));
+            }
     }
 
     /// <summary>[verification round 2, D-R2-01] The after-battle rule on stand-in battles, exactly: the campaign morale falls by the

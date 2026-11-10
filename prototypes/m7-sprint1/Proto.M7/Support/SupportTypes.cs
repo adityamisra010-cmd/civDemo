@@ -111,9 +111,27 @@ public sealed record SupportPool(int Polity, long Medics, long Wagons, long Draf
 /// (entity counts by end category, end morale on the tactical scale), whether its side held the field, the tactical start
 /// morale (the army's campaign morale on the tactical scale at the battle start) and the TacticalResolver's morale terms.
 /// [D, verification round 2, D-R2-01] The campaign morale falls by MoraleStart − Collapse.MoraleEnd (less the medical restore) and
-/// never rises, so MoraleStart must be the battle's real start morale; that it is so is the stand-in's assumption.</summary>
+/// never rises, so MoraleStart must be the battle's real start morale; that it is so is the stand-in's assumption.
+/// [MOR, D-082 DA1] Superseded in part: "never rises" holds only for an army whose side did not win. The battle now also carries the
+/// winner the battle report names (<see cref="WinnerSide"/>, −1 none) and the two sides' strengths in persons at the battle start;
+/// an army of the winning side (Collapse.Side == WinnerSide) gains the DA1 rise on top of DR29's decrease
+/// (<see cref="Proto.M7.Morale.CampaignMorale"/>). HeldField stays lane W's desertion input only: the morale layer reads the winner
+/// the report names (D-082 DA1-R (a)), never the field. [MOR, verification round 1, MOR-V1-09: the earlier sentence "under D-082 DA6
+/// the defender of an equal battle wins without holding the field alone" is withdrawn: D-082 does not say it. Its only statement on
+/// the field is DA6-R's PROPOSAL for the TacticalResolver's Standoff end, "the defender holds the field and wins, unless the attacker
+/// ambushed from concealment". The rule does not depend on whether a DA6 or DA7 winner holds the field.]</summary>
 public sealed record SupportBattle(int ArmyId, long AtMs, CollapseInput Collapse, bool HeldField, long MoraleStart,
-                                   long MoraleLossFullStrength, long Leadership);
+                                   long MoraleLossFullStrength, long Leadership)
+{
+    /// <summary>[MOR] The side the battle report names the winner (0, 1), or −1 when it names none (a stand-in that reports no
+    /// winner, or a battle today's resolvers do not decide: <see cref="Proto.M7.Morale.BattleWinner.Reported"/>).</summary>
+    public int WinnerSide { get; init; } = -1;
+    /// <summary>[MOR] Persons of the side that lost, at the battle start (the force the winner beat).</summary>
+    public long BeatenPersons { get; init; }
+    /// <summary>[MOR] Persons of the winning side at the battle start, every army of it that took part; 0 = this army's own men at
+    /// the battle (the one-army stand-in).</summary>
+    public long WinnerSidePersons { get; init; }
+}
 
 // ------------------------------------------------------------------ serialized rows (SupportCodec; populated-table tests)
 

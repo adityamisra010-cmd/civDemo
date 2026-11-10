@@ -17,6 +17,7 @@ if (args.Length > 0 && args[0] == "siege") { SiegeBench.Run(args); return; }    
 if (args.Length > 0 && args[0] == "siegetrace") { SiegeBench.Trace(args); return; } // Phase C lane S
 if (args.Length > 0 && args[0] == "siegeseeds") { SiegeBench.Seeds(args); return; } // Phase C lane S
 if (args.Length > 0 && args[0] == "outcomes") { OutcomeBench.Run(args); return; }    // Phase C lane W (war outcomes)
+if (args.Length > 0 && args[0] == "morale-parity") { MoraleBench.Run(args); return; }  // lane MOR: local-win rule on the tuning battery
 long n = args.Length > 0 ? long.Parse(args[0], System.Globalization.CultureInfo.InvariantCulture) : 2_000_000;
 int reps = args.Length > 1 ? int.Parse(args[1], System.Globalization.CultureInfo.InvariantCulture) : 5;
 Console.WriteLine($"Proto.M7.Bench scheduler: events={n} reps={reps} cpu={Environment.ProcessorCount} os={System.Runtime.InteropServices.RuntimeInformation.OSDescription}");

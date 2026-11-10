@@ -272,6 +272,10 @@ public sealed class AutoBattle
     private readonly List<AutoTerrainTerms> _terms = new();
     private readonly List<AutoDetectionDraw> _draws = new();
     private readonly List<InactivityVerdict> _verdicts = new();
+    // [MOR] "the fight it won" (TacticalRules.LocalWinMoraleRise), as in the tactical engine: the step formation i last dealt damage
+    // to formation j, at [i * n + j] (long.MinValue = never); null when the rule is off (coefficient 0: the exact identity).
+    private readonly long[]? _lastHitStep;
+    private readonly List<LocalWinRise> _localWins = new();
     private readonly IncrementalHash _trace = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
     private readonly byte[] _buf = new byte[8];
     private long _steps;
@@ -351,11 +355,19 @@ public sealed class AutoBattle
             _fortune[side] = Uniform(AutoStreams.Fortune, side, 0, 0, _c.FortunePermille);
         foreach (var f in _f)
             f.KillPhase = (long)CounterRng.NextBelow(_s.Seed, AutoStreams.KillPhase, f.Id, 0, 0, 0, checked((ulong)(1_000_000 * f.P.MaxHp)));
+        if (_r.LocalWinMoraleRise > 0)                                          // [MOR]
+        {
+            _lastHitStep = new long[checked(_f.Length * _f.Length)];
+            Array.Fill(_lastHitStep, long.MinValue);
+        }
     }
 
     /// <summary>Per-step decision log (off by default: the battery runs thousands of auto battles).</summary>
     public bool RecordLog { get; init; }
     public IReadOnlyList<AutoStepRecord> Log => _log;
+    /// <summary>[MOR] Every "fight it won" rise, in execution order (empty while TacticalRules.LocalWinMoraleRise is 0). AtMs is the
+    /// step's instant on the battle timeline (StartMs + step × StepMs), as in the tactical engine.</summary>
+    public IReadOnlyList<LocalWinRise> LocalWinRises => _localWins;
     /// <summary>[P] Model 2: the terrain terms of every attack (only when <see cref="RecordLog"/>).</summary>
     public IReadOnlyList<AutoTerrainTerms> TerrainTerms => _terms;
     /// <summary>[P fix r1] Model 2: every detection draw (only when <see cref="RecordLog"/>).</summary>
@@ -744,6 +756,7 @@ public sealed class AutoBattle
                         else dm = ExpectedMilli(engaged, f.EffMelee, g.EffDefence, factor);
                         pending[m] = checked(pending[m] + dm); f.DealtMilli += dm; f.Attacks += engaged;
                         target[i] = m; mode[i] |= 1;
+                        if (_lastHitStep is not null && dm > 0) _lastHitStep[i * _f.Length + m] = k;      // [MOR] f fought g
                     }
                     long free = alive - engaged;
                     if (f.P.IsRanged && free > 0 && !f.MovedStep && !surprised && CanFire(f, k) && FiringStance(f))
@@ -754,6 +767,7 @@ public sealed class AutoBattle
                         {
                             pending[m] = checked(pending[m] + dr); f.DealtMilli += dr; f.Attacks += shots;
                             target[i] = m; mode[i] |= 2; Fired(f, k);
+                            if (_lastHitStep is not null) _lastHitStep[i * _f.Length + m] = k;            // [MOR]
                         }
                     }
                     if (mode[i] != 0) { f.FoughtStep = true; if (_v2) f.LastFoughtStep = k; }
@@ -770,12 +784,14 @@ public sealed class AutoBattle
                         {
                             pending[t] = checked(pending[t] + dr); f.DealtMilli += dr; f.Attacks += shots;
                             target[i] = t; mode[i] = 2; f.FoughtStep = true; Fired(f, k); f.LastFoughtStep = k;
+                            if (_lastHitStep is not null) _lastHitStep[i * _f.Length + t] = k;            // [MOR]
                         }
                     }
                 }
             }
 
             // 5. damage, casualties, morale, rout (simultaneous)
+            bool[]? inFight = _lastHitStep is null ? null : InFight(k);    // [MOR] before this step's casualties and routs
             for (int j = 0; j < _f.Length; j++)
             {
                 if (pending[j] == 0) continue;
@@ -798,6 +814,7 @@ public sealed class AutoBattle
             for (int i = 0; i < _f.Length; i++) if (_f[i].FoughtStep) _f[i].ActivePulse = true;
             foreach (var g in _f)
                 if (g.Fighting && g.Morale < _r.RoutThreshold) Rout(g, k);
+            if (inFight is not null) LocalWins(k, inFight);               // [MOR] after every rout of the step
             for (int i = 0; i < _f.Length; i++)
             {
                 var f = _f[i];
@@ -850,6 +867,33 @@ public sealed class AutoBattle
                 }
             }
         }
+    }
+
+    /// <summary>[MOR] Formations in the fight at step k: on the field and not routed (the tactical engine's "not routed, with an
+    /// Active entity": a withdrawal still in transit is in the fight, as the tactical retreating entities are Active).</summary>
+    private bool[] InFight(long k)
+    {
+        var a = new bool[_f.Length];
+        for (int i = 0; i < _f.Length; i++) a[i] = _f[i].OnField(k);
+        return a;
+    }
+
+    /// <summary>[MOR] "The fight it won", the rule the tactical engine applies (TacticalBattle.LocalWins), through the same shared
+    /// implementation (<see cref="LocalWinMorale.Apply"/>), with time in steps: a formation in the fight before this step's casualties
+    /// that left it now (routed, or no one left alive) broke; each formation still in the fight that dealt it damage within the last
+    /// PulseMs (= steps per pulse × StepMs) gains the rise.</summary>
+    private void LocalWins(long k, bool[] inFightBefore)
+    {
+        int n = _f.Length;
+        var now = InFight(k);
+        bool broke = false;
+        for (int i = 0; i < n; i++) if (inFightBefore[i] && !now[i]) { broke = true; break; }
+        if (!broke) return;
+        var ids = new long[n]; var sides = new int[n]; var starts = new long[n]; var morale = new long[n];
+        for (int i = 0; i < n; i++) { ids[i] = _f[i].Id; sides[i] = _f[i].Side; starts[i] = _f[i].Start; morale[i] = _f[i].Morale; }
+        if (!LocalWinMorale.Apply(_r.LocalWinMoraleRise, _r.MoraleMax, _spp, k, checked(_s.StartMs + k * _r.StepMs), ids, sides, starts,
+                                  inFightBefore, now, _lastHitStep, morale, _localWins)) return;
+        for (int i = 0; i < n; i++) _f[i].Morale = morale[i];
     }
 
     private bool Eliminated(long k, long pulse, bool atPulseEnd, out BattleResult? result)
@@ -1150,6 +1194,11 @@ public sealed class AutoBattle
             S(f.Id); S(f.Killed); S(f.Surrendered); S(f.DamageMilli); S(f.Morale); S(f.Moved); S(f.Routed ? 1 : 0);
             S(f.Withdrawing ? 1 : 0); S(f.Disengaged ? 1 : 0); S(f.EscapeStep); S(f.Inactive);
             if (_v2) { S(f.Idle); S(f.BestEnemy); }   // [P fix r2] the approach-minimum potential is state (tactical hashes BestEnemy)
+        }
+        if (_lastHitStep is not null)             // [MOR] appended only when the "fight it won" rule is on (identity at 0)
+        {
+            S(_lastHitStep.Length); foreach (long v in _lastHitStep) S(v);
+            S(_localWins.Count); foreach (var x in _localWins) { S(x.AtMs); S(x.FormationId); S(x.BrokenFormationId); S(x.Rise); }
         }
         return new BattleResult(ResolverKind.Auto, reason, side, holds, pulse + 1, endMs, _steps, 0, trace, Convert.ToHexString(h.GetHashAndReset()), fr);
     }

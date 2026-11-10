@@ -14,6 +14,8 @@ namespace Proto.M7.Support;
 ///   care flows        lane E's <see cref="HeadcountLoss"/>: competing flows on one survival product, compounded per day
 ///   morale restore    restore = floor(MoraleLoss(dead entities) × saved / dead persons × restore‰)   (the TacticalResolver's formula)
 ///   morale after      before − floor(max(0, start − end − restore) × 1,000,000 / MoraleMax), floored at 0  (never a rise; round 2)
+///                     [MOR, D-082 DA1] superseded for the winning side: the support world now settles a battle through
+///                     Proto.M7.Morale.CampaignMorale (this decrease for every participant, plus the DA1 rise for the winner's army)
 ///   limits            staff ≤ floor(men × MedicsPerThousandMax / 1000); wagons ≤ floor(men × WagonsPerThousandMax / 1000)
 /// </summary>
 public static class SupportMath
@@ -99,6 +101,10 @@ public static class SupportMath
     /// morale (DR29: "Morale decreases when troops participate in combat"): the TacticalResolver's in-battle recovery (Hold, Rally:
     /// per casualty-free pulse, capped at MoraleMax, not at the start) can end a formation above its start, and that gain is not
     /// carried. Before round 2 the campaign morale was SET to (end + restore) × 1,000,000 ÷ MoraleMax, which raised it through combat.
+    /// [MOR, D-082 DA1] "A battle never raises campaign morale" is superseded for the winning side ("Winning a battle should raise
+    /// morale too"). This function is no longer called by the support world, which uses Proto.M7.Morale.CampaignMorale: the same
+    /// decrease (CombatDecreasePpm, for every participant) plus the DA1 rise for an army whose side won, in one clamp. Kept as lane D's
+    /// record of the round-2 rule; for a side that did not win the two give the same number.
     /// </summary>
     public static long MoraleAfterBattle(long beforeMicro, long start, long end, long restore, long moraleMax)
     {

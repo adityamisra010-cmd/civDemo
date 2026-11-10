@@ -120,6 +120,11 @@ public sealed partial class TacticalBattle : IEventWorld
     private readonly long _contactMm;
     private readonly int _stepsPerPulse;
 
+    // [MOR] "the fight it won" (TacticalRules.LocalWinMoraleRise): the instant land formation i last dealt damage to land formation j,
+    // at [i * n + j] (long.MinValue = never); null when the rule is off (coefficient 0: no tracking at all, the exact identity).
+    private readonly long[]? _lastHitMs;
+    private readonly List<LocalWinRise> _localWins = new();
+
     private long _pulse = -1;
     private long _pulseStartMs;
     private bool _started;
@@ -224,6 +229,11 @@ public sealed partial class TacticalBattle : IEventWorld
         for (int i = 0; i < _f.Length; i++) members[i] = new List<int>();
         for (int i = 0; i < _e.Length; i++) members[_e[i].F].Add(i);
         for (int i = 0; i < _f.Length; i++) _f[i].Members = members[i].ToArray();
+        if (_r.LocalWinMoraleRise > 0)                                          // [MOR]
+        {
+            _lastHitMs = new long[checked(_f.Length * _f.Length)];
+            Array.Fill(_lastHitMs, long.MinValue);
+        }
         _k = new Knowledge[2];
         for (int s = 0; s < 2; s++)
             _k[s] = new Knowledge
@@ -320,6 +330,8 @@ public sealed partial class TacticalBattle : IEventWorld
     /// <summary>[TR] Inspection: distance (mm) the entity moved in the most recent step (charge run-up).</summary>
     public long LastStepMm(long entityId) => _e[EntIndex(entityId)].LastStepMm;
     public long Morale(long formationId) => _f[FormIndex(formationId)].Morale;
+    /// <summary>[MOR] Every "fight it won" rise, in execution order (empty while TacticalRules.LocalWinMoraleRise is 0).</summary>
+    public IReadOnlyList<LocalWinRise> LocalWinRises => _localWins;
     public Vec2L Anchor(long formationId) => _f[FormIndex(formationId)].Anchor;
     public OrderKind Directive(long formationId) => _f[FormIndex(formationId)].Dir;
     public bool IsTracked(int side, long entityId) => _k[side].Tracked[EntIndex(entityId)];
@@ -902,6 +914,7 @@ public sealed partial class TacticalBattle : IEventWorld
         tg.Hp -= dmg;
         tg.Primary = true; src.Primary = true;
         _f[tg.F].DamageTaken += dmg; _f[src.F].DamageDealt += dmg;
+        if (_lastHitMs is not null && dmg > 0) _lastHitMs[src.F * _f.Length + tg.F] = ev.Key.TimeMs;   // [MOR] src fought tg
     }
 
     // ------------------------------------------------------------------ resolve
@@ -909,6 +922,7 @@ public sealed partial class TacticalBattle : IEventWorld
     private void Resolve(long t)
     {
         if (_hasDomain) DomainResolve(t);         // lane N hook: losses aboard, sinking, capture, aircraft down, vessel morale
+        bool[]? inFight = _lastHitMs is null ? null : InFight();          // [MOR] before this instant's deaths and routs
         foreach (var e in _e)
             if (e.OnField && e.Hp <= 0) { SetState(e, EntityState.Dead); _f[e.F].KilledStep++; }
         foreach (var f in _f)
@@ -926,6 +940,7 @@ public sealed partial class TacticalBattle : IEventWorld
                 foreach (int i in f.Members) if (_e[i].State == EntityState.Active) SetState(_e[i], EntityState.Routing);
             }
         }
+        if (inFight is not null) LocalWins(t, inFight);                  // [MOR] after every rout of the instant
         foreach (var e in _e)
         {
             if (e.State != EntityState.Active || _f[e.F].Dir != OrderKind.Rally) continue;
@@ -943,6 +958,42 @@ public sealed partial class TacticalBattle : IEventWorld
             if (e.WantedMove && !e.Moved && EnemyActiveInContact(e)) SetState(e, EntityState.Surrendered);
         }
         CheckElimination(t);
+    }
+
+    /// <summary>[MOR] Formations in the fight: not routed, with an Active entity.</summary>
+    private bool[] InFight()
+    {
+        var a = new bool[_f.Length];
+        for (int i = 0; i < _f.Length; i++) a[i] = !_f[i].Routed && CountState(_f[i], EntityState.Active) > 0;
+        return a;
+    }
+
+    /// <summary>[MOR] "The fight it won" (TacticalRules.LocalWinMoraleRise), through the rule both resolvers share
+    /// (<see cref="LocalWinMorale.Apply"/>): a formation in the fight before this instant's deaths that left it now (routed, or no
+    /// Active entity left) broke; each formation still in the fight that dealt it damage within the last PulseMs gains the rise.</summary>
+    private void LocalWins(long t, bool[] inFightBefore)
+    {
+        int n = _f.Length;
+        var now = InFight();
+        bool broke = false;
+        for (int i = 0; i < n; i++) if (inFightBefore[i] && !now[i]) { broke = true; break; }
+        if (!broke) return;
+        var ids = new long[n]; var sides = new int[n]; var starts = new long[n]; var morale = new long[n];
+        for (int i = 0; i < n; i++) { ids[i] = _f[i].Id; sides[i] = _f[i].Side; starts[i] = _f[i].Start; morale[i] = _f[i].Morale; }
+        if (!LocalWinMorale.Apply(_r.LocalWinMoraleRise, _r.MoraleMax, _r.PulseMs, t, t, ids, sides, starts, inFightBefore, now, _lastHitMs,
+                                  morale, _localWins)) return;
+        for (int i = 0; i < n; i++) _f[i].Morale = morale[i];
+    }
+
+    /// <summary>[MOR, verification round 2, MOR-V2-03] A crew-served (domain) weapon dealt damage to a land entity of formation
+    /// <paramref name="targetF"/> at <paramref name="t"/> (lane N's DomainHit, kind 0). When the weapon belongs to a LAND formation
+    /// (field guns of a gun crew), the rule's hit table records the blow exactly as the Damage handler records a melee or missile
+    /// blow, so "dealt damage to G" covers every weapon of a land formation. A vessel's or an aircraft's weapon is not recorded:
+    /// vessel and aircraft formations are outside the rule. Called only while the rule is on (the table exists).</summary>
+    private void LocalWinDomainLandHit(long sourceId, int targetF, long t)
+    {
+        int li = Array.BinarySearch(_ids, sourceId);
+        if (li >= 0) _lastHitMs![_e[li].F * _f.Length + targetF] = t;
     }
 
     private bool EnemyActiveInContact(Ent e)
@@ -1236,6 +1287,11 @@ public sealed partial class TacticalBattle : IEventWorld
             for (int i = 0; i < _e.Length; i++) L((_k[s].Tracked[i] ? 1 : 0) | (_k[s].Ever[i] ? 2 : 0) | (_k[s].Gone[i] ? 4 : 0));
         if (_hasDomain) AppendDomainState(h);     // lane N hook
         AppendRound1State(h);                     // [TR] verify-TR-r1 V1/V13 (appended only when present)
+        if (_lastHitMs is not null)               // [MOR] appended only when the "fight it won" rule is on (identity at 0)
+        {
+            L(_lastHitMs.Length); foreach (long v in _lastHitMs) L(v);
+            L(_localWins.Count); foreach (var x in _localWins) { L(x.AtMs); L(x.FormationId); L(x.BrokenFormationId); L(x.Rise); }
+        }
         return Convert.ToHexString(h.GetHashAndReset());
     }
 

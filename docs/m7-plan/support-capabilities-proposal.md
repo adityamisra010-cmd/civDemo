@@ -357,3 +357,15 @@ Only one point needs the Director, and it is a reading, applied until corrected:
 
 Everything else here (allocation per pulse, stacking, limits, costs and formulas) is delegated (D8) and is presented for
 review with M7.9 and M7.14.
+
+## Dated note — 2026-11-10 (lane MOR, D-082 DA1; appended, the text above is unchanged)
+
+- §3.3's rule "A battle never raises the campaign morale" is superseded for the winning side by D-082 DA1 ("Winning a battle
+  should raise morale too"; D-082 §3). Since lane MOR the support world settles a battle as DR29's decrease above (the net loss,
+  less the medical restore, for every participant) plus, for an army of the side the battle report names the winner, the DA1 rise
+  ⌊400,000 × B ÷ (B + W)⌋ (PROPOSAL), in one clamp; the in-battle recovery's gain is still never carried. READING M is narrowed as
+  D-082 says: (b), whether taking part alone costs morale, stays OPEN. Design: [morale-proposal.md](morale-proposal.md) §4;
+  prototype `Proto.M7/Morale/CampaignMorale.cs`; report `prototypes/m7-sprint1/reports/H-MOR.md`.
+- The test `Morale_ABattleNeverRaisesCampaignMorale_ArchersHoldingWithoutLossEndAboveTheirStart` (§3.3) is renamed
+  `Morale_TheInBattleGainIsNeverCarried_OnlyDA1RaisesTheWinners_ArchersHoldingWithoutLossEndAboveTheirStart`; its no-winner case
+  keeps the numbers above (800,000), and its reported-winner case adds the DA1 rise exactly.

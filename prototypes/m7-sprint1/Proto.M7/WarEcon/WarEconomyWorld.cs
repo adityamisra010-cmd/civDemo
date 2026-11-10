@@ -192,6 +192,9 @@ public sealed class WarEconomyWorld : IEventWorld
         _cal = turnCalendar;
         _setup = setup;
         _r = setup.Rates;
+        // [MOR] the morale baseline lies on the scale; the decay of an excess above it is a rate (docs/m7-plan/morale-proposal.md §4.4)
+        if (_r.MoraleBaselinePerMille < 0 || _r.MoraleBaselinePerMille > 1000 || _r.MoraleElationDecayPerYear < 0)
+            throw new ArgumentOutOfRangeException(nameof(setup), "morale baseline / elation decay");
         if (setup.Ordering != FoodOrdering.CivilianMilitaryGrowth && setup.Ordering != FoodOrdering.CivilianGrowthMilitary)
             throw new ArgumentOutOfRangeException(nameof(setup), "a food ordering must be named (no default)");
 
@@ -341,7 +344,10 @@ public sealed class WarEconomyWorld : IEventWorld
     public long MenLatchedOf(int army) => _a[army].MenLatched;
 
     /// <summary>[D] Sets the army's campaign morale (micro units, 0..1,000,000) to what a battle left it. Pulse-end recovery and
-    /// penalties then run on it as before. Refused for a disbanded army or an out-of-range value.</summary>
+    /// penalties then run on it as before. Refused for a disbanded army or an out-of-range value.
+    /// [MOR] Since D-082 DA1 the value is DR29's decrease plus, for the winning side's army, the DA1 rise (lane D's support world,
+    /// Proto.M7.Morale.CampaignMorale); the pulse-end update then moves it toward the baseline (recovery from below, decay of an excess
+    /// above, <see cref="LogisticsRates.MoraleBaselinePerMille"/>).</summary>
     public void SetMoraleAfterBattle(int army, long moraleMicro)
     {
         if (moraleMicro < 0 || moraleMicro > 1000 * 1000) throw new ArgumentOutOfRangeException(nameof(moraleMicro));
@@ -927,7 +933,15 @@ public sealed class WarEconomyWorld : IEventWorld
             long ageMonths = ArrearsMonths(a, a.PulseStart);
             bool ok = a.HungerPpm == 0 && a.Arrears == 0 && a.Cond == ArmyCondition.Loyal;
             // Morale and cohesion (micro units): per-year rates times the exact pulse length (Law 3).
-            long dm = (ok ? Scale(_r.MoraleRecoveryPerYear * 1000, w) : 0)
+            // [MOR] Toward a baseline B (morale proposal §4.4): at or below B the recovery runs up to B, never past it; above B (an
+            // excess a victory left) there is no recovery and the excess decays toward B at its own per-year rate; the hunger and
+            // arrears penalties apply as before. At the default B = the cap this is lane E's update exactly: min(rec, cap − M) = rec
+            // whenever the clamp below does not bind, and the morale never lies above the cap.
+            long baseline = _r.MoraleBaselinePerMille * 1000;
+            long rec = ok ? Scale(_r.MoraleRecoveryPerYear * 1000, w) : 0;
+            long dm = (a.Morale > baseline
+                          ? -Math.Min(a.Morale - baseline, Scale(_r.MoraleElationDecayPerYear * 1000, w))
+                          : Math.Min(rec, baseline - a.Morale))
                       - Scale128(_r.MoraleHungerPenaltyPerYear * 1000, a.HungerPpm, w)
                       - Scale(_r.MoraleArrearsPenaltyPerMonthPerYear * 1000 * ageMonths, w);
             long dc = (ok ? Scale(_r.CohesionRecoveryPerYear * 1000, w) : 0)

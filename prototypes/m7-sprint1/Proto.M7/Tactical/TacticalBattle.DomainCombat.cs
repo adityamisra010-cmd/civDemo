@@ -470,6 +470,7 @@ public sealed partial class TacticalBattle
             tg.Hp -= amount;
             tg.Primary = true;
             _f[tg.F].DamageTaken += amount;
+            if (_lastHitMs is not null && amount > 0) LocalWinDomainLandHit(ev.Source.Id, tg.F, t);   // [MOR r2, MOR-V2-03]
         }
         else if (ev.A == 2)
         {

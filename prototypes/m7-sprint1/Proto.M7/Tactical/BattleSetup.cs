@@ -54,6 +54,14 @@ public sealed record TacticalRules
     /// <summary>Per-pulse morale recovery when holding (Hold) / rallying (Rally) with no casualties that pulse. PLACEHOLDER.</summary>
     public long HoldRecovery { get; init; } = 20;
     public long RallyRecovery { get; init; } = 60;
+    /// <summary>[MOR] "The fight it won" (docs/m7-plan/morale-proposal.md §3.2): when an enemy land formation G breaks (routs, or loses
+    /// its last Active entity) at an instant, each land formation F of the other side that is still in the fight and dealt damage to G
+    /// (by any of its weapons, crew-served ones included: [MOR r2, MOR-V2-03]) within the last PulseMs gains
+    /// floor(LocalWinMoraleRise × Start(G) ÷ (Start(G) + Start(F))) morale, capped at MoraleMax, after
+    /// every rout of that instant (a formation that breaks at the same instant gains nothing). Both resolvers implement it. Default 0:
+    /// the exact identity (no tracking, no rise, every golden unchanged). Switching it on moves the parity battery, so it waits for the
+    /// battery's re-measurement (D-079 D11, Q4); PROPOSAL value when switched on: 200. PLACEHOLDER.</summary>
+    public long LocalWinMoraleRise { get; init; }
     /// <summary>Rally/Heal: HP regained per step from a per-entity pool of HealPoolNum/HealPoolDen x MaxHp. PLACEHOLDER.
     /// The pool is BOUNDED (termination: total damage potential is finite).</summary>
     public long HealPerStep { get; init; } = 1;
@@ -99,6 +107,7 @@ public sealed record TacticalRules
         // HitMin = 0 would let two formations in contact attack forever without a hit (verify-D F2).
         if (HitMin == Q32.Zero) throw new ArgumentException("hit clamp: HitMin must be > 0 (every attack needs a positive hit chance, or a battle in contact never ends)");
         if (DamageDivisor <= 0 || MoraleMax <= 0 || MoraleLossFullStrength < 0 || RoutThreshold < 0) throw new ArgumentException("morale/damage");
+        if (LocalWinMoraleRise < 0) throw new ArgumentException("local-win morale rise");                    // [MOR]
         if (HealPerStep < 0 || HealPoolNum < 0 || HealPoolDen <= 0) throw new ArgumentException("heal");
         if (!StationaryConcealment.IsProbability) throw new ArgumentException("stationary concealment");
         if (InactivityPulses < 1) throw new ArgumentException("inactivity");

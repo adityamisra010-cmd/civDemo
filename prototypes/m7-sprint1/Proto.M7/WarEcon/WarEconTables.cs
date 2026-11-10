@@ -134,6 +134,15 @@ public sealed record LogisticsRates
 
     // ---- condition and cascade (per-mille rates per year; morale and cohesion on 0..1000) ----
     public long MoraleRecoveryPerYear { get; init; }
+    /// <summary>[MOR] The morale (‰ of the scale) toward which a fed, paid, loyal army's morale recovers, and toward which an excess
+    /// above it decays (docs/m7-plan/morale-proposal.md §4.4). Default 1000 = the top of the scale: lane E's model exactly (the
+    /// recovery runs to the cap and nothing can lie above it). Lower values are a PROPOSAL for M7.14's calibration (§4.4 option (b):
+    /// a victory can then lift an army above its steady level, and the lift fades); not lane E's default.</summary>
+    public long MoraleBaselinePerMille { get; init; } = 1000;
+    /// <summary>[MOR] The rate (‰ of the scale per sim-year) at which morale above <see cref="MoraleBaselinePerMille"/> decays toward it
+    /// (the excess a victory left), integrated over the exact pulse length. It acts only when the baseline lies below the cap.
+    /// PROPOSAL: lane E's recovery rate mirrored.</summary>
+    public long MoraleElationDecayPerYear { get; init; } = 600;
     public long MoraleHungerPenaltyPerYear { get; init; }
     public long MoraleArrearsPenaltyPerMonthPerYear { get; init; }
     public long CohesionRecoveryPerYear { get; init; }
