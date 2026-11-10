@@ -1021,3 +1021,11 @@ These reports live in the session scratchpad (`/tmp/claude-0/-home-user-civDemo/
   `docs/d083-entering-battle-costs-morale-2026-11-10.md` (DB1, DB2). A battle changes morale through an entry cost, DR29's
   decrease through combat and D-082 DA1's rise for the winner. Who pays, how often, and how the cost combines with DA1's rise
   are READINGS (DB1-R1..R3); the size of the cost and where it is charged are delegated.
+
+## Dated note — 2026-11-10 (D-084; appended, the text above is unchanged)
+
+- The Director asked for the issues of an attached research-tree audit to be sorted out, after the current queue; recorded in
+  `docs/d084-research-tree-audit-fixes-2026-11-10.md` (DC1, DC2), with the audit kept byte-identical at
+  `docs/m6-plan/research-tree-audit-2026-11-10.md`. For that work only, READING DC1-R2 (a) lets `Sim.Ui`, `Sim.Core/State`
+  (`InfoQuery`) and `Sim.Data/content/research.json` change, with their tests; §6's rule stands for everything else, and Q5 stays
+  open.
