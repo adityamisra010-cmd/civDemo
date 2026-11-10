@@ -44,7 +44,9 @@ external assets in `assets/` are pinned and fetched, but **no code uses them yet
 | `Gfx.Proc/` | `Authoritative/`: integer-only seeded battlefield grid (SHA-256 pinned). `Presentation/`: terrain mesh, splats, scatter, water, props. `Environment/` (stage env): ez-tree C# port, tree species, impostors and forest layout, ground cover, boulders, river water, structure kit and settlements, the `env-*` scenes |
 | `Gfx.Units/` | Skeleton, procedural soldier meshes and variation, clip library baked to a bone texture, instanced GPU crowd, battle-trace playback |
 | `Gfx.Avatar/`, `Gfx.Cinematics/` | Persistent avatar profile and era dress; outcome-driven cinematic planner and player |
-| `Gfx.Demo/` | Executable: `--sysinfo`, `--list`, `--capture`, `--bench`, `--interactive`; forwards the benchmark options to `Gfx.Perf` |
+| `Gfx.Chars/` (stage chars) | Character file reader (`.g2ch`), GPU skinning with a morph stream, character material shaders, LODs, sockets, the cosmetic animation layer (locomotion blend, layers, IK, look, hit reactions) |
+| `tools/charbake/` (stage chars) | Python bake of identities, outfits, LODs and clip files from the MakeHuman CC0 core and the MPFB2 rig (`scripts/bake-chars.sh`) |
+| `Gfx.Demo/` | Executable: `--sysinfo`, `--list`, `--capture`, `--bench`, `--interactive`, `--chars-costs`; the `chars-*` scenes; forwards the benchmark options to `Gfx.Perf` |
 | `Gfx.Perf/` | Victus benchmark harness (perf stage): `--suite`, `--sweep`, `--scene`, `--gpu-selftest`; `launcher/` (CivSimBench.exe source), `package/` (Windows package files). See `reports/perf.md` |
 | `Gfx.Tests/` | xunit; `[GfxFact]` device tests skip, not fail, when no GL device can be created |
 | `fixtures/` | `battle-trace-combinedarms-s7.json`, the labelled battle-trace fixture from G1; `ez-rng-oracle.txt` and `ez-tree-js-reference.json`, the ez-tree port's reference outputs (stage env) |
@@ -163,6 +165,16 @@ review capture re-primes auto exposure. Not yet adapted: `scripts/package-victus
 procedural ground materials (the HDRI is needed only for `ibl=hdri`). An AFTER package needs its own name, README
 text and the render1 terrain bake (with its CC-BY notice).
 
+**Since the chars + env merge (`g2/trunk`, 2026-11-10):** the harness's `ContentTap` forwards stage env's optional
+passes (`ITransparentContent`, `IPlanarReflectionContent`), which the renderer finds on the content it is handed.
+Before, a tapped env frame had no water at all (env scenes draw all water in the transparent pass) and no reflection
+pass, while the review capture, drawn untapped, had both. The mirrored redraw and the water are reported as the
+sections `seg:reflection` and `seg:transparent` (CPU and GPU), so `opaque` stays the main scene pass; the rest of the
+reflection pass falls in `clear_sky` and the water in `post`. Content without these passes is measured exactly as
+before (test `PerfEnvTapTests`). The suite's slots A–E still bind the G1 stand-ins; `--scene <name>` or
+`--bind A=chars-hero,…` runs the new scenes, which also need their bakes (`$G2_ASSETS/baked/chars`, `…/env`) that
+the Windows package does not carry yet.
+
 ## Characters (stage chars)
 
 Soldiers, the force A commander and the player avatar (G1 PlayerFixture identity) built from the MakeHuman CC0 core
@@ -173,3 +185,9 @@ and animates them (GPU skinning with a morph stream, material shaders, LODs, soc
 (`scripts/capture-chars.sh`); review sheets from `scripts/review-sheets-chars.py`. Details, captures, costs and what
 still looks placeholder: `reports/chars.md`. The CMU clips are PROTOTYPE-ONLY and live in their own
 `<identity>__clips.g2ch` files (assets/PROVENANCE.md §3.9).
+
+Reproducing a chars still: the hair's hashed-alpha seed advances with every opaque pass of the scene's character
+renderer (`CharRenderer.FrameSeed`), so a still is reproduced bit for bit only with the same preceding shots in the
+same process. Capture whole scenes as `scripts/capture-chars.sh` does; `--shots face-34` alone draws other strand
+patterns (measured at the chars + env merge: the 20 `chars-hero` stills of a whole-scene capture equal the stage's
+own final captures byte for byte, `face-34` captured alone differs in its hair pixels only).
