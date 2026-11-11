@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11 09:02 UTC (WIP checkpoint). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11, after G2 segment 3 (09cbc9d). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -39,31 +39,30 @@ Supporting material committed with this README:
 
 ## 2. In flight
 
-- **G2 segment 3.** Workflow script [workflows/m7-g2-v2.js](workflows/m7-g2-v2.js), run `wf_d6eb0226-44e`, args
-  `{"base": "1601c74", "stopAfter": "stage3"}`.
-  - **kit stage:** complete, branch `g2/kit` at `85e918f`: era kit, the hero aspis, combat animation, ancient outfits.
-  - **render2 stage:** running, branch `g2/render2`; checkpoint 2026-11-11 09:02 UTC at `82c8198`. Shadows, ambient occlusion,
-    contact shadows, the GPU-skinned crowd, occlusion culling and TAA are implemented; tests, costs, captures and the report
-    are under way.
-  - **Saved here:** both branches are in [wip/g2-kit-and-render2-wip.bundle](wip/g2-kit-and-render2-wip.bundle) (7.2 MB). It
-    restores into any clone that has `1601c74`. Uncommitted edits in the render2 clone are not in it.
-  - **Later checkpoint:** [wip/g2-render2-inc-82c8198.bundle](wip/g2-render2-inc-82c8198.bundle) (84 KB) holds `g2/render2`'s
-    commits after `70e46d0`. Restore the base bundle first, then `git fetch` this one into the render2 clone.
-  - **Restore:**
-    `git clone -b g2/kit wip/g2-kit-and-render2-wip.bundle /home/user/g2w/kit` and
-    `git clone -b g2/render2 wip/g2-kit-and-render2-wip.bundle /home/user/g2w/render2`. Both need `1601c74` in the clone's
-    object store, so fetch this branch first.
+Full power since 2026-11-11 ~09:10 UTC (Director: "go full power now"). Four workflows run at once; Tier-3 full suites of the
+two `Sim.*` lanes are serialized by `flock` on the scratchpad's `m7c/fullsuite.lock`.
 
-## 3. Queue (one agent at a time, no gap between items; Director 2026-11-09)
+| Item | Workflow run | Base | Brief |
+|---|---|---|---|
+| G2 final: scenes A–E, critic loop, verify, AFTER package, visual review | `wf_d6eb0226-44e` (resume, args `{"base": "1601c74"}`) | trunk `21a181e` | [workflows/m7-g2-v2.js](workflows/m7-g2-v2.js) |
+| Lane MOR3 (D-085) | `wf_edd83092-8a1` | `51ab032` | [args/MOR3.json](args/MOR3.json) |
+| Lane RR (D-086) | `wf_b1a17355-cee` (Sim variant) | `51ab032` | [args/RR.json](args/RR.json) |
+| Lane RT (D-084) | `wf_2aee7a53-1fc` (Sim variant) | `51ab032` | [args/RT.json](args/RT.json) |
 
-| # | Item | How to run it |
-|---|---|---|
-| 1 | G2 segment 3: finish render2, then the segment's integration into `g2/trunk`, then integration onto this branch | Resume the G2 workflow with the args above. In a fresh container, see §4. |
-| 2 | Lane MOR3: without fighting, no morale change (D-085) | Lane workflow [workflows/m7-lanes-v2.js](workflows/m7-lanes-v2.js) with [args/MOR3.json](args/MOR3.json). Set `base` to the branch head, and first add d085 and lane CB to the script's shared context. |
-| 3 | Lane RR: research in the run record; the close keeps the workbook (D-086) | [args/RR.json](args/RR.json), with a lane-script variant whose shared-context rule "nothing in Sim.* changes" is replaced by the D-084/D-086 exception |
-| 4 | G2 final: scenes A–E, the critic loop, verification, the Victus AFTER package and the visual-quality review | Resume the G2 workflow with no `stopAfter`. In a fresh container use `"from": "final"`. |
-| 5 | Lane RT: research-tree audit fixes (D-084) | [args/RT.json](args/RT.json), with the same lane-script variant as RR |
-| 6 | The pass's full report: 10 sections, DR52 | From [notes/final-report-notes.md](notes/final-report-notes.md), in the style of `docs/m7-plan/m7-execution-pass-report.md` |
+G2 segment 3 is on this branch (`94fa0dc` kit, `09cbc9d` render2 merged with it); its WIP bundles were retired. If the G2
+trunk is lost, recreate it from this branch: a new `g2/trunk` whose `prototypes/m7-gfx2` equals this branch's (trunk `21a181e`'s
+subtree, `ea87bc3e`), then resume with `"from": "final"`. Lanes keep WIP bundles in the scratchpad (`m7c/bundles/<KEY>-wip.bundle`);
+the two-hourly checkpoint copies them here.
+
+## 3. Queue after the items in flight
+
+1. As each item in §2 finishes, the orchestrator verifies it (§4 step 2, or the G2 subtree method), commits, pushes, and
+   updates this README.
+2. The pass's full report: 10 sections, DR52. It is built from [notes/final-report-notes.md](notes/final-report-notes.md), in
+   the style of `docs/m7-plan/m7-execution-pass-report.md`.
+
+If the pass stops, restart any item in §2 that has not been pushed with its listed workflow and brief. Use `base` set to this
+branch's head; for G2, use `"from": "final"`.
 
 ## 4. How to resume in a fresh session or container
 
@@ -122,8 +121,6 @@ Supporting material committed with this README:
 | `notes/final-report-notes.md` | The orchestrator's running facts per commit, incident and decision: the source of the final report |
 | `notes/orchestration-log.md` | The queue and pace log |
 | `notes/director-messages/` | Verbatim working copies of the Director's messages cited by D-082..D-086 |
-| `wip/g2-kit-and-render2-wip.bundle` | Git bundle of `g2/kit` (85e918f) and `g2/render2` (70e46d0), prerequisite `1601c74` |
-| `wip/g2-render2-inc-82c8198.bundle` | Incremental bundle: `g2/render2` from `70e46d0` to `82c8198` |
 
 The workflow scripts and notes use this session's absolute paths: `/home/user/civDemo`, `/home/user/m7w`, `/home/user/g2w`,
 and the scratchpad under `/tmp/claude-0/…`. Adjust them in a new environment.

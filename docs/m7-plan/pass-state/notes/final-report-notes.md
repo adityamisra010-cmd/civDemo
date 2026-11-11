@@ -130,3 +130,16 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 - Director: "cool, carry on with all the pending work. I am at 83% of my token limit, so I would need to pause work in around 12-15 hours of work".
 - Plan: G2 seg3 (running) -> MOR3 -> RR fit in ~12-15 h; then stop at a clean boundary: everything pushed, pass-state README updated, check-ins cancelled. After the pause: G2 final, RT, final report.
 - Prepared: lane script COMMON updated (d075..d086, D-085/D-086, lane CB) for MOR3 (backup .bak-preMOR3); variant m7-lanes-v2-sim.js for RR/RT (scoped Sim.* rule, validate.sh tiers).
+- WIP checkpoint 09:02Z pushed 51ab032 (render2 82c8198, 84 KB incremental bundle); next check-in trig_013JtDjhNp1jUCzVj49W1z12 at 11:04Z.
+
+## Full power (Director 2026-11-11 ~09:10Z: "actually, go full power now" / "i have a reset, i'll use it in a while")
+- Launched in parallel with G2 seg3 (ws5jdwkhz, integrate stage running): MOR3 wpa2grxu2 (wf_edd83092-8a1, base 51ab032, lane script); RR wslx801jk (wf_b1a17355-cee, base 51ab032, m7-lanes-v2-sim.js); RT whfj4d6w0 (wf_2aee7a53-1fc, base 51ab032, m7-lanes-v2-sim.js). Tier-3 full suites serialized by flock on scratchpad m7c/fullsuite.lock.
+- RT now runs before 'the end' (D-084 DC2 said after the current queue): reordered for speed under the Director's 'full power'; the report stays last.
+- Next: on seg3 completion verify + integrate + push, then launch G2 final at once.
+
+## G2 segment 3 — done 2026-11-11 (run wf_d6eb0226-44e, ws5jdwkhz; 10 agents incl. cached, 1.81M new subagent tokens, ~5.7 h)
+- kit: g2/kit 85e918f (Gfx.Gear: 5 helmets, 5 shields, 11 weapons, 2 standards; sockets, hold constraint, 37 combat clips; hero aspis LODs 48,156/8,456/1,736 tris, 2K maps, aspis.glb sha256 18474bca...; 241 Gfx tests at kit). Not done: scale/plate armour, musket/sling animation, kitted-soldier distance LOD, cloth sim; ~71 draws / 0.57M tris per kitted soldier (llvmpipe).
+- render2: g2/render2 91bd9fb (G-buffer-lite in all 52 effects; half-res GTAO on sky share; full-res contact shadows on sun share; CSM verified + caster culling + debug view; GPU-skinned instanced crowd 8 variants, 3 LODs + new lod3, dithered cross-fade; CPU hi-Z occlusion; TAA; 257 tests). Not done: SMAA, crowd impostors, crowd shadows > 320 m, foot IK, crowd not wired to sim, crowd uses chars-bake kit not Gfx.Gear.
+- int3: trunk 21a181e = kit ff + merge 2981aec (render2) + fix 21a181e (kit items write object motion for TAA); one non-trivial conflict CharRenderer.Prepare (both kept). Release 276/0/0, Debug 276/0/0. Perf (llvmpipe): scene C p50 799 ms; kit-forces p50 1,436 ms 617 draws 4.77M tris; crowd-formation p50 755 ms. Perf slots A-E still G1 stand-ins.
+- Integrator (in progress): /home/user/int/g2s3; trees T1 (DEV 51ab032 + kit gfx2 19fa0af9) = 12b695e5, T2 (+ trunk gfx2 ea87bc3e) = b2388bc7; nothing outside gfx2; check-gfx-determinism OK; links 480/0; diff --check clean; 98 files +13,424/-41, 11 binary (images 1.61 MB); no reference names in code. Release build/test running (bbmu9y417).
+- G2 final launched immediately: wjyo68260 (resume wf_d6eb0226-44e, args {base:'1601c74'}).

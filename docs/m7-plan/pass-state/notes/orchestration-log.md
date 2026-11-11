@@ -22,3 +22,7 @@
 2026-11-11T04:28:41Z CB pushed 47eac9a; G2 seg3 launched ws5jdwkhz
 2026-11-11T07:01:25Z pass-state snapshot pushed 0dd2f7c; WIP checkpoint check-in every ~2h (trig_01Fa9r1d7czVnv4QVTEkQxEE)
 2026-11-11T09:03:14Z WIP checkpoint: render2 82c8198 (incremental bundle 84 KB)
+2026-11-11T10:01:39Z USER: 'double the speed of work a bit' -> TWO agents at once: track A G2 (seg3 -> final), track B lanes (MOR3 -> RR -> RT); report last. MOR3 launched base 51ab032.
+2026-11-11T10:02:31Z USER: 'actually, go full power now' + 'i have a reset, i'll use it in a while' -> no throttle: launch MOR3, RR, RT in parallel with G2 seg3 (Sim full suites under flock /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/fullsuite.lock); G2 final right after seg3; report last.
+2026-11-11T10:03:37Z full power: MOR3, RR, RT launched alongside G2 seg3 (4 agents)
+2026-11-11T10:13:48Z G2 seg3 pushed 94fa0dc+09cbc9d; G2 final running (wjyo68260); WIP bundles retired
