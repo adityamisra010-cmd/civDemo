@@ -87,6 +87,9 @@ public sealed partial class TacticalBattle : IEventWorld
         public GoalMinima? Goals;
         /// <summary>[TR, verify-TR-r1 V1] The anchor set a new goal minimum in this pulse (march progress; reset at pulse start).</summary>
         public bool MarchProgress;
+        /// <summary>[MOR2] D-083 DB1: the instant the formation was placed on the field (null: not yet / never) and what the entry
+        /// charge took from its morale (<see cref="EntryMorale"/>).</summary>
+        public long? EnteredAtMs; public long EntryCharged;
     }
 
     private sealed class Knowledge
@@ -124,6 +127,8 @@ public sealed partial class TacticalBattle : IEventWorld
     // at [i * n + j] (long.MinValue = never); null when the rule is off (coefficient 0: no tracking at all, the exact identity).
     private readonly long[]? _lastHitMs;
     private readonly List<LocalWinRise> _localWins = new();
+    // [MOR2] D-083 DB1: every in-battle entry charge (empty while TacticalRules.EntryMoraleCost is 0).
+    private readonly List<EntryCharge> _entries = new();
 
     private long _pulse = -1;
     private long _pulseStartMs;
@@ -256,6 +261,19 @@ public sealed partial class TacticalBattle : IEventWorld
         }
         DomainInit(domainSpecs);      // lane N hook
         foreach (var f in _f) UpdateCohesion(f);   // [TR] after DomainInit: members that start aboard are not on the ground
+        // [MOR2] D-083 DB1-R1 (a): every land formation placed on the field at the battle's start enters it at StartMs (a formation that
+        // starts aboard a transport is not on the field: it enters when its first entity is put ashore, TransportOps).
+        foreach (var f in _f) EnterIfPlaced(f, setup.StartMs);
+        DomainEnterAtStart(setup.StartMs);   // [MOR2, verification round 1, MOR2-R1-02] vessels at the start; aircraft at their first take-off
+    }
+
+    /// <summary>[MOR2] D-083 DB1: the formation enters the battle at <paramref name="t"/> if one of its entities is on the field and it
+    /// has not entered yet (once per formation per battle: <see cref="EntryMorale.Enter"/>, the function the AutoResolver shares).</summary>
+    private void EnterIfPlaced(Form f, long t)
+    {
+        bool placed = false;
+        foreach (int i in f.Members) if (_e[i].OnField) { placed = true; break; }
+        if (placed) EntryMorale.Enter(_r.EntryMoraleCost, t, f.Id, ref f.EnteredAtMs, ref f.Morale, ref f.EntryCharged, _entries);
     }
 
     // ------------------------------------------------------------------ public surface
@@ -333,6 +351,16 @@ public sealed partial class TacticalBattle : IEventWorld
     public long Morale(long formationId) => _f[FormIndex(formationId)].Morale;
     /// <summary>[MOR] Every "fight it won" rise, in execution order (empty while TacticalRules.LocalWinMoraleRise is 0).</summary>
     public IReadOnlyList<LocalWinRise> LocalWinRises => _localWins;
+    /// <summary>[MOR2] Every in-battle entry charge, in execution order (empty while TacticalRules.EntryMoraleCost is 0).</summary>
+    public IReadOnlyList<EntryCharge> EntryCharges => _entries;
+    /// <summary>[MOR2] The instant the formation was placed on the field, or null while it has not been. [MOR2, verification round 1,
+    /// MOR2-R1-02] Vessel and aircraft formations too: a vessel formation at the battle's start, an aircraft formation at the first
+    /// take-off of one of its airframes (an airframe at its base is not on the field).</summary>
+    public long? EnteredAtMs(long formationId)
+    {
+        int li = FindForm(formationId);
+        return li >= 0 ? _f[li].EnteredAtMs : DomainEnteredAtMs(formationId);
+    }
     public Vec2L Anchor(long formationId) => _f[FormIndex(formationId)].Anchor;
     public OrderKind Directive(long formationId) => _f[FormIndex(formationId)].Dir;
     public bool IsTracked(int side, long entityId) => _k[side].Tracked[EntIndex(entityId)];
@@ -1243,7 +1271,8 @@ public sealed partial class TacticalBattle : IEventWorld
                 }
             }
             fr[i] = new FormationResult(f.Id, f.Side, f.Spec.Domain, f.P.FamilyKey, f.Start, act + esc + emb, dead, sur, act, esc, resc, desc,
-                                        f.Morale, f.DamageDealt, f.DamageTaken, f.Attacks) { EmbarkedAtEnd = emb };
+                                        f.Morale, f.DamageDealt, f.DamageTaken, f.Attacks)
+                    { EmbarkedAtEnd = emb, EnteredAtMs = f.EnteredAtMs, EntryCharged = f.EntryCharged };      // [MOR2] D-083 DB1
             if (!fr[i].Conserved) throw new InvalidOperationException($"conservation violated for formation {f.Id}");
         }
         int holds = -1;
@@ -1295,6 +1324,11 @@ public sealed partial class TacticalBattle : IEventWorld
         {
             L(_lastHitMs.Length); foreach (long v in _lastHitMs) L(v);
             L(_localWins.Count); foreach (var x in _localWins) { L(x.AtMs); L(x.FormationId); L(x.BrokenFormationId); L(x.Rise); }
+        }
+        if (_r.EntryMoraleCost > 0)               // [MOR2] appended only when the in-battle entry cost is on (identity at 0)
+        {
+            foreach (var f in _f) { L(f.EnteredAtMs ?? long.MinValue); L(f.EntryCharged); }
+            L(_entries.Count); foreach (var x in _entries) { L(x.AtMs); L(x.FormationId); L(x.Before); L(x.Charged); }
         }
         return Convert.ToHexString(h.GetHashAndReset());
     }

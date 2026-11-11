@@ -265,6 +265,10 @@ public class EqualSidesTests
     /// sides eliminated at one instant) with side 1 the defender → BattleWinner.Reported = 1, and side 1's army rises by
     /// floor(400,000 × B ÷ (B + W)) = 200,000 on top of DR29's decrease (800,000 − 100,000 + 200,000), while side 0's falls by its loss
     /// alone (700,000). The same battle opened as an ambush by side 0 → side 0's army rises instead. With no role, nobody rises.
+    /// [MOR2, D-083 DB1: both armies entered the battle, so each also pays the 50,000 entry cost, its own settlement term: the winner
+    /// 800,000 − 50,000 − 100,000 + 200,000 = 850,000, the other 650,000 (lane AP's 900,000 and 700,000 failed by exactly 50,000 before
+    /// this update, MEASURED). Both duel entities were placed on the field at the start: the resolver reports EnteredAtMs = StartMs for
+    /// both, which is what the hand-off reads as "entered". The rise is unchanged (lane AP's observation AP-R1-14, morale proposal §11.8).]
     /// </summary>
     [Theory]
     [InlineData(1, -1, 1)]
@@ -276,14 +280,16 @@ public class EqualSidesTests
         Assert.Equal(BattleEndReason.BothEliminated, r.Reason);
         int winner = BattleWinner.Reported(r);
         Assert.Equal(expected, winner);
+        Assert.All(r.Formations, f => Assert.Equal(0L, f.EnteredAtMs));                         // [MOR2] both entered at the start (StartMs 0)
         long start = MoraleRig.WarStart(), at = start + 3 * Day;
         var rig = MoraleRig.Build(MoraleRig.Armies(2), start);
         rig.W.ScheduleBattle(rig.S, MoraleRig.Battle(0, 0, at, 700, winner, beaten: 2_000, winnerSide: 2_000));
         rig.W.ScheduleBattle(rig.S, MoraleRig.Battle(1, 1, at, 700, winner, beaten: 2_000, winnerSide: 2_000));
         MoraleRig.Run(rig, at + 1);
         for (int army = 0; army < 2; army++)
-            Assert.Equal(army == expected ? 900_000 : 700_000, rig.W.Economy.MoraleOf(army));
+            Assert.Equal(army == expected ? 850_000 : 650_000, rig.W.Economy.MoraleOf(army));    // [MOR2] − the 50,000 entry cost each
         Assert.Equal(new[] { expected == 0 ? 200_000L : 0L, expected == 1 ? 200_000L : 0L }, rig.W.MoraleRows.OrderBy(x => x.ArmyId).Select(x => x.RisePpm).ToArray());
+        Assert.All(rig.W.MoraleRows, m => Assert.Equal(50_000L, m.EntryPpm));                    // [MOR2]
     }
 
     // ---------------------------------------------------------------- the battery's winner bases (H-AP §4 rests on them)

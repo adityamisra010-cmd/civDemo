@@ -37,6 +37,8 @@ namespace Proto.M7.Support;
 /// [MOR, D-082 DA1] Superseded for the winning side: DR29's decrease above stands for every participant, and an army whose side the
 /// battle report names the winner also gains the DA1 rise (<see cref="CampaignMorale"/>; docs/m7-plan/morale-proposal.md §4), both in
 /// one clamp; each settlement is recorded as a <see cref="MoraleSettlementRow"/>. The in-battle recovery's gain is still not carried.
+/// [MOR2, D-083 DB1] Every army whose formation entered the battle also pays the entry cost (MoraleRates.EntryCostPpm), as its own
+/// term in the same clamp, whatever the battle did; DR29's decrease is measured from the start less the in-battle entry charge.
 /// CONSERVATION. Every person, animal and wagon moves by a ledger transfer between accounts of lane E's ledger (pools, army
 /// attachments, the wounded, the dead, the captured sink, the civilians); totals are constant (tests: exact equality).
 /// </summary>
@@ -146,6 +148,16 @@ public sealed class SupportWorld : IEventWorld, ISupportOverlay
         // [MOR, verification round 1, MOR-V1-11] a reported winner needs the strength of the side it beat: without it the DA1 rise would
         // silently be 0 (CampaignMorale.VictoryRisePpm: "a win over nobody"), so the hand-off refuses it instead of settling a rise-less win.
         if (b.WinnerSide >= 0 && b.BeatenPersons == 0) throw new ArgumentOutOfRangeException(nameof(b), "a reported winner needs the beaten side's persons");
+        // [MOR2, D-083 DB1] the in-battle entry charge is part of the start morale (at most all of it: the clamp at 0) and is taken only
+        // at an entry, so a formation that never reached the field charged nothing. ~~(… lost nothing and ended where it started (it did
+        // not take part).)~~ [MOR2, verification round 1, MOR2-R1-01: that premise is false. Lane N's troops aboard a transport under fire
+        // are killed aboard and their formation's morale falls although they never reached the field (MEASURED: 7 of 20 killed, 800 → 100),
+        // so the stand-in refused a real battle report. Such a formation's losses and casualties are accepted: its army takes DR29's
+        // decrease of the morale the battle cost it (it took part in the combat), pays no entry cost (DB1-R1 (a)) and takes no DA1 rise
+        // (READING MOR2-R1 (a), morale proposal §11.2); lane W's collapse moves its dead and captured as for any formation.]
+        if (b.EntryChargedInBattle < 0 || b.EntryChargedInBattle > b.MoraleStart) throw new ArgumentOutOfRangeException(nameof(b), "in-battle entry charge");
+        if (!b.Entered && b.EntryChargedInBattle != 0)
+            throw new ArgumentOutOfRangeException(nameof(b), "a formation that never reached the field paid no in-battle entry charge");
         _battles.Add(b);
         s.Schedule(b.AtMs, EventClass.CampaignProcess, 0, b.ArmyId, SupportKinds.BattleEnded, _battles.Count - 1);
     }
@@ -320,16 +332,25 @@ public sealed class SupportWorld : IEventWorld, ISupportOverlay
         // the campaign morale to the battle's end morale, which the TacticalResolver's in-battle recovery can lift above its start.
         // [MOR, D-082 DA1] that decrease (DR29) stands for every participant; an army of the side the report names the winner also gains
         // the DA1 rise; one clamp over both terms (CampaignMorale.After).
-        long decrease = CampaignMorale.CombatDecreasePpm(b.MoraleStart, b.Collapse.MoraleEnd, restore, b.Collapse.MoraleMax);
-        bool won = b.WinnerSide >= 0 && b.WinnerSide == b.Collapse.Side;
+        // [MOR2, D-083 DB1] and every army whose formation entered the battle pays the entry cost, its own term, whatever the battle did
+        // (D-083 §4): the decrease is measured from the start less what the battle itself charged at the entry (0 while the in-battle
+        // part is off), so the in-battle recovery can make up neither the cost nor anything of it, and nothing is counted twice. An army
+        // whose formation never reached the field ~~did not take part: no entry cost, no decrease (its end equals its start), no rise~~
+        // [MOR2, verification round 1, MOR2-R1-01, MOR2-R1-04] pays no entry cost (DB1-R1 (a)) and takes no rise (READING MOR2-R1 (a):
+        // "took part" = entered the field); DR29's decrease still applies to whatever morale the battle cost it (troops killed aboard their
+        // transport took part in the combat: DR29 "Morale decreases when troops participate in combat").
+        long entry = CampaignMorale.EntryPpm(b.Entered, _m);
+        long decrease = CampaignMorale.CombatDecreasePpm(b.MoraleStart - b.EntryChargedInBattle, b.Collapse.MoraleEnd, restore, b.Collapse.MoraleMax);
+        bool won = b.Entered && b.WinnerSide >= 0 && b.WinnerSide == b.Collapse.Side;
         long winnerSide = won && b.WinnerSidePersons == 0 ? persons : b.WinnerSidePersons;   // 0 = this army alone (the one-army stand-in)
         long rise = CampaignMorale.VictoryRisePpm(won, b.BeatenPersons, winnerSide, _m);
-        long after = CampaignMorale.After(before, decrease, rise);
+        long after = CampaignMorale.After(before, decrease, rise, entry);
         _econ.SetMoraleAfterBattle(b.ArmyId, after);
         _battleRows.Add(new SupportBattleRow(_battleRows.Count, b.ArmyId, now, persons, split.Dead, saved, final.Dead, final.Wounded,
             final.Captured, final.Deserted, a.Coverage, before, after));
         _moraleRows.Add(new MoraleSettlementRow(_moraleRows.Count, b.ArmyId, now, (byte)b.Collapse.Side, b.WinnerSide, b.MoraleStart,
-            b.Collapse.MoraleEnd, restore, decrease, b.BeatenPersons, winnerSide, rise, before, after));
+            b.Collapse.MoraleEnd, restore, decrease, b.BeatenPersons, winnerSide, rise, before, after,
+            b.Entered ? (byte)1 : (byte)0, b.EntryChargedInBattle, entry));                                        // [MOR2]
     }
 
     // ------------------------------------------------------------------ hashes

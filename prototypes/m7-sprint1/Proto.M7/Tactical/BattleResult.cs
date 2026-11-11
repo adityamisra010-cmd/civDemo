@@ -22,6 +22,19 @@ public sealed record FormationResult(
 {
     /// <summary>Lane N: land entities still aboard a transport when the battle ended (included in Survivors).</summary>
     public long EmbarkedAtEnd { get; init; }
+    /// <summary>[MOR2] D-083 DB1-R1 (a): the instant the formation was placed on the battlefield (the battle's start, or the instant
+    /// its first entity was put ashore from a transport); null when it never reached the field (it stayed aboard). Both resolvers set
+    /// it for every formation ~~(vessel and aircraft formations: the battle's start)~~ [MOR2, verification round 1, MOR2-R1-02: vessel
+    /// formations the battle's start; aircraft formations their first take-off, null when no airframe left its base (READING MOR2-R2
+    /// (a), morale proposal §11.2)]. The battle → campaign hand-off charges the entry
+    /// cost to the armies of the formations that entered (Proto.M7.Morale.CampaignMorale.EntryPpm). A report field like
+    /// <see cref="BattleResult.Personnel"/>: not part of <see cref="BattleResult.ResultHash"/> (it follows from the trace), so every
+    /// earlier result hashes as before. Results built outside the two resolvers (stand-ins, tests) leave it null.</summary>
+    public long? EnteredAtMs { get; init; }
+    /// <summary>[MOR2] What the in-battle entry charge took from the formation's morale (battle scale): 0 while
+    /// TacticalRules.EntryMoraleCost is 0, and for a formation that never entered. The settlement measures DR29's net loss from the
+    /// start morale less this, so the entry cost is counted once (morale proposal §11.3).</summary>
+    public long EntryCharged { get; init; }
     public bool Conserved => Start == Survivors + Killed + Surrendered;
     /// <summary>Entities leaving the formation's count (killed + captured): people for a land formation, hulls / airframes
     /// for a vessel / aircraft formation (see the type summary).</summary>

@@ -62,6 +62,18 @@ public sealed record TacticalRules
     /// the exact identity (no tracking, no rise, every golden unchanged). Switching it on moves the parity battery, so it waits for the
     /// battery's re-measurement (D-079 D11, Q4); PROPOSAL value when switched on: 200. PLACEHOLDER.</summary>
     public long LocalWinMoraleRise { get; init; }
+    /// <summary>[MOR2] D-083 DB1 ("Entering a battle costs morale"), the in-battle part (docs/m7-plan/morale-proposal.md §11;
+    /// <see cref="EntryMorale"/>): every LAND formation loses this much morale (battle scale; all of it when it has less) once, at the
+    /// instant it is placed on the field — the battle's start, or later the instant its first entity is put ashore from a transport.
+    /// Both resolvers implement it through one function. Default 0: the exact identity (no row, nothing hashed, every golden
+    /// unchanged); the campaign part of DB1 is charged by the settlement whatever this is (CampaignMorale.EntryPpm). PROPOSAL value
+    /// when switched on: 50 (the battle-scale image of the 50,000-ppm campaign cost at MoraleMax 1,000), together with
+    /// LocalWinMoraleRise at the next re-measurement of the parity battery (D-079 D11, Q4). PLACEHOLDER.
+    /// [MOR2, verification round 1, MOR2-R1-11] Switching it on is a change of THIS DEFAULT (the initializer here), one value for every
+    /// battle that builds its rules from <c>new TacticalRules()</c>: the campaign's battles and the War Sandbox alike (DR30: "Campaign
+    /// resolver rules remain unchanged"; SandboxSession uses <c>rules ?? new TacticalRules()</c>). It is not a per-battle setting of
+    /// the hand-off; CampaignMorale.EntryBattleScale only derives the value (and lets the hand-off check it). Morale proposal §11.7.</summary>
+    public long EntryMoraleCost { get; init; }
     /// <summary>Rally/Heal: HP regained per step from a per-entity pool of HealPoolNum/HealPoolDen x MaxHp. PLACEHOLDER.
     /// The pool is BOUNDED (termination: total damage potential is finite).</summary>
     public long HealPerStep { get; init; } = 1;
@@ -114,6 +126,7 @@ public sealed record TacticalRules
         if (HitMin == Q32.Zero) throw new ArgumentException("hit clamp: HitMin must be > 0 (every attack needs a positive hit chance, or a battle in contact never ends)");
         if (DamageDivisor <= 0 || MoraleMax <= 0 || MoraleLossFullStrength < 0 || RoutThreshold < 0) throw new ArgumentException("morale/damage");
         if (LocalWinMoraleRise < 0) throw new ArgumentException("local-win morale rise");                    // [MOR]
+        if (EntryMoraleCost < 0 || EntryMoraleCost > MoraleMax) throw new ArgumentException("entry morale cost");   // [MOR2]
         if (HealPerStep < 0 || HealPoolNum < 0 || HealPoolDen <= 0) throw new ArgumentException("heal");
         if (!StationaryConcealment.IsProbability) throw new ArgumentException("stationary concealment");
         if (InactivityPulses < 1) throw new ArgumentException("inactivity");

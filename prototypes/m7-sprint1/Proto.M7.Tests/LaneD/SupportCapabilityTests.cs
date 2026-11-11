@@ -423,7 +423,9 @@ public class SupportCapabilityTests
         }
         var none = Run(0);
         Assert.Equal(800_000, none.Before);                                   // lane E's opening morale = the battle's start morale
-        Assert.Equal(mine.MoraleEnd * 1_000_000 / mine.MoraleMax, none.After);
+        // [MOR2, D-083 DB1] the army entered the battle, so it also pays the 50,000 entry cost (MoraleRates.EntryCostPpm), its own
+        // term: lane D's value less 50,000 (MEASURED: lane D's assertion failed by exactly 50,000 before this update)
+        Assert.Equal(mine.MoraleEnd * 1_000_000 / mine.MoraleMax - 50_000, none.After);
         Assert.True(none.After < none.Before);                                // combat cost morale
         var with = Run(100);
         // By hand, no call to SupportMath or ConditionMath: loss = min(MoraleMax, floor(dead entities × F × 100 / (entities ×
@@ -433,7 +435,7 @@ public class SupportCapabilityTests
         BigInteger loss = BigInteger.Min(1000, (BigInteger)deadEntities * setup.Rules.MoraleLossFullStrength * 100 / ((BigInteger)entities * 100));
         long restore = (long)(loss * with.Saved * 500 / ((BigInteger)with.Dead * 1000));
         Assert.True(restore > 0);
-        Assert.Equal(Math.Min(1000, mine.MoraleEnd + restore) * 1_000_000 / 1000, with.After);
+        Assert.Equal(Math.Min(1000, mine.MoraleEnd + restore) * 1_000_000 / 1000 - 50_000, with.After);   // [MOR2, DB1] − the entry cost
         Assert.True(with.After > none.After);
     }
 
@@ -442,7 +444,9 @@ public class SupportCapabilityTests
     /// of 1,000. Dead persons 10/50 × 2,000 = 400; saved floor(400 × 400,000 × 10 / (1,000,000 × 20)) = 80. Casualty-driven loss of
     /// the DEAD entities only: floor(10 × 2,000 × 100 / (50 × 100)) = 400; restore floor(400 × 80 × 500 / (400 × 1,000)) = 40; the
     /// campaign morale after the battle = (600 + 40) / 1,000 = 640,000 micro units. A full restore (ρ ignored) would give 680,000;
-    /// counting the wounded entities' loss too, 660,000.</summary>
+    /// counting the wounded entities' loss too, 660,000.
+    /// [MOR2, D-083 DB1: the army entered the battle, so the settlement also takes the 50,000 entry cost: 640,000 − 50,000 = 590,000
+    /// (lane D's 640,000 failed by exactly 50,000 before this update, MEASURED); the restore arithmetic above is unchanged.]</summary>
     [Fact]
     public void Morale_MedicalRestore_ByHand_TenDeadOfFifty()
     {
@@ -455,8 +459,8 @@ public class SupportCapabilityTests
         var b = rig.W.BattleRows.Single();
         Assert.Equal((2_000L, 10L, 400L, 80L), (b.Persons, b.Coverage, b.DeadBefore, b.Saved));
         Assert.Equal(800_000, b.MoraleBefore);
-        Assert.Equal(640_000, b.MoraleAfter);
-        Assert.Equal(640_000, rig.W.Economy.MoraleOf(0));
+        Assert.Equal(590_000, b.MoraleAfter);                                         // [MOR2, DB1] 640,000 − 50,000 entry
+        Assert.Equal(590_000, rig.W.Economy.MoraleOf(0));
     }
 
     // ------------------------------------------------------------------ allocation: delivery, contention, limits, refusals
@@ -701,7 +705,11 @@ public class SupportCapabilityTests
     /// infantry broke and the report names side 0. What stands is lane D's point: the in-battle recovery's gain (880 − 800) is never
     /// carried. Pinned both ways: a stand-in that reports no winner gives lane D's numbers unchanged (800,000), and one that passes the
     /// report's winner gives 800,000 plus the DA1 rise floor(400,000 × B ÷ (B + W)) exactly, never 880,000 plus anything. The strengths
-    /// are the battle's entity counts (the enemy is a tactical formation with no campaign persons here): B = enemies, W = 60.</summary>
+    /// are the battle's entity counts (the enemy is a tactical formation with no campaign persons here): B = enemies, W = 60.
+    /// [MOR2, D-083 DB1: the archers entered the battle, so every settlement here also takes the 50,000 entry cost: 750,000 without a
+    /// reported winner, 750,000 + rise with one (lane MOR's 800,000 and 800,000 + rise failed by exactly 50,000 before this update,
+    /// MEASURED). Lane D's point stands and is now sharper: the archers' in-battle gain (880 − 800) makes up neither the entry cost nor
+    /// any loss: the settlement is never 880,000, and never 800,000 + rise.]</summary>
     [Theory]
     [InlineData(1UL, 10)]
     [InlineData(7UL, 20)]
@@ -728,8 +736,9 @@ public class SupportCapabilityTests
                 SupportRig.Drive(rig, start + 3 * Day + 1, t => t == start - 1 ? new[] { SupportRig.Allocate(0, 0, SupportKind.FieldMedical, medics) } : Array.Empty<(int, long, long)>());
                 var b = rig.W.BattleRows.Single();
                 long rise = reported ? 400_000L * enemies / (enemies + 60) : 0;          // 57,142 (10 enemies) or 100,000 (20)
-                Assert.Equal((800_000L, 800_000L + rise), (b.MoraleBefore, b.MoraleAfter));   // never 880,000 (+ rise): the gain is not carried
-                Assert.Equal(800_000 + rise, rig.W.Economy.MoraleOf(0));
+                // [MOR2, DB1] − the 50,000 entry cost: never 880,000 (+ rise), and the gain does not make up the entry cost either
+                Assert.Equal((800_000L, 750_000L + rise), (b.MoraleBefore, b.MoraleAfter));
+                Assert.Equal(750_000 + rise, rig.W.Economy.MoraleOf(0));
             }
     }
 
@@ -737,14 +746,18 @@ public class SupportCapabilityTests
     /// battle's net loss on the TacticalResolver's scale (start − end), less the medical restore, never below its value before the
     /// battle is raised, and floored at 0. 2,000 men, campaign morale 800,000 before; lane W's collapse of 50 entities (10 dead). The
     /// round-1 rule gave (end + restore) × 1,000: 900,000; 900,000; 450,000; 830,000; 640,000 and 0 for the six cases; a rule clamped
-    /// at the campaign morale ("never above before", the start ignored) gives 800,000; 800,000; 450,000; 800,000; 640,000 and 0.</summary>
+    /// at the campaign morale ("never above before", the start ignored) gives 800,000; 800,000; 450,000; 800,000; 640,000 and 0.
+    /// [MOR2, D-083 DB1: every army here entered its battle, so each settlement also takes the 50,000 entry cost, a separate term in
+    /// the same clamp: the first five expected values are lane D's less 50,000 (MEASURED: they failed by exactly 50,000 before this
+    /// update); the floor at 0 is unchanged. The first and fourth cases are now the plainest pins of D-083 §4: a battle whose end
+    /// morale stands at or above its start (in-battle recovery, or a restore above the net loss) still costs exactly the entry cost.]</summary>
     [Theory]
-    [InlineData(800L, 900L, 0L, 800_000L)]      // the battle ended above its start: no rise (round 1: 900,000)
-    [InlineData(1_000L, 900L, 0L, 700_000L)]    // it began above the campaign morale: its loss of 100 still applies
-    [InlineData(500L, 450L, 0L, 750_000L)]      // it began below: only its own loss of 50 applies (not a fall to 450,000)
-    [InlineData(800L, 790L, 20L, 800_000L)]     // the restore (40) exceeds the net loss (10): no rise (round 1: 830,000)
-    [InlineData(800L, 600L, 20L, 640_000L)]     // the by-hand case: 800 − 600 − 40 = 160 → 640,000
-    [InlineData(1_000L, 0L, 0L, 0L)]            // a loss of the whole scale from a higher start: floored at 0, not −200,000
+    [InlineData(800L, 900L, 0L, 750_000L)]      // the battle ended above its start: no rise (round 1: 900,000); [MOR2] the entry cost
+    [InlineData(1_000L, 900L, 0L, 650_000L)]    // it began above the campaign morale: its loss of 100 still applies; [MOR2] − 50,000
+    [InlineData(500L, 450L, 0L, 700_000L)]      // it began below: only its own loss of 50 applies (not a fall to 450,000); [MOR2] − 50,000
+    [InlineData(800L, 790L, 20L, 750_000L)]     // the restore (40) exceeds the net loss (10): no rise (round 1: 830,000); [MOR2] the entry cost
+    [InlineData(800L, 600L, 20L, 590_000L)]     // the by-hand case: 800 − 600 − 40 = 160 → 640,000; [MOR2] − 50,000
+    [InlineData(1_000L, 0L, 0L, 0L)]            // a loss of the whole scale from a higher start: floored at 0, not −200,000 ([MOR2] −250,000)
     public void Morale_ABattleLowersCampaignMoraleByItsNetLossOnly(long moraleStart, long moraleEnd, long medics, long expectedAfter)
     {
         long start = SupportRig.WarStart();

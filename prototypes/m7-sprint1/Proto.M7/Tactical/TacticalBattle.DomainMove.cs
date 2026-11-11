@@ -613,6 +613,7 @@ public sealed partial class TacticalBattle
                     e.RevealUntilMs = t + _dr.LandingExposureMs;
                     e.Moved = true; e.WantedMove = false;
                     e.LastStepMm = 0;                                      // [TR] verify-TR-r1 V13: a landing is not a run-up
+                    EnterIfPlaced(lf, t);                                  // [MOR2] D-083 DB1-R1 (a): the first landing is its entry
                     landed++;
                     if (first)
                     {

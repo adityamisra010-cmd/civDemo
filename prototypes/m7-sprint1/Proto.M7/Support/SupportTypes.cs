@@ -131,6 +131,20 @@ public sealed record SupportBattle(int ArmyId, long AtMs, CollapseInput Collapse
     /// <summary>[MOR] Persons of the winning side at the battle start, every army of it that took part; 0 = this army's own men at
     /// the battle (the one-army stand-in).</summary>
     public long WinnerSidePersons { get; init; }
+    /// <summary>[MOR2] D-083 DB1-R1 (a): the army's formation was placed on the battlefield (the battle report's
+    /// FormationResult.EnteredAtMs is set). Default true: every stand-in battle so far is one its army fought. An army whose formation
+    /// never reached the field (a reserve not committed; a formation that stayed aboard; an aircraft formation that never left its base)
+    /// pays no entry cost ~~, takes no DR29 decrease and no DA1 rise (it did not take part: DA1-R (a)); the stand-in then requires its end
+    /// morale to equal its start, no casualty and no in-battle charge~~. [MOR2, verification round 1, MOR2-R1-01, MOR2-R1-04: such a
+    /// formation can still lose men and morale in the battle (troops killed aboard their transport, lane N), so its army takes DR29's
+    /// decrease of what the battle cost it, and the stand-in accepts its losses and casualties; it takes no DA1 rise under READING
+    /// MOR2-R1 (a) ("took part" = entered the field; morale proposal §11.2), and the stand-in requires only that the battle charged it
+    /// nothing at an entry it never made.]</summary>
+    public bool Entered { get; init; } = true;
+    /// <summary>[MOR2] What the battle itself charged at the entry, on the battle scale (FormationResult.EntryCharged; 0 while the
+    /// in-battle part, TacticalRules.EntryMoraleCost, is off): DR29's decrease is measured from MoraleStart less this, so the entry
+    /// cost is counted once, by the settlement's own term (CampaignMorale.EntryPpm).</summary>
+    public long EntryChargedInBattle { get; init; }
 }
 
 // ------------------------------------------------------------------ serialized rows (SupportCodec; populated-table tests)

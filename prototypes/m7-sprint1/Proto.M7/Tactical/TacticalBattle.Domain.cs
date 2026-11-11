@@ -88,6 +88,10 @@ public sealed partial class TacticalBattle
         public long Morale; public bool Routed; public int Inactive; public bool StateChanged; public long CasualtiesPulse; public long KilledStep;
         public long DamageDealt, DamageTaken, Attacks;
         public int AccKilled, AccLost, AccCaptured, AccEscaped;
+        /// <summary>[MOR2, verification round 1, MOR2-R1-02] D-083 DB1-R1 (a): the instant the formation was first on the field (a
+        /// vessel formation: the battle's start; an aircraft formation: its first take-off); null while it has not been. Recorded
+        /// through <see cref="EntryMorale.Enter"/> at cost 0: vessels and aircraft are outside the in-battle charge.</summary>
+        public long? EnteredAtMs; public long EntryCharged;
     }
 
     private sealed class DKnow
@@ -348,6 +352,28 @@ public sealed partial class TacticalBattle
 
     private int FindDForm(long id) => Array.BinarySearch(_dfids, id);
     private int DIndex(long id) => Array.BinarySearch(_dids, id);
+
+    // ------------------------------------------------------------------ [MOR2, verification round 1, MOR2-R1-02] entry (D-083 DB1-R1 (a))
+
+    /// <summary>A vessel or aircraft formation enters the battle at <paramref name="t"/> if one of its entities is on the field (a vessel
+    /// that is present; an aircraft in the air, never one at its base: <see cref="DEnt.OnField"/>) and it has not entered yet: once per
+    /// formation per battle, through the function the land formations and the AutoResolver use, at cost 0 (vessels and aircraft are
+    /// outside the in-battle charge, as lane MOR's in-battle rule). READING MOR2-R2 (a) (morale proposal §11.2).</summary>
+    private void DomainEnterIfPlaced(DForm f, long t)
+    {
+        bool placed = false;
+        foreach (int i in f.Members) if (_d[i].OnField) { placed = true; break; }
+        if (placed) EntryMorale.Enter(0, t, f.Id, ref f.EnteredAtMs, ref f.Morale, ref f.EntryCharged, _entries);
+    }
+
+    /// <summary>Called at the end of construction: vessel formations are on the field from the battle's start; aircraft start at their
+    /// base and enter at their first take-off (<see cref="TakeOff"/>).</summary>
+    private void DomainEnterAtStart(long startMs)
+    {
+        foreach (var f in _df) DomainEnterIfPlaced(f, startMs);
+    }
+
+    private long? DomainEnteredAtMs(long formationId) => _df[FindDFormOrThrow(formationId)].EnteredAtMs;
 
     private bool DomainIsLive(EntityRef r)
     {
@@ -752,6 +778,7 @@ public sealed partial class TacticalBattle
         d.Gen = checked(d.Gen + 1);
         d.Primary = true;                       // bounded: at most Sorties take-offs per airframe
         d.BestEnemy = d.BestObj = d.BestEdge = -1;
+        DomainEnterIfPlaced(_df[d.F], t);       // [MOR2, verification round 1, MOR2-R1-02] the first take-off is the formation's entry
     }
 
     // ------------------------------------------------------------------ pulse start / view
@@ -926,8 +953,15 @@ public sealed partial class TacticalBattle
                     default: throw new InvalidOperationException("routing vessel/aircraft left after End");
                 }
             }
+            // [MOR2] D-083 DB1-R1 (a): vessel and aircraft formations are outside the in-battle entry charge, which is for land formations
+            // only (as lane MOR's in-battle rule): EntryCharged 0. A limitation, morale proposal §11.
+            // ~~They are reported as entered at the battle's start (they are part of the battle from its start; an aircraft's later
+            // sorties are not separate entries).~~ [MOR2, verification round 1, MOR2-R1-02: superseded. An aircraft at its base is not on
+            // the field (DEnt.OnField), so reporting it entered at the start charged its army the settlement's entry cost for a battle it
+            // never reached. Now each formation reports the instant it was first on the field: a vessel formation the battle's start, an
+            // aircraft formation its first take-off (a later sortie is no new entry), null when none of its airframes left its base.]
             var r = new FormationResult(f.Id, f.Side, f.Dom, f.Spec.Profile.FamilyKey, f.Start, act + esc, dead, sur, act, esc, resc, desc,
-                                        f.Morale, f.DamageDealt, f.DamageTaken, f.Attacks);
+                                        f.Morale, f.DamageDealt, f.DamageTaken, f.Attacks) { EnteredAtMs = f.EnteredAtMs };
             if (!r.Conserved) throw new InvalidOperationException($"conservation violated for formation {f.Id}");
             all.Add(r);
         }

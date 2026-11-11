@@ -248,6 +248,9 @@ public sealed class AutoBattle
         public int Order;
         public long Idle;                      // DIR5 hidden-stationary counter
         public Vec2L[] Objectives = Array.Empty<Vec2L>();
+        /// <summary>[MOR2] D-083 DB1: the instant the formation was placed on the field (every AutoResolver formation: the battle's
+        /// start, step 0) and what the entry charge took from its morale (<see cref="EntryMorale"/>, shared with the tactical engine).</summary>
+        public long? EnteredAtMs; public long EntryCharged;
         public long Alive => Start - Killed - Surrendered;
         public bool Fighting => !Routed && !Withdrawing && !Disengaged && Alive > 0;
         public bool OnField(long step) => Alive > 0 && !Routed && !Disengaged && (!Withdrawing || step < EscapeStep);
@@ -276,6 +279,8 @@ public sealed class AutoBattle
     // to formation j, at [i * n + j] (long.MinValue = never); null when the rule is off (coefficient 0: the exact identity).
     private readonly long[]? _lastHitStep;
     private readonly List<LocalWinRise> _localWins = new();
+    // [MOR2] D-083 DB1: every in-battle entry charge (empty while TacticalRules.EntryMoraleCost is 0).
+    private readonly List<EntryCharge> _entries = new();
     private readonly IncrementalHash _trace = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
     private readonly byte[] _buf = new byte[8];
     private long _steps;
@@ -361,6 +366,9 @@ public sealed class AutoBattle
             _lastHitStep = new long[checked(_f.Length * _f.Length)];
             Array.Fill(_lastHitStep, long.MinValue);
         }
+        // [MOR2] D-083 DB1-R1 (a): every AutoResolver formation is on the field from the battle's start (the model refuses formations
+        // that start aboard a transport), so each enters at StartMs, step 0, through the function the tactical engine shares.
+        foreach (var f in _f) EntryMorale.Enter(_r.EntryMoraleCost, _s.StartMs, f.Id, ref f.EnteredAtMs, ref f.Morale, ref f.EntryCharged, _entries);
     }
 
     /// <summary>Per-step decision log (off by default: the battery runs thousands of auto battles).</summary>
@@ -369,6 +377,8 @@ public sealed class AutoBattle
     /// <summary>[MOR] Every "fight it won" rise, in execution order (empty while TacticalRules.LocalWinMoraleRise is 0). AtMs is the
     /// step's instant on the battle timeline (StartMs + step × StepMs), as in the tactical engine.</summary>
     public IReadOnlyList<LocalWinRise> LocalWinRises => _localWins;
+    /// <summary>[MOR2] Every in-battle entry charge, in execution order (empty while TacticalRules.EntryMoraleCost is 0).</summary>
+    public IReadOnlyList<EntryCharge> EntryCharges => _entries;
     /// <summary>[P] Model 2: the terrain terms of every attack (only when <see cref="RecordLog"/>).</summary>
     public IReadOnlyList<AutoTerrainTerms> TerrainTerms => _terms;
     /// <summary>[P fix r1] Model 2: every detection draw (only when <see cref="RecordLog"/>).</summary>
@@ -768,6 +778,9 @@ public sealed class AutoBattle
                         {
                             pending[m] = checked(pending[m] + dr); f.DealtMilli += dr; f.Attacks += shots;
                             target[i] = m; mode[i] |= 2; Fired(f, k);
+                            // [MOR2] Redundant by construction, kept to state the intent: in contact both formations fight, so engaged >= 1
+                            // (Share >= 1), the melee above dealt dm >= 1 and already recorded k in this very cell. The round-2 verifier's mutant
+                            // H1 (this line dropped) and lane MOR2's A1 (the melee's dm > 0 guard dropped) are equivalent (reports/H-MOR2.md §6-7).
                             if (_lastHitStep is not null) _lastHitStep[i * _f.Length + m] = k;            // [MOR]
                         }
                     }
@@ -1180,7 +1193,8 @@ public sealed class AutoBattle
             long desc = f.Disengaged ? esc : 0;
             if (act > 0) { if (f.Side == 0) any0 = true; else any1 = true; }
             fr[i] = new FormationResult(f.Id, f.Side, f.Spec.Domain, f.P.FamilyKey, f.Start, act + esc, f.Killed, f.Surrendered,
-                                        act, esc, resc, desc, f.Morale, f.DealtMilli / 1000, f.TakenMilli / 1000, f.Attacks);
+                                        act, esc, resc, desc, f.Morale, f.DealtMilli / 1000, f.TakenMilli / 1000, f.Attacks)
+                    { EnteredAtMs = f.EnteredAtMs, EntryCharged = f.EntryCharged };                       // [MOR2] D-083 DB1
             if (!fr[i].Conserved) throw new InvalidOperationException($"conservation violated for formation {f.Id}");
         }
         int holds = any0 && !any1 ? 0 : any1 && !any0 ? 1 : -1;
@@ -1200,6 +1214,11 @@ public sealed class AutoBattle
         {
             S(_lastHitStep.Length); foreach (long v in _lastHitStep) S(v);
             S(_localWins.Count); foreach (var x in _localWins) { S(x.AtMs); S(x.FormationId); S(x.BrokenFormationId); S(x.Rise); }
+        }
+        if (_r.EntryMoraleCost > 0)               // [MOR2] appended only when the in-battle entry cost is on (identity at 0)
+        {
+            foreach (var f in _f) { S(f.EnteredAtMs ?? long.MinValue); S(f.EntryCharged); }
+            S(_entries.Count); foreach (var x in _entries) { S(x.AtMs); S(x.FormationId); S(x.Before); S(x.Charged); }
         }
         // [AP] D-082 DA6 / DA7 (DA6-R: "The rule is applied to the AutoResolver"): the reported winner, from the end reason and the
         // setup's roles, through the function the TacticalResolver calls too (EqualSides). The battle itself is unchanged.

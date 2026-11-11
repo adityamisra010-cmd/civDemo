@@ -15,11 +15,20 @@ public sealed record MoraleRates
     /// morale by floor(VictoryRiseMaxPpm × B ÷ (B + W)), half of it for an equal force. PROPOSAL (morale proposal §4.2).</summary>
     public long VictoryRiseMaxPpm { get; init; } = 400_000;
 
+    /// <summary>[MOR2] D-083 DB1 ("Entering a battle costs morale, with or without casualties"): what an army's campaign morale pays
+    /// for each battle its formation entered (DB1-R1 (a): placed on the field; DB1-R2 (a): once per battle), micro units, as its own
+    /// settlement term beside DR29's decrease and DA1's rise (DB1-R3 (a)). PROPOSAL (morale proposal §11.4): 50,000 = what a fed, paid,
+    /// loyal army recovers in 30 days at lane E's 600 ‰ per sim-year; an eighth of the largest rise, a quarter of the rise for beating
+    /// an equal force, so a lossless win over a force smaller than a seventh of the winning side nets a loss. On the battle scale
+    /// (MoraleMax 1,000) it is 50, the in-battle part's PROPOSAL value (TacticalRules.EntryMoraleCost, 0 by default).</summary>
+    public long EntryCostPpm { get; init; } = 50_000;
+
     public static MoraleRates Proposal() => new();
 
     public void Validate()
     {
         if (VictoryRiseMaxPpm < 0 || VictoryRiseMaxPpm > CampaignMorale.ScalePpm) throw new ArgumentOutOfRangeException(nameof(VictoryRiseMaxPpm));
+        if (EntryCostPpm < 0 || EntryCostPpm > CampaignMorale.ScalePpm) throw new ArgumentOutOfRangeException(nameof(EntryCostPpm));   // [MOR2]
     }
 }
 
@@ -36,10 +45,39 @@ public sealed record MoraleRates
 /// its own battle morale, which a rout leaves below the rout threshold, and in lane W's desertion of its routed men.
 /// The rise is a change of the stock, never a standing modifier (Law 2): lane E's pulse-end dynamics then move the stock toward
 /// its baseline at per-sim-year rates over the exact pulse length (Law 3) — the recovery from below, the decay of an excess above.
+/// [MOR2, D-083 DB1] A third term, the ENTRY cost, for every army whose formation entered the battle (DB1-R1 (a)), once per battle
+/// (DB1-R2 (a)), beside the other two (DB1-R3 (a)); DR29's decrease is then measured from the start less what the battle itself
+/// charged at the entry (TacticalRules.EntryMoraleCost; 0 by default), so the cost is counted once and reaches the campaign exactly
+/// whatever the in-battle recovery did (morale proposal §11.3):
+/// <code>
+///   entry    = entered ? EntryCostPpm : 0                                       DB1, every army that took part
+///   decrease = floor(max(0, (start − entryInBattle) − end − restore) × 1,000,000 ÷ MoraleMax)
+///   rise     = won ∧ entered ? floor(VictoryRiseMaxPpm × B ÷ (B + W)) : 0        DA1 (DA1-R (a): the formations that took part)
+///   after    = clamp(before − entry − decrease + rise, 0, 1,000,000)            one clamp over the three terms
+/// </code>
+/// [MOR2, verification round 1, MOR2-R1-01, MOR2-R1-04] "won ∧ entered" applies READING MOR2-R1 (a) ("took part" in DA1-R (a) =
+/// entered the field; alternative (b): entered, or engaged without reaching it). The decrease applies whether or not the formation
+/// entered: a formation that never reached the field can still lose men and morale (troops killed aboard their transport).
 /// </summary>
 public static class CampaignMorale
 {
     public const long ScalePpm = 1_000_000;
+
+    /// <summary>[MOR2] D-083 DB1: the entry term of an army's settlement — the campaign cost for a battle its formation entered
+    /// (placed on the field, DB1-R1 (a)), 0 for one it never entered. Whatever the battle did: it does not depend on the casualties,
+    /// the end morale or the in-battle recovery (D-083 §4: the cost must reach the army's campaign morale exactly).</summary>
+    public static long EntryPpm(bool entered, MoraleRates r) => entered ? r.EntryCostPpm : 0;
+
+    /// <summary>[MOR2] The battle-scale image of a campaign entry cost, floor(costPpm × MoraleMax ÷ 1,000,000) ~~: the value the M7.15
+    /// hand-off would set as TacticalRules.EntryMoraleCost when the in-battle part is switched on~~ (50 for 50,000 at MoraleMax 1,000).
+    /// [MOR2, verification round 1, MOR2-R1-11] It derives the value the in-battle part's switch-on writes into TacticalRules'
+    /// DEFAULT EntryMoraleCost (one value for the campaign's battles and the War Sandbox, DR30); the hand-off does not set it per battle
+    /// (it may check that a battle's rules carry this image of the campaign's EntryCostPpm). Morale proposal §11.7.</summary>
+    public static long EntryBattleScale(long costPpm, long moraleMax)
+    {
+        if (costPpm < 0 || costPpm > ScalePpm || moraleMax <= 0) throw new ArgumentOutOfRangeException(nameof(costPpm));
+        return (long)((Int128)costPpm * moraleMax / ScalePpm);
+    }
 
     /// <summary>DR29: the battle's net morale loss on the battle scale (start − end), less the medical restore, never below zero,
     /// mapped to micro units (floor). Lane D's rule (verification round 2, D-R2-01), unchanged: the in-battle recovery can lift a
@@ -62,11 +100,13 @@ public static class CampaignMorale
         return (long)((Int128)r.VictoryRiseMaxPpm * beatenPersons / ((Int128)beatenPersons + winnerSidePersons));
     }
 
-    /// <summary>The campaign morale after the battle: one clamp to the scale over the sum of both terms.</summary>
-    public static long After(long beforePpm, long decreasePpm, long risePpm)
+    /// <summary>The campaign morale after the battle: one clamp to the scale over the sum of the terms. [MOR2] With D-083 DB1's entry
+    /// term <paramref name="entryPpm"/> (0 = lane MOR's two-term settlement exactly): clamp(before − entry − decrease + rise, 0, 1,000,000),
+    /// so the three terms have no order.</summary>
+    public static long After(long beforePpm, long decreasePpm, long risePpm, long entryPpm = 0)
     {
-        if (beforePpm < 0 || beforePpm > ScalePpm || decreasePpm < 0 || risePpm < 0) throw new ArgumentOutOfRangeException(nameof(beforePpm));
-        return Math.Clamp(beforePpm - decreasePpm + risePpm, 0, ScalePpm);
+        if (beforePpm < 0 || beforePpm > ScalePpm || decreasePpm < 0 || risePpm < 0 || entryPpm < 0) throw new ArgumentOutOfRangeException(nameof(beforePpm));
+        return Math.Clamp(beforePpm - entryPpm - decreasePpm + risePpm, 0, ScalePpm);
     }
 
     /// <summary>The campaign → battle hand-off (M7.15; proposal §5): a formation enters a battle at its army's campaign morale on the
