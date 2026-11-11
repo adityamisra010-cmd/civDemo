@@ -26,3 +26,5 @@
 2026-11-11T10:02:31Z USER: 'actually, go full power now' + 'i have a reset, i'll use it in a while' -> no throttle: launch MOR3, RR, RT in parallel with G2 seg3 (Sim full suites under flock /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/fullsuite.lock); G2 final right after seg3; report last.
 2026-11-11T10:03:37Z full power: MOR3, RR, RT launched alongside G2 seg3 (4 agents)
 2026-11-11T10:13:48Z G2 seg3 pushed 94fa0dc+09cbc9d; G2 final running (wjyo68260); WIP bundles retired
+2026-11-11T11:08:51Z more capacity: verify-final-rounds + report draft launched (up to 7 agents)
+2026-11-11T11:12:46Z WIP checkpoint: MOR3 1dd1fee, RR 0a631db, RT 91e6b64 bundles; G2 scenes 3215c41 patch

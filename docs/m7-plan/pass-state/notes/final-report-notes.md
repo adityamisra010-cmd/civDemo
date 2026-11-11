@@ -143,3 +143,7 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 - int3: trunk 21a181e = kit ff + merge 2981aec (render2) + fix 21a181e (kit items write object motion for TAA); one non-trivial conflict CharRenderer.Prepare (both kept). Release 276/0/0, Debug 276/0/0. Perf (llvmpipe): scene C p50 799 ms; kit-forces p50 1,436 ms 617 draws 4.77M tris; crowd-formation p50 755 ms. Perf slots A-E still G1 stand-ins.
 - Integrator (in progress): /home/user/int/g2s3; trees T1 (DEV 51ab032 + kit gfx2 19fa0af9) = 12b695e5, T2 (+ trunk gfx2 ea87bc3e) = b2388bc7; nothing outside gfx2; check-gfx-determinism OK; links 480/0; diff --check clean; 98 files +13,424/-41, 11 binary (images 1.61 MB); no reference names in code. Release build/test running (bbmu9y417).
 - G2 final launched immediately: wjyo68260 (resume wf_d6eb0226-44e, args {base:'1601c74'}).
+
+## Extra capacity (Director 2026-11-11: "go full power, we have more tokens now")
+- Added in parallel: verify-final-rounds wf60jlw23 (wf_9b24d7c6-337): independent verifiers (findings only) for the unverified final rounds of lanes U 3b04387, D 1b33be7, MOR c7ca927, AP aa97af7, MOR2 29400fa, CB 1b833e0 (2 at a time); pass-report-draft wwylgpelo (wf_2a771902-a97): draft -> critic -> revise into scratchpad m7c/report/ (report.md), placeholders for G2 final, MOR3, RR, RT, final-round verification.
+- Running total: G2 final, MOR3, RR, RT, verify-final-rounds (x2 concurrent), report draft.

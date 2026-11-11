@@ -54,6 +54,13 @@ trunk is lost, recreate it from this branch: a new `g2/trunk` whose `prototypes/
 subtree, `ea87bc3e`), then resume with `"from": "final"`. Lanes keep WIP bundles in the scratchpad (`m7c/bundles/<KEY>-wip.bundle`);
 the two-hourly checkpoint copies them here.
 
+**Checkpoint 2026-11-11 11:12 UTC** (in [wip/](wip/)):
+- `MOR3-wip.bundle` (head 1dd1fee), `RR-wip.bundle` (0a631db) and `RT-wip.bundle` (91e6b64) are lane commits after `51ab032`.
+  Restore with `git clone -b lane/<KEY> wip/<KEY>-wip.bundle /home/user/m7w/<KEY>` after fetching this branch; uncommitted
+  edits are not included.
+- `g2-scenes-3215c41.patch` is the G2 final scenes stage's committed work since trunk `21a181e`, as a binary patch of
+  `prototypes/m7-gfx2`. It applies onto this branch's subtree; `git apply --check` passed.
+
 ## 3. Queue after the items in flight
 
 1. As each item in §2 finishes, the orchestrator verifies it (§4 step 2, or the G2 subtree method), commits, pushes, and
