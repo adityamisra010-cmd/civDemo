@@ -28,3 +28,4 @@
 2026-11-11T10:13:48Z G2 seg3 pushed 94fa0dc+09cbc9d; G2 final running (wjyo68260); WIP bundles retired
 2026-11-11T11:08:51Z more capacity: verify-final-rounds + report draft launched (up to 7 agents)
 2026-11-11T11:12:46Z WIP checkpoint: MOR3 1dd1fee, RR 0a631db, RT 91e6b64 bundles; G2 scenes 3215c41 patch
+2026-11-11T11:35:51Z USER: 'throttle all work by 80%' -> one agent (MOR3); stopped RR, RT, G2 final, verify-final-rounds, report draft; resume order RT -> RR -> G2 final -> verify -> report

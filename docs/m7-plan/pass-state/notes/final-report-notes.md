@@ -147,3 +147,8 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 ## Extra capacity (Director 2026-11-11: "go full power, we have more tokens now")
 - Added in parallel: verify-final-rounds wf60jlw23 (wf_9b24d7c6-337): independent verifiers (findings only) for the unverified final rounds of lanes U 3b04387, D 1b33be7, MOR c7ca927, AP aa97af7, MOR2 29400fa, CB 1b833e0 (2 at a time); pass-report-draft wwylgpelo (wf_2a771902-a97): draft -> critic -> revise into scratchpad m7c/report/ (report.md), placeholders for G2 final, MOR3, RR, RT, final-round verification.
 - Running total: G2 final, MOR3, RR, RT, verify-final-rounds (x2 concurrent), report draft.
+
+## Throttle (Director 2026-11-11 ~11:20Z: "throttle all work by 80%")
+- Stopped: RR wslx801jk (wf_b1a17355-cee), RT whfj4d6w0 (wf_2aee7a53-1fc), G2 final wjyo68260 (wf_d6eb0226-44e), verify-final-rounds wf60jlw23 (wf_9b24d7c6-337), report draft wwylgpelo (wf_2a771902-a97). Kept: MOR3 wpa2grxu2 (one agent at a time).
+- Resume order: MOR3 -> RT -> RR -> G2 final -> verify-final-rounds (one at a time) -> report draft -> final report.
+- Left running (no tokens): RR's orphaned Sim.Tests Release full suite under flock (pid 27036, ~58 min in at stop).

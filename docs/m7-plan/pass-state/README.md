@@ -39,20 +39,22 @@ Supporting material committed with this README:
 
 ## 2. In flight
 
-Full power since 2026-11-11 ~09:10 UTC (Director: "go full power now"). Four workflows run at once; Tier-3 full suites of the
-two `Sim.*` lanes are serialized by `flock` on the scratchpad's `m7c/fullsuite.lock`.
+**Throttled to one agent at a time** (Director, 2026-11-11 ~11:20 UTC: "throttle all work by 80%"). Running: lane MOR3
+(`wf_edd83092-8a1`, base `51ab032`, [args/MOR3.json](args/MOR3.json)).
 
-| Item | Workflow run | Base | Brief |
+**Paused**, in this order of resumption (each with `resumeFromRunId`: finished agents replay from cache, and the interrupted
+agent restarts and continues from its clone):
+
+| # | Item | Workflow run | Script and args |
 |---|---|---|---|
-| G2 final: scenes A–E, critic loop, verify, AFTER package, visual review | `wf_d6eb0226-44e` (resume, args `{"base": "1601c74"}`) | trunk `21a181e` | [workflows/m7-g2-v2.js](workflows/m7-g2-v2.js) |
-| Lane MOR3 (D-085) | `wf_edd83092-8a1` | `51ab032` | [args/MOR3.json](args/MOR3.json) |
-| Lane RR (D-086) | `wf_b1a17355-cee` (Sim variant) | `51ab032` | [args/RR.json](args/RR.json) |
-| Lane RT (D-084) | `wf_2aee7a53-1fc` (Sim variant) | `51ab032` | [args/RT.json](args/RT.json) |
+| 1 | Lane RT (D-084): fixes done, validation running when paused | `wf_2aee7a53-1fc` | `m7-lanes-v2-sim.js`, [args/RT.json](args/RT.json) |
+| 2 | Lane RR (D-086): research rows and responsive close in progress | `wf_b1a17355-cee` | `m7-lanes-v2-sim.js`, [args/RR.json](args/RR.json) |
+| 3 | G2 final: scenes A–E built, captures in progress | `wf_d6eb0226-44e` | `m7-g2-v2.js`, args `{"base": "1601c74"}` |
+| 4 | Final-round verification of lanes U, D, MOR, AP, MOR2, CB (findings only) | `wf_9b24d7c6-337` | `verify-final-rounds` (run its lanes one at a time) |
+| 5 | Report draft | `wf_2a771902-a97` | `pass-report-draft` |
 
-G2 segment 3 is on this branch (`94fa0dc` kit, `09cbc9d` render2 merged with it); its WIP bundles were retired. If the G2
-trunk is lost, recreate it from this branch: a new `g2/trunk` whose `prototypes/m7-gfx2` equals this branch's (trunk `21a181e`'s
-subtree, `ea87bc3e`), then resume with `"from": "final"`. Lanes keep WIP bundles in the scratchpad (`m7c/bundles/<KEY>-wip.bundle`);
-the two-hourly checkpoint copies them here.
+An orphaned full test suite from lane RR (`Sim.Tests`, Release, under the full-suite lock) was left to finish: it costs no
+agent tokens, and its results can save the resumed lane a re-run.
 
 **Checkpoint 2026-11-11 11:12 UTC** (in [wip/](wip/)):
 - `MOR3-wip.bundle` (head 1dd1fee), `RR-wip.bundle` (0a631db) and `RT-wip.bundle` (91e6b64) are lane commits after `51ab032`.
