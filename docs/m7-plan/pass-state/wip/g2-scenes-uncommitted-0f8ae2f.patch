@@ -1,0 +1,323 @@
+diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneE.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneE.cs
+index 0268f8c..13a696e 100644
+--- a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneE.cs
++++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneE.cs
+@@ -83,6 +83,15 @@ public sealed class BenchEnvironmentScene : BenchSceneBase
+         var shots = new List<CaptureShot>();
+         foreach (var (name, hour) in BenchHours.All)
+             shots.Add(new CaptureShot("vista-" + name, new CameraPose(vista, aim, fov, 0.5f, 40000f), hour, 3f));
++        // the whole campaign ground from high above: the village with the river beside it, the fields and the forest, the
++        // stronghold on its high ground; 360 m up, 420 m out across the line between the settlements, on the side of the
++        // river, looking at their midpoint (turned up to 40 degrees to the clearest view)
++        var axis = Vector2.Normalize(f.Centre - v.Centre); var across = new Vector2(-axis.Y, axis.X);
++        var riverNear = NearestWater(v.Centre);
++        if (riverNear is { } rn && Vector2.Dot(rn - v.Centre, across) < 0) across = -across;
++        var hTarget = G(mid, 0f);
++        var hEye = ClearEye(G(mid + across * 420f, 360f), hTarget, 0.8f, 40f);
++        shots.Add(new CaptureShot("vista-high", new CameraPose(hEye, hTarget, 0.8f, 1f, 40000f), BenchHours.Noon, 3f));
+         // the settlement from 110 m out of its gate, 32 m up; the fortification from 75 m out of its gate, 24 m up
+         var vEye = ClearEye(G(v.Centre + Vector2.Normalize(v.Gate - v.Centre) * 110f, 32f), G(v.Centre, 2f), 0.75f);
+         shots.Add(new CaptureShot("settlement", new CameraPose(vEye, G(v.Centre, 2f), 0.75f, 0.3f, 40000f), BenchHours.Golden, 3f));
+diff --git a/prototypes/m7-gfx2/reports/scenes.md b/prototypes/m7-gfx2/reports/scenes.md
+index 7075296..50544ac 100644
+--- a/prototypes/m7-gfx2/reports/scenes.md
++++ b/prototypes/m7-gfx2/reports/scenes.md
+@@ -126,20 +126,98 @@ benchmark scenes, says that they are not production quality and that CMU motion
+ 
+ ## 10. What still looks placeholder
+ 
+-{{PLACEHOLDER}}
++Plainly: none of this is production quality. The scenes are a big step from G1's placeholder art (the sheets of §5),
++and what still looks placeholder is:
++
++- **Motion.** Every character in A–D moves by the stage-chars CMU retargets (PROTOTYPE-ONLY) plus the stage-kit
++  authored clips (guard, thrust, cuts, block, hit, deaths, surrender, victory). Crowd soldiers play one clip or a
++  blend of two; there is no foot IK on slopes and no collision, so at the contact line spears pass through shields
++  and bodies. Formations in B only idle.
++- **Close-ups (A, D).** Faces are the stage-chars MakeHuman identities: skin from a 512-texel albedo with procedural
++  detail, a painted hair cap with shells and cards, simple mouth interiors. At the closest framings the skin is smooth
++  and the hair reads as a cap. Expressions are blends of a few face pose units.
++- **Crowds (B, C, D).** Beyond a few metres soldiers are the outfits' reduced meshes (render2's levels); at vista
++  distance a formation is a field of small silhouettes. All 2,100 soldiers of C are heavy infantry with spears or
++  swords: the battle has no missile troops or cavalry, and kits are four per force by formation. The era mixes: scene
++  A is a Classical hoplite line, B–D a medieval kit.
++- **The aftermath (D).** Smoke and dust are soft billboards, not volumes; at a distance a plume reads as a few soft
++  balls. Dead soldiers lie in ground cover that partly hides them; there is no trampled ground, no blood, no wreckage
++  beyond dropped shields. The victors' soldiers whom the trace records as Surrendered kneel like the defeated (the
++  literal reading of the trace). The hero pair's two-shot is busy with soldiers standing between.
++- **Settlements (E).** The stronghold is the env structure kit's walls, towers and houses (tiling stone, plaster and
++  tile materials), on a bare cleared glacis; the village huts are simple cones; nobody lives in either (no people,
++  animals, hearth smoke). Beyond the 1 km map the land is the render1 far field (a flat plane and a band of hills).
++- **Weather.** Rain is thin camera-facing streaks (no splashes, drips or wet-darkened cloth that changes over time);
++  puddles appear only on level terrain; the overcast sky is a uniform blend, not clouds; mist is a height fog with no
++  light shafts; trees sway the same in every weather.
++- **Shadows** at low sun show cascade acne bands on smooth ground in single interactive frames (render1's cascades;
++  accumulated stills average them out).
+ 
+ ## 11. Limitations and risks
+ 
+-{{LIMITS}}
++- **No hardware evidence.** Every number is llvmpipe on a shared, heavily loaded machine; only the Victus run measures
++  these scenes on the reference GPU. Loads of 70–90 s here are mostly the tree impostor bake on the CPU rasterizer.
++- **The battle adapter is a prototype choice.** The grid downscale, the village as Building cells, the site search and
++  the deployment are this tool's, not a ruled design; a different seed or site gives a different battle. The resolver
++  ran unmodified, so the battle shows what the prototype resolver does today (for example 151 soldiers of the winning
++  side end the battle Surrendered).
++- **`G2BT` is a prototype format** for this presentation's traces, not a save or replay format.
++- **Scene D's binding.** Slot D measures the Shown state (the upper bound); the product default of the death-content
++  setting is open (D-079 Q12) and nothing here decides it.
++- **CMU motion** is PROTOTYPE-ONLY: every capture of A–D says so; shipping needs authored or licensed motion.
++- **Weather is a look**, never read by any simulation, and it is not tied to any campaign weather state.
++- **Era mix and content gaps** (no ranged or mounted troops in C) limit what the benchmark exercises: archery volleys,
++  horses and siege engines are not measured.
+ 
+ ## 12. Sim/presentation boundary
+ 
+-{{BOUNDARY}}
++- **No simulation code changed.** `git diff 21a181e -- prototypes/m7-sprint1` is empty; the exporter references
++  `Proto.M7` read-only and drives the resolver only through its public surface. Nothing outside `prototypes/m7-gfx2`
++  changed, and G1 is untouched (`git diff 1601c74 -- prototypes/m7-gfx1` is empty).
++- **Presentation reads, never writes.** The scenes read the authoritative grid and the battle trace; `BattleTrace` has
++  no mutators and a test updates the trace-driven crowd at three snapshot times and checks the trace hashes the same
++  afterwards (§8). Weather, time of day, smoke, the aftermath plan and every camera are presentation only (DR42); the
++  hero characters of scene D take two trace soldiers' positions and states and nothing else (DR39, DR42).
++- **Rendering does not feed back.** No value computed by the renderer reaches the trace, the grid or the exporter; the
++  exporter's only inputs are the fixture grid, the village plan (a presentation plan, entering as Building cells: the
++  PROTOTYPE ADAPTER) and its own constants.
++- **Determinism.** `scripts/check-gfx-determinism.sh` (integer-only scan of `Gfx.Proc/Authoritative`): OK, 4 files.
++  The exporter is integer-only; its output is reproducible ({{EXPORTCHECK}}). Smoke puffs and rain streaks are pure
++  functions of their index and the scene time; the aftermath and vantage solvers use integer costs with a fixed
++  candidate order.
+ 
+ ## 13. Files
+ 
+-{{FILES}}
++| Path | What |
++|---|---|
++| `Gfx.Demo/Scenes/Bench/BenchBase.cs` | Hours, the hero cast, the scenes' base (env battlefield, weather, rain layer), the tree-aware vantage search (`SightCost`, `ShotCost`, `ClearEye`) |
++| `Gfx.Demo/Scenes/Bench/SceneA.cs` … `SceneE.cs` | The five scenes (`bench-a` … `bench-e`; scene D's two registered states and `AftermathPlan`) |
++| `Gfx.Demo/Scenes/Bench/TraceCrowd.cs` | `BenchBattle` (the exported trace and its header) and the trace-driven crowd |
++| `Gfx.Units/BattleTrace.cs` | Header fields (`FrameJson`, `ResultJson`), the compact binary form (`WriteBinary`, `ParseBinary`), `Load` for either form |
++| `Gfx.Engine/Rendering/RenderSettings.cs`, `RenderContext.cs`, `ForwardRenderer.cs`, `Lighting/SceneLighting.cs`, `Effects/GlslLib.cs` | Weather switches and presets, the `Weather` uniform, mist fog and haze, cloud in the sky table and the sun, wet shading |
++| `Gfx.Engine/Rendering/RainLayer.cs`, `SmokeLayer.cs` | Rain streaks, smoke and dust |
++| `Gfx.Chars/Rendering/CharEffects.cs`, `Gfx.Proc/Environment/EnvGlsl.cs`, `Gfx.Proc/Presentation/G2TerrainEffects.cs` | Wet skin, cloth and kit; wet foliage; terrain puddles |
++| `Gfx.Proc/Environment/Structures/Settlements.cs` | `Stronghold`: a stone stronghold plan built with the env structure kit |
++| `Gfx.Proc/Environment/EnvironmentScenery.cs`, `EnvironmentScenes.cs` | Tree-only exclusions for scenes (armies, glacis); transparent pass hooks |
++| `Gfx.Engine/Scene/DemoScene.cs`, `Gfx.Perf/Scenes/SlotBindings.cs`, `CameraPaths.cs`, `Runtime/PerfSession.cs`, `PerfOptions.cs` | Slots A–E bound to the benchmark scenes, `--bind g1`, crowd-sized and camera-path scenes |
++| `tools/traceexport/`, `scripts/export-battle-trace.sh` | The battle export (outside the solution) |
++| `scripts/capture-scenes.sh` | The canonical capture set of §5 |
++| `Gfx.Tests/ScenesTests.cs`, `Gfx.Tests/PerfTests.cs` | Tests (§8); the harness tests now bind the G1 stand-ins |
++| `assets/PROVENANCE.md` §3.13, `README.md` | Provenance rows and the stage's README section |
+ 
+ ## 14. Reproduce
+ 
+-{{REPRO}}
++```
++./scripts/bootstrap.sh                                   # repository root: the .NET 10 SDK
++cd prototypes/m7-gfx2
++scripts/bake-render1.sh; scripts/bake-env.sh; scripts/bake-chars.sh; scripts/bake-kit-outfits.sh; scripts/bake-crowd.sh
++scripts/export-battle-trace.sh                           # the battle of scenes C and D (--check: compare with the manifest)
++DOTNET_CLI_USE_MSBUILD_SERVER=0 nice -n 19 dotnet build M7Gfx2.slnx -c Release -m:1 -nodeReuse:false
++scripts/capture-scenes.sh OUT_DIR                        # §5 (1920x1080, 8 samples; about {{CAPTIME}} here)
++SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --suite smoke --out DIR
++dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --bench bench-c --shot clash-noon --variants "g2;weather=rain;weather=mist" --size 1280x720
++```
++
++G1's captures for the comparison sheets: build `prototypes/m7-gfx1/M7Gfx.slnx` (here from a copy of the folder, so the
++tree is untouched) and run its `Gfx.Demo --capture <scene> --size 1920x1080` for `units-closeup`, `avatar-turntable`,
++`units-wide5k`, `units-clash`, `battlefield`, `battlefield-cine`, `cine-surrender` and `terrain-temperate`.
+diff --git a/prototypes/m7-gfx2/scripts/bench-scenes.sh b/prototypes/m7-gfx2/scripts/bench-scenes.sh
+new file mode 100755
+index 0000000..f84447f
+--- /dev/null
++++ b/prototypes/m7-gfx2/scripts/bench-scenes.sh
+@@ -0,0 +1,26 @@
++#!/usr/bin/env bash
++# llvmpipe costs of stage scenes (NOT Victus evidence): the harness's smoke suite on the benchmark scenes A-E and on the
++# perf stage's G1 stand-ins (the same slots and output layout), then the weather looks on scenes B and C (one load each,
++# the variants rendered in turn on the loaded scene).
++#
++# Usage: scripts/bench-scenes.sh OUT_DIR
++# Needs a Release build of M7Gfx2.slnx, the bakes of scripts/capture-scenes.sh and the battle trace.
++set -euo pipefail
++here="$(cd "$(dirname "$0")" && pwd)"
++out="${1:?usage: bench-scenes.sh OUT_DIR}"
++demo="$here/../Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll"
++[ -f "$demo" ] || { echo "bench-scenes: build Release first ($demo)" >&2; exit 2; }
++export SDL_VIDEODRIVER="${SDL_VIDEODRIVER:-offscreen}" LIBGL_ALWAYS_SOFTWARE="${LIBGL_ALWAYS_SOFTWARE:-1}"
++mkdir -p "$out"
++run() { # name args...
++  local name=$1; shift
++  echo "== $name: $* (load: $(cut -d' ' -f1-3 /proc/loadavg))"
++  local t0; t0=$(date +%s)
++  nice -n 10 dotnet "$demo" "$@" > "$out/$name.log" 2>&1
++  echo "   $(( $(date +%s) - t0 )) s (load: $(cut -d' ' -f1-3 /proc/loadavg))"
++}
++run smoke-bench --suite smoke --out "$out/smoke-bench"
++run smoke-g1 --suite smoke --bind g1 --out "$out/smoke-g1"
++run weather-b --bench bench-b --shot wide-noon --size 1280x720 --frames 10 --variants "g2;weather=overcast;weather=mist;weather=rain"
++run weather-c --bench bench-c --shot clash-noon --size 1280x720 --frames 10 --variants "g2;weather=overcast;weather=mist;weather=rain"
++echo "bench-scenes: done ($out)"
+diff --git a/prototypes/m7-gfx2/scripts/review-sheets-scenes.py b/prototypes/m7-gfx2/scripts/review-sheets-scenes.py
+new file mode 100644
+index 0000000..9ee90dd
+--- /dev/null
++++ b/prototypes/m7-gfx2/scripts/review-sheets-scenes.py
+@@ -0,0 +1,157 @@
++#!/usr/bin/env python3
++"""Review sheets of stage scenes: G1-vs-G2 side-by-side sheets per scene (full size, for the scratchpad) and two small
++review JPEGs for reports/captures/scenes (the committed budget is small).
++
++Usage: review-sheets-scenes.py G2_DIR G1_DIR SHEETS_DIR REVIEW_DIR
++  G2_DIR: the output of scripts/capture-scenes.sh; G1_DIR: G1's own captures (one folder per G1 scene).
++Every legend says: llvmpipe, not Victus evidence; scenes A-D also: CMU motion PROTOTYPE-ONLY in frame.
++"""
++import os
++import sys
++from PIL import Image, ImageDraw
++
++G2, G1, SHEETS, REVIEW = sys.argv[1:5]
++LLVM = "llvmpipe, not Victus evidence"
++CMU = "CMU motion (PROTOTYPE-ONLY) in frame"
++
++
++def g1(scene, shot):
++    return os.path.join(G1, scene, f"{scene}-{shot}.png")
++
++
++def g2(folder, scene, shot):
++    return os.path.join(G2, folder, f"{scene}-{shot}.png")
++
++
++def load(path, size):
++    if path is None or not os.path.exists(path):
++        im = Image.new("RGB", size, (40, 40, 40))
++        ImageDraw.Draw(im).text((8, 8), "(no capture)" if path is None else "missing: " + os.path.basename(path), fill=(220, 220, 220))
++        return im
++    return Image.open(path).convert("RGB").resize(size, Image.LANCZOS)
++
++
++def label(draw, xy, text, w):
++    x, y = xy
++    draw.rectangle([x, y, x + w, y + 13], fill=(0, 0, 0))
++    draw.text((x + 3, y + 1), text, fill=(235, 235, 235))
++
++
++def sheet(title, legend, rows, out, cell=(800, 450), quality=88):
++    """rows: list of (left_label, left_path, right_label, right_path)."""
++    w, h = cell
++    head = 34
++    img = Image.new("RGB", (2 * w + 6, head + len(rows) * (h + 4)), (16, 16, 16))
++    d = ImageDraw.Draw(img)
++    d.text((6, 4), title, fill=(255, 255, 255))
++    d.text((6, 18), legend, fill=(200, 200, 200))
++    for i, (ll, lp, rl, rp) in enumerate(rows):
++        y = head + i * (h + 4)
++        img.paste(load(lp, cell), (0, y))
++        img.paste(load(rp, cell), (w + 6, y))
++        label(d, (0, y), ll, w)
++        label(d, (w + 6, y), rl, w)
++    img.save(out, quality=quality, optimize=True)
++    return out
++
++
++os.makedirs(SHEETS, exist_ok=True)
++os.makedirs(REVIEW, exist_ok=True)
++
++per_scene = {
++    "A": ("Scene A, soldier close-up: G1 (left) vs G2 bench-a (right)", f"{LLVM}; {CMU}; 1920x1080 sources, G2 8-sample stills", [
++        ("G1 avatar-turntable face-34", g1("avatar-turntable", "face-34"), "G2 bench-a commander-battlecry", g2("a", "bench-a", "commander-battlecry")),
++        ("G1 units-closeup kits-clips", g1("units-closeup", "kits-clips"), "G2 bench-a two-shot", g2("a", "bench-a", "two-shot")),
++        ("G1 avatar-turntable face-front", g1("avatar-turntable", "face-front"), "G2 bench-a soldier-face", g2("a", "bench-a", "soldier-face")),
++        ("G1 units-closeup variation", g1("units-closeup", "variation"), "G2 bench-a kit (hero aspis)", g2("a", "bench-a", "kit")),
++    ]),
++    "B": ("Scene B, formation: G1 (left) vs G2 bench-b (right)", f"{LLVM}; {CMU}; 1920x1080 sources, G2 8-sample stills", [
++        ("G1 units-wide5k frontline", g1("units-wide5k", "frontline"), "G2 bench-b front (noon)", g2("b", "bench-b", "front")),
++        ("G1 units-wide5k wide", g1("units-wide5k", "wide"), "G2 bench-b wide (golden hour)", g2("b", "bench-b", "wide-golden")),
++        ("G1 units-closeup variation", g1("units-closeup", "variation"), "G2 bench-b standard (golden hour)", g2("b", "bench-b", "standard")),
++    ]),
++    "C": ("Scene C, large battlefield: G1 (left) vs G2 bench-c, 2,100 trace-driven soldiers (right)", f"{LLVM}; {CMU}; 1920x1080 sources, G2 8-sample stills", [
++        ("G1 battlefield wide", g1("battlefield", "wide"), "G2 bench-c vista (golden hour)", g2("c", "bench-c", "vista-golden")),
++        ("G1 battlefield mid", g1("battlefield", "mid"), "G2 bench-c clash (golden hour)", g2("c", "bench-c", "clash-golden")),
++        ("G1 units-clash melee", g1("units-clash", "melee"), "G2 bench-c melee, eye level", g2("c", "bench-c", "melee-low")),
++    ]),
++    "D": ("Scene D, cinematic aftermath: G1 (left) vs G2 bench-d-shown (right)", f"{LLVM}; {CMU}; the death-content default is open (D-079 Q12): both states captured", [
++        ("G1 battlefield-cine aftermath", g1("battlefield-cine", "00-aftermath-62"), "G2 bench-d-shown 00 field", g2("d-shown", "bench-d-shown", "00-field")),
++        ("G1 battlefield-cine outcome beat", g1("battlefield-cine", "04-outcomebeat-62"), "G2 bench-d-shown 02 surrender", g2("d-shown", "bench-d-shown", "02-surrender")),
++        ("G1 cine-surrender outcome beat", g1("cine-surrender", "04-outcomebeat-92"), "G2 bench-d-shown 04 commander", g2("d-shown", "bench-d-shown", "04-commander-face")),
++        ("G1 battlefield-cine banner", g1("battlefield-cine", "05-banner-62"), "G2 bench-d-shown 05 standards", g2("d-shown", "bench-d-shown", "05-standards")),
++    ]),
++    "D-states": ("Scene D, the two death-content states (no default chosen): SHOWN (left) vs CUT AWAY (right)", f"{LLVM}; {CMU}", [
++        ("bench-d-shown 00 field (the fallen drawn)", g2("d-shown", "bench-d-shown", "00-field"), "bench-d-cutaway 00 field (no dead drawn)", g2("d-cutaway", "bench-d-cutaway", "00-field")),
++        ("bench-d-shown 06 fallen", g2("d-shown", "bench-d-shown", "06-fallen"), "bench-d-cutaway 06 cut-away", g2("d-cutaway", "bench-d-cutaway", "06-cutaway")),
++        ("bench-d-shown 01 prisoners", g2("d-shown", "bench-d-shown", "01-prisoners"), "bench-d-shown 03 officer", g2("d-shown", "bench-d-shown", "03-officer-face")),
++    ]),
++    "E": ("Scene E, campaign environment: G1 (left) vs G2 bench-e (right)", f"{LLVM}; no characters; 1920x1080 sources, G2 8-sample stills", [
++        ("G1 terrain-temperate day", g1("terrain-temperate", "day"), "G2 bench-e vista (noon)", g2("e", "bench-e", "vista-noon")),
++        ("G1 terrain-temperate dusk", g1("terrain-temperate", "dusk"), "G2 bench-e vista (dusk)", g2("e", "bench-e", "vista-dusk")),
++        ("G1 terrain-temperate tactical-low", g1("terrain-temperate", "tactical-low"), "G2 bench-e settlement (golden hour)", g2("e", "bench-e", "settlement")),
++        ("(G1 has no settlement or fortification)", None, "G2 bench-e fortification (noon)", g2("e", "bench-e", "fortification")),
++        ("(G1 has no river view)", None, "G2 bench-e river (golden hour)", g2("e", "bench-e", "river")),
++    ]),
++    "weather": ("Weather (right) against the clear look (left), scenes B, C, E", f"{LLVM}; {CMU} (B, C)", [
++        ("bench-b wide (noon), clear", g2("b", "bench-b", "wide-noon"), "bench-b wide (noon), rain", g2("b-rain", "bench-b", "wide-noon")),
++        ("bench-b front (noon), clear", g2("b", "bench-b", "front"), "bench-b front (noon), rain", g2("b-rain", "bench-b", "front")),
++        ("bench-b wide (golden hour), clear", g2("b", "bench-b", "wide-golden"), "bench-b wide (golden hour), mist", g2("b-mist", "bench-b", "wide-golden")),
++        ("bench-c vista (golden hour), clear", g2("c", "bench-c", "vista-golden"), "bench-c vista (golden hour), mist", g2("c-mist", "bench-c", "vista-golden")),
++        ("bench-c clash (golden hour), clear", g2("c", "bench-c", "clash-golden"), "bench-c clash (noon), rain", g2("c-rain", "bench-c", "clash-noon")),
++        ("bench-e settlement (golden hour), clear", g2("e", "bench-e", "settlement"), "bench-e settlement (golden hour), rain", g2("e-rain", "bench-e", "settlement")),
++        ("bench-e river (golden hour), clear", g2("e", "bench-e", "river"), "bench-e river (golden hour), rain", g2("e-rain", "bench-e", "river")),
++        ("bench-e vista (golden hour), clear", g2("e", "bench-e", "vista-golden"), "bench-e vista (golden hour), mist", g2("e-mist", "bench-e", "vista-golden")),
++    ]),
++}
++for key, (title, legend, rows) in per_scene.items():
++    print(sheet(title, legend, rows, os.path.join(SHEETS, f"scenes-{key}.jpg")))
++
++# hours: noon / golden / dusk of B, C, E (one sheet, three columns)
++hours = [("b", "bench-b", "wide"), ("c", "bench-c", "vista"), ("e", "bench-e", "vista")]
++w, h = 640, 360
++img = Image.new("RGB", (3 * w + 12, 34 + len(hours) * (h + 4)), (16, 16, 16))
++d = ImageDraw.Draw(img)
++d.text((6, 4), "Time of day: noon (12.5 h), golden hour (17.9 h), dusk (18.62 h); scenes B, C, E", fill=(255, 255, 255))
++d.text((6, 18), f"{LLVM}; {CMU} (B, C); 1920x1080 sources, 8-sample stills", fill=(200, 200, 200))
++for i, (folder, scene, shot) in enumerate(hours):
++    for j, hour in enumerate(["noon", "golden", "dusk"]):
++        x, y = j * (w + 6), 34 + i * (h + 4)
++        img.paste(load(g2(folder, scene, f"{shot}-{hour}"), (w, h)), (x, y))
++        label(d, (x, y), f"{scene} {shot} {hour}", w)
++out = os.path.join(SHEETS, "scenes-hours.jpg")
++img.save(out, quality=88, optimize=True)
++print(out)
++
++# committed review JPEGs (small): G1 vs G2 per scene in one sheet; hours and weather in another
++def small(rows, cols, cell, title, legend, out, quality):
++    cw, ch = cell
++    img = Image.new("RGB", (cols * (cw + 2), 26 + len(rows) * (ch + 2)), (16, 16, 16))
++    d = ImageDraw.Draw(img)
++    d.text((4, 2), title, fill=(255, 255, 255))
++    d.text((4, 13), legend, fill=(200, 200, 200))
++    for i, row in enumerate(rows):
++        for j, (lab, path) in enumerate(row):
++            x, y = j * (cw + 2), 26 + i * (ch + 2)
++            img.paste(load(path, cell), (x, y))
++            d.rectangle([x, y, x + len(lab) * 6 + 4, y + 11], fill=(0, 0, 0))
++            d.text((x + 2, y), lab, fill=(235, 235, 235))
++    img.save(out, quality=quality, optimize=True)
++    print(out, os.path.getsize(out))
++
++
++small([
++    [("A G1", g1("avatar-turntable", "face-34")), ("A G2", g2("a", "bench-a", "commander-battlecry")), ("A G2", g2("a", "bench-a", "two-shot"))],
++    [("B G1", g1("units-wide5k", "frontline")), ("B G2", g2("b", "bench-b", "front")), ("B G2", g2("b", "bench-b", "wide-golden"))],
++    [("C G1", g1("battlefield", "wide")), ("C G2", g2("c", "bench-c", "vista-golden")), ("C G2", g2("c", "bench-c", "melee-low"))],
++    [("D G1", g1("battlefield-cine", "04-outcomebeat-62")), ("D G2 shown", g2("d-shown", "bench-d-shown", "04-commander-face")), ("D G2 cut-away", g2("d-cutaway", "bench-d-cutaway", "06-cutaway"))],
++    [("E G1", g1("terrain-temperate", "day")), ("E G2", g2("e", "bench-e", "vista-noon")), ("E G2", g2("e", "bench-e", "settlement"))],
++], 3, (320, 180), "Stage scenes: G1 (left) vs G2 benchmark scenes A-E", f"{LLVM}; {CMU} (A-D)",
++    os.path.join(REVIEW, "scenes-01-g1-vs-g2.jpg"), 62)
++
++small([
++    [("B noon", g2("b", "bench-b", "wide-noon")), ("B golden", g2("b", "bench-b", "wide-golden")), ("B dusk", g2("b", "bench-b", "wide-dusk")), ("B rain", g2("b-rain", "bench-b", "wide-noon"))],
++    [("C noon", g2("c", "bench-c", "vista-noon")), ("C golden", g2("c", "bench-c", "vista-golden")), ("C dusk", g2("c", "bench-c", "vista-dusk")), ("C mist", g2("c-mist", "bench-c", "vista-golden"))],
++    [("E noon", g2("e", "bench-e", "vista-noon")), ("E golden", g2("e", "bench-e", "vista-golden")), ("E dusk", g2("e", "bench-e", "vista-dusk")), ("E rain", g2("e-rain", "bench-e", "settlement"))],
++], 4, (240, 135), "Stage scenes: time of day and weather (B, C, E)", f"{LLVM}; {CMU} (B, C)",
++    os.path.join(REVIEW, "scenes-02-hours-weather.jpg"), 60)

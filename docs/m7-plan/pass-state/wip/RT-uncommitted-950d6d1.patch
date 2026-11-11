@@ -1,0 +1,73 @@
+diff --git a/Sim.Ui.Tests/ResearchTreeAuditTests.cs b/Sim.Ui.Tests/ResearchTreeAuditTests.cs
+index 64fbcfb..69c8605 100644
+--- a/Sim.Ui.Tests/ResearchTreeAuditTests.cs
++++ b/Sim.Ui.Tests/ResearchTreeAuditTests.cs
+@@ -402,6 +402,68 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+         }
+     }
+ 
++    [Theory]
++    [InlineData(ResearchTree.Technology)]
++    [InlineData(ResearchTree.Civics)]
++    public void TheSharedStubIntoACard_ShowsAnOutstandingPrerequisitesInk_EvenWhenTheCompletedEdgeComesLast(ResearchTree tree)
++    {
++        // Every incoming edge of a card ends on the same stub into its top, so the stroke drawn last there is the one the player
++        // sees. With one prerequisite complete and others outstanding, that stub must show the outstanding ink (orange when
++        // pinned, the prerequisite ink when hovered): the card still waits on research. The completed prerequisite chosen is
++        // the one whose edge comes LAST in Graph.Edges, so drawing in Graph.Edges order (the order before 59bac37) would put
++        // the completed ink on top.
++        ResearchContent c = fx.Content;
++        int node = MixedCandidate(tree, withOneOf: false);
++        ResearchGraph g0 = ResearchGraph.Build(c, tree);
++        int v0 = g0.VertexOf(node);
++        GraphEdge lastIn = g0.Edges.Last(e => e.To == v0);
++        int completed = g0.Vertices[lastIn.From].ContentIndex;
++        WorldState w = WithDone(completed);
++        foreach (bool pinned in new[] { true, false })
++        {
++            var s = new ProgressionScreen(c, Me) { Config = fx.Session.Config };
++            s.Refresh(w);
++            s.Tab = tree == ResearchTree.Civics ? TreeTab.Civics : TreeTab.Technology;
++            s.Paint(W, H, ApproxTextMeasure.Instance);
++            s.FitAll();
++            s.Paint(W, H, ApproxTextMeasure.Instance);
++            if (pinned) s.Selected = node;
++            else
++            {
++                s.Selected = -1;
++                PlacedVertex p = s.Layout.Placed[s.Graph.VertexOf(node)];
++                s.PointerMove(s.Camera.ToScreenX(p.CenterX, s.Canvas.X), s.Camera.ToScreenY(p.CenterY, s.Canvas.Y));
++                Assert.Equal(node, s.Hovered);
++            }
++            DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
++            int fv = s.Graph.VertexOf(node), lane = 0;
++            RectD cv = s.Canvas;
++            var stubs = new List<(double X0, double Y0, double X1, double Y1)>();
++            foreach (GraphEdge e in s.Graph.Edges)
++            {
++                if (e.From != fv && e.To != fv) continue;
++                int at = lane++;
++                if (e.To != fv) continue;
++                (double X, double Y)[] pts = ResearchTreeLayout.Route(s.Layout, e, at);
++                stubs.Add((s.Camera.ToScreenX(pts[^2].X, cv.X), s.Camera.ToScreenY(pts[^2].Y, cv.Y),
++                    s.Camera.ToScreenX(pts[^1].X, cv.X), s.Camera.ToScreenY(pts[^1].Y, cv.Y)));
++            }
++            Assert.True(stubs.Count >= 2);
++            Assert.All(stubs, st => Assert.Equal(stubs[0], st));   // one stub, shared by every incoming edge
++            (double X0, double Y0, double X1, double Y1) stub = stubs[0];
++            List<LineCmd> onStub = [.. d.Commands.OfType<LineCmd>().Where(l => l.Color != s.Theme.Ink.Text
++                && Math.Abs(l.X0 - stub.X0) < 1e-6 && Math.Abs(l.Y0 - stub.Y0) < 1e-6
++                && Math.Abs(l.X1 - stub.X1) < 1e-6 && Math.Abs(l.Y1 - stub.Y1) < 1e-6)];
++            Rgba outstanding = pinned ? s.Theme.Semantic.Pinned : s.Theme.Semantic.Prerequisite;
++            Assert.Contains(onStub, l => l.Color == s.Theme.Semantic.Completed);   // the completed edge is drawn there too
++            Assert.True(onStub[^1].Color == outstanding,
++                $"{c.Nodes[node].Id} ({(pinned ? "pinned" : "hovered")}, {c.Nodes[completed].Id} complete): the stub shows " +
++                $"{onStub[^1].Color}, expected the outstanding ink {outstanding}");
++            output.WriteLine($"{tree} {(pinned ? "pinned" : "hovered")}: {c.Nodes[node].Id}, {c.Nodes[completed].Id} complete, " +
++                $"{stubs.Count} edges on the stub, {onStub.Count} strokes, the last {onStub[^1].Color}");
++        }
++    }
++
+     [Theory]
+     [InlineData("seed_drill_tull")]
+     [InlineData("astronomy_records")]

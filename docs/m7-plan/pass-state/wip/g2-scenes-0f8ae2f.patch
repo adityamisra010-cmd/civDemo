@@ -441,7 +441,7 @@ index 0000000..e2b3ad2
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneB.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneB.cs
 new file mode 100644
-index 0000000..b5bd918
+index 0000000..67eacde
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneB.cs
 @@ -0,0 +1,207 @@
@@ -604,8 +604,8 @@ index 0000000..b5bd918
 +        float k = Scale;
 +        // the whole field, three-quarters from behind force A's left: its blocks and standards in front, force B
 +        // facing them across the gap with the village beyond (the crowd sweep's camera); turned to the clearest view
-+        var wTarget = G(_centre + _fwd * 6f, 0.5f);
-+        var wEye = ClearEye(G(_centre - _fwd * (46f * k) - side * (38f * k), 14f * k), wTarget, 0.70f, 40f);
++        var wTarget = G(_centre + _fwd * 8f, 0.5f);
++        var wEye = ClearEye(G(_centre - _fwd * (38f * k) - side * (30f * k), 11f * k), wTarget, 0.70f, 40f);
 +        foreach (var (name, hour) in BenchHours.All)
 +            shots.Add(new CaptureShot("wide-" + name, new CameraPose(wEye, wTarget, 0.70f, 0.3f, 40000f), hour, 2f));
 +        // in front of force A's left block and outside it, at eye height: the front ranks of both blocks along the line
@@ -819,10 +819,10 @@ index 0000000..03f8a03
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
 new file mode 100644
-index 0000000..6548a47
+index 0000000..f3e8fb4
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
-@@ -0,0 +1,559 @@
+@@ -0,0 +1,624 @@
 +using System.Globalization;
 +using Gfx.Chars.Animation;
 +using Gfx.Engine.Cameras;
@@ -839,11 +839,12 @@ index 0000000..6548a47
 +/// <summary>
 +/// Death and execution content of cinematics (presentation setting, D-079 DR41: execution and death are depicted only
 +/// when the content is enabled). Its DEFAULT IS OPEN (D-079 Q12): this type has no default and every scene that uses it
-+/// is built with an explicit value. <see cref="Shown"/>: the fallen lie where the trace says they fell and the aftermath
++/// is built with an explicit value (the members start at 1, so <c>default(DeathContent)</c> is not a value and is rejected).
++/// <see cref="Shown"/>: the fallen lie where the trace says they fell and the aftermath
 +/// has a shot of them. <see cref="CutAway"/>: no dead soldier is drawn anywhere and that shot cuts away to the sky.
 +/// Neither changes anything else: the trace, the outcome and every other beat are the same.
 +/// </summary>
-+public enum DeathContent { Shown, CutAway }
++public enum DeathContent { Shown = 1, CutAway = 2 }
 +
 +/// <summary>One beat of the aftermath: a camera move (start → end pose over the beat), the hour of its light.</summary>
 +public sealed record AftermathShot(string Name, CameraPose From, CameraPose To, float Seconds, float Hour, string Depicts);
@@ -873,6 +874,7 @@ index 0000000..6548a47
 +    /// (the trace crowd's, or <see cref="BenchBattle.FinalPosition"/> on the ground plane).</summary>
 +    public static AftermathPlan From(BenchBattle b, Func<int, Vector3> place, DeathContent content)
 +    {
++        if (!Enum.IsDefined(content)) throw new ArgumentOutOfRangeException(nameof(content), content, "the death-content setting has no default (D-079 Q12): pass Shown or CutAway");
 +        var tr = b.Trace; int last = tr.StepCount - 1;
 +        int victor = b.HoldsField, defeated = victor >= 0 ? 1 - victor : -1;
 +        int standing = 0, prisoners = 0, vPrisoners = 0, fallen = 0, escaped = 0;
@@ -965,10 +967,14 @@ index 0000000..6548a47
 +    SmokeLayer _smoke = null!;
 +    KitSoldier? _commander, _officer;
 +    Banner? _victorBanner, _defeatedBanner;
-+    Vector3 _cPos, _oPos; float _cYaw, _oYaw;
++    Vector3 _cPos, _oPos, _fallen; float _cYaw, _oYaw;
 +    float _tEnd;
 +
-+    protected BenchAftermathScene(DeathContent content) { Content = content; }
++    protected BenchAftermathScene(DeathContent content)
++    {
++        if (!Enum.IsDefined(content)) throw new ArgumentOutOfRangeException(nameof(content), content, "the death-content setting has no default (D-079 Q12): pass Shown or CutAway");
++        Content = content;
++    }
 +
 +    protected override float ShadowDistanceM => 600f;
 +
@@ -1000,6 +1006,7 @@ index 0000000..6548a47
 +        }
 +        else if (Outcome.CommanderEntity >= 0) (_, _cYaw) = Troops.Place(Outcome.CommanderEntity, _tEnd);
 +        BuildHeroes();
++        _fallen = FallenCentre();
 +        BuildSmoke();
 +        Animate(_tEnd);
 +    }
@@ -1057,7 +1064,8 @@ index 0000000..6548a47
 +    }
 +
 +    /// <summary>Smoke from the three 24 m cells with the most dead (fires among the wreckage) and dust from the five
-+    /// densest cells of those still on their feet or knees, none within 25-30 m of the heroes.</summary>
++    /// densest cells of those still on their feet or knees, none within 25-30 m of the heroes and no fire within 40 m of
++    /// the fallen the last beat looks at (the close shots look through clear air).</summary>
 +    void BuildSmoke()
 +    {
 +        var tr = Battle.Trace; int last = tr.StepCount - 1;
@@ -1078,6 +1086,7 @@ index 0000000..6548a47
 +        {
 +            var at = Cell(kv.Key);
 +            if (Outcome.CommanderEntity >= 0 && Vector2.Distance(new Vector2(at.X, at.Z), new Vector2(_cPos.X, _cPos.Z)) < 25f) continue;
++            if (Vector2.Distance(new Vector2(at.X, at.Z), new Vector2(_fallen.X, _fallen.Z)) < 40f) continue;
 +            if (n++ >= 3) break;
 +            _smoke.Add(SmokeSource.Plume(at, 0.9f + 0.15f * n));
 +        }
@@ -1106,7 +1115,7 @@ index 0000000..6548a47
 +    protected override void BuildShots()
 +    {
 +        _beats.Clear();
-+        _beats.AddRange(PlanBeats(Outcome, _cPos, _oPos, _cYaw, FallenCentre(), Troops.Place(0, _tEnd).pos, PrisonersCentre(), Occluders(), G));
++        _beats.AddRange(PlanBeats(Outcome, _cPos, _oPos, _cYaw, _fallen, FieldCentre(), PrisonersCentre(), Occluders(), G, ShieldSide()));
 +        // the opening crane is high over the field: turned to the clearest view of the trees
 +        if (_beats.Count > 0 && _beats[0].Name == "field")
 +        {
@@ -1127,6 +1136,18 @@ index 0000000..6548a47
 +        ShotList = shots.ToArray();
 +    }
 +
++    /// <summary>The side (+1/-1 along the commander-to-officer cross axis s = (-d.z, 0, d.x)) of the commander's shield
++    /// arm, from his posed left shoulder (1 without a commander).</summary>
++    int ShieldSide()
++    {
++        if (_commander == null) return 1;
++        var inst = _commander.Body; inst.SolvePose();
++        var shoulder = Vector3.Transform(inst.Heads[inst.Asset.Skeleton["upperarm_l"]], inst.World);
++        var o = Outcome.Surrender ? _oPos : _cPos + new Vector3(MathF.Sin(_cYaw), 0, MathF.Cos(_cYaw)) * 3f;
++        var d = Vector3.Normalize(new Vector3(o.X - _cPos.X, 0, o.Z - _cPos.Z));
++        return Vector3.Dot(shoulder - _cPos, new Vector3(-d.Z, 0, d.X)) >= 0f ? 1 : -1;
++    }
++
 +    /// <summary>Where in each beat the still is taken (fraction of the move): the solved camera pose.</summary>
 +    public const float StillAt = 0.62f;
 +
@@ -1141,6 +1162,18 @@ index 0000000..6548a47
 +            list.Add(Troops.Place(e, _tEnd).pos);
 +        }
 +        return list;
++    }
++
++    /// <summary>The centre of everyone left on the field at the end (standing, kneeling or fallen; not the escaped).</summary>
++    Vector3 FieldCentre()
++    {
++        var tr = Battle.Trace; int last = tr.StepCount - 1; var c = Vector3.Zero; int n = 0;
++        for (int e = 0; e < tr.Entities.Count; e++)
++        {
++            if (BenchBattle.Map(tr.State(last, e)) == TraceSoldierState.Escaped) continue;
++            c += Troops.Place(e, _tEnd).pos; n++;
++        }
++        return n > 0 ? c / n : _cPos;
 +    }
 +
 +    /// <summary>The centre of the defeated prisoners within 20 m of the officer (the officer's place without them).</summary>
@@ -1215,6 +1248,18 @@ index 0000000..6548a47
 +        return best;
 +    }
 +
++    /// <summary>The first of the candidate eyes with the fewest <see cref="ViewBlockers"/> (the list order breaks ties).</summary>
++    public static Vector3 FirstClearest(IReadOnlyList<Vector3> eyes, Vector3 target, IReadOnlyList<Vector3> occ)
++    {
++        Vector3 best = eyes[0]; int bestCost = int.MaxValue;
++        foreach (var e in eyes)
++        {
++            int c = ViewBlockers(e, target, occ);
++            if (c < bestCost) { bestCost = c; best = e; }
++        }
++        return best;
++    }
++
 +    /// <summary>A beat whose still (at <see cref="StillAt"/> of the move) is exactly the given pose: the camera moves by
 +    /// <paramref name="eyeMove"/> and its aim by <paramref name="aimMove"/> over the beat.</summary>
 +    static AftermathShot Beat(string name, Vector3 eye, Vector3 target, float fov, float near, Vector3 eyeMove, Vector3 aimMove, float seconds, float hour, string depicts) =>
@@ -1223,14 +1268,15 @@ index 0000000..6548a47
 +
 +    /// <summary>
 +    /// The aftermath beats of a plan (pure: the death-content rule is tested on it). Inputs: the two heroes' places, the
-+    /// commander's facing (used when there is no surrender), the centre of the fallen near the commander, a point of the
-+    /// field (used when there is no victor), the centre of the prisoners near the officer, the soldiers that can stand in
-+    /// a close shot's way and the ground function (position, height above the ground). Each close shot's camera is
-+    /// turned to the view with the fewest soldiers across it (<see cref="Solve"/>). Beats 1-6 are the same in both
-+    /// content states; the 7th is "fallen" (<see cref="DeathContent.Shown"/>) or "cutaway".
++    /// commander's facing (used when there is no surrender), the centre of the densest cluster of the fallen, the centre
++    /// of the field (everyone left on it), the centre of the prisoners near the officer, the soldiers that can stand in a
++    /// close shot's way, the ground function (position, height above the ground) and the side of the commander's
++    /// shield arm. Each close shot's camera is turned to the view with the fewest soldiers across it (<see cref="Solve"/>,
++    /// <see cref="FirstClearest"/>). Beats 1-6 are the same in both content states; the 7th is "fallen"
++    /// (<see cref="DeathContent.Shown"/>) or "cutaway".
 +    /// </summary>
 +    public static List<AftermathShot> PlanBeats(AftermathPlan plan, Vector3 commander, Vector3 officer, float commanderYaw,
-+        Vector3 fallen, Vector3 field, Vector3 prisoners, IReadOnlyList<Vector3> occ, Func<Vector3, float, Vector3> G)
++        Vector3 fallen, Vector3 field, Vector3 prisoners, IReadOnlyList<Vector3> occ, Func<Vector3, float, Vector3> G, int shieldSide = 1)
 +    {
 +        var beats = new List<AftermathShot>();
 +        float h = BenchHours.Golden;
@@ -1249,12 +1295,13 @@ index 0000000..6548a47
 +        float cYaw = plan.Surrender ? MathF.Atan2(d.X, d.Z) : commanderYaw, oYaw = cYaw + MathF.PI;
 +        var (vStd, dStd) = StandardPlaces(c, cYaw, o, oYaw);
 +        int Side(Func<float, Vector3> eyeFor, Vector3 target) => ViewBlockers(eyeFor(1f), target, occ) <= ViewBlockers(eyeFor(-1f), target, occ) ? 1 : -1;
-+        // 1 crane over the field from behind the victors, down towards the prisoners
-+        beats.Add(new AftermathShot("field", new CameraPose(G(c - d * 70f + s * 40f, 62f), G(o + d * 20f, 0f), 0.8f, 0.3f, 40000f),
-+            new CameraPose(G(c - d * 45f + s * 25f, 30f), G(o, 0f), 0.8f, 0.3f, 40000f), 5f, h, "the field after the battle: victors, prisoners, smoke"));
++        // 1 crane over the field (the centre of everyone still on it: standing, kneeling or fallen) from the victors'
++        //   side, down towards it
++        beats.Add(new AftermathShot("field", new CameraPose(G(field - d * 75f + s * 45f, 42f), G(field + d * 10f, 0f), 0.8f, 0.3f, 40000f),
++            new CameraPose(G(field - d * 50f + s * 30f, 24f), G(field, 0f), 0.8f, 0.3f, 40000f), 5f, h, "the field after the battle: victors, prisoners, smoke"));
 +        // 2 dolly along the kneeling prisoners, from the victors' side
 +        var pT = G(prisoners, 0.8f);
-+        var pEye = Solve(G(prisoners - d * 9f - s * 3f, 1.7f), pT, occ, G, 90f);
++        var pEye = Solve(G(prisoners - d * 6.5f - s * 2f, 1.7f), pT, occ, G, 90f);
 +        var pSide = Vector3.Normalize(Vector3.Cross(Vector3.Normalize(pT - pEye), Vector3.Up));
 +        beats.Add(Beat("prisoners", pEye, pT, 0.70f, 0.1f, pSide * 5f, pSide * 5f, 5f, h, plan.Surrender ? "the defeated who surrendered kneel" : "the victors hold the field"));
 +        // 3 the surrender: two-shot from across the pair, slow push-in (the clearer side, then turned to the clearest view)
@@ -1268,24 +1315,32 @@ index 0000000..6548a47
 +        sg = Side(k => G(c + d * 0.9f + s * (0.55f * k), 1.55f), oT);
 +        var oEye = G(c + d * 0.9f + s * (0.55f * sg), 1.55f);
 +        beats.Add(Beat("officer-face", oEye, oT, 0.40f, 0.05f, d * 0.2f, Vector3.Zero, 3.5f, h, "the defeated officer"));
-+        // 5 the commander from low on the officer's side, against the sky
++        // 5 the commander from low and in front, turned 15-75 degrees towards his sword arm (his shield is on the other
++        //   side: shieldSide is the side of s it is on), against the sky; the kneeling officer counts as an occluder;
++        //   the candidates are tried in the order 30, 45, 15, 60, 75 degrees and the first with the fewest blockers wins
 +        var cT = G(c, 1.64f);
-+        sg = Side(k => G(o + s * (0.9f * k) - d * 0.2f, 0.9f), cT);
-+        var cEye = G(o + s * (0.9f * sg) - d * 0.2f, 0.9f);
-+        beats.Add(Beat("commander-face", cEye, cT, 0.48f, 0.05f, d * 0.15f + Vector3.UnitY * 0.05f, Vector3.UnitY * 0.04f, 3.5f, h, "the victorious commander"));
++        var occ5 = new List<Vector3>(occ) { o };
++        var sword = s * -shieldSide;
++        var cands = new[] { 30f, 45f, 15f, 60f, 75f }.Select(a =>
++        {
++            float r = MathHelper.ToRadians(a);
++            return G(c + (d * MathF.Cos(r) + sword * MathF.Sin(r)) * 2.6f, 1.1f);
++        }).ToList();
++        var cEye = FirstClearest(cands, cT, occ5);
++        beats.Add(Beat("commander-face", cEye, cT, 0.44f, 0.05f, (cT - cEye) * 0.06f, Vector3.UnitY * 0.04f, 3.5f, h, "the victorious commander"));
 +        // 6 standards: low behind the defeated standard on the ground, the victor's raised beyond the commander
 +        var sT = G(vStd, 2.3f);
 +        var back = new Vector3(dStd.X - vStd.X, 0, dStd.Z - vStd.Z);
 +        back = back.LengthSquared() < 1e-4f ? -d : Vector3.Normalize(back);
-+        var sEye = Solve(G(dStd + back * 2.4f, 0.5f), sT, occ, G, 45f);
-+        beats.Add(Beat("standards", sEye, sT, 0.70f, 0.05f, Vector3.UnitY * 0.12f, Vector3.UnitY * 0.2f, 4f, h, "standards: the victor's raised, the defeated's on the ground"));
++        var sEye = Solve(G(dStd + back * 1.8f, 1.0f), sT, occ, G, 45f);
++        beats.Add(Beat("standards", sEye, sT, 0.62f, 0.05f, Vector3.UnitY * 0.12f, Vector3.UnitY * 0.2f, 4f, h, "standards: the victor's raised, the defeated's on the ground"));
 +        // 7 the fallen, or the cut-away (death content setting)
 +        if (plan.Content == DeathContent.Shown)
 +        {
 +            var fT = G(fallen, 0.3f);
-+            var fEye = Solve(G(fallen - d * 12f - s * 6f, 3.6f), fT, occ, G, 90f);
++            var fEye = Solve(G(fallen - d * 9f - s * 5f, 5.5f), fT, occ, G, 90f);
 +            var fSide = Vector3.Normalize(Vector3.Cross(Vector3.Normalize(fT - fEye), Vector3.Up));
-+            beats.Add(Beat("fallen", fEye, fT, 0.75f, 0.1f, fSide * 4f, fSide * 4f, 5f, BenchHours.Dusk, "the fallen where they fell"));
++            beats.Add(Beat("fallen", fEye, fT, 0.75f, 0.1f, fSide * 4f, fSide * 4f, 5f, h, "the fallen where they fell"));
 +        }
 +        else
 +            beats.Add(new AftermathShot("cutaway", new CameraPose(G(mid - d * 12f, 1.8f), G(mid + d * 30f, 6f), 0.8f, 0.1f, 40000f),
@@ -1293,18 +1348,28 @@ index 0000000..6548a47
 +        return beats;
 +    }
 +
++    /// <summary>The centre of the densest cluster of the fallen on the field: the dead soldier with the most dead within
++    /// 6 m (ties: the lower entity), and the centroid of those (the commander's place without any dead).</summary>
 +    Vector3 FallenCentre()
 +    {
-+        var tr = Battle.Trace; int last = tr.StepCount - 1; var c = Vector3.Zero; int n = 0;
-+        var near = _cPos;
++        var tr = Battle.Trace; int last = tr.StepCount - 1;
++        var dead = new List<Vector3>();
 +        for (int e = 0; e < tr.Entities.Count; e++)
 +        {
 +            if (BenchBattle.Map(tr.State(last, e)) != TraceSoldierState.Dead) continue;
-+            var p = Troops.Place(e, _tEnd).pos;
-+            if (Vector3.Distance(p, near) > 60f) continue;
-+            c += p; n++;
++            dead.Add(Troops.Place(e, _tEnd).pos);
 +        }
-+        return n > 0 ? c / n : near;
++        int best = -1, bestN = 0;
++        for (int i = 0; i < dead.Count; i++)
++        {
++            int n = 0;
++            foreach (var q in dead) if (Vector3.DistanceSquared(q, dead[i]) <= 36f) n++;
++            if (n > bestN) { bestN = n; best = i; }
++        }
++        if (best < 0) return _cPos;
++        var c = Vector3.Zero; int k = 0;
++        foreach (var q in dead) if (Vector3.DistanceSquared(q, dead[best]) <= 36f) { c += q; k++; }
++        return c / k;
 +    }
 +
 +    static CameraPose Lerp(CameraPose a, CameraPose b, float u) => a with
@@ -1384,10 +1449,10 @@ index 0000000..6548a47
 +public sealed class BenchAftermathCutAwayScene() : BenchAftermathScene(DeathContent.CutAway);
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneE.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneE.cs
 new file mode 100644
-index 0000000..09791f8
+index 0000000..0268f8c
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneE.cs
-@@ -0,0 +1,122 @@
+@@ -0,0 +1,134 @@
 +using Gfx.Engine.Cameras;
 +using Gfx.Engine.Scene;
 +using Gfx.Proc.Environment;
@@ -1445,28 +1510,34 @@ index 0000000..09791f8
 +    {
 +        var v = Env.Settlement!; var f = Stronghold!;
 +        var mid = (v.Centre + f.Centre) * 0.5f;
-+        float sep = Vector2.Distance(v.Centre, f.Centre);
 +        const float fov = 0.70f;
-+        // the vista: candidate eyes every 15 degrees around the midpoint of the two settlements, far enough that both
-+        // fit in the middle 70 % of the frame's width, 120 m above the ground; the clearest (fewest tree crowns and no
-+        // hill across the sight lines to either settlement) wins, ties by the candidate order
-+        float halfH = MathF.Atan(MathF.Tan(fov * 0.5f) * 16f / 9f);
-+        float dist = MathF.Max(320f, sep * 0.5f / MathF.Tan(halfH * 0.7f) * 1.15f);
-+        Vector3 vista = G(mid + new Vector2(0, dist), 120f); int best = int.MaxValue;
-+        for (int a = 0; a < 24; a++)
++        // the vista: an establishing view along the line between the two settlements, from 150 m behind the stronghold
++        // (50 m to either side, 60 m above the ground) towards a point 30 % of the way to the village: the fortification
++        // on its high ground in the foreground, the forest, the fields and the river valley beyond, the village in the
++        // distance. The clearer side wins (fewest tree crowns and no hill across the sight lines to either settlement;
++        // ties: the listed order); the view from behind the village is the fallback when both are off the map.
++        var cands = new List<(Vector2 eye, Vector2 aim)>();
++        foreach (var (near, far) in new[] { (f.Centre, v.Centre), (v.Centre, f.Centre) })
 +        {
-+            float ang = a * MathF.Tau / 24f;
-+            var e = mid + new Vector2(MathF.Sin(ang), MathF.Cos(ang)) * dist;
++            var ax = Vector2.Normalize(far - near); var sd = new Vector2(-ax.Y, ax.X);
++            foreach (float k in new[] { 1f, -1f })
++                cands.Add((near - ax * 150f + sd * (50f * k), Vector2.Lerp(near, far, 0.3f)));
++        }
++        Vector3 vista = G(cands[0].eye, 60f), aim = G(cands[0].aim, 0f); int best = int.MaxValue;
++        for (int i = 0; i < cands.Count; i++)
++        {
++            var (e, a) = cands[i];
 +            var m = Env.Terrain.Mesh;
-+            if (MathF.Abs(e.X) > m.HalfExtentX - 20f || MathF.Abs(e.Y) > m.HalfExtentZ - 20f) continue;
-+            var eye = G(e, 120f);
-+            int cost = ShotCost(eye, G(mid, 0f), fov) + 3 * SightCost(eye, G(v.Centre, 3f)) + 3 * SightCost(eye, G(f.Centre, 6f));
-+            if (cost < best) { best = cost; vista = eye; }
++            if (MathF.Abs(e.X) > m.HalfExtentX - 30f || MathF.Abs(e.Y) > m.HalfExtentZ - 30f) continue;
++            if (i >= 2 && best != int.MaxValue) break;   // the stronghold-first views are on the map
++            var eye = G(e, 60f); var target = G(a, 0f);
++            int cost = ShotCost(eye, target, fov) + 3 * SightCost(eye, G(v.Centre, 3f)) + 3 * SightCost(eye, G(f.Centre, 6f));
++            if (cost < best) { best = cost; vista = eye; aim = target; }
 +        }
 +        VistaEye = vista;
 +        var shots = new List<CaptureShot>();
 +        foreach (var (name, hour) in BenchHours.All)
-+            shots.Add(new CaptureShot("vista-" + name, new CameraPose(vista, G(mid, 0f), fov, 0.5f, 40000f), hour, 3f));
++            shots.Add(new CaptureShot("vista-" + name, new CameraPose(vista, aim, fov, 0.5f, 40000f), hour, 3f));
 +        // the settlement from 110 m out of its gate, 32 m up; the fortification from 75 m out of its gate, 24 m up
 +        var vEye = ClearEye(G(v.Centre + Vector2.Normalize(v.Gate - v.Centre) * 110f, 32f), G(v.Centre, 2f), 0.75f);
 +        shots.Add(new CaptureShot("settlement", new CameraPose(vEye, G(v.Centre, 2f), 0.75f, 0.3f, 40000f), BenchHours.Golden, 3f));
@@ -1476,10 +1547,16 @@ index 0000000..09791f8
 +        RiverAt = NearestWater(v.Centre);
 +        if (RiverAt is { } r)
 +        {
++            // over the water itself, 1.8 m above its surface and 12 m out from the nearest water to the village, looking
++            // at the village across the river and its bank
 +            var away = Vector2.Normalize(r - v.Centre);
++            var at = r + away * 12f;
++            float surf = Env.Water.SurfaceAt(at.X, at.Y);
++            if (float.IsNaN(surf)) { at = r; surf = Env.Water.SurfaceAt(r.X, r.Y); }
++            float ground = Env.Terrain.HeightAt(at.X, at.Y);
++            var eye = new Vector3(at.X, MathF.Max(ground, float.IsNaN(surf) ? ground : surf) + 1.8f, at.Y);
 +            var target = G(v.Centre, 3f);
-+            var bank = ClearEye(G(r + away * 22f, 2.4f), target, 0.8f, 40f);
-+            shots.Add(new CaptureShot("river", new CameraPose(bank, target, 0.8f, 0.3f, 40000f), BenchHours.Golden, 3f));
++            shots.Add(new CaptureShot("river", new CameraPose(eye, target, 0.8f, 0.2f, 40000f), BenchHours.Golden, 3f));
 +        }
 +        ShotList = shots.ToArray();
 +    }
@@ -2333,7 +2410,7 @@ index 0b78333..2c8fb91 100644
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs
 new file mode 100644
-index 0000000..a3a326b
+index 0000000..55de330
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs
 @@ -0,0 +1,183 @@
@@ -2350,9 +2427,9 @@ index 0000000..a3a326b
 +{
 +    /// <summary>A plume of grey smoke from a smouldering fire: thin puffs that billow from 3 m to 20 m wide as they rise
 +    /// about 20 m and drift downwind, fading as they spread.</summary>
-+    public static SmokeSource Plume(Vector3 at, float scale = 1f) => new(at, 3f * scale, 22f, 2.2f * scale, 3f * scale, 20f * scale, new Vector3(0.34f, 0.33f, 0.31f), 0.30f, 2.5f);
++    public static SmokeSource Plume(Vector3 at, float scale = 1f) => new(at, 6f * scale, 22f, 2.2f * scale, 3f * scale, 20f * scale, new Vector3(0.34f, 0.33f, 0.31f), 0.18f, 2.5f);
 +    /// <summary>A low drifting dust haze over trampled ground (barely rises, wide, very faint).</summary>
-+    public static SmokeSource Dust(Vector3 at, float scale = 1f) => new(at, 2f * scale, 26f, 0.15f, 4f * scale, 16f * scale, new Vector3(0.62f, 0.55f, 0.44f), 0.07f, 9f * scale);
++    public static SmokeSource Dust(Vector3 at, float scale = 1f) => new(at, 5f * scale, 26f, 0.15f, 6f * scale, 14f * scale, new Vector3(0.62f, 0.55f, 0.44f), 0.035f, 12f * scale);
 +}
 +
 +/// <summary>
@@ -2510,9 +2587,9 @@ index 0000000..a3a326b
 +    // light: sky light plus the sun with a forward-scattering lobe (puffs glow against a low sun)
 +    vec3 V = normalize(v_wpos - CameraPos.xyz);
 +    float cosT = dot(V, SmokeDir.xyz);
-+    float g = 0.45; float phase = 0.0796 * (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * cosT, 1.5) * 4.0;
++    float g = 0.35; float phase = 0.0796 * (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * cosT, 1.5) * 4.0;
 +    float self = mix(0.55, 1.0, n);
-+    vec3 col = v_tint * (SmokeAmb.rgb * 0.32 * self + SmokeSun.rgb * (0.10 + 0.22 * phase) * self);
++    vec3 col = v_tint * (SmokeAmb.rgb * 0.32 * self + SmokeSun.rgb * (0.10 + 0.16 * phase) * self);
 +    // distance fog like the scene's
 +    float d = length(v_wpos - CameraPos.xyz);
 +    float fog = 1.0 - exp(-FogParams.x * 0.35 * d);
@@ -2979,6 +3056,614 @@ index 3396d3c..78d0067 100644
          Assert.True(code == 0, outp);
          var txt = File.ReadAllText(prefix + ".txt");
          Assert.Contains("VICTUS_CHECK=INVALID_NOT_RTX4050", txt);
+diff --git a/prototypes/m7-gfx2/Gfx.Tests/ScenesTests.cs b/prototypes/m7-gfx2/Gfx.Tests/ScenesTests.cs
+new file mode 100644
+index 0000000..f39edd1
+--- /dev/null
++++ b/prototypes/m7-gfx2/Gfx.Tests/ScenesTests.cs
+@@ -0,0 +1,602 @@
++using System.Buffers.Binary;
++using System.Globalization;
++using System.IO.Compression;
++using System.Security.Cryptography;
++using System.Text;
++using Gfx.Demo.Scenes.Bench;
++using Gfx.Engine.Assets;
++using Gfx.Engine.Cameras;
++using Gfx.Engine.Diagnostics;
++using Gfx.Engine.Rendering;
++using Gfx.Engine.Scene;
++using Gfx.Units;
++using Microsoft.Xna.Framework;
++using Microsoft.Xna.Framework.Graphics;
++using Xunit;
++
++namespace Gfx.Tests;
++
++/// <summary>A Fact that SKIPS (not fails) when the exported battle trace of scenes C and D is missing.</summary>
++public sealed class BenchTraceFactAttribute : FactAttribute
++{
++    public BenchTraceFactAttribute() { if (!File.Exists(BenchBattle.DefaultPath)) Skip = "no battle-trace bake: run scripts/export-battle-trace.sh"; }
++}
++
++/// <summary>A device test that needs the stage-chars bake and the exported battle trace: SKIPS without any of them.</summary>
++public sealed class BenchCrowdFactAttribute : FactAttribute
++{
++    public BenchCrowdFactAttribute()
++    {
++        if (!TestGfx.Available) Skip = "no graphics device: " + TestGfx.Reason;
++        else if (!Gfx.Chars.Rendering.CharStage.BakeExists()) Skip = "no character bake: run scripts/bake-chars.sh";
++        else if (!File.Exists(BenchBattle.DefaultPath)) Skip = "no battle-trace bake: run scripts/export-battle-trace.sh";
++    }
++}
++
++/// <summary>Stage scenes: the compact battle trace, the weather switches and layers, the aftermath plan and its beats.</summary>
++public sealed class ScenesTests
++{
++    // ------------------------------------------------------------------ compact binary trace (G2BT)
++
++    static BattleTrace Fixture() => BattleTrace.Load(BattleTrace.FindFixture(BattleTrace.DefaultFixture));
++
++    static byte[] Bin(BattleTrace t) { using var ms = new MemoryStream(); t.WriteBinary(ms); return ms.ToArray(); }
++
++    static byte[] Inflate(byte[] gz)
++    {
++        using var z = new GZipStream(new MemoryStream(gz), CompressionMode.Decompress);
++        using var o = new MemoryStream(); z.CopyTo(o); return o.ToArray();
++    }
++
++    static byte[] Deflate(byte[] raw)
++    {
++        using var o = new MemoryStream();
++        using (var z = new GZipStream(o, CompressionLevel.Fastest, leaveOpen: true)) z.Write(raw);
++        return o.ToArray();
++    }
++
++    static int VarLen(long v) { ulong z = (ulong)((v << 1) ^ (v >> 63)); int n = 1; while (z >= 0x80) { z >>= 7; n++; } return n; }
++    static int StrLen(string s) => 4 + Encoding.UTF8.GetByteCount(s);
++
++    /// <summary>The documented G2BT layout's exact uncompressed length for a trace, computed field by field from its
++    /// public contents (independent of the writer).</summary>
++    static long ExpectedPayloadLength(BattleTrace t)
++    {
++        long n = 4 + 4 + StrLen(t.Label) + 8 + 8 + 1 + StrLen(t.FrameJson) + StrLen(t.ResultJson);
++        n += 4; foreach (var f in t.Formations) n += 8 + 4 + StrLen(f.Kind) + 1 + 4;
++        n += 4 + t.Entities.Count * 20L;
++        n += 4 + t.StepCount * 8L;
++        var prev = new long[2 * t.Entities.Count];
++        for (int s = 0; s < t.StepCount; s++)
++            for (int e = 0; e < t.Entities.Count; e++)
++            {
++                var (x, y) = t.PosMm(s, e);
++                n += VarLen(x - prev[2 * e]) + VarLen(y - prev[2 * e + 1]);
++                prev[2 * e] = x; prev[2 * e + 1] = y;
++            }
++        n += (long)t.StepCount * t.Entities.Count;
++        n += 4; long pt = 0;
++        foreach (var ev in t.Events) { n += VarLen(ev.TimeMs - pt) + 1 + VarLen(ev.Source) + VarLen(ev.Target) + VarLen(ev.A); pt = ev.TimeMs; }
++        return n;
++    }
++
++    static void AssertSameTrace(BattleTrace a, BattleTrace b)
++    {
++        Assert.Equal(a.Label, b.Label); Assert.Equal(a.Seed, b.Seed); Assert.Equal(a.StepMs, b.StepMs); Assert.Equal(a.Over, b.Over);
++        Assert.Equal(a.FrameJson, b.FrameJson); Assert.Equal(a.ResultJson, b.ResultJson);
++        Assert.Equal(a.Formations, b.Formations); Assert.Equal(a.Entities, b.Entities); Assert.Equal(a.Events, b.Events);
++        Assert.Equal(a.StepCount, b.StepCount);
++        for (int s = 0; s < a.StepCount; s++)
++        {
++            Assert.Equal(a.StepTimeMs(s), b.StepTimeMs(s));
++            for (int e = 0; e < a.Entities.Count; e++) { Assert.Equal(a.PosMm(s, e), b.PosMm(s, e)); Assert.Equal(a.State(s, e), b.State(s, e)); }
++        }
++        Assert.Equal(a.Hash(), b.Hash());
++    }
++
++    /// <summary>
++    /// The populated G1 fixture (formations, entities, steps and events all present) written in the compact form reads
++    /// back field for field, hashes the same, writes back to the same bytes, and its payload has exactly the length the
++    /// documented layout gives.
++    /// </summary>
++    [Fact]
++    public void BinaryTraceRoundTripsThePopulatedFixtureExactly()
++    {
++        var t = Fixture();
++        Assert.True(t.Formations.Count > 0 && t.Entities.Count > 0 && t.StepCount > 1 && t.Events.Count > 0, "a populated trace");
++        var bytes = Bin(t);
++        Assert.True(bytes.Length > 2 && bytes[0] == 0x1F && bytes[1] == 0x8B, "gzip");
++        var back = BattleTrace.ParseBinary(bytes);
++        AssertSameTrace(t, back);
++        Assert.Equal(bytes, Bin(back));
++        Assert.Equal(ExpectedPayloadLength(t), Inflate(bytes).LongLength);
++        // Load dispatches on the gzip magic
++        string tmp = Path.Combine(Path.GetTempPath(), "g2bt-" + Environment.ProcessId.ToString(CultureInfo.InvariantCulture) + ".g2bt");
++        try { File.WriteAllBytes(tmp, bytes); AssertSameTrace(t, BattleTrace.Load(tmp)); }
++        finally { File.Delete(tmp); }
++    }
++
++    /// <summary>A damaged compact trace is refused, never read as a different battle: wrong magic, an unknown version, an
++    /// unknown event kind, time running backwards, trailing bytes, a truncated payload.</summary>
++    [Fact]
++    public void BinaryTraceRefusesDamagedInput()
++    {
++        var raw = Inflate(Bin(Fixture()));
++        byte[] Copy() => (byte[])raw.Clone();
++        var bad = Copy(); bad[0] = (byte)'X';
++        Assert.Throws<InvalidDataException>(() => BattleTrace.ParseBinary(Deflate(bad)));
++        bad = Copy(); BinaryPrimitives.WriteInt32LittleEndian(bad.AsSpan(4), 2);
++        Assert.Throws<InvalidDataException>(() => BattleTrace.ParseBinary(Deflate(bad)));
++        Assert.Throws<InvalidDataException>(() => BattleTrace.ParseBinary(Deflate(raw.Concat(new byte[] { 0 }).ToArray())));
++        var trunc = raw[..^1];
++        var ex = Record.Exception(() => BattleTrace.ParseBinary(Deflate(trunc)));
++        Assert.True(ex is EndOfStreamException or InvalidDataException, "truncated: " + ex?.GetType().Name);
++        // the event table: the first event's kind byte follows its time varint; make it 7
++        var t = Fixture();
++        long evStart = ExpectedPayloadLength(t) - EventBytes(t);
++        int kindAt = checked((int)(evStart + 4 + VarLen(t.Events[0].TimeMs)));
++        Assert.Equal((byte)t.Events[0].Kind, raw[kindAt]);
++        bad = Copy(); bad[kindAt] = 7;
++        Assert.Throws<InvalidDataException>(() => BattleTrace.ParseBinary(Deflate(bad)));
++        // the second step's time set equal to the first's
++        long timesAt = ExpectedPayloadLength(t) - EventBytes(t) - (long)t.StepCount * t.Entities.Count - PositionBytes(t) - t.StepCount * 8L;
++        bad = Copy(); BinaryPrimitives.WriteInt64LittleEndian(bad.AsSpan(checked((int)timesAt + 8)), t.StepTimeMs(0));
++        Assert.Throws<InvalidDataException>(() => BattleTrace.ParseBinary(Deflate(bad)));
++    }
++
++    static long EventBytes(BattleTrace t)
++    {
++        long n = 4, pt = 0;
++        foreach (var ev in t.Events) { n += VarLen(ev.TimeMs - pt) + 1 + VarLen(ev.Source) + VarLen(ev.Target) + VarLen(ev.A); pt = ev.TimeMs; }
++        return n;
++    }
++
++    static long PositionBytes(BattleTrace t)
++    {
++        long n = 0; var prev = new long[2 * t.Entities.Count];
++        for (int s = 0; s < t.StepCount; s++)
++            for (int e = 0; e < t.Entities.Count; e++)
++            {
++                var (x, y) = t.PosMm(s, e);
++                n += VarLen(x - prev[2 * e]) + VarLen(y - prev[2 * e + 1]);
++                prev[2 * e] = x; prev[2 * e + 1] = y;
++            }
++        return n;
++    }
++
++    /// <summary>
++    /// The exported battle of scenes C and D is the file its manifest names (sha256 and trace hash), 2,100 soldiers of two
++    /// sides of 1,050, with the resolver's result in its header, and its compact form round-trips exactly.
++    /// </summary>
++    [BenchTraceFact]
++    public void BenchBattleBakeMatchesItsManifest()
++    {
++        var path = BenchBattle.DefaultPath;
++        var row = File.ReadAllLines(Path.Combine(Path.GetDirectoryName(path)!, "MANIFEST.tsv"))
++            .Single(l => l.StartsWith(BenchBattle.FileName + "\t", StringComparison.Ordinal)).Split('\t');
++        Assert.Equal(row[1], Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant());
++        var b = BenchBattle.Load();
++        Assert.Equal(row[2], b.Trace.Hash());
++        Assert.Equal(2100, b.Trace.Entities.Count);
++        Assert.Equal(1050, b.Trace.Entities.Count(e => e.Side == 0));
++        Assert.InRange(b.HoldsField, -1, 1);
++        Assert.False(string.IsNullOrEmpty(b.Reason));
++        var c = b.Counts(b.Trace.StepCount - 1);
++        int total = 0; foreach (var v in c) total += v;
++        Assert.Equal(2100, total);
++        AssertSameTrace(b.Trace, BattleTrace.ParseBinary(Bin(b.Trace)));
++    }
++
++    /// <summary>
++    /// The trace-driven crowd shows what the trace records and never writes it: at three snapshot times every 7th
++    /// soldier stands exactly at its recorded position (flat ground), in its recorded state, the counts per state of an
++    /// update are the trace's counts at that step, and the trace hashes the same afterwards.
++    /// </summary>
++    [BenchCrowdFact]
++    public void TraceCrowdShowsWhatTheTraceRecordsAndNeverWritesIt()
++    {
++        TestGfx.Host.Invoke(gd =>
++        {
++            var b = BenchBattle.Load(); var tr = b.Trace; string h0 = tr.Hash();
++            using var crowd = new TraceCrowd(gd, b, (x, z) => 0f);
++            foreach (int s in new[] { 0, tr.StepCount / 3, tr.StepCount - 1 })
++            {
++                float t = crowd.SceneTime(tr.StepTimeMs(s));
++                crowd.Update(t);
++                for (int e = 0; e < tr.Entities.Count; e += 7)
++                {
++                    var (x, y) = tr.PosMm(s, e);
++                    var want = b.World(x, y);
++                    var (p, _) = crowd.Place(e, t);
++                    Assert.Equal((want.X, 0f, want.Z), (p.X, p.Y, p.Z));
++                    Assert.Equal(BenchBattle.Map(tr.State(s, e)), crowd.StateAt(e, t));
++                }
++                var c = b.Counts(s);
++                for (int k = 0; k < 5; k++) Assert.Equal(c[0, k] + c[1, k], crowd.LastStates[k]);
++            }
++            Assert.Equal(h0, tr.Hash());
++        });
++    }
++
++    // ------------------------------------------------------------------ weather switches
++
++    /// <summary>Weather presets set all four terms; single terms clamp to 0..1; unknown looks are refused; Describe
++    /// mentions weather only when a term is on (the clear frame's description is unchanged).</summary>
++    [Fact]
++    public void WeatherSwitchesParseClampAndDescribe()
++    {
++        var f = new RenderFeatures();
++        string clear = f.Describe();
++        Assert.False(f.HasWeather);
++        f.SetMany("weather=rain");
++        Assert.Equal((0.93f, 1f, 1f, 0.35f), (f.Cloud, f.Wetness, f.Rain, f.Mist));
++        Assert.Contains("rain=1", f.Describe());
++        f.SetMany("weather=mist");
++        Assert.Equal((WeatherPresets.Mist.Cloud, WeatherPresets.Mist.Wetness, 0f, 1f), (f.Cloud, f.Wetness, f.Rain, f.Mist));
++        f.SetMany("weather=clear");
++        Assert.False(f.HasWeather);
++        Assert.Equal(clear, f.Describe());
++        f.SetMany("cloud=2,wet=-1,rain=0.5,mist=0.25");
++        Assert.Equal((1f, 0f, 0.5f, 0.25f), (f.Cloud, f.Wetness, f.Rain, f.Mist));
++        Assert.Throws<ArgumentException>(() => f.SetMany("weather=snow"));
++        foreach (var w in WeatherPresets.All) Assert.Equal(w, WeatherPresets.Get(w.Name));
++    }
++
++    /// <summary>Mist 0 returns the scene's fog and haze bit for bit; mist thickens the fog and the haze monotonically.</summary>
++    [Fact]
++    public void MistOffLeavesFogAndHazeExactlyAsTheyWere()
++    {
++        var fog = new Vector4(0.0123f, 0.0456f, 7.5f, 0.82f);
++        Assert.Equal(fog, ForwardRenderer.MistFog(fog, 0f));
++        Assert.Equal(fog, ForwardRenderer.MistFog(fog, -0.5f));
++        Assert.Equal(3.25f, ForwardRenderer.MistHaze(3.25f, 0f));
++        Vector4 prev = fog; float prevHaze = 3.25f;
++        foreach (float m in new[] { 0.25f, 0.5f, 1f })
++        {
++            var f = ForwardRenderer.MistFog(fog, m);
++            Assert.True(f.X > prev.X && f.W > prev.W, $"mist {m}: density and cap rise");
++            Assert.Equal(fog.Z, f.Z);
++            float h = ForwardRenderer.MistHaze(3.25f, m);
++            Assert.True(h > prevHaze);
++            prev = f; prevHaze = h;
++        }
++    }
++
++    // ------------------------------------------------------------------ weather on the device (PillarScene)
++
++    const int W = 320, H = 180;
++    static readonly SunState Sun = SunModel.At(11f);
++
++    static ForwardRenderer NewRenderer(GraphicsDevice gd, string switches)
++    {
++        var r = new ForwardRenderer(gd, TestGfx.Host.Effects);
++        r.Settings.FogParams = new Vector4(0f, 0.02f, 0f, 0f);
++        r.Settings.ShadowCasterBounds = new BoundingBox(new Vector3(-80, -1, -80), new Vector3(80, 10, 80));
++        r.Settings.Features.SetMany("autoexposure=0,bloom=0,grade=0,aa=none,farfield=0,ssao=0,contact=0");
++        if (switches.Length > 0) r.Settings.Features.SetMany(switches);
++        return r;
++    }
++
++    static Color[] Frame(ForwardRenderer r, IRenderContent c, CameraPose cam, RenderTarget2D rt, float t = 0f)
++    {
++        r.Render(c, cam, Sun, rt, t);
++        return Capture.ReadPixels(rt);
++    }
++
++    static float Luma(Color c) => 0.2126f * c.R + 0.7152f * c.G + 0.0722f * c.B;
++
++    static float LumaAt(Color[] px, CameraPose cam, Vector3 world)
++    {
++        var c = Vector4.Transform(new Vector4(world, 1), cam.View * cam.Projection(W / (float)H));
++        int x = (int)((c.X / c.W * 0.5f + 0.5f) * W), y = (int)((0.5f - c.Y / c.W * 0.5f) * H);
++        float s = 0;
++        for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) s += Luma(px[Math.Clamp(y + j, 0, H - 1) * W + Math.Clamp(x + i, 0, W - 1)]);
++        return s / 9f;
++    }
++
++    /// <summary>The camera beside the pillar, square to the sun (no glint towards it): ground on the pillar's sunlit and
++    /// shadowed sides, near ground and far ground across the slab.</summary>
++    static (CameraPose cam, Vector3 lit, Vector3 shade, Vector3 near, Vector3 far) SunBehind()
++    {
++        var l = Sun.DirectionToLight;
++        var s = Vector3.Normalize(new Vector3(l.X, 0, l.Z)); var p = new Vector3(-s.Z, 0, s.X);
++        var cam = new CameraPose(p * 6f + new Vector3(0, 2.6f, 0), new Vector3(0, 0.25f, 0), 0.8f, 0.1f, 400f);
++        return (cam, s * 0.9f, -s * 0.9f, p * 3.2f + s * 1.5f, -p * 40f + s * 3f);
++    }
++
++    /// <summary>Content that draws the pillar and, in the transparent pass, an optional rain layer or smoke layer.</summary>
++    sealed class WeatherBox(PillarScene scene, RainLayer? rain, SmokeLayer? smoke) : IRenderContent, ITransparentContent
++    {
++        public void DrawShadowCasters(RenderContext rc) => scene.DrawShadowCasters(rc);
++        public void DrawOpaque(RenderContext rc) => scene.DrawOpaque(rc);
++        public bool NeedsSceneColor(RenderContext rc) => false;
++        public void DrawTransparent(RenderContext rc) { rain?.Draw(rc); smoke?.Draw(rc); }
++    }
++
++    /// <summary>
++    /// All weather terms at 0 give the default frame pixel for pixel; wetness darkens the lit, porous ground (water in the
++    /// pores) by a clear margin on both the sunlit and the shadowed side.
++    /// </summary>
++    [GfxFact]
++    public void WetGroundDarkensAndZeroWeatherIsTheDefaultFrame()
++    {
++        TestGfx.Host.Invoke(gd =>
++        {
++            using var scene = new PillarScene(gd);
++            using var rt = new RenderTarget2D(gd, W, H, false, SurfaceFormat.Color, DepthFormat.None);
++            var (cam, lit, shade, _, _) = SunBehind();
++            using var dflt = NewRenderer(gd, "");
++            using var zero = NewRenderer(gd, "cloud=0,wet=0,rain=0,mist=0");
++            using var wet = NewRenderer(gd, "wet=1");
++            var a = Frame(dflt, scene, cam, rt); var z = Frame(zero, scene, cam, rt); var b = Frame(wet, scene, cam, rt);
++            Assert.Equal(0, Capture.CountChanged(a, z, 0));
++            float litRel = (LumaAt(a, cam, lit) - LumaAt(b, cam, lit)) / MathF.Max(1, LumaAt(a, cam, lit));
++            float shadeRel = (LumaAt(a, cam, shade) - LumaAt(b, cam, shade)) / MathF.Max(1, LumaAt(a, cam, shade));
++            Assert.True(litRel > 0.2f, $"sunlit wet ground darkened by {litRel:P1}");
++            Assert.True(shadeRel > 0.1f, $"shaded wet ground darkened by {shadeRel:P1}");
++        });
++    }
++
++    /// <summary>Cloud cover dims the direct sun: the ratio of sunlit to shadowed ground falls (softer, flatter light).</summary>
++    [GfxFact]
++    public void CloudSoftensTheSunAndShadeContrast()
++    {
++        TestGfx.Host.Invoke(gd =>
++        {
++            using var scene = new PillarScene(gd);
++            using var rt = new RenderTarget2D(gd, W, H, false, SurfaceFormat.Color, DepthFormat.None);
++            var (cam, lit, shade, _, _) = SunBehind();
++            using var clear = NewRenderer(gd, "");
++            using var cloud = NewRenderer(gd, "cloud=1");
++            var a = Frame(clear, scene, cam, rt); var b = Frame(cloud, scene, cam, rt);
++            float ra = LumaAt(a, cam, lit) / MathF.Max(1, LumaAt(a, cam, shade));
++            float rb = LumaAt(b, cam, lit) / MathF.Max(1, LumaAt(b, cam, shade));
++            Assert.True(ra > 1.3f, $"clear sky: sunlit/shade {ra:F2}");
++            Assert.True(rb < ra * 0.8f, $"overcast sunlit/shade {rb:F2} vs clear {ra:F2}");
++        });
++    }
++
++    /// <summary>Ground mist changes the far ground much more than the near ground (it lies in the distance and the low air).</summary>
++    [GfxFact]
++    public void MistVeilsTheFarMoreThanTheNear()
++    {
++        TestGfx.Host.Invoke(gd =>
++        {
++            using var scene = new PillarScene(gd);
++            using var rt = new RenderTarget2D(gd, W, H, false, SurfaceFormat.Color, DepthFormat.None);
++            var (cam, _, _, near, far) = SunBehind();
++            using var off = NewRenderer(gd, "");
++            using var on = NewRenderer(gd, "mist=1");
++            var a = Frame(off, scene, cam, rt); var b = Frame(on, scene, cam, rt);
++            float dNear = MathF.Abs(LumaAt(a, cam, near) - LumaAt(b, cam, near)), dFar = MathF.Abs(LumaAt(a, cam, far) - LumaAt(b, cam, far));
++            Assert.True(dFar > 2f * dNear && dFar > 6f, $"mist: near changed {dNear:F1}, far {dFar:F1}");
++        });
++    }
++
++    /// <summary>Rain streaks draw only when it rains: at rain 0 the layer leaves the frame untouched; at rain 1 it marks
++    /// many pixels, and the same scene time draws the same streaks (no RNG state).</summary>
++    [GfxFact]
++    public void RainStreaksDrawOnlyWhenItRainsAndRepeat()
++    {
++        TestGfx.Host.Invoke(gd =>
++        {
++            using var pillar = new PillarScene(gd);
++            using var rain = new RainLayer(gd);
++            var with = new WeatherBox(pillar, rain, null); var without = new WeatherBox(pillar, null, null);
++            using var rt = new RenderTarget2D(gd, W, H, false, SurfaceFormat.Color, DepthFormat.None);
++            var (cam, _, _, _, _) = SunBehind();
++            using var dry = NewRenderer(gd, "");
++            Assert.Equal(0, Capture.CountChanged(Frame(dry, without, cam, rt, 3f), Frame(dry, with, cam, rt, 3f), 0));
++            using var wet = NewRenderer(gd, "weather=rain");
++            var a = Frame(wet, without, cam, rt, 3f); var b = Frame(wet, with, cam, rt, 3f); var b2 = Frame(wet, with, cam, rt, 3f);
++            int c0 = Capture.CountChanged(a, b, 0), c1 = Capture.CountChanged(a, b, 1), c2 = Capture.CountChanged(a, b, 2);
++            Assert.True(c0 > 2000, $"streaks drawn: {c0} pixels changed, {c1} by more than 1, {c2} by more than 2");
++            Assert.Equal(0, Capture.CountChanged(b, b2, 0));
++        });
++    }
++
++    /// <summary>Smoke puffs are a pure function of scene time: the same time draws the same frame, another time a
++    /// different one, and a layer without sources draws nothing.</summary>
++    [GfxFact]
++    public void SmokeIsAPureFunctionOfSceneTime()
++    {
++        TestGfx.Host.Invoke(gd =>
++        {
++            using var pillar = new PillarScene(gd);
++            using var smoke = new SmokeLayer(gd);
++            using var empty = new SmokeLayer(gd);
++            var (cam, _, _, _, _) = SunBehind();
++            var l = Sun.DirectionToLight; var sd = Vector3.Normalize(new Vector3(l.X, 0, l.Z));
++            smoke.Add(SmokeSource.Plume(new Vector3(sd.Z, 0f, -sd.X) * -3f));
++            var with = new WeatherBox(pillar, null, smoke); var none = new WeatherBox(pillar, null, empty); var bare = new WeatherBox(pillar, null, null);
++            using var rt = new RenderTarget2D(gd, W, H, false, SurfaceFormat.Color, DepthFormat.None);
++            using var r = NewRenderer(gd, "");
++            var a = Frame(r, with, cam, rt, 6f); int puffs = smoke.LastPuffs;
++            var a2 = Frame(r, with, cam, rt, 6f);
++            Assert.Equal(puffs, smoke.LastPuffs);
++            var b = Frame(r, with, cam, rt, 9.5f);
++            Assert.True(puffs > 10, "puffs alive");
++            Assert.Equal(0, Capture.CountChanged(a, a2, 0));
++            Assert.True(Capture.CountChanged(a, b, 2) > 50, "the plume moved");
++            Assert.True(Capture.CountChanged(Frame(r, bare, cam, rt, 6f), a, 2) > 50, "the plume is visible");
++            Assert.Equal(0, Capture.CountChanged(Frame(r, bare, cam, rt, 6f), Frame(r, none, cam, rt, 6f), 0));
++        });
++    }
++
++    // ------------------------------------------------------------------ aftermath plan (scene D) on synthetic traces
++
++    /// <summary>A two-snapshot trace: everyone Active at t = 0, the given final states at t = 2 s (positions in metres).</summary>
++    static BenchBattle Battle(int holdsField, params (int side, float x, float z, TraceState state)[] men)
++    {
++        var sb = new StringBuilder();
++        string I(long v) => v.ToString(CultureInfo.InvariantCulture);
++        sb.Append("{\"format\":\"").Append(BattleTrace.Format).Append("\",\"label\":\"synthetic\",\"seed\":1,\"stepMs\":2000,\"over\":true,");
++        sb.Append("\"formations\":[{\"id\":1,\"side\":0,\"kind\":\"Spear\",\"ranged\":false,\"count\":1},{\"id\":2,\"side\":1,\"kind\":\"Spear\",\"ranged\":false,\"count\":1}],");
++        sb.Append("\"entities\":[").Append(string.Join(",", men.Select((m, i) => $"[{I(100 + i)},{I(m.side + 1)},{I(m.side)}]"))).Append("],");
++        string Pos() => string.Join(",", men.Select(m => I((long)MathF.Round(m.x * 1000f)) + "," + I((long)MathF.Round(m.z * 1000f))));
++        sb.Append("\"steps\":[{\"t\":0,\"pos\":[").Append(Pos()).Append("],\"state\":[").Append(string.Join(",", men.Select(_ => "0"))).Append("]},");
++        sb.Append("{\"t\":2000,\"pos\":[").Append(Pos()).Append("],\"state\":[").Append(string.Join(",", men.Select(m => I((int)m.state)))).Append("]}],");
++        sb.Append("\"events\":[],\"frame\":{\"originMm\":[0,0]},\"result\":{\"reason\":\"test\",\"holdsField\":").Append(I(holdsField)).Append(",\"side\":-1,\"endMs\":2000}}");
++        return BenchBattle.FromTrace(BattleTrace.Parse(Encoding.UTF8.GetBytes(sb.ToString())));
++    }
++
++    static AftermathPlan Plan(BenchBattle b, DeathContent c = DeathContent.Shown) => AftermathPlan.From(b, b.FinalPosition, c);
++
++    /// <summary>
++    /// The plan follows the recorded outcome: the field-holding side is the victor, the surrender beat exists because the
++    /// defeated side has soldiers who surrendered, and the heroes are the clearest pair 1.8-4.5 m apart (here the lone
++    /// pair 100 m away beats the pair in a crowd); the counts are the trace's.
++    /// </summary>
++    [Fact]
++    public void AftermathPlanFollowsTheRecordedOutcome()
++    {
++        var b = Battle(0,
++            (0, 0f, 0f, TraceState.Active), (1, 3f, 0f, TraceState.Surrendered),                 // pair in a crowd (ids 0, 1)
++            (0, 1.5f, 1.5f, TraceState.Active), (0, 1.5f, -1.5f, TraceState.Active), (1, 2.5f, 1f, TraceState.Surrendered),
++            (0, 100f, 0f, TraceState.Active), (1, 103f, 0f, TraceState.Surrendered),             // the lone pair (ids 5, 6)
++            (1, 50f, 50f, TraceState.Dead), (1, 60f, 60f, TraceState.Escaped), (0, 70f, 70f, TraceState.Surrendered), (1, 80f, 80f, TraceState.Routing));
++        var p = Plan(b);
++        Assert.Equal((0, 1, true), (p.Victor, p.Defeated, p.Surrender));
++        Assert.Equal((5, 6), (p.CommanderEntity, p.OfficerEntity));
++        Assert.Equal(0, p.StageCrowd);
++        Assert.Equal((4, 3, 1, 1, 1), (p.VictorsStanding, p.Prisoners, p.VictorPrisoners, p.Fallen, p.Escaped));
++        Assert.Equal(DeathContent.Shown, p.Content);
++        Assert.Equal(DeathContent.CutAway, Plan(b, DeathContent.CutAway).Content);
++    }
++
++    /// <summary>Tie-dense: four equally clear pairs (crowd 0) and a commander with two equally near prisoners; the pair
++    /// with the lower commander id wins, and for that commander the lower prisoner id.</summary>
++    [Fact]
++    public void AftermathPairTiesBreakByTheLowerIds()
++    {
++        var men = new List<(int, float, float, TraceState)>();
++        for (int k = 0; k < 4; k++)
++        {
++            float x = 40f * k;
++            men.Add((1, x + 3f, 0f, TraceState.Surrendered));   // id 3k
++            men.Add((0, x, 0f, TraceState.Active));             // id 3k+1
++            men.Add((1, x - 3f, 0f, TraceState.Surrendered));   // id 3k+2: as near as the first
++        }
++        var p = Plan(Battle(0, men.ToArray()));
++        Assert.Equal((1, 0), (p.CommanderEntity, p.OfficerEntity));
++        // the same geometry listed in reverse: the lowest ids still win, so the chosen pair is now the last group's
++        men.Reverse();
++        var b2 = Plan(Battle(0, men.ToArray()));
++        var q = Battle(0, men.ToArray());
++        var r = AftermathPlan.From(q, q.FinalPosition, DeathContent.Shown);
++        Assert.Equal((1, 0), (r.CommanderEntity, r.OfficerEntity));
++        Assert.Equal(120f, q.FinalPosition(r.CommanderEntity).X, 3);
++        Assert.Equal(117f, q.FinalPosition(r.OfficerEntity).X, 3);
++        Assert.Equal(0, r.StageCrowd);
++        Assert.Equal(r, b2);
++    }
++
++    /// <summary>No victor: no commander, no surrender. A victor without prisoners: a commander and no surrender beat.
++    /// Prisoners all out of the 1.8-4.5 m window: the fallback pair (nearest), marked StageCrowd = -1.</summary>
++    [Fact]
++    public void AftermathWithoutVictorPrisonersOrAClearPair()
++    {
++        var none = Plan(Battle(-1, (0, 0f, 0f, TraceState.Active), (1, 3f, 0f, TraceState.Surrendered)));
++        Assert.Equal((-1, -1, -1, false), (none.Victor, none.CommanderEntity, none.OfficerEntity, none.Surrender));
++        var noPrisoners = Plan(Battle(1, (0, 0f, 0f, TraceState.Dead), (1, 3f, 0f, TraceState.Active), (1, 9f, 0f, TraceState.Active)));
++        Assert.Equal((1, false, -1), (noPrisoners.Victor, noPrisoners.Surrender, noPrisoners.OfficerEntity));
++        Assert.Contains(noPrisoners.CommanderEntity, new[] { 1, 2 });
++        var far = Plan(Battle(0, (0, 0f, 0f, TraceState.Active), (0, 20f, 0f, TraceState.Active), (1, 30f, 0f, TraceState.Surrendered), (1, 38f, 0f, TraceState.Surrendered)));
++        Assert.Equal((1, 2, -1), (far.CommanderEntity, far.OfficerEntity, far.StageCrowd));
++        Assert.Throws<ArgumentOutOfRangeException>(() => Plan(Battle(0, (0, 0f, 0f, TraceState.Active)), default));
++    }
++
++    static Vector3 Flat(Vector3 p, float up) => new(p.X, up, p.Z);
++
++    static AftermathPlan PlanWith(DeathContent c, bool victor = true) =>
++        new(victor ? 0 : -1, victor ? 1 : -1, victor, victor ? 0 : -1, victor ? 1 : -1, c, 10, 5, 0, 7, 3);
++
++    /// <summary>
++    /// The death-content setting changes one beat only: Shown ends on "fallen" and never on "cutaway"; CutAway ends on
++    /// "cutaway" and never shows "fallen"; the six beats before it are identical (poses, hours, durations). With no
++    /// victor there is a single field beat.
++    /// </summary>
++    [Fact]
++    public void AftermathBeatsHonourTheDeathContentSetting()
++    {
++        var occ = new List<Vector3> { new(1.5f, 0f, 3f), new(-4f, 0f, 1f) };
++        List<AftermathShot> Beats(DeathContent c) => BenchAftermathScene.PlanBeats(PlanWith(c), Vector3.Zero, new Vector3(3, 0, 0), 0f,
++            new Vector3(12, 0, 9), new Vector3(30, 0, 30), new Vector3(5, 0, 2), occ, Flat);
++        var shown = Beats(DeathContent.Shown); var cut = Beats(DeathContent.CutAway);
++        string[] six = { "field", "prisoners", "surrender", "officer-face", "commander-face", "standards" };
++        Assert.Equal(six.Append("fallen"), shown.Select(b => b.Name));
++        Assert.Equal(six.Append("cutaway"), cut.Select(b => b.Name));
++        Assert.Equal(shown.Take(6), cut.Take(6));
++        Assert.DoesNotContain(cut, b => b.Depicts.Contains("fallen", StringComparison.Ordinal));
++        var noVictor = BenchAftermathScene.PlanBeats(PlanWith(DeathContent.Shown, false), Vector3.Zero, Vector3.Zero, 0f, Vector3.Zero, new Vector3(30, 0, 30), Vector3.Zero, occ, Flat);
++        Assert.Equal(new[] { "field" }, noVictor.Select(b => b.Name));
++        // each still (at StillAt of its move) looks at its subject: the surrender still frames the pair's midpoint
++        var s = shown[2];
++        var still = Vector3.Lerp(s.From.Position, s.To.Position, BenchAftermathScene.StillAt);
++        Assert.True(Vector3.Distance(still, new Vector3(1.5f, 0f, 0f)) > 4f, "the two-shot stands back from the pair");
++        Assert.Equal(new Vector3(1.5f, 1.05f, 0f), s.From.Target);
++    }
++
++    /// <summary>
++    /// The close-shot solver returns the candidate with the fewest blockers, trying the turns in a fixed order (0, +15,
++    /// -15, +30, ...) and keeping the first of equal cost. Tie-dense: occluders placed symmetrically make each +/- pair
++    /// cost the same, and the positive turn is taken; with nothing in the way, the preferred eye is kept.
++    /// </summary>
++    [Fact]
++    public void CloseShotSolverPicksTheClearestViewWithStableTies()
++    {
++        var target = new Vector3(0, 1.0f, 0); var eye = new Vector3(0, 1.6f, -5f);
++        Assert.Equal(eye, BenchAftermathScene.Solve(eye, target, new List<Vector3>(), Flat, 90f));
++        // a soldier on the line and two mirrored pairs: k = 0 is blocked, +-15 and +-30 tie by symmetry
++        var occ = new List<Vector3> { new(0, 0, -2.5f) };
++        foreach (float ang in new[] { 15f, 30f })
++        {
++            float r = MathHelper.ToRadians(ang);
++            occ.Add(new Vector3(MathF.Sin(r) * 2.5f, 0, -MathF.Cos(r) * 2.5f));
++            occ.Add(new Vector3(-MathF.Sin(r) * 2.5f, 0, -MathF.Cos(r) * 2.5f));
++        }
++        var got = BenchAftermathScene.Solve(eye, target, occ, Flat, 90f);
++        // the expected answer by brute force over the documented candidate order
++        Vector3 best = eye; int bestCost = int.MaxValue; var costs = new List<int>();
++        for (int k = 0; k * 15 <= 90; k++)
++            foreach (int sg in new[] { 1, -1 })
++            {
++                if (k == 0 && sg < 0) continue;
++                float a = MathHelper.ToRadians(15f * k * sg);
++                // the eye (0, -5) relative to the target, turned by a about the vertical axis
++                var c = new Vector3(5f * MathF.Sin(a), 1.6f, -5f * MathF.Cos(a));
++                int cost = BenchAftermathScene.ViewBlockers(c, target, occ); costs.Add(cost);
++                if (cost < bestCost) { bestCost = cost; best = c; }
++            }
++        Assert.True(costs[0] > costs.Min(), "the straight view is blocked");
++        Assert.True(costs.Count(c => c == costs.Min()) >= 2, "a tie exists at the minimum");
++        Assert.Equal(best.X, got.X, 4); Assert.Equal(best.Z, got.Z, 4);
++        Assert.True(got.X > 0f, "the positive turn wins the tie");
++        // FirstClearest keeps the list order among equal costs: the blocked straight view loses, the first clear one wins
++        var listed = new List<Vector3> { eye, new(5f, 1.6f, 0f), new(-5f, 1.6f, 0f) };
++        Assert.Equal(listed[1], BenchAftermathScene.FirstClearest(listed, target, occ));
++        listed.Reverse();
++        Assert.Equal(new Vector3(-5f, 1.6f, 0f), BenchAftermathScene.FirstClearest(listed, target, occ));
++    }
++
++    /// <summary>The death-content setting has no implicit default: default(DeathContent) is not a member, and both
++    /// states are registered as separate benchmark scenes.</summary>
++    [Fact]
++    public void DeathContentHasNoImplicitDefaultAndBothStatesAreScenes()
++    {
++        Assert.False(Enum.IsDefined(default(DeathContent)));
++        var names = SceneRegistry.Discover(typeof(Gfx.Demo.Program).Assembly).Select(e => e.Name).ToHashSet();
++        foreach (var n in new[] { "bench-a", "bench-b", "bench-c", "bench-d-shown", "bench-d-cutaway", "bench-e" }) Assert.Contains(n, names);
++    }
++
++    /// <summary>Scene A's commander's expression runs grim, then a battle cry, then calm.</summary>
++    [Fact]
++    public void CommanderExpressionRunsGrimBattleCryCalm()
++    {
++        Assert.Equal("grim", BenchCloseupScene.CommanderExpression(1f).name);
++        Assert.Equal("battlecry", BenchCloseupScene.CommanderExpression(3f).name);
++        Assert.Equal("calm", BenchCloseupScene.CommanderExpression(5f).name);
++        Assert.Equal("battlecry", BenchCloseupScene.CommanderExpression(2f).name);
++        Assert.Equal("calm", BenchCloseupScene.CommanderExpression(4f).name);
++    }
++}
 diff --git a/prototypes/m7-gfx2/Gfx.Units/BattleTrace.cs b/prototypes/m7-gfx2/Gfx.Units/BattleTrace.cs
 index dee79a6..db8fe53 100644
 --- a/prototypes/m7-gfx2/Gfx.Units/BattleTrace.cs
@@ -3125,6 +3810,300 @@ index dee79a6..db8fe53 100644
          return Convert.ToHexString(h.GetHashAndReset());
      }
  
+diff --git a/prototypes/m7-gfx2/README.md b/prototypes/m7-gfx2/README.md
+index 12e7b8e..acb8d72 100644
+--- a/prototypes/m7-gfx2/README.md
++++ b/prototypes/m7-gfx2/README.md
+@@ -48,7 +48,9 @@ external assets in `assets/` are pinned and fetched, but **no code uses them yet
+ | `tools/charbake/` (stage chars) | Python bake of identities, outfits, LODs and clip files from the MakeHuman CC0 core and the MPFB2 rig (`scripts/bake-chars.sh`); stage kit adds `kitbake.py` and the `soldier_ancient` recipe (`scripts/bake-kit-outfits.sh`); `tools/crowdbake/` (stage render2): the crowd's third LOD (`scripts/bake-crowd.sh`) |
+ | `Gfx.Gear/` (stage kit) | The era kit generated in code: mesh builder and shapes, PBR map painter, items (aspis, shields, helmets, weapons, standards), sockets and grips, the hold constraint, authored combat clips, rigged bow and standard, the hero asset's glTF bake |
+ | `Gfx.Demo/` | Executable: `--sysinfo`, `--list`, `--capture`, `--bench`, `--interactive`, `--chars-costs`, `--kit-bake`, `--kit-costs`, `--motion`; the `chars-*`, `kit-*` and `crowd-*` scenes; forwards the benchmark options to `Gfx.Perf` |
+-| `Gfx.Perf/` | Victus benchmark harness (perf stage): `--suite`, `--sweep`, `--scene`, `--gpu-selftest`; `launcher/` (CivSimBench.exe source), `package/` (Windows package files). See `reports/perf.md` |
++| `Gfx.Perf/` | Victus benchmark harness (perf stage): `--suite`, `--sweep`, `--scene`, `--gpu-selftest`; `launcher/` (CivSimBench.exe source), `package/` (Windows package files). See `reports/perf.md`; stage scenes binds its slots A–E to the benchmark scenes |
++| `Gfx.Demo/Scenes/Bench/` (stage scenes) | The five benchmark scenes `bench-a` … `bench-e` (`bench-d-shown`, `bench-d-cutaway`), the trace-driven crowd and the aftermath plan |
++| `tools/traceexport/` (stage scenes) | Exports the battle trace of scenes C and D by running the m7-sprint1 TacticalResolver (read-only reference) on the G2 terrain grid (`scripts/export-battle-trace.sh`); outside `M7Gfx2.slnx`, never shipped |
+ | `Gfx.Tests/` | xunit; `[GfxFact]` device tests skip, not fail, when no GL device can be created |
+ | `fixtures/` | `battle-trace-combinedarms-s7.json`, the labelled battle-trace fixture from G1; `ez-rng-oracle.txt` and `ez-tree-js-reference.json`, the ez-tree port's reference outputs (stage env) |
+ | `scripts/check-gfx-determinism.sh` | Integer-only scan of `Gfx.Proc/Authoritative` |
+@@ -241,3 +243,36 @@ Details, captures, llvmpipe costs, tests, mutants and what still looks placehold
+   to TAA; key 9 cycles none / FXAA / TAA.
+ - **Reproduce:** `scripts/capture-render2.sh OUT_DIR`, `scripts/review-sheets-render2.py`, `scripts/bench-render2.sh
+   OUT_DIR` (llvmpipe costs: crowd at 220 / 2,000 / 10,000, LOD sweep, culling, AO, contact shadows, TAA).
++
++## Benchmark scenes A–E, weather, time of day (stage scenes)
++
++The five scenes the Victus benchmark measures (D-078 QM8; the harness's default slots), each on the env temperate
++battlefield with its forest, river and Iron Age village. Scenes C and D are driven by a battle that the prototype
++TacticalResolver fought on this terrain grid (DR49 item 5); presentation reads the trace only (DR42). Details,
++captures, G1-vs-G2 sheets, llvmpipe costs and what still looks placeholder: `reports/scenes.md`; provenance:
++`assets/PROVENANCE.md` §3.13.
++
++| Scene | Slot | Content |
++|---|---|---|
++| `bench-a` | A | Soldier close-up: a hoplite with the painted aspis and his bare-headed commander with the hero aspis, three of the line and a standard; the commander's expression runs grim → battle cry → calm |
++| `bench-b` | B | Formation: 320 instanced soldiers of both forces in four blocks with four standards and officers on the meadow by the village (the harness's crowd sweep sets the count) |
++| `bench-c` | C | Large battlefield: the 2,100 soldiers of the exported battle, each driven by the trace (positions, states, blows, falls, surrenders) |
++| `bench-d-shown`, `bench-d-cutaway` | D | Cinematic aftermath from the trace's recorded outcome: field, prisoners, the surrender, faces, standards, smoke and dust; the last beat shows the fallen or cuts away. The death-content setting has **no default** (D-079 Q12 is open); slot D is bound to `bench-d-shown` as the measurement's upper bound only |
++| `bench-e` | E | Campaign environment: vistas of the forest, the river valley, the village and a stone stronghold, a river view, the settlement and the fortification (benchmark capture only; the campaign map is unchanged, D-079 Q7) |
++
++```
++scripts/export-battle-trace.sh [--check]   # the battle of scenes C and D: $G2_ASSETS/baked/trace/battle-2100.g2bt (+ MANIFEST.tsv)
++dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --capture bench-c --out DIR --size 1920x1080 [--set weather=rain] [--shots a,b]
++dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --bench bench-b --shot wide-noon --variants "g2;weather=rain;weather=mist"
++dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --suite smoke            # the harness on slots A-E (the benchmark scenes)
++```
++
++- **Weather** (`--set`, presentation only, off by default: every term 0 renders the frame of the earlier stages):
++  `weather=clear|overcast|mist|rain`, or the terms `cloud`, `wet`, `rain`, `mist` (0..1). Cloud blends the sky towards
++  an overcast sky and dims the sun; wetness darkens porous surfaces and adds a water film (terrain, foliage, skin,
++  cloth, kit, structures); rain adds puddles on level ground and rain streaks; mist thickens a low height fog.
++- **Time of day:** the scenes' shots carry their hours (`BenchHours`: noon 12.5 h, golden hour 17.9 h, dusk 18.62 h);
++  B, C and E have one shot at each hour.
++- **Loading:** each scene loads the env battlefield (about 70–85 s on llvmpipe here, most of it the tree impostor
++  bake); C and D also need `scripts/export-battle-trace.sh` to have run, and A–D the chars, kit-outfit and crowd bakes.
++
+diff --git a/prototypes/m7-gfx2/assets/PROVENANCE.md b/prototypes/m7-gfx2/assets/PROVENANCE.md
+index 607c164..9034017 100644
+--- a/prototypes/m7-gfx2/assets/PROVENANCE.md
++++ b/prototypes/m7-gfx2/assets/PROVENANCE.md
+@@ -360,6 +360,33 @@ masked software-rasterised hierarchical depth buffer for occlusion culling (comm
+ themselves (bounding-sphere fit, texel snapping, tent PCF, blend band) are render1's (§3.8); render2 adds their debug
+ view, caster culling and tests.
+ 
++### 3.13 Stage scenes (benchmark scenes A–E, the exported battle trace, weather): files used, bake outputs and runtime transformations
++
++Added 2026-11-11 by stage scenes on `g2/scenes` (cut from `g2/trunk` 21a181e). **No new external file is downloaded or
++pinned and no `manifest.tsv` row changes.** Every visual input of the five benchmark scenes is an existing row: the
++stage-chars identities and outfits (§3.9) posed by their CMU clips (§3.4), the generated era kit and the kit garment
++outfits (§3.11), the crowd LOD3 bake and animation bank (§3.12), the env temperate battlefield with its forest, river
++and Iron Age village (§3.10) and the render1 terrain and sky (§3.8).
++
++| Output or runtime use | Inputs | Transformations | Licence of the output | Status |
++|---|---|---|---|---|
++| Battle trace of scenes C and D, `$G2_ASSETS/baked/trace/battle-2100.g2bt` (681,135 bytes, sha256 `35e7f65def34690ff7ecc1f30dca0366583ee627d5c09f0fca935d4ef8c65a7b`, trace content hash `7670DF68DAE2048430DC62E4DE2BDE2976B894EE0EA24CA5F9E30D848ADF331A`), `MANIFEST.tsv` | the battle prototype's TacticalResolver (`prototypes/m7-sprint1/Proto.M7`, project code, referenced read-only at tree `ce495ee6fd415f90ae880af7b93b655c822b1511`, never modified); the env temperate fixture grid (§3.10, generated from fixture inputs) and the env Iron Age village plan (generated) | `scripts/export-battle-trace.sh` → `tools/traceexport`: 21 heavy-infantry formations of 50 per side (2,100 entities) deployed on a 20 m battle grid downscaled from the 4 m fixture grid (5 × 5 cells per battle cell, the village as Building cells; a PROTOTYPE ADAPTER), the resolver stepped with its knowledge AI on both sides to the end of the battle, every 2 s snapshot (positions in mm, states) and every Fire and Damage event recorded, written as JSON and re-encoded by the presentation's reader into the compact binary form (gzip, zigzag varints; exact integers, same content hash). `--check` re-exports and compares the content hash. Never committed | project-generated data | own |
++| Benchmark scenes `bench-a`, `bench-b`, `bench-c`, `bench-d-shown`, `bench-d-cutaway`, `bench-e` | the rows above (§3.4, §3.8–§3.12) and the battle trace | Code (`Gfx.Demo/Scenes/Bench`): layouts, camera shots and vantage search, the trace-driven crowd (positions and states from the trace; cosmetic facing, idles, kit per formation and looks from entity ids), the aftermath plan and its beats, the stronghold plan (`Settlements.Stronghold`, built with the env structure kit), tree exclusions | project code | own |
++| Weather: cloud cover, wet shading, terrain puddles, ground mist, rain streaks; smoke and dust | none | Code (`Gfx.Engine`: `RenderSettings` weather switches and presets, `SceneLighting` cloud, `GlslLib.wetSurface`, `ForwardRenderer.MistFog`/`MistHaze`, `RainLayer`, `SmokeLayer`; `Gfx.Proc` terrain puddles and wet foliage; `Gfx.Chars` wet skin and cloth). Per-streak and per-puff values come from integer hashes of their index (no random state) | project code | own |
++
++**Runtime use and legends.** Every scene with characters shows CMU-derived motion through the stage-chars clips and
++the crowd's animation bank (scene A's idle and guard blends, B's idles, C's and D's locomotion and idles), so **every
++legend of scenes A–D names it PROTOTYPE-ONLY**; scene E has no characters. The authored kit clips (§3.11: thrust,
++cuts, block, hit, deaths, surrender, victory) are project-owned. The scenes stand on the env temperate battlefield and
++the render1 terrain bake (§3.8: CC0, MIT and CC-BY-4.0 sets; notices §5).
++
++**Algorithms implemented from publications or common practice** (no code copied, no asset): wet surfaces darkening
++porous materials and smoothing every surface with a water film (after Lagarde, "Water drop 2b – Dynamic rain and its
++effects", 2013), an overcast sky as a blend towards a uniform CIE overcast luminance distribution (Moon and Spencer
++1942, the CIE standard overcast sky), exponential height fog for ground mist (common practice), camera-facing
++rain-streak quads in a wrapped box around the camera and camera-facing soft smoke billboards with a Henyey–Greenstein
++forward-scattering lobe (common practice; Henyey and Greenstein 1941).
++
+ ## 4. Licence identifiers used for non-standard terms
+ 
+ | Id | Meaning |
+diff --git a/prototypes/m7-gfx2/reports/scenes.md b/prototypes/m7-gfx2/reports/scenes.md
+new file mode 100644
+index 0000000..7075296
+--- /dev/null
++++ b/prototypes/m7-gfx2/reports/scenes.md
+@@ -0,0 +1,145 @@
++# G2 stage scenes: the five benchmark scenes, the battle on the terrain grid, weather and time of day
++
++Stage agent scenes, branch `g2/scenes` (cut from `g2/trunk` 21a181e), 2026-11-11. Scope: assemble the five benchmark
++scenes of D-078 QM8 on the integrated G2 tree and the remaining DR49 priorities (item 5: battle on the terrain grid,
++aftermath cinematics, weather), wire them into the Victus harness, and capture them. MonoGame 3D only, presentation
++only. All numbers below were measured in this container on **llvmpipe (Mesa software GL, 4 CPUs) on a machine shared
++with other agents' builds and test runs (load average {{LOAD}} during the measurements): llvmpipe, not Victus
++evidence**. No hardware GPU ran this code. Quality references were used as references only; nothing player-facing names
++another game (D-069).
++
++**Verdict, honestly.** {{VERDICT}}
++
++## 1. What exists now
++
++Five registered scenes in `Gfx.Demo/Scenes/Bench`, all on the env stage's temperate battlefield (the generated grid,
++its forest of ez-tree trees, the river, ground cover, boulders and the Iron Age village; `reports/env.md`), lit by
++render1's sky and PBR and render2's cascades, AO, contact shadows and crowd (`reports/render1.md`, `reports/render2.md`).
++The harness binds them to its slots by default (§6).
++
++| Scene | Slot | What it shows | Driven by |
++|---|---|---|---|
++| `bench-a` | A, soldier close-up | A hoplite (Corinthian helmet with crest, linen corselet, painted aspis, spear) and his bare-headed commander (bronze cuirass, the stage-kit hero aspis on his arm), three more of the line and a standard, on the meadow by the village. Close-ups of faces, eyes, skin, beard and kit; the commander's expression runs grim → battle cry → calm over the scene's first seconds (MakeHuman face pose units) | scripted presentation |
++| `bench-b` | B, formation | 320 instanced soldiers of both forces in four blocks of 10 × 8 with a standard and an officer before each block (full kitted characters), facing each other across 36 m of meadow, the village behind one force. The harness's crowd sweep sets the count (more blocks in more lines) | scripted presentation (idles) |
++| `bench-c` | C, large battlefield | the 2,100 soldiers of a battle the prototype TacticalResolver fought on this terrain grid, each soldier one entity of its trace: position, state (fighting, routing, surrendered, fallen, escaped) and blows; shots of the deployment, the advance, the clash, the melee and the rout at noon, golden hour and dusk | the battle trace (§2) |
++| `bench-d-shown`, `bench-d-cutaway` | D, cinematic | the aftermath of the same battle as its trace records it (§3): a crane over the field, the prisoners, the surrender (the victors' commander raises his sword over a defeated officer who kneels with his weapons on the ground), the officer's face, the commander against the sky, the standards (the victor's raised, the defeated's on the ground), and either the fallen or a cut-away; smoke from fires and dust | the trace's final state and result |
++| `bench-e` | E, campaign environment | the stronghold on its high ground with the forest and fields beyond at noon, golden hour and dusk; the village; the fortification; the river from over the water. A benchmark capture only: the campaign map is unchanged (D-079 Q7) | presentation only |
++
++Weather and time of day (§4) apply to every scene through render switches, so the same scenes and cameras serve every
++look and the harness measures whatever the switches select.
++
++## 2. The battle on the terrain grid (scene C; DR49 item 5)
++
++`tools/traceexport` (outside `M7Gfx2.slnx`, never shipped) references `prototypes/m7-sprint1/Proto.M7` read-only and
++**modifies no simulation code**: it builds a battle setup, runs the resolver's own engine
++(`new TacticalBattle(setup, new KnowledgeAi(), new KnowledgeAi())`, the engine behind `TacticalResolver.Resolve`)
++through its public surface and records what it publishes. `scripts/export-battle-trace.sh` runs it; `--check` re-runs
++it and compares the trace's content hash with the manifest ({{EXPORTCHECK}}).
++
++- **The grid.** The G2 authoritative battlefield grid (the env temperate fixture: 256 × 256 cells of 4 m, BTG1 sha256
++  `be39da87…`) is downscaled by a fixed integer rule to the tactical slice's 20 m cells: 51 × 51 cells, 1,020 m square;
++  5 × 5 fine cells per battle cell; class by majority (deep water across a cell → Water, shallow or bank → Ford; ties to
++  the lower code), height the floor of the mean. The env stage's Iron Age village enters as Building cells. **This
++  mapping is a PROTOTYPE ADAPTER of the tool, not a ruled design.**
++- **The armies.** 21 heavy-infantry formations of 50 per side (the proposed heavy-infantry cap): 2,100 entities. Lines
++  of up to 11 blocks, 15 m frontage with 4.5 m gaps, 30 m between lines, the front lines 170 m apart, on the most
++  open, dry and level 17 × 13-cell site of the grid (cell (8, 41), battle axis north–south, integer score 14,468).
++  Each side's objective is the other's front-line centre. Seed 7.
++- **The result** (the resolver's): SideEliminated, side 1 eliminated, side 0 holds the field, 23 pulses, 1,334 s of
++  battle; 668 snapshots at the 2 s step. At the end: 169 of side 0 still fighting, 559 surrendered (408 of side 1 and
++  151 of side 0, recorded so by the trace), 769 fallen, 603 escaped.
++- **The trace.** Format `m7gfx-battle-trace/1` (G1's) with a header (the battle-grid frame and the result). The JSON
++  is {{JSONSIZE}} at this size, so the presentation's reader re-encodes it into a compact binary form (`G2BT`: gzip; delta
++  positions as zigzag varints; every value an exact integer): 681,135 bytes, the same content hash
++  (`7670DF68…331A`). `BattleTrace.Load` reads either form.
++- **The presentation reads the trace only.** `TraceCrowd` (one instanced stage-chars soldier per entity) takes each
++  soldier's position (linear between snapshots), state and blows from the trace and nothing else. What the trace does
++  not decide is cosmetic and labelled so in the code: facing between moves, which idle or guard plays, the kit of each
++  formation and every look (from the entity id). The trace and the grid are never written (tests hash both).
++
++## 3. The aftermath plan (scene D; DR40, DR41)
++
++`AftermathPlan.From` derives the cinematic from the trace's recorded outcome, pure and tested on synthetic traces:
++
++1. The victor is the resolver's `holdsField` side. With none, there is no victory beat and no raised standard (one
++   sombre crane over the field).
++2. The surrender beat exists only if the defeated side has Surrendered soldiers at the end, and its officer **is** one
++   of them (his position and state are the trace's).
++3. The two hero characters stand where two of the trace's soldiers stand: the clearest surrender stage, a victors'
++   standing soldier and a defeated prisoner 1.8–4.5 m apart with the fewest other soldiers on their feet or knees
++   within 4 m (ties: the lower ids; without such a pair, the victors' soldier nearest the prisoners and the prisoner
++   nearest him). Here: entities 611 and 1906, with nobody else within 4 m.
++4. **Death content** (DR41) is a presentation setting whose default is **open** (D-079 Q12): `DeathContent` has no
++   default value (its members start at 1, so `default(DeathContent)` is rejected) and both states are separate
++   registered scenes. `Shown`: the fallen lie where the trace says they fell and the last beat looks at the densest
++   cluster of them. `CutAway`: no dead soldier is drawn anywhere and the last beat cuts away to the smoke and the sky.
++   Nothing else differs: the trace, the outcome and beats 1–6 are identical (a test compares them).
++
++The beats are camera moves (crane, dolly, push-in, close-ups, low angles); each close shot's camera is chosen among
++candidate positions by counting the soldiers across its sight lines (a solver with a fixed candidate order and integer
++costs; ties by order, tested tie-dense). The harness binds slot D to `bench-d-shown`, the state that draws more, as the
++**measurement's upper bound only**; `--bind D=bench-d-cutaway` measures the other state. That binding is not a product
++default.
++
++## 4. Weather and time of day
++
++Off by default: every term 0 renders the frame of the earlier stages ({{WEATHEROFF}}). Switches (`--set`):
++`weather=clear|overcast|mist|rain` or the terms `cloud`, `wet`, `rain`, `mist` (0..1).
++
++- **Cloud** blends the sky table towards an overcast sky, dims the direct sun and fades the sun disc.
++- **Wet** darkens porous dielectrics (water in the pores) and gives every surface a water film (rougher surfaces gloss
++  up, upward faces more than vertical ones): terrain, foliage, skin, cloth, kit and structures.
++- **Rain** adds puddles on level terrain and camera-surrounding rain streaks (24,000 quads in a wrapped box, lit by the
++  sky; no random state).
++- **Mist** thickens a low height fog and the haze (mist 0 returns the scene's fog bit for bit).
++- **Smoke and dust** (scene D): soft lit billboards whose every puff is a pure function of its index and the scene
++  time, so stills, replays and the benchmark agree.
++
++Presets: overcast (cloud 0.85), mist (cloud 0.45, wet 0.35, mist 1), rain (cloud 0.93, wet 1, rain 1, mist 0.35).
++Hours (`BenchHours`): noon 12.5 h (sun about 61° up), golden hour 17.9 h (about 9°), dusk 18.62 h (about 1°). Scenes B,
++C and E each have shots at all three hours.
++
++## 5. Captures (1920×1080, accumulated stills; looked at)
++
++{{CAPTURES}}
++
++## 6. The harness: slots A–E bound to the benchmark scenes
++
++`SlotBindings.Defaults` now binds A=`bench-a`, B=`bench-b`, C=`bench-c`, D=`bench-d-shown`, E=`bench-e`, so a Victus
++run of `--suite standard|quick|smoke` measures these scenes with the same slots and the same output layout as before.
++The perf stage's G1 stand-ins stay available as `--bind g1` (the harness's own tests use them: they load in seconds).
++`bench-b` implements `ICrowdSizedScene`, so the crowd sweep on slot B sets its soldier count; the cinematic camera
++path of slot D plays the aftermath's beats (`ICameraPathScene`). Every report line names the bound scene and, for the
++benchmark scenes, says that they are not production quality and that CMU motion poses the characters.
++
++## 7. Costs (llvmpipe, not Victus evidence)
++
++{{COSTS}}
++
++## 8. Tests, builds, checks
++
++{{TESTS}}
++
++## 9. Review JPEGs
++
++{{JPEGS}}
++
++## 10. What still looks placeholder
++
++{{PLACEHOLDER}}
++
++## 11. Limitations and risks
++
++{{LIMITS}}
++
++## 12. Sim/presentation boundary
++
++{{BOUNDARY}}
++
++## 13. Files
++
++{{FILES}}
++
++## 14. Reproduce
++
++{{REPRO}}
+diff --git a/prototypes/m7-gfx2/scripts/capture-scenes.sh b/prototypes/m7-gfx2/scripts/capture-scenes.sh
+new file mode 100755
+index 0000000..710fb4c
+--- /dev/null
++++ b/prototypes/m7-gfx2/scripts/capture-scenes.sh
+@@ -0,0 +1,47 @@
++#!/usr/bin/env bash
++# Canonical captures of stage scenes: the five benchmark scenes at 1920x1080 as accumulated stills (every shot at its
++# own hour: B, C and E at noon, golden hour and dusk), both death-content states of scene D, and rain and mist looks of
++# B, C and E.
++#
++# Usage: scripts/capture-scenes.sh OUT_DIR [GROUPS] [SAMPLES]
++#   GROUPS: any of a,b,c,d,e,weather (default: all); SAMPLES: accumulation samples per still (default 8)
++# Needs a Release build of M7Gfx2.slnx, the render1, env, chars, kit-outfit and crowd bakes, and the battle trace
++# (scripts/export-battle-trace.sh). Frames rendered without a GPU are llvmpipe frames (not Victus evidence). Characters
++# and crowds are posed by CMU motion capture: PROTOTYPE-ONLY.
++set -euo pipefail
++here="$(cd "$(dirname "$0")" && pwd)"
++out="${1:?usage: capture-scenes.sh OUT_DIR [GROUPS] [SAMPLES]}"
++groups="${2:-a,b,c,d,e,weather}"
++samples="${3:-8}"
++demo="$here/../Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll"
++[ -f "$demo" ] || { echo "capture-scenes: build Release first ($demo)" >&2; exit 2; }
++export SDL_VIDEODRIVER="${SDL_VIDEODRIVER:-offscreen}" LIBGL_ALWAYS_SOFTWARE="${LIBGL_ALWAYS_SOFTWARE:-1}"
++mkdir -p "$out"
++cap() { # name scene switches [args...]
++  local name=$1 scene=$2 sw=$3; shift 3
++  echo "== $name: $scene samples=$samples${sw:+,$sw} $*"
++  local t0; t0=$(date +%s)
++  nice -n 10 dotnet "$demo" --capture "$scene" --out "$out/$name" --size 1920x1080 --set "samples=$samples${sw:+,$sw}" "$@" \
++    > "$out/$name.log" 2>&1
++  echo "   $(( $(date +%s) - t0 )) s"
++}
++has() { case ",$groups," in *",$1,"*) return 0 ;; *) return 1 ;; esac; }
++# the canonical shots (for every shot of a scene, run Gfx.Demo --capture without --shots)
++has a && cap a bench-a "" --shots two-shot,commander-battlecry,commander-grim,soldier-face,kit
++has b && cap b bench-b "" --shots wide-noon,wide-golden,wide-dusk,front,standard
++has c && cap c bench-c "" --shots vista-noon,vista-golden,vista-dusk,clash-golden,melee-low,rout
++if has d; then
++  cap d-shown bench-d-shown ""
++  # the cut-away state differs in two ways only: no dead soldier is drawn, and the last beat cuts away
++  cap d-cutaway bench-d-cutaway "" --shots 00-field,06-cutaway
++fi
++has e && cap e bench-e ""
++if has weather; then
++  cap b-rain bench-b weather=rain --shots wide-noon,front
++  cap b-mist bench-b weather=mist --shots wide-golden
++  cap c-rain bench-c weather=rain --shots clash-noon
++  cap c-mist bench-c weather=mist --shots vista-golden
++  cap e-rain bench-e weather=rain --shots settlement,river
++  cap e-mist bench-e weather=mist --shots vista-golden
++fi
++echo "capture-scenes: done ($out)"
 diff --git a/prototypes/m7-gfx2/scripts/export-battle-trace.sh b/prototypes/m7-gfx2/scripts/export-battle-trace.sh
 new file mode 100755
 index 0000000..cdc39ac

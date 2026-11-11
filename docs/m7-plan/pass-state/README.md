@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11, after G2 segment 3 (09cbc9d). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11 13:20 UTC (WIP checkpoint, throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -40,7 +40,9 @@ Supporting material committed with this README:
 ## 2. In flight
 
 **Throttled to one agent at a time** (Director, 2026-11-11 ~11:20 UTC: "throttle all work by 80%"). Running: lane MOR3
-(`wf_edd83092-8a1`, base `51ab032`, [args/MOR3.json](args/MOR3.json)).
+(`wf_edd83092-8a1`, base `51ab032`, [args/MOR3.json](args/MOR3.json)). At 13:20 UTC its lane head was `a8ef60a` ("MOR3
+verification round 1 …"; the lane report `H-MOR3` is committed at `f84b941`), with three uncommitted files and a Debug test run
+in progress.
 
 **Paused**, in this order of resumption (each with `resumeFromRunId`: finished agents replay from cache, and the interrupted
 agent restarts and continues from its clone):
@@ -56,12 +58,30 @@ agent restarts and continues from its clone):
 An orphaned full test suite from lane RR (`Sim.Tests`, Release, under the full-suite lock) was left to finish: it costs no
 agent tokens, and its results can save the resumed lane a re-run.
 
-**Checkpoint 2026-11-11 11:12 UTC** (in [wip/](wip/)):
-- `MOR3-wip.bundle` (head 1dd1fee), `RR-wip.bundle` (0a631db) and `RT-wip.bundle` (91e6b64) are lane commits after `51ab032`.
-  Restore with `git clone -b lane/<KEY> wip/<KEY>-wip.bundle /home/user/m7w/<KEY>` after fetching this branch; uncommitted
-  edits are not included.
-- `g2-scenes-3215c41.patch` is the G2 final scenes stage's committed work since trunk `21a181e`, as a binary patch of
-  `prototypes/m7-gfx2`. It applies onto this branch's subtree; `git apply --check` passed.
+**Checkpoint 2026-11-11 13:20 UTC** (in [wip/](wip/)):
+- **Lane commits after `51ab032`, as bundles:**
+  - `MOR3-wip.bundle` (head `a8ef60a`);
+  - `RT-wip.bundle` (`950d6d1`);
+  - `RR-wip.bundle` (`0a631db`, unchanged since 11:12).
+
+  Each bundle needs `51ab032`, so restore it into a clone of this branch:
+  `git fetch docs/m7-plan/pass-state/wip/<KEY>-wip.bundle HEAD:lane/<KEY>`, then `git checkout lane/<KEY>`. The bundles carry
+  only `HEAD`, so the `git clone -b lane/<KEY> …` form this note gave at 11:12 fails ("Remote branch lane/MOR3 not found").
+  It was corrected at 13:20 after a restore test.
+- **Uncommitted edits of the paused clones.** These are binary patches against the head in each file name:
+  - `RR-uncommitted-0a631db.patch`: 16 files, including the new `current-v6` export fixture;
+  - `RT-uncommitted-950d6d1.patch`: 1 file;
+  - `g2-scenes-uncommitted-0f8ae2f.patch`: 4 files.
+
+  Apply each with `git apply --binary <patch>` on its head. They snapshot work stopped mid-step, not a finished state.
+  MOR3's uncommitted edits are not snapshotted while it runs.
+- **G2 final, scenes stage.** `g2-scenes-0f8ae2f.patch` holds the stage's committed work since trunk `21a181e`, as a binary
+  patch of `prototypes/m7-gfx2`. It replaces `g2-scenes-3215c41.patch`. It applies onto this branch's tree, and the resulting
+  subtree equals the stage's `0f8ae2f` subtree.
+- **Restore test (13:20, MEASURED).** In a fresh clone of this branch:
+  - each bundle fetched to its head;
+  - each uncommitted patch applied (`--check`) onto its head;
+  - the two G2 patches applied in sequence.
 
 ## 3. Queue after the items in flight
 
@@ -90,13 +110,15 @@ branch's head; for G2, use `"from": "final"`.
       originality grep and a scope check;
    5. a commit with only measured claims, then a fast-forward and push.
 3. **G2.** The G2 workflow expects:
-   - `/home/user/g2w/trunk`: branch `g2/trunk` with history from `1601c74`. The trunk at the last integration (`7dd134a`) is
-     in the bundle's history.
+   - `/home/user/g2w/trunk`: branch `g2/trunk` with history from `1601c74`. Its last integrated commit, `21a181e`, exists
+     only in this container. Its `prototypes/m7-gfx2` tree equals this branch's (tree `ea87bc3`, checked 13:20), so a new
+     trunk can be cut from this branch.
    - `/home/user/g2w/assets`: run `prototypes/m7-gfx2/scripts/fetch-assets.sh`, which uses pinned sha256 sums and fetches
      about 296 MB from GitHub raw, media and codeload hosts, PyPI and npm.
    - headless rendering: `SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1`.
 
-   Restore the stage clones from the bundle (§2), then run with `from` set to the first unfinished segment. G2 integrates onto
+   To restore the stage's work, apply the §2 patches onto that trunk: the committed patch first, then the uncommitted one. Then
+   run with `from` set to the first unfinished segment. G2 integrates onto
    this branch by replacing the `prototypes/m7-gfx2` subtree with the trunk's: a temporary index, `read-tree`, `commit-tree`.
 4. **Pace and authority.**
    - One agent at a time.
