@@ -37,3 +37,4 @@
 2026-11-11T16:30:53Z CI run 970 (8e4a778) SUCCESS: all ci.yml jobs green (Test 49 min); ui-artifact green; first green build-and-test since 0929d28
 2026-11-11T17:22:10Z WIP checkpoint: RT 1f9dc60 bundle (verify r1: 6 findings, 4 minor + 2 nit; fix r1 running); RR, G2 unchanged; restore test passed; README carries the CI-green note and the 15:45->15:32 correction
 2026-11-11T19:22:39Z WIP checkpoint: RT 364b837 bundle (fix r1 in its closing runs; clone clean); RR, G2 unchanged; restore test passed; CI run 971 on a2025c0 green in every job
+2026-11-11T21:22:13Z RT done (943b43f; fix r1: 6/6 reproduced and fixed, 13/14 mutants killed, 1 equivalent; unverified -> final-round queue); integration phase 1 clean, Tier 3 running; WIP checkpoint: RT 943b43f bundle, RR and G2 unchanged, restore test passed; CI run 972 on b90078b green
