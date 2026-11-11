@@ -36,3 +36,4 @@
 2026-11-11T16:14:07Z CI run 970 (8e4a778): steps 3-20 pass incl. charters, Build and the two filtered .NET runs; Test in progress. RT impl done 15:45 (a7b5faa; lane Tier 3 Sim.Tests 3448/0/36, UI rc=0); RT verify r1 running
 2026-11-11T16:30:53Z CI run 970 (8e4a778) SUCCESS: all ci.yml jobs green (Test 49 min); ui-artifact green; first green build-and-test since 0929d28
 2026-11-11T17:22:10Z WIP checkpoint: RT 1f9dc60 bundle (verify r1: 6 findings, 4 minor + 2 nit; fix r1 running); RR, G2 unchanged; restore test passed; README carries the CI-green note and the 15:45->15:32 correction
+2026-11-11T19:22:39Z WIP checkpoint: RT 364b837 bundle (fix r1 in its closing runs; clone clean); RR, G2 unchanged; restore test passed; CI run 971 on a2025c0 green in every job

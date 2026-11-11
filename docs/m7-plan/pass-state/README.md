@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11 17:20 UTC, WIP checkpoint (lane RT in its fix round 1, head `1f9dc60`; CI green on `8e4a778`; throttled to one agent). The previous update's time was given as 15:45 UTC; the commit was made at 15:32 UTC. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11 19:20 UTC, WIP checkpoint (lane RT finishing its fix round 1, head `364b837`; CI green on `a2025c0`; throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -52,9 +52,15 @@ clone. Progress since:
   (a bank-aware estimate shown for civics the engine cannot fund yet; a throw on a loader-valid literal comparison; five
   surviving mutants; the hover path's completed-edge contrast); RT-R1-05 and -06 are nits. The verifier's own full suites
   equal the lane's (Sim.Tests 3448/0/36 skipped, Sim.Ui.Tests 1302/0/0).
-- **Fix round 1 running.** At 17:20 the clone's head was `1f9dc60` (five fix commits) with 2 uncommitted entries. With no blocker
-  or major finding, the lane workflow stops after this round, so the fix round will not be independently verified; it joins
-  the final-round verification queue, as lane MOR3's did. The orchestrator runs Tier 3 when it integrates the lane.
+- **Fix round 1 running, in its closing runs.** At 19:20 the clone's head was `364b837`, with no uncommitted entries. It holds
+  five fix commits, `f8884ce`..`1f9dc60` (17:06 to 17:18 UTC, one per finding RT-R1-01..04 and -06), and three report commits:
+  - `3343a79` (17:25): superseded statements marked in place, the alternatives of the edge-colour reading, three captures;
+  - `4d5b211` (17:34): the verification-round sections in H-RT and the fixes report;
+  - `364b837` (18:53): the round's validation, Tiers 1 to 3 and the Release full suites; the Debug suites were still running.
+
+  With no blocker or major finding, the lane workflow stops after this round, so the fix round will not be independently
+  verified. It joins the final-round verification queue, as lane MOR3's did. The orchestrator runs Tier 3 when it integrates
+  the lane.
 
 **Paused**, in this order of resumption (each with `resumeFromRunId`: finished agents replay from cache, and the interrupted
 agent restarts and continues from its clone):
@@ -71,9 +77,9 @@ and MOR3's eight findings were 3 minor and 5 nit. So its fix round is unverified
 
 Lane RR's orphaned full test suite (`Sim.Tests`, Release, under the full-suite lock) had exited by 13:19 UTC.
 
-**Checkpoint 2026-11-11 17:20 UTC** (in [wip/](wip/); the previous one was at 15:21):
+**Checkpoint 2026-11-11 19:20 UTC** (in [wip/](wip/); the previous one was at 17:20):
 - **Lane commits after `51ab032`, as bundles:**
-  - `RT-wip.bundle` (`1f9dc60`; it was `4de0682` at 15:21);
+  - `RT-wip.bundle` (`364b837`; it was `1f9dc60` at 17:20);
   - `RR-wip.bundle` (`0a631db`, unchanged since 11:12);
   - `MOR3-wip.bundle` (`a8ef60a`): retired at 13:45 UTC, because the lane is integrated as `e052b51`.
 
@@ -85,16 +91,16 @@ Lane RR's orphaned full test suite (`Sim.Tests`, Release, under the full-suite l
   - `RR-uncommitted-0a631db.patch`: 16 files, including the new `current-v6` export fixture;
   - `g2-scenes-uncommitted-0f8ae2f.patch`: 4 files.
 
-  Both are byte-identical to fresh snapshots taken at 17:20, so unchanged since 13:20. Apply each with
-  `git apply --binary <patch>` on its head. They snapshot work stopped mid-step, not a finished state. Lane RT runs; its 2
-  uncommitted entries at 17:20 are not snapshotted (its committed work is in the bundle).
+  Both are byte-identical to fresh snapshots taken at 19:20, so unchanged since 13:20. Apply each with
+  `git apply --binary <patch>` on its head. They snapshot work stopped mid-step, not a finished state. Lane RT runs; at 19:20
+  its clone had no uncommitted entries, so its whole state is in the bundle.
 - **Retired at 15:21:** `RT-uncommitted-950d6d1.patch`. Lane RT resumed from that edit and committed it. The file as patched at
   `950d6d1` differs from `4de0682`'s only by 81 lines that `4de0682` adds. The patch remains in this branch's history at
   `afc7118`.
 - **G2 final, scenes stage**, unchanged since 13:20 (head `0f8ae2f`). `g2-scenes-0f8ae2f.patch` holds the stage's committed work
   since trunk `21a181e`, as a binary patch of `prototypes/m7-gfx2`. It applies onto this branch's tree.
-- **Restore test (17:20, MEASURED).** In a fresh clone of this branch (`8e4a778`):
-  - the RT and RR bundles verified and fetched to `1f9dc60` and `0a631db`;
+- **Restore test (19:20, MEASURED).** In a fresh clone of this branch (`a2025c0`):
+  - the RT and RR bundles verified and fetched to `364b837` and `0a631db`;
   - the RR patch applies (`--check`) on `0a631db`;
   - the G2 committed patch alone gives a `prototypes/m7-gfx2` tree equal to `0f8ae2f`'s (`c5c617a`);
   - both G2 patches give a tree equal to the scenes clone's working state (`a0309d3`).
@@ -102,7 +108,9 @@ Lane RR's orphaned full test suite (`Sim.Tests`, Release, under the full-suite l
 **CI on this branch.** From `0929d28` to `afc7118`, CI's build-and-test job failed at the charter check and skipped its build and
 test steps (§1, `93f2d8a`). Run 970 on `8e4a778` (MEASURED, read 16:30 UTC) succeeded in every job: build-and-test's 22 steps,
 including the whole Sim.slnx Test step (49 min) and the read-only proof; determinism; determinism-xproc; calibration. `ui-artifact`
-also succeeded. The orchestrator reads the head's CI result after each push.
+also succeeded. Run 971 on `a2025c0` (MEASURED, read 19:20 UTC) succeeded in every job too: build-and-test's 22 steps (Test
+42 min), determinism, determinism-xproc and calibration; `calibration-nightly` was skipped, as it runs only on schedule; and
+`ui-artifact` run 476 succeeded. The orchestrator reads the head's CI result after each push.
 
 ## 3. Queue after the items in flight
 
