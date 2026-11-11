@@ -39,6 +39,9 @@ namespace Proto.M7.Support;
 /// one clamp; each settlement is recorded as a <see cref="MoraleSettlementRow"/>. The in-battle recovery's gain is still not carried.
 /// [MOR2, D-083 DB1] Every army whose formation entered the battle also pays the entry cost (MoraleRates.EntryCostPpm), as its own
 /// term in the same clamp, whatever the battle did; DR29's decrease is measured from the start less the in-battle entry charge.
+/// [MOR3, D-085 DD1] Only in a battle that had fighting (SupportBattle.Fought, DD1-R1 (a): read per battle): a battle without fighting
+/// changes no army's campaign morale — no entry cost, no decrease, no rise — and its settlement row records Fought 0 with all three
+/// terms 0, so the outcome is visible. Persons still move by lane W's collapse as before (DD1 is a morale rule).
 /// CONSERVATION. Every person, animal and wagon moves by a ledger transfer between accounts of lane E's ledger (pools, army
 /// attachments, the wounded, the dead, the captured sink, the civilians); totals are constant (tests: exact equality).
 /// </summary>
@@ -158,6 +161,10 @@ public sealed class SupportWorld : IEventWorld, ISupportOverlay
         if (b.EntryChargedInBattle < 0 || b.EntryChargedInBattle > b.MoraleStart) throw new ArgumentOutOfRangeException(nameof(b), "in-battle entry charge");
         if (!b.Entered && b.EntryChargedInBattle != 0)
             throw new ArgumentOutOfRangeException(nameof(b), "a formation that never reached the field paid no in-battle entry charge");
+        // [MOR3, D-085 DD1] the in-battle part charges only at the battle's first fighting instant (EntryMorale), so a battle without
+        // fighting charged nothing in battle; a report that says otherwise is not one the resolvers produce.
+        if (!b.Fought && b.EntryChargedInBattle != 0)
+            throw new ArgumentOutOfRangeException(nameof(b), "a battle without fighting charged no in-battle entry charge");
         _battles.Add(b);
         s.Schedule(b.AtMs, EventClass.CampaignProcess, 0, b.ArmyId, SupportKinds.BattleEnded, _battles.Count - 1);
     }
@@ -339,18 +346,23 @@ public sealed class SupportWorld : IEventWorld, ISupportOverlay
         // [MOR2, verification round 1, MOR2-R1-01, MOR2-R1-04] pays no entry cost (DB1-R1 (a)) and takes no rise (READING MOR2-R1 (a):
         // "took part" = entered the field); DR29's decrease still applies to whatever morale the battle cost it (troops killed aboard their
         // transport took part in the combat: DR29 "Morale decreases when troops participate in combat").
-        long entry = CampaignMorale.EntryPpm(b.Entered, _m);
-        long decrease = CampaignMorale.CombatDecreasePpm(b.MoraleStart - b.EntryChargedInBattle, b.Collapse.MoraleEnd, restore, b.Collapse.MoraleMax);
+        // [MOR3, D-085 DD1] "A battle without fighting does not affect morale at all": each of the three terms only where the battle had
+        // fighting (DD1-R1 (a): the battle, not the formation — an army whose formation entered a fought battle pays the entry cost though
+        // it struck no blow); a battle without fighting leaves the army's campaign morale exactly where it was (after = before), whatever
+        // winner the report names. The row records Fought and the three terms (0), so the outcome is visible.
+        long entry = CampaignMorale.IfFought(b.Fought, CampaignMorale.EntryPpm(b.Entered, _m));
+        long decrease = CampaignMorale.IfFought(b.Fought,
+            CampaignMorale.CombatDecreasePpm(b.MoraleStart - b.EntryChargedInBattle, b.Collapse.MoraleEnd, restore, b.Collapse.MoraleMax));
         bool won = b.Entered && b.WinnerSide >= 0 && b.WinnerSide == b.Collapse.Side;
         long winnerSide = won && b.WinnerSidePersons == 0 ? persons : b.WinnerSidePersons;   // 0 = this army alone (the one-army stand-in)
-        long rise = CampaignMorale.VictoryRisePpm(won, b.BeatenPersons, winnerSide, _m);
+        long rise = CampaignMorale.IfFought(b.Fought, CampaignMorale.VictoryRisePpm(won, b.BeatenPersons, winnerSide, _m));
         long after = CampaignMorale.After(before, decrease, rise, entry);
         _econ.SetMoraleAfterBattle(b.ArmyId, after);
         _battleRows.Add(new SupportBattleRow(_battleRows.Count, b.ArmyId, now, persons, split.Dead, saved, final.Dead, final.Wounded,
             final.Captured, final.Deserted, a.Coverage, before, after));
         _moraleRows.Add(new MoraleSettlementRow(_moraleRows.Count, b.ArmyId, now, (byte)b.Collapse.Side, b.WinnerSide, b.MoraleStart,
             b.Collapse.MoraleEnd, restore, decrease, b.BeatenPersons, winnerSide, rise, before, after,
-            b.Entered ? (byte)1 : (byte)0, b.EntryChargedInBattle, entry));                                        // [MOR2]
+            b.Entered ? (byte)1 : (byte)0, b.EntryChargedInBattle, entry, b.Fought ? (byte)1 : (byte)0));            // [MOR2] [MOR3]
     }
 
     // ------------------------------------------------------------------ hashes

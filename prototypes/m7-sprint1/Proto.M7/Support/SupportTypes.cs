@@ -145,6 +145,18 @@ public sealed record SupportBattle(int ArmyId, long AtMs, CollapseInput Collapse
     /// in-battle part, TacticalRules.EntryMoraleCost, is off): DR29's decrease is measured from MoraleStart less this, so the entry
     /// cost is counted once, by the settlement's own term (CampaignMorale.EntryPpm).</summary>
     public long EntryChargedInBattle { get; init; }
+    /// <summary>[MOR3] D-085 DD1 ("A battle without fighting does not affect morale at all"), DD1-R1 (a) (fighting is read per BATTLE):
+    /// the battle had fighting (the battle report's <see cref="Proto.M7.Tactical.BattleResult.FirstFightMs"/> is set: at least one attack
+    /// was resolved against an enemy formation, DD1-R2 (a)). When false the settlement changes no army's morale: no entry cost, no DR29
+    /// decrease, no DA1 rise (the reported winner is still recorded). Default true: every stand-in battle before D-085 is one with
+    /// fighting (each was built as a fought battle); the hand-off from a real battle report sets it from the report. The stand-in refuses
+    /// an in-battle entry charge for a battle without fighting (the in-battle part charges only at the first fighting instant).
+    /// [MOR3, verification round 1, MOR3-R1-08] The default is FAIL-OPEN: a hand-off that leaves it out settles a battle without fighting
+    /// as fought (the entry cost, DR29's decrease, DA1's rise), against DD1. Every hand-off of a real battle report in the prototype sets it
+    /// from the report (BattleFighting.SettlesAsFought: the tests' EntryCostTests.HandOff and lane D's two hand-offs in
+    /// SupportCapabilityTests); PROPOSAL for M7.15 (morale proposal §12.10): the real hand-off takes it as a required input, with no
+    /// default.</summary>
+    public bool Fought { get; init; } = true;
 }
 
 // ------------------------------------------------------------------ serialized rows (SupportCodec; populated-table tests)

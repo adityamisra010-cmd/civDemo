@@ -572,7 +572,10 @@ public sealed class CampaignMoraleTests
     /// world's encoded table equal to it; and every pair of same-typed fields is told apart by some row (lane D's field-swap guard).
     /// [MOR2, D-083 DB1: the row is codec version 2 (Entered, EntryInBattle, EntryPpm appended: 110 bytes). The run adds a battle that
     /// army 3 never entered (Entered 0, EntryPpm 0) and one whose battle charged 50 at the entry (EntryInBattle 50), so every new field
-    /// is told apart from every same-typed field; a version-1 table, a version byte of 3 and an Entered byte of 2 are refused.]</summary>
+    /// is told apart from every same-typed field; a version-1 table, a version byte of 3 and an Entered byte of 2 are refused.]
+    /// [MOR3, D-085 DD1, 2026-11-11: codec version 3 (Fought appended: 111 bytes). MEASURED move: the length 5 + 110 × rows → 5 + 111 ×
+    /// rows; the refused versions { 1, 3 } → { 1, 2, 4 } (3 is now the current version). Every stand-in battle here is fought (Fought 1);
+    /// the unfought rows, and a Fought byte other than 0 or 1, are pinned in NoFightingTests.DD1_SettlementRows_Version3_….]</summary>
     [Fact]
     public void MoraleRows_PopulatedTable_RoundTripBitExact_WithExactLength()
     {
@@ -594,7 +597,7 @@ public sealed class CampaignMoraleTests
         Assert.Contains(rows, x => x.EntryInBattle == 50);                                                                            // [MOR2]
         var bytes = MoraleCodec.Encode(rows);
         Assert.Equal(MoraleCodec.ExpectedLength(rows.Length), bytes.Length);
-        Assert.Equal(5 + 110 * rows.Length, bytes.Length);                                                                            // [MOR2] v2
+        Assert.Equal(5 + 111 * rows.Length, bytes.Length);       // [MOR2] v2 (110); [MOR3, D-085 DD1] v3: Fought appended, 111 bytes a row
         var back = MoraleCodec.Decode(bytes);
         Assert.Equal(rows, back);
         var again = MoraleCodec.Encode(back);
@@ -603,7 +606,7 @@ public sealed class CampaignMoraleTests
         Assert.Equal(bytes, rig.W.EncodedTables()[4]);
         RowFieldCoverage.AssertEverySameTypedFieldPairDiffers(rows);
         Assert.Throws<FormatException>(() => MoraleCodec.Decode(bytes[..^1]));
-        foreach (byte v in new byte[] { 1, 3 })                                                                                       // [MOR2] v1 refused
+        foreach (byte v in new byte[] { 1, 2, 4 })               // [MOR2] v1 refused; [MOR3] v2 refused too, and the next version (was { 1, 3 })
         {
             var badVersion = (byte[])bytes.Clone(); badVersion[0] = v;
             Assert.Throws<FormatException>(() => MoraleCodec.Decode(badVersion));

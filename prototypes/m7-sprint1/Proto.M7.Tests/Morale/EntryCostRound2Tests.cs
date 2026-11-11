@@ -65,14 +65,24 @@ public sealed class EntryCostRound2Tests
     ///   routed at the same pulse end — at ANY morale; meanwhile five quiet pulses of HoldRecovery (20 each) lifted them above their
     ///   start (320 → 420, 500 → 600, 800 → 900);
     /// - the rout THRESHOLD at the start instant: a start below 300 routs at once, without loss (250, 299);
-    /// - the IN-BATTLE ENTRY CHARGE itself, when the part is on (50): starts in [300, 350) are charged below 300 and rout at once
-    ///   (320 → 270, 349 → 299); 500 → 450 still routs by inactivity (→ 550).
-    /// In every case DR29's decrease is 0 (the end is not below the start less the charge), so the defender's army nets DA1's rise less
+    /// - ~~the IN-BATTLE ENTRY CHARGE itself, when the part is on (50): starts in [300, 350) are charged below 300 and rout at once
+    ///   (320 → 270, 349 → 299); 500 → 450 still routs by inactivity (→ 550).~~
+    /// ~~In every case DR29's decrease is 0 (the end is not below the start less the charge), so the defender's army nets DA1's rise less
     /// DB1's cost, 200,000 − 50,000 = +150,000, FROM ANY START — including 500, from which round 1's text said −51,000, and 250, below
     /// its "+149,000 bound" (the struck premise: "a formation that routed ends below 300"). The attacker's army pays the entry cost
-    /// alone (−50,000). Neither side held the field (HoldsField −1), so lane W's collapse deserts the share (1,000 − end) ÷ 1,000 of
-    /// BOTH sides' routed men, the "winner's" included: the army whose morale rises by 150,000 loses e.g. 800 of 2,000 men from 500.
-    /// This pins what the prototype does under (a); the alternatives (b), (b′) and (c′) are discussed in §11.8 (not applied).
+    /// alone (−50,000).~~ Neither side held the field (HoldsField −1), so lane W's collapse deserts the share (1,000 − end) ÷ 1,000 of
+    /// BOTH sides' routed men, the "winner's" included ~~: the army whose morale rises by 150,000 loses e.g. 800 of 2,000 men from 500~~.
+    /// ~~This pins what the prototype does under (a); the alternatives (b), (b′) and (c′) are discussed in §11.8 (not applied).~~
+    /// [MOR3, D-085 DD1, 2026-11-11: renamed from ProposalA_AnUnfoughtMutualRout_WonUnderDA6_TheDefendersArmyNetsTheRiseLessTheCost_
+    /// FromAnyStart. The Director ruled: "No fighting doesn't affect morale at all then" (DD1; D-085 §3: "The measured +150,000 for the
+    /// defender of an unfought mutual rout, and the attacker's −50,000, both become 0"). Every case moves, each change attributed to DD1
+    /// and MEASURED: the battle had no fighting (FirstFightMs null, no attack by anyone), so the settlement changes NEITHER army's morale
+    /// — the defender's s × 1,000 + 150,000 → s × 1,000 (entry 50,000 → 0, rise 200,000 → 0; the reported winner and DA6 basis are still
+    /// recorded, Fought 0), the attacker's s × 1,000 − 50,000 → s × 1,000. The three cases with the in-battle part on (50) move IN THE BATTLE
+    /// too, under PROPOSAL C1 (the charge falls only at a first fighting instant, and there is none): nobody is charged (EntryCharged 50
+    /// → 0), so 320 and 349 no longer rout at the start (struck route) but by inactivity at 420 and 449, and 500 ends at 600, not 550 —
+    /// the same battles as with the part off. Lane W's desertion of the routed men (persons, not morale) is unchanged in form: DD1 is a
+    /// morale rule (morale proposal §12.3).]
     /// </summary>
     [Theory]
     [InlineData(250L, 0L, false, 250L)]
@@ -80,18 +90,20 @@ public sealed class EntryCostRound2Tests
     [InlineData(320L, 0L, true, 420L)]
     [InlineData(500L, 0L, true, 600L)]
     [InlineData(800L, 0L, true, 900L)]
-    [InlineData(320L, Cost, false, 270L)]
-    [InlineData(349L, Cost, false, 299L)]
-    [InlineData(500L, Cost, true, 550L)]
-    public void ProposalA_AnUnfoughtMutualRout_WonUnderDA6_TheDefendersArmyNetsTheRiseLessTheCost_FromAnyStart(long s, long cost, bool byInactivity, long end)
+    [InlineData(320L, Cost, true, 420L)]          // [MOR3] was (320, Cost, false, 270): no charge without fighting (C1)
+    [InlineData(349L, Cost, true, 449L)]          // [MOR3] was (349, Cost, false, 299)
+    [InlineData(500L, Cost, true, 600L)]          // [MOR3] was (500, Cost, true, 550)
+    public void DD1_AnUnfoughtMutualRout_WonUnderDA6_ChangesNeitherArmysMorale_FromAnyStart(long s, long cost, bool byInactivity, long end)
     {
         var setup = Apart(s, 40, cost);
         var b = new TacticalBattle(setup, PassiveController.Instance, PassiveController.Instance);
         var r = TT.RunGuarded(b);
         Assert.Equal(BattleEndReason.BothEliminated, r.Reason);
         Assert.Equal((1, WinBasis.DefenderOnEqualSides, 1, -1), (r.Winner, r.WinBasis, BattleWinner.Reported(r), r.HoldsField));
+        Assert.Null(r.FirstFightMs);                                                      // [MOR3] DD1-R2 (a): no attack, no fighting
+        Assert.Empty(b.EntryCharges);                                                     // [MOR3] C1: nothing charged without fighting
         foreach (var f in r.Formations)                                                   // nobody struck a blow; everybody fled
-            Assert.Equal((0L, 0L, 20L, (long?)setup.StartMs, cost, end), (f.Killed, f.DamageDealt, f.RoutedEscaped, f.EnteredAtMs, f.EntryCharged, f.MoraleEnd));
+            Assert.Equal((0L, 0L, 0L, 20L, (long?)setup.StartMs, 0L, end), (f.AttacksMade, f.Killed, f.DamageDealt, f.RoutedEscaped, f.EnteredAtMs, f.EntryCharged, f.MoraleEnd));
         int n = setup.Rules.InactivityPulses;
         if (byInactivity)
         {
@@ -101,49 +113,64 @@ public sealed class EntryCostRound2Tests
                 new InactivityVerdict(n - 1, 2, 1, n, InactivityExemption.None, true),
             }, b.InactivityVerdicts.ToArray());
             Assert.Equal(setup.StartMs + n * setup.Rules.PulseMs, r.EndMs);
-            Assert.Equal(s - cost + n * setup.Rules.HoldRecovery, end);                   // by hand: n quiet pulses of recovery
+            Assert.Equal(s + n * setup.Rules.HoldRecovery, end);                          // by hand: n quiet pulses of recovery [MOR3: no charge]
             Assert.True(end >= setup.Rules.RoutThreshold);                                  // routed above the threshold
         }
         else
         {
             Assert.Empty(b.InactivityVerdicts);
             Assert.Equal(setup.StartMs, r.EndMs);                                           // at the start instant
-            Assert.Equal(s - cost, end);
+            Assert.Equal(s, end);                                                           // [MOR3: no charge]
             Assert.True(end < setup.Rules.RoutThreshold);
         }
         var col = BattleCollapse.FromTactical(b, setup, new[] { (1L, 0), (2L, 1) });
         var def = Settle(r, 2, 1, col[1], s);
-        Assert.Equal(((byte)1, cost, CostPpm, 0L, 200_000L), (def.Entered, def.EntryInBattle, def.EntryPpm, def.DecreasePpm, def.RisePpm));
-        Assert.Equal(s * 1_000 + 150_000, def.AfterPpm);                                   // +150,000 whatever the start
+        // [MOR3, D-085 DD1] was: Entered 1, EntryInBattle cost, EntryPpm 50,000, decrease 0, rise 200,000; after s × 1,000 + 150,000
+        Assert.Equal(((byte)0, 1, (byte)1, 0L, 0L, 0L, 0L), (def.Fought, def.WinnerSide, def.Entered, def.EntryInBattle, def.EntryPpm, def.DecreasePpm, def.RisePpm));
+        Assert.Equal(s * 1_000, def.AfterPpm);                                             // unchanged, whatever the start
         var att = Settle(r, 1, 0, col[0], s);
-        Assert.Equal((CostPpm, 0L, 0L, s * 1_000 - CostPpm), (att.EntryPpm, att.DecreasePpm, att.RisePpm, att.AfterPpm));
+        // [MOR3, D-085 DD1] was: entry 50,000; after s × 1,000 − 50,000
+        Assert.Equal(((byte)0, 0L, 0L, 0L, s * 1_000), (att.Fought, att.EntryPpm, att.DecreasePpm, att.RisePpm, att.AfterPpm));
         var split = BattleCollapse.Split(2_000, col[1], sideHeldField: r.HoldsField == 1);
         Assert.Equal((2_000 * (1_000 - end) / 1_000, 2_000 * end / 1_000), (split.Deserted, split.RoutedReturned));
     }
 
     /// <summary>
     /// MOR2-R2-01, the same in the AutoResolver, where DA6 is applied as D-082 DA6-R records it (not pending): the two formations stand
-    /// symmetrically (side 1 at the mirror column of side 0's) and start below the AutoResolver's withdrawal line (450), or are charged
-    /// below it by the in-battle part (480 → 430); each withdraws in good order at its first decision, both leave the field at the same
+    /// symmetrically (side 1 at the mirror column of side 0's) and start below the AutoResolver's withdrawal line (450) ~~, or are charged
+    /// below it by the in-battle part (480 → 430)~~; each withdraws in good order at its first decision, both leave the field at the same
     /// step, and the battle ends BothEliminated with the defender the winner. No blow is struck (no damage, no casualty) and nobody
-    /// routed: all 20 of each escaped in good order. The defender's army nets +150,000 here too (decrease 0, rise 200,000, entry 50,000).
+    /// routed: all 20 of each escaped in good order. ~~The defender's army nets +150,000 here too (decrease 0, rise 200,000, entry 50,000).
     /// So the lift does not depend on lane AP's pending Q-AP4, and an alternative that withholds the rise only from a winner with nobody
-    /// left in good order ((b′), proposal §11.8) would not remove it (these men withdrew in good order).
+    /// left in good order ((b′), proposal §11.8) would not remove it (these men withdrew in good order).~~
+    /// [MOR3, D-085 DD1, 2026-11-11: renamed from ProposalA_AnUnfoughtMutualWithdrawal_InTheAutoResolver_WonUnderDA6_NetsTheRiseLessTheCost.
+    /// MEASURED moves, each attributed to DD1: the defender's army s × 1,000 + 150,000 → s × 1,000 (no entry cost, no rise: Fought 0),
+    /// and — not asserted before — the attacker's s × 1,000 − 50,000 → s × 1,000. The case (480, in-battle part 50) is removed from this
+    /// theory: under C1 the charge falls only at a first fighting instant, so formations at 480 are not charged below the line, do not
+    /// withdraw, and FIGHT (MEASURED: a fought mutual rout, first fighting step 131) — it is pinned as such in
+    /// NoFightingTests.C1_TheInBattleChargeNoLongerMakesAnUnfoughtWithdrawal_…. In its place, the cases 250 and 449 with the part on:
+    /// the same unfought battles, nothing charged.]
     /// </summary>
     [Theory]
     [InlineData(250L, 0L)]
     [InlineData(449L, 0L)]
-    [InlineData(480L, Cost)]
-    public void ProposalA_AnUnfoughtMutualWithdrawal_InTheAutoResolver_WonUnderDA6_NetsTheRiseLessTheCost(long s, long cost)
+    [InlineData(250L, Cost)]                       // [MOR3] replaces (480, Cost); see the note above
+    [InlineData(449L, Cost)]                       // [MOR3]
+    public void DD1_AnUnfoughtMutualWithdrawal_InTheAutoResolver_WonUnderDA6_ChangesNeitherArmysMorale(long s, long cost)
     {
         var setup = Apart(s, MirrorColumn(6), cost);
-        var a = new AutoBattle(setup, new AutoCoefficients()).Run();
+        var auto = new AutoBattle(setup, new AutoCoefficients());
+        var a = auto.Run();
         Assert.Equal(BattleEndReason.BothEliminated, a.Reason);
         Assert.Equal((1, WinBasis.DefenderOnEqualSides, 1, -1), (a.Winner, a.WinBasis, BattleWinner.Reported(a), a.HoldsField));
+        Assert.Null(a.FirstFightMs);                                                      // [MOR3] no fighting
+        Assert.Empty(auto.EntryCharges);                                                  // [MOR3] nothing charged
         foreach (var f in a.Formations)                                                   // withdrawn in good order; no blow struck
-            Assert.Equal((0L, 0L, 20L, 0L, cost, s - cost), (f.Killed, f.DamageDealt, f.Escaped, f.RoutedEscaped, f.EntryCharged, f.MoraleEnd));
+            Assert.Equal((0L, 0L, 20L, 0L, 0L, s), (f.Killed, f.DamageDealt, f.Escaped, f.RoutedEscaped, f.EntryCharged, f.MoraleEnd));
         var def = Settle(a, 2, 1, FromAuto(a.Formations.Single(x => x.FormationId == 2), 1, setup.Rules.MoraleMax), s);
-        Assert.Equal((CostPpm, cost, 0L, 200_000L, s * 1_000 + 150_000), (def.EntryPpm, def.EntryInBattle, def.DecreasePpm, def.RisePpm, def.AfterPpm));
+        Assert.Equal(((byte)0, 0L, 0L, 0L, 0L, s * 1_000), (def.Fought, def.EntryPpm, def.EntryInBattle, def.DecreasePpm, def.RisePpm, def.AfterPpm));
+        var att = Settle(a, 1, 0, FromAuto(a.Formations.Single(x => x.FormationId == 1), 0, setup.Rules.MoraleMax), s);   // [MOR3] new
+        Assert.Equal(((byte)0, 0L, s * 1_000), (att.Fought, att.EntryPpm, att.AfterPpm));
     }
 
     /// <summary>

@@ -377,6 +377,11 @@ public sealed partial class TacticalBattle
             d.Primary = true; _df[d.F].Attacks++;
         }
         if (ev.Target.IsNone) UndoBarePointShotProgress(ev.Source.Id, primaryBefore);   // [TR x lane N] DIR5 only
+        // [MOR3] D-085 DD1-R2 (a): a shot aimed at an enemy entity, hull or airframe is an attack resolved against its formation, hit or
+        // miss (an indirect one too, wherever its dispersion lands it). A bombard at a bare ground point is resolved against whatever
+        // its blast reaches: it is fighting only when the blast reaches an enemy entity or hull (READING MOR3-R1 (a), below).
+        bool bare = ev.Target.IsNone;
+        if (!bare) Fought(t);
         long sid = ev.Source.Id;
         bool landTarget = !ev.Target.IsNone && Array.BinarySearch(_ids, ev.Target.Id) >= 0;
         if (ev.Target.IsNone || (landTarget && w.Indirect))
@@ -394,6 +399,7 @@ public sealed partial class TacticalBattle
                 if (!e.OnField) continue;
                 long dd = Vec2L.Distance(e.Pos, impact);
                 if (dd > R) continue;
+                if (bare && e.Side != side) Fought(t);                   // [MOR3] READING MOR3-R1 (a): the blast reaches an enemy
                 // Lethality falls off linearly from the impact: P(effect) = (R - d) / R (1 at the impact point).
                 if (CounterRng.Chance(_setup.Seed, DomainStreams.Blast, sid, t, e.Id, (uint)m, Q32.FromRatio(R - dd, R)))
                     _s.Schedule(t, EventClass.Damage, 0, e.Id, DomainKinds.DomainHit, new EntityRef(e.Id, e.Gen), ev.Source, 0, w.Damage);
@@ -404,6 +410,7 @@ public sealed partial class TacticalBattle
                     if (x.Dom != Domain.Naval || !x.OnField) continue;
                     long dd = Math.Max(0, Vec2L.Distance(x.Pos, impact) - x.V!.RadiusMm);     // distance to the hull's edge
                     if (dd > R) continue;
+                    if (bare && x.Side != side) Fought(t);               // [MOR3] READING MOR3-R1 (a): the blast reaches an enemy hull
                     if (CounterRng.Chance(_setup.Seed, DomainStreams.Blast, sid, t, x.Id, (uint)m, Q32.FromRatio(R - dd, R)))
                         _s.Schedule(t, EventClass.Damage, 0, x.Id, DomainKinds.DomainHit, new EntityRef(x.Id, x.Gen), ev.Source, 1, w.HullDamage, w.CrewDamage);
                 }
@@ -440,6 +447,7 @@ public sealed partial class TacticalBattle
         long onA = BoardingCasualties(nb, HitChance(b.V.BoardingMelee, a.V.BoardingDefence), b.Id, t, a.Id, 1, na);
         a.Primary = true; b.Primary = true;
         _df[a.F].Attacks++; _df[b.F].Attacks++;
+        Fought(t);                                                       // [MOR3] D-085 DD1-R2 (a): a boarding fight (both crews strike)
         if (onB > 0) _s.Schedule(t, EventClass.Damage, 0, b.Id, DomainKinds.DomainHit, ev.Target, ev.Source, 1, 0, onB);
         if (onA > 0) _s.Schedule(t, EventClass.Damage, 0, a.Id, DomainKinds.DomainHit, ev.Source, ev.Target, 1, 0, onA);
         _grappledAt[DIndex(a.Id)] = t; _grappledAt[DIndex(b.Id)] = t;

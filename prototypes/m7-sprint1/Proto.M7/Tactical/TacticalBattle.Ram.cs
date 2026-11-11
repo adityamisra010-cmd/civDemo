@@ -351,6 +351,7 @@ public sealed partial class TacticalBattle
         long vn = ev.B;
         AddRammed(ai, ev.Target.Id);
         a.Primary = true; _df[a.F].Attacks++;
+        Fought(t);                                                       // [MOR3] D-085 DD1-R2 (a): a ram, breach or glance
         if ((RamOutcome)ev.A == RamOutcome.Breach)
         {
             long hull = Math.Max(1, RamPhysics.EnergyScaled(v.RamDamage, vn, v.MaxSpeedMmPerS));
@@ -377,7 +378,10 @@ public sealed partial class TacticalBattle
     /// only for a perpendicular contact; with the RAM2-V1 gate a full-way skim at a shallow angle is a collision and would
     /// otherwise stop dead). A contact on a hull ALREADY rammed leaves the struck hull undamaged whatever the speed (strict RM1,
     /// reading RAM-R5, flagged for the Director in H-RAM.md: RM1 forbids a second ram but does not rule what a full-speed bow
-    /// contact does to that hull).</summary>
+    /// contact does to that hull).
+    /// [MOR3] D-085 DD1: not an attack, so not fighting (READING MOR3-R2 (a), morale proposal §12.2): the engine counts no attack, makes
+    /// no hit roll and does the struck hull no damage here (only the rammer's own bow is damaged), as the attack count and the
+    /// inactivity rule's progress already read it. Alternative (b): a ram attempt resolved as a contact counts as an attack.</summary>
     private void RamCollisionStrike(long t, in ScheduledEvent ev)
     {
         int ai = DIndex(ev.Source.Id);

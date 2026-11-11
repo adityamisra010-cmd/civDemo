@@ -90,8 +90,9 @@ public sealed partial class TacticalBattle
         public int AccKilled, AccLost, AccCaptured, AccEscaped;
         /// <summary>[MOR2, verification round 1, MOR2-R1-02] D-083 DB1-R1 (a): the instant the formation was first on the field (a
         /// vessel formation: the battle's start; an aircraft formation: its first take-off); null while it has not been. Recorded
-        /// through <see cref="EntryMorale.Enter"/> at cost 0: vessels and aircraft are outside the in-battle charge.</summary>
-        public long? EnteredAtMs; public long EntryCharged;
+        /// through <see cref="EntryMorale.Enter"/> at cost 0: vessels and aircraft are outside the in-battle charge. [MOR3] EntryChargedAtMs
+        /// is the shared function's charge marker; at cost 0 it stays null.</summary>
+        public long? EnteredAtMs; public long EntryCharged; public long? EntryChargedAtMs;
     }
 
     private sealed class DKnow
@@ -363,7 +364,7 @@ public sealed partial class TacticalBattle
     {
         bool placed = false;
         foreach (int i in f.Members) if (_d[i].OnField) { placed = true; break; }
-        if (placed) EntryMorale.Enter(0, t, f.Id, ref f.EnteredAtMs, ref f.Morale, ref f.EntryCharged, _entries);
+        if (placed) EntryMorale.Enter(0, t, f.Id, _firstFightMs is not null, ref f.EnteredAtMs, ref f.Morale, ref f.EntryCharged, ref f.EntryChargedAtMs, _entries);
     }
 
     /// <summary>Called at the end of construction: vessel formations are on the field from the battle's start; aircraft start at their

@@ -249,8 +249,9 @@ public sealed class AutoBattle
         public long Idle;                      // DIR5 hidden-stationary counter
         public Vec2L[] Objectives = Array.Empty<Vec2L>();
         /// <summary>[MOR2] D-083 DB1: the instant the formation was placed on the field (every AutoResolver formation: the battle's
-        /// start, step 0) and what the entry charge took from its morale (<see cref="EntryMorale"/>, shared with the tactical engine).</summary>
-        public long? EnteredAtMs; public long EntryCharged;
+        /// start, step 0) and what the entry charge took from its morale (<see cref="EntryMorale"/>, shared with the tactical engine).
+        /// [MOR3, D-085 DD1] and the instant the charge fell (null: not charged — always at cost 0, and in a battle without fighting).</summary>
+        public long? EnteredAtMs; public long EntryCharged; public long? EntryChargedAtMs;
         public long Alive => Start - Killed - Surrendered;
         public bool Fighting => !Routed && !Withdrawing && !Disengaged && Alive > 0;
         public bool OnField(long step) => Alive > 0 && !Routed && !Disengaged && (!Withdrawing || step < EscapeStep);
@@ -281,6 +282,8 @@ public sealed class AutoBattle
     private readonly List<LocalWinRise> _localWins = new();
     // [MOR2] D-083 DB1: every in-battle entry charge (empty while TacticalRules.EntryMoraleCost is 0).
     private readonly List<EntryCharge> _entries = new();
+    // [MOR3] D-085 DD1-R2 (a): the first step in which a formation struck in melee or loosed a volley (-1: no fighting yet).
+    private long _firstFightStep = -1;
     private readonly IncrementalHash _trace = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
     private readonly byte[] _buf = new byte[8];
     private long _steps;
@@ -369,7 +372,27 @@ public sealed class AutoBattle
         }
         // [MOR2] D-083 DB1-R1 (a): every AutoResolver formation is on the field from the battle's start (the model refuses formations
         // that start aboard a transport), so each enters at StartMs, step 0, through the function the tactical engine shares.
-        foreach (var f in _f) EntryMorale.Enter(_r.EntryMoraleCost, _s.StartMs, f.Id, ref f.EnteredAtMs, ref f.Morale, ref f.EntryCharged, _entries);
+        // [MOR3, D-085 DD1] The entry is recorded here; the in-battle charge falls at the first fighting step (ChargeOnFirstFight), never
+        // in a battle without fighting.
+        foreach (var f in _f)
+            EntryMorale.Enter(_r.EntryMoraleCost, _s.StartMs, f.Id, fightingBegun: false, ref f.EnteredAtMs, ref f.Morale, ref f.EntryCharged,
+                              ref f.EntryChargedAtMs, _entries);
+    }
+
+    /// <summary>[MOR3] D-085 DD1-R2 (a): formation f struck in melee or loosed a volley in step <paramref name="k"/>; the first such step
+    /// makes the battle a fought battle (<see cref="BattleResult.FirstFightMs"/> = StartMs + k × StepMs).</summary>
+    private void Fought(long k) { if (_firstFightStep < 0) _firstFightStep = k; }
+
+    /// <summary>[MOR3] D-085 DD1, PROPOSAL C1 (morale proposal §12.4), as in the tactical engine: at the start of the casualty phase of a
+    /// step at or after the first fighting step (after the step's attacks, before their casualties, morale losses and routs), every
+    /// formation that has entered (all of them, at the start) and has not been charged pays the in-battle entry charge, in ascending
+    /// formation id. Nothing at cost 0.</summary>
+    private void ChargeOnFirstFight(long k)
+    {
+        if (_r.EntryMoraleCost == 0 || _firstFightStep < 0) return;
+        long at = checked(_s.StartMs + k * _r.StepMs);
+        foreach (var f in _f)
+            EntryMorale.ChargeOnFighting(_r.EntryMoraleCost, at, f.Id, f.EnteredAtMs, ref f.Morale, ref f.EntryCharged, ref f.EntryChargedAtMs, _entries);
     }
 
     /// <summary>Per-step decision log (off by default: the battery runs thousands of auto battles).</summary>
@@ -378,7 +401,8 @@ public sealed class AutoBattle
     /// <summary>[MOR] Every "fight it won" rise, in execution order (empty while TacticalRules.LocalWinMoraleRise is 0). AtMs is the
     /// step's instant on the battle timeline (StartMs + step × StepMs), as in the tactical engine.</summary>
     public IReadOnlyList<LocalWinRise> LocalWinRises => _localWins;
-    /// <summary>[MOR2] Every in-battle entry charge, in execution order (empty while TacticalRules.EntryMoraleCost is 0).</summary>
+    /// <summary>[MOR2] Every in-battle entry charge, in execution order (empty while TacticalRules.EntryMoraleCost is 0). [MOR3, D-085 DD1]
+    /// Also empty in a battle without fighting; a row's AtMs is the first fighting step's instant.</summary>
     public IReadOnlyList<EntryCharge> EntryCharges => _entries;
     /// <summary>[P] Model 2: the terrain terms of every attack (only when <see cref="RecordLog"/>).</summary>
     public IReadOnlyList<AutoTerrainTerms> TerrainTerms => _terms;
@@ -767,6 +791,7 @@ public sealed class AutoBattle
                         }
                         else dm = ExpectedMilli(engaged, f.EffMelee, g.EffDefence, factor);
                         pending[m] = checked(pending[m] + dm); f.DealtMilli += dm; f.Attacks += engaged;
+                        Fought(k);                                                       // [MOR3] D-085 DD1-R2 (a): melee in contact
                         target[i] = m; mode[i] |= 1;
                         if (_lastHitStep is not null && dm > 0) _lastHitStep[i * _f.Length + m] = k;      // [MOR] f fought g
                     }
@@ -778,6 +803,7 @@ public sealed class AutoBattle
                         if (dr > 0)
                         {
                             pending[m] = checked(pending[m] + dr); f.DealtMilli += dr; f.Attacks += shots;
+                            Fought(k);                                                   // [MOR3] D-085 DD1-R2 (a): a volley in contact
                             target[i] = m; mode[i] |= 2; Fired(f, k);
                             // [MOR2] Redundant by construction, kept to state the intent: in contact both formations fight, so engaged >= 1
                             // (Share >= 1), the melee above dealt dm >= 1 and already recorded k in this very cell. The round-2 verifier's mutant
@@ -798,6 +824,7 @@ public sealed class AutoBattle
                         if (dr > 0)
                         {
                             pending[t] = checked(pending[t] + dr); f.DealtMilli += dr; f.Attacks += shots;
+                            Fought(k);                                                   // [MOR3] D-085 DD1-R2 (a): a volley at range
                             target[i] = t; mode[i] = 2; f.FoughtStep = true; Fired(f, k); f.LastFoughtStep = k;
                             if (_lastHitStep is not null) _lastHitStep[i * _f.Length + t] = k;            // [MOR]
                         }
@@ -806,6 +833,7 @@ public sealed class AutoBattle
             }
 
             // 5. damage, casualties, morale, rout (simultaneous)
+            ChargeOnFirstFight(k);                                         // [MOR3] D-085 DD1: the entry charge falls at the first fighting step (C1)
             bool[]? inFight = _lastHitStep is null ? null : InFight(k);    // [MOR] before this step's casualties and routs
             for (int j = 0; j < _f.Length; j++)
             {
@@ -1221,11 +1249,15 @@ public sealed class AutoBattle
         {
             foreach (var f in _f) { S(f.EnteredAtMs ?? long.MinValue); S(f.EntryCharged); }
             S(_entries.Count); foreach (var x in _entries) { S(x.AtMs); S(x.FormationId); S(x.Before); S(x.Charged); }
+            // [MOR3] D-085 DD1: the first fighting step and each formation's charge instant (state while the part is on; identity at 0)
+            S(_firstFightStep);
+            foreach (var f in _f) S(f.EntryChargedAtMs ?? long.MinValue);
         }
         // [AP] D-082 DA6 / DA7 (DA6-R: "The rule is applied to the AutoResolver"): the reported winner, from the end reason and the
         // setup's roles, through the function the TacticalResolver calls too (EqualSides). The battle itself is unchanged.
         var (winner, basis) = EqualSides.Decide(reason, side, _s.Defender, _s.Ambusher, _r.EqualSidesAtStandoff);
+        long? firstFightMs = _firstFightStep < 0 ? null : checked(_s.StartMs + _firstFightStep * _r.StepMs);      // [MOR3] D-085 DD1-R2 (a)
         return new BattleResult(ResolverKind.Auto, reason, side, holds, pulse + 1, endMs, _steps, 0, trace, Convert.ToHexString(h.GetHashAndReset()), fr)
-        { Winner = winner, WinBasis = basis };
+        { Winner = winner, WinBasis = basis, FirstFightMs = firstFightMs };
     }
 }

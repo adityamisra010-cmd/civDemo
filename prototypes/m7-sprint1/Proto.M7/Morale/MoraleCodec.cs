@@ -10,10 +10,13 @@ namespace Proto.M7.Morale;
 /// field (0), what the battle itself charged at the entry on the battle scale (0 while TacticalRules.EntryMoraleCost is 0), and the
 /// settlement's entry term in micro units (MoraleRates.EntryCostPpm when entered, else 0). The decrease is measured from
 /// MoraleStart − EntryInBattle, so AfterPpm = clamp(BeforePpm − EntryPpm − DecreasePpm + RisePpm, 0, 1,000,000) by hand from the row.
+/// [MOR3, D-085 DD1] One field appended (codec version 3): whether the battle had fighting (1) or not (0). In a row with Fought 0 the
+/// three terms (EntryPpm, DecreasePpm, RisePpm) are 0 and AfterPpm = BeforePpm, whatever the reported winner, so the outcome of a battle
+/// without fighting is visible on the row; the by-hand equation above holds for every row.
 /// </summary>
 public readonly record struct MoraleSettlementRow(int Seq, int ArmyId, long AtMs, byte Side, int WinnerSide, long MoraleStart, long MoraleEnd,
                                                   long Restore, long DecreasePpm, long BeatenPersons, long WinnerSidePersons, long RisePpm,
-                                                  long BeforePpm, long AfterPpm, byte Entered, long EntryInBattle, long EntryPpm);
+                                                  long BeforePpm, long AfterPpm, byte Entered, long EntryInBattle, long EntryPpm, byte Fought);
 
 /// <summary>
 /// [MOR] Canonical little-endian fixed-length encoding of <see cref="MoraleSettlementRow"/> (CLAUDE.md: every new serialized row type
@@ -21,12 +24,14 @@ public readonly record struct MoraleSettlementRow(int Seq, int ArmyId, long AtMs
 /// i32] rows. The layout of the support tables (lane D's SupportCodec), with its own version byte.
 /// [MOR2] Version 2: the row gained Entered (u8, 0 or 1), EntryInBattle (i64) and EntryPpm (i64) after AfterPpm: 93 → 110 bytes. A
 /// version-1 table is refused (FormatException), as is an Entered byte other than 0 or 1.
+/// [MOR3, D-085 DD1] Version 3: the row gained Fought (u8, 0 or 1) after EntryPpm: 110 → 111 bytes. A version-2 (or 1) table is refused
+/// (FormatException), as is a Fought byte other than 0 or 1.
 /// </summary>
 public static class MoraleCodec
 {
-    public const byte Version = 2;
+    public const byte Version = 3;
     public const int HeaderBytes = 1 + 4;
-    public const int SettlementRowBytes = 4 + 4 + 8 + 1 + 4 + 8 * 9 + 1 + 8 * 2;    // 110 (version 1: 93)
+    public const int SettlementRowBytes = 4 + 4 + 8 + 1 + 4 + 8 * 9 + 1 + 8 * 2 + 1;    // 111 (version 2: 110; version 1: 93)
 
     public static int ExpectedLength(int rows) => checked(HeaderBytes + rows * SettlementRowBytes);
 
@@ -41,10 +46,12 @@ public static class MoraleCodec
         foreach (var r in rows)
         {
             if (r.Entered > 1) throw new ArgumentOutOfRangeException(nameof(rows), "Entered is 0 or 1");
+            if (r.Fought > 1) throw new ArgumentOutOfRangeException(nameof(rows), "Fought is 0 or 1");          // [MOR3]
             I32(r.Seq); I32(r.ArmyId); I64(r.AtMs); b[at++] = r.Side; I32(r.WinnerSide);
             I64(r.MoraleStart); I64(r.MoraleEnd); I64(r.Restore); I64(r.DecreasePpm); I64(r.BeatenPersons); I64(r.WinnerSidePersons);
             I64(r.RisePpm); I64(r.BeforePpm); I64(r.AfterPpm);
             b[at++] = r.Entered; I64(r.EntryInBattle); I64(r.EntryPpm);                                  // [MOR2] version 2
+            b[at++] = r.Fought;                                                                            // [MOR3] version 3
         }
         if (at != b.Length) throw new InvalidOperationException("encoded length mismatch");
         return b;
@@ -72,8 +79,10 @@ public static class MoraleCodec
             byte entered = b[at++];
             if (entered > 1) throw new FormatException("morale table: Entered is 0 or 1");                  // [MOR2]
             long entryInBattle = I64(), entryPpm = I64();
+            byte fought = b[at++];
+            if (fought > 1) throw new FormatException("morale table: Fought is 0 or 1");                    // [MOR3]
             rows[i] = new MoraleSettlementRow(seq, army, atMs, side, winner, start, end, restore, decrease, beaten, winnerSide, rise,
-                                              before, after, entered, entryInBattle, entryPpm);
+                                              before, after, entered, entryInBattle, entryPpm, fought);
         }
         return rows;
     }

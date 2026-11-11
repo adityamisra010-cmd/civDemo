@@ -178,11 +178,8 @@ public sealed class EntryCostRound1Tests
 
     // ------------------------------------------------------------------ MOR2-R1-06 (V10): the clamp-at-0 entry reaches the settlement
 
-    /// <summary>A formation of 20 heavy infantry at morale <paramref name="m"/> (side 0) and a distant enemy (side 1). TEST INPUT.</summary>
-    private static BattleSetup Distant(long m, long cost) => new(OpenField(), TerrainCostTable.PlaceholderTestTable(), ConcealmentTable.PlaceholderTestTable(),
-        DefaultSides(new[] { Cell(40, 16) }, new[] { Cell(6, 16) }),
-        new[] { new FormationSpec(1, 0, UnitProfiles.HeavyInfantry, 20, Cell(6, 16)) { Morale = m }, new FormationSpec(2, 1, UnitProfiles.HeavyInfantry, 20, Cell(40, 16)) },
-        3) { Rules = new TacticalRules { EntryMoraleCost = cost } };
+    // [MOR3, D-085 DD1] lane MOR2's helper Distant(m, cost) (20 heavy infantry at m against a distant enemy) is removed: its one user
+    // below is re-pinned on a fought battle, and the same unfought setup is NoFightingTests.Distant (the unfought decisive win).
 
     /// <summary>Lane W's collapse input of an AutoResolver formation (the War Sandbox's FromAuto form: no wounded category).</summary>
     private static CollapseInput FromAuto(FormationResult f, int campaignFormation, long moraleMax)
@@ -195,23 +192,38 @@ public sealed class EntryCostRound1Tests
     /// legal boundary, which the stand-in must accept (until round 1 nothing handed such a battle to the settlement, so refusing it,
     /// the verifier's V10, survived the whole suite). DR29 is then measured from 30 − 30 = 0, so it carries nothing; the entry term
     /// takes 50,000: clamp(30,000 − 50,000) = 0. One point more than the start is still refused.
+    /// [MOR3, D-085 DD1, 2026-11-11: re-pinned on a FOUGHT battle. Lane MOR2's battle (formation 1 at 30 against a distant enemy) has no
+    /// fighting — formation 1 routs (the AutoResolver: withdraws) at once and is gone before anyone strikes (MEASURED: FirstFightMs null
+    /// in both resolvers) — so under DD1 nothing is charged in it and its settlement changes nothing (it is now pinned as an unfought
+    /// decisive win, NoFightingTests.DD1_AnUnfoughtDecisiveWin_…). The boundary this test pins needs fighting: lane MOR2's three-formation
+    /// battle with formation 1 at 30, whose first fight comes at 7,506,000 ms (the archers on formation 2, both resolvers); formation 1,
+    /// gone by then, is charged at that instant all it has, 30 of 30 (PROPOSAL C1: every formation that entered, wherever it is).
+    /// MEASURED moves: the setup Distant(30) → ThreeFormations with formation 1 at 30 (the knowledge-only AI with RetreatMorale 0, as in
+    /// EntryCostTests' 30/40 battle); the row's AtMs StartMs → 7,506,000; and, because formation 1's side now WINS (formation 2 routs, the
+    /// archers hold), the settlement takes DA1's rise too: clamp(30,000 − 50,000 − 0 + ⌊400,000 × 20 ÷ 40⌋) = 180,000 (was 0, a loss;
+    /// one clamp over the three terms, by hand). The boundary itself is unchanged: EntryChargedInBattle = MoraleStart = 30 is accepted,
+    /// DR29 is measured from 30 − 30 = 0 (decrease 0), the entry term is 50,000, and 31 is refused.]
     /// </summary>
     [Fact]
     public void ClampAtZero_AFormationThatEntersWithLessMoraleThanTheCost_IsSettled_ItsDR29StartsFromZero()
     {
-        var setup = Distant(30, Cost);
-        var t = new TacticalBattle(setup, new KnowledgeAi(), new KnowledgeAi());
+        var three = EntryCostTests.ThreeFormations(1, Cost);                                                          // [MOR3] was Distant(30, Cost)
+        var setup = three with { Formations = new[] { three.Formations[0] with { Morale = 30 }, three.Formations[1], three.Formations[2] } };
+        var t = new TacticalBattle(setup, new KnowledgeAi { RetreatMorale = 0 }, new KnowledgeAi { RetreatMorale = 0 });
         var tr = TT.RunGuarded(t);
-        Assert.Equal(new EntryCharge(setup.StartMs, 1, 30, 30), t.EntryCharges.Single(x => x.FormationId == 1));
+        Assert.Equal(7_506_000L, tr.FirstFightMs);                                                                    // [MOR3]
+        Assert.Equal(new EntryCharge(7_506_000, 1, 30, 30), t.EntryCharges.Single(x => x.FormationId == 1));         // [MOR3] was StartMs
         var auto = new AutoBattle(setup, new AutoCoefficients()).Run();
+        Assert.Equal(7_506_000L, auto.FirstFightMs);                                                                  // [MOR3]
         foreach (var (res, collapse) in new[]
                  {
-                     (tr, BattleCollapse.FromTactical(t, setup, new[] { (1L, 0), (2L, 1) })[0]),
+                     (tr, BattleCollapse.FromTactical(t, setup, new[] { (1L, 0), (2L, 1), (3L, 2) })[0]),
                      (auto, FromAuto(auto.Formations.Single(x => x.FormationId == 1), 0, setup.Rules.MoraleMax)),
                  })
         {
             var f1 = res.Formations.Single(x => x.FormationId == 1);
             Assert.Equal(((long?)setup.StartMs, 30L, 0L), (f1.EnteredAtMs, f1.EntryCharged, f1.MoraleEnd));
+            Assert.Equal(0, BattleWinner.Reported(res));                                                              // [MOR3] its side won
             long start = MoraleRig.WarStart();
             var rig = MoraleRig.Build(MoraleRig.Armies(2), start);
             rig.W.ScheduleBattle(rig.S, MoraleRig.Battle(0, 0, start + Day, 80, -1, 0, 0));                        // ruined to 30,000
@@ -221,7 +233,7 @@ public sealed class EntryCostRound1Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => rig.W.ScheduleBattle(rig.S, handOff with { EntryChargedInBattle = 31 }));
             MoraleRig.Run(rig, start + 2 * Day + 1);
             var m = rig.W.MoraleRows.Single(x => x.AtMs == start + 2 * Day);
-            Assert.Equal((30_000L, 30L, 0L, CostPpm, 0L), (m.BeforePpm, m.EntryInBattle, m.DecreasePpm, m.EntryPpm, m.AfterPpm));
+            Assert.Equal((30_000L, 30L, 0L, CostPpm, 200_000L, 180_000L), (m.BeforePpm, m.EntryInBattle, m.DecreasePpm, m.EntryPpm, m.RisePpm, m.AfterPpm));   // [MOR3] after was 0
         }
     }
 
@@ -230,7 +242,8 @@ public sealed class EntryCostRound1Tests
     /// <summary>
     /// MOR2-R1-12. The entry cost is counted ONCE in a REAL battle in which the formation loses morale beyond the charge, in both
     /// resolvers: 30 heavy infantry at 800 against 40 (MeetingAsymmetric, the knowledge-only AI and the AutoResolver's doctrine), the
-    /// in-battle part on (50). The formation enters at 750 and ends well below it (end &lt; 700), so DR29's base matters: the settlement's
+    /// in-battle part on (50). The formation ~~enters at 750~~ [MOR3, D-085 DD1: is charged to 750 at the battle's first fighting instant, PROPOSAL
+    /// C1; the test passes unchanged] and ends well below it (end &lt; 700), so DR29's base matters: the settlement's
     /// decrease is exactly (800 − 50 − end) × 1,000 — not (800 − end) × 1,000 (the charge counted twice: lane MOR2's mutant E3) and not
     /// (800 − 100 − end) × 1,000 (the verifier's V14) — and the entry term is 50,000. Until round 1 only a hand-made stand-in row pinned
     /// this (the real battles used lossless archers ending at or above their start, where the base changes nothing).
@@ -308,7 +321,8 @@ public sealed class EntryCostRound1Tests
     /// <summary>
     /// MOR2-R1-11. The War Sandbox's Quick Battle runs the campaign's resolvers with the rules it is given, or the default rules
     /// (SandboxSession: <c>rules ?? new TacticalRules()</c>). So the in-battle part reaches the sandbox exactly through the rules: at the
-    /// DEFAULT (0) nothing is charged; with the part switched on (50) every formation pays once at its entry, in the AutoResolver (AI
+    /// DEFAULT (0) nothing is charged; with the part switched on (50) every formation pays once ~~at its entry~~ [MOR3, D-085 DD1: at the battle's
+    /// first fighting instant, PROPOSAL C1 — these Quick Battles are fought; the test passes unchanged], in the AutoResolver (AI
     /// against AI) and in the TacticalResolver (a player side). This is why the proposal's switch-on is a change of the rules' DEFAULT
     /// (proposal §11.7): a per-battle setting by the campaign hand-off would never reach a Quick Battle. Both forces at full morale.
     /// </summary>

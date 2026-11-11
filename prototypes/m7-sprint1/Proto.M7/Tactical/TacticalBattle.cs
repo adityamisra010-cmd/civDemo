@@ -88,8 +88,9 @@ public sealed partial class TacticalBattle : IEventWorld
         /// <summary>[TR, verify-TR-r1 V1] The anchor set a new goal minimum in this pulse (march progress; reset at pulse start).</summary>
         public bool MarchProgress;
         /// <summary>[MOR2] D-083 DB1: the instant the formation was placed on the field (null: not yet / never) and what the entry
-        /// charge took from its morale (<see cref="EntryMorale"/>).</summary>
-        public long? EnteredAtMs; public long EntryCharged;
+        /// charge took from its morale (<see cref="EntryMorale"/>). [MOR3, D-085 DD1] and the instant the charge fell (null: not
+        /// charged — always null at cost 0, and in a battle without fighting).</summary>
+        public long? EnteredAtMs; public long EntryCharged; public long? EntryChargedAtMs;
     }
 
     private sealed class Knowledge
@@ -129,6 +130,8 @@ public sealed partial class TacticalBattle : IEventWorld
     private readonly List<LocalWinRise> _localWins = new();
     // [MOR2] D-083 DB1: every in-battle entry charge (empty while TacticalRules.EntryMoraleCost is 0).
     private readonly List<EntryCharge> _entries = new();
+    // [MOR3] D-085 DD1-R2 (a): the instant of the battle's first attack resolved against an enemy formation (null: no fighting yet).
+    private long? _firstFightMs;
 
     private long _pulse = -1;
     private long _pulseStartMs;
@@ -269,12 +272,31 @@ public sealed partial class TacticalBattle : IEventWorld
     }
 
     /// <summary>[MOR2] D-083 DB1: the formation enters the battle at <paramref name="t"/> if one of its entities is on the field and it
-    /// has not entered yet (once per formation per battle: <see cref="EntryMorale.Enter"/>, the function the AutoResolver shares).</summary>
+    /// has not entered yet (once per formation per battle: <see cref="EntryMorale.Enter"/>, the function the AutoResolver shares).
+    /// [MOR3, D-085 DD1] The entry is recorded now; the in-battle charge falls now only if the battle's fighting has begun, otherwise at
+    /// the first fighting instant (<see cref="ChargeOnFirstFight"/>), and never in a battle without fighting.</summary>
     private void EnterIfPlaced(Form f, long t)
     {
         bool placed = false;
         foreach (int i in f.Members) if (_e[i].OnField) { placed = true; break; }
-        if (placed) EntryMorale.Enter(_r.EntryMoraleCost, t, f.Id, ref f.EnteredAtMs, ref f.Morale, ref f.EntryCharged, _entries);
+        if (placed) EntryMorale.Enter(_r.EntryMoraleCost, t, f.Id, _firstFightMs is not null, ref f.EnteredAtMs, ref f.Morale, ref f.EntryCharged,
+                                      ref f.EntryChargedAtMs, _entries);
+    }
+
+    /// <summary>[MOR3] D-085 DD1-R2 (a): an attack was resolved against an enemy formation at <paramref name="t"/> (whether or not it dealt
+    /// damage). The first one makes the battle a fought battle (<see cref="BattleResult.FirstFightMs"/>). Called at every code point that
+    /// counts an attack (melee blow, missile shot, crew-served or domain weapon shot, boarding fight, ram), each in the Fire class.</summary>
+    private void Fought(long t) => _firstFightMs ??= t;
+
+    /// <summary>[MOR3] D-085 DD1, PROPOSAL C1 (morale proposal §12.4): at the start of the resolution of an instant at or after the battle's
+    /// first fighting instant (after the instant's attacks, before their casualties, morale losses and routs), every land formation that
+    /// has entered and has not been charged pays the in-battle entry charge, in ascending formation id. In practice that is the first
+    /// fighting instant itself: a formation that enters later is charged at its entry (<see cref="EnterIfPlaced"/>). Nothing at cost 0.</summary>
+    private void ChargeOnFirstFight(long t)
+    {
+        if (_r.EntryMoraleCost == 0 || _firstFightMs is null) return;
+        foreach (var f in _f)
+            EntryMorale.ChargeOnFighting(_r.EntryMoraleCost, t, f.Id, f.EnteredAtMs, ref f.Morale, ref f.EntryCharged, ref f.EntryChargedAtMs, _entries);
     }
 
     // ------------------------------------------------------------------ public surface
@@ -352,8 +374,12 @@ public sealed partial class TacticalBattle : IEventWorld
     public long Morale(long formationId) => _f[FormIndex(formationId)].Morale;
     /// <summary>[MOR] Every "fight it won" rise, in execution order (empty while TacticalRules.LocalWinMoraleRise is 0).</summary>
     public IReadOnlyList<LocalWinRise> LocalWinRises => _localWins;
-    /// <summary>[MOR2] Every in-battle entry charge, in execution order (empty while TacticalRules.EntryMoraleCost is 0).</summary>
+    /// <summary>[MOR2] Every in-battle entry charge, in execution order (empty while TacticalRules.EntryMoraleCost is 0). [MOR3, D-085 DD1]
+    /// Also empty in a battle without fighting; a row's AtMs is the instant the charge fell.</summary>
     public IReadOnlyList<EntryCharge> EntryCharges => _entries;
+    /// <summary>[MOR3] D-085 DD1-R2 (a): the instant of the battle's first attack resolved against an enemy formation so far (null: no
+    /// fighting yet). The result carries the final value (<see cref="BattleResult.FirstFightMs"/>).</summary>
+    public long? FirstFightMs => _firstFightMs;
     /// <summary>[MOR2] The instant the formation was placed on the field, or null while it has not been. [MOR2, verification round 1,
     /// MOR2-R1-02] Vessel and aircraft formations too: a vessel formation at the battle's start, an aircraft formation at the first
     /// take-off of one of its airframes (an airframe at its base is not on the field).</summary>
@@ -914,6 +940,7 @@ public sealed partial class TacticalBattle : IEventWorld
         if (ev.A == 1)
         {
             a.Primary = true; a.RevealUntilMs = t + _r.StepMs; fa.Attacks++;
+            Fought(t);                                                   // [MOR3] D-085 DD1-R2 (a): a melee blow, hit or miss
             if (CounterRng.Chance(_setup.Seed, TacticalStreams.Hit, a.Id, t, tg.Id, 0, MeleeHitChance(a, fa, tg)))   // [TR] terrain terms
                 _s.Schedule(t, EventClass.Damage, 0, tg.Id, TacticalKinds.Damage, new EntityRef(tg.Id, tg.Gen), new EntityRef(a.Id, a.Gen), DamageOf(fa.EffMelee));
             return;
@@ -929,6 +956,7 @@ public sealed partial class TacticalBattle : IEventWorld
             cover = fp.Transmission;
         }
         a.Primary = true; a.RevealUntilMs = t + _r.StepMs; fa.Attacks++;
+        Fought(t);                                                       // [MOR3] D-085 DD1-R2 (a): a missile shot that was fired, hit or miss
         a.NextRangedMs = t + a.P.FireIntervalSteps * _r.StepMs;      // lane N: FireIntervalSteps (default 1 = next step)
         if (r.Outcome != FireOutcome.Hit) return;
         var struck = _e[EntIndex(r.EntityId)];
@@ -951,6 +979,7 @@ public sealed partial class TacticalBattle : IEventWorld
 
     private void Resolve(long t)
     {
+        ChargeOnFirstFight(t);                    // [MOR3] D-085 DD1: the in-battle entry charge falls at the first fighting instant (C1)
         if (_hasDomain) DomainResolve(t);         // lane N hook: losses aboard, sinking, capture, aircraft down, vessel morale
         bool[]? inFight = _lastHitMs is null ? null : InFight();          // [MOR] before this instant's deaths and routs
         foreach (var e in _e)
@@ -1292,7 +1321,8 @@ public sealed partial class TacticalBattle : IEventWorld
         // READING AP-2 (a): applying it in this resolver goes beyond DA6-R's applied reading (the AutoResolver); Director question Q-AP4.
         var (winner, basis) = EqualSides.Decide(reason, side, _setup.Defender, _setup.Ambusher, _r.EqualSidesAtStandoff);
         _result = new BattleResult(ResolverKind.Tactical, reason, side, holds, _pulse + 1, t, _s.ExecutedCount, _s.DroppedCount,
-                                   _s.Trace.HashHex(), StateHashHex(), fr) { Personnel = _ledger.Report(), Winner = winner, WinBasis = basis };
+                                   _s.Trace.HashHex(), StateHashHex(), fr)
+                  { Personnel = _ledger.Report(), Winner = winner, WinBasis = basis, FirstFightMs = _firstFightMs };   // [MOR3] D-085 DD1
     }
 
     public string StateHashHex()
@@ -1331,6 +1361,10 @@ public sealed partial class TacticalBattle : IEventWorld
         {
             foreach (var f in _f) { L(f.EnteredAtMs ?? long.MinValue); L(f.EntryCharged); }
             L(_entries.Count); foreach (var x in _entries) { L(x.AtMs); L(x.FormationId); L(x.Before); L(x.Charged); }
+            // [MOR3] D-085 DD1: whether (and when) the battle's fighting began is state while the part is on: it decides whether a later
+            // entrant is charged at its entry. Appended only when on, so every battle at the default hashes as before.
+            L(_firstFightMs ?? long.MinValue);
+            foreach (var f in _f) L(f.EntryChargedAtMs ?? long.MinValue);
         }
         return Convert.ToHexString(h.GetHashAndReset());
     }

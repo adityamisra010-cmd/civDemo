@@ -58,10 +58,28 @@ public sealed record MoraleRates
 /// [MOR2, verification round 1, MOR2-R1-01, MOR2-R1-04] "won ∧ entered" applies READING MOR2-R1 (a) ("took part" in DA1-R (a) =
 /// entered the field; alternative (b): entered, or engaged without reaching it). The decrease applies whether or not the formation
 /// entered: a formation that never reached the field can still lose men and morale (troops killed aboard their transport).
+/// [MOR3, D-085 DD1, 2026-11-11] "A battle without fighting does not affect morale at all": every one of the three terms applies only
+/// where the battle had fighting (DD1-R1 (a): fighting anywhere in the battle — the formations of an army need not have struck a blow;
+/// DD1-R2 (a): at least one attack resolved against an enemy formation, the battle report's FirstFightMs), so (morale proposal §12.3)
+/// <code>
+///   entry    = fought ∧ entered ? EntryCostPpm : 0
+///   decrease = fought ? floor(max(0, (start − entryInBattle) − end − restore) × 1,000,000 ÷ MoraleMax) : 0
+///   rise     = fought ∧ won ∧ entered ? floor(VictoryRiseMaxPpm × B ÷ (B + W)) : 0
+///   after    = clamp(before − entry − decrease + rise, 0, 1,000,000)            = before when the battle had no fighting
+/// </code>
+/// (<see cref="IfFought"/>). The reported winner is unchanged and still recorded; it gains nothing from a battle without fighting.
 /// </summary>
 public static class CampaignMorale
 {
     public const long ScalePpm = 1_000_000;
+
+    /// <summary>[MOR3] D-085 DD1: a settlement term of a battle that had fighting, or 0 for a battle without fighting (no entry cost, no
+    /// DR29 decrease, no DA1 rise: "No fighting doesn't affect morale at all"). The one place the settlement applies DD1.</summary>
+    public static long IfFought(bool fought, long termPpm)
+    {
+        if (termPpm < 0) throw new ArgumentOutOfRangeException(nameof(termPpm));
+        return fought ? termPpm : 0;
+    }
 
     /// <summary>[MOR2] D-083 DB1: the entry term of an army's settlement — the campaign cost for a battle its formation entered
     /// (placed on the field, DB1-R1 (a)), 0 for one it never entered. Whatever the battle did: it does not depend on the casualties,
@@ -145,5 +163,30 @@ public static class BattleWinner
             BattleEndReason.SideEliminated or BattleEndReason.SideDisengaged when r.Side is 0 or 1 => 1 - r.Side,
             _ => -1,
         };
+    }
+}
+
+/// <summary>
+/// [MOR3] D-085 DD1 ("A battle without fighting does not affect morale at all"): whether the battle → campaign settlement of the army
+/// of one formation treats the battle as FOUGHT — the input <see cref="Proto.M7.Support.SupportBattle.Fought"/> of the hand-off, read
+/// from the battle report as <see cref="BattleWinner.Reported"/> reads the winner (docs/m7-plan/morale-proposal.md §12).
+/// <list type="bullet">
+/// <item>READING DD1-R1 (a), APPLIED: fighting is read per BATTLE. If any attack was resolved against an enemy formation anywhere in
+///   the battle (<see cref="BattleResult.FirstFightMs"/> is set, DD1-R2 (a)), every army whose formation entered settles as before —
+///   including an army whose formation itself struck no blow and received none (D-083 DB1: "Simply entering battke should cost
+///   morale"). Alternative (b), not applied: per formation (one that neither struck nor received a blow settles as unfought).</item>
+/// <item>READING DD1-R2 (a), APPLIED: an attack counts whether or not it dealt damage (a missed shot is fighting); the resolvers record
+///   the first one. Alternative (b), not applied: only an attack that dealt damage.</item>
+/// </list>
+/// The formation must be one of the battle's (else ArgumentException): the answer is the battle's, whichever formation asks.
+/// </summary>
+public static class BattleFighting
+{
+    public static bool SettlesAsFought(BattleResult r, long formationId)
+    {
+        bool found = false;
+        foreach (var f in r.Formations) if (f.FormationId == formationId) { found = true; break; }
+        if (!found) throw new ArgumentException("the formation is not one of the battle's", nameof(formationId));
+        return r.FirstFightMs is not null;                     // DD1-R1 (a): the battle, not the formation
     }
 }

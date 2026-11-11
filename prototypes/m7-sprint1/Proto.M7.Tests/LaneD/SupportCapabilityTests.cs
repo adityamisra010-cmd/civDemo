@@ -398,7 +398,10 @@ public class SupportCapabilityTests
     /// restore) and never rises. This battle starts at the campaign morale (800 = 800,000 micro units) and ends below it, restore
     /// included, so "becomes the end morale" and "falls by the net loss" give the same numbers here and the assertions are unchanged.
     /// The cases where the two rules differ are pinned by Morale_ABattleNeverRaisesCampaignMorale_… and
-    /// Morale_ABattleLowersCampaignMoraleByItsNetLossOnly.</summary>
+    /// Morale_ABattleLowersCampaignMoraleByItsNetLossOnly.
+    /// [MOR3, verification round 1, MOR3-R1-08] This hand-off of a real battle report now also reads whether the battle had fighting
+    /// from the report (BattleFighting.SettlesAsFought, D-085 DD1), as M7.15's real hand-off must; it used to rely on SupportBattle.Fought's
+    /// default (true), and settled correctly only because this battle had kills. The settlement row records Fought 1.</summary>
     [Fact]
     public void Morale_ACampaignArmyLeavesABattleAtTheTacticalEndMorale_MedicsRestorePart()
     {
@@ -409,15 +412,18 @@ public class SupportCapabilityTests
         var inputs = BattleCollapse.FromTactical(battle, setup, new[] { (1L, 0), (2L, 1) });
         var mine = inputs[0];
         Assert.True(mine.EntityCounts[(int)CollapseCategory.Dead] > 0);
+        Assert.True(res.Fought, "premise: the battle had fighting (D-085 DD1)");                    // [MOR3, verification round 1, MOR3-R1-08]
         long start = SupportRig.WarStart();
         var wars = new[] { WarOf(0, start, start + 4 * Week, 0, 1) };
         (long Before, long After, long Saved, long Dead) Run(long medics)
         {
             var rig = SupportRig.Build(SupportRig.FootArmy(march: false, trainGrain: 50_000_000), wars, 2, start, new[] { new SupportPool(0, medics, 0, 0, 0) },
                                        probes: new[] { start - 1 });
-            rig.W.ScheduleBattle(rig.S, new SupportBattle(0, start + 3 * Day, mine, res.HoldsField == 0, 800, setup.Rules.MoraleLossFullStrength, 0));
+            rig.W.ScheduleBattle(rig.S, new SupportBattle(0, start + 3 * Day, mine, res.HoldsField == 0, 800, setup.Rules.MoraleLossFullStrength, 0)
+                { Fought = BattleFighting.SettlesAsFought(res, 1) });                                   // [MOR3, verification round 1, MOR3-R1-08]
             SupportRig.Drive(rig, start + 3 * Day, t => t == start - 1 ? new[] { SupportRig.Allocate(0, 0, SupportKind.FieldMedical, medics) } : Array.Empty<(int, long, long)>());
             var b = rig.W.BattleRows.Single();
+            Assert.Equal((byte)1, rig.W.MoraleRows.Single().Fought);                                    // [MOR3-R1-08] the report's answer reached the row
             Assert.Equal(b.MoraleAfter, rig.W.Economy.MoraleOf(0));
             return (b.MoraleBefore, b.MoraleAfter, b.Saved, b.DeadBefore);
         }
@@ -709,7 +715,10 @@ public class SupportCapabilityTests
     /// [MOR2, D-083 DB1: the archers entered the battle, so every settlement here also takes the 50,000 entry cost: 750,000 without a
     /// reported winner, 750,000 + rise with one (lane MOR's 800,000 and 800,000 + rise failed by exactly 50,000 before this update,
     /// MEASURED). Lane D's point stands and is now sharper: the archers' in-battle gain (880 − 800) makes up neither the entry cost nor
-    /// any loss: the settlement is never 880,000, and never 800,000 + rise.]</summary>
+    /// any loss: the settlement is never 880,000, and never 800,000 + rise.]
+    /// [MOR3, verification round 1, MOR3-R1-08] This hand-off of a real battle report now also reads whether the battle had fighting from
+    /// the report (BattleFighting.SettlesAsFought, D-085 DD1), as M7.15's real hand-off must; it used to rely on SupportBattle.Fought's
+    /// default (true), and settled correctly only because enemies fell. The settlement row records Fought 1.</summary>
     [Theory]
     [InlineData(1UL, 10)]
     [InlineData(7UL, 20)]
@@ -732,9 +741,11 @@ public class SupportCapabilityTests
                 var rig = SupportRig.Build(SupportRig.FootArmy(march: false, trainGrain: 50_000_000), wars, 2, start, new[] { new SupportPool(0, medics, 0, 0, 0) },
                                            probes: new[] { start - 1 });
                 rig.W.ScheduleBattle(rig.S, new SupportBattle(0, start + 3 * Day, mine, res.HoldsField == 0, 800, setup.Rules.MoraleLossFullStrength, 0)
-                    { WinnerSide = reported ? BattleWinner.Reported(res) : -1, BeatenPersons = enemies, WinnerSidePersons = 60 });
+                    { WinnerSide = reported ? BattleWinner.Reported(res) : -1, BeatenPersons = enemies, WinnerSidePersons = 60,
+                      Fought = BattleFighting.SettlesAsFought(res, 1) });                                 // [MOR3, verification round 1, MOR3-R1-08]
                 SupportRig.Drive(rig, start + 3 * Day + 1, t => t == start - 1 ? new[] { SupportRig.Allocate(0, 0, SupportKind.FieldMedical, medics) } : Array.Empty<(int, long, long)>());
                 var b = rig.W.BattleRows.Single();
+                Assert.Equal((byte)1, rig.W.MoraleRows.Single().Fought);                                // [MOR3-R1-08] the report's answer reached the row
                 long rise = reported ? 400_000L * enemies / (enemies + 60) : 0;          // 57,142 (10 enemies) or 100,000 (20)
                 // [MOR2, DB1] − the 50,000 entry cost: never 880,000 (+ rise), and the gain does not make up the entry cost either
                 Assert.Equal((800_000L, 750_000L + rise), (b.MoraleBefore, b.MoraleAfter));

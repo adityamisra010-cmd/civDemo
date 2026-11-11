@@ -11,6 +11,10 @@ using Proto.M7.Tactical;
 // function of (scenario, seed, rules), stored by index, so the schedule cannot change a number. The held-out ACCEPTANCE battery is not
 // run (lane P's record; D-079 Q4 is OPEN). Usage:
 //   entry-parity [cost=50] [rise=0] [threads=2] [out.md]
+// [MOR3, D-085 DD1] Also counts, for every setting and resolver, the battles WITHOUT fighting (BattleResult.FirstFightMs null) and the
+// battles whose report disagrees with the attack count (FirstFightMs set while no formation made an attack, or the reverse; the
+// battery is land only, so the report and the count must agree everywhere). The in-battle charge falls at the first fighting instant
+// (PROPOSAL C1), so the "on" digests and outcome counts measure that timing, not lane MOR2's charge at entry.
 static class EntryBench
 {
     static string F(double v) => v.ToString("F1", CultureInfo.InvariantCulture);
@@ -22,10 +26,12 @@ static class EntryBench
         return s with { Rules = s.Rules with { EntryMoraleCost = cost, LocalWinMoraleRise = rise } };
     }
 
-    static POutcome[] Tactical(PCase[] cases, long cost, long rise, int threads, out long entries)
+    static POutcome[] Tactical(PCase[] cases, long cost, long rise, int threads, out long entries, out long unfought, out long disagree)
     {
         var o = new POutcome[cases.Length];
         var n = new long[cases.Length];
+        var u = new long[cases.Length];
+        var d = new long[cases.Length];
         Parallel.For(0, cases.Length, new ParallelOptions { MaxDegreeOfParallelism = threads }, i =>
         {
             var b = new TacticalBattle(With(cases[i], cost, rise), new KnowledgeAi(), new KnowledgeAi());
@@ -33,20 +39,34 @@ static class EntryBench
             foreach (var fr in r.Formations) if (!fr.Conserved) throw new InvalidOperationException("conservation");
             o[i] = POutcome.Of(r, 0);
             n[i] = b.EntryCharges.Count;
+            (u[i], d[i]) = Fight(r);                                                    // [MOR3]
         });
         entries = n.Sum();
+        unfought = u.Sum();
+        disagree = d.Sum();
         return o;
     }
 
-    static POutcome[] Auto(PCase[] cases, long cost, long rise, AutoCoefficients c, out long entries)
+    /// <summary>[MOR3] (1 if the battle had no fighting, 1 if its report disagrees with its attack count).</summary>
+    static (long, long) Fight(BattleResult r)
+    {
+        long attacks = 0;
+        foreach (var f in r.Formations) attacks += f.AttacksMade;
+        return (r.FirstFightMs is null ? 1 : 0, (r.FirstFightMs is not null) != (attacks > 0) ? 1 : 0);
+    }
+
+    static POutcome[] Auto(PCase[] cases, long cost, long rise, AutoCoefficients c, out long entries, out long unfought, out long disagree)
     {
         var o = new POutcome[cases.Length];
-        entries = 0;
+        entries = 0; unfought = 0; disagree = 0;
         for (int i = 0; i < cases.Length; i++)
         {
             var b = new AutoBattle(With(cases[i], cost, rise), c);
-            o[i] = POutcome.Of(b.Run(), 0);
+            var r = b.Run();
+            o[i] = POutcome.Of(r, 0);
             entries += b.EntryCharges.Count;
+            var (u, d) = Fight(r);                                                      // [MOR3]
+            unfought += u; disagree += d;
         }
         return o;
     }
@@ -69,18 +89,20 @@ static class EntryBench
         var cases = ParityBatteryP.TuningCases();
         var model = new AutoCoefficients();
         var sw = Stopwatch.StartNew();
-        var tOff = Tactical(cases, 0, 0, threads, out long etOff);
-        var tOn = Tactical(cases, cost, rise, threads, out long etOn);
+        var tOff = Tactical(cases, 0, 0, threads, out long etOff, out long utOff, out long dtOff);
+        var tOn = Tactical(cases, cost, rise, threads, out long etOn, out long utOn, out long dtOn);
         double tSec = sw.Elapsed.TotalSeconds;
         sw.Restart();
-        var aOff = Auto(cases, 0, 0, model, out long eaOff);
-        var aOn = Auto(cases, cost, rise, model, out long eaOn);
+        var aOff = Auto(cases, 0, 0, model, out long eaOff, out long uaOff, out long daOff);
+        var aOn = Auto(cases, cost, rise, model, out long eaOn, out long uaOn, out long daOn);
         double aSec = sw.Elapsed.TotalSeconds;
         W($"entry-parity: lane P TUNING battery, {cases.Length} cases x (off = defaults, on = EntryMoraleCost {cost}, LocalWinMoraleRise {rise}) x (tactical, auto model 2 defaults)");
         W($"wall: tactical {F(tSec)} s on {threads} threads, auto {F(aSec)} s single thread");
         W($"digests (lane P's ParityPCsv.Digest): tactical off {ParityPCsv.Digest(cases, tOff)}, on {ParityPCsv.Digest(cases, tOn)}");
         W($"                                      auto     off {ParityPCsv.Digest(cases, aOff)}, on {ParityPCsv.Digest(cases, aOn)}");
         W($"entry rows over the battery: tactical off {etOff} / on {etOn}; auto off {eaOff} / on {eaOn}");
+        W($"[MOR3] battles without fighting (FirstFightMs null): tactical off {utOff} / on {utOn}; auto off {uaOff} / on {uaOn}");
+        W($"[MOR3] battles whose fought report disagrees with the attack count: tactical off {dtOff} / on {dtOn}; auto off {daOff} / on {daOn}");
         int tChanged = 0, aChanged = 0, tWin = 0, aWin = 0;
         for (int i = 0; i < cases.Length; i++)
         {

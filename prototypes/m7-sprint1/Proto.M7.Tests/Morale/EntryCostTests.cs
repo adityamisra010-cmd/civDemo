@@ -16,7 +16,8 @@ namespace Proto.M7.Tests.Morale;
 /// [MOR2] D-083 DB1 ("Entering a battle costs morale, with or without casualties"; docs/m7-plan/morale-proposal.md §11). Two parts:
 /// the SETTLEMENT term (every army whose formation entered the battle pays MoraleRates.EntryCostPpm = 50,000, PROPOSAL, its own term
 /// in the one clamp; on by default) and the IN-BATTLE charge (TacticalRules.EntryMoraleCost, battle scale, 0 by default; PROPOSAL
-/// 50 when switched on), charged once per land formation at the instant it is placed on the field, through one function both
+/// 50 when switched on), charged once per land formation ~~at the instant it is placed on the field~~ [MOR3, D-085 DD1: at the battle's first
+/// fighting instant, or at its placement when that comes later; never in a battle without fighting — PROPOSAL C1, morale proposal §12.4], through one function both
 /// resolvers call (EntryMorale). DB1-R1 (a), DB1-R2 (a), DB1-R3 (a) are applied. Every number below is TEST INPUT or the PROPOSAL.
 /// </summary>
 public sealed class EntryCostTests
@@ -63,29 +64,54 @@ public sealed class EntryCostTests
         new TacticalRules { EntryMoraleCost = 1000 }.Validate();
     }
 
-    /// <summary>DB1-R2 (a): ONCE per formation per battle. The first call records the entry instant and charges; every later call is a
-    /// no-op; at cost 0 the instant is recorded and nothing else happens (no row: the identity); a formation with less morale than
-    /// the cost loses all of it (the clamp at 0).</summary>
+    /// <summary>DB1-R2 (a): ONCE per formation per battle. ~~The first call records the entry instant and charges; every later call is a
+    /// no-op;~~ at cost 0 the instant is recorded and nothing else happens (no row: the identity); a formation with less morale than
+    /// the cost loses all of it (the clamp at 0).
+    /// [MOR3, D-085 DD1, 2026-11-11: the function's contract changed (PROPOSAL C1, morale proposal §12.4) — Enter RECORDS the entry and
+    /// charges only when the battle's fighting has begun (a later arrival); ChargeOnFighting charges an entered, uncharged formation at
+    /// the battle's first fighting instant; a battle without fighting charges nothing. The properties this test pins are kept and pinned
+    /// on the new contract: once per formation per battle (a second charge, a re-entry: nothing), the clamp at 0, nothing at cost 0; and
+    /// two new: nothing is charged at an entry before the fighting, and a formation that never entered is not charged.]</summary>
     [Fact]
     public void EntryMorale_Enter_ChargesOncePerFormation_ByHand()
     {
         var log = new List<EntryCharge>();
-        long? entered = null; long morale = 800, charged = 0;
-        Assert.True(EntryMorale.Enter(50, 1_000, 7, ref entered, ref morale, ref charged, log));
-        Assert.Equal((1_000L, 750L, 50L), (entered!.Value, morale, charged));
-        Assert.False(EntryMorale.Enter(50, 5_000, 7, ref entered, ref morale, ref charged, log));      // re-entry: nothing
-        Assert.Equal((1_000L, 750L, 50L), (entered!.Value, morale, charged));
-        Assert.Equal(new[] { new EntryCharge(1_000, 7, 800, 50) }, log.ToArray());
-        long? e0 = null; long m0 = 800, c0 = 0;
-        Assert.True(EntryMorale.Enter(0, 2_000, 8, ref e0, ref m0, ref c0, log));                       // cost 0: the instant only
-        Assert.Equal((2_000L, 800L, 0L), (e0!.Value, m0, c0));
-        Assert.Single(log);
-        long? e1 = null; long m1 = 30, c1 = 0;
-        Assert.True(EntryMorale.Enter(50, 3_000, 9, ref e1, ref m1, ref c1, log));                      // the clamp at 0
+        long? entered = null, at = null; long morale = 800, charged = 0;
+        // entered before any fighting: the entry is recorded, nothing is charged (the battle may turn out to have no fighting, DD1)
+        Assert.True(EntryMorale.Enter(50, 1_000, 7, false, ref entered, ref morale, ref charged, ref at, log));
+        Assert.Equal((1_000L, 800L, 0L, (long?)null), (entered!.Value, morale, charged, at));
+        Assert.Empty(log);
+        // the battle's first fighting instant: charged once
+        Assert.True(EntryMorale.ChargeOnFighting(50, 4_000, 7, entered, ref morale, ref charged, ref at, log));
+        Assert.Equal((750L, 50L, (long?)4_000), (morale, charged, at));
+        Assert.False(EntryMorale.ChargeOnFighting(50, 6_000, 7, entered, ref morale, ref charged, ref at, log));    // once
+        Assert.False(EntryMorale.Enter(50, 5_000, 7, true, ref entered, ref morale, ref charged, ref at, log));       // re-entry: nothing
+        Assert.Equal((1_000L, 750L, 50L, (long?)4_000), (entered!.Value, morale, charged, at));
+        Assert.Equal(new[] { new EntryCharge(4_000, 7, 800, 50) }, log.ToArray());
+        // entered after the fighting began (a later arrival): charged at its own entry
+        long? eL = null, aL = null; long mL = 600, cL = 0;
+        Assert.True(EntryMorale.Enter(50, 9_000, 10, true, ref eL, ref mL, ref cL, ref aL, log));
+        Assert.Equal((9_000L, 550L, 50L, (long?)9_000), (eL!.Value, mL, cL, aL));
+        Assert.Equal(new EntryCharge(9_000, 10, 600, 50), log[^1]);
+        // never entered: the first fighting instant charges nothing
+        long? eN = null, aN = null; long mN = 800, cN = 0;
+        Assert.False(EntryMorale.ChargeOnFighting(50, 4_000, 11, eN, ref mN, ref cN, ref aN, log));
+        Assert.Equal((800L, 0L, (long?)null), (mN, cN, aN));
+        // cost 0: the instant only — nothing charged, logged or marked, before or after the fighting began
+        long? e0 = null, a0 = null; long m0 = 800, c0 = 0;
+        Assert.True(EntryMorale.Enter(0, 2_000, 8, true, ref e0, ref m0, ref c0, ref a0, log));
+        Assert.False(EntryMorale.ChargeOnFighting(0, 4_000, 8, e0, ref m0, ref c0, ref a0, log));
+        Assert.Equal((2_000L, 800L, 0L, (long?)null), (e0!.Value, m0, c0, a0));
+        Assert.Equal(2, log.Count);
+        // the clamp at 0
+        long? e1 = null, a1 = null; long m1 = 30, c1 = 0;
+        Assert.True(EntryMorale.Enter(50, 3_000, 9, false, ref e1, ref m1, ref c1, ref a1, log));
+        Assert.True(EntryMorale.ChargeOnFighting(50, 4_000, 9, e1, ref m1, ref c1, ref a1, log));
         Assert.Equal((0L, 30L), (m1, c1));
-        Assert.Equal(new EntryCharge(3_000, 9, 30, 30), log[^1]);
-        long? e2 = null; long m2 = 800, c2 = 0;
-        Assert.Throws<ArgumentOutOfRangeException>(() => EntryMorale.Enter(-1, 0, 1, ref e2, ref m2, ref c2, log));
+        Assert.Equal(new EntryCharge(4_000, 9, 30, 30), log[^1]);
+        long? e2 = null, a2 = null; long m2 = 800, c2 = 0;
+        Assert.Throws<ArgumentOutOfRangeException>(() => EntryMorale.Enter(-1, 0, 1, false, ref e2, ref m2, ref c2, ref a2, log));
+        Assert.Throws<ArgumentOutOfRangeException>(() => EntryMorale.ChargeOnFighting(-1, 0, 1, 0, ref m2, ref c2, ref a2, log));
     }
 
     // ------------------------------------------------------------------ the settlement (lane D's stand-in hand-off)
@@ -135,7 +161,8 @@ public sealed class EntryCostTests
     /// D-083 §4: "the in-battle recovery can make it up before the battle ends. Lane D's net-loss settlement (start − end − restore,
     /// floored at 0) would then carry none of it". A REAL TacticalResolver battle: 60 archers (morale 800) hold and shoot ten heavy
     /// infantry to a rout without a loss (lane D's D-R2-01 scenario); HoldRecovery (+20 per casualty-free pulse) lifts them, so they end
-    /// AT OR ABOVE their start — with the in-battle charge ON (they enter at 750) the recovery made up the whole charge. The settlement,
+    /// AT OR ABOVE their start — with the in-battle charge ON (they ~~enter at 750~~ [MOR3, D-085 DD1: are charged 50 at the battle's first
+    /// fighting instant, their first volley, PROPOSAL C1; the test passes unchanged]) the recovery made up the whole charge. The settlement,
     /// fed by the battle report (FormationResult.EnteredAtMs, EntryCharged), still takes exactly the entry cost: 800,000 − 50,000 + DA1's
     /// rise, with the charge on and with it off. Lane D's net-loss term alone would give 800,000 + rise (the cost lost). TEST INPUT.
     /// </summary>
@@ -272,7 +299,7 @@ public sealed class EntryCostTests
         Assert.Contains(rows, x => x.AfterPpm == 0 && x.BeforePpm > 0);
         var bytes = MoraleCodec.Encode(rows);
         Assert.Equal(MoraleCodec.ExpectedLength(rows.Length), bytes.Length);
-        Assert.Equal(5 + 110 * rows.Length, bytes.Length);
+        Assert.Equal(5 + 111 * rows.Length, bytes.Length);                       // [MOR3, D-085 DD1] codec v3 (Fought appended): was 5 + 110 × rows
         var back = MoraleCodec.Decode(bytes);
         Assert.Equal(rows, back);
         Assert.Equal(bytes, MoraleCodec.Encode(back));
@@ -284,30 +311,42 @@ public sealed class EntryCostTests
     // ------------------------------------------------------------------ in battle: both resolvers through one function
 
     /// <summary>DB1-R1 (a), DB1-R2 (a), BOTH RESOLVERS: every land formation placed on the field at the battle's start pays the in-battle
-    /// charge ONCE, at StartMs (a non-zero instant here), and never again however long the battle runs; the two resolvers log the same
-    /// rows (one function, D-079 D11). Before the battle runs, each formation's morale is already its start less the charge. The
-    /// battle report carries EnteredAtMs = StartMs and EntryCharged = 50 for each. TEST INPUT geometry.</summary>
+    /// charge ONCE, ~~at StartMs (a non-zero instant here),~~ and never again however long the battle runs; the two resolvers log the same
+    /// rows (one function, D-079 D11). ~~Before the battle runs, each formation's morale is already its start less the charge.~~ The
+    /// battle report carries EnteredAtMs = StartMs and EntryCharged = 50 for each. TEST INPUT geometry.
+    /// [MOR3, D-085 DD1, 2026-11-11: renamed from …_PaysOnce_AtStartMs and re-pinned (PROPOSAL C1, morale proposal §12.4). The struck
+    /// statements held while the charge fell at the entry. The entry is still recorded at StartMs, but the charge now falls at the
+    /// battle's FIRST FIGHTING INSTANT, 7,332,000 ms (StartMs + 132,000: pulse 2 step 6; observed from outside the rule as the first
+    /// executed attack in the trace, and as the AutoResolver's first step with a recorded attack, step 66): before the battle runs there
+    /// is no row and each formation is at its start (900, 1000, 600); the rows stand at 7,332,000 with the morale each had then — the
+    /// archers 640, having recovered 2 × 20 while holding through two quiet pulse ends (600 + 2 × HoldRecovery, by hand). MEASURED moves:
+    /// AtMs 7,200,000 → 7,332,000 for all three rows; the archers' Before 600 → 640; the pre-run morale (850, 950, 550) → (900, 1000,
+    /// 600).]</summary>
     [Theory]
     [InlineData(1UL)]
     [InlineData(2UL)]
-    public void BothResolvers_EveryFormationOnTheFieldAtTheStart_PaysOnce_AtStartMs(ulong seed)
+    public void BothResolvers_EveryFormationOnTheFieldAtTheStart_PaysOnce_AtTheFirstFightingInstant(ulong seed)
     {
         var setup = ThreeFormations(seed, Cost);
+        const long firstFight = 7_332_000;
         var expected = new[]
         {
-            new EntryCharge(setup.StartMs, 1, 900, Cost), new EntryCharge(setup.StartMs, 2, 1000, Cost), new EntryCharge(setup.StartMs, 3, 600, Cost),
+            new EntryCharge(firstFight, 1, 900, Cost), new EntryCharge(firstFight, 2, 1000, Cost), new EntryCharge(firstFight, 3, 640, Cost),
         };
         var ai = new KnowledgeAi { RetreatMorale = 0 };
         var t = new TacticalBattle(setup, ai, ai);
-        Assert.Equal(expected, t.EntryCharges.ToArray());
-        Assert.Equal((850L, 950L, 550L), (t.Morale(1), t.Morale(2), t.Morale(3)));
+        Assert.Empty(t.EntryCharges);                                                         // [MOR3] nothing before the fighting
+        Assert.Equal((900L, 1000L, 600L), (t.Morale(1), t.Morale(2), t.Morale(3)));
         Assert.Equal(setup.StartMs, t.EnteredAtMs(1));
         var tr = TT.RunGuarded(t);
+        Assert.Equal(firstFight, NoFightingTests.AttackEvents(t)[0].Key.TimeMs);              // [MOR3] observed from the trace
+        Assert.Equal(firstFight, tr.FirstFightMs);
         Assert.True(tr.EndMs > setup.StartMs + 2 * setup.Rules.PulseMs, "the battle ran several pulses");
         Assert.Equal(expected, t.EntryCharges.ToArray());                                     // never charged again
         Assert.All(tr.Formations, f => Assert.Equal(((long?)setup.StartMs, Cost), (f.EnteredAtMs, f.EntryCharged)));
-        var a = new AutoBattle(setup, new AutoCoefficients { DoctrineRetreatMorale = 0 });
+        var a = new AutoBattle(setup, new AutoCoefficients { DoctrineRetreatMorale = 0 }) { RecordLog = true };
         var ar = a.Run();
+        Assert.Equal(66, a.Log.First(x => x.Mode != 0).Step);                                // [MOR3] observed from the step log
         Assert.Equal(expected, a.EntryCharges.ToArray());                                     // the same rows: one shared function
         Assert.All(ar.Formations, f => Assert.Equal(((long?)setup.StartMs, Cost), (f.EnteredAtMs, f.EntryCharged)));
     }
@@ -374,37 +413,70 @@ public sealed class EntryCostTests
     private static readonly (string, string, string) BaseAir = ("89A8A99A4C86CCD445CCBADC8F828C8E62F3ABC636DAA6D26F4D3D6455136AF5",
         "21B3F48B0607C9A40E62501D1E12E5E142065B912A6415E9A7604C2CB722E216", "FD9080595B8EA9B0CBC4FF0DD3045ED4E91AFFB2BB60B7C02B296C1FD5D3F2D0");
 
-    /// <summary>"Say whether the battle itself feels it" (brief; D-083 §4): with the in-battle part on, it does — the charge is the
+    /// <summary>"Say whether the battle itself feels it" (brief; D-083 §4): with the in-battle part on, it does — ~~the charge is the
     /// formation's morale from its entry instant, so a formation that starts at 480, above the withdrawal line (450, the
     /// knowledge-only AI's RetreatMorale and the AutoResolver's doctrine), enters at 430 and withdraws at its first decision, in both
-    /// resolvers; with the part off it stays and advances. Far apart, nobody fights before it is gone. TEST INPUT geometry.</summary>
+    /// resolvers; with the part off it stays and advances. Far apart, nobody fights before it is gone.~~ TEST INPUT geometry.
+    /// [MOR3, D-085 DD1, 2026-11-11: renamed from …_TheBattleFeelsIt_AFormationEnteringBelowTheWithdrawalLineWithdrawsAtOnce and rebuilt
+    /// (PROPOSAL C1, morale proposal §12.4). The struck behaviour was a change of morale BEFORE any fighting — the cost itself sent the
+    /// formation away from a battle that then had no fighting, the very case D-085 §4 excludes ("it must not change morale in a battle
+    /// that turns out to have no fighting"). MEASURED on lane MOR2's battle under C1: the formation at 480 is no longer charged at entry,
+    /// advances and fights; its morale falls with its losses and it routs at the same instant as with the part off, so that battle no
+    /// longer shows the charge in a decision. The battle feels the charge FROM THE FIRST FIGHTING INSTANT, shown here on a battle built
+    /// for it: five heavy infantry at 480 hold (Defend) under the knowledge-only AI; one archer of the single-shot profile, ordered to
+    /// Attack at pulse 2, looses ONE arrow at 214,000 ms (pulse 3), which misses; TacticalRules.HoldRecovery 0 (TEST INPUT) keeps the
+    /// infantry's morale still while it holds. Off: the infantry stays at 480 and never withdraws (the battle ends in a Standoff).
+    /// On: nothing is charged before 214,000 (no Retreat at pulses 0–3); at 214,000 the infantry is charged to 430, below the line, and
+    /// withdraws at its next decision (pulse 4, 240,000 ms) in good order, untouched. The AutoResolver: the archer closes under its
+    /// doctrine and looses its one volley at step 77 (154,000 ms); off, the infantry stays at 480; on, it is charged to 430 at step 77
+    /// and withdraws at the next pulse start, escaping untouched in good order.]</summary>
     [Fact]
-    public void BothResolvers_WithTheInBattlePartOn_TheBattleFeelsIt_AFormationEnteringBelowTheWithdrawalLineWithdrawsAtOnce()
+    public void BothResolvers_WithTheInBattlePartOn_TheBattleFeelsIt_FromTheFirstFightingInstant_AFormationChargedBelowTheWithdrawalLineWithdrawsAtItsNextDecision()
     {
         BattleSetup S(long cost) => new(OpenField(), TerrainCostTable.PlaceholderTestTable(), ConcealmentTable.PlaceholderTestTable(),
-            DefaultSides(new[] { Cell(40, 16) }, new[] { Cell(6, 16) }),
-            new[] { new FormationSpec(1, 0, UnitProfiles.HeavyInfantry, 20, Cell(6, 16)) { Morale = 480 }, new FormationSpec(2, 1, UnitProfiles.HeavyInfantry, 20, Cell(40, 16)) },
-            3) { Rules = new TacticalRules { EntryMoraleCost = cost } };
+            DefaultSides(Array.Empty<Vec2L>(), Array.Empty<Vec2L>()),
+            new[]
+            {
+                new FormationSpec(1, 0, UnitProfiles.Archers with { FireIntervalSteps = 1_000_000 }, 1, Cell(16, 16)),
+                new FormationSpec(2, 1, UnitProfiles.HeavyInfantry, 5, Cell(24, 16)) { Posture = Posture.Defend, Morale = 480 },
+            },
+            2) { Rules = new TacticalRules { EntryMoraleCost = cost, HoldRecovery = 0 } };
         Assert.Equal(450, new KnowledgeAi().RetreatMorale);
         Assert.Equal(450, new AutoCoefficients().DoctrineRetreatMorale);
-        var on = new TacticalBattle(S(Cost), new KnowledgeAi(), new KnowledgeAi());
+        ScriptedController Archer() => new ScriptedController().Add(2, new OrderRequest(1, OrderKind.Attack, 0, 2));
+        var off = new TacticalBattle(S(0), Archer(), new KnowledgeAi());
+        var offR = TT.RunGuarded(off);
+        Assert.Equal(214_000L, NoFightingTests.AttackEvents(off).Single().Key.TimeMs);         // one arrow
+        Assert.DoesNotContain(off.Orders, o => o.Request.FormationId == 2 && o.Request.Kind == OrderKind.Retreat);
+        Assert.Equal((BattleEndReason.Standoff, 480L), (offR.Reason, offR.Formations.Single(f => f.FormationId == 2).MoraleEnd));
+        var on = new TacticalBattle(S(Cost), Archer(), new KnowledgeAi());
         var onR = TT.RunGuarded(on);
-        Assert.Contains(on.Orders, o => o.Pulse == 0 && o.Request.FormationId == 1 && o.Request.Kind == OrderKind.Retreat && o.Invalid == OrderInvalid.None);
-        var f1 = onR.Formations.Single(f => f.FormationId == 1);
-        Assert.Equal((0L, 0L, 20L, 0L), (f1.Killed, f1.DamageTaken, f1.Escaped, f1.RoutedEscaped));      // gone in good order, untouched
-        var off = new TacticalBattle(S(0), new KnowledgeAi(), new KnowledgeAi());
-        off.RunUntilPulse(1);
-        Assert.DoesNotContain(off.Orders, o => o.Request.FormationId == 1 && o.Request.Kind == OrderKind.Retreat);
-        var aOn = new AutoBattle(S(Cost), new AutoCoefficients()).Run();
-        var a1 = aOn.Formations.Single(f => f.FormationId == 1);
-        Assert.Equal((0L, 0L, 20L, 0L), (a1.Killed, a1.DamageTaken, a1.Escaped, a1.RoutedEscaped));
-        var aOff = new AutoBattle(S(0), new AutoCoefficients()).Run();
-        Assert.True(aOff.Formations.Single(f => f.FormationId == 1).DamageTaken > 0, "with the part off it stays and fights");
+        Assert.Equal(214_000L, onR.FirstFightMs);
+        Assert.Equal(new EntryCharge(214_000, 2, 480, Cost), on.EntryCharges.Single(x => x.FormationId == 2));
+        var retreat = Assert.Single(on.Orders, o => o.Request.FormationId == 2 && o.Request.Kind == OrderKind.Retreat);
+        Assert.Equal((4L, 240_000L, OrderInvalid.None), (retreat.Pulse, retreat.AtMs, retreat.Invalid));   // its next decision
+        var f2 = onR.Formations.Single(f => f.FormationId == 2);
+        Assert.Equal((0L, 0L, 5L, 0L, 430L), (f2.Killed, f2.DamageTaken, f2.Escaped, f2.RoutedEscaped, f2.MoraleEnd));   // gone in good order
+        var aOff = new AutoBattle(S(0), new AutoCoefficients()) { RecordLog = true };
+        var aOffR = aOff.Run();
+        Assert.Equal(77, aOff.Log.Single(x => x.Mode != 0).Step);
+        Assert.Equal((BattleEndReason.Standoff, 480L), (aOffR.Reason, aOffR.Formations.Single(f => f.FormationId == 2).MoraleEnd));
+        var aOn = new AutoBattle(S(Cost), new AutoCoefficients()) { RecordLog = true };
+        var aOnR = aOn.Run();
+        Assert.Equal(154_000L, aOnR.FirstFightMs);
+        Assert.Equal((480L, 430L), (aOn.Log.Single(x => x.Step == 76 && x.FormationId == 2).Morale, aOn.Log.Single(x => x.Step == 77 && x.FormationId == 2).Morale));
+        var a2 = aOnR.Formations.Single(f => f.FormationId == 2);
+        Assert.Equal((BattleEndReason.SideEliminated, 1), (aOnR.Reason, aOnR.Side));
+        Assert.Equal((0L, 5L, 0L, 430L), (a2.Killed, a2.Escaped, a2.RoutedEscaped, a2.MoraleEnd));                     // withdrew in good order
     }
 
     /// <summary>The tactical state hash carries the entry record when the in-battle part is on: two battles whose formation starts at
-    /// 30 or 40 lose all of it at the entry (the clamp at 0; a cost of 50) and then run identically — the same result, the same entity
-    /// states and morale — yet their entry rows differ (charged 30 against 40), and so do their state hashes, in both resolvers.</summary>
+    /// 30 or 40 lose all of it ~~at the entry~~ (the clamp at 0; a cost of 50) and then run identically — the same result, the same entity
+    /// states and morale — yet their entry rows differ (charged 30 against 40), and so do their state hashes, in both resolvers.
+    /// [MOR3, D-085 DD1, 2026-11-11 (PROPOSAL C1): formation 1 routs at the start (below the rout threshold; the AutoResolver withdraws
+    /// it) and leaves without a blow; the battle's first fight comes later, at 7,506,000 ms (the archers' first volley at formation 2,
+    /// both resolvers), and formation 1 is charged THEN, wherever it is — all it has, 30 or 40. MEASURED move: the rows' AtMs 7,200,000 →
+    /// 7,506,000; the rest of the test unchanged and passing.]</summary>
     [Fact]
     public void BothResolvers_TheStateHashCarriesTheEntryRecord_WhenTheResultsAreEqual()
     {
@@ -416,8 +488,9 @@ public sealed class EntryCostTests
         var ai = new KnowledgeAi { RetreatMorale = 0 };
         var t30 = new TacticalBattle(S(30), ai, ai); var r30 = TT.RunGuarded(t30);
         var t40 = new TacticalBattle(S(40), ai, ai); var r40 = TT.RunGuarded(t40);
-        Assert.Equal(new EntryCharge(S(30).StartMs, 1, 30, 30), t30.EntryCharges[0]);
-        Assert.Equal(new EntryCharge(S(40).StartMs, 1, 40, 40), t40.EntryCharges[0]);
+        Assert.Equal((7_506_000L, 7_506_000L), (r30.FirstFightMs, r40.FirstFightMs));                                       // [MOR3]
+        Assert.Equal(new EntryCharge(7_506_000, 1, 30, 30), t30.EntryCharges[0]);                                           // [MOR3] was StartMs
+        Assert.Equal(new EntryCharge(7_506_000, 1, 40, 40), t40.EntryCharges[0]);
         Assert.Equal(r30.ResultHash(), r40.ResultHash());
         Assert.Equal(t30.Entities().ToArray(), t40.Entities().ToArray());
         Assert.NotEqual(r30.StateHash, r40.StateHash);
@@ -443,23 +516,30 @@ public sealed class EntryCostTests
     /// <summary>
     /// TURN-EXACT PIN of a later arrival (DB1-R1 (a): "later, at the instant it arrives as a reinforcement"). The riflemen start aboard
     /// (not on the field: they do not enter at the start) and are ordered ashore at step offset k of pulse 0 or 2. Observed from outside
-    /// the rule (the entities' states at each completed instant): the first instant one of them stands on the field. The formation's
+    /// the rule (the entities' states at each completed instant): the first instant one of them stands on the field. ~~The formation's
     /// one entry row stands at exactly that instant — not at the battle's start, not one step later — with its start morale (800)
     /// before it; its morale is 800 at the completed instant before and 750 at that instant. The enemy, on the field from the start,
-    /// paid at StartMs; the transport (a vessel) is outside the in-battle rule. The AutoResolver refuses formations that start aboard
+    /// paid at StartMs;~~ the transport (a vessel) is outside the in-battle rule. The AutoResolver refuses formations that start aboard
     /// (lane N's combined-arms layer has no auto model), so this arrival exists in the TacticalResolver only.
+    /// [MOR3, D-085 DD1, 2026-11-11: renamed from …_PaysAtTheInstantItsFirstEntityIsPutAshore_TurnExact. This shore battle has NO
+    /// FIGHTING (the distant enemy sees nobody; it ends in a Standoff; MEASURED FirstFightMs null), so under C1 the in-battle part charges
+    /// nobody at all — not the enemy at the start, not the riflemen at their landing: no row, the riflemen at 800 before and after. The
+    /// ENTRY instant is pinned as before (EnteredAtMs = the first instant ashore, turn-exact). The charge of a later arrival is now pinned
+    /// on a FOUGHT shore, at its landing when the fighting began before it and at the first fighting instant when it began after
+    /// (NoFightingTests.C1_ALaterArrival_…). MEASURED moves: the enemy's row at StartMs and the riflemen's row at their landing → no
+    /// rows; the riflemen's morale at the landing 750 → 800.]
     /// </summary>
     [Theory]
     [InlineData(0, 1)]
     [InlineData(0, 3)]
     [InlineData(2, 0)]
     [InlineData(2, 4)]
-    public void Tactical_AFormationLandingFromATransport_PaysAtTheInstantItsFirstEntityIsPutAshore_TurnExact(int pulse, int k)
+    public void Tactical_AFormationLandingFromATransport_EntersAtTheInstantItsFirstEntityIsPutAshore_TurnExact(int pulse, int k)
     {
         var setup = Shore(Cost);
         var b = new TacticalBattle(setup, DT.Script((pulse, new OrderRequest(2, OrderKind.Disembark, k, -1, C(25, 20)))), PassiveController.Instance);
         Assert.Null(b.EnteredAtMs(2));
-        Assert.Equal(new[] { new EntryCharge(setup.StartMs, 9, 1000, Cost) }, b.EntryCharges.ToArray());   // only the enemy, at the start
+        Assert.Empty(b.EntryCharges);                                                     // [MOR3] nothing before any fighting
         long ashoreAt = long.MinValue, prevMorale = -1, prevInstant = long.MinValue, moraleAt = -1;
         DT.RunUntil(b, () =>
         {
@@ -470,12 +550,14 @@ public sealed class EntryCostTests
         });
         Assert.Equal(setup.StartMs + pulse * setup.Rules.PulseMs + k * setup.Rules.StepMs, ashoreAt);   // the delivered step (lane N's landing pin)
         Assert.True(ashoreAt > setup.StartMs);
-        Assert.Equal((800L, 750L), (prevMorale, moraleAt));                               // the charge lands at the arrival instant
+        Assert.Equal((800L, 800L), (prevMorale, moraleAt));                               // [MOR3] was (800, 750): no fighting, no charge
         Assert.True(prevInstant < ashoreAt);
-        var rows = b.EntryCharges.Where(x => x.FormationId == 2).ToArray();
-        Assert.Equal(new[] { new EntryCharge(ashoreAt, 2, 800, Cost) }, rows);            // not at StartMs, not at ashoreAt + StepMs
-        Assert.Equal(ashoreAt, b.EnteredAtMs(2));
-        Assert.DoesNotContain(b.EntryCharges, x => x.FormationId == 1);                  // the vessel: outside the in-battle rule
+        Assert.Equal(ashoreAt, b.EnteredAtMs(2));                                         // the entry instant: not StartMs, not ashoreAt + StepMs
+        while (b.Advance()) Assert.True(b.CurrentPulse <= DT.HarnessMaxPulses, "harness guard: non-termination");
+        var r = b.Result!;
+        Assert.Null(r.FirstFightMs);                                                      // [MOR3] the battle had no fighting
+        Assert.Empty(b.EntryCharges);                                                     // [MOR3] so nobody was charged, ever
+        Assert.Equal((ashoreAt, 0L), (r.Formations.Single(x => x.FormationId == 2).EnteredAtMs, r.Formations.Single(x => x.FormationId == 2).EntryCharged));
         Assert.Throws<NotSupportedException>(() => new AutoBattle(setup, new AutoCoefficients()));
     }
 
@@ -487,7 +569,13 @@ public sealed class EntryCostTests
     /// [MOR2, verification round 1, MOR2-R1-06 (V02)] Also at the DEFAULT cost 0: the report's EnteredAtMs is still each formation's
     /// FIRST placement (the settlement reads it whatever the in-battle part does), with no row and no charge (morale 900, 700 at the
     /// end). Until this round the re-entry was pinned at cost 50 only, so a once-guard that applied only while the cost was on survived
-    /// the whole suite (MEASURED: the verifier's V02, 1474 of 1474 passed).</summary>
+    /// the whole suite (MEASURED: the verifier's V02, 1474 of 1474 passed).
+    /// [MOR3, D-085 DD1, 2026-11-11: this swap battle has NO FIGHTING ("nobody sees anybody"; MEASURED FirstFightMs null), so under C1 the
+    /// cost-50 case now charges nothing at all, exactly like the default: no row, EntryCharged 0, morale 900 and 700 at the end. MEASURED
+    /// moves of the cost-50 case: one row per formation at its first placement → no rows; EntryCharged 50 → 0; end morale (850, 650) →
+    /// (900, 700). The ONCE property with the part on, re-entry included, is now pinned on the same swap made a fought battle
+    /// (NoFightingTests.C1_OncePerFormation_WithReEntry_InAFoughtBattle); the entry instants (each formation's first placement) are pinned
+    /// here at both costs, unchanged.]</summary>
     [Theory]
     [InlineData(0L)]
     [InlineData(Cost)]
@@ -537,14 +625,13 @@ public sealed class EntryCostTests
             Assert.Equal(placements[f][0], r.Formations.Single(x => x.FormationId == f).EnteredAtMs);   // its first placement, at either cost
             Assert.Equal(placements[f][0], b.EnteredAtMs(f));
             var rows = b.EntryCharges.Where(x => x.FormationId == f).ToArray();
-            if (cost == 0) { Assert.Empty(rows); Assert.Equal(0, r.Formations.Single(x => x.FormationId == f).EntryCharged); continue; }
-            Assert.Single(rows);
-            Assert.Equal(placements[f][0], rows[0].AtMs);                                  // its first placement
-            Assert.Equal(Cost, r.Formations.Single(x => x.FormationId == f).EntryCharged);
+            // [MOR3, D-085 DD1] no fighting, so at either cost: no row, nothing charged (was, at cost 50: one row at the first placement)
+            Assert.Empty(rows); Assert.Equal(0, r.Formations.Single(x => x.FormationId == f).EntryCharged);
         }
+        Assert.Null(r.FirstFightMs);                                                                // [MOR3] the battle had no fighting
         Assert.Equal(setup.StartMs, r.Formations.Single(x => x.FormationId == 2).EnteredAtMs);    // ashore at the start
         Assert.True(r.Formations.Single(x => x.FormationId == 3).EnteredAtMs > setup.StartMs);     // aboard at the start: its first landing
-        Assert.Equal((900L - cost, 700L - cost), (r.Formations.Single(x => x.FormationId == 2).MoraleEnd, r.Formations.Single(x => x.FormationId == 3).MoraleEnd));
+        Assert.Equal((900L, 700L), (r.Formations.Single(x => x.FormationId == 2).MoraleEnd, r.Formations.Single(x => x.FormationId == 3).MoraleEnd));   // [MOR3] was 900 − cost, 700 − cost
         Assert.All(r.Formations, f => Assert.Equal(0, f.Killed));
     }
 
@@ -614,7 +701,8 @@ public sealed class EntryCostTests
 
     /// <summary>The battle → campaign hand-off this lane defines for the stand-in (M7.15 builds the real one): the army of tactical
     /// formation <paramref name="formationId"/> entered iff the report gives it an entry instant; the in-battle charge it took is the
-    /// report's EntryCharged; the winner is the one the report names.</summary>
+    /// report's EntryCharged; the winner is the one the report names. [MOR3, D-085 DD1] and the battle had fighting iff the report gives
+    /// it a first fighting instant (BattleResult.FirstFightMs, DD1-R2 (a)).</summary>
     internal static SupportBattle HandOff(BattleResult r, long formationId, int army, long at, CollapseInput collapse, long startMorale, long beaten, long winnerSide)
     {
         var f = r.Formations.Single(x => x.FormationId == formationId);
@@ -623,6 +711,7 @@ public sealed class EntryCostTests
         {
             Entered = f.EnteredAtMs is not null, EntryChargedInBattle = f.EntryCharged,
             WinnerSide = winner, BeatenPersons = winner >= 0 ? beaten : 0, WinnerSidePersons = winner >= 0 ? winnerSide : 0,
+            Fought = BattleFighting.SettlesAsFought(r, formationId),                                                    // [MOR3] DD1-R1 (a)
         };
     }
 
@@ -636,8 +725,9 @@ public sealed class EntryCostTests
     };
 
     /// <summary>Side 0: heavy infantry 30 (morale 900) and archers 20 (morale 600); side 1: heavy infantry 40 (full morale). They close
-    /// and fight for several pulses; the battle starts at 7,200,000 ms. TEST INPUT geometry.</summary>
-    private static BattleSetup ThreeFormations(ulong seed, long cost)
+    /// and fight for several pulses; the battle starts at 7,200,000 ms. TEST INPUT geometry. [MOR3: internal, reused by the D-085 DD1 tests;
+    /// its first fighting instant is 7,332,000 in both resolvers (MEASURED, NoFightingTests).]</summary>
+    internal static BattleSetup ThreeFormations(ulong seed, long cost)
         => new BattleSetup(OpenField(), TerrainCostTable.PlaceholderTestTable(), ConcealmentTable.PlaceholderTestTable(),
             DefaultSides(new[] { Cell(30, 16) }, new[] { Cell(16, 16) }),
             new[]

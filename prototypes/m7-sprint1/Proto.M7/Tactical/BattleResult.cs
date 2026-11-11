@@ -33,7 +33,9 @@ public sealed record FormationResult(
     public long? EnteredAtMs { get; init; }
     /// <summary>[MOR2] What the in-battle entry charge took from the formation's morale (battle scale): 0 while
     /// TacticalRules.EntryMoraleCost is 0, and for a formation that never entered. The settlement measures DR29's net loss from the
-    /// start morale less this, so the entry cost is counted once (morale proposal §11.3).</summary>
+    /// start morale less this, so the entry cost is counted once (morale proposal §11.3). [MOR3, D-085 DD1] Also 0 in a battle without
+    /// fighting (<see cref="BattleResult.FirstFightMs"/> null): the charge falls only at the battle's first fighting instant, or at a
+    /// later entry (<see cref="EntryMorale"/>).</summary>
     public long EntryCharged { get; init; }
     public bool Conserved => Start == Survivors + Killed + Surrendered;
     /// <summary>Entities leaving the formation's count (killed + captured): people for a land formation, hulls / airframes
@@ -60,6 +62,22 @@ public sealed record BattleResult(
     public int Winner { get; init; } = -1;
     /// <summary>[AP] See <see cref="Winner"/>.</summary>
     public WinBasis WinBasis { get; init; }
+
+    /// <summary>[MOR3] D-085 DD1 ("A battle without fighting does not affect morale at all"), READING DD1-R2 (a): the instant of the
+    /// battle's FIRST attack resolved against an enemy formation, whether or not it dealt damage; null when no attack was resolved (the
+    /// battle had no fighting). Both resolvers set it at the code points where they count an attack (FormationResult.AttacksMade):
+    /// TacticalResolver — a melee blow, a missile shot that was fired (hit or miss; a blocked shot is no shot), a crew-served or domain
+    /// weapon shot aimed at an enemy entity, hull or airframe, a bombard at a ground point whose blast reaches an enemy entity or hull
+    /// (READING MOR3-R1 (a)), a boarding fight, a ram (breach or glance); a bow contact that is not a ram is not an attack (READING
+    /// MOR3-R2 (a)); AutoResolver — the first step in which a formation strikes in melee or looses a volley (StartMs + step × StepMs).
+    /// The battle → campaign settlement reads it (DD1-R1 (a): fighting anywhere in the battle) and the in-battle entry charge falls at
+    /// it (<see cref="EntryMorale"/>). Morale proposal §12. A report field like <see cref="FormationResult.EnteredAtMs"/>: not part of
+    /// <see cref="ResultHash"/> (it follows from the trace), so every earlier result hashes as before. Results built outside the two
+    /// resolvers (stand-ins, tests) leave it null.</summary>
+    public long? FirstFightMs { get; init; }
+
+    /// <summary>[MOR3] The battle had fighting (DD1-R2 (a)): <see cref="FirstFightMs"/> is set.</summary>
+    public bool Fought => FirstFightMs is not null;
 
     /// <summary>Canonical hash of the result (no trace/state hash inside; used for equality across resolvers' runs).
     /// [AP] The winner and its basis are appended ONLY when DA6 or DA7 decided it (equal sides), so every result whose end already

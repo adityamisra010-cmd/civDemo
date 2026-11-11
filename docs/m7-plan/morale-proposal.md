@@ -11,6 +11,10 @@ lane E's war economy and both battle resolvers. The lane report is `prototypes/m
 `prototypes/m7-sprint1/reports/H-MOR2.md`. Statements §11 supersedes are marked in place with dated notes.]**
 **[MOR2 verification round 1, 2026-11-11: the round-1 findings MOR2-R1-01..13 are corrected in place (§11.9 lists where), two
 READINGS are now labelled (§11.2: MOR2-R1, MOR2-R2), §11.12 adds lane S's siege battles; the round's record is H-MOR2 §13.]**
+**[Lane MOR3, D-085 DD1, 2026-11-11: §12 adds the Director's rule that a battle without fighting changes no morale (each resolver's
+fought report, the gated settlement, the in-battle part of the entry cost moved to the first fighting instant (PROPOSAL C1), the War
+Sandbox, lane S's siege battles; READINGS MOR3-R1..R3). Statements §12 supersedes or narrows are marked in place (§12.9 lists where);
+lane report `prototypes/m7-sprint1/reports/H-MOR3.md`.]**
 
 **Authority.**
 - [D-082](../d082-morale-caps-ties-director-answers-2026-11-10.md) **DA1** (DECIDED): "Winning a battle should raise morale too." With
@@ -44,8 +48,8 @@ and of an army on the campaign — and `MoraleSettlementRow` is a record of a se
 | Level | Today (prototype, before this lane) | This proposal | In the prototype |
 |---|---|---|---|
 | Unit (formation) in battle | casualty-driven loss, rout below a threshold, recovery while holding or rallying without losses; no rise for winning | keep all of it; add **"the fight it won"**: a formation whose enemy breaks under its blows gains morale scaled by the size of what it broke (§3.2); five more mechanisms proposed for later, each with its prerequisite (§3.3) | implemented in **both** resolvers through one shared function; coefficient **0 by default** (exact identity) until the parity battery is re-measured with it on (§3.2) |
-| Army on the campaign | lane E's stock (micro units): recovery when fed, paid and loyal; hunger and arrears penalties; lane D: a battle lowers it by its net loss and **never raises it** | DR29's decrease for every participant **plus DA1's rise for the winning side's army**, floor(400,000 × B ÷ (B + W)); no extra defeat penalty for the loser (PROPOSAL (a)); the stock then moves toward a **baseline** at per-sim-year rates (§4) **[MOR2, 2026-11-10: plus D-083 DB1's entry cost, 50,000 for every army whose formation entered the battle, a third term in the same clamp (§11)]** | implemented and on; the baseline is a parameter whose default (the top of the scale) leaves lane E's model unchanged; a baseline below the top is measured as option (b) **[MOR2: the entry cost is on in the settlement; its in-battle part is 0 by default (§11.3)]** |
-| The link | stand-in hand-off (lane D): start morale passed separately, unchecked | campaign → battle: start = floor(campaign × MoraleMax ÷ 1,000,000), nothing added; battle → campaign: decrease, rise, desertion, medical restore (§5) | the mapping as a pure function; the start check stays M7.15's |
+| Army on the campaign | lane E's stock (micro units): recovery when fed, paid and loyal; hunger and arrears penalties; lane D: a battle lowers it by its net loss and **never raises it** | DR29's decrease for every participant **plus DA1's rise for the winning side's army**, floor(400,000 × B ÷ (B + W)); no extra defeat penalty for the loser (PROPOSAL (a)); the stock then moves toward a **baseline** at per-sim-year rates (§4) **[MOR2, 2026-11-10: plus D-083 DB1's entry cost, 50,000 for every army whose formation entered the battle, a third term in the same clamp (§11)]** **[MOR3, 2026-11-11, D-085 DD1: all three terms only in a battle that had fighting; a battle without fighting changes no army's morale, and its reported winner gains nothing (§12.3)]** | implemented and on; the baseline is a parameter whose default (the top of the scale) leaves lane E's model unchanged; a baseline below the top is measured as option (b) **[MOR2: the entry cost is on in the settlement; its in-battle part is 0 by default (§11.3)]** |
+| The link | stand-in hand-off (lane D): start morale passed separately, unchecked | campaign → battle: start = floor(campaign × MoraleMax ÷ 1,000,000), nothing added; battle → campaign: decrease, rise, desertion, medical restore (§5) **[MOR3, D-085 DD1: the morale terms only for a battle with fighting, which the battle report now states (§12.2); desertion (persons) unchanged (READING MOR3-R3)]** | the mapping as a pure function; the start check stays M7.15's |
 | What a win is | — | the side the battle report names; today: the side left when the other is eliminated or withdrew; DA6/DA7 as lane AP's resolvers will report them (§6) | `BattleWinner.Reported`; the hand-off carries the reported winner |
 
 ---
@@ -207,6 +211,8 @@ For every army that took part in a battle, at the battle's end instant (the stan
   **[MOR2, 2026-11-10, D-083 DB1: a third term, the entry cost E = 50,000 for every army whose formation entered the battle, and the
   decrease measured from the start less the in-battle entry charge: after = clamp(before − entry − decrease + rise, 0, 1,000,000), one
   clamp over the three terms (§11.2).]**
+  **[MOR3, 2026-11-11, D-085 DD1: "for every army that took part" and "every participant" now hold for a battle that had fighting
+  only; for a battle without fighting every term is 0 and after = before, whatever winner the report names (§12.3).]**
 
 B = the persons of the beaten side and W = the persons of the winning side at the battle start (every army of it that took part);
 the hand-off passes both. R = `MoraleRates.VictoryRiseMaxPpm` = **400,000** (PROPOSAL). Code: `Morale/CampaignMorale.cs`; the hook
@@ -242,6 +248,9 @@ win where the enemy withdrew intact, so "winning raises morale" would fail for t
 - **(a) PROPOSED, applied:** the loser takes DR29's decrease only. Its defeat is already in its battle morale — a formation that
   routed ended below the rout threshold, so its decrease is at least start − 300 — and in persons through lane W's desertion of
   the routed men of the side that lost the field. An extra term would count the defeat twice.
+  **[MOR3, 2026-11-11, D-085 DD1: and only in a battle that had fighting; a loser of a battle without fighting takes nothing (§12.3).
+  The premise "a formation that routed ended below the rout threshold" is not general — lane MOR2's round 2 measured routs at any
+  morale and without loss (MOR2-R2-01, §11.8); those are the unfought routs DD1 now settles at 0.]**
 - **(b) alternative:** a mirror term, decrease += ⌊P × W_loser ÷ (W_loser + B_winner)⌋ (losing to a weaker force hurts more).
   Consequence: an orderly withdrawal before any rout would cost morale too; one more coefficient to calibrate; no code today.
 
@@ -296,7 +305,9 @@ of different armies at one instant settle in army-id order whatever order they w
 - **Battle → campaign.** DR29's decrease (the net loss start − end, less the medical restore), DA1's rise for the winner, lane W's
   desertion of the losing side's routed men, lane D's medical save; then lane E's pulse-end dynamics (§4.4). **[MOR2, 2026-11-10,
   D-083 DB1: and the entry cost for every army whose formation entered, its own term; the battle reports each formation's entry
-  instant and in-battle charge (§11.6).]**
+  instant and in-battle charge (§11.6).]** **[MOR3, 2026-11-11, D-085 DD1: the three morale terms only where the battle had fighting;
+  the battle also reports its first fighting instant (null: none), and a battle without fighting changes no army's morale (§12.2,
+  §12.3). Desertion and the medical save move persons and are unchanged (READING MOR3-R3 (a)).]**
 - **What does not cross.** The in-battle recovery's gain above the start is never carried (lane D's D-R2-01 fix stands, MEASURED
   again by the renamed lane D test). A local-win rise (§3.2, when switched on) is part of the formation's end state, so it reduces
   the winner's carried net loss as the in-battle recovery does, but it can never raise the campaign morale by itself (the net loss is
@@ -326,6 +337,8 @@ the field for DA6 in the AutoResolver; its only statement on the field is DA6-R'
 "the defender holds the field and wins, unless the attacker ambushed from concealment". The conclusion does not need the premise:
 the morale layer reads the winner the report names (DA1-R (a)), whether or not that winner holds the field, and a losing army that
 held the field takes no rise (MEASURED: `DA1_ALoserThatHeldTheField_DoesNotRise_TheReportDecides`).]**
+**[MOR3, 2026-11-11, D-085 DD1: a win still is the winner the report names, but a win in a battle without fighting raises nothing
+(DA1 narrowed, D-085 §3): the winner is recorded on the settlement row with no rise (§12.3).]**
 
 ---
 
@@ -347,8 +360,9 @@ held the field takes no rise (MEASURED: `DA1_ALoserThatHeldTheField_DoesNotRise_
 "Morale decreases when troops participate in combat" (DR29).
 - ~~**(a) applied:** the decrease is the casualty-driven loss (as the net loss of the battle). A battle won without loss raises the
   winner's morale by DA1's rise alone; a battle lost without loss changes nothing.~~ **[MOR2: superseded by DB1 (D-083 §3).]**
-- **(b)** ~~**open:**~~ **[MOR2: DECIDED, D-083 DB1, read per battle, at the entry instant (DB1-R2 (a))]** taking part costs morale
-  even without casualties (per battle, or per engaged pulse). It is a new term in both resolvers (or in the hand-off), moves the
+- **(b)** ~~**open:**~~ **[MOR2: DECIDED, D-083 DB1, read per battle, at the entry instant (DB1-R2 (a))]** **[MOR3, 2026-11-11:
+  narrowed by D-085 DD1 to battles that had fighting; the in-battle part's instant is the first fighting instant (§12.4)]** taking part
+  costs morale even without casualties (per battle, or per engaged pulse). It is a new term in both resolvers (or in the hand-off), moves the
   parity battery and the tactical goldens, and with DA1 a lossless win would net rise − cost. A "fire without casualties" term (§3.3)
   would be one form of (b).
 ~~The Director's D-082 left (b) OPEN; this proposal does not choose.~~ **[MOR2: D-083 decided it; the design is §11.]**
@@ -358,7 +372,8 @@ held the field takes no rise (MEASURED: `DA1_ALoserThatHeldTheField_DoesNotRise_
 ## 9. For the Director
 
 No new question. ~~READING M (b) stays OPEN (§8).~~ **[MOR2, 2026-11-10: READING M (b) is decided (D-083 DB1); its design is §11, which
-adds no new question either (§11.10).]** Everything else here — the size of the rise, the baseline and its decay, the
+adds no new question either (§11.10).]** **[MOR3, 2026-11-11: D-085 DD1 bounds DA1 and DB1 (no morale change without fighting);
+its design is §12, which adds no new question (§12.8).]** Everything else here — the size of the rise, the baseline and its decay, the
 in-battle rule and its switch-on, the aggregation over formations — is delegated design (D-082 §5), presented for review.
 
 ---
@@ -389,6 +404,10 @@ in-battle rule and its switch-on, the aggregation over formations — is delegat
 `EntryCharged`, `Morale/CampaignMorale.cs` (`MoraleRates.EntryCostPpm`, `EntryPpm`, the four-term `After`), lane D's stand-in
 (`SupportBattle.Entered`, `EntryChargedInBattle`) and the settlement row (codec version 2). Lane report:
 `prototypes/m7-sprint1/reports/H-MOR2.md`.
+**[MOR3, 2026-11-11, D-085 DD1: everything in this section now holds for battles that had fighting only — a battle without fighting
+changes no army's morale (no entry cost, no DR29 decrease, no DA1 rise), and the in-battle part charges at the battle's first fighting
+instant, never in a battle without fighting (PROPOSAL C1). Codec version 3 (the row's `Fought`). §12; the statements it changes are
+marked below.]**
 
 ### 11.1 Authority
 
@@ -401,6 +420,10 @@ in-battle rule and its switch-on, the aggregation over formations — is delegat
   involves pays at the start, whether or not it reaches the field.
 - **DB1-R2 (a)** (APPLIED): "once per formation per battle, at its entry instant. The act of entering is what costs, not the time
   spent in the battle." Alternative (b): a cost growing with the time spent in battle (per engaged pulse), a drain like fatigue.
+  **[MOR3, 2026-11-11, D-085: "once per formation per battle" stands; for the in-battle part the instant is now the later of the
+  entry and the battle's first fighting instant — the timing D-085 §4 names ("charged at the battle's first fighting instant (and at
+  entry for a later arrival)"), PROPOSAL C1 (§12.4). DB1 itself is narrowed by D-085 §3: "entering a battle costs morale where the
+  battle had fighting".]**
 - **DB1-R3 (a)** (APPLIED): "the entry cost and DA1's rise are separate terms, and both apply. A battle won without loss changes the
   winner's morale by the rise less the cost, which can be negative after beating a small force". Alternative (b): a win always nets a
   rise (the cost a winner pays is limited to its rise).
@@ -438,8 +461,12 @@ in-battle rule and its switch-on, the aggregation over formations — is delegat
      11 at the start; aircraft formations 13, 14 and 24 each at its own first take-off, 24 a pulse after the others; the riflemen 12 at
      their landing) and two aircraft formations of one side, only the second launched (turn-exact): `SeveralDomainFormations_…`,
      `TwoAircraftFormationsOfOneSide_…` (`EntryCostRound2Tests`).]**
-2. **Once per formation per battle** (DB1-R2 (a)). The first placement records the entry instant and charges; a formation that leaves
+2. **Once per formation per battle** (DB1-R2 (a)). The first placement records the entry instant ~~and charges~~; a formation that leaves
    the field (it re-embarks) and is placed on it again pays nothing more (MEASURED: `Tactical_AFormationThatLeavesTheFieldAndIs…`).
+   **[MOR3, 2026-11-11, D-085 DD1: the first placement records the entry; the in-battle charge falls at the battle's first fighting
+   instant, or at the entry when that comes later, and never in a battle without fighting (PROPOSAL C1, §12.4). The cited test's
+   battle has no fighting, so it now pins the entry instants with nothing charged at either cost (MEASURED); "once, with re-entry" is
+   pinned on the same swap made a fought battle (`C1_OncePerFormation_WithReEntry_InAFoughtBattle`).]**
 3. **Separate terms** (DB1-R3 (a)). The settlement has three terms in one clamp:
 
        entry    = entered ? E : 0                                                     DB1 (E = MoraleRates.EntryCostPpm)
@@ -448,6 +475,10 @@ in-battle rule and its switch-on, the aggregation over formations — is delegat
        after    = clamp(before − entry − decrease + rise, 0, 1,000,000)              one clamp: no order between the terms
 
    `entryInBattle` is what the battle itself charged at the entry (§11.3); 0 while the in-battle part is off.
+   **[MOR3, 2026-11-11, D-085 DD1: each of the three terms only where the battle had fighting — entry = fought ∧ entered ? E : 0,
+   decrease = fought ? … : 0, rise = fought ∧ won ∧ entered ? … : 0 — so after = before for a battle without fighting (§12.3);
+   `entryInBattle` is what the battle charged at its first fighting instant or the later entry (§12.4), 0 in a battle without
+   fighting.]**
 4. ~~**A formation that never entered takes no part.** Its army pays no entry cost, takes no DR29 decrease (its end morale equals its
    start: the stand-in refuses anything else) and no DA1 rise even when its side won (DA1-R (a): the rise is for "the winning side's
    formations that took part"; DERIVED from DB1-R1 (a), under which a formation that never reached the field did not take part).~~
@@ -493,6 +524,10 @@ with losses too, in both resolvers: 30 heavy infantry at 800 against 40 with the
 decrease is exactly (800 − 50 − end) × 1,000, not (800 − end) × 1,000 (the charge counted twice) nor (700 − end) × 1,000 (MEASURED:
 `CountedOnce_InRealBattlesWithLosses_DR29IsMeasuredFromTheStartLessTheCharge`, two seeds); and a formation that enters with less
 morale than the cost (charged all of it, 30 of 30) is settled with DR29 measured from 0 (`ClampAtZero_…`).]**
+**[MOR3, 2026-11-11, D-085 DD1: `CountedOnce_…` passes unchanged (its battles are fought; the charge now falls at their first
+fighting instant). `ClampAtZero_…`'s battle had no fighting, so DD1 settles it at 0 and charges nothing; it is re-pinned on a fought
+battle (lane MOR2's three-formation battle with the formation at 30, charged 30 of 30 at the first fighting instant, 7,506,000 ms;
+its side now wins, so the settlement adds the rise: 180,000; MEASURED), the DR29-from-0 boundary unchanged.]**
 
 **The prototype's default is staged.** The settlement term is **on** (E = 50,000): DB1 is decided, and its campaign part is the level
 the Director's question was asked at ("a battle won without losses only raises morale"). The in-battle part is implemented in both
@@ -503,10 +538,16 @@ P's, §11.6). PROPOSAL: switch it on (50 on the battle scale, the image of E at 
 (c = 200, §3.2), so the battery moves once and is measured once (D-079 Q4 OPEN, D11). Until then the prototype behaves as option (ii):
 the campaign pays exactly, the battle does not feel it.
 
-**Does the battle itself feel it?** When the in-battle part is on, yes: the charge is the formation's morale from its entry instant,
+**Does the battle itself feel it?** When the in-battle part is on, yes: ~~the charge is the formation's morale from its entry instant,
 before anything reads it. MEASURED in both resolvers: a formation that starts at 480, above the withdrawal line 450 (the
 knowledge-only AI's RetreatMorale, the AutoResolver's doctrine), enters at 430 and withdraws at its first decision; with the part off
-it stays and fights (`BothResolvers_WithTheInBattlePartOn_TheBattleFeelsIt_…`). By default (off), no.
+it stays and fights (`BothResolvers_WithTheInBattlePartOn_TheBattleFeelsIt_…`).~~ By default (off), no.
+**[MOR3, 2026-11-11, D-085 DD1 and §4 ("it must not change morale in a battle that turns out to have no fighting"): the struck
+behaviour changed morale before any fighting — the charge itself sent the formation away from a battle that then had none. Under
+PROPOSAL C1 (§12.4) the battle feels the charge from its first fighting instant: a formation at 480 that holds is charged to 430 at
+the battle's first attack (one arrow, which misses) and withdraws at its next decision; the formation of the struck test, no longer
+charged at its entry, advances and fights (MEASURED, both resolvers: the test is rebuilt as
+`BothResolvers_WithTheInBattlePartOn_TheBattleFeelsIt_FromTheFirstFightingInstant_…`).]**
 
 ### 11.4 The size (PROPOSAL; D-082 §5 delegates every number)
 
@@ -518,18 +559,27 @@ the prototype's numbers:
   (B ÷ W = 1/7: the rise is 50,000), −7 just below (W = 7,001 against B = 1,000), −30,953 over a twentieth. **A lossless win over a
   force smaller than a seventh of the winning side nets a loss** (DB1-R3 (a): "negative after beating a small force"). MEASURED, by
   hand: `DB1_ALosslessWin_NetsTheRiseLessTheCost_Exactly` (six cases, the boundary included).
+  **[MOR3, 2026-11-11, D-085 DD1: a lossless win in a battle WITH fighting (the winner struck, or was struck at); a win without any
+  fighting nets 0, whatever the sizes (§12.3).]**
 - **Against the army's recovery** (lane E: 600 ‰ per sim-year for a fed, paid, loyal army below the baseline): E is exactly 30 days
   of recovery (600,000 × 30 ÷ 360). A lossless battle costs an army a month of rest; an army that fights an easy battle every week
   against forces a tenth of its size (rise 36,363) loses about 13,637 per battle and recovers 11,666 per 7-day pulse (INFERRED from
   the two rates), so endless easy skirmishing slowly wears it down rather than lifting it to the top.
-- **Against MoraleMax** (when the in-battle part is on): 5 % of the scale; a fresh formation enters at 950; on the battle scale E is
+- **Against MoraleMax** (when the in-battle part is on): 5 % of the scale; a fresh formation ~~enters at 950~~ **[MOR3, 2026-11-11,
+  PROPOSAL C1: is charged to 950 at the battle's first fighting instant (§12.4)]**; on the battle scale E is
   the morale lost to 2.5 % casualties (MoraleLossFullStrength 2,000).
-- **Against the rout threshold** (300) **and the withdrawal line** (450), when the in-battle part is on: entering alone routs no
+- **Against the rout threshold** (300) **and the withdrawal line** (450), when the in-battle part is on: ~~entering alone~~ **[MOR3:
+  the charge]** routs no
   formation that starts at 350 or more and makes none withdraw that starts at 500 or more. In the TacticalResolver a formation
   starting in [300, 350) then routs, as one starting below 300 already does today; the AutoResolver withdraws such a formation in
   good order instead (MEASURED on one test-input battle at each of the starts 280 and 299 without the cost and 320 and 349 with it,
   a pre-existing difference, §11.10): the cost moves both lines by 50 (MEASURED for the withdrawal line, §11.3). The campaign
-  consequence: an army whose campaign morale is below 500,000 withdraws at once when an AI commands it.
+  consequence: an army whose campaign morale is below 500,000 withdraws ~~at once~~ when an AI commands it.
+  **[MOR3, 2026-11-11, D-085 DD1, PROPOSAL C1 (§12.4): the charge now falls at the battle's first fighting instant, not at the entry,
+  so these consequences come at that instant, and never in a battle without fighting: a formation in [300, 350) is charged below the
+  rout threshold when the battle's first attack is resolved, and one below 500 withdraws at its next decision after it, not at once
+  (MEASURED for the withdrawal line: §11.3's rebuilt test). Lane MOR2's measurements in this bullet were made with the charge at the
+  entry and were not repeated under C1 (§12.10 item 5).]**
   **[MOR2, verification round 1, 2026-11-11 (MOR2-R1-08): and a consequence in PERSONS that was not reported: in the TacticalResolver
   the formation that the cost routs leaves the field routed, and lane W's collapse then moves the share (1,000 − end) ÷ 1,000 of a
   routed formation of a side that did not hold the field to the deserters — 1,402 to 1,500 of 2,000 persons for starts 300 to 349
@@ -539,6 +589,8 @@ the prototype's numbers:
   resolvers' outcomes, does not measure. It is the pre-existing rout-versus-withdrawal difference (§11.10), widened by the cost.]**
 - **With DR29 together** (DA1's worked table, §4.2, now with E): a hard-fought even win (≈10 % losses, decrease 200,000) nets
   −50,000 instead of about 0; a cheap win (5 %) +50,000; a lossless loss −50,000; a routed loser −E − (start − end) × 1,000.
+  **[MOR3, 2026-11-11, D-085 DD1: the lossless loss and the routed loser in a battle with fighting; in a battle without fighting
+  both settle at 0 (§12.3).]**
 
 **Considered and not proposed:** E = 25,000 (a lossless win nets a loss only below a fifteenth: DB1-R3 (a)'s "small force" would be
 very small); E = 100,000 (below a third: beating a third of one's strength without a loss would cost morale, and an even lossless win
@@ -568,6 +620,8 @@ gains morale from easy wins. The final number belongs to the M7.14 calibration (
   §11.4): through the end morale, the cost does change how many persons move.]**
 - **Law 2.** Two event changes of stocks, at events: the formation's morale at its entry instant; the army's campaign morale at the
   settlement. Nothing standing; the coefficient E sits inside the settlement equation.
+  **[MOR3, 2026-11-11, D-085 DD1: the formation's morale at the battle's first fighting instant or its later entry (PROPOSAL C1); both
+  changes happen only in a battle that had fighting (§12.4, §12.7).]**
 - **Law 3.** An event, not a rate (DB1-R2 (a)): no part of it integrates over time. The army's later recovery is lane E's per-year
   rate times the exact pulse length, unchanged.
 - **Law 4.** No date or era: the cost is the same at every stage (DA3's rule for DR25 does not apply to it; nothing here reads an
@@ -584,6 +638,9 @@ gains morale from easy wins. The final number belongs to the M7.14 calibration (
 - **What the settlement reads** (lane D's stand-in; M7.15 builds the real hand-off): `SupportBattle.Entered` = EnteredAtMs is set;
   `SupportBattle.EntryChargedInBattle` = EntryCharged. The row `MoraleSettlementRow` (codec version 2, 110 bytes) records Entered,
   EntryInBattle and EntryPpm, so the after value is recomputable by hand from the row.
+  **[MOR3, 2026-11-11, D-085 DD1: the battle also reports `BattleResult.FirstFightMs` (null: no fighting), the settlement also reads
+  `SupportBattle.Fought` (the battle's answer, `BattleFighting.SettlesAsFought`), and the row records it: codec version 3, 111 bytes
+  (§12.2, §12.3).]**
 - **Several formations in one army** (§4.5, PROPOSAL extended, not built): Δ_army = Σ_f persons_f × (rise_f − decrease_f − entry_f)
   ÷ persons_army, with entry_f = E for a formation that entered and 0 otherwise, and the persons counted AFTER the battle (the men who
   remain with the army), so a formation that was annihilated carries nothing into its army's average (§11.8).
@@ -616,6 +673,9 @@ gains morale from easy wins. The final number belongs to the M7.14 calibration (
   tactical placeholder moves), and the entry charge lowers every start morale, so switching it on belongs with a re-fit and the
   battery's re-measurement; this lane tunes nothing and claims no parity (D-079 Q4 OPEN; the held-out acceptance battery was not
   run). These numbers are a measurement of the rule's effect, not acceptance evidence.
+  **[MOR3, 2026-11-11, D-085 DD1: the "on" numbers above were measured with the charge at the entry. Under PROPOSAL C1 the charge
+  falls at the first fighting instant and never in a battle without fighting, so the "on" digests, row counts, outcome and winner
+  changes and rule P1 are re-measured in §12.4; the "off" digests are unchanged (MEASURED).]**
 
 ### 11.7 Lane D's War Sandbox: how Quick Battle charges the cost
 
@@ -623,8 +683,10 @@ The sandbox runs the campaign's resolvers with the campaign's rules (DR30: "Camp
 campaign morale stock (its isolation, D15: a Campaign Encounter copies a value snapshot and writes nothing back). So:
 
 - **The in-battle part** charges every sandbox formation exactly as in a campaign battle, through the same resolvers: nothing while it
-  is 0 (the prototype's default); once it is switched on, each formation pays at its entry instant (a Quick Battle formation starts at
-  full morale unless edited, so it enters at 950).
+  is 0 (the prototype's default); once it is switched on, each formation pays ~~at its entry instant (a Quick Battle formation starts at
+  full morale unless edited, so it enters at 950)~~ **[MOR3, 2026-11-11, D-085 DD1, PROPOSAL C1: at the battle's first fighting
+  instant (a Quick Battle formation starts at full morale unless edited, so it is charged to 950 then), and nothing in a Quick Battle
+  without fighting (MEASURED, §12.5)]**.
   **[MOR2, verification round 1, 2026-11-11 (MOR2-R1-11): "once it is switched on" holds only if the switch-on is a change of the
   rules' DEFAULT. The code stated two mechanisms (`TacticalRules.EntryMoraleCost`: "PROPOSAL value when switched on: 50"; and
   `CampaignMorale.EntryBattleScale`: "the value the M7.15 hand-off would set" per battle), and the sandbox builds
@@ -639,15 +701,23 @@ campaign morale stock (its isolation, D15: a Campaign Encounter copies a value s
   (persons only) is unchanged.
 - **PROPOSAL (not implemented):** the sandbox's result inspection lists each formation's entry charge (the resolvers' entry log) and,
   for a Campaign Encounter, shows as a preview the settlement the same battle would give its armies in the campaign, computed with
-  the same `CampaignMorale` functions and written nowhere.
+  the same `CampaignMorale` functions and written nowhere. **[MOR3, 2026-11-11, D-085 DD1: the preview applies DD1 with the same
+  functions — an encounter without fighting previews no change for either army — and the inspection shows the battle's first fighting
+  instant or "no fighting" (§12.5).]**
 - **Consequence of the staging (§11.3):** until the in-battle part is switched on, a sandbox battle shows nothing of DB1 — one more
-  reason to switch it on at the battery's re-measurement.
+  reason to switch it on at the battery's re-measurement. **[MOR3: and, switched on, a sandbox battle without fighting shows nothing of
+  it either, by DD1 (§12.5).]**
 
 ### 11.8 The mutual-elimination win (lane AP's observation AP-R1-14)
 
 Under DA6 a defender whose battle formations were all eliminated in the same instant as the attacker's (BothEliminated) is the
 reported winner, and DA1 raises its army (lane AP MEASURED 900,000 against 700,000 with stand-in numbers; with DB1's cost 850,000
 against 650,000, MEASURED: lane AP's updated test).
+**[MOR3, 2026-11-11, D-085 DD1 (D-085 §3: lane MOR2's PROPOSAL (a) "is superseded where no fighting took place. Its alternative (c')
+is adopted in a wider form: no rise and no cost"): what follows stands for a FOUGHT mutual elimination or rout (lane AP's duel and the
+fought mutual rout still settle as below; MEASURED, their tests pass unchanged). For a battle WITHOUT fighting it is superseded: no
+army's morale changes, whoever the report names (§12.3). The prototype applies DD1, not (a), to unfought battles; (b), (b′), (c) and
+(c′) below are kept as the record of what was weighed.]**
 
 - **PROPOSAL (a), applied: the rise does not depend on what the winner has left.** (1) Morale is a per-man quantity: a victory lifts
   each man who remains; the dead do not dilute the elation of the living, and the shock of the losses is DR29's own term, already in
@@ -701,6 +771,13 @@ against 650,000, MEASURED: lane AP's updated test).
     DA1, DA1-R (a) and DA6 as they stand, a defender whose formations ran, with no blow struck, in the same instant as the attacker's
     gains +150,000 against an equal force from any start, in both resolvers. If the Director wants such a win to raise nothing, the
     targeted form is (c′) below; answering Q-AP4 (b) would remove the TacticalResolver's case only.**]**
+  **[MOR3, 2026-11-11, D-085 DD1: the Director answered — "No fighting doesn't affect morale at all then" — and D-085 §3 records it:
+  "The measured +150,000 for the defender of an unfought mutual rout, and the attacker's −50,000, both become 0". (a) is no longer
+  applied to unfought battles: the prototype now settles both cases above at 0 for both armies, in both resolvers, from every start
+  measured (MEASURED: the renamed `DD1_AnUnfoughtMutualRout_…` and `DD1_AnUnfoughtMutualWithdrawal_InTheAutoResolver_…`). The
+  in-battle charge no longer routs a start in [300, 350) at the start (it falls only at a first fighting instant, PROPOSAL C1), so the
+  three part-on cases rout by inactivity at 420, 449 and 600, as with the part off. Lane W's desertion of the routed men (persons) is
+  unchanged: 800 of 2,000 per side from 500 (READING MOR3-R3, §12.3).]**
 - **Alternative (b), not applied:** scale the rise by the winner's share of persons still in good order at the end (Active, or
   withdrawn in good order): 0 for a mutual rout or annihilation. It changes every decisive win too — a winner that lost a third of its
   men would get two thirds of the rise — so the losses would be counted twice (DR29 and the scaling), and it needs the end-state
@@ -732,6 +809,13 @@ against 650,000, MEASURED: lane AP's updated test).
   blow, side 0's formation — one column nearer its exit edge — is reported eliminated and side 1 the decisive winner, whichever side
   defends; the exit order as the cause is INFERRED from the geometry) — at the cost of no rise for a win over an enemy that fled before
   contact. Neither is implemented: each is an exception to DA1 (DECIDED) that only the Director can make (argument (4)).
+  **[MOR3, 2026-11-11, D-085 DD1: the Director made it, wider than either: no rise AND no cost (no entry term, no DR29 decrease) for
+  ANY battle without fighting, decisive wins included. It differs from (c) in what it reads: DD1-R1 (a) reads the BATTLE, so a win in
+  which the winner struck no blow but the loser did (an attack resolved against the winner's formation, hit or miss) is a fought battle
+  and the winner rises; (c) would have read the winner's own blows. The AutoResolver's one-column-off mutual withdrawal (a decisive win
+  without a blow) now settles at 0 for both armies; MEASURED on a battle of that kind in both resolvers,
+  `DD1_AnUnfoughtDecisiveWin_ChangesNeitherArmysMorale_BothResolvers` (§12.3). The input is the battle report's first fighting instant,
+  not `DamageDealt` (DD1-R2 (a): "whether or not it dealt damage").]**
 
 ### 11.9 Statements superseded or narrowed (marked in place, 2026-11-10)
 
@@ -749,6 +833,7 @@ argument (3) (MOR2-R1-03); §11.10 and §11.11; the new §11.12 (lane S's siege 
 **[MOR2, verification round 2, 2026-11-11: round 2 marked, in place: §11.2 item 1 (several domain formations, MOR2-R2-02); §11.8 (the
 round-1 note's premise and consequence struck and corrected; (b) and (b′) corrected; (c′) added; MOR2-R2-01); §11.10 (observation
 (2)); §11.11 (item 10). The lane report's round-2 section is H-MOR2 §14.]**
+**[MOR3, D-085 DD1, 2026-11-11: lane MOR3 marked, in place, the statements D-085 supersedes or narrows; §12.9 lists them.]**
 
 ### 11.10 For the Director
 
@@ -773,10 +858,14 @@ in the TacticalResolver (through Q-AP4 (a)) and in the AutoResolver (an equal mu
 decided; the alternatives except some of its wins); (b) and (b′) do not remove the AutoResolver's case, and the targeted alternative
 is (c′), no rise for an unfought equal-sides win, §11.8]**; (3) two new READINGS are applied and labelled, MOR2-R1
 (what "took part" is for DA1's rise) and MOR2-R2 (when a carried or based formation is placed on the field), §11.2.]**
+**[MOR3, 2026-11-11: observation (2) is answered by D-085 DD1 — a battle without fighting changes no morale, so those +150,000 and
+−50,000 are 0 (§12.3) — and the band of the first paragraph, with the part on, now opens at the battle's first fighting instant, not
+at the entry (PROPOSAL C1, §12.4). Observation (1)'s persons were measured with the charge at the entry (§12.10 item 5).]**
 
 ### 11.11 Limitations
 
-1. The in-battle part is 0 by default: by default the battle and the War Sandbox do not feel the cost (§11.3, §11.7).
+1. The in-battle part is 0 by default: by default the battle and the War Sandbox do not feel the cost (§11.3, §11.7). **[MOR3,
+   2026-11-11: switched on, they feel it from the battle's first fighting instant, and a battle without fighting not at all (§12.4).]**
 2. The only later arrival is lane N's landing (TacticalResolver only; the AutoResolver refuses formations that start aboard).
 3. Vessels and aircraft are outside the in-battle charge (§11.6).
 4. The hand-off is lane D's stand-in (one army, one formation); the tests' `HandOff` maps a battle report to it as M7.15 would.
@@ -789,9 +878,11 @@ is (c′), no rise for an unfought equal-sides win, §11.8]**; (3) two new READI
    TacticalResolver, orderly withdrawal in the AutoResolver) that rule P1 does not measure (§11.4, MOR2-R1-08).
 9. **[Round 1]** The aggregation over several formations (§11.6) is not built; how its persons are counted re-weights DR29's decrease
    (MOR2-R1-09), and the choice is open for M7.15.
-10. **[Round 2, MOR2-R2-01]** Under PROPOSAL (a), as applied, an equal-sides win with no blow struck lifts the defender's army by
-    +150,000 against an equal force from any start, in both resolvers, while lane W's collapse (in the TacticalResolver) deserts part
-    of its routed men (§11.8). The targeted alternative (c′) is stated, not implemented: it is an exception to DA1 for the Director.
+10. **[Round 2, MOR2-R2-01]** ~~Under PROPOSAL (a), as applied, an equal-sides win with no blow struck lifts the defender's army by
+    +150,000 against an equal force from any start, in both resolvers,~~ while lane W's collapse (in the TacticalResolver) deserts part
+    of its routed men (§11.8). ~~The targeted alternative (c′) is stated, not implemented: it is an exception to DA1 for the Director.~~
+    **[MOR3, 2026-11-11: resolved by D-085 DD1 — the Director made the exception, wider (no rise and no cost for any battle without
+    fighting), and the prototype implements it (§12.3). The desertion of the routed men (persons) remains, READING MOR3-R3.]**
 
 ### 11.12 Lane S's siege battles (PROPOSAL, not implemented) [MOR2, verification round 1, 2026-11-11 (MOR2-R1-13)]
 
@@ -815,6 +906,351 @@ at ArrivalMs" (`SiegeTypes.cs`) and acts at the first siege pulse start at or af
   resolvers' own, with a separate number to calibrate, and the stock it lowers is not the campaign stock DB1's settlement term
   charges.
 - **Consequence of (a) until then (a limitation, §11.11 item 7):** in the prototype a siege battle costs nobody the entry cost.
+  **[MOR3, D-085 DD1, 2026-11-11: and under (a) DD1 reaches them by the same road — the fought report gates their settlement like any
+  other battle's (§12.6).]**
+
+---
+
+## 12. Without fighting, no morale change (D-085 DD1) — PROPOSAL where design (lane MOR3, 2026-11-11)
+
+**Status.** The rule is a Director decision (D-085 **DD1**, DECIDED) read through two READINGS that D-085 applies (DD1-R1 (a),
+DD1-R2 (a)). Everything D-085 §4 delegates — each resolver's "fought" report, the in-battle part of the entry cost, the War Sandbox
+and lane S's siege battles — is lane MOR3's **PROPOSAL**, decided by nobody. Three interpretations of this lane are labelled
+**READING MOR3-R1, MOR3-R2, MOR3-R3**, each with both alternatives. The prototype: `BattleResult.FirstFightMs` and `Fought`
+(`Proto.M7/Tactical/BattleResult.cs`); the attack sites of both resolvers (`TacticalBattle.cs`, `TacticalBattle.DomainCombat.cs`,
+`TacticalBattle.Ram.cs`, `AutoResolver.cs`); `EntryMorale.ChargeOnFighting` (`Tactical/EntryMorale.cs`); `CampaignMorale.IfFought`
+and `BattleFighting.SettlesAsFought` (`Morale/CampaignMorale.cs`); `SupportBattle.Fought` and the settlement (`Support/`); the
+settlement row's `Fought` (`Morale/MoraleCodec.cs`, codec version 3). Tests: `Proto.M7.Tests/Morale/NoFightingTests.cs` and lane
+MOR2's re-pinned tests. Lane report: `prototypes/m7-sprint1/reports/H-MOR3.md` (every moved pin with its measured attribution).
+Nothing in `Sim.*` or `Sim.Data` changes (D-079 §6, Q5 open; D-085 §5). Labels as in the header; MEASURED here means a test or run of
+lane MOR3, named.
+
+### 12.1 Authority
+
+- [D-085](../d085-no-fighting-no-morale-change-2026-11-11.md) **DD1** (DECIDED): "No fighting doesn't affect morale at all then.
+  There has to be done fighting to alter morale" — recorded as: "A battle without fighting does not affect morale at all. There is
+  no rise for its reported winner, so an equal-sides "win" with no blow struck raises nothing. There is no cost either: no entry cost
+  (D-083) and no decrease (DR29). Morale changes only where there was some fighting."
+- **DD1-R1 (a)** (APPLIED): fighting is read per BATTLE — "If any fighting took place in a battle, DA1's rise, DR29's decrease and
+  D-083's entry cost apply as before. That includes a formation that entered the field but itself struck no blow"; "If no fighting
+  took place at all, no army's morale changes through that battle." Alternative (b): per formation, which "would narrow D-083 DB1 to
+  formations that fought".
+- **DD1-R2 (a)** (APPLIED): fighting is "at least one attack resolved against an enemy formation, whether or not it dealt damage. An
+  attack is a melee blow, a missile volley, or a shot of a crew-served or domain weapon." Alternative (b): at least one attack that
+  dealt damage.
+- **D-085 §3**: DA1 narrowed ("a win with no fighting raises nothing"); DB1 narrowed ("entering a battle costs morale where the
+  battle had fighting"; "with or without casualties" stands); lane MOR2's PROPOSAL (a) of §11.8 superseded where no fighting took
+  place and (c′) "adopted in a wider form: no rise and no cost" ("The measured +150,000 for the defender of an unfought mutual rout,
+  and the attacker's −50,000, both become 0"); DR29 unchanged.
+- **D-085 §4** (DELEGATED): "Each resolver's 'fought' report ... and its boundary test (exactly one attack against none)"; the
+  in-battle part of the entry cost: "If it is switched on, it must not change morale in a battle that turns out to have no fighting.
+  It could be charged at the battle's first fighting instant (and at entry for a later arrival), or dropped so that the settlement
+  alone charges the cost"; "how the War Sandbox's Quick Battle and lane S's siege battles apply DD1".
+
+### 12.2 What fighting is: each resolver's report (DD1-R2 (a); PROPOSAL; implemented)
+
+**The report.** Both resolvers report the battle's **first fighting instant**, `BattleResult.FirstFightMs`: the instant of the first
+attack resolved against an enemy formation, hit or miss; null when there was none (`Fought`: it is set). Each resolver sets it at the
+code points where it counts an attack (`FormationResult.AttacksMade`), next to the count, so that "fighting" is what the engine
+already calls an attack. Like `EnteredAtMs` it is a report field outside `ResultHash` (every earlier result hashes as before), and
+the state hashes carry it only while the in-battle part is on (§12.4), so at the defaults no golden of any lane moved (MEASURED: after
+the change the full suite's only failures were 23 cases of lane MOR's and lane MOR2's morale pins, every one re-pinned with its
+attribution in H-MOR3).
+
+**Why an instant, not the count.** D-085 points at the count. The count says whether, not when: the in-battle part needs the instant
+(§12.4). And in one place the count counts what DD1-R2 (a) does not — a bombard round on empty ground (READING MOR3-R1). Where both
+apply they agree: on lane P's tuning battery the report is set exactly when Σ AttacksMade > 0 and equals the first attack observed
+from outside the rule (the tactical event trace; the AutoResolver's step log) — MEASURED on its 20 scenarios at seed 1 in both
+resolvers (`TheReportAgreesWithTheAttackCount_AndIsTheFirstAttack_OnLanePsTuningBattery_BothResolvers`), and on the whole battery
+(1,600 cases per resolver, the in-battle part off and on, with and without lane MOR's c = 200): 0 battles whose report disagrees with
+the count, and 0 battles without fighting — every battle of the battery is fought (MEASURED, `entry-parity`, §12.4).
+**[MOR3, verification round 1, 2026-11-11, MOR3-R1-01: "the first attack observed from outside the rule" in the tactical trace
+was every executed attack event, and a missile shot with no line of fire is executed but is no attack (the table below); the tests now
+use those events as the oracle only once validated against the battle's own attack count, which these 20 battles pass, and observe a
+battle with such shots with a line-of-fire oracle that recomputes each shot's line from outside the rule (H-MOR3 §13).]**
+
+| Resolver · attack | Where it is reported (the code point that counts the attack) | Fighting? | Why this source | First fighting instant, MEASURED (`TheFirstAttackOfEveryDomain_…`; test inputs) |
+|---|---|---|---|---|
+| Tactical · melee blow | the `Fire` event, mode 1, before the hit roll | yes, hit or miss | the blow is resolved against the target entity by the hit roll; DD1-R2 (a): "whether or not it dealt damage" | 148,000 ms (heavy infantry meeting) |
+| Tactical · missile volley | the `Fire` event, mode 2, once the shot is fired (a shot with no line of fire is not fired, so it is no attack) | yes, hit or miss | the arrow or bullet is resolved against the target | 0 (one arrow that missed: one Fire event, no Damage event in the battle); **[round 1, MOR3-R1-01]** a shot with no line of fire is no attack: 540 shots blocked by a wall, or by buildings, and the battle has no fighting (`DD1_R2a_AShotWithNoLineOfFire_…`) |
+| Tactical · crew-served or domain weapon aimed at an enemy entity, hull or airframe (land guns, vessel guns, aircraft munitions; direct or indirect) | the `DomainFire` event with a target | yes, hit or miss, wherever its dispersion lands | it is aimed at an enemy formation's entity | 0 (coastal guns at a hull), 0 (vessels' line battle), 14,000 (strike aircraft); **[round 1, MOR3-R1-02]** 0 for an attack helicopter's rocket at a land entity that missed (its first hit at 36,000), 0 for a field gun's round aimed at a lone rifleman that fell 23,343 mm from him, beyond its 15,000 mm blast (`DD1_R2a_ADirectDomainShot…`, `DD1_R2a_AnIndirectRound…`) |
+| Tactical · bombard of a bare ground point | the `DomainFire` event's blast loop | **READING MOR3-R1 (a)**: only when the blast reaches an enemy entity or hull | below | 6,000 on the riflemen's own point; none on empty ground |
+| Tactical · boarding fight | the `Boarding` event | yes | both crews strike | 26,000; **[round 1, MOR3-R1-02]** 26,000 for a fight that cost neither crew of six a man (the first casualty at 48,000; `DD1_R2a_ABoardingFightWithoutCasualties_…`) |
+| Tactical · ram (breach or glance) | the `Ram` event | yes | the ram is resolved against the struck hull | 198,000 (an oblique, glancing ram) |
+| Tactical · bow contact that is not a ram | the `RamCollision` event | **READING MOR3-R2 (a)**: no | below | none (lane RAM's RAM2-V2 contact at 60,000) |
+| Auto · melee in contact | the step's melee exchange (Attacks += engaged) | yes, whatever its expected damage | the model's attack is the step's exchange | step 74 = 148,000 (the same meeting: the same instant as the TacticalResolver) |
+| Auto · volley, in contact or at range | the step's volley (Attacks += shots), which the model looses only with a line of fire (expected damage above 0) | yes | as the TacticalResolver's fired shot | step 0 = 0 (one volley in the battle); **[round 1, MOR3-R1-01]** a volley due with no line of fire (buildings) is loosed at nobody: no fighting, as in the TacticalResolver (`DD1_R2a_AVolleyWithNoLineOfFire_…`) |
+
+The AutoResolver is land only: it refuses vessels, aircraft, crew-served weapons and formations that start aboard (CITED,
+`AutoResolver.cs`), so the domain rows exist in the TacticalResolver only. The AutoResolver's instant is StartMs + k × StepMs for the
+first step k with an attack, the instant of the TacticalResolver's same attack where the two resolve one (MEASURED: 148,000 in both).
+
+**THE BOUNDARY (D-085 §4: "exactly one attack against none"), MEASURED in both resolvers through the hand-off**
+(`DD1_TheBoundary_ExactlyOneAttackThatMisses_IsFought_NoAttackIsNot_BothResolvers`): one arrow, loosed at the start, that MISSES,
+and then a Standoff with no winner — fought: both armies pay the entry cost (800,000 → 750,000 each); the same battle with the archer
+one column further back (never in range), no attack — unfought: both armies unchanged (800,000; the rows record Fought 0); the
+AutoResolver gives the same, one volley against none. Turn-exact with the in-battle part on: the single arrow loosed at 214,000 ms
+(the trace's only Fire event) — at every completed instant before it both formations have exactly the morale of the same battle with
+the part off, at 214,000 each is lower by the charge.
+
+**READING MOR3-R1 — a bombard of a bare ground point.** The engine lets a weapon bombard a POINT (lane N's `OrderKind.Bombard`):
+the round is aimed at no entity and its blast is rolled against every entity and hull within its radius. The attack count counts
+every round.
+- **(a) APPLIED: it is fighting only when its blast reaches an entity or hull of an enemy formation** (whether or not the blast roll
+  then hurts it). Why: DD1-R2 (a) says "resolved against an enemy formation"; a round on empty ground is resolved against none, and
+  counting it would let a side make a battle "fought" — and so charge both armies the entry cost and lift its own by DA1's rise —
+  by shelling ground no enemy stands on. Lane TR's inactivity rule already treats such a round as no progress (CITED,
+  `UndoBarePointShotProgress`).
+- **(b): every round counts**, as the attack count does: the report and the count would agree everywhere; shelling empty ground is
+  then fighting.
+- MEASURED (`READING_MOR3_R1_ABombardOfABarePoint_IsFightingOnlyWhereItsBlastReachesAnEnemy`): on the riflemen's own point the first
+  round (6,000 ms) is the first fighting instant (17 riflemen die); on an empty point the warship fires 59 rounds and its attack
+  count is 59, but the report stays null — and when the riflemen rout by lane TR's inactivity rule, the warship's side's decisive
+  "win" changes neither army's morale. Under (b) both armies would pay the entry cost and the winner's would rise.
+
+**READING MOR3-R2 — a bow contact that is not a ram.** Lane RAM's engine resolves a contact without the conditions of a ram (no
+normal speed, or a hull already rammed) as a collision: no hit roll, no damage to the struck hull, only to the rammer's own bow; it
+counts no attack (CITED, `TacticalBattle.Ram.cs`; RAM2-V2: "no ram is credited ... nobody is damaged").
+- **(a) APPLIED: no attack, so no fighting** — as the attack count and the inactivity rule already read it.
+- **(b): a ram attempt resolved as a contact counts as an attack**; two hulls bumping without effect would make a fought battle.
+- MEASURED (`READING_MOR3_R2_ARamCollisionAlone_IsNoFighting`): lane RAM's RAM2-V2 battle, whose only contact is a collision at
+  60,000 ms, reports no fighting at the collision's own instant and at its end (a Standoff at 360,000).
+
+### 12.3 The settlement (DD1, DD1-R1 (a); implemented)
+
+Each of §11.2's three terms applies only where the battle had fighting (`CampaignMorale.IfFought`):
+
+    entry    = fought ∧ entered ? E : 0                                                              DB1, narrowed by DD1
+    decrease = fought ? floor(max(0, (start − entryInBattle) − end − restore) × 1,000,000 ÷ MoraleMax) : 0    DR29, gated by DD1
+    rise     = fought ∧ won ∧ entered ? floor(R × B ÷ (B + W)) : 0                                       DA1, narrowed by DD1
+    after    = clamp(before − entry − decrease + rise, 0, 1,000,000)        (= before for a battle without fighting)
+
+- **fought** is the battle's answer (DD1-R1 (a)): `BattleFighting.SettlesAsFought(report, formation)` returns the report's
+  `Fought` whichever of the battle's formations asks (and refuses a formation that is not the battle's). The hand-off passes it as
+  `SupportBattle.Fought` (lane D's stand-in; M7.15 builds the real hand-off). Its default is true, so every hand-made stand-in battle
+  written before D-085 settles exactly as before (MEASURED: they pass unchanged); the tests' hand-off from a real battle report sets
+  it from the report.
+- **The reported winner is still recorded** on the row, with no rise: an unfought "win" is visible and lifts nobody.
+- **The row** (`MoraleSettlementRow`) gains `Fought` (u8, 0 or 1) after `EntryPpm`: codec version 3, 111 bytes a row; version-1 and
+  version-2 tables and a Fought byte other than 0 or 1 are refused. MEASURED: a populated table of six real rows (fought and unfought,
+  entered and never entered, a rise, an in-battle charge, a clamp at 0), exact length 5 + 111 × rows, bit-exact round trip, the same
+  SHA-256, lane D's field-swap guard (`DD1_SettlementRows_Version3_PopulatedTable_RoundTripBitExact_WithExactLength`).
+- **The stand-in refuses** an in-battle entry charge for a battle without fighting (no resolver produces one, §12.4).
+- **MEASURED in real battles through the hand-off:**
+  - lane MOR2's unfought mutual rout (TacticalResolver; DA6 names the defender) from 250, 299, 320, 500 and 800 with the in-battle
+    part off and 320, 349 and 500 with it on: both armies unchanged, where lane MOR2 measured the defender +150,000 and the attacker
+    −50,000 (`DD1_AnUnfoughtMutualRout_WonUnderDA6_ChangesNeitherArmysMorale_FromAnyStart`, renamed from lane MOR2's `ProposalA_…`);
+  - lane MOR2's unfought mutual withdrawal (AutoResolver) from 250 and 449, part off and on: both armies unchanged
+    (`DD1_AnUnfoughtMutualWithdrawal_InTheAutoResolver_…`);
+  - an unfought DECISIVE win, both resolvers (a formation at 250 leaves at once; SideEliminated, side 1 the decisive winner): both
+    armies unchanged — DD1 reaches every win without fighting, not only the equal-sides ones (c′) targeted ("adopted in a wider
+    form") (`DD1_AnUnfoughtDecisiveWin_ChangesNeitherArmysMorale_BothResolvers`);
+  - **DD1-R1 (a)**: a formation that entered a fought battle and neither struck nor received a blow pays the entry cost, and its side
+    having won it takes the rise too: 800,000 − 50,000 + 160,000 = 910,000, both resolvers (`DD1_R1a_…`); under (b) it would settle
+    as unfought (800,000);
+  - **a fought equal-sides win still rises**: lane AP's `DA1_TheEqualSidesWinnerRises_DefenderOrAmbusher` passes unchanged (its
+    settlement rows are hand-made, fought by default), and so do the tests that take lane AP's duel and the fought mutual rout through
+    the hand-off, which now reads the report's first fighting instant: `DA1_AMutualEliminationWin_TheRiseIsUnchanged_…` (the
+    defender's army 150,000 with a rise of 200,000) and `ProposalA_AFoughtMutualRout_WonUnderDA6_DR29OutweighsTheRise`.
+- **Tie-dense** (CLAUDE.md): five armies settling at one instant, fought and unfought battles mixed, in all 120 scheduling orders —
+  army-id order, the same values and the same state hash; one army with a fought and an unfought battle at one instant, in both
+  orders: the unfought battle is the identity, so the order cannot matter (MEASURED, `DD1_TieDense_…`).
+- **Several formations in one army** (§11.6, not built): under DD1-R1 (a) the formations of one battle share its answer, so the
+  aggregation needs one more input per battle, not per formation: Δ_army = (fought ? 1 : 0) × Σ_f … (PROPOSAL, M7.15).
+
+**READING MOR3-R3 — what DD1 reaches.** DD1 says a battle without fighting "does not affect morale at all".
+- **(a) APPLIED: what the battle does to the armies' morale** — the settlement's three terms — and the in-battle part of the entry
+  cost, which D-085 §4 names. The resolvers' own in-battle dynamics that need no attack stay as they were: recovery while holding or
+  rallying without losses, and lane TR's inactivity rout (a change of state at any morale). In a battle without fighting none of it
+  reaches an army's morale, since every settlement term is 0. Persons are not morale (Law 1: lane W's and lane D's transfers): lane
+  W's collapse still deserts the share (1,000 − end) ÷ 1,000 of the routed men of a side that did not hold the field, whether or not
+  there was fighting — MEASURED: the unfought mutual rout from 500 ends at 600 (five quiet pulses of recovery) and deserts 800 of
+  2,000 men on EACH side (`DD1_AnUnfoughtMutualRout_…`).
+- **(b): DD1 also holds every formation's in-battle morale still until the battle's first fighting instant** (no recovery before it),
+  in every battle, since a battle cannot know that it will stay unfought. It changes both resolvers' pre-fight phase, moves goldens and
+  the parity battery, and still does not reach persons unless lane W's desertion is gated too.
+- Why (a): it is the smallest reading that gives D-085's measured cases ("The measured +150,000 ... and the attacker's −50,000, both
+  become 0"), and the battle-scale morale of a battle without fighting reaches nothing outside the battle except through lane W's
+  desertion, a rule about persons that D-085 does not mention (observation for the Director, §12.8).
+
+### 12.4 The in-battle part of the entry cost (D-085 §4; PROPOSAL C1; implemented, 0 by default)
+
+| Option | What it does | D-085 §4 ("must not change morale in a battle that turns out to have no fighting") | Consequences |
+|---|---|---|---|
+| **C1 (PROPOSED, implemented): at the battle's first fighting instant** | every land formation that has entered by then pays the charge at that instant, wherever it is (on the field, or already gone — it entered); a formation that enters later pays at its own entry; a battle without fighting charges nobody | met by construction: before the first fighting instant nothing is charged, so the battle is the battle with the part off | the battle still feels the cost — from the first fight, where it acts on the fight; the settlement still counts it once (§11.3 (iii)) |
+| C2 (not proposed): dropped | the settlement alone charges the cost | met trivially | the battle never feels the cost (§11.3 (ii): the two levels disagree about the same formation), and the War Sandbox never shows DB1 at all (§11.7) |
+| C3 (not proposed): at the entry, refunded if the battle ends without fighting | as lane MOR2's charge, undone at the end | **not met**: the charged morale has already acted — lane MOR2 measured formations at 480 charged to 430 at the entry withdraw at their first decision, so the charge itself made the battle unfought (§11.8) — and an end-of-battle refund cannot undo a decision | — |
+
+**Why C1.** (1) It keeps lane MOR2's option (iii) (§11.3) for every battle DB1 still charges (D-085: a battle with fighting): the
+formation's morale and its army's campaign morale pay the same cost for the same battle, counted once. (2) It meets D-085 §4 by
+construction, MEASURED in both resolvers: in lane MOR2's three-formation battle, at every completed instant before the first attack
+(7,332,000 ms) the part-on battle has the same morale and the same entity states as the part-off battle, and at 7,332,000 every
+formation is lower by exactly the charge; the AutoResolver's step logs are identical record for record before its first fighting step
+(66), and at it differ only by the charge (`C1_TheInBattlePart_ChangesNothingBeforeTheFirstFightingInstant_TurnExact_BothResolvers`).
+A battle without fighting is the SAME battle with the part on: the same result hash and trace hash, no entry row (MEASURED on lane
+MOR2's unfought battles, both resolvers: `C1_InABattleWithoutFighting_TheInBattlePartChangesNothing_BothResolvers`). (3) It removes the
+case where the cost itself made a battle unfought: lane MOR2's equal formations at 480 in the AutoResolver now advance and fight with
+the part on as with it off (first fighting step 131, 262,000 ms; both rout in one instant; DA6 names the defender), and the
+settlement is the same either way, 430,000 for the defender's army and 230,000 for the attacker's — the charge counted once
+(MEASURED, `C1_TheInBattleChargeNoLongerMakesAnUnfoughtWithdrawal_…`). (4) One function for both resolvers (D-079 D11):
+`EntryMorale.Enter` records the entry (and charges only after the first fight), `EntryMorale.ChargeOnFighting` charges at it.
+
+**Where in the instant.** At the start of the instant's resolution: in the TacticalResolver the Resolve event (class 50), after the
+instant's attack events (class 30) and their damage to hit points (class 40), before deaths, casualty-driven morale loss and routs;
+in the AutoResolver at the start of the step's phase 5, after the step's attacks, before damage, casualties, morale and rout (CITED,
+`TacticalBattle.Resolve`, `AutoBattle`). The attacks of the first fighting instant are thus resolved at the morale before the charge,
+and that instant's casualty losses and routs act on the morale after it. In ascending formation id; once per formation (DB1-R2 (a));
+all of a formation's morale when it has less than the cost.
+
+**A later arrival** (DB1-R1 (a): "later, at the instant it arrives"), MEASURED turn-exact on lane N's shore made a fought battle
+(`C1_ALaterArrival_IsChargedAtItsOwnEntry_AfterTheFirstFight_AndAtTheFirstFight_BeforeIt_TurnExact`): riflemen put ashore at 2,000 or
+128,000 ms are charged AT THEIR LANDING when the fighting began at 0, and AT THE FIRST FIGHTING INSTANT (258,000) when they landed
+before it — never before. Once with re-entry, in a fought battle: four formations each leave the field and are placed on it again at
+least twice and pay once (`C1_OncePerFormation_WithReEntry_InAFoughtBattle`).
+**[MOR3, verification round 1, 2026-11-11, MOR3-R1-05: in the TacticalResolver the landing's own instant would charge such a formation
+even without the charge in `EntryMorale.Enter`: the landing runs in the instant's Step (class Arrival), which schedules that instant's
+resolution, and its `ChargeOnFirstFight` charges every entered, uncharged formation once fighting has begun (DERIVED, `TacticalBattle.cs`).
+MEASURED: with the entry-time charge removed (lane MOR3's mutant C9) the four later-arrival cases still pass; only the shared function's
+contract test (`EntryMorale_Enter_ChargesOncePerFormation_ByHand`) pins that path. The instant is the same either way; only the order of
+two rows charged at one instant could differ.]**
+
+**What C1 narrows.** D-083's DB1-R2 (a) reads the cost as charged "once per formation per battle, at its entry instant". For the
+in-battle part the instant is now the later of the entry and the battle's first fighting instant — the timing D-085 §4 itself names
+("charged at the battle's first fighting instant (and at entry for a later arrival)"). Once per formation per battle stands; the
+settlement's term, an after-battle term, is not affected.
+
+**The battle feels it from the first fight.** With the part on, a formation at 480 that holds is charged to 430 at the first attack
+of the battle (one arrow, which misses, at 214,000 ms) and withdraws at its next decision (240,000), untouched; with the part off it
+stays at 480 (MEASURED in both resolvers, the AutoResolver at its step 77: `BothResolvers_WithTheInBattlePartOn_TheBattleFeelsIt_
+FromTheFirstFightingInstant_…`, which replaces lane MOR2's test of a charge at the entry).
+
+**The default stays 0** (the exact identity; the PROPOSAL switch-on value 50 at the battery's re-measurement, §11.3, is unchanged).
+**Measured on lane P's tuning battery** (`entry-parity`, Release, 2 threads; 20 scenarios × seeds 1–80 = 1,600 cases per resolver;
+"off" = the defaults; H-MOR3 §5). Because both resolvers' outputs change when the part is on (the charge moved), the battery was
+re-measured; lane MOR2's numbers (charge at the entry, §11.6) are given beside it:
+
+| | tactical, C1 | AutoResolver, C1 | lane MOR2 (charge at the entry): tactical / auto |
+|---|---|---|---|
+| off digest (lane P's ParityPCsv.Digest) | `90E58DCB…F65D6914` = lane P's | `2AC31207…A0B68F31` = lane MOR's | the same |
+| on, entry 50 alone: digest | `F8988948…666879AE` | `11437044…D1054425` | `413CD6C2…88E29A18` / `048A8EE5…FA33101E` |
+| entry rows (on) | 3,440 | 3,440 | 3,440 / 3,440 |
+| battles without fighting (off / on) | 0 / 0 | 0 / 0 | — |
+| outcomes changed / winners changed | 887 / 128 | 887 / 83 | 649 / 134 · 598 / 103 |
+| on, entry 50 + c = 200: digest | `F87F58E1…08A9D847` | `BEECA293…29B7262D` | `D4784D79…E2E26137` / `0FE5ED33…6DA15389` |
+| outcomes changed / winners changed | 872 / 127 | 856 / 54 | 634 / 133 · 567 / 74 |
+
+Rule P1 (n = 80 per tuning scenario): **off 16/20; entry 50 alone 14/20; entry 50 + c = 200 13/20** — the same counts and the same
+failing scenarios as lane MOR2 measured (leadership-edge on duration, ford-crossing on the winner; with c = 200 also sniper-screen on
+duration). MEASURED: the identity at the defaults holds over 1,600 battles in each resolver; ~~every battery battle is fought, so DD1's
+settlement gate changes nothing there, and the whole difference from lane MOR2's "on" numbers is the charge's instant~~
+**[MOR3, verification round 1, 2026-11-11, MOR3-R1-07: struck as a MEASURED statement. MEASURED: every battery battle is fought (0 battles
+without fighting, off and on, both resolvers). DERIVED, not measured (the bench runs no settlement): DD1's settlement gate is the
+identity on a fought battle, so it changes nothing on this battery; and of this lane's resolver changes only the charge's instant (C1)
+acts on a battle with the part on (the fought report only sets a report field; the state-hash additions are outside the bench's
+digest), so it is the whole difference from lane MOR2's "on" numbers.]** INFERRED (not
+measured): more outcome fields change under C1 than with the charge at the entry because a charge taken at the entry could be made up
+by the in-battle recovery while a formation held before the fight (§11.3 (i)), and one taken at the first fight cannot. Lane P's
+acceptance stays OPEN (D-079 Q4); the held-out acceptance battery was not run; these numbers measure the rule's effect, not parity.
+
+### 12.5 The War Sandbox (D-085 §4; implemented through the resolvers)
+
+The sandbox keeps no campaign morale and settles nothing (D15: a Campaign Encounter writes nothing back), so DD1's settlement gate has
+nothing to gate there; it runs the campaign's resolvers with its own rules (DR30), so the fought report and the in-battle part reach
+it unchanged. MEASURED with rules carrying the part (50) (`WarSandbox_QuickBattle_WithoutFighting_ChargesNothing_WithFighting_
+ChargesAtTheFirstFight`): a Quick Battle between two player sides who never order anything, out of each other's sight, has no
+fighting — no first fighting instant, nothing charged; the same forces AI against AI (the AutoResolver) fight, and every formation is
+charged once, at the battle's first fighting instant. **[MOR3, verification round 1, 2026-11-11, MOR3-R1-04: now observed on the AutoResolver's charge rows,
+exactly one per formation, at the first fighting instant (232,000 ms); the test used to read only each formation's EntryCharged and an
+instant after the start, which a charge one step late or a charge at every fighting step also pass (H-MOR3 §13).]** Lane MOR2's Quick
+Battle test (fought battles) passes unchanged.
+- **PROPOSAL (not implemented):** the result inspection shows the battle's first fighting instant, or "no fighting: no morale
+  change"; the Campaign Encounter's settlement preview (§11.7) applies DD1 with the same functions (`BattleFighting.SettlesAsFought`,
+  `CampaignMorale.IfFought`), so an encounter without fighting previews no change for either army.
+
+### 12.6 Lane S's siege battles (D-085 §4; PROPOSAL, not implemented)
+
+What the prototype does (CITED from `Proto.M7/War/Siege/`): an assault, a relief battle and a sally are resolved by lane S's
+`FormationAssaultStandIn`, one odds draw per battle that returns loss shares — it resolves no attack, so DD1-R2 (a)'s test has nothing
+to read; and none of them reaches the campaign settlement (`SupportWorld.OnBattle` is the only code that sets an army's campaign
+morale after a battle), so in the prototype DD1, like DB1 and DA1 (§11.12), never applies to a siege battle. Each camp's siege morale
+(lane S's own stock) takes three event terms: a repelled assault lifts the garrison (`RepelledAssaultBoostPermille`, 50 ‰) and shocks
+the besiegers (`FailedAssaultAttackerShockPermille`, 100 ‰); a beaten relief shocks the garrison (`FailedReliefShockPermille`, 400 ‰).
+- **PROPOSAL (a): DD1 reaches siege battles with the land module** (C15, ADR-060 §2.5; §11.12 (a)). Each assault, relief battle and
+  sally is then a battle with its own report; one that had no fighting changes no army's campaign morale, and — the same reading
+  (DD1-R1 (a): "no army's morale changes through that battle") — moves neither camp's siege morale: no repelled-assault lift or shock
+  and no failed-relief shock from a siege battle without fighting. Nothing siege-specific beyond reading the report's `Fought`.
+- **Alternative (b), not proposed:** a fought test in lane S's stand-in now (for example, both sides' powers above 0). It would be a
+  third definition of fighting beside the two resolvers', in a model that is to be replaced, for a stock DD1's settlement does not
+  touch.
+
+### 12.7 The laws
+
+- **Law 1.** DD1 moves no person, good or coin; persons move by lane W's and lane D's ledger transfers as before, in a battle without
+  fighting too (READING MOR3-R3 (a)). Conservation holds, exact (every suite test of it passes).
+- **Law 2.** No standing modifier: the fought gate is a 0/1 factor inside the settlement equation, the in-battle charge an event
+  change of the formation's stock at an instant.
+- **Law 3.** Events only; no rate.
+- **Law 4.** Nothing reads a date or an era: the report is computed state (the first attack).
+- **Law 5.** Integers; the first fighting instant is an event time (the TacticalResolver's first executed attack in the scheduler's
+  total order; several attacks at one instant give the same instant); the charge runs in ascending formation id; settlements in the
+  event key's order (tie-dense, MEASURED); no IEEE type. The determinism scan is clean.
+
+### 12.8 For the Director
+
+No new question: D-085 §4 delegates every design item here. Observations, not questions:
+1. **READINGS MOR3-R1 and MOR3-R2** apply DD1-R2 (a) at its two edges (a bombard of empty ground is not fighting; a bow contact that
+   is not a ram is not fighting), each with its alternative (§12.2).
+2. **READING MOR3-R3**: DD1 is applied to morale only. Lane W's desertion of routed men (persons) still happens in a battle without
+   fighting: in the measured unfought mutual rout from 500, 800 of 2,000 men desert on each side; and the in-battle recovery still
+   runs before the first fight (§12.3).
+3. **C1** is proposed for the in-battle part (D-085 §4's first form); C2 (dropped) is the alternative; the default stays 0.
+4. **Lane P's battery**: C1 changes the in-battle part's effect when it is on (the "on" digests and counts above replace lane MOR2's);
+   at the defaults both resolvers' digests are unchanged. Lane P's acceptance stays OPEN (D-079 Q4).
+
+### 12.9 Statements superseded or narrowed (marked in place, 2026-11-11)
+
+The header; §0 (the army row and the link row); §4.1; §4.3; §5 (battle → campaign); §6; §8 item (b); §9; §11 (its opening
+paragraph); §11.1 (DB1-R2 (a)'s instant); §11.2 items 2 and 3; §11.3 (the "battle feels it" paragraph and the counted-once note);
+§11.4 (the lossless win; the MoraleMax and rout-threshold bullets; the worked "With DR29" bullet); §11.5 Law 2; §11.6 (the row's
+version; the battery numbers); §11.7 (the sandbox's charge at entry; the preview; the staging); §11.8 (its opening, the round-2
+conclusion, (c) and (c′)); §11.9 (a pointer here); §11.10 (the band and observation (2)); §11.11 (items 1 and 10); §11.12. The dated D-085 note below the annexes is left as written; this section is what it announced.
+**[MOR3, verification round 1, 2026-11-11] Marked in place: §12.2 (the oracle note; four measured cells of the table), §12.4 (the
+battery statement relabelled; the later-arrival note), §12.5 (the sandbox note), §12.10 (item 4; items 7 and 8 added). The verdicts are
+in H-MOR3 §13.**
+
+### 12.10 Limitations
+
+1. The in-battle part is 0 by default: by default the battle and the War Sandbox do not feel the cost at all.
+2. Lane S's siege battles do not apply DD1 (they never reach the settlement): PROPOSAL (a) only (§12.6).
+3. The sandbox's inspection and its settlement preview are PROPOSALS (§12.5).
+4. The hand-off is lane D's stand-in; `SupportBattle.Fought` defaults to true for hand-made battles (M7.15 sets it from the report).
+   **[MOR3, verification round 1, 2026-11-11, MOR3-R1-08: that default is FAIL-OPEN: a hand-off that leaves it out settles a battle without fighting
+   as fought (the entry cost, DR29's decrease, DA1's rise). Every hand-off of a real battle report in the prototype now sets it from
+   the report (the tests' `HandOff`, and since round 1 lane D's two hand-offs, which used to rely on the default). PROPOSAL for M7.15:
+   the real hand-off takes it as a required input, with no default.]**
+5. Lane MOR2's measurement of the parity gap in persons with the part on (§11.4: a charge that routs a formation in the
+   TacticalResolver but withdraws it in the AutoResolver) was made with the charge at the entry; under C1 the charge falls at the
+   first fight and that gap was not re-measured.
+6. The battery was measured on the tuning battery only, never on the held-out acceptance battery (lane P's record; D-079 Q4 OPEN).
+7. **[MOR3, verification round 1, 2026-11-11, MOR3-R1-03] The two resolvers can disagree about whether a battle had fighting, and so about every
+   DD1 term, where a WALL stands between the sides: the AutoResolver's formation-level contact and its line of fire ignore Wall
+   cells, which block the TacticalResolver's direct fire. MEASURED on the verifier's walled setup (archers behind a wall, a spotter
+   beyond it; seeds 1 to 3): the TacticalResolver (the knowledge AI on both sides) ends in a Standoff at 360,000 ms after 540 blocked
+   shots, with no fighting; the AutoResolver fights from step 0 (melee and volleys through the wall) and ends with a side eliminated;
+   and `ResolverPolicy.Default` sends an AI-against-AI battle to the AutoResolver. The same battle thus settles with no change in one
+   resolver and with the entry cost, DR29's decrease and DA1's rise in the other. Behind BUILDINGS the two agree (no fighting;
+   MEASURED, `DD1_R2a_AVolleyWithNoLineOfFire_…`). The cause is lane P's AutoResolver model, which predates this lane, not DD1's
+   report: its volley's line of fire is `TerrainSight.FirePath` alone, which judges opaque layers only (CITED), so INFERRED, not
+   measured, a crest between the sides is a second case of the same class. Lane P parity item (PROPOSAL): walls (and ground in the
+   way) in the AutoResolver's contact and line of fire. Lane P's acceptance stays OPEN (D-079
+   Q4). This lane's evidence of agreement between the resolvers (one meeting battle; the battery, with no battle without fighting;
+   the buildings battle) cannot see this class of battle.**
+8. **[MOR3, verification round 1, 2026-11-11, MOR3-R1-06] The state-hash additions (the first fighting instant and each formation's charge instant,
+   appended only while the in-battle part is on) are pinned by no test: the verifier's mutants V39 and V40, which drop them, survive the
+   full suite (re-measured in round 1). DERIVED: in the AutoResolver every formation enters at the start and is charged at the first
+   fighting step, so both values follow from the charge rows the hash already carries; in the TacticalResolver each charge instant is
+   its row's, and the first fighting instant follows from the rows except while no land formation has entered (every one aboard), the
+   only case in which the dropped value is hashed nowhere else (INFERRED low impact; not pinned).**
 
 ---
 

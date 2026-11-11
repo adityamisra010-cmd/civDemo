@@ -63,9 +63,12 @@ public sealed record TacticalRules
     /// battery's re-measurement (D-079 D11, Q4); PROPOSAL value when switched on: 200. PLACEHOLDER.</summary>
     public long LocalWinMoraleRise { get; init; }
     /// <summary>[MOR2] D-083 DB1 ("Entering a battle costs morale"), the in-battle part (docs/m7-plan/morale-proposal.md §11;
-    /// <see cref="EntryMorale"/>): every LAND formation loses this much morale (battle scale; all of it when it has less) once, at the
-    /// instant it is placed on the field — the battle's start, or later the instant its first entity is put ashore from a transport.
-    /// Both resolvers implement it through one function. Default 0: the exact identity (no row, nothing hashed, every golden
+    /// <see cref="EntryMorale"/>): every LAND formation loses this much morale (battle scale; all of it when it has less) once, ~~at the
+    /// instant it is placed on the field — the battle's start, or later the instant its first entity is put ashore from a transport~~
+    /// [MOR3, D-085 DD1, 2026-11-11: at the battle's first fighting instant for a formation placed on the field before it (at the start,
+    /// or later when its first entity is put ashore from a transport), at its own entry for one placed after it, and never in a battle
+    /// without fighting (D-085 §4: the part "must not change morale in a battle that turns out to have no fighting"; PROPOSAL C1, morale
+    /// proposal §12.4)]. Both resolvers implement it through one function. Default 0: the exact identity (no row, nothing hashed, every golden
     /// unchanged); the campaign part of DB1 is charged by the settlement whatever this is (CampaignMorale.EntryPpm). PROPOSAL value
     /// when switched on: 50 (the battle-scale image of the 50,000-ppm campaign cost at MoraleMax 1,000), together with
     /// LocalWinMoraleRise at the next re-measurement of the parity battery (D-079 D11, Q4). PLACEHOLDER.
