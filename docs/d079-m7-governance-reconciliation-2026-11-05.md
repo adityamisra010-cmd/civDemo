@@ -1036,3 +1036,10 @@ These reports live in the session scratchpad (`/tmp/claude-0/-home-user-civDemo/
   `docs/d085-no-fighting-no-morale-change-2026-11-11.md` (DD1). An unfought battle gives no DA1 rise, no D-083 entry cost and no
   DR29 decrease. Fighting is read per battle (DD1-R1 (a)) and as at least one attack resolved against an enemy formation
   (DD1-R2 (a)); D-082 DA1 and D-083 DB1 are narrowed accordingly.
+
+## Dated note — 2026-11-11 (D-086; appended, the text above is unchanged)
+
+- The Director reported that closing the M6 exit build froze the screen and left no run workbook, and asked for the run record to
+  keep research (node, how much, turn); recorded in `docs/d086-run-record-research-and-exit-export-2026-11-11.md` (DE1–DE3). For
+  that work only, READING DE-R (a) lets `Sim.Ui`, `Sim.Core/Observability` and read-only `Sim.Core/State` queries change, with
+  their tests; no kernel, simulation state or world hash changes; §6's rule stands for everything else and Q5 stays open.
