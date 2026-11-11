@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11 13:45 UTC (lane MOR3 integrated as `e052b51`; lane RT resumed; throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11 15:21 UTC, WIP checkpoint (lane RT's bundle now `4de0682`; RT still running; throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -43,8 +43,11 @@ Supporting material committed with this README:
 **Throttled to one agent at a time** (Director, 2026-11-11 ~11:20 UTC: "throttle all work by 80%"). Lane MOR3 finished and is
 integrated (`e052b51`). Running since 13:41 UTC: lane RT, resumed (`wf_2aee7a53-1fc`, base `51ab032`,
 [args/RT.json](args/RT.json)). No agent of that run had completed, so its implementation agent restarted and continues from its
-clone. The clone's head is `950d6d1`: the fixes, the Longbow diagnosis and the date review are committed. Validation and the report
-were in progress at the pause.
+clone. At the 15:21 checkpoint the clone's head was `4de0682`, with no uncommitted edits: the fixes, the Longbow diagnosis, the date
+review and the lane's reports are committed. Its Tier-3 validation started at 14:53 UTC under the full-suite lock and was still
+running. The lane's own log says `scripts/validate.sh full` returned 1 at a charters check that the lane calls pre-existing, so it
+runs the two full suites directly. That is the lane's claim, not yet checked; the orchestrator runs Tier 3 again when it integrates
+the lane.
 
 **Paused**, in this order of resumption (each with `resumeFromRunId`: finished agents replay from cache, and the interrupted
 agent restarts and continues from its clone):
@@ -61,9 +64,9 @@ and MOR3's eight findings were 3 minor and 5 nit. So its fix round is unverified
 
 Lane RR's orphaned full test suite (`Sim.Tests`, Release, under the full-suite lock) had exited by 13:19 UTC.
 
-**Checkpoint 2026-11-11 13:20 UTC** (in [wip/](wip/)):
+**Checkpoint 2026-11-11 15:21 UTC** (in [wip/](wip/); the previous one was at 13:20):
 - **Lane commits after `51ab032`, as bundles:**
-  - `RT-wip.bundle` (`950d6d1`);
+  - `RT-wip.bundle` (`4de0682`; it was `950d6d1` at 13:20);
   - `RR-wip.bundle` (`0a631db`, unchanged since 11:12);
   - `MOR3-wip.bundle` (`a8ef60a`): retired at 13:45 UTC, because the lane is integrated as `e052b51`.
 
@@ -73,18 +76,20 @@ Lane RR's orphaned full test suite (`Sim.Tests`, Release, under the full-suite l
   It was corrected at 13:20 after a restore test.
 - **Uncommitted edits of the paused clones.** These are binary patches against the head in each file name:
   - `RR-uncommitted-0a631db.patch`: 16 files, including the new `current-v6` export fixture;
-  - `RT-uncommitted-950d6d1.patch`: 1 file;
   - `g2-scenes-uncommitted-0f8ae2f.patch`: 4 files.
 
-  Apply each with `git apply --binary <patch>` on its head. They snapshot work stopped mid-step, not a finished state.
-  MOR3's uncommitted edits are not snapshotted while it runs.
-- **G2 final, scenes stage.** `g2-scenes-0f8ae2f.patch` holds the stage's committed work since trunk `21a181e`, as a binary
-  patch of `prototypes/m7-gfx2`. It replaces `g2-scenes-3215c41.patch`. It applies onto this branch's tree, and the resulting
-  subtree equals the stage's `0f8ae2f` subtree.
-- **Restore test (13:20, MEASURED).** In a fresh clone of this branch:
-  - each bundle fetched to its head;
-  - each uncommitted patch applied (`--check`) onto its head;
-  - the two G2 patches applied in sequence.
+  Both are byte-identical to fresh snapshots taken at 15:21. Apply each with `git apply --binary <patch>` on its head. They
+  snapshot work stopped mid-step, not a finished state.
+- **Retired at 15:21:** `RT-uncommitted-950d6d1.patch`. Lane RT resumed from that edit and committed it. The file as patched at
+  `950d6d1` differs from `4de0682`'s only by 81 lines that `4de0682` adds. The patch remains in this branch's history at
+  `afc7118`. RT is running, and its clone had no uncommitted edits at 15:21.
+- **G2 final, scenes stage**, unchanged since 13:20 (head `0f8ae2f`). `g2-scenes-0f8ae2f.patch` holds the stage's committed work
+  since trunk `21a181e`, as a binary patch of `prototypes/m7-gfx2`. It applies onto this branch's tree.
+- **Restore test (15:21, MEASURED).** In a fresh clone of this branch (`afc7118`):
+  - the RT and RR bundles verified and fetched to `4de0682` and `0a631db`;
+  - the RR patch applies (`--check`) on `0a631db`;
+  - the G2 committed patch alone gives a `prototypes/m7-gfx2` tree equal to `0f8ae2f`'s (`c5c617a`);
+  - both G2 patches give a tree equal to the scenes clone's working state (`a0309d3`).
 
 ## 3. Queue after the items in flight
 

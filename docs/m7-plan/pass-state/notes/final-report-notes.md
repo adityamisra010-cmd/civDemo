@@ -169,3 +169,11 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 - Lane P battery (lane-measured): off digests are unchanged; 0 unfought battles in 1,600 per resolver; P1 off 16/20, entry 50 alone 14/20, +c=200 13/20 (same as MOR2). On-digests changed (C1): tactical F8988948…, auto 11437044…
 - PROPOSALS: a lane P parity item (walls in the AutoResolver's contact/LOF; MEASURED walled setup: the TacticalResolver Standoff with 0 attacks vs the AutoResolver fighting from step 0; ResolverPolicy.Default picks Auto for AI vs AI); M7.15: Fought as a required hand-off input (the SupportBattle.Fought default true is fail-open).
 - RT resumed 13:41Z (wz7ug7gq0, run wf_2aee7a53-1fc): no completed agents to replay; the impl agent restarts from clone 950d6d1.
+
+## Checkpoint 2026-11-11 15:21Z
+- RT bundle 950d6d1 -> 4de0682 (6 commits: 99a0115, 0620ab9, 0a0a39e, 9ed6c6d, 7f9b1b0, 4de0682 = the lane's reports). Clone clean at 15:21.
+- RT Tier 3 (lane-run, under the full-suite lock since 14:53Z): the lane log says `scripts/validate.sh full` rc=1 at a charters check the lane calls pre-existing; the lane then runs Sim.Tests and Sim.Ui.Tests directly (Sim.Tests running at 15:21). Lane claim, NOT checked: check the charters stage on DEV at integration.
+- RT 0a0a39e withdraws two of five research.json emerged-text fixes (the evidence does not show those texts wrong); three corrected texts remain (7f9b1b0).
+- RR (0a631db, 16 uncommitted files) and G2 scenes (0f8ae2f, 4 uncommitted files) unchanged since 13:20: fresh temporary-index snapshots are byte-identical.
+- RT-uncommitted-950d6d1.patch retired: the patched file at 950d6d1 differs from 4de0682's only by 81 lines that 4de0682 adds (MEASURED). It stays in history at afc7118.
+- Restore test MEASURED in a fresh clone of afc7118: bundles verify and fetch (RT 4de0682, RR 0a631db); the RR patch passes --check; G2 committed patch alone gives the gfx2 subtree c5c617a (= 0f8ae2f), and both patches give a0309d3 (= the scenes clone's working state).

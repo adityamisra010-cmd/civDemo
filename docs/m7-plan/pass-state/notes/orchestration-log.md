@@ -31,3 +31,4 @@
 2026-11-11T11:35:51Z USER: 'throttle all work by 80%' -> one agent (MOR3); stopped RR, RT, G2 final, verify-final-rounds, report draft; resume order RT -> RR -> G2 final -> verify -> report
 2026-11-11T13:23:00Z WIP checkpoint 5eab286: MOR3 a8ef60a + RT 950d6d1 bundles, G2 scenes 0f8ae2f patch, paused clones' uncommitted patches (RR, RT, scenes); README restore command corrected (clone -b fails; fetch HEAD:lane/<KEY>); next check-in 15:20Z
 2026-11-11T13:43:59Z MOR3 done (95446ff; 1 round: 3 minor + 5 nit, fix r1 unverified -> final-round queue); integrated e052b51 (Release 1559/0/0, scan CLEAN, links 0 broken); RT resumed (wz7ug7gq0, run wf_2aee7a53-1fc); queue: RT -> RR -> G2 final -> verify-final-rounds (+MOR3) -> report
+2026-11-11T15:24:45Z WIP checkpoint: RT 4de0682 bundle (RT Tier 3 running since 14:53Z); RR and G2 scenes unchanged (byte-compared); RT-uncommitted-950d6d1.patch retired (contained in 4de0682); restore test passed; next check-in ~17:20Z
