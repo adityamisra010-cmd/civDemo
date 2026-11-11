@@ -29,6 +29,9 @@ public sealed class KitEffects : IEffectSource
         yield return CharEffects.Attributes(new EffectBuilder(KitEffectNames.Kit)).AddStandardLit()
             .Varyings("vec3 v_wpos; vec3 v_nrm; vec4 v_tan; vec2 v_uv; vec4 v_col; vec4 v_lpos;")
             .VertexLib(GlslLib.ShadowLookup)
+            // G2 integration with stage render2: object motion for TAA from the previous frame's palette, as every
+            // skinned character part writes it (CharEffects.Skinned); without it worn and held kit smears in motion
+            .Velocity().Texture("CharBonesPrev", CharEffects.SlotBonesPrev).VertexLib(CharEffects.PrevSkinLib)
             .Texture("KitBase", SlotBase).Texture("KitNormal", SlotNormal).Texture("KitOrm", SlotOrm)
             .Vec4("KitParams", Stage.Pixel).Vec4("KitTint", Stage.Pixel)
             .PixelLib(CharEffects.SurfaceLib)
@@ -40,7 +43,9 @@ vec3 kitSrgb(vec3 c) { vec3 lo = c / 12.92; vec3 hi = pow((c + 0.055) / 1.055, v
     v_wpos = sp; v_nrm = sn; v_tan = vec4(st, a_tan.w); v_uv = a_uv; v_col = a_col;
     // three times the standard normal offset: large smooth metal faces in close-ups otherwise show acne stripes
     v_lpos = LightViewProj_mul(vec4(sp + normalize(sn) * ShadowOffset.x * 3.0, 1.0));
-    gl_Position = ViewProj_mul(vec4(sp, 1.0));")
+    gl_Position = ViewProj_mul(vec4(sp, 1.0));
+    gb_vcur = VelCur_mul(vec4(sp, 1.0));
+    gb_vprev = VelParams.x > 0.5 ? VelPrev_mul(vec4(prevSkinPos(), 1.0)) : gb_vcur;")
             .PixelMain(@"
     vec4 bc = texture2D(KitBase, v_uv);
     if (KitParams.y > 0.5) {

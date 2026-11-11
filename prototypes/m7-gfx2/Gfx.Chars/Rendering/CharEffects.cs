@@ -21,6 +21,8 @@ public static class CharEffectNames
 public sealed class CharEffects : IEffectSource
 {
     public const int SlotAlbedo = 2, SlotDetail = 3, SlotMask = 4, SlotExtra = 5;
+    /// <summary>Stage render2: the previous frame's bone palette (object motion for TAA), read like <c>CharBones</c>.</summary>
+    public const int SlotBonesPrev = 6;
 
     public IEnumerable<EffectBuilder> CreateEffects()
     {
@@ -29,7 +31,7 @@ public sealed class CharEffects : IEffectSource
         yield return Skinned(CharEffectNames.Eye, EyePixel, b => b.Texture("EyeTex", SlotAlbedo).Vec4("EyeParams", Stage.Pixel)
             .Vec4("EyeCentreL", Stage.Vertex).Vec4("EyeCentreR", Stage.Vertex), eye: true);
         yield return Skinned(CharEffectNames.Mouth, MouthPixel, b => b.Vec4("MouthParams", Stage.Both));
-        yield return Skinned(CharEffectNames.Cornea, CorneaPixel, b => b.Vec4("EyeParams", Stage.Pixel));
+        yield return Skinned(CharEffectNames.Cornea, CorneaPixel, b => b.Vec4("EyeParams", Stage.Pixel).BlendedGBuffer());
         yield return Skinned(CharEffectNames.Hair, HairPixel, b => b.Texture("HairTex", SlotAlbedo).Vec4("HairColour", Stage.Pixel).Vec4("HairParams", Stage.Pixel));
         yield return Skinned(CharEffectNames.Lod, LodPixel, b => b.Texture("SkinTex", SlotAlbedo).Texture("Emblem", SlotDetail).PixelLib(SurfaceLib));
         yield return Skinned(CharEffectNames.Fur, FurPixel, b => b.Texture("FurTex", SlotAlbedo).Vec4("HairColour", Stage.Pixel).Vec4("FurParams", Stage.Pixel));
@@ -81,6 +83,27 @@ void skinVertex(out vec3 sp, out vec3 sn, out vec3 st) {
 }";
 
     /// <summary>
+    /// Stage render2: the vertex's previous-frame position from the previous palette (morphs and the skirt push-out of
+    /// this frame are reused: object motion for TAA only needs the skeleton's motion).
+    /// </summary>
+    public const string PrevSkinLib = @"
+vec4 cbTexelPrev(float joint, float k) {
+    return texture2DLod(CharBonesPrev, vec2((joint * 3.0 + k + 0.5) * CharBoneSize.z, (BoneRow.x + 0.5) * CharBoneSize.w), 0.0);
+}
+vec3 prevSkinPos() {
+    vec4 p = vec4(a_pos.xyz + m_dpos, 1.0);
+    vec4 bw = a_bw * (1.0 / 255.0);
+    vec3 sp = vec3(0.0);
+    for (int i = 0; i < 4; i++) {
+        float j = i == 0 ? a_bi.x : i == 1 ? a_bi.y : i == 2 ? a_bi.z : a_bi.w;
+        float w = i == 0 ? bw.x : i == 1 ? bw.y : i == 2 ? bw.z : bw.w;
+        if (w <= 0.0) continue;
+        sp += w * vec3(dot(cbTexelPrev(j, 0.0), p), dot(cbTexelPrev(j, 1.0), p), dot(cbTexelPrev(j, 2.0), p));
+    }
+    return sp;
+}";
+
+    /// <summary>
     /// Skirts (mesh flag 1) are pushed out of the four leg capsules (thigh and calf segments of both legs, radius in w,
     /// world space, from the posed skeleton each frame), so a striding or running leg never shows through the cloth.
     /// </summary>
@@ -97,7 +120,9 @@ vec3 pushOut(vec3 p, vec4 a, vec4 b) {
     {
         var b = Attributes(new EffectBuilder(name)).AddStandardLit()
             .Varyings("vec3 v_wpos; vec3 v_nrm; vec4 v_tan; vec2 v_uv; vec4 v_col; vec4 v_lpos; vec3 v_bind; vec3 v_bnrm;" + (eye ? " vec3 v_fwd; vec3 v_local;" : ""))
-            .VertexLib(GlslLib.ShadowLookup);
+            .VertexLib(GlslLib.ShadowLookup)
+            // stage render2: object motion for TAA from the previous frame's palette (same palette row)
+            .Velocity().Texture("CharBonesPrev", SlotBonesPrev).VertexLib(PrevSkinLib);
         if (capsules)
         {
             b = b.Vec4("CapsuleOn", Stage.Vertex).VertexLib(CapsuleLib);
@@ -110,7 +135,9 @@ vec3 pushOut(vec3 p, vec4 a, vec4 b) {
     if (CapsuleOn.x > 0.5) { sp = pushOut(sp, LegA0, LegB0); sp = pushOut(sp, LegA1, LegB1); sp = pushOut(sp, LegA2, LegB2); sp = pushOut(sp, LegA3, LegB3); }" : "") + @"
     v_wpos = sp; v_nrm = sn; v_tan = vec4(st, a_tan.w); v_uv = a_uv; v_col = a_col; v_bind = a_pos.xyz + m_dpos; v_bnrm = a_nrm;
     v_lpos = shadowLookup(sp, sn);
-    gl_Position = ViewProj_mul(vec4(sp, 1.0));";
+    gl_Position = ViewProj_mul(vec4(sp, 1.0));
+    gb_vcur = VelCur_mul(vec4(sp, 1.0));
+    gb_vprev = VelParams.x > 0.5 ? VelPrev_mul(vec4(prevSkinPos(), 1.0)) : gb_vcur;";
         if (eye) vs += @"
     float isL = step(abs(a_bi.x - EyeCentreL.w), 0.5);
     vec3 c = mix(EyeCentreR.xyz, EyeCentreL.xyz, isL);
@@ -167,6 +194,7 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
     float so = clamp(pow(nov + ao, exp2(-16.0 * a1 - 1.0)) - 1.0 + ao, 0.0, 1.0);
     float skyVis = mix(0.8, 1.0, shadow);
     vec3 amb = albedo * irr / PI * ao * skyVis + pre * (0.028 * dfg.x + dfg.y) * so * specMul * skyVis;
+    gbAmbient(amb); // stage render2: the ambient share for screen-space AO
     // transmission through thin parts, lit from behind
     float back = pow(clamp(dot(V, -L), 0.0, 1.0), 4.0) * clamp(1.0 - ndl.r, 0.0, 1.0);
     vec3 trans = thin * back * albedo * vec3(1.0, 0.32, 0.18) * SunColor.rgb * 0.35;
@@ -269,7 +297,9 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
     vec3 spec = (vec3(0.022) * s1 + albedo * 0.18 * s2) * vis;
     vec3 c = SunColor.rgb * shadow * (albedo / PI * diff + spec);
     vec3 irr = (LightModel.y > 0.5) ? shIrradiance(Ng) * IblParams.y : mix(AmbientGround.rgb, AmbientSky.rgb, Ng.y * 0.5 + 0.5) * PI;
-    c += albedo * irr / PI * mix(0.35, 1.0, layer) * mix(0.75, 1.0, shadow);
+    vec3 hairAmb = albedo * irr / PI * mix(0.35, 1.0, layer) * mix(0.75, 1.0, shadow);
+    gbAmbient(hairAmb); // stage render2: the ambient share for screen-space AO
+    c += hairAmb;
     gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);";
 
     /// <summary>
@@ -323,7 +353,9 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
     vec3 spec = (vec3(0.012) * s1 + albedo * 0.12 * s2) * smoothstep(-0.1, 0.25, dot(Ng, L) + 0.3);
     vec3 c = SunColor.rgb * shadow * (albedo / PI * diff + spec);
     vec3 irr = (LightModel.y > 0.5) ? shIrradiance(Ng) * IblParams.y : mix(AmbientGround.rgb, AmbientSky.rgb, Ng.y * 0.5 + 0.5) * PI;
-    c += albedo * irr / PI * mix(0.35, 1.0, frac) * mix(0.75, 1.0, shadow);
+    vec3 furAmb = albedo * irr / PI * mix(0.35, 1.0, frac) * mix(0.75, 1.0, shadow);
+    gbAmbient(furAmb); // stage render2: the ambient share for screen-space AO
+    c += furAmb;
     gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);";
 
     /// <summary>
@@ -387,6 +419,7 @@ vec3 shadeSurface(vec3 albedo, float rough, float metal, float ao, vec3 N, vec3 
     float so = clamp(pow(nov + ao, exp2(-16.0 * a - 1.0)) - 1.0 + ao, 0.0, 1.0);
     float skyVis = mix(0.8, 1.0, shadow);
     vec3 amb = dc * irr / PI * ao * skyVis + envReflect(R, rough) * (f0 * dfg.x + vec3(dfg.y)) * so * skyVis;
+    gbAmbient(amb); // stage render2: the ambient share for screen-space AO
     return direct + amb;
 }";
 

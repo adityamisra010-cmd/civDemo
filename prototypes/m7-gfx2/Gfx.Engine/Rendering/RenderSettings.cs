@@ -16,7 +16,10 @@ public enum IblSource { None, Sky, Hdri }
 public enum ShadowTechnique { Single, Cascaded }
 
 /// <summary>Interactive anti-aliasing (stills use jittered accumulation, <see cref="RenderFeatures.StillSamples"/>).</summary>
-public enum AntiAliasing { None, Fxaa }
+public enum AntiAliasing { None, Fxaa, Taa }
+
+/// <summary>Debug views (stage render2): the G-buffer-lite and the screen-space terms instead of the frame.</summary>
+public enum DebugView { None, Depth, Ao, Contact, Shares, Cascades }
 
 /// <summary>
 /// G2 renderer feature switches (stage render1). Every feature can be switched off for A/B captures and costs:
@@ -83,6 +86,48 @@ public sealed class RenderFeatures
     public bool EnvStructures { get; set; } = true;
     /// <summary>Forest floor from the placed canopy (smooth edges); off = the cell-based forest-floor splat.</summary>
     public bool EnvForestFloor { get; set; } = true;
+    // screen-space terms (stage render2)
+    /// <summary>Half-resolution ground-truth AO (GTAO) from the G-buffer-lite depth, applied to the ambient share only.</summary>
+    public bool Ssao { get; set; } = true;
+    /// <summary>World-space AO radius (m).</summary>
+    public float AoRadius { get; set; } = 1.0f;
+    /// <summary>AO strength 0..1 (1 = the full GTAO term).</summary>
+    public float AoStrength { get; set; } = 1.0f;
+    /// <summary>Distance (m) where AO starts to fade out (gone at 1.5×).</summary>
+    public float AoFadeStart { get; set; } = 150f;
+    /// <summary>Screen-space contact shadows towards the sun, applied to the direct share only.</summary>
+    public bool ContactShadows { get; set; } = true;
+    /// <summary>Contact-shadow ray length (m).</summary>
+    public float ContactLength { get; set; } = 0.3f;
+    /// <summary>Assumed thickness of what the contact ray passes behind (m).</summary>
+    public float ContactThickness { get; set; } = 0.1f;
+    /// <summary>Debug output instead of the frame (G2 path, single frames).</summary>
+    public DebugView Debug { get; set; } = DebugView.None;
+    // crowd and culling (stage render2): content switches read by the crowd scenes
+    /// <summary>Draw the instanced crowd at all (off = the scene without its soldiers; measures the crowd's own cost).</summary>
+    public bool Crowd { get; set; } = true;
+    /// <summary>Crowd LOD bias: multiplies a soldier's projected height before the level choice (2 = finer levels to twice the distance).</summary>
+    public float CrowdLodBias { get; set; } = 1f;
+    /// <summary>Forces one crowd level for every soldier (−1 = by projected size; 0 lod1, 1 lod2, 2 lod3).</summary>
+    public int CrowdLevel { get; set; } = -1;
+    /// <summary>Dithered cross-fade between crowd levels; off = hard switches.</summary>
+    public bool CrowdLodFade { get; set; } = true;
+    /// <summary>Per-soldier looks (dye, skin tone, mud, tarnish, height, width); off = every soldier wears the neutral look.</summary>
+    public bool CrowdLooks { get; set; } = true;
+    /// <summary>Two-clip blending in the crowd's skinning; off = each soldier shows only the heavier of its two clips.</summary>
+    public bool CrowdClipBlend { get; set; } = true;
+    /// <summary>Per-soldier frustum culling (off = every soldier is submitted).</summary>
+    public bool FrustumCulling { get; set; } = true;
+    /// <summary>CPU occlusion culling against software-rasterised terrain and wall occluders (hi-Z).</summary>
+    public bool OcclusionCulling { get; set; } = true;
+    /// <summary>Shadow casters that only shadow receivers of a finer cascade are skipped in the coarser one (content that asks).</summary>
+    public bool CascadeCasterCulling { get; set; } = true;
+    /// <summary>TAA: weight of the current frame in the resolve (still camera).</summary>
+    public float TaaCurrentWeight { get; set; } = TaaHistory.CurrentWeight;
+    /// <summary>TAA: variance-clip box half-size in standard deviations.</summary>
+    public float TaaClipGamma { get; set; } = TaaHistory.ClipGamma;
+    /// <summary>True when the scene pass must write the G-buffer-lite targets.</summary>
+    public bool NeedsGBuffer => Ssao || ContactShadows || Debug != DebugView.None || Aa == AntiAliasing.Taa;
 
     /// <summary>All G1 behaviour (the BEFORE baseline inside the G2 code).</summary>
     public static RenderFeatures G1() => new()
@@ -93,12 +138,14 @@ public sealed class RenderFeatures
         MacroVariation = false, WaterRippleFade = false,
         EnvTrees = false, EnvImpostors = false, EnvLodFade = false, EnvWind = false, EnvGroundCover = false, EnvRocks = false,
         EnvWater = false, EnvReflections = false, EnvStructures = false, EnvForestFloor = false,
+        Ssao = false, ContactShadows = false,
     };
 
     /// <summary>True when every switch is at its G1 value, so the frame uses the unchanged G1 path.</summary>
     public bool IsG1Frame =>
         Sky == SkyMode.Legacy && !AerialPerspective && !Pbr && Ibl == IblSource.None && ShadowTechnique == ShadowTechnique.Single
-        && ToneMapper == ToneMapper.AcesFit && !AutoExposure && !Bloom && !ColorGrade && Aa == AntiAliasing.None && StillSamples <= 1;
+        && ToneMapper == ToneMapper.AcesFit && !AutoExposure && !Bloom && !ColorGrade && Aa == AntiAliasing.None && StillSamples <= 1
+        && !Ssao && !ContactShadows && Debug == DebugView.None;
 
     public RenderFeatures Clone() => (RenderFeatures)MemberwiseClone();
 
@@ -108,9 +155,12 @@ public sealed class RenderFeatures
         "sky=legacy|analytic", "aerial=0|1", "farfield=0|1", "haze=<x>", "pbr=0|1", "ibl=none|sky|hdri", "hdri=<path>",
         "hdrirot=<deg>", "hdribg=0|1", "shadows=single|csm", "cascades=1..4", "cascadesize=<px>", "shadowdist=<m>",
         "tonemap=acesfit|neutral|aces|agx|linear", "autoexposure=0|1", "ev=<bias>", "bloom=0|1", "bloomstrength=<x>",
-        "grade=0|1", "aa=none|fxaa", "samples=<n>", "terrain=procedural|photo", "aniso=<1..16>", "hex=0|1", "macro=0|1",
+        "grade=0|1", "aa=none|fxaa|taa", "samples=<n>", "terrain=procedural|photo", "aniso=<1..16>", "hex=0|1", "macro=0|1",
         "ripplefade=0|1", "trees=0|1", "impostors=0|1", "lodfade=0|1", "wind=0|1", "groundcover=0|1", "rocks=0|1", "water=0|1",
         "reflect=0|1", "structures=0|1", "forestfloor=0|1", "env=0|1",
+        "ssao=0|1", "aoradius=<m>", "aostrength=<0..1>", "aofade=<m>", "contact=0|1", "contactlen=<m>", "contactthick=<m>",
+        "debug=none|depth|ao|contact|shares|cascades", "crowdlod=<bias>", "crowdlevel=-1|0|1|2", "crowdfade=0|1", "frustum=0|1",
+        "occlusion=0|1", "castercull=0|1", "taaweight=<0..1>", "taagamma=<x>",
     };
 
     /// <summary>Applies one <c>key=value</c> switch (case-insensitive key). Throws on an unknown key or value.</summary>
@@ -153,7 +203,7 @@ public sealed class RenderFeatures
             case "bloom": Bloom = B(lv); break;
             case "bloomstrength": BloomStrength = F(v); break;
             case "grade": ColorGrade = B(lv); break;
-            case "aa": Aa = lv switch { "none" or "off" or "0" => AntiAliasing.None, "fxaa" => AntiAliasing.Fxaa, _ => throw Bad(key, v) }; break;
+            case "aa": Aa = lv switch { "none" or "off" or "0" => AntiAliasing.None, "fxaa" => AntiAliasing.Fxaa, "taa" => AntiAliasing.Taa, _ => throw Bad(key, v) }; break;
             case "samples": StillSamples = Math.Clamp(I(v), 1, 256); break;
             case "terrain": PhotoTerrain = lv switch { "procedural" or "g1" => false, "photo" => true, _ => throw Bad(key, v) }; break;
             case "aniso": Anisotropy = Math.Clamp(I(v), 1, 16); break;
@@ -170,6 +220,31 @@ public sealed class RenderFeatures
             case "reflect": EnvReflections = B(lv); break;
             case "structures": EnvStructures = B(lv); break;
             case "forestfloor": EnvForestFloor = B(lv); break;
+            case "ssao": Ssao = B(lv); break;
+            case "aoradius": AoRadius = Math.Clamp(F(v), 0.05f, 20f); break;
+            case "aostrength": AoStrength = Math.Clamp(F(v), 0f, 1f); break;
+            case "aofade": AoFadeStart = Math.Clamp(F(v), 1f, 100000f); break;
+            case "contact": ContactShadows = B(lv); break;
+            case "contactlen": ContactLength = Math.Clamp(F(v), 0.01f, 10f); break;
+            case "contactthick": ContactThickness = Math.Clamp(F(v), 0.01f, 10f); break;
+            case "debug":
+                Debug = lv switch
+                {
+                    "none" or "0" => DebugView.None, "depth" => DebugView.Depth, "ao" => DebugView.Ao, "contact" => DebugView.Contact,
+                    "shares" or "split" => DebugView.Shares, "cascades" or "csm" => DebugView.Cascades, _ => throw Bad(key, v),
+                };
+                break;
+            case "crowd": Crowd = B(lv); break;
+            case "crowdlod": CrowdLodBias = Math.Clamp(F(v), 0.05f, 20f); break;
+            case "crowdlevel": CrowdLevel = Math.Clamp(I(v), -1, 2); break;
+            case "crowdfade": CrowdLodFade = B(lv); break;
+            case "crowdlooks": CrowdLooks = B(lv); break;
+            case "crowdblend": CrowdClipBlend = B(lv); break;
+            case "frustum": FrustumCulling = B(lv); break;
+            case "occlusion": OcclusionCulling = B(lv); break;
+            case "castercull": CascadeCasterCulling = B(lv); break;
+            case "taaweight": TaaCurrentWeight = Math.Clamp(F(v), 0.01f, 1f); break;
+            case "taagamma": TaaClipGamma = Math.Clamp(F(v), 0.25f, 8f); break;
             case "env":
             {
                 bool on = B(lv);
@@ -200,7 +275,10 @@ public sealed class RenderFeatures
         $"autoexposure={On(AutoExposure)} ev={ExposureBiasEv:0.##} bloom={On(Bloom)} grade={On(ColorGrade)} aa={Aa} samples={StillSamples} " +
         $"terrain={(PhotoTerrain ? "photo" : "procedural")} aniso={Anisotropy} hex={On(HexTiling)} macro={On(MacroVariation)} ripplefade={On(WaterRippleFade)}" +
         $" trees={On(EnvTrees)} impostors={On(EnvImpostors)} lodfade={On(EnvLodFade)} wind={On(EnvWind)} groundcover={On(EnvGroundCover)} rocks={On(EnvRocks)}" +
-        $" water={On(EnvWater)} reflect={On(EnvReflections)} structures={On(EnvStructures)} forestfloor={On(EnvForestFloor)}");
+        $" water={On(EnvWater)} reflect={On(EnvReflections)} structures={On(EnvStructures)} forestfloor={On(EnvForestFloor)}" +
+        $" ssao={On(Ssao)} aoradius={AoRadius:0.##} aostrength={AoStrength:0.##} contact={On(ContactShadows)} contactlen={ContactLength:0.##}" +
+        $" crowd={On(Crowd)} crowdlod={CrowdLodBias:0.##} crowdlevel={CrowdLevel} crowdfade={On(CrowdLodFade)} crowdlooks={On(CrowdLooks)} crowdblend={On(CrowdClipBlend)} frustum={On(FrustumCulling)} occlusion={On(OcclusionCulling)} castercull={On(CascadeCasterCulling)}" +
+        $"{(Debug != DebugView.None ? " debug=" + Debug : "")}");
 
     static string On(bool b) => b ? "1" : "0";
 }

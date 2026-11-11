@@ -410,6 +410,11 @@ public class EnvRenderTests
                     r.Settings.FogParams = t.Weather.FogParams; r.Settings.ShadowCasterBounds = t.CasterBounds; r.Settings.Features.Haze = t.Haze;
                     if (g1) r.Settings.Features = RenderFeatures.G1();
                     r.Settings.Features.Set("env", "0");
+                    // stage render2: the screen-space AO and contact-shadow pass runs between the opaque and the
+                    // transparent pass. Plain terrain scenery blends its water inside the opaque pass, the environment
+                    // draws the same water in its transparent pass, so with AO on the two legitimately differ on water
+                    // pixels near the banks. This test compares content, so it compares with those passes off.
+                    r.Settings.Features.SetMany("ssao=0,contact=0");
                     return Render(gd, content, r, cam, 10.5f, rt);
                 }
                 var a = With(new Wrap(env), env.Terrain);

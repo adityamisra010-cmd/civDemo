@@ -19,6 +19,14 @@ public enum Stage { Vertex = 1, Pixel = 2, Both = 3 }
 /// with <c>texture2DLod</c>. The pixel shader must reference the sampler (the builder adds a no-op read).</item>
 /// </list>
 /// The vertex stage gets the MojoShader posFixup epilogue appended automatically: write D3D-style clip space.
+/// <para><b>G-buffer-lite (stage render2).</b> Every pixel program writes <c>gl_FragData[0]</c> (the colour; the builder
+/// rewrites <c>gl_FragColor</c>) and, after the effect's own <c>main</c> body returns, two extra outputs that the G2
+/// scene pass binds as render targets 1 and 2 (<see cref="GBufferLayout"/>): target 1 = linear view depth
+/// (<c>1/gl_FragCoord.w</c>, or <see cref="GBufferLayout.SkyDepth"/> for <see cref="SkyGBuffer"/> effects), target 2 =
+/// the share of the pixel's final colour that is ambient (sky) light and the share that is direct (sun) light,
+/// reported by the lighting library through <c>gbAmbient()</c> and <c>applyFog()</c>. Screen-space AO then darkens only
+/// the ambient share and contact shadows only the direct share. When only one target is bound the extra writes are
+/// ignored, so effects drawn anywhere else are unaffected.</para>
 /// </summary>
 public sealed class EffectBuilder
 {
@@ -60,6 +68,26 @@ public sealed class EffectBuilder
     public EffectBuilder PixelMain(string body) { _psMain = body; return this; }
 
     public bool HasParam(string name) { foreach (var p in _params) if (p.Name == name) return true; return false; }
+
+    bool _skyGBuffer, _blendedGBuffer, _velocity;
+    /// <summary>
+    /// The effect writes object motion (G-buffer target 3): its vertex stage sets the varyings <c>gb_vcur</c> (this
+    /// frame's unjittered clip position) and <c>gb_vprev</c> (the previous frame's); declares the standard matrices
+    /// <c>VelCur</c> and <c>VelPrev</c> and <c>VelParams</c> (x = 1 when the renderer wants motion this frame).
+    /// </summary>
+    public EffectBuilder Velocity()
+    {
+        if (_velocity) return this;
+        _velocity = true;
+        return Matrix("VelCur", Stage.Vertex).Matrix("VelPrev", Stage.Vertex).Vec4("VelParams", Stage.Vertex).Varyings("vec4 gb_vcur; vec4 gb_vprev;");
+    }
+    public bool WritesVelocity => _velocity;
+    /// <summary>The effect draws the sky: its G-buffer depth is <see cref="GBufferLayout.SkyDepth"/> and it reports no light shares.</summary>
+    public EffectBuilder SkyGBuffer() { _skyGBuffer = true; return this; }
+    /// <summary>The effect is drawn with blending (water, additive layers): it keeps the G-buffer depth below it (see <see cref="GBufferLayout"/>).</summary>
+    public EffectBuilder BlendedGBuffer() { _blendedGBuffer = true; return this; }
+    public bool IsSkyGBuffer => _skyGBuffer;
+    public bool IsBlendedGBuffer => _blendedGBuffer;
 
     public string VertexGlsl { get; private set; } = "";
     public string PixelGlsl { get; private set; } = "";
@@ -123,7 +151,12 @@ public sealed class EffectBuilder
         foreach (var (name, _) in _textures) touch.Append($"    gl_FragColor += 0.0 * texture2D({name}, vec2(0.5));\n");
 
         VertexGlsl = Header(true) + _vsLib + "void main() {\n" + _vsMain + "\n" + MgfxGl.VsEpilogue + "\n}\n";
-        PixelGlsl = Header(false) + _psLib + "void main() {\n" + _psMain + "\n" + touch + "}\n";
+        // G-buffer-lite (stage render2): the effect's body runs as gfx_main(); main() then writes targets 1 and 2
+        string epilogue = (_skyGBuffer ? GBufferLayout.SkyEpilogue : _blendedGBuffer ? GBufferLayout.BlendedEpilogue : GBufferLayout.SurfaceEpilogue)
+            .Replace("GB_VELOCITY", _velocity ? GBufferLayout.VelocityOut : GBufferLayout.NoVelocity, StringComparison.Ordinal);
+        string body = GBufferLayout.Globals + _psLib + "void gfx_main() {\n" + _psMain + "\n" + touch + "}\n"
+            + "void main() {\n    gb_init();\n    gfx_main();\n" + epilogue + "}\n";
+        PixelGlsl = Header(false) + body.Replace("gl_FragColor", "gl_FragData[0]", StringComparison.Ordinal);
         vs.Glsl = VertexGlsl; ps.Glsl = PixelGlsl;
         m.Shaders.Add(vs); m.Shaders.Add(ps);
         m.Techniques.Add(("Main", new List<MgfxGl.Pass> { new() { Name = "P0", Vs = 0, Ps = 1 } }));

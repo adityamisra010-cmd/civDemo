@@ -115,6 +115,36 @@ public sealed class RenderContext
     /// <summary>The reflection plane of <see cref="Reflection"/> (xyz normal, w = −normal·point).</summary>
     public Vector4 ReflectionPlane { get; internal set; }
 
+    // ---------------------------------------------------------------- stage render2
+    /// <summary>This frame's unjittered view-projection (object motion for TAA).</summary>
+    public Matrix VelocityViewProj { get; internal set; } = Matrix.Identity;
+    /// <summary>The previous TAA frame's unjittered view-projection (equal to <see cref="VelocityViewProj"/> without history).</summary>
+    public Matrix VelocityPrevViewProj { get; internal set; } = Matrix.Identity;
+    /// <summary>True when effects that can should write object motion this frame (a TAA frame with history).</summary>
+    public bool VelocityOn { get; internal set; }
+    /// <summary>During a cascaded shadow pass: every cascade's view-projection (the lookup's light space), their count and
+    /// the containment margin of the lookup (see <see cref="CoveredByFinerCascade"/>).</summary>
+    public Matrix[] CascadeViewProj { get; } = new Matrix[4];
+    public int CascadeCount { get; internal set; }
+    public float CascadeMargin { get; internal set; } = 1f;
+    /// <summary>When false, <see cref="CoveredByFinerCascade"/> always answers false (A/B of the caster culling).</summary>
+    public bool CascadeCasterCulling { get; internal set; } = true;
+
+    /// <summary>
+    /// Cascade caster culling (stage render2): true when, in the current cascade pass, a caster sphere can be skipped
+    /// because every receiver it can shadow reads the next finer cascade. All cascades share one orthographic light view,
+    /// so a caster shadows only receivers inside its own light-space footprint; the lookup uses cascade k−1 alone for
+    /// points within 0.9 × the margin of its tile (outside that it blends towards k). So a sphere whose footprint lies
+    /// inside that inner square of cascade k−1, and whose shadow throw (<paramref name="throwM"/> m away from the sun)
+    /// stays inside k−1's depth range, never needs cascade k.
+    /// </summary>
+    public bool CoveredByFinerCascade(Vector3 centre, float radius, float throwM = 30f)
+    {
+        int k = ShadowCascade;
+        if (!CascadeCasterCulling || !IsShadowPass || k <= 0 || k >= CascadeCount) return false;
+        return CascadeCulling.Covered(CascadeViewProj[k - 1], CascadeMargin, Sun.DirectionToLight, centre, radius, throwM);
+    }
+
     static readonly SamplerState IblSampler = new()
     {
         Filter = TextureFilter.Linear, AddressU = TextureAddressMode.Wrap, AddressV = TextureAddressMode.Clamp, AddressW = TextureAddressMode.Clamp,
@@ -127,7 +157,7 @@ public sealed class RenderContext
     {
         public EffectParameter? ViewProj, LightViewProj, CameraPos, SunDir, SunColor, AmbientSky, AmbientGround, FogColor, FogParams,
             ShadowParams, ShadowOffset, ShadowMap, Bones, BoneTexSize, LightModel, IblParams, SkySun, Aerial, CsmAtlas, IblSpec, BrdfLut, SkyView,
-            AerialR, AerialM, AerialMs, FogSun, FogAmb;
+            AerialR, AerialM, AerialMs, FogSun, FogAmb, VelCur, VelPrev, VelParams;
         public EffectParameter?[] Sh = new EffectParameter?[9], CsmScale = new EffectParameter?[4], CsmOffset = new EffectParameter?[4];
         public bool HasG2;
     }
@@ -146,6 +176,7 @@ public sealed class RenderContext
             LightModel = p["LightModel"], IblParams = p["IblParams"], SkySun = p["SkySun"], Aerial = p["Aerial"], CsmAtlas = p["CsmAtlas"],
             IblSpec = p["IblSpec"], BrdfLut = p["BrdfLut"], SkyView = p["SkyView"],
             AerialR = p["AerialR"], AerialM = p["AerialM"], AerialMs = p["AerialMs"], FogSun = p["FogSun"], FogAmb = p["FogAmb"],
+            VelCur = p["VelCur"], VelPrev = p["VelPrev"], VelParams = p["VelParams"],
         };
         for (int i = 0; i < 9; i++) s.Sh[i] = p["Sh" + i];
         for (int i = 0; i < 4; i++) { s.CsmScale[i] = p["CsmScale" + i]; s.CsmOffset[i] = p["CsmOffset" + i]; }
@@ -175,6 +206,11 @@ public sealed class RenderContext
         p.ShadowOffset?.SetValue(new Vector4(ShadowNormalOffset, 0, 0, 0));
         p.ShadowMap?.SetValue(IsShadowPass ? null : ShadowTexture);
         if (p.Bones != null) { p.Bones.SetValue(_bones); p.BoneTexSize?.SetValue(_boneSize); }
+        if (p.VelParams != null)
+        {
+            p.VelCur?.SetValue(VelocityViewProj); p.VelPrev?.SetValue(VelocityPrevViewProj);
+            p.VelParams.SetValue(new Vector4(VelocityOn && !IsShadowPass && !IsReflectionPass ? 1 : 0, 0, 0, 0));
+        }
         if (p.HasG2)
         {
             p.LightModel?.SetValue(LightModel);
@@ -204,5 +240,25 @@ public sealed class RenderContext
         }
         for (int i = GlslLib.FirstMaterialSlot; i <= GlslLib.LastMaterialSlot; i++) ss[i] = MaterialSampler;
         ss[GlslLib.IblSpecSlot] = IblSampler; ss[GlslLib.BrdfLutSlot] = SamplerState.LinearClamp; ss[GlslLib.SkyViewSlot] = SamplerState.LinearClamp;
+    }
+}
+
+/// <summary>The cascade caster-culling test of <see cref="RenderContext.CoveredByFinerCascade"/> (stage render2).</summary>
+public static class CascadeCulling
+{
+    /// <summary>True when a caster sphere and its shadow throw lie inside the inner (unblended) square and the depth
+    /// range of the finer cascade whose view-projection is <paramref name="finer"/>.</summary>
+    public static bool Covered(in Matrix finer, float margin, Vector3 directionToLight, Vector3 centre, float radius, float throwM)
+    {
+        var m = finer;
+        var c = Vector3.Transform(centre, m);
+        float rx = radius * MathF.Sqrt(m.M11 * m.M11 + m.M21 * m.M21 + m.M31 * m.M31);
+        float ry = radius * MathF.Sqrt(m.M12 * m.M12 + m.M22 * m.M22 + m.M32 * m.M32);
+        float inner = 0.9f * margin;
+        if (MathF.Abs(c.X) + rx >= inner || MathF.Abs(c.Y) + ry >= inner) return false;
+        // the depth range must hold the caster and every receiver its shadow can reach (along the light, away from the sun)
+        var l = directionToLight;
+        float zTop = Vector3.Transform(centre + l * radius, m).Z, zBottom = Vector3.Transform(centre - l * (radius + throwM), m).Z;
+        return zTop >= 0f && zTop <= 1f && zBottom >= 0f && zBottom <= 1f;
     }
 }

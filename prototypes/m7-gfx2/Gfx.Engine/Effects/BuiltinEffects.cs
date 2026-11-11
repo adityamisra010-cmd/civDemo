@@ -138,7 +138,7 @@ void skinJoint(float joint, float w, vec4 p, vec3 n, inout vec3 sp, inout vec3 s
     }
 
     /// <summary>Full-screen sky: gradient + sun disc/glow + horizon haze, linear HDR. Draw first with depth off.</summary>
-    static EffectBuilder Sky() => new EffectBuilder(EffectNames.Sky)
+    static EffectBuilder Sky() => new EffectBuilder(EffectNames.Sky).SkyGBuffer()
         .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)
         .Matrix("InvViewProj", Stage.Vertex).Vec4("CameraPos", Stage.Vertex)
         .Vec4("SunDir", Stage.Pixel).Vec4("SunColor", Stage.Pixel)

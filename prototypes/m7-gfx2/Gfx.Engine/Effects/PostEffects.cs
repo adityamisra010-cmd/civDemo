@@ -47,7 +47,7 @@ public sealed class PostEffects : IEffectSource
     /// Analytic sky: the sky-view table (Rayleigh + Mie + ozone, multiple scattering) plus a limb-darkened sun disc;
     /// optionally an HDRI backdrop instead. Below the horizon it holds the horizon colour (the far field covers it).
     /// </summary>
-    static EffectBuilder SkyAnalytic() => new EffectBuilder(G2EffectNames.SkyAnalytic)
+    static EffectBuilder SkyAnalytic() => new EffectBuilder(G2EffectNames.SkyAnalytic).SkyGBuffer()
         .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)
         .Matrix("InvViewProj", Stage.Vertex).Vec4("CameraPos", Stage.Vertex)
         .Vec4("SunDir", Stage.Pixel).Vec4("SunDisc", Stage.Pixel).Vec4("SunDiscColor", Stage.Pixel).Vec4("SkyMode", Stage.Pixel)

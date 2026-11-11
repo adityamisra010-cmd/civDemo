@@ -21,6 +21,9 @@ public static class Program
   --kit-bake [--out DIR] [--commit SHA] [--check]   stage kit: bake the hero aspis to glTF (default $G2_ASSETS/baked/kit/hero);
                                     --check re-bakes in memory and compares with the files on disk
   --kit-costs                       stage kit: generator, map, animation and grip costs
+  --motion <scene> --shot NAME [--frames N] [--pan dx,dy,dz] [--orbit deg] [--save k,k,..] [--out DIR] [--set ..]
+                                    stage render2: N interactive frames along a camera move (TAA, FXAA or none
+                                    by --set aa=...); saves the listed frames and prints per-frame llvmpipe times
 Render switches (--set, comma-separated or repeated; --preset g1 = every switch at its G1 value):
   " + string.Join(" ", RenderFeatures.Keys) + @"
 Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automatically when no display).";
@@ -101,6 +104,12 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
                     if (e == null) { Console.Error.WriteLine("unknown scene; --list"); return 1; }
                     return Bench(gd, host, e, int.Parse(Opt("--frames", "30"), CultureInfo.InvariantCulture), w, h, shadows, info, args);
                 }
+                case "--motion":
+                {
+                    var e = scenes.FirstOrDefault(s => s.Name == (args.Length > 1 ? args[1] : ""));
+                    if (e == null) { Console.Error.WriteLine("unknown scene; --list"); return 1; }
+                    return MotionCapture.Run(gd, host, e, w, h, shadows, info, args);
+                }
                 default:
                     Console.Error.WriteLine(Usage); return 1;
             }
@@ -136,6 +145,7 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
                 path, w, h, shadows, renderer.HdrFormat, Capture.DistinctColors(px), renderer.Stats.LastDrawCalls,
                 renderer.Stats.LastTriangles, ms, info.TimingLabel));
             if (scene is Gfx.Proc.Environment.EnvSceneBase envShot) Console.WriteLine(envShot.Env.FrameReport());
+            if (scene is IFrameReport frShot) Console.WriteLine(frShot.FrameReport());
         }
         return 0;
     }
@@ -178,6 +188,7 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
             Console.WriteLine($"[bench] {renderer.Settings.Features.Describe()}");
             Console.WriteLine(renderer.Stats.Format(info.TimingLabel));
             if (scene is Gfx.Proc.Environment.EnvSceneBase envFrame) Console.WriteLine(envFrame.Env.FrameReport());
+            if (scene is IFrameReport frFrame) Console.WriteLine(frFrame.FrameReport());
             if (renderer.Sky != null)
                 Console.WriteLine(string.Format(CultureInfo.InvariantCulture, "[cpu] last sky-table build {0:F1} ms; last IBL build {1:F1} ms ({2}); both run only when the sun or the IBL source changes",
                     renderer.Sky.LastBuildMs, renderer.Environment?.LastBuildMs ?? 0, renderer.Environment?.SourceDescription ?? "none"));

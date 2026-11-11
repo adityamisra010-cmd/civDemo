@@ -427,4 +427,62 @@ public sealed class KitTests
         Assert.True(renderer.Stats.LastDrawCalls > 0);
         return 0;
     });
+
+    /// <summary>Draws a character stage (no terrain): the sky, then the stage's instances.</summary>
+    sealed class StageProbe(Gfx.Chars.Rendering.CharStage stage) : Gfx.Engine.Rendering.IRenderContent
+    {
+        public void DrawShadowCasters(Gfx.Engine.Rendering.RenderContext rc) => stage.DrawShadows(rc);
+        public void DrawOpaque(Gfx.Engine.Rendering.RenderContext rc) => stage.DrawOpaque(rc);
+    }
+
+    /// <summary>
+    /// G2 integration of kit and render2: kit items are skinned character parts, so under TAA they write their object
+    /// motion into the G-buffer like the body that wears or holds them. Without it the resolve reprojects them by depth
+    /// alone (camera motion only), and the helmet, shield and spear of a walking soldier smear while his body stays sharp.
+    /// A prop moved 10 cm along +x between two frames writes the flag that the resolve must use its motion, and that
+    /// motion equals the projected move at the depth the G-buffer holds (within 5 %, no vertical motion).
+    /// </summary>
+    [CharsGfxFact]
+    public void MovingKitItemsWriteTheirScreenMotion() => TestGfx.Host.Invoke(gd =>
+    {
+        const int W = 256, H = 256;
+        using var stage = new Gfx.Chars.Rendering.CharStage(gd);
+        using var kit = new KitWorld(gd, stage);
+        var shield = Shields.Build(new ShieldSpec { Kind = "round", Seed = 3, MapSize = 64, Lod = 1 });
+        var lo = new Vector3(float.MaxValue); var hi = new Vector3(float.MinValue);
+        foreach (var p in shield.Parts.SelectMany(q => q.Mesh.Positions)) { lo = Vector3.Min(lo, p); hi = Vector3.Max(hi, p); }
+        var world0 = Matrix.CreateTranslation(new Vector3(0, 1, 0) - (lo + hi) * 0.5f);
+        var prop = kit.AddProp(shield, world0);
+        using var r = new Gfx.Engine.Rendering.ForwardRenderer(gd, TestGfx.Host.Effects);
+        r.Settings.Shadows = false;
+        r.Settings.Features.SetMany("autoexposure=0,bloom=0,grade=0,aa=taa,farfield=0,ssao=0,contact=0");
+        var cam = new Gfx.Engine.Cameras.CameraPose(new Vector3(0, 1f, 3f), new Vector3(0, 1f, 0), 0.7f, 0.1f, 200f);
+        using var rt = new Microsoft.Xna.Framework.Graphics.RenderTarget2D(gd, W, H, false, Microsoft.Xna.Framework.Graphics.SurfaceFormat.Color, Microsoft.Xna.Framework.Graphics.DepthFormat.None);
+        var probe = new StageProbe(stage);
+        r.Render(probe, cam, Gfx.Engine.Scene.SunModel.At(11f), rt, 0f);   // first frame: no history, no motion
+        prop.World = world0 * Matrix.CreateTranslation(0.1f, 0, 0);
+        stage.Invalidate();
+        r.Render(probe, cam, Gfx.Engine.Scene.SunModel.At(11f), rt, 1f / 30f);
+        Assert.True(r.LastTaaHistoryKept, "the second frame keeps the TAA history (static camera)");
+        var vel = new Microsoft.Xna.Framework.Graphics.PackedVector.HalfVector4[W * H];
+        r.ScreenSpace!.Velocity!.GetData(vel);
+        var depth = new float[W * H];
+        r.ScreenSpace.Depth!.GetData(depth);
+        int at = (H / 2) * W + W / 2;
+        float d = depth[at];
+        Assert.InRange(d, 2.5f, 3.5f);   // the shield covers the centre
+        var c = vel[at].ToVector4();
+        var sky = vel[3 * W + 3].ToVector4();
+        Assert.Equal(0f, sky.Z);
+        Assert.Equal(1f, c.Z);           // the resolve uses this pixel's object motion
+        var vp = cam.View * cam.Projection(1f);
+        var fwd = Vector3.Normalize(cam.Target - cam.Position);
+        var pNow = cam.Position + fwd * d;
+        var a0 = Vector4.Transform(new Vector4(pNow, 1), vp); var a1 = Vector4.Transform(new Vector4(pNow - new Vector3(0.1f, 0, 0), 1), vp);
+        float expect = a0.X / a0.W - a1.X / a1.W;
+        Assert.True(expect > 0.05f, $"expected motion {expect}");
+        Assert.InRange(c.X, expect * 0.95f, expect * 1.05f);
+        Assert.InRange(c.Y, -0.01f * expect, 0.01f * expect);
+        return 0;
+    });
 }

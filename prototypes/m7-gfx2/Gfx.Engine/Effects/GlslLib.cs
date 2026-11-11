@@ -144,10 +144,13 @@ float shadowCascaded(vec4 lpos) {
         if (m < margin && lc.z < 1.0) {
             float s = shadowTile(lc, vec2(mod(float(k), 2.0), floor(float(k) / 2.0)), bias[k]);
             float edge = smoothstep(margin * 0.9, margin, m);
+            gb_casc = float(k + 1); // stage render2: cascade debug view
             if (edge > 0.0 && k + 1 < count) {
                 vec3 ln = c[k + 1];
-                if (max(abs(ln.x), abs(ln.y)) < margin && ln.z < 1.0)
+                if (max(abs(ln.x), abs(ln.y)) < margin && ln.z < 1.0) {
                     s = mix(s, shadowTile(ln, vec2(mod(float(k + 1), 2.0), floor(float(k + 1) / 2.0)), bias[k + 1]), edge);
+                    gb_casc += edge;
+                }
             }
             return s;
         }
@@ -218,6 +221,7 @@ vec3 shadePbrFull(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3 
     // where the sun is blocked, part of the sky usually is too: dim the sky light a little in shadow
     float skyVis = mix(0.85, 1.0, shadow);
     vec3 ambient = dc * irr / PI * ao * skyVis + pre * specCol * (horizon * so * skyVis);
+    gbAmbient(ambient); // stage render2: screen-space AO darkens this share only
     return direct + ambient;
 }
 vec3 shadePbr(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3 wpos, float shadow) {
@@ -241,6 +245,7 @@ float rayleighPhase(float c) { return 0.0596831 * (1.0 + c * c); }
 float miePhaseCs(float c) { const float g = 0.8; float g2 = g * g; return 0.1193662 * ((1.0 - g2) * (1.0 + c * c)) / ((2.0 + g2) * pow(1.0 + g2 - 2.0 * g * c, 1.5)); }
 float hgPhase(float c, float g) { float g2 = g * g; return 0.0795775 * (1.0 - g2) / pow(1.0 + g2 - 2.0 * g * c, 1.5); }
 vec3 aerialPerspective(vec3 c, vec3 wpos, float extraFog) {
+    vec3 c0 = c;
     vec3 d = wpos - CameraPos.xyz;
     float dist = max(length(d), 1e-3);
     vec3 dir = d / dist;
@@ -256,6 +261,7 @@ vec3 aerialPerspective(vec3 c, vec3 wpos, float extraFog) {
     vec3 fogCol = FogSun.rgb * hgPhase(cosT, FogSun.w) + FogAmb.rgb;
     c = mix(fogCol, c, exp(-fogT));
     if (extraFog > 0.0) c = mix(c, skyView(normalize(vec3(dir.x, max(dir.y, 0.0), dir.z))), extraFog);
+    gbSurface(c0, T * (exp(-fogT) * (1.0 - clamp(extraFog, 0.0, 1.0)))); // stage render2: surface radiance and its transmittance
     return c;
 }
 // G1 signature. G1: exponential height fog towards FogColor (analytic integral along the view ray).
@@ -269,6 +275,7 @@ vec3 applyFog(vec3 c, vec3 wpos) {
     float line = abs(dy) > 0.0001 ? (1.0 - exp(-dy)) / dy : 1.0;
     float t = FogParams.x * exp(-k * camH) * dist * line;
     float f = min(1.0 - exp(-max(t, 0.0)), FogParams.w);
+    gbSurface(c, vec3(1.0 - f));
     return mix(c, FogColor.rgb, f);
 }";
 

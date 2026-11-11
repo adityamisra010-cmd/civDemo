@@ -329,6 +329,37 @@ marching triangles for cutting surfaces by a field; height-to-normal conversion 
 roughness widening in mips; two-bone IK with a pole; the PNG format (zlib store/deflate through .NET's
 `ZLibStream`, CRC-32) and glTF 2.0 binary containers written from their published specifications.
 
+### 3.12 Stage render2 (shadows, AO, crowds, culling, TAA): files used, bake outputs and runtime transformations
+
+Added 2026-11-11 by stage render2 on `g2/render2` (cut from `g2/trunk` 7dd134a). Numbered §3.12 because the parallel
+stage kit adds a §3.11 on its own branch; the two sections then merge without renumbering. **No new external file is
+downloaded or pinned and no `manifest.tsv` row changes.** Every input below is an existing row: the stage-chars bake
+(§3.9), the CMU clips it retargets (§3.4) and the env and render1 bakes the battle scenes stand on (§3.10, §3.8).
+
+| Output or runtime use | Inputs | Transformations | Licence of the output | Status |
+|---|---|---|---|---|
+| Crowd third level of detail (`$G2_ASSETS/baked/crowd/<identity>__<outfit>__lod3.g2ch`, 9 files: a1–a4 `kit_a`, b1–b4 `kit_b`, commander_a `kit_a`; 458,043 bytes) | the `lod2` mesh of each stage-chars outfit file (§3.9: CC0 inputs + generated); meshoptimizer v1.3 (MIT; the library `scripts/bake-chars.sh` builds from the pinned sources, a bake tool that never ships) | `scripts/bake-crowd.sh` → `tools/crowdbake/crowdbake.py`: the mesh is split into connected components; each gets a triangle budget proportional to its area with a floor (thin spear shafts and shield rims keep a silhouette) and is simplified on its own with `meshopt_simplifyWithAttributes` (positions + normals, 25 mm absolute error, retried at 2.5× and 6×); unused vertices dropped, every kept vertex keeps all its attributes unchanged. Measured: 638–781 triangles per soldier (lod2: about 1,500). An INFO chunk names the source file and its sha256; `MANIFEST.tsv` there lists each output's sha256 and bytes; `--check` re-bakes in memory and compares byte for byte (measured 2026-11-11: 0 files differ). Never committed | CC0-1.0 (inputs) + generated | SHIP-OK |
+| Crowd animation bank (runtime only: one RGBA32F texture, never written to disk) | the stage-chars clip files `<identity>__clips.g2ch` (CMU retargets, §3.4 and §3.9) and each identity's skeleton | `CrowdAnimationBank`: for 8 identities × 16 clips (`idle`, `idle_proud`, `walk`, `walk_b`, `jog`, `run`, `thrust`, `swing_over`, `swing_side`, `block`, `cower`, `kneel`, `death_fwd`, `death_back`, `stumble`, `wounded_walk`), every 30 fps frame's skin matrices (posed joint × inverse bind) as 3 × 55 texels per row, rows wrapped into columns of 4,096 (the HiDef texture limit) | LicenseRef-CMU-Mocap (derived from the clips) | PROTOTYPE-ONLY (provisional) |
+| Per-soldier looks (dye hue and value, skin tone, mud, metal tarnish, height and width) | none | Generated in code from the agent's key with the 32-bit MurmurHash3 finaliser (`fmix32`, Austin Appleby, public domain); no random state | project code | own |
+| G-buffer-lite, GTAO, contact shadows, cascade debug view and caster culling, CPU occlusion buffer and battle-map occluders, TAA | none | Code (`Gfx.Engine`, `Gfx.Chars/Crowd`, `Gfx.Demo/Scenes/CrowdScenes.cs`) | project code | own |
+
+**Runtime use and legends.** The crowd scenes (`crowd-formation`, `crowd-battle-2k`, `crowd-battle-10k`) draw the
+stage-chars soldiers (their `lod1` and `lod2` meshes, skin textures and emblems, §3.9) and the LOD3 bake above, posed
+by the bank: **every crowd capture shows CMU-derived motion, so every crowd legend names it PROTOTYPE-ONLY.** The
+same holds for the `chars-forces` captures used for the AO and TAA comparisons (CMU-posed stage-chars characters). The
+battle scenes stand on the env temperate battlefield (§3.10: no PROTOTYPE-ONLY file) with the render1 terrain bake
+(§3.8: CC0, MIT and CC-BY-4.0 sets; notices §5). The test images (`test-output/render2`) use no asset.
+
+**Algorithms implemented from publications or common practice** (no code copied, no asset): ground-truth ambient
+occlusion with its multi-bounce fit (Jimenez, Wu, Pesce and Jarabo, "Practical Real-Time Strategies for Accurate
+Indirect Occlusion", 2016), interleaved gradient noise (Jimenez 2014), screen-space contact shadows (a short depth
+march towards the light, common practice), temporal anti-aliasing with jittered projection, depth and motion-vector
+reprojection, Catmull-Rom history filtering and luminance-weighted neighbourhood clamping (after Karis, "High Quality
+Temporal Supersampling", 2014) with variance clipping in YCoCg (after Salvi, 2016), Halton(2,3) jitter, and a
+masked software-rasterised hierarchical depth buffer for occlusion culling (common practice). The cascaded shadow maps
+themselves (bounding-sphere fit, texel snapping, tent PCF, blend band) are render1's (§3.8); render2 adds their debug
+view, caster culling and tests.
+
 ## 4. Licence identifiers used for non-standard terms
 
 | Id | Meaning |

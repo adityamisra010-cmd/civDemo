@@ -163,7 +163,7 @@ public static class WaterEffects
     public const int HeightSlot = GlslLib.FirstMaterialSlot, NrmSlot = GlslLib.FirstMaterialSlot + 1,
         SceneSlot = GlslLib.FirstMaterialSlot + 2, ReflSlot = GlslLib.FirstMaterialSlot + 3;
 
-    public static EffectBuilder Create() => new EffectBuilder(EnvEffectNames.Water)
+    public static EffectBuilder Create() => new EffectBuilder(EnvEffectNames.Water).BlendedGBuffer()
         .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)
         .Attribute("vec4 a_flow", VertexElementUsage.TextureCoordinate, 0)
         .AddEnvParams()

@@ -40,14 +40,14 @@ external assets in `assets/` are pinned and fetched, but **no code uses them yet
 | Path | Content |
 |---|---|
 | `M7Gfx2.slnx`, `Directory.Build.props` | Solution and isolated build settings (net10.0, warnings as errors, invariant globalization, MonoGame 3.8.5 pinned) |
-| `Gfx.Engine/` | MGFX-from-GLSL effects, forward renderer (shadow → HDR → ACES post), cameras, culling/LOD, capture, frame stats, `--sysinfo`, headless host, scene registry |
+| `Gfx.Engine/` | MGFX-from-GLSL effects, forward renderer (shadow → HDR → ACES post), cameras, culling/LOD, capture, frame stats, `--sysinfo`, headless host, scene registry; stage render2 adds the G-buffer-lite every effect writes, GTAO and contact shadows, TAA and the CPU occlusion buffer |
 | `Gfx.Proc/` | `Authoritative/`: integer-only seeded battlefield grid (SHA-256 pinned). `Presentation/`: terrain mesh, splats, scatter, water, props. `Environment/` (stage env): ez-tree C# port, tree species, impostors and forest layout, ground cover, boulders, river water, structure kit and settlements, the `env-*` scenes |
 | `Gfx.Units/` | Skeleton, procedural soldier meshes and variation, clip library baked to a bone texture, instanced GPU crowd, battle-trace playback |
 | `Gfx.Avatar/`, `Gfx.Cinematics/` | Persistent avatar profile and era dress; outcome-driven cinematic planner and player |
-| `Gfx.Chars/` (stage chars) | Character file reader (`.g2ch`), GPU skinning with a morph stream, character material shaders, LODs, sockets, the cosmetic animation layer (locomotion blend, layers, IK, look, hit reactions) |
-| `tools/charbake/` (stage chars) | Python bake of identities, outfits, LODs and clip files from the MakeHuman CC0 core and the MPFB2 rig (`scripts/bake-chars.sh`); stage kit adds `kitbake.py` and the `soldier_ancient` recipe (`scripts/bake-kit-outfits.sh`) |
+| `Gfx.Chars/` (stage chars) | Character file reader (`.g2ch`), GPU skinning with a morph stream, character material shaders, LODs, sockets, the cosmetic animation layer (locomotion blend, layers, IK, look, hit reactions); `Crowd/` (stage render2): the instanced GPU-skinned crowd of stage-chars soldiers |
+| `tools/charbake/` (stage chars) | Python bake of identities, outfits, LODs and clip files from the MakeHuman CC0 core and the MPFB2 rig (`scripts/bake-chars.sh`); stage kit adds `kitbake.py` and the `soldier_ancient` recipe (`scripts/bake-kit-outfits.sh`); `tools/crowdbake/` (stage render2): the crowd's third LOD (`scripts/bake-crowd.sh`) |
 | `Gfx.Gear/` (stage kit) | The era kit generated in code: mesh builder and shapes, PBR map painter, items (aspis, shields, helmets, weapons, standards), sockets and grips, the hold constraint, authored combat clips, rigged bow and standard, the hero asset's glTF bake |
-| `Gfx.Demo/` | Executable: `--sysinfo`, `--list`, `--capture`, `--bench`, `--interactive`, `--chars-costs`, `--kit-bake`, `--kit-costs`; the `chars-*` and `kit-*` scenes; forwards the benchmark options to `Gfx.Perf` |
+| `Gfx.Demo/` | Executable: `--sysinfo`, `--list`, `--capture`, `--bench`, `--interactive`, `--chars-costs`, `--kit-bake`, `--kit-costs`, `--motion`; the `chars-*`, `kit-*` and `crowd-*` scenes; forwards the benchmark options to `Gfx.Perf` |
 | `Gfx.Perf/` | Victus benchmark harness (perf stage): `--suite`, `--sweep`, `--scene`, `--gpu-selftest`; `launcher/` (CivSimBench.exe source), `package/` (Windows package files). See `reports/perf.md` |
 | `Gfx.Tests/` | xunit; `[GfxFact]` device tests skip, not fail, when no GL device can be created |
 | `fixtures/` | `battle-trace-combinedarms-s7.json`, the labelled battle-trace fixture from G1; `ez-rng-oracle.txt` and `ez-tree-js-reference.json`, the ez-tree port's reference outputs (stage env) |
@@ -216,3 +216,28 @@ dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --kit-costs
 bake. Details, before/after captures, llvmpipe costs and what still looks placeholder: `reports/kit.md`; provenance:
 `assets/PROVENANCE.md` §3.11.
 
+## Shadows, AO, crowds, culling, TAA (stage render2)
+
+The second renderer pass: a G-buffer-lite written by every effect next to its colour (linear depth, the ambient and
+direct shares of each pixel's light, object motion), half-resolution GTAO applied to the ambient share only,
+full-resolution contact shadows applied to the direct share only, a cascade debug view and cascade caster culling,
+the instanced GPU-skinned crowd of stage-chars soldiers (`Gfx.Chars/Crowd`: animation bank texture, two-clip
+blending, three LODs with a dithered cross-fade, per-soldier looks), frustum and CPU occlusion culling (a software
+hi-Z buffer of terrain and wall occluders), and TAA for interactive frames (stills keep their jittered accumulation).
+Details, captures, llvmpipe costs, tests, mutants and what still looks placeholder: `reports/render2.md`.
+
+- **Bake first:** `scripts/bake-crowd.sh` (the crowd's third LOD from the chars bake, into `$G2_ASSETS/baked/crowd`;
+  `--check` re-bakes in memory and compares byte for byte). Without it the crowd draws `lod2` in its place.
+- **Scenes:** `crowd-formation` (220 soldiers on the meadow), `crowd-battle-2k` and `crowd-battle-10k` (on the env
+  temperate battlefield, beside the Iron Age village). Their frame report (`--bench`, `--capture`) prints the crowd's
+  levels, culling counts, shadow instances and CPU times.
+- **Switches** (`--set`; `--preset g1` turns the screen-space ones off): `ssao`, `aoradius`, `aostrength`, `aofade`,
+  `contact`, `contactlen`, `contactthick`, `debug=depth|ao|contact|shares|cascades`, `aa=none|fxaa|taa`, `taaweight`,
+  `taagamma`, `castercull`, and for the crowd scenes `crowd`, `crowdlod` (bias), `crowdlevel=-1|0|1|2`, `crowdfade`,
+  `crowdlooks` (per-soldier variation), `crowdblend` (two-clip blending), `frustum`, `occlusion`. With `ssao=0,contact=0` (and no TAA or debug view) no G-buffer is written at all; with the
+  G-buffer on and the AO strength at 0 the frame equals the frame without it (a GPU test).
+- **Motion:** `Gfx.Demo --motion <scene> --shot <shot> --frames N --pan x,y,z --orbit deg --save i,j --set aa=taa`
+  renders interactive frames along a camera move (TAA against FXAA or none). The explorer (`--interactive`) defaults
+  to TAA; key 9 cycles none / FXAA / TAA.
+- **Reproduce:** `scripts/capture-render2.sh OUT_DIR`, `scripts/review-sheets-render2.py`, `scripts/bench-render2.sh
+  OUT_DIR` (llvmpipe costs: crowd at 220 / 2,000 / 10,000, LOD sweep, culling, AO, contact shadows, TAA).

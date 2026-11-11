@@ -84,7 +84,7 @@ public sealed class TerrainEffects : IEffectSource
     gl_Position = LightViewProj_mul(vec4(a_pos.xyz, 1.0)); v_depth = gl_Position.z / gl_Position.w;")
         .PixelMain("    gl_FragColor = vec4(v_depth, 0.0, 0.0, 1.0);");
 
-    static EffectBuilder WaterFx() => new EffectBuilder(TerrainEffectNames.Water)
+    static EffectBuilder WaterFx() => new EffectBuilder(TerrainEffectNames.Water).BlendedGBuffer()
         .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)
         .Attribute("vec4 a_dat", VertexElementUsage.TextureCoordinate, 0)
         .AddStandardLit().VertexLib(GlslLib.ShadowLookup)

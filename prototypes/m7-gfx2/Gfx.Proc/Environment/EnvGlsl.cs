@@ -68,7 +68,9 @@ vec3 shadeFoliage(vec3 albedo, vec3 n, vec3 wpos, float sh, float ao, float spec
     float F = 0.03 + 0.97 * pow(1.0 - voh, 5.0);
     c += vec3(dGgx(noh, a) * vSmithGgx(nov, nol, a) * F * specScale) * SunColor.rgb * (nol * sh);
     vec3 irr = LightModel.y > 0.5 ? shIrradiance(n) * IblParams.y : mix(AmbientGround.rgb, AmbientSky.rgb, n.y * 0.5 + 0.5) * PI;
-    c += albedo * irr / PI * ao * mix(0.85, 1.0, sh);
+    vec3 amb = albedo * irr / PI * ao * mix(0.85, 1.0, sh);
+    gbAmbient(amb); // stage render2: the ambient share for screen-space AO
+    c += amb;
     return c;
 }
 vec2 octEnc(vec3 n) {

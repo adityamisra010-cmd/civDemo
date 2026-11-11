@@ -52,6 +52,8 @@ public sealed class InteractiveGame : Game
         _scene = _scenes[i].Create(); _scene.Load(GraphicsDevice, _fx);
         _renderer.Settings.Features = new RenderFeatures();
         _scene.Configure(_renderer.Settings);
+        // stage render2: interactive frames move, so they use temporal anti-aliasing (key 9 cycles TAA, FXAA, none)
+        _renderer.Settings.Features.Aa = AntiAliasing.Taa;
         _g2 = _renderer.Settings.Features.Clone();
         if (_g1Preset) _renderer.Settings.Features = RenderFeatures.G1();
         _cam = new TacticalCamera(_scene.Focus) { Bounds = new BoundingBox(new Vector3(-400), new Vector3(400)) };
@@ -90,7 +92,7 @@ public sealed class InteractiveGame : Game
         if (Pressed(Keys.D6)) { f.ShadowTechnique = f.ShadowTechnique == ShadowTechnique.Cascaded ? ShadowTechnique.Single : ShadowTechnique.Cascaded; changed = true; }
         if (Pressed(Keys.D7)) { f.ToneMapper = f.ToneMapper switch { ToneMapper.PbrNeutral => ToneMapper.AcesHill, ToneMapper.AcesHill => ToneMapper.AgX, ToneMapper.AgX => ToneMapper.AcesFit, _ => ToneMapper.PbrNeutral }; changed = true; }
         if (Pressed(Keys.D8)) { f.Bloom = !f.Bloom; changed = true; }
-        if (Pressed(Keys.D9)) { f.Aa = f.Aa == AntiAliasing.Fxaa ? AntiAliasing.None : AntiAliasing.Fxaa; changed = true; }
+        if (Pressed(Keys.D9)) { f.Aa = f.Aa switch { AntiAliasing.Taa => AntiAliasing.Fxaa, AntiAliasing.Fxaa => AntiAliasing.None, _ => AntiAliasing.Taa }; changed = true; }
         _prevKeys = k;
         if (!changed) return;
         _renderer.Settings.Features = _g1Preset ? RenderFeatures.G1() : _g2.Clone();

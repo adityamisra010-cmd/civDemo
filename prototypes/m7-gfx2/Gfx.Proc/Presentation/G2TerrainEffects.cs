@@ -209,7 +209,7 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
     /// filtered-out slope variance widens the sun glint instead), sky-table reflections, depth absorption.
     /// WaterParams: x = time s, y = ripple fade on, z = opaque flag, w = 1: vertex fade in Data.y (far sea). WaterAbsorb: rgb absorption /m.
     /// </summary>
-    public static EffectBuilder WaterPbr() => new EffectBuilder(TerrainEffectNames.WaterPbr)
+    public static EffectBuilder WaterPbr() => new EffectBuilder(TerrainEffectNames.WaterPbr).BlendedGBuffer()
         .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)
         .Attribute("vec4 a_dat", VertexElementUsage.TextureCoordinate, 0)
         .AddStandardLit().VertexLib(GlslLib.ShadowLookup)

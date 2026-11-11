@@ -40,6 +40,22 @@ public sealed class ForwardRenderer : IDisposable
     bool _warnedHdri;
     // stage env: refraction copy and planar reflection
     RenderTarget2D? _sceneCopy, _reflection;
+    // stage render2: G-buffer-lite and screen-space AO / contact shadows
+    ScreenSpaceLighting? _ss;
+    // stage render2: temporal anti-aliasing (interactive frames)
+    readonly RenderTarget2D?[] _taa = new RenderTarget2D?[2];
+    int _taaIdx, _taaFrame, _taaW, _taaH;
+    bool _taaValid;
+    CameraPose _taaPrevCam;
+    Matrix _taaPrevViewProj;
+    /// <summary>The scene image the post chain reads this frame: the HDR target, or the TAA resolve.</summary>
+    RenderTarget2D? _sceneTex;
+    /// <summary>Set to drop the TAA history before the next interactive frame (also dropped when <see cref="ResetAdaptation"/> is set).</summary>
+    public bool ResetHistory { get; set; }
+    /// <summary>True when the last TAA frame reused the previous frame's history (diagnostics and tests).</summary>
+    public bool LastTaaHistoryKept { get; private set; }
+    /// <summary>Index of the last TAA frame since the history was (re)started.</summary>
+    public int TaaFrameIndex => _taaFrame;
 
     static readonly BlendState AddBlend = new()
     {
@@ -53,8 +69,14 @@ public sealed class ForwardRenderer : IDisposable
     public SkyAtmosphere? Sky => _sky;
     public EnvironmentLighting? Environment => _env;
     public CascadedShadowMap? Cascades => _csm;
-    /// <summary>When true, the next G2 frame meters exposure without temporal smoothing (set for each capture).</summary>
-    public bool ResetAdaptation { get; set; } = true;
+    /// <summary>When true, the next G2 frame meters exposure without temporal smoothing (set for each capture). Setting it
+    /// also drops the TAA history once (stage render2), whether or not auto exposure later clears the flag.</summary>
+    public bool ResetAdaptation
+    {
+        get => _resetAdaptation;
+        set { _resetAdaptation = value; if (value) _taaResetPending = true; }
+    }
+    bool _resetAdaptation = true, _taaResetPending = true;
     /// <summary>Per-pass wall time with a GPU sync after each pass (only when <see cref="ProfilePasses"/>). llvmpipe here.</summary>
     public SortedDictionary<string, double> PassMs { get; } = new(StringComparer.Ordinal);
     public bool ProfilePasses { get; set; }
@@ -91,8 +113,33 @@ public sealed class ForwardRenderer : IDisposable
     public void Render(IRenderContent content, CameraPose camera, SunState sun, RenderTarget2D? output, float timeSeconds = 0)
     {
         Context.SampleIndex = 0; Context.SampleCount = 1;
+        if (Settings.Features.Aa == AntiAliasing.Taa && !Settings.Features.IsG1Frame) { RenderTaa(content, camera, sun, output, timeSeconds); return; }
+        _taaValid = false; // a frame without TAA breaks the history's continuity
         if (Settings.Features.IsG1Frame) { RenderG1(content, camera, sun, output, timeSeconds); return; }
         RenderG2(content, camera, sun, output, timeSeconds, Vector2.Zero, -1f, reuseShadows: false, meter: true);
+    }
+
+    /// <summary>
+    /// An interactive frame with temporal anti-aliasing (stage render2): Halton(2,3) jitter over
+    /// <see cref="TaaHistory.Sequence"/> frames, the previous resolve reprojected and clipped (<see cref="TaaEffects"/>).
+    /// The history is kept while the camera moves continuously (<see cref="TaaHistory.Continuous"/>) and dropped after a
+    /// cut, a size change, a frame rendered without TAA, <see cref="ResetHistory"/> or <see cref="ResetAdaptation"/>; a dropped history restarts the
+    /// jitter sequence, so the frame equals the first frame of a fresh renderer. Dithered fades and the AO pattern
+    /// advance with the frame index so the history averages them.
+    /// </summary>
+    void RenderTaa(IRenderContent content, CameraPose camera, SunState sun, RenderTarget2D? output, float timeSeconds)
+    {
+        int w = output?.Width ?? _gd.PresentationParameters.BackBufferWidth;
+        int h = output?.Height ?? _gd.PresentationParameters.BackBufferHeight;
+        bool keep = _taaValid && !_taaResetPending && !ResetHistory && _taaW == w && _taaH == h && TaaHistory.Continuous(_taaPrevCam, camera);
+        if (!keep) { _taaFrame = 0; _taaValid = false; }
+        ResetHistory = false; _taaResetPending = false;
+        LastTaaHistoryKept = keep;
+        int k = _taaFrame % TaaHistory.Sequence;
+        Context.SampleIndex = k; Context.SampleCount = 1;
+        RenderG2(content, camera, sun, output, timeSeconds, Jitter(k), -1f, reuseShadows: false, meter: true, taa: true);
+        Context.SampleIndex = 0;
+        _taaPrevCam = camera; _taaW = w; _taaH = h; _taaValid = true; _taaFrame++;
     }
 
     /// <summary>
@@ -104,7 +151,7 @@ public sealed class ForwardRenderer : IDisposable
     {
         ResetAdaptation = true;
         int n = Settings.Features.StillSamples;
-        if (Settings.Features.IsG1Frame || n <= 1) { Render(content, camera, sun, output, timeSeconds); return; }
+        if (Settings.Features.IsG1Frame || n <= 1 || Settings.Features.Debug != DebugView.None) { Render(content, camera, sun, output, timeSeconds); return; }
         int w = output.Width, h = output.Height;
         if (_accum == null || _accum.Width != w || _accum.Height != h)
         {
@@ -238,7 +285,7 @@ public sealed class ForwardRenderer : IDisposable
     }
 
     void RenderG2(IRenderContent content, CameraPose camera, SunState sun, RenderTarget2D? output, float timeSeconds,
-        Vector2 jitterPx, float accumWeight, bool reuseShadows, bool meter)
+        Vector2 jitterPx, float accumWeight, bool reuseShadows, bool meter, bool taa = false)
     {
         var f = Settings.Features;
         int w = output?.Width ?? _gd.PresentationParameters.BackBufferWidth;
@@ -254,8 +301,12 @@ public sealed class ForwardRenderer : IDisposable
         var viewCam = f.FarField && camera.Far < FarFieldReach ? camera with { Far = FarFieldReach } : camera;
         var proj = viewCam.Projection(aspect);
         rc.Frustum = new Frustum(rc.View * proj);
+        var viewProjUnjittered = rc.View * proj;
         if (jitterPx != Vector2.Zero) proj *= Matrix.CreateTranslation(jitterPx.X * 2f / w, jitterPx.Y * 2f / h, 0);
         rc.Projection = proj; rc.ViewProj = rc.View * proj;
+        // object motion for TAA (stage render2): unjittered matrices of this and the previous TAA frame
+        bool velocity = taa && _taaValid && _taaFrame > 0;
+        rc.VelocityViewProj = viewProjUnjittered; rc.VelocityPrevViewProj = velocity ? _taaPrevViewProj : viewProjUnjittered; rc.VelocityOn = velocity;
         rc.ViewportSize = new Vector4(w, h, 1f / w, 1f / h); rc.IsReflectionPass = false; rc.SceneColor = null;
         if (!reuseShadows) rc.Reflection = null;
         for (int i = 0; i < 16; i++) _gd.Textures[i] = null;
@@ -313,6 +364,8 @@ public sealed class ForwardRenderer : IDisposable
                 _gd.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Color.White, 1f, 0);
                 _gd.DepthStencilState = DepthStencilState.Default; _gd.RasterizerState = RasterizerState.CullNone; _gd.BlendState = BlendState.Opaque;
                 rc.IsShadowPass = true; rc.ShadowTexture = null;
+                rc.CascadeCount = _csm.Count; rc.CascadeMargin = 1f - 8f / (_csm.TileSize * 2); rc.CascadeCasterCulling = f.CascadeCasterCulling;
+                for (int k = 0; k < _csm.Count; k++) rc.CascadeViewProj[k] = _csm.ViewProj[k];
                 for (int k = 0; k < _csm.Count; k++)
                 {
                     rc.LightViewProj = _csm.ViewProj[k]; rc.ShadowCascade = k; rc.ShadowFrustum = new Frustum(_csm.ViewProj[k]);
@@ -357,9 +410,17 @@ public sealed class ForwardRenderer : IDisposable
             PassEnd("reflection", _reflection);
         }
 
-        // 3. HDR scene: sky, then opaque content
+        // 3. HDR scene: sky, then opaque content (stage render2: plus the G-buffer-lite targets when a screen-space
+        // pass needs them; every effect writes them, see Mgfx.GBufferLayout)
         PassBegin();
-        _gd.SetRenderTarget(_hdr);
+        bool gbuf = f.NeedsGBuffer;
+        if (gbuf)
+        {
+            _ss ??= new ScreenSpaceLighting(_gd);
+            _ss.Ensure(w, h);
+            _gd.SetRenderTargets(_ss.SceneBindings(_hdr!));
+        }
+        else _gd.SetRenderTarget(_hdr);
         _gd.Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Black, 1f, 0);
         _gd.BlendState = BlendState.Opaque; _gd.DepthStencilState = DepthStencilState.None; _gd.RasterizerState = RasterizerState.CullNone;
         if (analytic)
@@ -391,17 +452,90 @@ public sealed class ForwardRenderer : IDisposable
         Stats.RecordDraw(1, 1);
         _gd.DepthStencilState = DepthStencilState.Default;
         content.DrawOpaque(rc);
+        PassEnd("scene", _hdr);
+
+        // 3b. screen-space AO and contact shadows (stage render2), applied before transparent content
+        if (gbuf)
+        {
+            PassBegin();
+            if ((f.Ssao || f.ContactShadows) && f.Debug == DebugView.None) _ss!.Run(rc, _hdr!, f, AoFrameIndex(f));
+            else _gd.SetRenderTarget(_hdr);
+            PassEnd("ssao", _hdr);
+            if (f.Debug != DebugView.None)
+            {
+                if (f.Debug is DebugView.Ao or DebugView.Contact)
+                    _ss!.RunDebug(rc, output, f.Debug == DebugView.Ao ? f : CloneWithContact(f), AoFrameIndex(f), f.Debug == DebugView.Ao ? 2 : 3);
+                else { _gd.SetRenderTarget(output); _ss!.DrawDebug(rc, f.Debug); }
+                return;
+            }
+        }
+
+        PassBegin();
         if (content is ITransparentContent tc)
         {
             if (tc.NeedsSceneColor(rc)) CopySceneColor(w, h);
             tc.DrawTransparent(rc);
             rc.SceneColor = null;
         }
-        PassEnd("scene", _hdr);
+        PassEnd("transparent", _hdr);
+
+        // 3c. temporal anti-aliasing resolve (stage render2)
+        _sceneTex = _hdr;
+        if (taa)
+        {
+            PassBegin();
+            _sceneTex = ResolveTaa(rc, w, h, viewProjUnjittered);
+            PassEnd("taa", _sceneTex);
+        }
 
         // 4. post
         Post(output, w, h, accumWeight, meter, timeSeconds, f, analytic);
     }
+
+    RenderTarget2D ResolveTaa(RenderContext rc, int w, int h, in Matrix viewProjUnjittered)
+    {
+        for (int i = 0; i < 2; i++)
+            if (_taa[i] == null || _taa[i]!.Width != w || _taa[i]!.Height != h)
+            {
+                _taa[i]?.Dispose();
+                _taa[i] = new RenderTarget2D(_gd, w, h, false, HdrFormat, DepthFormat.None, 0, RenderTargetUsage.PreserveContents);
+                _taaValid = false;
+            }
+        var dst = _taa[_taaIdx]!; var hist = _taa[1 - _taaIdx]!;
+        bool history = _taaValid && _taaFrame > 0;
+        var e = _fx.Get(TaaEffectNames.Resolve);
+        _gd.SetRenderTarget(dst);
+        _gd.BlendState = BlendState.Opaque; _gd.DepthStencilState = DepthStencilState.None; _gd.RasterizerState = RasterizerState.CullNone;
+        for (int i = 0; i < 4; i++) _gd.Textures[i] = null;
+        e.Parameters["Cur"].SetValue(_hdr);
+        e.Parameters["Hist"].SetValue(hist);
+        e.Parameters["DepthTex"].SetValue(_ss!.Depth);
+        e.Parameters["VelTex"].SetValue(_ss.Velocity);
+        e.Parameters["ProjInfo"].SetValue(ScreenSpaceLighting.ProjInfo(rc.Projection));
+        e.Parameters["Reproject"].SetValue(Matrix.Invert(rc.View) * _taaPrevViewProj);
+        var tf = Settings.Features;
+        e.Parameters["TaaParams"].SetValue(new Vector4(tf.TaaCurrentWeight, history ? 1 : 0, tf.TaaClipGamma, MathF.Max(tf.TaaCurrentWeight, TaaHistory.CurrentWeightMoving)));
+        e.Parameters["TaaSize"].SetValue(new Vector4(w, h, 1f / w, 1f / h));
+        e.CurrentTechnique.Passes[0].Apply();
+        _gd.SamplerStates[0] = SamplerState.PointClamp; _gd.SamplerStates[1] = SamplerState.LinearClamp; _gd.SamplerStates[2] = SamplerState.PointClamp;
+        _gd.SamplerStates[3] = SamplerState.PointClamp;
+        _gd.DrawUserPrimitives(PrimitiveType.TriangleList, FullScreen.Triangle, 0, 1);
+        Stats.RecordDraw(1, 1);
+        for (int i = 0; i < 4; i++) _gd.Textures[i] = null;
+        _gd.DepthStencilState = DepthStencilState.Default;
+        _taaIdx = 1 - _taaIdx;
+        _taaPrevViewProj = viewProjUnjittered;
+        return dst;
+    }
+
+    /// <summary>Rotation index of the AO sampling pattern: the still sample (so accumulation averages the pattern),
+    /// else 0 (single frames repeat exactly).</summary>
+    int AoFrameIndex(RenderFeatures f) => Context.SampleCount > 1 ? Context.SampleIndex : f.Aa == AntiAliasing.Taa ? _taaFrame : 0;
+
+    static RenderFeatures CloneWithContact(RenderFeatures f) { var c = f.Clone(); c.ContactShadows = true; return c; }
+
+    /// <summary>The G-buffer-lite and screen-space passes of the last G2 frame (null before the first one that needed them).</summary>
+    public ScreenSpaceLighting? ScreenSpace => _ss;
 
     /// <summary>Copies the opaque HDR scene into <see cref="RenderContext.SceneColor"/> and re-binds the scene target
     /// (PreserveContents: colour and depth survive the re-bind).</summary>
@@ -554,7 +688,7 @@ public sealed class ForwardRenderer : IDisposable
         if (needChain)
         {
             var down = _fx.Get(G2EffectNames.BloomDown);
-            Texture2D src = _hdr!;
+            Texture2D src = _sceneTex ?? _hdr!;
             for (int i = 0; i < _bloom.Length; i++)
             {
                 _gd.SetRenderTarget(_bloom[i]); _gd.BlendState = BlendState.Opaque;
@@ -625,7 +759,7 @@ public sealed class ForwardRenderer : IDisposable
         LastManualExposure = manual;
         float comp2 = f.AutoExposure ? Settings.Exposure / 0.85f : 1f;
         bool bloom = f.Bloom && _bloom.Length > 0;
-        comp.Parameters["SceneTex"].SetValue(_hdr);
+        comp.Parameters["SceneTex"].SetValue(_sceneTex ?? _hdr);
         comp.Parameters["BloomTex"].SetValue(bloom ? _bloom[0] : null);
         comp.Parameters["ExposureTex"].SetValue(f.AutoExposure && _hasExposure ? _exposure[_expIdx] : null);
         comp.Parameters["LutTex"].SetValue(f.ColorGrade ? _lutTex : null);
@@ -670,6 +804,6 @@ public sealed class ForwardRenderer : IDisposable
         _hdr?.Dispose(); _shadow?.Dispose(); _csm?.Dispose(); _sky?.Dispose(); _env?.Dispose();
         foreach (var b in _bloom) b.Dispose();
         _ldr?.Dispose(); _accum?.Dispose(); _exposure[0]?.Dispose(); _exposure[1]?.Dispose(); _lutTex?.Dispose();
-        _sceneCopy?.Dispose(); _reflection?.Dispose();
+        _sceneCopy?.Dispose(); _reflection?.Dispose(); _ss?.Dispose(); _taa[0]?.Dispose(); _taa[1]?.Dispose();
     }
 }

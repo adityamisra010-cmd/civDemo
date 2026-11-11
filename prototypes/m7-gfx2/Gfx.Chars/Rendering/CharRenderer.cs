@@ -13,6 +13,9 @@ public sealed class CharRenderer : IDisposable
 {
     readonly GraphicsDevice _gd;
     BonePalette? _palette;
+    // stage render2: the previous frame's palette (object motion for TAA); null until two frames of one cast
+    BonePalette? _prevPalette;
+    int _prevCount = -1;
     Texture2D? _flatNormal, _black, _white;
     public CharMaterials Materials { get; } = new();
 
@@ -33,7 +36,12 @@ public sealed class CharRenderer : IDisposable
         // the palette row is as wide as the largest skeleton drawn (stage kit: props have one to a few bones)
         int bones = 1;
         foreach (var i in instances) bones = Math.Max(bones, i.Asset.Skeleton.Count);
+        // keep last frame's palette for object motion when the cast (and so the row order) is unchanged
+        bool same = _palette != null && _palette.Bones == bones && _prevCount == instances.Count;
+        if (same) (_palette, _prevPalette) = (_prevPalette ?? new BonePalette(_gd, bones, Math.Max(4, instances.Count)), _palette);
+        else { _prevPalette?.Dispose(); _prevPalette = null; }
         if (_palette == null || _palette.Bones != bones) { _palette?.Dispose(); _palette = new BonePalette(_gd, bones, Math.Max(4, instances.Count)); }
+        _prevCount = instances.Count;
         _palette.Reset();
         foreach (var inst in instances)
         {
@@ -108,8 +116,11 @@ public sealed class CharRenderer : IDisposable
         fx.Parameters["CharBones"].SetValue(_palette!.Texture);
         fx.Parameters["CharBoneSize"].SetValue(_palette.SizeParam);
         fx.Parameters["BoneRow"].SetValue(new Vector4(inst.PaletteRow, 0, 0, 0));
+        var prev = _prevPalette != null && _prevPalette.Texture.Width == _palette.Texture.Width && _prevPalette.Texture.Height == _palette.Texture.Height ? _prevPalette : _palette;
+        fx.Parameters["CharBonesPrev"]?.SetValue(prev.Texture);
         rc.Apply(fx);
         _gd.SamplerStates[1] = SamplerState.PointClamp;
+        _gd.SamplerStates[CharEffects.SlotBonesPrev] = SamplerState.PointClamp;
         _gd.SetVertexBuffers(new VertexBufferBinding(part.Vertices), new VertexBufferBinding(inst.MorphBuffer(part, owner)));
         IndexBuffer ib = part.Indices; int tris = part.TriangleCount;
         if (inst.PartViews.TryGetValue(part.Name, out var view) && part.Views.TryGetValue(view, out var v)) { ib = v.ib; tris = v.tris; }
@@ -119,5 +130,5 @@ public sealed class CharRenderer : IDisposable
         rc.Stats.RecordDraw(tris, 1);
     }
 
-    public void Dispose() { _palette?.Dispose(); _flatNormal?.Dispose(); _black?.Dispose(); _white?.Dispose(); }
+    public void Dispose() { _palette?.Dispose(); _prevPalette?.Dispose(); _flatNormal?.Dispose(); _black?.Dispose(); _white?.Dispose(); }
 }
