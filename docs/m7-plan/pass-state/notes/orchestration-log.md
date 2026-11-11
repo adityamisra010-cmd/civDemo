@@ -39,3 +39,5 @@
 2026-11-11T19:22:39Z WIP checkpoint: RT 364b837 bundle (fix r1 in its closing runs; clone clean); RR, G2 unchanged; restore test passed; CI run 971 on a2025c0 green in every job
 2026-11-11T21:22:13Z RT done (943b43f; fix r1: 6/6 reproduced and fixed, 13/14 mutants killed, 1 equivalent; unverified -> final-round queue); integration phase 1 clean, Tier 3 running; WIP checkpoint: RT 943b43f bundle, RR and G2 unchanged, restore test passed; CI run 972 on b90078b green
 2026-11-11T21:53:19Z RT integrated dc19857 (Tier 3 on the squash: 16 PASS, 0 failed, 6 NOT RUN; Sim.Tests 3449/0/36, Sim.Ui.Tests 1316/0/0); RR resumed 21:51:51Z (wnkbjx4i7, one agent); queue: RR -> G2 final -> verify-final-rounds (+MOR3, +RT) -> report
+2026-11-11T22:48:18Z CI run 974 (dc19857, RT) SUCCESS in every job (Test 48 min, determinism 17 min); run 975 (46c7a9d) SUCCESS; ui-artifact 479/480 SUCCESS
+2026-11-11T23:22:49Z WIP checkpoint: RR ab5ec46 bundle (6 commits since resume; clone clean); RR-uncommitted-0a631db.patch retired (contained in 955d78c); G2 unchanged; restore test passed; CI 972-975 and ui-artifact 477-480 all green

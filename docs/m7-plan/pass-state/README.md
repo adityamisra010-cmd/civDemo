@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11 21:52 UTC (lane RT integrated as `dc19857`; lane RR resumed; throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11 23:20 UTC, WIP checkpoint (lane RR at `ab5ec46`, writing its reports; CI green on `dc19857` and `46c7a9d`; throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -55,9 +55,18 @@ The lane workflow stops after a round with no blocker or major finding, so RT's 
 final-round verification queue below. The orchestrator integrated the lane as `dc19857` after Tier 3 on the squashed tree (§1).
 
 **Running since 21:51 UTC: lane RR (D-086)**, resumed (`wf_b1a17355-cee`, base `51ab032`, [args/RR.json](args/RR.json)).
-No agent of its run had completed, so its implementation agent restarts and continues from its clone. The clone holds two WIP
-commits (`88f125e`, `0a631db`) and uncommitted edits in 16 files. Its brief gained a resume note (where it stopped, what the
-clone holds) and a note on the charters failure of its base, which `93f2d8a` fixed here.
+No agent of its run had completed, so its implementation agent restarted and continued from its clone. The clone then held two
+WIP commits (`88f125e`, `0a631db`) and uncommitted edits in 16 files. Its brief gained a resume note (where it stopped, what the
+clone holds) and a note on the charters failure of its base, which `93f2d8a` fixed here. Since resuming, the lane has made six
+commits (times from `git log`):
+- `955d78c` (22:02): the 16 uncommitted files, byte for byte, with the test pins on telemetry/v6, the current-v6 export
+  fixture and the workbook goldens re-pinned;
+- `b849773` (22:35): the host's exit decision in `GameUi`, export-log lines on a failed close, a trace check for half-year turns;
+- `39621be` (22:46): an end-to-end research test, a final-line-feed removal test, the README recovery note and a D-086 note;
+- `a8ca9ef` (22:52), `e974f61` (23:13) and `ab5ec46` (23:17): the main report and the lane report, with the mutant kill
+  records and an ADR-059 amendment listed as a PROPOSAL.
+
+At 23:20 the clone had no uncommitted entries. Lane diff from `51ab032`: 44 files, +8,548/−111.
 
 **Paused**, in this order of resumption (each with `resumeFromRunId`: finished agents replay from cache, and the interrupted
 agent restarts and continues from its clone):
@@ -71,9 +80,9 @@ agent restarts and continues from its clone):
 Lanes MOR3 and RT each ran one verification round and one fix round, and neither round found a blocker or major finding (MOR3:
 3 minor and 5 nit; RT: 4 minor and 2 nit). So their fix rounds are unverified, like the final rounds of the six lanes above.
 
-**Checkpoint 2026-11-11 21:20 UTC** (in [wip/](wip/); the previous one was at 19:20):
+**Checkpoint 2026-11-11 23:20 UTC** (in [wip/](wip/); the previous one was at 21:20):
 - **Lane commits after `51ab032`, as bundles:**
-  - `RR-wip.bundle` (`0a631db`, unchanged since 11:12);
+  - `RR-wip.bundle` (`ab5ec46`; it was `0a631db` from 11:12 to 21:20);
   - `RT-wip.bundle` (`943b43f`, the finished lane's head): retired after the 21:20 checkpoint, because the lane is integrated
     as `dc19857`. It remains in this branch's history at `f94a9b4`;
   - `MOR3-wip.bundle` (`a8ef60a`): retired at 13:45 UTC, because the lane is integrated as `e052b51`.
@@ -82,31 +91,31 @@ Lanes MOR3 and RT each ran one verification round and one fix round, and neither
   `git fetch docs/m7-plan/pass-state/wip/<KEY>-wip.bundle HEAD:lane/<KEY>`, then `git checkout lane/<KEY>`. The bundles carry
   only `HEAD`, so the `git clone -b lane/<KEY> …` form this note gave at 11:12 fails ("Remote branch lane/MOR3 not found").
   It was corrected at 13:20 after a restore test.
-- **Uncommitted edits of the paused clones.** These are binary patches against the head in each file name:
-  - `RR-uncommitted-0a631db.patch`: 16 files, including the new `current-v6` export fixture;
-  - `g2-scenes-uncommitted-0f8ae2f.patch`: 4 files.
-
-  Both are byte-identical to fresh snapshots taken at 21:20, so unchanged since 13:20. Apply each with
-  `git apply --binary <patch>` on its head. They snapshot work stopped mid-step, not a finished state. Lane RR resumed from its
-  edits at 21:51; its patch is retired once the lane has committed them.
+- **Uncommitted edits of the paused clones.** A binary patch against the head in its file name:
+  `g2-scenes-uncommitted-0f8ae2f.patch` (4 files). It is byte-identical to a fresh snapshot taken at 23:20, so unchanged since
+  13:20. Apply it with `git apply --binary <patch>` on its head. It snapshots work stopped mid-step, not a finished state.
+- **Retired at 23:20:** `RR-uncommitted-0a631db.patch`. Lane RR resumed from those edits and committed them (MEASURED: its
+  16 files, patched onto `0a631db`, are byte-identical to `955d78c`'s; at `ab5ec46`, 14 are unchanged and 2 have grown,
+  `SessionCloseTests.cs` by 207 lines and `SessionWorkbook.cs` by 39 with 1 removed). The patch remains in this branch's
+  history at `46c7a9d`.
 - **Retired at 15:21:** `RT-uncommitted-950d6d1.patch`. Lane RT resumed from that edit and committed it. The file as patched at
   `950d6d1` differs from `4de0682`'s only by 81 lines that `4de0682` adds. The patch remains in this branch's history at
   `afc7118`.
 - **G2 final, scenes stage**, unchanged since 13:20 (head `0f8ae2f`). `g2-scenes-0f8ae2f.patch` holds the stage's committed work
   since trunk `21a181e`, as a binary patch of `prototypes/m7-gfx2`. It applies onto this branch's tree.
-- **Restore test (21:20, MEASURED).** In a fresh clone of this branch (`b90078b`):
-  - the RT bundle (since retired) and the RR bundle verified and fetched to `943b43f` and `0a631db`;
-  - the RR patch applies (`--check`) on `0a631db`;
+- **Restore test (23:20, MEASURED).** In a fresh clone of this branch (`46c7a9d`):
+  - the RR bundle verified and fetched to `ab5ec46`, with the lane clone's tree (`195b585`);
   - the G2 committed patch alone gives a `prototypes/m7-gfx2` tree equal to `0f8ae2f`'s (`c5c617a`);
   - both G2 patches give a tree equal to the scenes clone's working state (`a0309d3`).
 
 **CI on this branch.** From `0929d28` to `afc7118`, CI's build-and-test job failed at the charter check and skipped its build and
 test steps (§1, `93f2d8a`). Run 970 on `8e4a778` (MEASURED, read 16:30 UTC) succeeded in every job: build-and-test's 22 steps,
 including the whole Sim.slnx Test step (49 min) and the read-only proof; determinism; determinism-xproc; calibration. `ui-artifact`
-also succeeded. Every run since has succeeded in every job too (MEASURED): run 971 on `a2025c0` (Test 42 min) and run 972 on
-`b90078b` (read 21:20 UTC; Test 39 min), each with build-and-test's 22 steps, determinism, determinism-xproc and calibration.
-`calibration-nightly` was skipped, as it runs only on schedule. `ui-artifact` runs 476 and 477 succeeded. CI on `dc19857`, the
-pass's first `Sim.*` change, was running at this update. The orchestrator reads the head's CI result after each push.
+also succeeded. Every run since has succeeded in every job too (MEASURED, read 23:20 UTC): runs 971 to 975, on `a2025c0`,
+`b90078b`, `f94a9b4`, `dc19857` and `46c7a9d`, each with build-and-test's 22 steps, determinism, determinism-xproc and
+calibration. Run 974 is the first on a `Sim.*` change of this pass (lane RT): its whole Sim.slnx Test step took 48 min and its
+determinism harness 17 min. `calibration-nightly` was skipped, as it runs only on schedule. `ui-artifact` runs 476 to 480
+succeeded. The orchestrator reads the head's CI result after each push.
 
 ## 3. Queue after the items in flight
 

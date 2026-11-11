@@ -215,3 +215,15 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 - RT's fix round (943b43f) joins the final-round verification queue (wf_9b24d7c6-337), with MOR3 (95446ff).
 - Lane RR resumed at 21:51:51Z (run wf_b1a17355-cee, task wnkbjx4i7; no agent of the run had completed, so nothing is replayed). The brief gained a resume note (stopped ~11:35Z by the throttle; clone at 0a631db with 16 uncommitted files) and the known charters failure on base 51ab032 (fixed on DEV by 93f2d8a; run suites directly when validate.sh blocks them). args/RR.json updated to the brief as run.
 - wip/RT-wip.bundle retired (lane integrated); it remains in history at f94a9b4.
+
+## CI on dc19857 and 46c7a9d (read 22:48Z)
+- ci.yml run 974 on dc19857 (lane RT, the pass's first Sim.* change): SUCCESS in every job. build-and-test all 22 steps (Build 53 s; Session export golden; Test 21:53:47-22:41:56, 48 min; read-only proof), determinism (harness 17 min), determinism-xproc (T0.9 and D-055 legs), calibration (battery, CI members); calibration-nightly skipped (scheduled only). ui-artifact run 479 SUCCESS.
+- ci.yml run 975 on 46c7a9d (docs): SUCCESS; ui-artifact run 480 SUCCESS.
+- So CI's whole Sim.slnx Test step, the determinism harness and the cross-process legs agree with the orchestrator's Tier 3 on the RT squash. Lane RT's integration is complete; its fix round awaits the final-round verification.
+
+## Checkpoint 2026-11-11 23:20Z
+- CI (read 23:20Z): ci.yml runs 972 (b90078b), 973 (f94a9b4), 974 (dc19857), 975 (46c7a9d) all SUCCESS; ui-artifact 477-480 all SUCCESS. No failed run on any pushed commit since 8e4a778.
+- Lane RR (running since 21:51:51Z, agent a4034d113ec012059): six commits since the resume, 955d78c (22:02) .. ab5ec46 (23:17); clone clean at 23:21. Lane diff 51ab032..ab5ec46: 44 files, +8548/-111 (Sim.Ui, Sim.Ui/Export, Sim.Ui/Headless, Sim.Core/Observability, Sim.Tests, Sim.Ui.Tests with the current-v6 fixture, docs/m6-session-export, docs/m6-plan, H-RR). Its commit messages mention an ADR-059 amendment as a PROPOSAL and mutant kill records; lane claims, NOT checked.
+- RR bundle 0a631db -> ab5ec46 (295,865 bytes, written by the lane at 23:17). RR-uncommitted-0a631db.patch retired: MEASURED, its 16 files patched onto 0a631db are byte-identical to 955d78c; at ab5ec46, 14 identical and 2 grown (SessionCloseTests.cs +207/-0, SessionWorkbook.cs +39/-1). It stays in history at 46c7a9d.
+- G2 scenes (0f8ae2f): fresh snapshots byte-identical to 13:20.
+- Restore test MEASURED in a fresh clone of 46c7a9d: the RR bundle verifies and fetches to ab5ec46 (tree 195b585 = the lane clone's); G2 committed patch alone gives c5c617a, both patches give a0309d3.
