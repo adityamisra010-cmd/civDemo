@@ -33,3 +33,6 @@
 2026-11-11T13:43:59Z MOR3 done (95446ff; 1 round: 3 minor + 5 nit, fix r1 unverified -> final-round queue); integrated e052b51 (Release 1559/0/0, scan CLEAN, links 0 broken); RT resumed (wz7ug7gq0, run wf_2aee7a53-1fc); queue: RT -> RR -> G2 final -> verify-final-rounds (+MOR3) -> report
 2026-11-11T15:24:45Z WIP checkpoint: RT 4de0682 bundle (RT Tier 3 running since 14:53Z); RR and G2 scenes unchanged (byte-compared); RT-uncommitted-950d6d1.patch retired (contained in 4de0682); restore test passed; next check-in ~17:20Z
 2026-11-11T15:32:20Z CI regression: build-and-test red at the charter check since 0929d28 (build/tests skipped in CI on this branch); fixed 93f2d8a (checker reads file.md:LINE as a citation); cheap CI steps 16/16 rc=0 locally
+2026-11-11T16:14:07Z CI run 970 (8e4a778): steps 3-20 pass incl. charters, Build and the two filtered .NET runs; Test in progress. RT impl done 15:45 (a7b5faa; lane Tier 3 Sim.Tests 3448/0/36, UI rc=0); RT verify r1 running
+2026-11-11T16:30:53Z CI run 970 (8e4a778) SUCCESS: all ci.yml jobs green (Test 49 min); ui-artifact green; first green build-and-test since 0929d28
+2026-11-11T17:22:10Z WIP checkpoint: RT 1f9dc60 bundle (verify r1: 6 findings, 4 minor + 2 nit; fix r1 running); RR, G2 unchanged; restore test passed; README carries the CI-green note and the 15:45->15:32 correction
