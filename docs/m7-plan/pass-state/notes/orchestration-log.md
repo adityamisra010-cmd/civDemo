@@ -20,3 +20,5 @@
 2026-11-11T01:54:22Z container restart stopped CB (wf_1d9735da-b5b) at impl baseline; relaunching with resume
 2026-11-11T01:54:39Z CB relaunched as wmh3xs2v7 (run wf_1d9735da-b5b)
 2026-11-11T04:28:41Z CB pushed 47eac9a; G2 seg3 launched ws5jdwkhz
+2026-11-11T07:01:25Z pass-state snapshot pushed 0dd2f7c; WIP checkpoint check-in every ~2h (trig_01Fa9r1d7czVnv4QVTEkQxEE)
+2026-11-11T09:03:14Z WIP checkpoint: render2 82c8198 (incremental bundle 84 KB)

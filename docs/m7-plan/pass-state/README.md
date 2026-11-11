@@ -1,7 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11, branch head before this
-commit `d715de2`. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11 09:02 UTC (WIP checkpoint). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -43,9 +42,13 @@ Supporting material committed with this README:
 - **G2 segment 3.** Workflow script [workflows/m7-g2-v2.js](workflows/m7-g2-v2.js), run `wf_d6eb0226-44e`, args
   `{"base": "1601c74", "stopAfter": "stage3"}`.
   - **kit stage:** complete, branch `g2/kit` at `85e918f`: era kit, the hero aspis, combat animation, ancient outfits.
-  - **render2 stage:** running, branch `g2/render2`; last commit `70e46d0`, a WIP of shadows, ambient occlusion and the crowd LOD.
+  - **render2 stage:** running, branch `g2/render2`; checkpoint 2026-11-11 09:02 UTC at `82c8198`. Shadows, ambient occlusion,
+    contact shadows, the GPU-skinned crowd, occlusion culling and TAA are implemented; tests, costs, captures and the report
+    are under way.
   - **Saved here:** both branches are in [wip/g2-kit-and-render2-wip.bundle](wip/g2-kit-and-render2-wip.bundle) (7.2 MB). It
     restores into any clone that has `1601c74`. Uncommitted edits in the render2 clone are not in it.
+  - **Later checkpoint:** [wip/g2-render2-inc-82c8198.bundle](wip/g2-render2-inc-82c8198.bundle) (84 KB) holds `g2/render2`'s
+    commits after `70e46d0`. Restore the base bundle first, then `git fetch` this one into the render2 clone.
   - **Restore:**
     `git clone -b g2/kit wip/g2-kit-and-render2-wip.bundle /home/user/g2w/kit` and
     `git clone -b g2/render2 wip/g2-kit-and-render2-wip.bundle /home/user/g2w/render2`. Both need `1601c74` in the clone's
@@ -120,6 +123,7 @@ Supporting material committed with this README:
 | `notes/orchestration-log.md` | The queue and pace log |
 | `notes/director-messages/` | Verbatim working copies of the Director's messages cited by D-082..D-086 |
 | `wip/g2-kit-and-render2-wip.bundle` | Git bundle of `g2/kit` (85e918f) and `g2/render2` (70e46d0), prerequisite `1601c74` |
+| `wip/g2-render2-inc-82c8198.bundle` | Incremental bundle: `g2/render2` from `70e46d0` to `82c8198` |
 
 The workflow scripts and notes use this session's absolute paths: `/home/user/civDemo`, `/home/user/m7w`, `/home/user/g2w`,
 and the scratchpad under `/tmp/claude-0/…`. Adjust them in a new environment.

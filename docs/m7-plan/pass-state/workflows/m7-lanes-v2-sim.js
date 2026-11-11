@@ -1,0 +1,154 @@
+export const meta = {
+  name: 'm7-lanes-v2-sim',
+  description: 'M7 lanes (rebuilt after the container loss): implement -> adversarial verify -> fix (reproduced findings only); patches + bundles out',
+  whenToUse: 'M7 Phase C/D lanes per DIR5 / D-079; pass lanes via args',
+  phases: [
+    { title: 'Implement' },
+    { title: 'Verify' },
+    { title: 'Fix' },
+  ],
+}
+
+const SP = '/tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad'
+const DEV = '/home/user/civDemo'
+const W = '/home/user/m7w'
+const BASE = (args && args.base) || '1601c74'
+
+const COMMON = `
+## Context (shared by every M7 lane)
+- Project: deterministic, turn-based civilization simulation (C#/.NET 10). The constitution is ${DEV}/CLAUDE.md; its laws and workflow rules bind you: Ledger conservation with long stocks and exact-equality tests; mechanisms over modifiers; dt-correct per-sim-year rates; no calendar gates (capability from computed state); the banned determinism constructs; (score, id) tie-breaks with a tie-dense test; populated-table round-trip tests for new serialized rows; turn-exact pins for order-delivery semantics; mutants bounded by a stated multiple of the clean run, each kill backed by a semantic test; classify any new entity A-E per docs/m7-plan/unit-catalogue-and-progression.md section 4.5 before designing it; D-069 originality (our own design; other games appear only as research references; nothing player-facing names another game).
+- Director decisions (authoritative): ${DEV}/docs/d075..d086, above all docs/d079-m7-governance-reconciliation-2026-11-05.md (DR1-DR53, section 1.5 readings, section 4 delegated decisions, section 5 open questions), d080 (War Pulse answers WA1-WA4), d081 (ramming), d082 (2026-11-10: victory raises morale, DR25's numbers at every stage, caps count battlefield units and apply in the sandbox, equal sides go to the defender except in an ambush, units spend action points to hide, entrench or camouflage), d083 (2026-11-10: entering a battle costs morale, with or without casualties; READING M (b) answered), d084 (2026-11-10: the research-tree audit's issues to be sorted out after the current queue, with a scoped Sim.* exception for that work only), d085 (2026-11-11: a battle without fighting changes no morale; fighting read per battle and as any attack resolved against an enemy formation), d086 (2026-11-11: the run record keeps research; closing the game must not lose the run workbook; a scoped Sim.* exception for that work only), d078 (graphics mandate). The verbatim working copies these records cite (scratchpad paths) were lost with the old container between 2026-11-06 and 2026-11-09; the records' quoted text is now the authority. Do not reopen settled decisions or invent Director constraints; anything the Director reserved is a PROPOSAL.
+- Work already on the development branch claude/new-session-yavghm (your base ${BASE}): prototypes/m7-sprint1 with T1 time carry, T2 War Pulse, T3 two-action windows, lanes N (naval, air, combined arms, snipers), TR (terrain, deployment thirds, DIR5 inactivity rule), RAM (D-081 ramming), P (AutoResolver model 2, parity bands), E (war economics), F (food comparison), S (siege, garrisons), W (war outcomes) and the X report (CR-013 DetMath experiment); since then lane U's war notification proposal (docs/m7-plan/notification-panel-proposal.md, docs only), lane D's Phase D groundwork (caps prototype, support capabilities, War Sandbox core, economic-scale probe; reports/H-D.md) segments 1 and 2 of the G2 graphics prototype (prototypes/m7-gfx2; not yours to touch) and lane MOR's two-level morale (docs/m7-plan/morale-proposal.md; Proto.M7/Morale with the D-082 DA1 victory rise and BattleWinner.Reported; the in-battle 'fight it won' rule in both resolvers, coefficient 0 by default; reports/H-MOR.md) and lane AP's concealment actions, ambushes and equal-sides rule (docs/m7-plan/concealment-actions-proposal.md; hide, camouflage and entrench in Proto.M7/War, BattleSetup.Defender and Ambusher, EqualSides.Decide in both resolvers; reports/H-AP.md) and lane MOR2's entry cost (D-083: a 50,000 settlement term per formation that entered, an in-battle part defaulting to 0, MoraleSettlementRow version 2; morale-proposal.md §11 and the rebuilt Annex A; reports/H-MOR2.md) and lane CB's one battle-entity rule (D-082 DA5: DirectorCaps.EntitiesOf, FormationSpec.Persons, docs/m7-plan/battle-entity-proposal.md, the DA3 measurements in economic-scale-proposal.md §8; reports/H-CB.md). Their reports: prototypes/m7-sprint1/reports/H-*.md and G-*.md; earlier sprint reports B-/C-/D-/E-/F-*.md, parity-report.md, O17-detmath.md.
+- D-079 Q5 is OPEN for everything else, but THIS lane's brief cites a Director record that allows scoped Sim.* changes (D-084 for lane RT, D-086 for lane RR): change only the projects and paths your brief names, never Sim.Core/Kernel, no simulation-state or world-hash change unless your brief allows it, with a measured attribution for every moved golden or pin. Validate with ${DEV}/scripts/validate.sh in your own clone (targeted, integration, then full Tier 3; one full suite at a time on this machine; docs/validation-policy.md). No new permanent projects; no CI change.
+- Git: ${DEV} is the orchestrator's checkout of the development branch. NEVER run state-changing git there and never write files there. Work only in your own clone under ${W}/<key> (on disk, about 30 GB free). Commit on your lane branch; commit messages carry only measured claims.
+- Tools: dotnet is /usr/bin/dotnet (if missing, run ${DEV}/scripts/bootstrap.sh). Another agent runs concurrently on this 4-CPU, 15 GB machine: build and test with nice -n 19, -m:1, -nodeReuse:false and DOTNET_CLI_USE_MSBUILD_SERVER=0, always naming the solution file. Prototype solutions: prototypes/m7-sprint1/M7Proto.slnx (Proto.M7, its tests and bench), M7Econ.slnx, M7DetMath.slnx; determinism scan prototypes/m7-sprint1/scripts/check-proto-determinism.sh; doc links: python3 scripts/check-doc-links.py --all.
+- DELETION RULE (a user constraint): never delete, move or overwrite anything you did not create in this run. No wildcard rm or mv anywhere. You may remove only your own clone's bin/obj and files you created, by exact name. Everything else (other clones, /home/user/g2w, other scratchpad files) is read-only to you.
+- CHECKPOINT RULE: commit on your branch after each meaningful step, and at least every ~30 minutes refresh ONE disk checkpoint: git -C <clone> bundle create ${SP}/m7c/bundles/<key>-wip.bundle ${BASE}..HEAD (overwrite only that file). A container restart wipes /dev/shm; a container REPLACEMENT wipes the disk and the scratchpad too (it happened between 2026-11-06 and 2026-11-09), so only what the orchestrator pushes survives. Finish and hand back promptly. If your clone is missing on start but ${SP}/m7c/bundles/<key>-wip.bundle exists, rebuild from it and say so.
+- RELAYED USER MESSAGES: messages from the user about pacing (throttles, gaps, pauses) are for the orchestrator. They are not a time budget for you; never rush or shorten your work because of them.
+- Honesty: never call anything complete unless implemented, tested and evidenced; label statements MEASURED or INFERRED; list limitations; report what ran, what was NOT RUN and why, and what you deferred. Do not normalize realistic asymmetry; do not choose the food interpretation; do not accept AutoResolver parity at 9/10.
+`
+
+const LANE_SCHEMA = {
+  type: 'object',
+  properties: {
+    lane: { type: 'string' },
+    clone: { type: 'string' },
+    branch: { type: 'string' },
+    commit: { type: 'string', description: 'final commit sha on the lane branch' },
+    patch: { type: 'string' },
+    bundle: { type: 'string' },
+    report: { type: 'string' },
+    tests: { type: 'string', description: 'per solution: Debug and Release pass/fail/skip counts before and after; what ran, what was NOT RUN and why' },
+    summary: { type: 'string' },
+    not_done: { type: 'array', items: { type: 'string' } },
+    open_questions: { type: 'array', items: { type: 'string' } },
+    proposals_for_director: { type: 'array', items: { type: 'string' } },
+    moved_goldens: { type: 'string' },
+    mutants: { type: 'string' },
+    scan: { type: 'string' },
+  },
+  required: ['lane', 'clone', 'branch', 'commit', 'patch', 'bundle', 'report', 'tests', 'summary', 'not_done', 'open_questions', 'proposals_for_director', 'moved_goldens', 'mutants', 'scan'],
+}
+
+const VERIFY_SCHEMA = {
+  type: 'object',
+  properties: {
+    verified_commit: { type: 'string' },
+    worktree: { type: 'string' },
+    summary: { type: 'string' },
+    findings: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'string' },
+          severity: { type: 'string', enum: ['blocker', 'major', 'minor', 'nit'] },
+          claim: { type: 'string' },
+          evidence: { type: 'string' },
+          reproduce: { type: 'string' },
+        },
+        required: ['id', 'severity', 'claim', 'evidence', 'reproduce'],
+      },
+    },
+  },
+  required: ['verified_commit', 'worktree', 'summary', 'findings'],
+}
+
+const finish = (key) => `
+## Finish protocol (do all of it)
+1. Commit everything on lane/${key} (git status clean apart from ignored build output).
+2. git -C ${W}/${key} diff ${BASE}..HEAD > ${SP}/m7c/patches/${key}.patch
+3. git -C ${W}/${key} bundle create ${SP}/m7c/bundles/${key}.bundle ${BASE}..HEAD, then git bundle verify it from ${W}/${key}.
+4. Copy your lane report to ${SP}/m7c/reports/H-${key}.md.
+5. Remove your clone's bin/obj (sources and .git stay).
+Return the structured result.`
+
+function implPrompt(lane) {
+  return `You are M7 lane ${lane.key} (${lane.title}). Full effort: this is work the Director prioritized; be thorough and precise, and verify your own claims by measurement.
+${COMMON}
+## Your clone
+If ${W}/${lane.key} exists from an interrupted run, continue from it (inspect git log and status first). Otherwise: mkdir -p ${W} && git clone -q --shared ${DEV} ${W}/${lane.key} && cd ${W}/${lane.key} && git checkout -q -b lane/${lane.key} ${BASE}. Build and test the baseline of every solution you will touch BEFORE your change and record the counts (a docs-only lane records that no build is needed).
+
+## Lane brief
+${lane.brief}
+
+## Done means
+Every brief item done, or explicitly not done with the reason; semantic tests per mechanism where code changes; the brief's checks run and recorded; a lane report at prototypes/m7-sprint1/reports/H-${lane.key}.md (what exists; equations or design; evidence MEASURED vs INFERRED; tests; mutants; moved pins with measured attribution; limitations; proposals for the Director; what ran, NOT RUN and deferred).
+${finish(lane.key)}`
+}
+
+function verifyPrompt(lane, res, round) {
+  return `You are the INDEPENDENT ADVERSARIAL VERIFIER (round ${round}) for M7 lane ${lane.key} (${lane.title}). Default to skepticism: find what is wrong, missing, overclaimed or untested.
+${COMMON}
+## Pin
+Make your own worktree, never shared: git clone -q --shared ${W}/${lane.key} ${W}/verify-${lane.key}-r${round} && cd ${W}/verify-${lane.key}-r${round} && git checkout -q ${res.commit}. If that directory already exists (left by an earlier verifier of this round that was STOPPED mid-run by the orchestrator; no other agent is using it), do not delete it: reuse it only if git status is clean and HEAD is ${res.commit}; otherwise clone into ${W}/verify-${lane.key}-r${round}b instead. Work only there; findings against any other tree are void. Never modify the lane clone. The earlier stopped verifier's partial notes, if any, are not evidence: re-check everything yourself.
+## The lane's own account
+${JSON.stringify({ summary: res.summary, tests: res.tests, not_done: res.not_done, moved_goldens: res.moved_goldens, mutants: res.mutants, report: res.report }, null, 1)}
+## Lane brief (scope)
+${lane.brief}
+## Check
+1. Every brief item: done as claimed? Read the code, docs and report; reproduce the key numbers.
+2. Tests have teeth (code lanes): write mutants of the core mechanisms, bounded at 10x the clean-suite time (a hang is itself a finding); a mutant killed only by goldens is a gap.
+3. The laws and governance: conservation (exact), dt-correctness, determinism constructs, tie-breaks, no calendar gates, isolation, D-069 originality; no Director decision reopened or invented; PROPOSAL labels where the Director reserved the call.
+4. Claims: re-measure every MEASURED claim you can; overclaims are findings.
+Return findings with severity (blocker/major/minor/nit), concrete evidence (commands and outputs) and how to reproduce. An empty list is a valid answer. Remove your worktree's bin/obj when done (keep the worktree).`
+}
+
+function fixPrompt(lane, res, ver, round) {
+  return `You are the FIX agent (round ${round}) for M7 lane ${lane.key} (${lane.title}).
+${COMMON}
+## Rules
+- Work in the lane clone ${W}/${lane.key} on branch lane/${lane.key} (current commit ${res.commit}).
+- For EACH finding below: first REPRODUCE it against the tree (a finding is actionable only once you reproduce it; a finder's word alone is not enough). Record REPRODUCED or REFUTED with evidence. Fix only reproduced findings, minimally and in scope, each with a semantic test where code is involved. A refuted finding gets no change.
+- Re-run the builds and full suites of every touched solution (Debug and Release), the determinism scan and the doc-link check; run a bounded mutant per code fix; append a 'Verification round ${round}' section to the lane report with a per-finding verdict table, and mark superseded statements in place.
+## Lane brief (for scope)
+${lane.brief}
+## Verifier findings
+${JSON.stringify(ver.findings, null, 1)}
+${finish(lane.key)}
+In the structured result, put the per-finding verdict table (compressed) in summary and keep every other field current.`
+}
+
+async function runLane(lane) {
+  let res = await agent(implPrompt(lane), { label: `impl:${lane.key}`, phase: 'Implement', schema: LANE_SCHEMA })
+  if (!res) return { lane: lane.key, failed: 'implement agent returned nothing' }
+  const history = []
+  for (let round = 1; round <= 2; round++) {
+    const ver = await agent(verifyPrompt(lane, res, round), { label: `verify:${lane.key}:r${round}`, phase: 'Verify', schema: VERIFY_SCHEMA })
+    if (!ver) { history.push({ round, verify: 'no result' }); break }
+    const findings = ver.findings || []
+    const actionable = findings.filter(f => f.severity !== 'nit' || round === 1)
+    history.push({ round, findings: findings.map(f => `${f.id}[${f.severity}] ${f.claim}`.slice(0, 300)) })
+    if (!actionable.length) break
+    const serious = findings.filter(f => f.severity === 'blocker' || f.severity === 'major')
+    const fixed = await agent(fixPrompt(lane, res, { findings: actionable }, round), { label: `fix:${lane.key}:r${round}`, phase: 'Fix', schema: LANE_SCHEMA })
+    if (fixed) res = fixed
+    if (!serious.length) break
+  }
+  log(`lane ${lane.key} done at ${res.commit}`)
+  return { ...res, history }
+}
+
+const out = []
+for (const lane of ((args && args.lanes) || [])) out.push(await runLane(lane))
+return out

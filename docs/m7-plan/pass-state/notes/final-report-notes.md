@@ -125,3 +125,8 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 - MEASURED: full export with telemetry (nice 19, shared CPU, Linux): 16.7 s, peak RSS 1,201 MB, workbook 6,841,416 bytes (sha256 01d3c33e...e529b3), 850 turns, 20 continuation rows, longest cell 32,604 chars; self-check passed. Sent to the Director; committed with the zip into docs/m6-plan/playtest-session-20261108-155547-a1/ (README updated).
 - Forensic run record is written once at launch (UiSession.ExportForensicRun) -> the file should exist; asked the Director for it (would show whether the close record was written).
 - RR brief updated with these measurements (export not a hang on this host; find what makes the close look frozen on Windows).
+
+## Token-limit pause plan (Director 2026-11-11 ~07:20Z)
+- Director: "cool, carry on with all the pending work. I am at 83% of my token limit, so I would need to pause work in around 12-15 hours of work".
+- Plan: G2 seg3 (running) -> MOR3 -> RR fit in ~12-15 h; then stop at a clean boundary: everything pushed, pass-state README updated, check-ins cancelled. After the pause: G2 final, RT, final report.
+- Prepared: lane script COMMON updated (d075..d086, D-085/D-086, lane CB) for MOR3 (backup .bak-preMOR3); variant m7-lanes-v2-sim.js for RR/RT (scoped Sim.* rule, validate.sh tiers).
