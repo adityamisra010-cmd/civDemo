@@ -113,3 +113,15 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 - Run facts (MEASURED from trace/chronicle): 850 turns, years 0-5100; peak population 32,884,347 at turn 790 (year 4920); end 25,245,053, 26 settlements; trace food column 0 on 81 turns, first at turn 723 (year 4719); famine deaths in chronicle FE events 7,607,555 over 14 events (year 4974: Bigen 3,268,809; Zareshu 3,068,518; Tuli 1,238,331); Tuli died out year 5094; Longbow (RN196) completed year 4710.
 - Telemetry 168 MB / 850 turns ~ 198 KB per turn -> the close-time export (full read-back self-check) is the likely freeze (INFERRED); RR brief updated to size the measurement to hundreds of MB and to propose alternatives if needed.
 - 2026-11-11: the Director says the late-game famine in session 20261108-155547-a1 was deliberate ('no need to investigate the famine. i made it happen myself.'); not investigated.
+
+## Pass-state snapshot — 0dd2f7c (pushed 2026-11-11 ~07:00Z)
+- Director (2026-11-11): "ensure everything is on the repo so that just in case we stop this pass in between, things arent lost and re started again".
+- Committed: docs/m7-plan/pass-state/ (README resume guide; workflows m7-lanes-v2.js, m7-g2-v2.js, ref-morale-research.js; args for U, D, MOR, AP, MOR2, CB, MOR3, RR, RT, G2; notes final-report-notes.md, orchestration-log.md, director-messages x5; wip/g2-kit-and-render2-wip.bundle 7,212,929 bytes = g2/kit 85e918f + g2/render2 70e46d0, prereq 1601c74, verified against the G2 trunk); docs/m7-plan/research/ref-morale-2026-11-10/ (dossier + claim/check/hosts files); docs/m6-plan/playtest-session-20261108-155547-a1/ (4 Director files byte-for-byte + rebuilt workbook + README); docs/current-state.md top entry -> pass-state README.
+- Known check note: git diff --check flags only the Director's manifest.json (CRLF); kept byte for byte.
+- Ongoing practice: pass-state README/notes refreshed and pushed at each step; WIP checkpoint every ~2 h via send_later (trig_01Fa9r1d7czVnv4QVTEkQxEE, first fire 09:02Z), incremental G2 bundles; delete/stop when the queue is done.
+
+## Telemetry received (2026-11-11 ~07:13Z)
+- Director uploaded telemetry-20261108-155547-a1.zip (12,782,794 bytes, sha256 a2fe1086...f6db5f; member .jsonl 173,040,889 bytes, sha256 90217ff7...fdf809, 850 lines, telemetry/v5, mtime 2026-11-08 17:19).
+- MEASURED: full export with telemetry (nice 19, shared CPU, Linux): 16.7 s, peak RSS 1,201 MB, workbook 6,841,416 bytes (sha256 01d3c33e...e529b3), 850 turns, 20 continuation rows, longest cell 32,604 chars; self-check passed. Sent to the Director; committed with the zip into docs/m6-plan/playtest-session-20261108-155547-a1/ (README updated).
+- Forensic run record is written once at launch (UiSession.ExportForensicRun) -> the file should exist; asked the Director for it (would show whether the close record was written).
+- RR brief updated with these measurements (export not a hang on this host; find what makes the close look frozen on Windows).
