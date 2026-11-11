@@ -2,7 +2,8 @@
 
 Usage: python3 -I docs/m7-plan/tools/check_charters.py <repo-root>
 Checks: every backticked id exists (research nodes/entities, unit families/identities, baseline rows) or is a named
-proposed family; the building charter §9 register lists every building/infra/project/inst entity exactly once;
+proposed family, and every backticked `file.md:LINE` citation names a line of an existing file beside it; the building
+charter §9 register lists every building/infra/project/inst entity exactly once;
 identity keys cited as `id` (key) match unit-families.json; identity prerequisites name no node of a later Age;
 relative links and anchors resolve; all 12 existing families are reconciled.
 """
@@ -43,6 +44,15 @@ hypothetical = {'powered_flight'}
 for p, t in texts.items():
     for tok in re.findall(r'`([^`\n]+)`', t):
         tok = tok.strip()
+        # A `file.md:LINE` token is a source citation, not an id (the D-079 dated note of 2026-11-05 in the unit charter
+        # cites the lines it supersedes this way). It must name an existing file beside the citing document and a line
+        # inside that file.
+        cite = re.fullmatch(r'([A-Za-z0-9_.-]+\.md):(\d+)', tok)
+        if cite:
+            cf = os.path.join(os.path.dirname(p), cite.group(1))
+            if not (os.path.isfile(cf) and 1 <= int(cite.group(2)) <= sum(1 for _ in open(cf))):
+                fails.append(f'{os.path.basename(p)}: citation `{tok}` names no line of an existing file')
+            continue
         if tok in known_other or tok.startswith(allowed_prefix) or ' ' in tok or '/' in tok or '(' in tok or '=' in tok or '→' in tok:
             continue
         if tok in hypothetical and 'ejected' in t[max(0, t.find('`' + tok + '`') - 400):t.find('`' + tok + '`')]:
