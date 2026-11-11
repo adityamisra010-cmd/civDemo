@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11 13:20 UTC (WIP checkpoint, throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-11 13:45 UTC (lane MOR3 integrated as `e052b51`; lane RT resumed; throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -31,6 +31,7 @@ Every item below is a pushed commit. Lane reports are in `prototypes/m7-sprint1/
 | `9be7c18`, `7cacc3a` | Lane AP (hide, camouflage, entrench, ambush, equal sides); D-084 (research-tree audit, queued) |
 | `0d2db74`, `47eac9a` | Lane MOR2 (entry cost, research annex rebuilt); lane CB (caps count battlefield units, army scale) |
 | `259b739`, `d715de2` | D-085 (no fighting, no morale change); D-086 (run record keeps research; the close keeps the workbook) |
+| `e052b51` | Lane MOR3 (D-085 DD1: without fighting, a battle changes no morale; settlement row v3; the in-battle part charged at the first fighting instant) |
 
 Supporting material committed with this README:
 - **Research:** the reference-morale research dossier and its claim files, [../research/ref-morale-2026-11-10/](../research/ref-morale-2026-11-10/dossier.md). It is the provenance of the morale proposal's Annex A; the proposal and H-MOR2 cite it by its old scratchpad path, `…/scratchpad/m7c/research/run1`.
@@ -39,30 +40,32 @@ Supporting material committed with this README:
 
 ## 2. In flight
 
-**Throttled to one agent at a time** (Director, 2026-11-11 ~11:20 UTC: "throttle all work by 80%"). Running: lane MOR3
-(`wf_edd83092-8a1`, base `51ab032`, [args/MOR3.json](args/MOR3.json)). At 13:20 UTC its lane head was `a8ef60a` ("MOR3
-verification round 1 …"; the lane report `H-MOR3` is committed at `f84b941`), with three uncommitted files and a Debug test run
-in progress.
+**Throttled to one agent at a time** (Director, 2026-11-11 ~11:20 UTC: "throttle all work by 80%"). Lane MOR3 finished and is
+integrated (`e052b51`). Running since 13:41 UTC: lane RT, resumed (`wf_2aee7a53-1fc`, base `51ab032`,
+[args/RT.json](args/RT.json)). No agent of that run had completed, so its implementation agent restarted and continues from its
+clone. The clone's head is `950d6d1`: the fixes, the Longbow diagnosis and the date review are committed. Validation and the report
+were in progress at the pause.
 
 **Paused**, in this order of resumption (each with `resumeFromRunId`: finished agents replay from cache, and the interrupted
 agent restarts and continues from its clone):
 
 | # | Item | Workflow run | Script and args |
 |---|---|---|---|
-| 1 | Lane RT (D-084): fixes done, validation running when paused | `wf_2aee7a53-1fc` | `m7-lanes-v2-sim.js`, [args/RT.json](args/RT.json) |
-| 2 | Lane RR (D-086): research rows and responsive close in progress | `wf_b1a17355-cee` | `m7-lanes-v2-sim.js`, [args/RR.json](args/RR.json) |
-| 3 | G2 final: scenes A–E built, captures in progress | `wf_d6eb0226-44e` | `m7-g2-v2.js`, args `{"base": "1601c74"}` |
-| 4 | Final-round verification of lanes U, D, MOR, AP, MOR2, CB (findings only) | `wf_9b24d7c6-337` | `verify-final-rounds` (run its lanes one at a time) |
-| 5 | Report draft | `wf_2a771902-a97` | `pass-report-draft` |
+| 1 | Lane RR (D-086): research rows and responsive close in progress | `wf_b1a17355-cee` | `m7-lanes-v2-sim.js`, [args/RR.json](args/RR.json) |
+| 2 | G2 final: scenes A–E built, captures in progress | `wf_d6eb0226-44e` | `m7-g2-v2.js`, args `{"base": "1601c74"}` |
+| 3 | Final-round verification (findings only) of lanes U, D, MOR, AP, MOR2, CB, and now MOR3 (`95446ff`) | `wf_9b24d7c6-337` | `verify-final-rounds`: run its lanes one at a time, with MOR3 added |
+| 4 | Report draft | `wf_2a771902-a97` | `pass-report-draft` |
 
-An orphaned full test suite from lane RR (`Sim.Tests`, Release, under the full-suite lock) was left to finish: it costs no
-agent tokens, and its results can save the resumed lane a re-run.
+Lane MOR3 ran one verification round and one fix round. The lane workflow stops after a round with no blocker or major finding,
+and MOR3's eight findings were 3 minor and 5 nit. So its fix round is unverified, like the final rounds of the six lanes above.
+
+Lane RR's orphaned full test suite (`Sim.Tests`, Release, under the full-suite lock) had exited by 13:19 UTC.
 
 **Checkpoint 2026-11-11 13:20 UTC** (in [wip/](wip/)):
 - **Lane commits after `51ab032`, as bundles:**
-  - `MOR3-wip.bundle` (head `a8ef60a`);
   - `RT-wip.bundle` (`950d6d1`);
-  - `RR-wip.bundle` (`0a631db`, unchanged since 11:12).
+  - `RR-wip.bundle` (`0a631db`, unchanged since 11:12);
+  - `MOR3-wip.bundle` (`a8ef60a`): retired at 13:45 UTC, because the lane is integrated as `e052b51`.
 
   Each bundle needs `51ab032`, so restore it into a clone of this branch:
   `git fetch docs/m7-plan/pass-state/wip/<KEY>-wip.bundle HEAD:lane/<KEY>`, then `git checkout lane/<KEY>`. The bundles carry
@@ -140,6 +143,10 @@ branch's head; for G2, use `"from": "final"`.
   - READING CB-4.
 - Earlier open items: the two thirds-violating sandbox scenarios; R6; lane U's U-Q11, the decision-tray placement and its
   queue line; the DA3 calibration numbers (A-38, M7.14); lane P's acceptance (D-079 Q4).
+- Lane MOR3 asks no question, since D-085 §4 delegated its design. It leaves two PROPOSALS (H-MOR3 §13):
+  - a lane P parity item: walls in the AutoResolver's contact and line of fire. Today, on a walled setup, the TacticalResolver
+    has no fighting while the AutoResolver fights from step 0.
+  - for M7.15: `Fought` as a required hand-off input. `SupportBattle.Fought` defaults to true, which is fail-open.
 
 ## 6. What this folder holds
 
@@ -148,7 +155,7 @@ branch's head; for G2, use `"from": "final"`.
 | `workflows/m7-lanes-v2.js` | The lane workflow (implement, then adversarial verify, then fix, up to two rounds), as last run (lane CB) |
 | `workflows/m7-g2-v2.js` | The G2 graphics workflow (segments stage1, stage2, stage3, final) |
 | `workflows/ref-morale-research.js` | The reference-morale research workflow (sequential sweeps, a provenance check, the dossier) |
-| `args/*.json` | Every lane brief this pass ran (U, D, MOR, AP, MOR2, CB) and the queued ones (MOR3, RR, RT); `G2.json` holds the G2 args |
+| `args/*.json` | Every lane brief this pass ran (U, D, MOR, AP, MOR2, CB, MOR3) and the ones in flight (RR, RT); `G2.json` holds the G2 args |
 | `notes/final-report-notes.md` | The orchestrator's running facts per commit, incident and decision: the source of the final report |
 | `notes/orchestration-log.md` | The queue and pace log |
 | `notes/director-messages/` | Verbatim working copies of the Director's messages cited by D-082..D-086 |
