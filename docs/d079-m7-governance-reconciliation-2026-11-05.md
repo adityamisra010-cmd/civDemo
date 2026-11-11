@@ -1029,3 +1029,10 @@ These reports live in the session scratchpad (`/tmp/claude-0/-home-user-civDemo/
   `docs/m6-plan/research-tree-audit-2026-11-10.md`. For that work only, READING DC1-R2 (a) lets `Sim.Ui`, `Sim.Core/State`
   (`InfoQuery`) and `Sim.Data/content/research.json` change, with their tests; §6's rule stands for everything else, and Q5 stays
   open.
+
+## Dated note — 2026-11-11 (D-085; appended, the text above is unchanged)
+
+- The Director ruled that a battle without fighting does not affect morale at all; recorded in
+  `docs/d085-no-fighting-no-morale-change-2026-11-11.md` (DD1). An unfought battle gives no DA1 rise, no D-083 entry cost and no
+  DR29 decrease. Fighting is read per battle (DD1-R1 (a)) and as at least one attack resolved against an enemy formation
+  (DD1-R2 (a)); D-082 DA1 and D-083 DB1 are narrowed accordingly.

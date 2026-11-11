@@ -1076,3 +1076,11 @@ Also seen (same series, not used): in Three Kingdoms a duel's winner lifts his a
   §3.3 (the "Fire without casualties" row), §8 and §9 here, and H-MOR §3, §9, §10.9 and §11.9. Under DB1, a battle won without
   loss changes the winner's morale by DA1's rise less the entry cost, and a battle lost without loss costs the entry cost. The
   prototype at 7f0cb92 has no entry cost yet.
+
+## Dated note — 2026-11-11 (D-085; appended, the text above is unchanged)
+
+- The Director ruled that a battle without fighting does not affect morale at all
+  (`docs/d085-no-fighting-no-morale-change-2026-11-11.md`, DD1). §11.8's PROPOSAL (a) is superseded where no fighting took place,
+  and alternative (c') is adopted in a wider form: an unfought battle gives no rise and no cost (no entry term, no DR29 decrease).
+  The rule of §11.2 now applies only to battles with fighting (DD1-R1 (a): if anyone fought, every formation that entered pays).
+  The prototype at 47eac9a does not implement DD1 yet.
