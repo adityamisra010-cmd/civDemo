@@ -1196,36 +1196,69 @@ public sealed partial class ProgressionScreen
         }
 
         // Edges: ONLY the focus's (and, while pinned, the hovered card's), routed orthogonally through row gaps and lane
-        // gutters, prerequisites in one colour, dependents in another. No permanent spaghetti. A pinned card's incoming
-        // edges are the cased orange, thicker; "one of" edges keep their dash.
+        // gutters, prerequisites in one colour, dependents in another. No permanent spaghetti. A card's incoming edges are
+        // cased (a hovered card's too, D-084 verification round 1), a pinned card's also thicker; "one of" edges keep their
+        // dash, a grouped alternative's parts are dotted (D-084).
+        // D-084 (audit §3): an incoming edge takes its prerequisite's completion — a completed prerequisite's edge is the
+        // completed ink (gold: researched), an outstanding one the prerequisite ink (the pinned orange of D-070 when pinned).
+        // Edges sharing a channel (a spine, a row gap, the stub into the card) overlap, so the draw order decides what shows
+        // there: completed prerequisites first, then outstanding ones on top — where a bundle still carries an outstanding
+        // prerequisite its shared trunk shows the prerequisite ink, and each completed one shows the completed ink on its own
+        // run out of its card. Dependents are drawn before both, but their place in the order shows nothing: a dependent's
+        // route leaves from under the focus's card and never shares a segment with an incoming route (D-084 verification
+        // round 1, RT-R1-03: measured over all 1,005 cards of both trees). Each edge keeps the spine lane of its place in
+        // Graph.Edges (the route is unchanged).
         int routed = 0;
         void Edges(int fv, bool pinned)
         {
+            var order = new List<(GraphEdge E, int Lane, int Pass)>();
             foreach (GraphEdge e in Graph.Edges)
             {
                 if (e.From != fv && e.To != fv) continue;
-                (double X, double Y)[] pts = ResearchTreeLayout.Route(L, e, routed++);
+                order.Add((e, routed++, e.To != fv ? 0 : PrerequisiteComplete(e) ? 1 : 2));
+            }
+            for (int pass = 0; pass < 3; pass++)
+            foreach ((GraphEdge e, int lane, int p) in order)
+            {
+                if (p != pass) continue;
+                (double X, double Y)[] pts = ResearchTreeLayout.Route(L, e, lane);
                 if (pts.Length == 0) continue;
                 bool incoming = e.To == fv;
+                bool done = pass == 1;
                 double zs = Math.Max(0.6, z);
-                (double, double)? dash = e.Kind == EdgeKind.Or ? (6.0 * zs, 4.0 * zs) : null;
+                (double, double)? dash = EdgeDash(e.Kind, zs);
                 double ex = SX(pts[^1].X), ey = SY(pts[^1].Y);
                 if (pinned && incoming)
                 {
+                    Rgba ink = done ? t.Semantic.Completed : t.Semantic.Pinned;
                     double w = PinnedEdgePx * zs;
                     var line = new (double X, double Y)[pts.Length];
                     for (int k = 0; k < pts.Length; k++) line[k] = (SX(pts[k].X), SY(pts[k].Y));
-                    PinnedEdge(d, line, w, dash);
+                    CasedEdge(d, line, w, dash, ink);
                     double pa = 8 * zs;
                     d.Polygon([(ex - pa - 1.5, ey - pa * 1.3 - 2), (ex + pa + 1.5, ey - pa * 1.3 - 2), (ex, ey + 1.5)], t.Ink.Text);
-                    d.Polygon([(ex - pa, ey - pa * 1.3), (ex + pa, ey - pa * 1.3), (ex, ey)], t.Semantic.Pinned);
+                    d.Polygon([(ex - pa, ey - pa * 1.3), (ex + pa, ey - pa * 1.3), (ex, ey)], ink);
                     continue;
                 }
-                Rgba col = incoming ? t.Semantic.Prerequisite : t.Semantic.Dependent;
+                Rgba col = incoming ? (done ? t.Semantic.Completed : t.Semantic.Prerequisite) : t.Semantic.Dependent;
                 double lw = Math.Max(2.2, t.Icons.StrokePx) * zs;
+                double ah = 6 * zs;
+                if (incoming)
+                {
+                    // D-084 verification round 1 (RT-R1-04): a hovered card's incoming edges are cased as the pinned ones are
+                    // (CasedEdge, at the hover width). Uncased, the completed ink was under 3:1 on the tree's field in every Age,
+                    // fainter than the prerequisite ink it replaced; on the dark casing it reads at 3:1 or more, and the casing
+                    // itself reads on the field. Completed and outstanding edges are cased alike, so neither outweighs the other;
+                    // dependents keep their plain stroke.
+                    var line = new (double X, double Y)[pts.Length];
+                    for (int k = 0; k < pts.Length; k++) line[k] = (SX(pts[k].X), SY(pts[k].Y));
+                    CasedEdge(d, line, lw, dash, col);
+                    d.Polygon([(ex - ah - 1.5, ey - ah * 1.3 - 2), (ex + ah + 1.5, ey - ah * 1.3 - 2), (ex, ey + 1.5)], t.Ink.Text);
+                    d.Polygon([(ex - ah, ey - ah * 1.3), (ex + ah, ey - ah * 1.3), (ex, ey)], col);
+                    continue;
+                }
                 for (int k = 0; k + 1 < pts.Length; k++)
                     d.Line(SX(pts[k].X), SY(pts[k].Y), SX(pts[k + 1].X), SY(pts[k + 1].Y), col, lw, dash);
-                double ah = 6 * zs;
                 d.Polygon([(ex - ah, ey - ah * 1.3), (ex + ah, ey - ah * 1.3), (ex, ey)], col);
             }
         }
@@ -1251,6 +1284,10 @@ public sealed partial class ProgressionScreen
         d.PopClip();
     }
 
+    /// <summary>D-084: how far a nested group's rows sit in from their head in the REQUIRES outline (screen px at UI scale 1).</summary>
+    public const double RequiresIndentRef = 18.0;
+    private double RequiresIndent => Sp(RequiresIndentRef);
+
     // ---- the orange set (Director playtest 2026-11)
 
     /// <summary>The pinned card's outline width (screen px at UI scale 1).</summary>
@@ -1274,13 +1311,35 @@ public sealed partial class ProgressionScreen
         d.Polyline(pts, Theme.Semantic.Pinned, width, closed);
     }
 
-    /// <summary>A cased orange edge through <paramref name="pts"/> (screen points), dashed for a "one of" edge.</summary>
-    private void PinnedEdge(DrawList d, (double X, double Y)[] pts, double width, (double, double)? dash)
+    /// <summary>A cased edge through <paramref name="pts"/> (screen points) in <paramref name="ink"/> — on a pinned card the pinned
+    /// orange for an outstanding prerequisite, the completed gold for a completed one (D-084); on a hovered card the prerequisite
+    /// ink or the completed gold (D-084 verification round 1) — dashed for a "one of" edge, dotted for a part of a grouped
+    /// alternative. The body ink runs <see cref="PinnedCasingRef"/> wider each side, under the ink.</summary>
+    private void CasedEdge(DrawList d, (double X, double Y)[] pts, double width, (double, double)? dash, Rgba ink)
     {
         for (int k = 0; k + 1 < pts.Length; k++)
             d.Line(pts[k].X, pts[k].Y, pts[k + 1].X, pts[k + 1].Y, Theme.Ink.Text, width + 2 * Sp(PinnedCasingRef), dash);
         for (int k = 0; k + 1 < pts.Length; k++)
-            d.Line(pts[k].X, pts[k].Y, pts[k + 1].X, pts[k + 1].Y, Theme.Semantic.Pinned, width, dash);
+            d.Line(pts[k].X, pts[k].Y, pts[k + 1].X, pts[k + 1].Y, ink, width, dash);
+    }
+
+    /// <summary>The dash of an edge of <paramref name="kind"/> at zoom scale <paramref name="zs"/>: none for "requires", the long
+    /// dash for "one of", the short dot for a part of a grouped alternative (D-084).</summary>
+    public static (double On, double Off)? EdgeDash(EdgeKind kind, double zs) => kind switch
+    {
+        EdgeKind.Or => (6.0 * zs, 4.0 * zs),
+        EdgeKind.Grouped => (2.0 * zs, 3.0 * zs),
+        _ => null,
+    };
+
+    /// <summary>D-084 (audit §3): whether the prerequisite at the start of <paramref name="e"/> is complete — the completion the
+    /// detail pane ticks (ResearchNodeView.Prerequisites of the edge's dependent).</summary>
+    private bool PrerequisiteComplete(GraphEdge e)
+    {
+        if (Snapshot is not { } s) return false;
+        int pre = Graph.Vertices[e.From].ContentIndex, dep = Graph.Vertices[e.To].ContentIndex;
+        foreach (PrereqView p in s.Nodes[dep].Prerequisites) if (p.ContentIndex == pre) return p.Completed;
+        return false;
     }
 
     /// <summary>The era-invariant width estimate of a run at the Body role (geometry only, as <see cref="CapsGeometryWidth"/>).</summary>
@@ -1308,13 +1367,19 @@ public sealed partial class ProgressionScreen
             int n = PinnedOffscreen(below).Count;
             if (n == 0) continue;
             string text = OffscreenLabel(n, below);
-            double w = Math.Min(right - c.X - Sp(24), BodyGeometryWidth(m, text) + Sp(52)), h = Sp(36);
+            // D-084 (audit §2.2, the long tier gaps): a second line names the prerequisites out of view, nearest first, with how
+            // many tiers away each lies — a prerequisite 13 to 20 tiers above is 14 to 25 screens away, and its edge reaches
+            // the pin down a spine shared with the others, so the line alone cannot say which it is.
+            string detail = OffscreenDetail(m, below, right - c.X - Sp(24) - Sp(52));
+            double second = Px(TypeRole.Secondary), slot = FlowText.Slot(TypeRole.Secondary, _scale);
+            double w = Math.Min(right - c.X - Sp(24), Math.Max(BodyGeometryWidth(m, text), m.Width(t, detail, second)) + Sp(52)),
+                h = Sp(36) + (detail.Length > 0 ? slot : 0);
             var r = new RectD(cx - w / 2, below ? c.Bottom - h - Sp(12) : c.Y + Sp(12), w, h);
             bool hover = Over(r);
             d.Rect(new RectD(r.X + Sp(2), r.Y + Sp(3), r.W, r.H), A(t.Ink.Text, 0.18), null, 0, Sp(4));
             PanelFrame.Paint(d, r, t, below ? 187 : 186, FrameKind.Chip, hover ? HoverFill : t.Material.Panel, null, 1.0);
             PinnedStroke(d, PanelFrame.Outline(r, t, below ? 187 : 186, FrameKind.Chip), Sp(PinnedPrerequisiteOutlineRef), closed: true);
-            double tx = r.X + Sp(22), ty = r.CenterY, a = Sp(7);
+            double tx = r.X + Sp(22), ty = r.Y + Sp(18), a = Sp(7);
             (double, double)[] tri = below
                 ? [(tx - a, ty - a * 0.6), (tx + a, ty - a * 0.6), (tx, ty + a * 0.8)]
                 : [(tx - a, ty + a * 0.6), (tx + a, ty + a * 0.6), (tx, ty - a * 0.8)];
@@ -1323,9 +1388,40 @@ public sealed partial class ProgressionScreen
                 : [(tx - a - 2, ty + a * 0.6 + 1.5), (tx + a + 2, ty + a * 0.6 + 1.5), (tx, ty - a * 0.8 - 2.5)];
             d.Polygon(casing, t.Ink.Text);
             d.Polygon(tri, t.Semantic.Pinned);
-            WriteFit(d, m, r.X + Sp(38), r.Y + (r.H - t.Type.Size(size)) / 2 - Sp(2), text, size, r.Right - Sp(10) - (r.X + Sp(38)), t.Ink.Text, TextAlign.Left, FontRole.Heading);
+            WriteFit(d, m, r.X + Sp(38), r.Y + (Sp(36) - t.Type.Size(size)) / 2 - Sp(2), text, size, r.Right - Sp(10) - (r.X + Sp(38)), t.Ink.Text, TextAlign.Left, FontRole.Heading);
+            if (detail.Length > 0)
+                WriteFit(d, m, r.X + Sp(38), r.Y + Sp(36) - Sp(6), detail, second, r.Right - Sp(10) - (r.X + Sp(38)), t.Ink.TextSoft);
             _hits.Add(new HitRegion(r, HitKind.PinnedOffscreen, below ? 1 : -1));
         }
+    }
+
+    /// <summary>D-084: one off-screen prerequisite as the marker's second line names it — "Canal irrigation (20 tiers)", the
+    /// tiers between its card and the pin's (none for a pin carried from the other tree, D-073, which has no card here).</summary>
+    public string OffscreenItem(int contentIndex)
+    {
+        string name = Content.Nodes[contentIndex].Name;
+        int pv = Pin >= 0 ? Graph.VertexOf(Pin) : -1, qv = Graph.VertexOf(contentIndex);
+        if (pv < 0 || qv < 0 || Graph.Vertices[pv].External) return name;
+        int tiers = Math.Abs(Layout.Placed[pv].Column - Layout.Placed[qv].Column);
+        return name + " (" + tiers.ToString(CultureInfo.InvariantCulture) + (tiers == 1 ? " tier)" : " tiers)");
+    }
+
+    /// <summary>D-084: the marker's second line — the off-screen prerequisites in <see cref="PinnedOffscreen"/>'s order
+    /// (nearest first), as many as fit <paramref name="room"/> at the secondary role, then "+N more".</summary>
+    public string OffscreenDetail(ITextMeasure m, bool below, double room)
+    {
+        List<int> off = PinnedOffscreen(below);
+        double size = Px(TypeRole.Secondary);
+        string shown = "";
+        for (int k = 0; k < off.Count; k++)
+        {
+            string next = (shown.Length > 0 ? shown + " · " : "") + OffscreenItem(off[k]);
+            string tail = k + 1 < off.Count ? " · +" + (off.Count - k - 1).ToString(CultureInfo.InvariantCulture) + " more" : "";
+            if (shown.Length > 0 && m.Width(Theme, next + tail, size) > room)
+                return shown + " · +" + (off.Count - k).ToString(CultureInfo.InvariantCulture) + " more";
+            shown = next;
+        }
+        return shown;
     }
 
     private double CornerRadius(double z) => Theme.Edge.Corner switch
@@ -1414,18 +1510,26 @@ public sealed partial class ProgressionScreen
         d.Write(t, c.X + Sp(12), ty, head, caps, t.Ink.OnChromeAccent, TextAlign.Left, FontRole.Caps);
         double hx = c.X + Sp(24) + m.Width(t, head, caps, FontRole.Caps);
         // Legend for the highlight (just left of the buttons), where the row has room for it beside the tier's Ages.
-        (string Label, Rgba Col, bool Dash)[] keys = [("requires", Mix(t.Semantic.Prerequisite, t.Ink.OnChrome, 0.3), false),
-            ("leads to", Mix(t.Semantic.Dependent, t.Ink.OnChrome, 0.4), false), ("one of", t.Ink.OnChromeSoft, true)];
-        double legendW = 0;
-        foreach ((string label, _, _) in keys) legendW += m.Width(t, label, capt) + Sp(34);
-        double lx = x - Sp(8);
-        if (lx - legendW - hx >= Sp(260))
+        // D-084: where the row has room, two more keys — "known" (a completed prerequisite's edge, the completed ink) and "in a
+        // group" (the dotted part of a grouped alternative); they are left out first, so the three keys before them keep their
+        // room exactly as before.
+        var keys = new List<(string Label, Rgba Col, (double, double)? Dash)>
         {
-            for (int i = keys.Length - 1; i >= 0; i--)
+            ("requires", Mix(t.Semantic.Prerequisite, t.Ink.OnChrome, 0.3), null), ("known", Mix(t.Semantic.Completed, t.Ink.OnChrome, 0.3), null),
+            ("leads to", Mix(t.Semantic.Dependent, t.Ink.OnChrome, 0.4), null), ("one of", t.Ink.OnChromeSoft, (Sp(4), Sp(3))),
+            ("in a group", t.Ink.OnChromeSoft, (Sp(1.5), Sp(2.5))),
+        };
+        double KeysW() { double sum = 0; foreach ((string label, _, _) in keys) sum += m.Width(t, label, capt) + Sp(34); return sum; }
+        double lx = x - Sp(8);
+        if (lx - KeysW() - hx < Sp(260)) keys.RemoveAt(4);
+        if (lx - KeysW() - hx < Sp(260)) keys.RemoveAt(1);
+        if (lx - KeysW() - hx >= Sp(260))
+        {
+            for (int i = keys.Count - 1; i >= 0; i--)
             {
                 double tw = m.Width(t, keys[i].Label, capt);
                 lx -= tw + Sp(34);
-                d.Line(lx, row.CenterY, lx + Sp(22), row.CenterY, keys[i].Col, Sp(2), keys[i].Dash ? (Sp(4), Sp(3)) : null);
+                d.Line(lx, row.CenterY, lx + Sp(22), row.CenterY, keys[i].Col, Sp(2), keys[i].Dash);
                 d.Write(t, lx + Sp(27), row.Y + (ControlRowH - t.Type.Size(capt)) / 2 - Sp(2), keys[i].Label, capt, t.Ink.OnChromeSoft);
             }
         }
@@ -1436,6 +1540,9 @@ public sealed partial class ProgressionScreen
     /// <summary>The share a receding card's fill and frame fade toward the field while another node has the focus.</summary>
     public const double RecedeFade = 0.25;
 
+    /// <summary>D-084 verification round 1 (RT-R1-01): what the pane writes in place of "~N turns" for a civic not yet open.</summary>
+    public const string NoEstimateYet = "no estimate until it opens";
+
     /// <summary>The card's state line (UR-4): the one sentence a card owes the player — why it is locked ("Needs
     /// Controlled fire"), how long it would take ("Available · ~9 turns"), how far it is ("Researching · 13% · ~7
     /// turns"), or that it is known. Read from the snapshot (ResearchQuery), never invented.</summary>
@@ -1443,9 +1550,9 @@ public sealed partial class ProgressionScreen
     {
         ResearchSnapshot s = Snapshot!;
         ResearchNodeView v = s.Nodes[contentIndex];
-        double rate = s.PointsPerTurnOn(v.Tree);   // ADR-043: a civic is paid in CP in the two-lane model
-        string Turns(double remaining) => rate > 0
-            ? "~" + Math.Ceiling(Math.Max(0, remaining) / rate).ToString("0", CultureInfo.InvariantCulture) + " turns" : "";
+        // D-084 (audit §5): the one shared estimate (InfoQuery.ResearchTurns through the snapshot) — a civic is paid in CP in the
+        // two-lane model (ADR-043) and its lane spends the banked CP on it in the same End Turn.
+        string Turns() => s.TurnsOf(v) is long n ? "~" + InfoQuery.TurnsPhrase(n) : "";   // "~1 turn", "~9 turns"
         static string Join(params string[] parts)
         {
             var kept = new List<string>(parts.Length);
@@ -1463,15 +1570,15 @@ public sealed partial class ProgressionScreen
                 if (s.Routing && s.RouteOn(v.Tree) is { DestinationAvailable: false } route && route.Destination == v.Key)
                     return Join("Destination", route.Current is { } now ? "now: " + Content.Nodes[Content.IndexOf(now)].Name : "waiting",
                         (route.Blockers.Count == 1 ? "1 node" : route.Blockers.Count.ToString(CultureInfo.InvariantCulture) + " nodes") + " to go");
-                return Join("Researching", levelled, Pct(v.Fraction), Turns(v.EffectiveCost - v.Progress));
+                return Join("Researching", levelled, Pct(v.Fraction), Turns());
             case NodeState.Available:
                 if (PendingTarget == contentIndex) return "Ordered - applies at End Turn";
                 // rp-cp-lifecycle k2/k3: a route node a lane funds now (ResearchQuery.Route's Current) is being researched —
                 // toward its lane's destination, or assisting the other tree's.
                 if (FundingRoute(s, v.Key) is { } funding)
                     return Join("Researching", funding.Assisting ? "assisting " + NodeName(funding.AssistedDestination) : "toward " + NodeName(funding.Destination),
-                        levelled, Pct(v.Fraction), Turns(v.EffectiveCost - v.Progress));
-                return Join("Available", levelled, Turns(v.EffectiveCost - v.Progress));
+                        levelled, Pct(v.Fraction), Turns());
+                return Join("Available", levelled, Turns());
         }
         string why = LockLine(contentIndex);
         return v.State == NodeState.Partial ? Join(Pct(v.Fraction) + " kept", why) : why;
@@ -1528,14 +1635,24 @@ public sealed partial class ProgressionScreen
         {
             PrereqView? first = null;
             int missing = 0;
-            bool anyAndMissing = false;
-            foreach (PrereqView p in v.Prerequisites) if (!p.Completed && p.Kind == EdgeKind.And) anyAndMissing = true;
+            bool anyAndMissing = false, anyGroupedMissing = false;
             foreach (PrereqView p in v.Prerequisites)
             {
-                if (p.Completed || (anyAndMissing && p.Kind != EdgeKind.And)) continue;
+                if (!p.Completed && p.Kind == EdgeKind.And) anyAndMissing = true;
+                if (!p.Completed && p.Kind == EdgeKind.Grouped) anyGroupedMissing = true;
+            }
+            // D-084 (audit §4): with no required prerequisite missing, the line names an alternative that completes the choice on
+            // its own ("one of"), never a part of a grouped alternative; the grouped alternatives count toward the "/ ...".
+            foreach (PrereqView p in v.Prerequisites)
+            {
+                if (p.Completed || (anyAndMissing ? p.Kind != EdgeKind.And : p.Kind != EdgeKind.Or)) continue;
                 first ??= p;
                 missing++;
             }
+            if (!anyAndMissing && anyGroupedMissing) missing++;
+            if (first is null && anyGroupedMissing)
+                foreach (PrereqView p in v.Prerequisites)
+                    if (!p.Completed && p.Kind == EdgeKind.Grouped) { return "Needs a group: " + p.Name + " with others"; }
             if (first is not null)
             {
                 string where = "";
@@ -1988,17 +2105,21 @@ public sealed partial class ProgressionScreen
         // COST, the turns it would take, and the action directly under them.
         y = Heading(d, m, x, w, y, "COST", 1);
         string unit = s.UnitOn(n.Tree);
-        double rate = s.PointsPerTurnOn(n.Tree);
         y = Stat(d, m, x, w, y, "Base cost", Num(n.BaseCost) + " " + unit, t.Ink.TextSoft);
         foreach ((string uni, double f) in n.CostTerms)
             y = Stat(d, m, x, w, y, "  " + ResearchTreeLayout.Title(uni) + " university", "× " + f.ToString("0.00", CultureInfo.InvariantCulture), Ink.Positive);
         y = Stat(d, m, x, w, y, "Effective cost" + (n.FloorBinds ? " (floor)" : ""), Num(n.EffectiveCost) + " " + unit, t.Ink.Text);
         if (n.State != NodeState.Completed)
         {
+            // D-070 R4 / D-084: a civic's lane spends the bank on it, so the bank is shown beside the estimate that counts it.
+            if (s.BankOn(n.Tree) > 0) y = Stat(d, m, x, w, y, "Civics Points banked", CivicsBankFigure(s.BankOn(n.Tree)), Ink.Knowledge);
             EraMarks.Progress(d, t, new RectD(x, y + Sp(4), w, t.Controls.Progress == ProgressStyle.Notches ? Sp(11) : Sp(8)), n.Fraction,
                 n.State == NodeState.CurrentTarget ? sm.Active : sm.Progress, 192);
             y += Sp(20);
-            string turns = rate > 0 ? "  ·  ~" + Math.Ceiling(Math.Max(0, n.EffectiveCost - n.Progress) / rate).ToString("0", CultureInfo.InvariantCulture) + " turns at the current rate" : "";
+            // D-084 verification round 1 (RT-R1-01): a civic not yet open gets no figure — its lane funds its route first and spends
+            // the bank there (ResearchSnapshot.NoEstimateUntilOpen) — and the pane says so.
+            string turns = s.TurnsOf(n) is long k ? "  ·  ~" + InfoQuery.TurnsPhrase(k) + " at the current rate"
+                : s.NoEstimateUntilOpen(n) ? "  ·  " + NoEstimateYet : "";
             foreach (string line in FlowText.Wrap(m, Num(n.Progress) + " / " + Num(n.EffectiveCost) + " " + unit + turns, TypeRole.Data, _scale, w, FontRole.Numeric))
             { d.Write(t, x, y, line, data, t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric); y += FlowText.Slot(TypeRole.Data, _scale); }
         }
@@ -2073,31 +2194,45 @@ public sealed partial class ProgressionScreen
         }
 
         // REQUIRES: the prerequisites (marked done or missing; a prerequisite in another lane names it) and why it is locked.
+        // D-084 (audit §4): the rows keep the expression's grouping (RequiresRows): a flat expression is the labelled list it
+        // always was; one with a grouped alternative is its outline — a nested group's head ("or all of:") with its
+        // prerequisites indented under it, each with its own tick, and no row labelled with a kind it does not have.
         y = Heading(d, m, x, w, y, n.Prerequisites.Count == 0 ? "REQUIRES - nothing (a root)" : "REQUIRES", 2);
-        bool anyOr = false;
-        foreach (PrereqView p in n.Prerequisites) if (p.Kind == EdgeKind.Or) anyOr = true;
-        if (anyOr && n.PrerequisiteExpression is string expr)
+        // The expression in words, its groups in parentheses: "Seed drill OR (Ard plough AND Padded horse collar)". D-084
+        // verification round 1 (RT-R1-02): an expression the screens do not model (PrereqExpr.Of is null: it holds a comparison
+        // of literals, which the loader admits) is written as the content writes it, as the stage gate below is; the rows under
+        // it then carry only the kinds that are true of it (PrereqExpr.Kinds).
+        string? expression = n.Requirement is { HasAlternatives: true } req ? req.Text(i => PrereqExpr.NameInExpression(Content.Nodes[i].Name))
+            : n.Requirement is null && n.PrerequisiteExpression is { } source ? source.Replace("_", " ") : null;
+        if (expression is not null)
         {
-            foreach (string line in FlowText.Wrap(m, expr.Replace("_", " "), TypeRole.Caption, _scale, w, FontRole.Numeric))
+            foreach (string line in FlowText.Wrap(m, expression, TypeRole.Caption, _scale, w, FontRole.Numeric))
             { d.Write(t, x, y, line, Px(TypeRole.Caption, FontRole.Numeric), t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric); y += FlowText.Slot(TypeRole.Caption, _scale); }
             y += Sp(2);
         }
         int pi = 0;
-        foreach (PrereqView p in n.Prerequisites)
+        foreach (RequiresRow row in RequiresRows.Of(n))
         {
-            EraMarks.Tick(d, t, x + 1, y + Sp(5), Sp(12), p.Completed, p.Completed ? sm.Completed : sm.Danger, 193 + pi++);
-            int pv = Graph.VertexOf(p.ContentIndex), nv = Graph.VertexOf(node);
+            double ix = x + row.Depth * RequiresIndent, iw = w - row.Depth * RequiresIndent;
+            if (row.Atom < 0)
+            {
+                foreach (string line in FlowText.Wrap(m, row.Text, TypeRole.Secondary, _scale, iw))
+                { d.Write(t, ix, y, line, second, t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Secondary, _scale); }
+                continue;
+            }
+            EraMarks.Tick(d, t, ix + 1, y + Sp(5), Sp(12), row.Met, row.Met ? sm.Completed : sm.Danger, 193 + pi++);
+            int pv = Graph.VertexOf(row.Atom), nv = Graph.VertexOf(node);
             string where = "";
             if (pv >= 0 && nv >= 0 && Layout.Placed[pv].Lane != Layout.Placed[nv].Lane)
                 where = " (" + (Graph.Vertices[pv].External ? (Graph.Tree == ResearchTree.Civics ? "Technology" : "Civics") : Layout.Lanes[Layout.Placed[pv].Lane].Name) + ")";
-            string kind = p.Kind == EdgeKind.And ? "required" : "one of";
-            double kw = FlowText.Width(m, kind, TypeRole.Secondary, _scale) + Sp(8);
-            List<string> lines = FlowText.Wrap(m, p.Name + where, TypeRole.Body, _scale, w - Sp(22) - kw);
-            d.Write(t, x + w, y + Sp(2), kind, second, t.Ink.TextSoft, TextAlign.Right);
+            string kind = row.Label;
+            double kw = kind.Length > 0 ? FlowText.Width(m, kind, TypeRole.Secondary, _scale) + Sp(8) : 0.0;
+            List<string> lines = FlowText.Wrap(m, row.Text + where, TypeRole.Body, _scale, iw - Sp(22) - kw);
+            if (kind.Length > 0) d.Write(t, x + w, y + Sp(2), kind, second, t.Ink.TextSoft, TextAlign.Right);
             double nameW = 0;
             foreach (string line in lines) nameW = Math.Max(nameW, FlowText.Width(m, line, TypeRole.Body, _scale));
-            InfoNode(new RectD(x + Sp(22), y, Math.Min(w - Sp(22) - kw, nameW), lines.Count * FlowText.Slot(TypeRole.Body, _scale)), p.ContentIndex);
-            foreach (string line in lines) { d.Write(t, x + Sp(22), y, line, body, p.Completed ? t.Ink.Text : t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
+            InfoNode(new RectD(ix + Sp(22), y, Math.Min(iw - Sp(22) - kw, nameW), lines.Count * FlowText.Slot(TypeRole.Body, _scale)), row.Atom);
+            foreach (string line in lines) { d.Write(t, ix + Sp(22), y, line, body, row.Met ? t.Ink.Text : t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
         }
         if (n.Lock.HasFlag(LockReason.ResearchStage))
             foreach (string line in FlowText.Wrap(m, "Subtree closed: the research stage is not reached (" + s.StageExpression.Replace("_", " ") + ").", TypeRole.Body, _scale, w))

@@ -110,8 +110,21 @@ public class ResearchPointDisplayTests(SteppedWorldFixture fx) : IClassFixture<S
             if (c.Nodes[i].Tree == ResearchTree.Civics && open[i] && !done[i] && screen.Snapshot.Nodes[i].State == NodeState.Available) { civic = i; break; }
         Assert.True(civic >= 0, "an available civic");
         ResearchNodeView cv = screen.Snapshot.Nodes[civic];
-        double turns = Math.Ceiling(Math.Max(0, cv.EffectiveCost - cv.Progress) / (accruedMilli / 1000.0));
-        Assert.Contains("~" + turns.ToString("0", CultureInfo.InvariantCulture) + " turns", screen.StateLine(civic), StringComparison.Ordinal);
+        // D-084 (research-tree audit §5) MOVED PIN: the estimate counts the banked CP the lane spends on the civic in the same End
+        // Turn (InfoQuery.ResearchTurns). This world banks 715.213 CP, which covers its first available civic: it completes at
+        // the next End Turn (the pin was ceil((cost − progress) / CP a turn) = 13, ignoring the bank).
+        long turns = InfoQuery.ResearchTurns(cv.EffectiveCost, cv.Progress, accruedMilli / 1000.0, ResearchQuery.CivicsPointsBalance(w, Me))!.Value;
+        Assert.Equal(1L, turns);
+        // D-084 verification round 1 (RT-R1-06 b) MOVED PIN: one turn is written singular, "~1 turn" (was "~1 turns").
+        Assert.EndsWith("~1 turn", screen.StateLine(civic), StringComparison.Ordinal);
+        // With the bank emptied the estimate divides by the next step's accrual alone, as this fact has always checked (k5).
+        WorldState unbanked = w.Clone();
+        for (int r = 0; r < unbanked.CivicsPoints.Count; r++)
+            if (unbanked.CivicsPoints[r].Polity.Value == Me.Value)
+                unbanked.CivicsPoints[r] = unbanked.CivicsPoints[r] with { BalanceMilli = 0L, GeneratedMilli = unbanked.CivicsPoints[r].SpentMilli };
+        ProgressionScreen plain = Screen(c, unbanked);
+        double rateTurns = Math.Ceiling(Math.Max(0, cv.EffectiveCost - cv.Progress) / (accruedMilli / 1000.0));
+        Assert.Contains("~" + rateTurns.ToString("0", CultureInfo.InvariantCulture) + " turns", plain.StateLine(civic), StringComparison.Ordinal);
 
         // The action surface's civics line.
         ActionSurfaceModel m = ActionSurface.Build(new ActionSurfaceInput(w, null, fx.Session.Config, Era, Me, -1, [],

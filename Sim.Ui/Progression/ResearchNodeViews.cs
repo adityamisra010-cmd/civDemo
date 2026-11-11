@@ -50,7 +50,7 @@ public sealed record ResearchNodeView(
     string? PrerequisiteExpression, IReadOnlyList<PrereqView> Prerequisites, IReadOnlyList<EurekaView> Eurekas,
     double EurekaCeiling, double EurekaCredited, double ForeignCredited, double ExposureOffered,
     IReadOnlyList<UniversityView> Universities, IReadOnlyList<string> Unlocks, bool IsRecursive, string? History = null,
-    RepeatView? Repeat = null)
+    RepeatView? Repeat = null, PrereqExpr? Requirement = null)
 {
     /// <summary>Progress toward EffectiveCost, 0..1.</summary>
     public double Fraction => EffectiveCost > 0 ? Math.Clamp(Progress / EffectiveCost, 0.0, 1.0) : 0.0;
@@ -106,6 +106,27 @@ public sealed class ResearchSnapshot
 
     /// <summary>The unit of <see cref="PointsPerTurnOn"/>: "CP" or "RP".</summary>
     public string UnitOn(ResearchTree tree) => TwoLanes && tree == ResearchTree.Civics ? "CP" : "RP";
+
+    /// <summary>D-084 (audit §5): the banked points the lane of <paramref name="tree"/> spends on the node it funds — the Civics
+    /// Points bank for Civics in the two-lane model (<see cref="CivicsBalance"/>), else 0 (Technology has no RP bank).</summary>
+    public double BankOn(ResearchTree tree) => TwoLanes && tree == ResearchTree.Civics ? CivicsBalance : 0.0;
+
+    /// <summary>D-084 (audit §5): the "~N turns" of <paramref name="v"/> — <see cref="InfoQuery.ResearchTurns"/> over the view's
+    /// cost and progress and its lane's rate and bank, the one estimate the card, the pane and the inspector share. Null when
+    /// none can be given: a zero rate and a bank short of the cost, or a civic not yet open (<see cref="NoEstimateUntilOpen"/>).
+    /// For an open node it is the End Turns the engine takes once the node is ordered; for a technology not yet open (no bank)
+    /// it is, as before D-084, the node's own turns at the current rate once it opens — its route is not counted.</summary>
+    public long? TurnsOf(ResearchNodeView v) =>
+        NoEstimateUntilOpen(v) ? null : InfoQuery.ResearchTurns(v.EffectiveCost, v.Progress, PointsPerTurnOn(v.Tree), BankOn(v.Tree));
+
+    /// <summary>D-084 verification round 1 (RT-R1-01): whether <paramref name="v"/> is a civic of the two-lane model that is not
+    /// open — locked, partial, or a destination still waiting on its route. Its lane cannot fund it at the next End Turn:
+    /// ordered, it becomes the lane's destination, and the lane funds the nodes of its route first, one civic per End Turn
+    /// (overflow off) and the bank spent on those (ResearchSystem steps 1b and 3b). How long it takes therefore depends on its
+    /// route, so no single-node figure — least of all one that spends the bank on it — is what the engine does, and none is
+    /// shown. Technology has no bank and keeps its figure.</summary>
+    public bool NoEstimateUntilOpen(ResearchNodeView v) =>
+        TwoLanes && v.Tree == ResearchTree.Civics && !v.Available && v.State != NodeState.Completed;
 
     /// <summary>The snapshot of <paramref name="world"/>. <paramref name="nextDtYears"/> is the length of the step the next End
     /// Turn plays (<see cref="ActionQueryContext.ForNextStep"/> over the session's era table) — the dt the CP a turn is
@@ -172,14 +193,14 @@ public sealed class ResearchSnapshot
             var terms = new List<(string, double)>();
             foreach (ResearchQuery.CostTerm term in cost.Terms) terms.Add((term.UniversityId, term.Factor));
 
-            IReadOnlyList<int> must = node.Prerequisite?.MustHoldAtoms() ?? [];
+            // D-084 (audit §4): each prerequisite's kind is decided from the whole expression (PrereqExpr.Kinds) — a part of a
+            // grouped alternative is Grouped, never "one of" — and the expression itself travels with the view.
+            EdgeKind[] kinds = PrereqExpr.Kinds(node);
             var prereqs = new PrereqView[node.PrerequisiteNodes.Count];
             for (int k = 0; k < prereqs.Length; k++)
             {
                 int p = node.PrerequisiteNodes[k];
-                bool and = false;
-                for (int m = 0; m < must.Count; m++) if (must[m] == p) { and = true; break; }
-                prereqs[k] = new PrereqView(p, content.Nodes[p].Name, completed[p], and ? EdgeKind.And : EdgeKind.Or);
+                prereqs[k] = new PrereqView(p, content.Nodes[p].Name, completed[p], kinds[k]);
             }
 
             ResearchQuery.EurekaState[] eu = ResearchQuery.Eurekas(world, content, polity, node.Key, cfg);
@@ -215,7 +236,7 @@ public sealed class ResearchSnapshot
                 node.Branch >= 0 ? content.Branches[node.Branch].Name : node.Tree == ResearchTree.Technology ? "Main Trunk" : "Civics",
                 node.Domain, state, lockReason, available, isTarget, progress, cost.BaseCost, cost.EffectiveCost, cost.FloorBinds,
                 terms, node.Prerequisite?.Source, prereqs, eurekas, pool.Ceiling, pool.Eureka, pool.ForeignExposure,
-                pool.ExposureOffered, unis, unlocks, node.IsRecursive, KnowledgeTexts.For(node.Key), repeat);
+                pool.ExposureOffered, unis, unlocks, node.IsRecursive, KnowledgeTexts.For(node.Key), repeat, PrereqExpr.Of(node));
         }
 
         return new ResearchSnapshot

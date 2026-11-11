@@ -366,6 +366,39 @@ public static class InfoQuery
 
     // ================================================================== research node
 
+    /// <summary>
+    /// D-084 (research-tree audit §5) — THE RESEARCH TURNS ESTIMATE, the one function behind every "~N turns" the player is
+    /// shown for a node: the progression screen's card state line, its selected-node pane, and this card's "Open to research now"
+    /// line. It is the number of End Turns until the node completes if its lane funds it from the next End Turn on at the
+    /// current rate, as the engine pays it (ResearchSystem): each End Turn first ACCRUES the lane's points of the turn and then
+    /// pays the funded node min(the points available, its remaining cost), and the node completes in that same step. For a
+    /// civic in the two-lane model the points available include the BANKED Civics Points (ResearchSystem 3b: accrue into the
+    /// bank, then draw min(bank, remaining)), so a bank that covers the remaining cost completes the civic at the FIRST End
+    /// Turn — 1, never 0 — and an incomplete node never takes fewer than one End Turn:
+    ///   remaining = max(0, effectiveCost − progress);  shortfall = remaining − max(0, banked)
+    ///   shortfall ≤ 0 → 1;  pointsPerTurn &gt; 0 → max(1, ceil(shortfall / pointsPerTurn));  otherwise null (no estimate).
+    /// Technology passes <paramref name="banked"/> = 0: there is no general RP bank (D-044 R20-D; ADR-051's reserve is not in the
+    /// shipped tuning and is not counted). Like the estimate it replaces it does not count Ideas or foreign exposure credited
+    /// meanwhile, a free lane's assist, overflow (off in the shipped tuning) or a change of the rate.
+    /// </summary>
+    public static long? ResearchTurns(double effectiveCost, double progress, double pointsPerTurn, double banked)
+    {
+        double remaining = Math.Max(0.0, effectiveCost - progress);
+        double shortfall = remaining - Math.Max(0.0, banked);
+        if (shortfall <= 0.0) return 1L;
+        if (!(pointsPerTurn > 0.0)) return null;
+        return Math.Max(1L, (long)Math.Ceiling(shortfall / pointsPerTurn));
+    }
+
+    /// <summary>D-084 verification round 1 (RT-R1-06 b): the words of a research turns estimate — "1 turn", "9 turns" — as the
+    /// card's state line, the detail pane and this card's "Open to research now" line write it.</summary>
+    public static string TurnsPhrase(long turns) => Inv(turns) + (turns == 1L ? " turn" : " turns");
+
+    /// <summary>D-084: the banked points the lane of node <paramref name="index"/> spends on it — the polity's Civics Points
+    /// bank for a civic in the two-lane model, else 0.</summary>
+    public static double ResearchBank(IReadOnlyWorldState world, ResearchContent content, PolityId polity, int index) =>
+        content.Tuning.TwoLanes && content.Nodes[index].Tree == ResearchTree.Civics ? ResearchQuery.CivicsPointsBalance(world, polity) : 0.0;
+
     private static void NodeCard(Ctx c, B b)
     {
         if (c.R is not { } r) { b.Inert("research content"); return; }
@@ -404,7 +437,9 @@ public static class InfoQuery
         else if (available)
         {
             b.Status = InfoStatus.Researchable;
-            b.StatusLine = "Open to research now: " + N0(cost) + points + (rp > 0 ? " (about " + Inv((long)Math.Ceiling(Math.Max(0.0, cost - ResearchQuery.Progress(c.W, c.P, n.Key)) / rp)) + " turns at the current rate)." : ".");
+            // D-084: the shared estimate, counting the Civics Points bank the engine spends on a civic.
+            long? turns = ResearchTurns(cost, ResearchQuery.Progress(c.W, c.P, n.Key), rp, ResearchBank(c.W, r, c.P, i));
+            b.StatusLine = "Open to research now: " + N0(cost) + points + (turns is long k ? " (about " + TurnsPhrase(k) + " at the current rate)." : ".");
         }
         else { b.Status = InfoStatus.Locked; b.StatusLine = "Locked: " + N0(cost) + points + " once it opens."; }
         if (levelled && c.Done[i])

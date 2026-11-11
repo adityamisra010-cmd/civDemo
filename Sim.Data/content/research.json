@@ -905,7 +905,7 @@
    "desc": "Engineered glues \u2014 resin mixed with ochre or beeswax, and heat-processed bitumen \u2014 strong enough to hold a tool head under load. Simple gum, resin and sinew binding needs no research. Well-bound tools last longer, and farmers gain more from them.",
    "age": "A1",
    "frontier": false,
-   "emerged": "~200 kya (bitumen, Umm el Tlel)",
+   "emerged": "~70 kya bitumen hafting adhesive (Umm el Tlel); ~70-60 kya ochre-loaded plant gum (Sibudu)",
    "branch": null,
    "domain": "materials",
    "secondaryDomains": [
@@ -1902,7 +1902,7 @@
    "desc": "Quern and handstone for processing seeds, tubers, pigment.",
    "age": "A1",
    "frontier": false,
-   "emerged": "~30 kya Bilancino; routine in Natufian ~12 kya",
+   "emerged": "before ~285 kya Kapthurin Formation (grindstones with pigment); ~100 kya Blombos (ochre-grinding slabs); ~30 kya Bilancino (plant flour); routine in Natufian ~12 kya",
    "branch": null,
    "domain": "agriculture",
    "secondaryDomains": [
@@ -4212,7 +4212,7 @@
    "desc": "Excavated shaft to groundwater \u2014 settlement independent of surface water.",
    "age": "A2",
    "frontier": false,
-   "emerged": "~8,000 BCE Atlit-Yam (stone-lined); ~5,200 BCE LBK oak-lined wells (Saxony)",
+   "emerged": "~8,500 BCE western Cyprus (Kissonerga-Mylouthkia wells); ~6,900-6,300 BCE Atlit-Yam (stone-lined); ~5,200 BCE LBK oak-lined wells (Saxony)",
    "branch": null,
    "domain": "infrastructure",
    "secondaryDomains": [

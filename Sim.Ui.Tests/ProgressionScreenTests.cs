@@ -42,7 +42,7 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
     public void Edges_AreExactlyThePrerequisites_ClassifiedAndOrFromTheExpression()
     {
         ResearchContent c = fx.Content;
-        int orEdges = 0, andEdges = 0;
+        int orEdges = 0, andEdges = 0, groupedEdges = 0;
         foreach (ResearchTree tree in new[] { ResearchTree.Technology, ResearchTree.Civics })
         {
             ResearchGraph g = ResearchGraph.Build(c, tree);
@@ -59,8 +59,13 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
                     Assert.Equal(node.PrerequisiteNodes[k], from);
                     bool and = false;
                     foreach (int a in must) if (a == from) and = true;
-                    Assert.Equal(and ? EdgeKind.And : EdgeKind.Or, incoming[k].Kind);
-                    if (and) andEdges++; else orEdges++;
+                    // D-084 (audit §4, §8) MOVED PIN: "requires" exactly for the must-hold atoms, as before; an atom outside them is
+                    // "one of" only when it completes the choice on its own, else Grouped — a part of a grouped alternative (was
+                    // Or for every atom outside the must set, which misstated the four nested expressions).
+                    Assert.Equal(and, incoming[k].Kind == EdgeKind.And);
+                    if (incoming[k].Kind == EdgeKind.And) andEdges++;
+                    else if (incoming[k].Kind == EdgeKind.Or) orEdges++;
+                    else groupedEdges++;
                 }
             }
             // No edge targets an external anchor.
@@ -68,6 +73,9 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
         }
         Assert.True(andEdges > 0);
         Assert.True(orEdges > 0);   // the content has OR prerequisites (e.g. Written law)
+        // Measured on the shipped content (audit §2, §4.5): 1 749 required, 214 alternatives, and the 10 parts of the grouped
+        // alternatives of Seed drill (Tull), Astronomy records, Nuclear fusion research and Constitutional monarchy.
+        Assert.Equal((1749, 214, 10), (andEdges, orEdges, groupedEdges));
         ResearchGraph civ = ResearchGraph.Build(c, ResearchTree.Civics);
         int law = civ.VertexOf(c.IndexOfId("law_code"));
         foreach (GraphEdge e in civ.Edges) if (e.To == law) Assert.Equal(EdgeKind.Or, e.Kind);
@@ -665,11 +673,17 @@ public class ProgressionScreenTests(SteppedWorldFixture fx) : IClassFixture<Step
             Assert.Equal(dep.ToArray(), hd);
             // The painted highlight uses one colour per side; nothing is drawn when there is none.
             DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
-            double top = s.Canvas.Y;   // the legend's sample lines sit above the canvas
-            // (The colours are the era theme's semantic prerequisite / dependent tokens — ADR-033 D8.)
-            bool prereqLines = d.Commands.Any(cmd => cmd is LineCmd l && l.Y0 >= top && l.Color == s.Theme.Semantic.Prerequisite);
-            bool depLines = d.Commands.Any(cmd => cmd is LineCmd l && l.Y0 >= top && l.Color == s.Theme.Semantic.Dependent);
-            Assert.Equal(pre.Count > 0, prereqLines);
+            double top = s.Canvas.Y, right = s.Canvas.X + s.TreeViewportWidth;   // the legend sits above the canvas, the pane right of it
+            // (The colours are the era theme's semantic prerequisite / dependent tokens — ADR-033 D8.) D-084 (audit §3) MOVED
+            // PIN: an incoming edge takes its prerequisite's completion — the completed ink for a completed one, the prerequisite
+            // ink for an outstanding one (was the prerequisite ink for every incoming edge).
+            bool[] done = ResearchQuery.CompletedMask(fx.Session.World, c, Me);
+            bool InTree(LineCmd l) => l.Y0 >= top && l.X0 <= right && l.X1 <= right;
+            bool prereqLines = d.Commands.Any(cmd => cmd is LineCmd l && InTree(l) && l.Color == s.Theme.Semantic.Prerequisite);
+            bool doneLines = d.Commands.Any(cmd => cmd is LineCmd l && InTree(l) && l.Color == s.Theme.Semantic.Completed);
+            bool depLines = d.Commands.Any(cmd => cmd is LineCmd l && InTree(l) && l.Color == s.Theme.Semantic.Dependent);
+            Assert.Equal(pre.Any(p => !done[p]), prereqLines);
+            Assert.Equal(pre.Any(p => done[p]), doneLines);
             Assert.Equal(dep.Count > 0, depLines);
             checkedNodes++;
         }

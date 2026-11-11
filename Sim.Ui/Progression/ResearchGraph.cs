@@ -2,10 +2,13 @@ using Sim.Core.Systems.Research;
 
 namespace Sim.Ui.Progression;
 
-/// <summary>How a prerequisite edge participates in its target's expression.
-/// <see cref="And"/>: the prerequisite holds on EVERY path that satisfies the expression
-/// (Predicate.MustHoldAtoms). <see cref="Or"/>: it is one alternative among several.</summary>
-public enum EdgeKind { And = 1, Or = 2 }
+/// <summary>How a prerequisite edge participates in its target's expression (decided by <see cref="PrereqExpr.Kinds"/>).
+/// <see cref="And"/> ("requires", solid): the prerequisite holds on EVERY path that satisfies the expression
+/// (Predicate.MustHoldAtoms). <see cref="Or"/> ("one of", dashed): with the required ones it completes the expression on its
+/// own — one alternative among several. <see cref="Grouped"/> (dotted; D-084, audit §4): it counts only together with other
+/// prerequisites — a part of a grouped alternative, as plough_ard in seed_drill OR (plough_ard AND horse_collar) — so it is
+/// neither required nor an alternative by itself; the grouping is the node's <see cref="ResearchGraph.Requirement"/>.</summary>
+public enum EdgeKind { And = 1, Or = 2, Grouped = 3 }
 
 /// <summary>One prerequisite edge, From (prerequisite) → To (dependent). Both are
 /// GRAPH-LOCAL vertex indices (see <see cref="ResearchGraph.Vertices"/>).</summary>
@@ -20,7 +23,9 @@ public readonly record struct GraphVertex(int ContentIndex, bool External);
 /// ONE research tree as a drawable graph, generated from the loaded <see cref="ResearchContent"/>
 /// (never from UI-owned JSON). Vertices are the tree's nodes in content order (key-ascending),
 /// followed by external anchors in content order. Edges are exactly the union of every node's
-/// <see cref="ResearchNode.PrerequisiteNodes"/>, classified AND/OR from the expression itself.
+/// <see cref="ResearchNode.PrerequisiteNodes"/>, each classified from the expression itself (<see cref="PrereqExpr.Kinds"/>),
+/// and every node of the tree keeps its whole prerequisite expression (<see cref="Requirement"/>, D-084): the edges are the
+/// atoms, the expression is how they combine.
 /// Pure and deterministic: no dictionaries are iterated, no hashing.
 /// </summary>
 public sealed class ResearchGraph
@@ -32,14 +37,20 @@ public sealed class ResearchGraph
     /// <summary>Number of vertices that belong to this tree (they come first).</summary>
     public int OwnCount { get; }
     private readonly int[] _vertexOf;   // content index → vertex, or -1
+    private readonly PrereqExpr?[] _requirement;   // own vertex → its prerequisite expression (atoms are content indices)
 
-    private ResearchGraph(ResearchContent content, ResearchTree tree, GraphVertex[] vertices, GraphEdge[] edges, int own, int[] vertexOf)
+    private ResearchGraph(ResearchContent content, ResearchTree tree, GraphVertex[] vertices, GraphEdge[] edges, int own, int[] vertexOf,
+        PrereqExpr?[] requirement)
     {
-        Content = content; Tree = tree; Vertices = vertices; Edges = edges; OwnCount = own; _vertexOf = vertexOf;
+        Content = content; Tree = tree; Vertices = vertices; Edges = edges; OwnCount = own; _vertexOf = vertexOf; _requirement = requirement;
     }
 
     public int VertexOf(int contentIndex) => contentIndex >= 0 && contentIndex < _vertexOf.Length ? _vertexOf[contentIndex] : -1;
     public ResearchNode Node(int vertex) => Content.Nodes[Vertices[vertex].ContentIndex];
+
+    /// <summary>D-084: the whole prerequisite expression of an own vertex (null for a root or an external anchor) — the grouping
+    /// its incoming edges stand for. Its atoms are content indices.</summary>
+    public PrereqExpr? Requirement(int vertex) => vertex >= 0 && vertex < _requirement.Length ? _requirement[vertex] : null;
 
     public static ResearchGraph Build(ResearchContent content, ResearchTree tree)
     {
@@ -60,17 +71,15 @@ public sealed class ResearchGraph
             if (external[i]) { vertexOf[i] = vertices.Count; vertices.Add(new GraphVertex(i, true)); }
 
         var edges = new List<GraphEdge>();
+        var requirement = new PrereqExpr?[own];
         for (int v = 0; v < own; v++)
         {
             ResearchNode node = content.Nodes[vertices[v].ContentIndex];
-            IReadOnlyList<int> must = node.Prerequisite?.MustHoldAtoms() ?? [];
-            foreach (int p in node.PrerequisiteNodes)
-            {
-                bool and = false;
-                for (int k = 0; k < must.Count; k++) if (must[k] == p) { and = true; break; }
-                edges.Add(new GraphEdge(vertexOf[p], v, and ? EdgeKind.And : EdgeKind.Or));
-            }
+            requirement[v] = PrereqExpr.Of(node);
+            EdgeKind[] kinds = PrereqExpr.Kinds(node);
+            for (int k = 0; k < kinds.Length; k++)
+                edges.Add(new GraphEdge(vertexOf[node.PrerequisiteNodes[k]], v, kinds[k]));
         }
-        return new ResearchGraph(content, tree, [.. vertices], [.. edges], own, vertexOf);
+        return new ResearchGraph(content, tree, [.. vertices], [.. edges], own, vertexOf, requirement);
     }
 }
