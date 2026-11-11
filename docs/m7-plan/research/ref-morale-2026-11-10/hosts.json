@@ -1,0 +1,197 @@
+[
+ {
+  "host": "www.totalwar.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:23Z; proxy status: entry not in its list (it keeps the 20 most recent failures; this one had rotated out); curl's CONNECT 403 is the evidence; one try"
+ },
+ {
+  "host": "wiki.totalwar.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:24Z; proxy status: entry not in its list (it keeps the 20 most recent failures; this one had rotated out); curl's CONNECT 403 is the evidence; one try"
+ },
+ {
+  "host": "totalwar.fandom.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:24Z; proxy status: entry not in its list (it keeps the 20 most recent failures; this one had rotated out); curl's CONNECT 403 is the evidence; one try"
+ },
+ {
+  "host": "community.creative-assembly.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:24Z; proxy status: entry not in its list (it keeps the 20 most recent failures; this one had rotated out); curl's CONNECT 403 is the evidence; one try"
+ },
+ {
+  "host": "forums.totalwar.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:24Z; proxy status: entry not in its list (it keeps the 20 most recent failures; this one had rotated out); curl's CONNECT 403 is the evidence; one try"
+ },
+ {
+  "host": "support.sega.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:25Z; proxy status: entry not in its list (it keeps the 20 most recent failures; this one had rotated out); curl's CONNECT 403 is the evidence; one try"
+ },
+ {
+  "host": "store.steampowered.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:25Z; proxy status: entry not in its list (it keeps the 20 most recent failures; this one had rotated out); curl's CONNECT 403 is the evidence; one try"
+ },
+ {
+  "host": "steamcommunity.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:25Z; proxy status: entry not in its list (it keeps the 20 most recent failures; this one had rotated out); curl's CONNECT 403 is the evidence; one try"
+ },
+ {
+  "host": "store.epicgames.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:25Z; proxy status: entry not in its list (it keeps the 20 most recent failures; this one had rotated out); curl's CONNECT 403 is the evidence; one try"
+ },
+ {
+  "host": "www.reddit.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:26Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:26.247Z; one try"
+ },
+ {
+  "host": "old.reddit.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:26Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:26.490Z; one try"
+ },
+ {
+  "host": "www.twcenter.net",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:26Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:26.734Z; one try"
+ },
+ {
+  "host": "tw-modding.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:26Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:26.985Z; one try"
+ },
+ {
+  "host": "raw.githubusercontent.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REACHED: HTTP 301 to HEAD https://raw.githubusercontent.com/ (curl exit 0) at 2026-11-10T19:18:26Z; one try"
+ },
+ {
+  "host": "en.wikipedia.org",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:27Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:27.532Z; one try"
+ },
+ {
+  "host": "www.pcgamer.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:27Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:27.569Z; one try"
+ },
+ {
+  "host": "www.pcinvasion.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:27Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:27.821Z; one try"
+ },
+ {
+  "host": "www.rockpapershotgun.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:27Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:28.045Z; one try"
+ },
+ {
+  "host": "www.gamesradar.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:28Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:28.284Z; one try"
+ },
+ {
+  "host": "www.thegamer.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:28Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:28.524Z; one try"
+ },
+ {
+  "host": "gamerant.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:28Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:28.758Z; one try"
+ },
+ {
+  "host": "screenrant.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:28Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:28.986Z; one try"
+ },
+ {
+  "host": "www.dualshockers.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:28Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:29.216Z; one try"
+ },
+ {
+  "host": "www.ign.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:29Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:29.454Z; one try"
+ },
+ {
+  "host": "wccftech.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:29Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:29.563Z; one try"
+ },
+ {
+  "host": "primagames.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:29Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:29.797Z; one try"
+ },
+ {
+  "host": "gamepur.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:29Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:30.033Z; one try"
+ },
+ {
+  "host": "www.gamepressure.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:30Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:30.260Z; one try"
+ },
+ {
+  "host": "prodigygamers.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:30Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:30.487Z; one try"
+ },
+ {
+  "host": "www.youtube.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:18:30Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:18:30.721Z; one try"
+ },
+ {
+  "host": "www.creative-assembly.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); EXTRA host, not on the candidate list, tested once by the official angle",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:20:19Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:20:19.947Z; one try"
+ },
+ {
+  "host": "www.sega.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); EXTRA host, not on the candidate list, tested once by the official angle",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:20:19Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:20:20.171Z; one try"
+ },
+ {
+  "host": "api.steampowered.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); EXTRA host, not on the candidate list, tested once by the official angle",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:20:20Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:20:20.416Z; one try"
+ },
+ {
+  "host": "forum.paradoxplaza.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); EXTRA host, not on the candidate list, tested once by the official angle",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:26:45Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:26:46.223Z; one try"
+ },
+ {
+  "host": "www.taleworlds.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); EXTRA host, not on the candidate list, tested once by the official angle",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:26:46Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:26:46.465Z; one try"
+ },
+ {
+  "host": "battlebrothersgame.com",
+  "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); EXTRA host, not on the candidate list, tested once by the official angle",
+  "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T19:26:46Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:26:46.710Z; one try"
+ },
+ {
+  "host": "raw.githubusercontent.com",
+  "tool": "WebFetch https://raw.githubusercontent.com/",
+  "result": "REACHED: 301 Moved Permanently, Location https://github.com/ (cross-host redirect, not followed by the tool) at 2026-11-10T19:19Z; one try. The host serves files by exact path only (no listing)."
+ },
+ {
+  "host": "(every curl-refused host above)",
+  "tool": "WebFetch",
+  "result": "NOT TRIED by design: the step's rule tests web fetch only on hosts curl reached, and a refused host is never retried. Only raw.githubusercontent.com is reachable from the container."
+ },
+ {
+  "host": "(web search tool)",
+  "tool": "WebSearch (runs outside the container)",
+  "result": "WORKS: about 70 queries answered 2026-11-10 19:19-19:37Z, standard and extended modes; returns result URLs and a model-written summary of the results (evidence label SEARCH, never FETCH)."
+ }
+]

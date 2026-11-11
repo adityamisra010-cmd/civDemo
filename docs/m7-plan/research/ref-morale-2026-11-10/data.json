@@ -1,0 +1,442 @@
+{
+ "angle": "data: the game's own data tables for morale, fatigue, rules and campaign variables, as extracted by the open-source pack-file tool (Rusted PackFile Manager). Its schema for this title has a 'patches' section whose 'lookup_hardcoded' strings list each key-value table's row keys with their in-house descriptions; the earlier pass read only the table and field names. This pass compared those lists with the same tool's schema for TOTAL WAR: WARHAMMER II and looked for values in mod pages (search summaries only) and in public dumps (none reachable). Definitions are CODE; no value of the reference was obtained.",
+ "file": "/tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/data.json",
+ "claims": [
+  {
+   "id": "data-01",
+   "questions": [
+    "Q1",
+    "Q3"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "This title's battle-morale constants (its morale key-value table: 129 row keys, each with an in-house description) describe morale as computed from a starting point plus situational effects, with the current value moving toward the computed one each tick. None of the 129 keys describes a cost for entering a battle or for time spent in one: every effect names a situation (own losses, contact direction, flanks, enemy numbers, nearby routs, fear and terror, missile and artillery fire, fatigue state, surprise, night unpreparedness, the general's presence, death or flight, terrain and fortification, winning or losing a fight, the army near destruction, pending reinforcements). Apart from the starting point itself, the only terms that apply to every unit of a side whatever the situation are a morale modifier per difficulty level, one set for the player's units and one for the AI's.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (Rusted PackFile Manager, the open-source pack-file tool, MIT: its schema of this title's database). Fetched by this pass 2026-11-10T19:43:31Z, HTTP 200, 6,752,098 bytes, SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5 (the same hash as the earlier pass's copy, Annex A.1). Local copy /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/dl/rpfm-schema/schema_troy.ron; key/description pairs extracted with /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/scripts/patches.py to /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/notes/schema-patches.json; table definitions with /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/scripts/defs.py to /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/notes/schema-defs.json; patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187); the table's own definition (fields key StringU8, value F32 only) at file line 199.",
+   "evidence": "Verbatim pairs (key;;;;;description; each found exactly once in the file): 'morale_base;;;;;Starting point for calculations'; 'percent_update_per_tick;;;;;The ideal changed morale amount'; 'minimium_increment_update_per_tick;;;;;The minimum amount that the morale will be changed by per tick'; 'difficulty_modifier_player_hard;;;;;Morale modifier applied to human player\\'s units on hard' (also _easy, _normal, _very_hard, and difficulty_modifier_ai_* 'applied to the AI\\'s units'). The other 120 keys are quoted in data-02 to data-12. Full list: /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/notes/schema-patches.json.",
+   "notes": "What this is: the tool's schema has a 'patches' section whose 'lookup_hardcoded' strings list a key-value table's row keys with a description each. The packed game table holds only 'key' and 'value' (line 199), so the descriptions come from another source of the developer's, INFERRED to be the title's Assembly Kit raw data (an Assembly Kit was released, official-38). Faithfulness INFERRED from: in-house typos kept ('minimium', 'mulitplied', 'casulties', 'timout', 'neightbouring'); title-only keys in the same lists ('troy_savage_roar_morale_amount', Aristeia and Rage keys, 'troy_mth_*'); and per-title differences against a sibling's list (data-21). Labelled CODE because these are definitions read in a faithful extraction of the game's data; if the schema is held to be only a fetched page, every CODE claim here becomes FETCH with the same verbatim quotes. NO VALUE is in the file: a defined key may be zero or unused in this title. Absence of an entry-cost key is evidence, not proof: hardcoded engine behaviour (one description says a range is 'hardcoded', data-04), campaign effects carried in as bonus values or effect bundles (data-15, data-20) and fatigue-effect rows (data-07) are outside this table. The one data path by which time in a battle could lower morale without losses is fatigue: activity deltas, including 'ready;;;;;unit in combat ready pose' and idle (data-17), feed fatigue states that carry morale concerns (data-07); whether standing ready tires or rests a unit is a value question (unknown). The file writes an apostrophe as \\'."
+  },
+  {
+   "id": "data-02",
+   "questions": [
+    "Q1",
+    "Q6",
+    "Q7"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "The terms that can act before any loss are conditions, not a charge for taking part: a timed 'Surprised' concern; 'Unprepared for night battle'; the fatigue concerns (data-07); one or both flanks exposed, or all secure (data-04); enemy numbers nearby; being uphill of all enemies; defending a fort or the central plaza; a bonus for pending reinforcements. The campaign variables add night-battle setup terms, a fatigue penalty for the attackers and a morale bonus for the defenders, and battle-context bonus values can be limited to night battles.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187); patches > campaign_variables_tables > variable_key > lookup_hardcoded (file line 158283); table campaign_bonus_value_battle_context_specifiers_tables (fields key, night_battles_only Boolean) at file line 63906.",
+   "evidence": "'ume_concerned_surprised;;;;;Surprised'; 'surprise_timeout;;;;;Surprise timeout'; 'ume_concerned_night_battle_unprepared;;;;;Unprepared for night battle'; 'ume_encouraged_on_the_hill;;;;;Bonus for being up-hill of all enemies'; 'ume_encouraged_fortification;;;;;Unit is defending inside a fort'; 'ume_encouraged_settlement_plaza;;;;;Defending central plaza'; 'max_reinforcement_bonus;;;;;Maximum bonus that can be gained from having pending reinforcements'; campaign variables: 'unit_battle_setup_night_battle_attacker_fatigue_penalty;;;;;(IN GAME) Fatigue penalty for units during autoresolve night battles. Higher number means higher penalty.' and 'unit_battle_setup_night_battle_defender_morale_bonus;;;;;(IN GAME) Fatigue penalty for all attackers in a night battle.'",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. The link of 'Surprised' to the ambushed side is INFERRED: the description is one word, and no key names an ambush. The two night-setup descriptions are inconsistent in this title (the defender key's text describes an attacker fatigue penalty); in the WARHAMMER II list (sibling) the attacker key reads 'Morale bonus for units defending night battles. Result will be morale + THIS.' The key names, which agree in both titles, give the reading used here. Night battles exist in this title at least as a hero-skill option (data-24) and one scripted battle (official-01). None of these is unconditional."
+  },
+  {
+   "id": "data-03",
+   "questions": [
+    "Q3"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "Casualties enter morale through three windows of the unit's own losses: the last 4 seconds (thresholds 6, 10, 15, 33 and 50 %), the last 60 seconds (10, 15, 33, 50 and 80 %) and the total (10 to 90 % in steps of 10). A separate threshold on losses in the last 4 seconds triggers a 'morale shock', and a switch chooses hit points or men as the measure. Each threshold is its own key, so the penalty is a step function of the loss share.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187)",
+   "evidence": "'recent_casualties_penalty_6;;;;;Unit lost 6% hitpoints/entities in last 4 sec'; 'extended_casualties_penalty_80;;;;;Unit lost 80% hitpoints/entities in last 60 sec'; 'total_casualties_penalty_90;;;;;Unit lost 90% hitpoints/entities in total'; 'recent_casualties_shock_threshold;;;;;% casualties in last 4s needed for morale shock'; 'use_hitpoints_instead_of_casualties_prop_in_morale_calculation' (description: whether the casualties percentage refers to remaining hitpoints (1) or remaining entities (0)).",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. The window lengths and thresholds are in the descriptions; the penalty sizes are not. A mod for this title says it lowered the recent and raised the total casualties penalty (data-22, SEARCH)."
+  },
+  {
+   "id": "data-04",
+   "questions": [
+    "Q3"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "Contact direction and the line's geometry are separate morale terms: first contact from the front, the flank or the rear; one or both flanks exposed; all flanks secure, with ranges for neighbouring units and for losing a secured flank; a penalty for enemy numbers nearby, described as hardcoded from -1 to -7 and scaled by a multiplier (0 = none); a term for fighting cavalry, 'modded by training'; and bonuses for being uphill of all enemies and for defending a fort, a breached fort or the central plaza, with a penalty that grows with a settlement's destruction. Separately, the rules table multiplies the defender's melee defence when attacked in the flank or the rear.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187); patches > _kv_rules_tables > key > lookup_hardcoded (file line 158202)",
+   "evidence": "'was_attacked_in_flank;;;;;First contact from flank'; 'was_attacked_in_rear;;;;;First contact from rear'; 'ume_concerned_flanks_exposed_multiple;;;;;Both flanks are exposed'; 'ume_encouraged_flanks_secure;;;;;All flanks are secure'; 'open_flanks_effect_range;;;;;Range at which flanks can lose secured bonus'; the enemy-numbers description ends '...which ranges from -1 to -7 (hardcoded). A value of 0 means no penalty is applied.'; 'fighting_cavalry;;;;;Base value (modded by training) against cavalry'; rules: 'melee_defence_direction_penalty_coefficient_rear;;;;;coefficient by which defender\\'s melee defence stat is multiplied by when attacked in the rear'.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. The -1 to -7 range is the only morale number in the descriptions. 'First contact' suggests the direction term is set by how an engagement starts (INFERRED). Terrain beyond these terms: a table multiplies any modifiable unit stat by ground type and unit group (ground_type_to_stat_effects_tables, line 101373); whether morale is among its rows is unknown. A mod author for this title says the flank penalty 'often applies to frontal combat' (data-22, SEARCH)."
+  },
+  {
+   "id": "data-05",
+   "questions": [
+    "Q3"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "Missile fire is a morale term of its own, apart from the losses it causes: being attacked by projectiles, artillery attacks that miss (with a near-miss distance) and that hit, and being under friendly fire. This settles the definition half of Annex A's 'missile fire' cell for this title; the size is not known.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187)",
+   "evidence": "'ume_concerned_attacked_by_projectile;;;;;Attacked by projectile'; 'ume_concerned_attacked_by_artillery;;;;;Unit was attacked but not hit by artillery'; 'ume_concerned_damaged_by_artillery;;;;;Unit was hit and damaged by artillery'; 'artillery_near_miss_distance_squared;;;;;distance squared to consider it a near miss'; 'ume_concerned_under_friendly_fire;;;;;The penalty for being under friendly fire'.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. The artillery terms may be dormant in a title with few artillery pieces (INFERRED); the projectile term is general."
+  },
+  {
+   "id": "data-06",
+   "questions": [
+    "Q3"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "Nearby routs act in both directions through one 'rout balance': its description defines it as enemies routing minus friends routing, multiplied by a weighting, with caps on how many routing friends and enemies are counted and separate front and flank distances. So, as defined, friendly routs nearby lower morale and enemy routs nearby raise it. This settles the definition half of Annex A's 'rout contagion' cell for this title; the sizes are not known.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187)",
+   "evidence": "'routing_friends_effect_weighting;;;;;Weighting used to calculate the UME_CONCERNED_FRIENDS_ROUTING, this is multiplied by the rout_balance (enemies_routing - friends_routing)' (routing_enemies_effect_weighting has the same text); 'max_routing_friends_to_consider;;;;;Clamp for maximum number of routing friends, this is then mulitplied by the weighting'; 'routing_unit_effect_distance_flank;;;;;Routing distance flank'; 'routing_unit_effect_distance_front;;;;;Routing distance front'.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. The signs (friends lower, enemies raise) are INFERRED from the balance as described. Beating an enemy unit therefore helps neighbours too, through this balance and through data-08."
+  },
+  {
+   "id": "data-07",
+   "questions": [
+    "Q3",
+    "Q7"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "Fatigue has its own morale terms: tired, very tired and exhausted. A second path exists: the fatigue-effects table multiplies any modifiable unit stat per fatigue level (default 1). Whether either path is non-zero for morale in this title is not shown. This settles the definition half of Annex A's 'fatigue' cell; the size is not known.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187); table unit_fatigue_effects_tables v3 at file line 149273 (fatigue_level referencing _kv_fatigue.key, stat referencing modifiable_unit_stats.stat_key, value F32 default 1).",
+   "evidence": "'ume_concerned_tired;;;;;Vigour penalty'; 'ume_concerned_very_tired;;;;;Unit is very tired but not exhausted'; 'ume_concerned_exhausted;;;;;Completely knackered'.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. In a sibling, a mod changelog shows a morale row in the same table ('threshold_winded stat_morale', data-26, SEARCH). The campaign sets start-of-battle fatigue in this title (official-01 to official-05), so these terms are the data route by which a march or a pre-battle action could lower a unit's morale at the start; the size is unknown."
+  },
+  {
+   "id": "data-08",
+   "questions": [
+    "Q3"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "Fighting well raises morale: there are terms for winning a combat (slightly, plainly, significantly), for killing a share of the enemy in the last 4 seconds (5, 7.5 and 12 %), and a charge bonus with a timeout. Losing a combat (plainly, significantly) lowers it. At army level, a concern fires when 'The army is on the brink of destruction', set by two ratios: current to starting strength, and enemy to friendly current strength. Pending reinforcements give a bonus up to a maximum.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187)",
+   "evidence": "'winning_combat_slightly;;;;;Unit winning slightly in combat'; 'losing_combat_significantly;;;;;Unit significantly losing in combat'; 'blood_bonus_12;;;;;unit killed 12% of enemy in last 4 sec'; 'charge_timeout;;;;;the timout for morale bonus due to charging'; 'ume_concerned_army_destruction;;;;;The army is on the brink of destruction'; 'army_destruction_alliance_strength_ratio;;;;;ratio of current to starting strength needed'; 'army_destruction_enemy_strength_ratio;;;;;ratio of enemy to friendly current strength needed'.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. No key names the battle's overall balance otherwise (no 'winning the battle' or 'losing the battle' key); the army-level term is a threshold on strength ratios. The 'scaling morale buff' for beating an enemy (Annex A.3, SEARCH) matches the kill-share and rout-balance terms at definition level."
+  },
+  {
+   "id": "data-09",
+   "questions": [
+    "Q3",
+    "Q8"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "Fear, terror and panic: there are ranges for fear and terror. Terror sends a unit into a short or a long 'morale shock rout' when its current morale is at or below a threshold, after which it is immune for a time to terror from the same enemy. Further concerns cover a frightening enemy, frightened horses and elephants, and panic. A title-only ability key sets a morale value for one fear ability.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187); patches > _kv_unit_ability_scaling_rules_tables > key > lookup_hardcoded (file line 158212).",
+   "evidence": "'morale_shock_terror_morale_threshold_short;;;;;Terror causes target to go into short morale shock rout if the target\\'s current morale is lower or equal than this value'; 'morale_shock_rout_immunity_timer;;;;;The duration of the unit immunity from terror effects from the same enemy'; 'ume_concerned_unit_frightened;;;;;The enemy is frightening'; 'ume_concerned_panic;;;;;The unit is panicking'; 'troy_savage_roar_morale_amount;;;;;Savage Terror ability - morale value.'",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. The Savage Roar key is absent from the WARHAMMER II list (data-21). One summary of the 1.2.0 notes says the ability's morale reduction went from 30 to 10 (official-13, SEARCH, weak); a single value key fits that."
+  },
+  {
+   "id": "data-10",
+   "questions": [
+    "Q3",
+    "Q4"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "The data defines seven morale states by lower and upper thresholds: impetuous, eager, confident, steady, wavering, shaken and broken. The descriptions mark impetuous, eager, confident and the top of steady as '(% basis)'; the bottom of steady, wavering, shaken and broken carry no such mark. A wavering unit stays in that state for a base time.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187)",
+   "evidence": "'ums_impetuous_threshold_lower;;;;;(% basis)impetuous bottom'; 'ums_confident_threshold_upper;;;;;(% basis)confident top'; 'ums_steady_threshold_upper;;;;;(% basis)steady top'; 'ums_steady_threshold_lower;;;;;Steady bottom'; 'ums_wavering_threshold_lower;;;;;Wavering bottom'; 'ums_broken_threshold_upper;;;;;Broken top'; 'waver_base_timeout;;;;;The base time for which a unit spends in waver'.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. INFERRED: the upper states are percentages of the unit's base morale while the lower ones are absolute values. Threshold values are unknown. 'Routing' and 'shattered' are not among the seven threshold states; they are handled by the rout and shatter keys (data-11)."
+  },
+  {
+   "id": "data-11",
+   "questions": [
+    "Q4"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "Rally and shattering are set by data: a broken unit returns to rally after a base timeout, shortened per experience level; a rallied unit cannot rout again for a set number of seconds; units shatter for good after a set number of routs, or already after the first or second rout when a casualty threshold is passed; and a flag makes the next rout a shatter once the unit's commander has died. The rules table also has melee-defence and speed modifiers for routing units (new in this title) and treats pursuers' attacks on routers as charges (inherited).",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187); patches > _kv_rules_tables > key > lookup_hardcoded (file line 158202)",
+   "evidence": "'broken_finish_base_timeout;;;;;the base timeout for going from broken to rally'; 'broken_finish_timer_experience_bonus;;;;;experience_broken_finish_time_bonus is (THIS * unit experience level)'; 'post_rally_no_rout_timer;;;;;Time (in seconds) for which a unit that has just rallied cannot rout again'; 'shatter_after_rout_count;;;;;After routing this number of times, units are always shattered'; 'shatter_after_second_rout_if_casulties_higher_than;;;;;Casualty threshold for shatter is [(THIS * starting men)<current men]'; 'only_units_with_living_commanding_general_may_enter_non_shattered_rout_enabled;;;;;If this is \\'true\\' then once a unit\\'s commander dies the next rout will be a shatter'; rules: 'routing_units_melee_defence_modifier', 'routing_units_speed_modifier' (no descriptions; not in the WARHAMMER II list); 'pursuit_charge_bonus_modifier;;;;;All attacks from pursuers against routers are treated as charges (get the charge bonus * pursuit_charge_bonus_modifier )'.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. The shatter-casualty formula as written compares current men, not casualties; quoted as is, meaning unclear. The only number found is a mod author's claim that the base game's post-rally window is 60 s (data-22, SEARCH). Nothing here says a rally needs the general nearby; that reading is from ROME II's manual (official-28, sibling)."
+  },
+  {
+   "id": "data-12",
+   "questions": [
+    "Q8",
+    "Q3"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "The commander's influence is a passive aura. It has a base radius and an inspire effect scaled from a minimum to a maximum by command stars; the effect is full inside the radius and fades proportionally out to the radius times a modifier. Separate terms cover units whose commanding general is alive, a flat, distance-adjusted inspire from non-command units, and concerns for a general dead 'but not recently', one who 'died recently' and one who 'has recently fled'; each of these has a variant that applies to the AI only in single player. A captain's recent death is a further concern. No key mentions a wounded commander.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_morale_tables > key > lookup_hardcoded (file line 158187)",
+   "evidence": "'general_aura_radius;;;;;Base radius of the general\\'s passive aura'; 'inspiration_radius_max_effect_range_modifier' (description: units within the inspiration radius get the full effect, units outside get a proportionally weaker effect up to general_aura_radius*THIS); 'general_inspire_effect_amount_max' (scaled from min to max by the unit's command stars); 'unit_inspire_effect_amount;;;;;Used for non-command units and applied as a flat value (adjusted for distance). NOT based on rank'; 'ume_concerned_general_died_recently;;;;;Very recently the general died'; 'ume_concerned_general_fled_recently;;;;;The commanding general has recently fled'; 'ume_concerned_general_died_recently_ai;;;;;In single player this applies to the ai only'; 'ume_concerned_captain_died_recently;;;;;Very recently the captain died'.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. Radius, amounts and penalties are unknown. That this title's heroes, who command its armies, use the 'general' keys is INFERRED. An immortal hero 'wounded instead of killed' (official-16) has no separate key; in battle it presumably counts as the general's death (INFERRED). With data-11's flag, the commander's death also makes the next rout final."
+  },
+  {
+   "id": "data-13",
+   "questions": [
+    "Q8"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "This title adds hero mechanics to the rules table that are absent from the sibling's list. Aristeia points are gained for each 1 % of the hero's army that is destroyed and per point of Rage earned or spent, up to a cap. Rage builds in combat per second, per enemy killed and per 1 % of health lost, with multipliers when charging, fighting heroes, below 50 % or 20 % health, losing a melee, and for a time after the hero rallies; out of combat it decays after a delay. A general cannot be killed while his unit's surviving share is above a threshold. None of these keys is a morale term.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_rules_tables > key > lookup_hardcoded (file line 158202)",
+   "evidence": "'aristeia_per_percentage_allies_lost;;;;;How many Aristeia points are gained for each 1% of your total army that is destroyed.'; 'aristeia_max_cap;;;;;How many Aristeia points a Hero needs to gain, in order to unlock his Aristeia.'; 'rage_per_1_percent_hp_damage' (rage added for each 1% of health lost); 'rage_out_of_combat_delay;;;;;Defines how long a Hero has to be out of combat, before they start losing rage (in seconds).'; 'general_auto_survive_threshold;;;;;When the percentage of alive entities in the general\\'s unit is above this value the general cannot be killed.'",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. The pattern runs opposite to unit morale: the hero's meter rises as his army loses men. One guide's description of Aristeia as a morale boost (official-14, unconfirmed) is not supported by these definitions, though an ability unlocked by it could carry morale effects (unknown). Title-only: none of these keys is in the WARHAMMER II list (data-21), except general_auto_survive_threshold, which both lists have."
+  },
+  {
+   "id": "data-14",
+   "questions": [
+    "Q2",
+    "Q5"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "The campaign variables carry a complete army-level ('military force') morale family of 36 keys. It has a starting value, a minimum and a maximum, and 'low' and 'very low' thresholds. It has a bonus for winning a battle, lasting a number of turns and falling off with the armies' relative strength, and a penalty for losing one, also lasting a number of turns. Other terms cover casualties, decimation, the faction leader's death, foreign soil, idleness, being led by the faction leader, looting, raiding, releasing captives, transfers, bankruptcy and attrition, plus a morale-based rebellion and the sibling's 'Waaagh'. A separate table maps a campaign group and a level key to an effect bundle. All of it is inherited: the same 36 keys with the same texts are in WARHAMMER II's list. Whether this title uses any of it is NOT established.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > campaign_variables_tables > variable_key > lookup_hardcoded (file line 158283); table campaign_group_morale_effects_tables (effect_bundle, group, key, name) at file line 69322; comparison: the WARHAMMER II schema (data-21 source)",
+   "evidence": "'military_force_morale_starting_value;;;;;(IN GAME) The initial morale value for military forces'; 'military_force_morale_battle_won;;;;;(IN GAME) Morale bonus from winning a battle'; 'military_force_morale_battle_won_relative_strength_mod;;;;;(IN GAME) Modifier on rate at which morale recieved from winning a battle falls off based on the relative stength of the armies involved'; 'military_force_morale_bettle_lost;;;;;(IN GAME) Morale penalty for loosing a battle'; 'military_force_morale_battle_lost_turns;;;;;(IN GAME) No turns loosing a battle effects morale'; 'military_force_morale_casualties_multiplier;;;;;(IN GAME) Morale penalty multiplied for level of casualties with army'; 'military_force_morale_idle;;;;;(IN GAME) Morale bonus for being idle'; 'military_force_morale_waaagh_required_morale;;;;;(IN GAME) The amount of morale required for a waaagh to be possible'.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. No value and no row of the effects table are available. All 36 descriptions carry the developer's '(IN GAME)' tag, but so do the Waaagh keys, for a mechanic this title does not have, so the tag does not show use here (2 of 1,138 variables are tagged '(UNUSED)'). No source (official angle) shows an army morale number in this title's interface, and every campaign-to-battle morale link found is an effect (data-15). If the family were active, it would be the reference's army morale stock, raised by a win and lowered by a defeat for some turns. That cannot be asserted. It matches the pattern of a faction-specific per-army meter in the 2016 sibling (data-25, INFERRED). No key in the family charges morale for fighting a battle as such; 'casualties_multiplier' ties the penalty to losses."
+  },
+  {
+   "id": "data-15",
+   "questions": [
+    "Q2",
+    "Q1"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "This title adds two campaign variables that clamp morale bonuses carried into battle: a lower and an upper bound used 'when clamping basic/battle_context bonus values'. Battle-context bonus values are defined by junctions on battle type, culture, faction, force status (with an 'is_yours' flag), campaign ground type and territory status, and can be limited to night battles. So campaign-side morale reaches a battle as conditional bonus values from traits, items, skills and faction effects, and their combined multiplier is clamped.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > campaign_variables_tables > variable_key > lookup_hardcoded (file line 158283); tables campaign_bonus_value_battle_context_*_junctions_tables (battle_type, culture, faction, force_status with is_yours, ground_type, territory_status; e.g. force status at file line 63813) and campaign_bonus_value_battle_context_specifiers_tables (night_battles_only, line 63906); effect_bonus_value_battle_context_junctions_tables (battle_context_key, bonus_value_id, effect_key).",
+   "evidence": "'morale_mod_mult_capped_lower_bound;;;;;(IN GAME) Used for lower bound when clamping basic/battle_context bonus values: morale_mod_mult_capped' (and _upper_bound with the same text). Both keys are absent from WARHAMMER II's list (data-21).",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. The bounds' values are unknown. This matches the 1.2.0 notes' 'contextual morale effects' as summarised (official-07, SEARCH, weak) and official-06 (morale effects shown as battle effects). The force-status and territory-status keys (e.g. attacker or defender, own or enemy territory) are table rows, not available here."
+  },
+  {
+   "id": "data-16",
+   "questions": [
+    "Q2"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "A food-shortage morale cap exists in the campaign variables: 'Part of food shortage system. Defines maximum morale mod bonus for negative food effects.', with a matching replenishment cap. Both are inherited (WARHAMMER II's list has them). This title has food as a resource, but whether its shortage lowers morale here is not shown, and the same holds for the army-morale family's attrition and bankruptcy terms (data-14).",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > campaign_variables_tables > variable_key > lookup_hardcoded (file line 158283)",
+   "evidence": "'food_shortage_system_morale_mod_cap;;;;;(IN GAME) Part of food shortage system. Defines maximum morale mod bonus for negative food effects.'; 'food_shortage_system_replenishment_mod_cap;;;;;(IN GAME) Part of food shortage system. Defines maximum replenishment mod bonus for negative food effects.'; a table campaign_group_food_effects_tables (effect_bundle, group, key) at line 68094.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. Only a cap is defined; the food effects themselves would be effect bundles (rows unknown)."
+  },
+  {
+   "id": "data-17",
+   "questions": [
+    "Q7"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "Fatigue is a per-unit quantity changed by activity deltas: walking, running (cavalry and light cavalry apart), charging, melee combat, shooting, climbing walls and ladders, working, standing in the combat-ready pose, and idling (also in buildings, heavy rain and heavy snow), with multipliers for shallow, steep and very steep slopes. Thresholds define seven levels: fresh, active, winded, tired, very tired, exhausted, and a maximum.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_fatigue_tables > key > lookup_hardcoded (file line 158172); table definition at file line 82.",
+   "evidence": "'combat;;;;;fatigue_combat (melee) delta'; 'running_cavalry;;;;;heavy/medium cavalry running'; 'ready;;;;;unit in combat ready pose'; 'idle;;;;;fatigue_idle delta'; 'idle_rain;;;;;unit idle in heavy rain'; 'gradient_steep_movement_multiplier;;;;;fatigue % multiplier for moving up steep gradients'; 'threshold_very_tired;;;;;fatigue_th_very_tired threshold'; 'threshold_winded;;;;;fatigue_th_winded threshold'.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. That idling is the recovery term is INFERRED: the descriptions say only 'delta'. Values unknown. The keys and texts are identical in WARHAMMER II's list. Fatigue's link to morale: data-07. The campaign sets a battle's starting fatigue (official-01 to official-05; night-attack penalty, data-02)."
+  },
+  {
+   "id": "data-18",
+   "questions": [
+    "Q6"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "A campaign ambush is a roll: 'Ambush will roll on chance of success, generated from ground type and bonus values.' A failure is split into failure and critical failure by a set proportion. Each campaign ground type carries an 'ambush_chance_of_success' (default 0), and ambushing characters get their own zone-of-control colours on the map.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > campaign_variables_tables > variable_key > lookup_hardcoded (file line 158283); table campaign_ambush_ground_types_tables (ambush_chance_of_success F32 default 0; key referencing campaign_ground_types.type) at file line 62846.",
+   "evidence": "'ambush_critical_fail_proportion_of_fail;;;;;(IN GAME) Ambush will roll on chance of success, generated from ground type and bonus values. The chance of failure is split into failure and critical failure. The propotion of failure that is critical is defined here. Clamped between 0.0 and 1.0'; 'display_zone_of_control_ambush_border_colour_alpha;;;;;(IN GAME) How opaque the zone of control border is for ambushing characters. 0-255.'",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. Detection: no key or table found. Base chances per ground type: rows unknown. What the ambushed side suffers in battle: the 'Surprised' concern is the only candidate in the morale table (data-02, INFERRED link). The structures are inherited (WARHAMMER II has them); a sibling's per-terrain modifiers are in data-28 (SEARCH)."
+  },
+  {
+   "id": "data-19",
+   "questions": [
+    "Q5"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "A battle's result feeds the campaign through data-defined channels. There is experience per result type, and experience bonuses for capturing a key building or the victory location, being first into an enemy fort, and killing the enemy commander (a base plus an amount per command star), faction leader or family member. Captive options are set per campaign group, each with an effect bundle lasting a number of turns and a resource transaction. Captives can replenish between a minimum and a maximum share of the army, set by difficulty. Loot comes as a share of a routed unit's recruitment cost, scaled by casualties, and from killed agents; looted pooled resources are set per group. There is a chance to steal an item, by victory grade and higher if its holder is wounded, and interfaction loyalty by eight result grades: heroic, decisive, close and pyrrhic victory; valiant, close, decisive and crushing defeat.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); patches > _kv_experience_bonuses_tables > key > lookup_hardcoded (line 158167); patches > campaign_variables_tables > variable_key > lookup_hardcoded (file line 158283); tables battle_result_types_tables (battle_result_type, unit_xp_gain I32, line 35454), campaign_post_battle_captive_options_tables (line 73689), campaign_group_post_battle_looted_pooled_resources_tables.",
+   "evidence": "'killed_enemy_commander_per_star;;;;;Additional bonus for killing the commander, per command star'; 'captured_victory_location;;;;;For capturing the victory location (applied to all units involved)'; 'enslave_captives_maximum_replenishment_percentage_human_hard;;;;;(IN GAME) The maximum percentage of your original army that will be replenished via the post-battle captives option for the human on hard difficulty.'; 'loot_fraction_recruitment_cost_recieved_per_routed_unit;;;;;(IN GAME) Fraction of the units recruitment cost received in loot should that unit route'; 'post_battle_ancillary_steal_chance_mod_holder_wounded'; 'loyalty_interfaction_battle_result_pyrrhic_victory;;;;;(IN GAME) Interfaction loylaty from battle result'.",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. Values unknown. No unit- or army-morale key is in this set; the only morale-after-battle path in the data is the inherited family of data-14 (use not established). Title-only additions: post-battle resources from two MYTHOS monster options ('troy_mth_post_battle_resources_monsters_percentage_*') and 'xp_gain_mod_from_loyalty'. That a captive option can grant divine favour, as the designer said of Ares (official-21), would go through its resource transaction or effect bundle (INFERRED). No key named for hero motivation or mood was found (searched 'motivation', 'mood', 'glory')."
+  },
+  {
+   "id": "data-20",
+   "questions": [
+    "Q1",
+    "Q2"
+   ],
+   "label": "CODE",
+   "scope": "reference",
+   "claim": "Two campaign structures can change a battle's starting state from the campaign side. Stances apply effect bundles, set by culture, subculture, faction and force type. 'Pending battle purchasable effects', set per campaign group, are effects bought before a battle.",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source); tables campaign_stance_effects_junctions_tables (stance, effect_bundle, culture, subculture, faction, force_type; line 75695) and campaign_group_pending_battle_purchasable_effects_tables (campaign_group, purchasable_effect referencing purchasable_effects.id; line 69445).",
+   "evidence": "Table and field names as defined in the schema (no rows).",
+   "notes": "Definitions only, no values: see data-01 notes for what the extraction is and why it is labelled CODE. Rows unknown. Consistent with the stance fatigue effects (official-02 to official-04) and paid pre-battle actions such as inducing enemy fatigue (official-05) reported for this title; that those run through these tables is INFERRED. Both tables are inherited (WARHAMMER II has them)."
+  },
+  {
+   "id": "data-21",
+   "questions": [
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4",
+    "Q7"
+   ],
+   "label": "CODE",
+   "scope": "sibling",
+   "claim": "TOTAL WAR: WARHAMMER II (2017, same developer): the same tool's schema has the identical 129 morale keys and 29 fatigue keys, with identical descriptions. Its rules list differs from this title's: this title has 35 keys the sibling lacks, among them Aristeia, Rage and routing-unit modifiers, and lacks 10 of the sibling's, among them the Waaagh thresholds. Its campaign-variable list also differs: 128 keys here only, among them the troy_* keys, the morale-clamp bounds and tribute keys, and 14 keys there only. So the lists were generated per title, and this title kept its predecessor's set of battle-morale constants (keys only; values not compared).",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_wh2.ron (the same tool's schema for TOTAL WAR: WARHAMMER II). Fetched 2026-11-10T19:49:39Z, HTTP 200, 6,067,928 bytes, SHA-256 54efb0ffb49839c2e280fdeeb1dfd0bfb209e05345334930b2985530ba313580. Local copy /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/dl/rpfm-schema-wh2/schema_wh2.ron; pairs in /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/notes/schema-patches-wh2.json; comparison of the lookup_hardcoded lists with https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; fetch details, local copy and extraction scripts: data-01 source)",
+   "evidence": "Counts (python3 -I over both extractions): _kv_morale 129/129 common, 0 differing descriptions; _kv_fatigue 29/29 common, 0 differing; _kv_rules 207 vs 182 (172 common, 35 title-only, 10 sibling-only); campaign_variables 1,138 vs 1,024 (1,010 common, 128 title-only, 14 sibling-only, 4 same-key texts differ); _kv_unit_ability_scaling_rules 8 vs 5 (the 3 title-only keys are troy_*). Sibling-only rules keys include 'waaagh_base_threshold' and 'ogre_charge_factor'; sibling-only campaign variables include 'autoresolver_minimum_morale_loss'.",
+   "notes": "INFERRED: per-title generation. A copy of one table's list cannot be ruled out, but the other lists show per-title content generated from each title's data. This is evidence on the reference's data lineage (inherited battle-morale model), not on its values. The army-morale family (data-14) is in both lists; the sibling's Waaagh rules keys were dropped from this title's rules list, but its Waaagh campaign variables were kept."
+  },
+  {
+   "id": "data-22",
+   "questions": [
+    "Q3",
+    "Q4"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "A mod for this title (Immersive Combat Mod, by kam2150; its page names game modes 'from Historical to Mythos') states that the base game's post-rally no-rout time is 60 s, which the mod cuts to 20. It says the flank morale penalty 'does not work correctly and often applies to frontal combat' while the rear penalty works, so it lowers the flank penalty and raises the rear one. It also lowers the recent-casualties and raises the total-casualties penalty, and makes units shatter more often after routing. These map onto data-03, data-04 and data-11.",
+   "source": "https://catalogue.smods.ru/?p=151662 (a mirror of the mod's Steam Workshop page; catalogue.smods.ru refused at the proxy 2026-11-10T19:47:23Z, not retried)",
+   "evidence": "Search log D13 (/tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/notes/search-log.json), standard mode: the summary says the mod 'shortens the post-rally no-rout time from 60 to 20 seconds' and gives the flank and rear reasons above; revised December 2021. The earlier pass (Annex A.3) had the same mod's 60 s from one summary.",
+   "notes": "One summary of a mirror page: the mod author's statements about the base game, not data. The 60 s value fits the key 'post_rally_no_rout_timer' (data-11), whose description gives seconds as its unit. The 90 s charge-bonus figure that Annex A.3 attributes to the same changelog was not returned by this pass's searches (D12, D13): not confirmed."
+  },
+  {
+   "id": "data-23",
+   "questions": [
+    "Q3",
+    "Q7"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "One mod author for this title reports that editing the morale and fatigue key-value tables had no effect in testing, so the mod gives units 'Perfect Vigour' and 'Unbreakable' attributes instead; another mod (data-22) edits those values. Whether mod edits of these tables take effect is contested.",
+   "source": "https://www.nexusmods.com/totalwarsagatroy/mods/47 (Never Surrender Mod; www.nexusmods.com refused at the proxy 2026-11-10T19:47:23Z)",
+   "evidence": "Search log D14, extended mode: the summary quotes the page: 'Since modifying kv_fatigue and kv_morale tables takes no effect, this mod gives \"Perfect Vigour\" and \"Unbreakable\" attributes'.",
+   "notes": "WEAK: one summary of an old mod page. It is about mod loading in one author's test, not about what the vanilla values are. Recorded as a caveat on reading the tables' keys as active mechanics."
+  },
+  {
+   "id": "data-24",
+   "questions": [
+    "Q1",
+    "Q8"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Night battles are a condition chosen on the campaign map in this title. A guide describes a hero skill (Aeneas, level 14, 'Veil of Nyx', aura specialisation) that lets the hero carry out night attacks, cutting the enemy off from allied support, and enlarges the hero's aura in night battles. Read with data-02, a night attack is a battle whose start differs by side: the attackers' fatigue, the defenders' morale, and 'Unprepared for night battle'.",
+   "source": "https://www.gamepressure.com/total-war-saga-troy/aeneas/z2d7f1 (guide; host not retried: the earlier pass's fetch tool could not resolve www.gamepressure.com and the sweep refused it)",
+   "evidence": "Search log D23, standard mode: the summary says the hero 'can carry out night attacks and thus cut off opponents from being able to receive ally support' and that 'During night battles, the range of the Hero's Aura also increases.'",
+   "notes": "One guide summary. The night-setup values and who counts as 'unprepared' are unknown."
+  },
+  {
+   "id": "data-25",
+   "questions": [
+    "Q2"
+   ],
+   "label": "SEARCH",
+   "scope": "sibling",
+   "claim": "TOTAL WAR: WARHAMMER (2016, same developer): Greenskin armies carry a 'fightiness' rating that rises with fighting, winning battles and raiding, and falls when the army is inactive or defeated; when it is too low the troops fight among themselves. This matches the inherited army-morale keys of data-14 (battle won and lost, idle, raiding, a morale-based rebellion, Waaagh). It suggests (INFERRED) that the family served one faction's per-army meter in the sibling, not an army morale common to all factions.",
+   "source": "https://pcgamesn.com/total-war-warhammer/learning-the-ways-of-the-greenskins-in-total-war-warhammer ; https://www.pcworld.com/article/418621/total-war-warhammers-campaign-map-focuses-on-faction-asymmetry.html ; https://www.gamepressure.com/totalwarwarhammer/characteristic-of-greenskins/z98836",
+   "evidence": "Search log D19, standard mode: summaries say it 'rises when fighting and raiding, and falls when inactive and as a result of being defeated' and 'Too low and your troops will start killing each other off'.",
+   "notes": "Not the reference. The mapping of keys to fightiness is INFERRED; no source names the keys. The same summary says WARHAMMER II later replaced the mechanic, which fits keys left in the data after their use ended."
+  },
+  {
+   "id": "data-26",
+   "questions": [
+    "Q7",
+    "Q3"
+   ],
+   "label": "SEARCH",
+   "scope": "sibling",
+   "claim": "TOTAL WAR: WARHAMMER III: a mod's changelog lists a fatigue-effects row 'threshold_winded stat_morale 0.9600' (the mod's value). This shows that in a sibling, the fatigue-effects table (the same structure as this title's, data-07) carries a morale multiplier per fatigue level.",
+   "source": "Brutal Battles 3 (WARHAMMER III mod) pages among the D5 results: https://steamcommunity.com/workshop/filedetails/discussion/3308073985/612032174956240488 ; https://steamcommunity.com/workshop/filedetails/discussion/3308073985/612032174956240339 ; https://steamcommunity.com/workshop/filedetails/discussion/2878608715/4630359277026979323 (which page carries the line is not pinned; steamcommunity.com refused in hosts.json)",
+   "evidence": "Search log D5, standard mode: the summary quotes 'threshold_winded stat_morale 0.9600' from edits to unit_fatigue_effects_tables, and _kv_fatigue edits such as 'charging 34.0000'.",
+   "notes": "Mod values in a sibling; vanilla values unknown. The reference's fatigue-effects rows are not available, so whether this title has morale rows is not established."
+  },
+  {
+   "id": "data-27",
+   "questions": [
+    "Q1",
+    "Q2"
+   ],
+   "label": "SEARCH",
+   "scope": "sibling",
+   "claim": "TOTAL WAR: THREE KINGDOMS (fan wiki): attrition 'also reduces unit morale if a battle starts while the effect is active'. In a sibling, then, a campaign state is charged against morale at a battle's start, conditional on attrition, not on taking part.",
+   "source": "https://totalwar.fandom.com/wiki/Attrition (totalwar.fandom.com refused in hosts.json)",
+   "evidence": "Search log D20, standard mode: the summary sentence quoted in the claim.",
+   "notes": "One summary of a fan wiki; not the reference. This title's army-morale family has an attrition term (data-14), but its use here is not established."
+  },
+  {
+   "id": "data-28",
+   "questions": [
+    "Q6"
+   ],
+   "label": "SEARCH",
+   "scope": "sibling",
+   "claim": "TOTAL WAR: WARHAMMER (fan wiki): campaign ambush success depends strongly on terrain: light forest +25 %, jungle +30 %, hills +5 %, desert -5 %, grassland 0 %. This is the same shape as this title's per-ground-type 'ambush_chance_of_success' (data-18).",
+   "source": "https://totalwar.fandom.com/wiki/Ambush ; https://totalwar.fandom.com/wiki/Forest_Ambushers (totalwar.fandom.com refused in hosts.json)",
+   "evidence": "Search log D21, standard mode: the summary lists the per-terrain modifiers quoted in the claim.",
+   "notes": "One summary of a fan wiki for a sibling; not this title's values."
+  }
+ ],
+ "hosts": [
+  {
+   "host": "raw.githubusercontent.com",
+   "tool": "curl GET by exact path (session proxy)",
+   "result": "REACHED (already REACHED in hosts.json): 3 requests 2026-11-10: 19:43:31Z schema_troy.ron HTTP 200 (6,752,098 bytes, SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5); 19:49:39Z schema_wh2.ron HTTP 200 (6,067,928 bytes, SHA-256 54efb0ffb49839c2e280fdeeb1dfd0bfb209e05345334930b2985530ba313580); 19:49:40Z schema_pharaoh.ron HTTP 404 (file name guessed; body deleted; not retried under other names)"
+  },
+  {
+   "host": "github.com",
+   "tool": "curl -I https://github.com/ then one curl GET of https://github.com/Frodo45127/rpfm-schemas (session proxy)",
+   "result": "REACHED but gated per repository: HEAD / gave HTTP 400 at 2026-11-10T19:47:24Z; the repository page GET at 19:48:12Z gave HTTP 403 with JSON 'GitHub access to this repository is not enabled for this session. Use add_repo to request access.' Not retried and not routed around (proxy README: do not retry or route around a 403; task: no git, no workaround); add_repo not used"
+  },
+  {
+   "host": "gitlab.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy)",
+   "result": "REACHED: HTTP 301 at 2026-11-10T19:47:25Z; one try; no Total War data source on it was identified, not used further"
+  },
+  {
+   "host": "www.nexusmods.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, not in hosts.json",
+   "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403'; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:47:23.727Z; one try"
+  },
+  {
+   "host": "catalogue.smods.ru",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, not in hosts.json",
+   "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403'; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:47:23.945Z; one try"
+  },
+  {
+   "host": "docs.google.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, not in hosts.json",
+   "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403'; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:47:24.201Z; one try"
+  },
+  {
+   "host": "gist.githubusercontent.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, not in hosts.json",
+   "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403'; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:47:24.435Z; one try"
+  },
+  {
+   "host": "web.archive.org",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, not in hosts.json",
+   "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403'; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:47:24.881Z; one try"
+  },
+  {
+   "host": "www.moddb.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, not in hosts.json",
+   "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403'; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:47:25.143Z; one try"
+  },
+  {
+   "host": "illwiki.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, not in hosts.json",
+   "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403'; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:55:20.002Z; one try"
+  },
+  {
+   "host": "eu4.paradoxwikis.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, not in hosts.json",
+   "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403'; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)' at 2026-11-10T19:55:20.252Z; one try"
+  },
+  {
+   "host": "(web search tool)",
+   "tool": "WebSearch",
+   "result": "WORKS: 23 queries 2026-11-10 19:44-19:57Z (19 standard, 4 extended); log /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/notes/search-log.json; evidence label SEARCH"
+  },
+  {
+   "host": "(web fetch tool)",
+   "tool": "WebFetch",
+   "result": "NOT USED: the only reachable data host (raw.githubusercontent.com) was read with curl; refused hosts were not retried with any tool"
+  }
+ ],
+ "not_found": [
+  "Q1-Q8 (reference): every VALUE of the morale, fatigue, rules and campaign-variable constants. The only data file reachable (the pack-file tool's schema) holds row keys and descriptions, not values. No public dump with values was found: exact-key searches for 'post_rally_no_rout_timer', 'ums_*', 'ume_*' and 'military_force_morale_*' returned nothing (D3, D16-D18), and no repository with the title's tables surfaced (D5, D11). GitHub repository pages are gated per repository for this session and were not routed around. Nexus Mods, the smods mirror, ModDB, Google Docs, gists and web.archive.org were refused at the proxy.",
+  "Q1 (reference): a morale cost for entering or taking part in a battle. No such key is among the 129 morale keys or the 36 army-morale keys (data-01, data-14). The data does not exclude one: hardcoded engine behaviour, effect-bundle rows (stances, traits, faction effects, pre-battle purchases) and fatigue-effect rows are not visible. Also not found: whether a unit's morale at deployment equals its computed value or moves toward it from another start; and whether standing in the combat-ready pose tires a unit (the 'ready' fatigue delta's sign).",
+  "Q2 (reference): whether the inherited army-level morale family (data-14) is used in this title. There is no value, no row of campaign_group_morale_effects and no evidence from the interface. Battle Glory and Achilles' mood (official-18, official-19) have no key in the lists read (searched 'glory', 'mood', 'motivation').",
+  "Q2 (reference): whether food shortage, attrition or bankruptcy lower morale in this title. The keys exist and are inherited; values and effect rows are unknown.",
+  "Q3 (reference): the size of every factor; the in-game morale tooltip text (localisation files not reachable).",
+  "Q4 (reference): the broken-to-rally timeout, the post-rally window (only a mod author's 60 s, data-22), the rout count that forces a shatter and the casualty thresholds; any rule that a rally needs the commander nearby.",
+  "Q6 (reference): how an ambush is detected (no key or table found); the base chances per ground type; whether 'Surprised' is applied to the ambushed side and for how long (INFERRED only, data-02).",
+  "Q7 (reference): fatigue thresholds and deltas; whether this title's fatigue-effects table has morale rows.",
+  "Q8 (reference): the aura radius and inspire amounts; the general-death and general-fled penalties; any key for a wounded (not killed) hero (none in the morale list).",
+  "G: no genre game's own data could be reached (illwiki.com and eu4.paradoxwikis.com refused), so this angle adds no genre claim; the official angle's genre claims (official-40 to official-42) stand.",
+  "Annex A.3's '90 s, cut to 15 s' charge-bonus timer attributed to a mod changelog was not returned by this pass's searches (D12, D13): not confirmed.",
+  "The successor title's schema (TOTAL WAR: PHARAOH; file name guessed as schema_pharaoh.ron) returned 404 and was not retried under other names, so the 2023 sibling's key lists were not compared."
+ ]
+}

@@ -1,0 +1,904 @@
+{
+ "file": "/tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/check.json",
+ "verdicts": [
+  {
+   "id": "data-01",
+   "verdict": "CONFIRMED",
+   "how": "Re-fetched schema_troy.ron from raw.githubusercontent.com (2026-11-10T20:57:37Z, HTTP 200, 6,752,098 bytes, SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5, byte-identical to the finder's copy) and parsed it with the checker's own scripts (work-check/scripts/parse.py, tabledef.py, quotes.py). _kv_morale_tables lookup (line 158187) holds 129 key/description pairs, every one with a description; the checker read all 129; each quoted pair occurs exactly once; the table definition (line 199) has only key StringU8 and value F32.",
+   "note": "Verified by reading every key: none names entering a battle, deployment, the battle's start, time spent in battle or a loss-independent drain; apart from morale_base the only unconditional side-wide terms are the eight difficulty modifiers. The naval morale list (69 keys, line 158192, not cited by the finder) has none either. 'Moving toward the computed one each tick' is a fair reading of 'The ideal changed morale amount' and the minimum per-tick change, not a stated formula. Caveats hold: no value is in the file; 'warcry_effect_range' is described 'NOT USED', so a defined key need not be active; the descriptions' source and faithfulness are INFERRED (CODE label accepted on that basis). Checker observation (CODE, sibling): WARHAMMER II and III define 'autoresolver_minimum_morale_loss' ('Minimum morale loss in one autoresolver combat round') and '_per_second', a loss-independent morale drain in auto-resolve; this title's list has neither. The earlier pass held this same file (same hash) and called it names-only; these descriptions were in it."
+  },
+  {
+   "id": "data-02",
+   "verdict": "WEAK",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. All nine quoted pairs occur verbatim once; campaign_bonus_value_battle_context_specifiers_tables (key, night_battles_only Boolean) confirmed at line 63906. Night-setup texts compared with WARHAMMER II, the THREE KINGDOMS and WARHAMMER III schemas (fetched by the checker; hashes in targeted-05).",
+   "note": "The definitions are real and every listed term is conditional, which supports the Q1 point. The night-setup reading is not supported by this title's own text. Its attacker key has a description rewritten in this title only: 'Fatigue penalty for units during autoresolve night battles'. 3K and WH3 read 'Fatigue penalty for all attackers in a night battle'; WH2 reads 'Morale bonus for units defending night battles'. The defender-morale key's text here is 'Fatigue penalty for all attackers in a night battle.' So 'a fatigue penalty for the attackers and a morale bonus for the defenders' rests on key names against both descriptions. It also drops the 'autoresolve' limit, which may confine the attacker penalty to auto-resolved battles. That 'Surprised' is the ambushed side's term stays INFERRED; no key names an ambush or a detection."
+  },
+  {
+   "id": "data-14",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. campaign_variables lookup (line 158283) holds 1,138 pairs. 36 keys start with 'military_force_morale', all tagged '(IN GAME)', each with the same text in WARHAMMER II (36/36). The family is also in WARHAMMER III (36) and THREE KINGDOMS (35). Exactly 2 variables are tagged '(UNUSED)'. campaign_group_morale_effects_tables (effect_bundle, group, key, name) is at line 69322.",
+   "note": "Matches the claim, including 'use NOT established'. The '(IN GAME)' tag is weak evidence of use: it also marks the Waaagh keys, 'influence_threshold_percentage_rebellion' ('Outdated. Currenrlt, influence does not impact rebellions.') and 'influence_threshold_percentage_medium' ('No effect.'). No key in the family charges morale for fighting a battle as such."
+  },
+  {
+   "id": "data-15",
+   "verdict": "WEAK",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. Both 'morale_mod_mult_capped_*' bounds are verbatim. They occur 0 times in the WARHAMMER II, THREE KINGDOMS and WARHAMMER III schemas (checked). Seven campaign_bonus_value_battle_context_* tables sit at lines 63696-63945 with the stated junction fields (force_status has is_yours; specifiers has night_battles_only).",
+   "note": "The definitions are confirmed, and the clamp is unique to this title even against 3K and WH3. The closing 'So campaign-side morale reaches a battle as conditional bonus values ... and their combined multiplier is clamped' is the finder's reading. The descriptions clamp the basic and battle_context values of one bonus value, 'morale_mod_mult_capped'; the file does not say this is the combined multiplier of all campaign morale effects. The junction tables are inherited (WH2 has all seven)."
+  },
+  {
+   "id": "data-16",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. Both food-shortage caps are verbatim and identical in WARHAMMER II; campaign_group_food_effects_tables (effect_bundle, group, key) is at line 68094.",
+   "note": "Definitions only; the food effect rows and their use are unknown, as stated."
+  },
+  {
+   "id": "data-20",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. campaign_stance_effects_junctions_tables (line 75695; version 3: stance, effect_bundle, culture, subculture, faction, force_type) and campaign_group_pending_battle_purchasable_effects_tables (line 69445: campaign_group, purchasable_effect -> purchasable_effects.id) are confirmed; both are also in WARHAMMER II.",
+   "note": "Definitions only; that these tables carry the reported stance fatigue and the paid pre-battle actions is INFERRED, as stated."
+  },
+  {
+   "id": "data-21",
+   "verdict": "CONFIRMED",
+   "how": "Re-fetched schema_wh2.ron (2026-11-10T20:57:37Z, HTTP 200, 6,067,928 bytes, SHA-256 54efb0ffb49839c2e280fdeeb1dfd0bfb209e05345334930b2985530ba313580, byte-identical to the finder's copy). The checker's own parser reproduces every count: morale 129/129 common, 0 differing texts; fatigue 29/29, 0 differing; rules 207 vs 182 (172 common, 35 title-only, 10 sibling-only); campaign variables 1,138 vs 1,024 (1,010 common, 128 / 14, 4 same-key texts differ); unit_ability_scaling 8 vs 5 (3 troy_*). 'waaagh_base_threshold', 'ogre_charge_factor' and 'autoresolver_minimum_morale_loss' are sibling-only.",
+   "note": "Scope is correctly sibling. Extra check against the THREE KINGDOMS and WARHAMMER III schemas (fetched by the checker; hashes in targeted-05): THREE KINGDOMS' 131 morale keys contain this title's 129, and WARHAMMER III differs too, while this title's list equals WH2's exactly. That supports 'kept its predecessor's set'. Inherited lists also carry dead content (a Winds of Magic table of 9 keys; 'camera_warhammer_*' variables), so per-title generation does not imply per-title use."
+  },
+  {
+   "id": "targeted-04",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. loyalty_traits_tables (line 105848) has versions 1 and 0 (culture, faction, trait, add_to_pool), with the quoted descriptions at lines 105861, 105876 and 105906. loyalty_event_effects_tables (line 105677: event, loyalty_change I32, loyalty_factor, percentage_chance, threshold) and effect_bonus_value_loyalty_event_junctions_tables (line 89211) are confirmed; the referenced id table has no definition. Both loyalty variables are verbatim. 'motivation' occurs 0 times in both schemas.",
+   "note": "The definitions are confirmed. 'This title alone' holds against more siblings than the claim tested: loyalty_traits_tables and xp_gain_mod_from_loyalty occur 0 times in the THREE KINGDOMS and WARHAMMER III schemas too (fetched by the checker; hashes in targeted-05). That motivation is engine 'loyalty' stays INFERRED, as the claim marks it; no row and no event key is visible."
+  },
+  {
+   "id": "targeted-05",
+   "verdict": "CONTRADICTED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The two threshold descriptions are verbatim in the cai_task_management_system_variables lookup (line 158240; table definition at line 62247, default_value F32 with column default 0.0). To test 'found only in this title's schema' the checker fetched THREE KINGDOMS schema_3k.ron (HTTP 200, 8,551,426 bytes, SHA-256 f09177fa05f981880e18f85654bd375216e3d002fc2af5cd3d21b6f124f7a614) and WARHAMMER III schema_wh3.ron (HTTP 200, 11,213,835 bytes, SHA-256 3766315e79dee4f1997dbe001fbb5a523f70cc250f8df4841ebd8a1d14ec132e), fetched by the checker from the same host 2026-11-10T21:03:53Z-21:03:55Z.",
+   "note": "THREE KINGDOMS and WARHAMMER III both define cai_task_management_system_variables_tables. 3K's holds all 10 of this title's keys, and both 'level of a forces morale ... Range: 0.0-1.0' thresholds read identically in both titles. So the table is absent only from WH2. It is inherited from the 2019 sibling's campaign AI, not 'found only in this title's schema', and not 'configured for this title rather than only inherited' (the claim's notes). The definitions themselves are real, but as evidence that this title uses an army morale they add nothing beyond data-14. The schema's column default (0.0) says nothing about the row values."
+  },
+  {
+   "id": "official-01",
+   "verdict": "WEAK",
+   "how": "Search not re-run: the web search tool refused the checker's only query (2026-11-10T20:56Z, \"this turn's web search budget is used up (limit: 200 WebSearch calls per turn, shared by every agent in it)\") and the cited hosts are refused, so every SEARCH claim was checked only against its finder's own search log (secondary evidence) and against the schema where it applies; no SEARCH claim can be CONFIRMED. Log: S3 (extended) and S13 (extended) record the line verbatim from mirrors of the 1.1.0 notes (fandom user blog, gamewatcher, games-guides); S5 did not surface it; the official page (www.totalwar.com) is refused.",
+   "note": "Two logged summaries of fan or aggregator mirrors, none of the official page. It concerns fatigue, not morale, in one scripted event battle (Odysseus' Ruse), so 'a battle's starting fatigue state can therefore be set from the campaign context' generalises from one scripted case. The data has the definition 'ume_concerned_very_tired' but no value (data-07)."
+  },
+  {
+   "id": "official-02",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S62 and S64 (standard) both summarise the same 1.5.0 fix line (one official page behind both).",
+   "note": "The line fixes 'negative fatigue' applied to armies attacked in Full Speed stance while standing in water. Whether the stance is meant to apply fatigue on land, and by how much, is not stated: the inference is drawn from a bug fix. It is consistent with stance effect bundles in the data (data-20, definitions only)."
+  },
+  {
+   "id": "official-03",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S62 and S65 (standard); S65 itself notes 'one source, not cross-checked'.",
+   "note": "One official page via summaries. It shows a stance-linked fatigue reduction, not morale."
+  },
+  {
+   "id": "official-04",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S16, S23 and S33 (extended) record the PC Gamer forum posts, the Steam landing thread and the fan guide; the community log's C1 independently re-surfaced the 'fresh' quote.",
+   "note": "Player reports and a fan guide, not official; the morale effect of starting tired is not established."
+  },
+  {
+   "id": "official-05",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S37 (FAQ and store text: 'special actions before battle'), S40 (store: 'inducing fatigue and disabling towers'; guides: 'cause all enemy units to be tired once a battle starts', 6,000 and 2,500 food), S47 (same figures, Disguised Trader; NME: enemy hero to half health), S50 (FAQ base text only, no fatigue wording).",
+   "note": "The store and FAQ wording rests on summaries (hosts refused). The follower attribution conflicts (Disguised Trader against Egyptian Healer). Consistent at definition level with the inherited table campaign_group_pending_battle_purchasable_effects (data-20). It is a paid action against the enemy, not a participation cost."
+  },
+  {
+   "id": "official-06",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S8, S20 and S29 record the 1.2.0 line about morale effects shown as battle effects in the Character Details screen.",
+   "note": "The patch line is three summaries of one page. The INFERRED reading (no campaign morale value exists; morale reaches battle only as hero-carried effects) is overtaken. The data defines an inherited 36-key military-force morale family (data-14, use not established), and hero motivation, a campaign stock, is reported to feed the hero's morale (targeted-01/02, WEAK)."
+  },
+  {
+   "id": "official-07",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S1 (extended) has the line; S8 and S29 did not find it. S20, which the claim does not cite, recorded a related line: 'replaced some ancillary and trait morale effects so they wouldn't stack'.",
+   "note": "One summary for the exact wording, plus one partial corroboration. Consistent at definition level with the title-only clamp bounds 'morale_mod_mult_capped_*' (data-15, CODE)."
+  },
+  {
+   "id": "official-18",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S11 records the official blog summary ('each of her armies gains Battle Glory after an engagement'; 'Battle Glory decays ea[...]', truncated) and the guide details.",
+   "note": "The official wording comes through one summary; the morale buff, the gain sources and the reset come from guides only. The schema has no 'glory' string (0 occurrences), so the mechanic is scripted or named otherwise. One DLC faction."
+  },
+  {
+   "id": "official-19",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S38 (mood, thresholds, Outraged effects) and S33 (sustained moods improve troop morale and upkeep).",
+   "note": "Guides; one faction leader; the numbers are unverified."
+  },
+  {
+   "id": "official-20",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S9 and S15 (summary of the official Divine Will post: all gods start at zero favour; Ares, Athena and Artemis give battle and command improvements; fan wiki: Ares +20% at Respected) and S66 (PCGamesN: +40% at tier one).",
+   "note": "The numbers conflict between sources (recorded). Faction-wide effects, not a stock."
+  },
+  {
+   "id": "official-21",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S7 returned both sentences verbatim; S19 (PC Gamer) makes the captives point.",
+   "note": "One summary of a pre-release interview (October 2019). A faction resource, not morale."
+  },
+  {
+   "id": "official-22",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S32 (fan wiki: Words of Agony and Words of Hesitation, -5%; NamuWiki: 10% with a 60% base success rate). The 1.6.0 Oration of Dread line is in S1 and S20 (two summaries); S9 and S28 did not find it.",
+   "note": "Fan wikis; the values are unverified. The official not_found says this line was 'not confirmed by a second search', but its own log shows two summaries (S1, S20)."
+  },
+  {
+   "id": "official-23",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: Each item matches one logged summary (S26 Hector; S33 '+10 morale when defending', Paris furious, Bold; S21 Menelaus' Shield; S38 Achilles' province; S66 Sapper; S37 Memnon; S11 Hippolyta).",
+   "note": "One summary per item; the values are unverified. The closing generalisation ('on the campaign side morale exists only as conditional percentage or point effects, none of them a stock') is contradicted within the research. official-18 (Battle Glory) and official-19 (Achilles' mood) are stocks said to raise morale. targeted-01/02 report hero motivation, a stock, feeding the hero's morale. data-14 defines an army morale stock, though its use is not established."
+  },
+  {
+   "id": "official-24",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S1 (1.3.0 Spartoi and Corybantes buildings) and S8 (1.3.0; 1.7.0 Griffin and Assuwan League morale effects).",
+   "note": "Summaries of two official pages; the scope of the effect is unknown."
+  },
+  {
+   "id": "official-29",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S70 (stance sentence) and S68 (garrison sentence), one summary each; the r2enc hosts are refused.",
+   "note": "Scope is correctly sibling (ROME II). It is a conditional start-of-battle morale penalty for a marching army. The reference's 129 morale keys hold no march or stance term (checked). The reference's march effect found is fatigue (official-02, official-04, community-13), and stance effects run through effect bundles (data-20)."
+  },
+  {
+   "id": "official-30",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S16 and S23 (THREE KINGDOMS fan wiki).",
+   "note": "Sibling, fan wiki; scope labelled correctly."
+  },
+  {
+   "id": "official-33",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S35 (a Steam post quoting in-game text; ToB patch notes).",
+   "note": "Sibling (THRONES OF BRITANNIA); scope labelled correctly."
+  },
+  {
+   "id": "official-34",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S2 and S25; the data log's D20 returned the same THREE KINGDOMS wiki.",
+   "note": "Sibling, fan wiki; scope labelled correctly."
+  },
+  {
+   "id": "official-38",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S60 (Assembly Kit on Epic, the tools, 'our entire script codebase is available for modders as well') and S63 (no morale data in the results).",
+   "note": "The last sentence ('The game's own morale constants and effect definitions are there') is an unverified expectation; nothing from the kit was read (store.epicgames.com is refused). The faithfulness of the schema's descriptions to the kit (data-01) is likewise INFERRED."
+  },
+  {
+   "id": "official-39",
+   "verdict": "UNSUPPORTED",
+   "how": "KNOW by label. Searched the re-fetched schema for evidence (see data-01).",
+   "note": "There is only partial consistency at definition level. 'morale_base' is 'Starting point for calculations'; 'percent_update_per_tick' is 'The ideal changed morale amount', with a minimum per-tick change; EMPIRE-era modders read the states as computed bands (community-17, sibling). No value, formula or engine code was read. 'Recomputed rather than drawn down' and 'entering a battle has no cost of its own' remain hypotheses."
+  },
+  {
+   "id": "official-40",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S56 and S58 (two summaries of the 2022-05-24 diary; S58 records the conflicting patch-note wording).",
+   "note": "Genre (EU4), scope labelled correctly; forum.paradoxplaza.com is refused."
+  },
+  {
+   "id": "official-41",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S55 and S59 (S59: the exact sentence through the GameBanshee repost).",
+   "note": "Genre (Bannerlord), scope labelled correctly; www.taleworlds.com is refused; the text comes from a repost."
+  },
+  {
+   "id": "data-24",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: D23 (standard) records the Aeneas 'Veil of Nyx' guide summary. The 'read with data-02' inference was checked against the schema.",
+   "note": "One guide summary. The inference that 'a night attack is a battle whose start differs by side: the attackers' fatigue, the defenders' morale' conflicts with this title's own texts. The attacker key reads 'during autoresolve night battles', and the defender key describes an attacker fatigue penalty; see data-02."
+  },
+  {
+   "id": "data-25",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: D19 (standard).",
+   "note": "Sibling (WARHAMMER, 2016). The mapping to the inherited keys is INFERRED, as stated."
+  },
+  {
+   "id": "data-27",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: D20 (standard).",
+   "note": "Sibling (THREE KINGDOMS) fan wiki; one summary."
+  },
+  {
+   "id": "community-01",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C7 and C25 (flank, rear and missile fire; 'breaking morale is the name of the game'); C3 and C76 (TV Tropes; C76 holds 'Morale does recover over time though...'); C31 and C36 (superior numbers); C24 (duels). 80 answered searches = C1-C82 less C5 and C6.",
+   "note": "The substance matches the log, but the provenance is misstated. The claim cites 'C3 and C38 (TV Tropes)', yet C38 is the Historical-mode search and holds no TV Tropes content. The quote 'in particular destroys morale in Troy' is recorded nowhere in the log: C3 has 'flanking especially damaging to morale', C76 'flanking destroys morale'. The absence statement must be read with two items. First, the angle's own unplaced NamuWiki line, 'joining an army as lowering morale by 5%' (C2, C76; C77-C78 could not find it). Second, targeted-01: per a fan wiki, fighting a battle in his own territory lowers an Adventurer hero's motivation, which feeds his morale."
+  },
+  {
+   "id": "community-02",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C28, C29 and C33 all trace the morale wording to one 2020 fan guide (prodigygamers); C33 adds another guide's defence line.",
+   "note": "As the claim says, one fan guide stands behind it. The inherited key 'military_force_morale_foriegn_soil' exists (data-14), but its use is unknown."
+  },
+  {
+   "id": "community-03",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C73 (standard); the summary itself notes 'Sources differ on exact numbers'.",
+   "note": "One search of press guides; durations and reach unknown."
+  },
+  {
+   "id": "community-04",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C77 (a Korean query; the PC Invasion table row quoted in English).",
+   "note": "One summary of a guide; DLC faction."
+  },
+  {
+   "id": "community-05",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C44 (Vice, Gamepur, Red Bull), C12 and C16.",
+   "note": "An absence of a morale link in summaries is not proof; the inherited attrition, bankruptcy and food-shortage keys exist (data-14, data-16), use unknown."
+  },
+  {
+   "id": "community-06",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C26 (the PC Invasion trigger lists) and C30 (the second list as Outraged triggers; Grieving; duels).",
+   "note": "Guides; one faction leader."
+  },
+  {
+   "id": "community-07",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C82 (the AGONY changelog wording); C81's motivation change was not confirmed by C82.",
+   "note": "Mod content. The scope label 'reference' risks misreading: a mod's design is not the reference game's mechanic, though the claim text says so."
+  },
+  {
+   "id": "community-13",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C19 (thread title, five-minute kiting, Longer Battles Mod comment) and C75 (PC Gamer forum); C21's whole-battle statement is unattributed.",
+   "note": "Player reports; the thread may describe a bug."
+  },
+  {
+   "id": "community-15",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C71 (standard).",
+   "note": "Siblings (WARHAMMER, WARHAMMER III), player posts; scope labelled correctly."
+  },
+  {
+   "id": "community-16",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C65 (standard).",
+   "note": "Sibling (SHOGUN 2); one summary of a player quoting the encyclopedia."
+  },
+  {
+   "id": "community-17",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C37, C61, C62 and C63.",
+   "note": "Siblings (EMPIRE, SHOGUN 2), legacy threads. This title has the same key families with the same names, confirmed in the schema (data-03, data-10, data-11)."
+  },
+  {
+   "id": "community-19",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C58 (domain-restricted) and C54.",
+   "note": "Genre; a third-party mirror of the manual, read through one summary."
+  },
+  {
+   "id": "targeted-01",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: T10 (extended) quotes the Adventurer row verbatim; T5 and T14 (extended) give it in prose, T14 with the -1 for ending a turn garrisoned or encamped; T7 (standard) did not find it. Competitive rests on T14 only; Valorous on T6 and T13.",
+   "note": "Everything comes from one fan-wiki page (host refused), game version unknown, read through summaries; Competitive rests on one summary. T5 calls these 'classes', not traits. The trait label is supported only by the official 1.7.0 'motivation traits' line (targeted-03, one summary) and the data's loyalty-trait pool (targeted-04, an INFERRED mapping). It is the strongest participation-linked item found for the reference, but it is conditional and acts on one hero's campaign stock, not on unit morale at entry."
+  },
+  {
+   "id": "targeted-02",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: T13, T14 and T19 (extended) and T6; T8 and T16 found no size.",
+   "note": "Fan wikis and a review through summaries. Whether the morale effect reaches the hero's army, or only his own unit, is not established."
+  },
+  {
+   "id": "targeted-03",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: T18 (one summary of the official 1.7.0 page).",
+   "note": "One summary."
+  },
+  {
+   "id": "targeted-06",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: T23 (one summary, domain-restricted); chadvandy.github.io refused (the live proxy record lists connect_rejected at 2026-11-10T20:45:01.037Z).",
+   "note": "Sibling (WARHAMMER III), scope labelled correctly. WH3's schema does define the 36-key military-force morale family (checked), which is consistent with the statement but does not confirm it."
+  },
+  {
+   "id": "targeted-10",
+   "verdict": "UNSUPPORTED",
+   "how": "KNOW by label; no search was possible (budget used up).",
+   "note": "No evidence found; it stays a hypothesis."
+  },
+  {
+   "id": "official-08",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S1 (extended) records the 1.4.0, 1.3.0 and 1.5.1 lines. S20's entry records neither the 'high Tier' line nor the Hippotoxotai line, so the claim's 'in both' (S1 and S20) is not supported by the log.",
+   "note": "Effectively one summary. CODE corroborates a per-unit base morale at definition level (land_units_tables 'morale' I32, line 103425). The values stay out of our design (D-069)."
+  },
+  {
+   "id": "official-09",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: Only S6 records 'morale rating beneath health bar' and the chariot example; S52's entry has neither.",
+   "note": "One summary (plus Annex A.2's earlier summary of the Gamepur guide). The claim cites two (S6, S52)."
+  },
+  {
+   "id": "official-10",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S3, S6, S14 and S42 all quote one PC Gamer preview.",
+   "note": "One underlying source. The mechanic is corroborated at definition level: 'was_attacked_in_flank' and 'was_attacked_in_rear' morale terms and the rules' melee-defence direction coefficients (data-04, CODE)."
+  },
+  {
+   "id": "official-11",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S42 (the quote, outlet not pinned); S44 and S48 failed to find it; S3 and S24 (guide, fan wiki).",
+   "note": "The general-death concerns exist as definitions (data-12, CODE); no size."
+  },
+  {
+   "id": "official-12",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S42 (the quote, outlet not pinned); S45 failed; S49 (GamingBolt) and S15 (fan wiki).",
+   "note": "Fear and terror ranges and concerns exist as definitions (data-09, CODE)."
+  },
+  {
+   "id": "official-13",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S1 only; S21 found nothing on Savage Roar.",
+   "note": "The title-only key 'troy_savage_roar_morale_amount' exists (data-09, CODE), but the 30-to-10 change is unverified."
+  },
+  {
+   "id": "official-14",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S3, S6, S26 and S48; Aristeia as a morale boost only in S21, not confirmed by S26.",
+   "note": "Guides and previews; no sizes."
+  },
+  {
+   "id": "official-15",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: Only S1 records the line. The S3 and S66 entries do not, and the S69 exact-phrase check did not find it. The claim's 'three summaries (S1, S3, S66)' overstates its evidence.",
+   "note": "One summary."
+  },
+  {
+   "id": "official-16",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S54; the community log's C39 is a second summary of the same official 1.4.0 note.",
+   "note": "Two summaries of one page."
+  },
+  {
+   "id": "official-17",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S7, S51 and S22.",
+   "note": "Official FAQ and interview through summaries; no morale effect of a duel."
+  },
+  {
+   "id": "official-25",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S3, S12 (official blog summary) and S14.",
+   "note": "ground_type_to_stat_effects_tables (line 101373) multiplies any modifiable stat by ground type; whether morale rows exist is unknown."
+  },
+  {
+   "id": "official-26",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S30 (one summary).",
+   "note": "A mod author's description of the base game."
+  },
+  {
+   "id": "official-27",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S3.",
+   "note": "Guide. A broken-to-rally timeout exists as a definition (data-11); the triggers described are not in the data."
+  },
+  {
+   "id": "official-28",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S41 and S46.",
+   "note": "Sibling (ROME II), scope labelled correctly."
+  },
+  {
+   "id": "official-31",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S34.",
+   "note": "Sibling (THREE KINGDOMS), scope labelled correctly."
+  },
+  {
+   "id": "official-32",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S4.",
+   "note": "Siblings (WARHAMMER III, ROME II), scope labelled correctly."
+  },
+  {
+   "id": "official-35",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S5 (patch line, one summary; the S68 exact-phrase check failed), S10 and S24.",
+   "note": "Guides; no detection rule (the schema has no ambush-detection key or table either)."
+  },
+  {
+   "id": "official-36",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S4 and S10.",
+   "note": "Fan guide."
+  },
+  {
+   "id": "official-37",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S19 and S39.",
+   "note": "Guides."
+  },
+  {
+   "id": "official-42",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: S57 (one summary).",
+   "note": "Genre (Battle Brothers), scope labelled correctly."
+  },
+  {
+   "id": "data-03",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The quotes are verbatim; the windows and thresholds are as stated (recent 6/10/15/33/50 %; extended 10/15/33/50/80 %; total 10-90 % in steps of 10; the shock threshold; the hitpoints-or-entities switch).",
+   "note": "Definitions only."
+  },
+  {
+   "id": "data-04",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. All quotes verbatim (the enemy-numbers description ends 'which ranges from -1 to -7 (hardcoded). A value of 0 means no penalty is applied.'); the rules' flank and rear coefficients are in the line-158202 list; ground_type_to_stat_effects_tables is at line 101373.",
+   "note": "Definitions only."
+  },
+  {
+   "id": "data-05",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The five quotes are verbatim.",
+   "note": "Definitions only; 'Attacked by projectile' and the artillery near miss can act before any loss."
+  },
+  {
+   "id": "data-06",
+   "verdict": "WEAK",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The quotes are verbatim; both weighting descriptions are identical and name one effect, UME_CONCERNED_FRIENDS_ROUTING.",
+   "note": "The friendly half is supported at definition level: a 'concerned' effect fed by the rout balance within front and flank distances. 'Enemy routs nearby raise it' is not: no 'encouraged' counterpart exists among the 129 keys, and a positive balance may only offset the concern. The notes mark the signs INFERRED, but the claim text says 'as defined'."
+  },
+  {
+   "id": "data-07",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The three quotes are verbatim; unit_fatigue_effects_tables (line 149273): fatigue_level -> _kv_fatigue.key, stat -> modifiable_unit_stats.stat_key, value F32 default 1.",
+   "note": "'Multiplies' is inferred from the default of 1; no rows."
+  },
+  {
+   "id": "data-08",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The quotes are verbatim (winning slightly, plain, significantly; losing plain and significantly; blood bonuses at 5, 7.5 and 12 %; charge_bonus and charge_timeout; the army-destruction ratios; max_reinforcement_bonus).",
+   "note": "Caveat: 'No key names the battle's overall balance otherwise' leaves out 'enemy_control_land_defender_land_force_strength_modifier', in the same list. It is applied 'before comparing to attacker strength as part of the enemy_controls_land evaluation', a side-level strength comparison of unclear use. WARHAMMER III lacks the enemy-numbers multiplier and has explicit 'enemy_morale_penalty_combat_power_*' and '_value_*' keys (relative combat power), which this title lacks."
+  },
+  {
+   "id": "data-09",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The quotes are verbatim; 'troy_savage_roar_morale_amount' sits in _kv_unit_ability_scaling_rules (one of its 3 troy_* keys; absent from WARHAMMER II).",
+   "note": "Definitions only."
+  },
+  {
+   "id": "data-10",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. Seven states, with the '(% basis)' marks exactly as stated; waver_base_timeout is verbatim.",
+   "note": "Definitions only; the reading of percentage against absolute values is INFERRED, as stated."
+  },
+  {
+   "id": "data-11",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The quotes are verbatim. The routing_units_* rules keys have empty descriptions and are absent from the WARHAMMER II, THREE KINGDOMS and WARHAMMER III schemas; pursuit_charge_bonus_modifier is inherited.",
+   "note": "'Shortened per experience level' is a reading of the 'time bonus' wording. Definitions only."
+  },
+  {
+   "id": "data-12",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The quotes are verbatim; no morale key contains 'wound' (checked).",
+   "note": "Definitions only."
+  },
+  {
+   "id": "data-13",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The quotes are verbatim; all Aristeia and Rage keys are among the 35 title-only rules keys; general_auto_survive_threshold is inherited.",
+   "note": "'aristeia_max_cap' is described as the points a hero needs 'to unlock his Aristeia', a threshold rather than a cap on gains."
+  },
+  {
+   "id": "data-17",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. All 29 fatigue keys read: the deltas and the seven thresholds are as stated, and identical in WARHAMMER II.",
+   "note": "The signs of the 'ready' and 'idle' deltas are unknown."
+  },
+  {
+   "id": "data-18",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The quotes are verbatim; campaign_ambush_ground_types_tables (line 62846: ambush_chance_of_success F32 default 0; key -> campaign_ground_types); seven ambush display-colour variables (eight ambush variables with the critical-fail proportion).",
+   "note": "Definitions only; inherited."
+  },
+  {
+   "id": "data-19",
+   "verdict": "WEAK",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. The quotes are verbatim. The tables are confirmed: battle_result_types_tables (line 35454, unit_xp_gain I32); campaign_post_battle_captive_options_tables (line 73689: campaign_group, effect_bundle, effect_bundle_turns, resource_transaction); campaign_group_post_battle_looted_pooled_resources_tables (line 69739); the minimum and maximum enslave-captives percentages by difficulty.",
+   "note": "One factual error: the interfaction-loyalty keys cover nine result grades. 'loyalty_interfaction_battle_result_draw' is a ninth, not the claimed eight. 'Higher if its holder is wounded' assumes the modifier's sign. Otherwise as stated."
+  },
+  {
+   "id": "data-22",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: D13; targeted T9 and community C7 and C70 give the same 60 s.",
+   "note": "A mod author's statements through summaries. The key 'post_rally_no_rout_timer' exists (data-11), but the value is not in the data."
+  },
+  {
+   "id": "data-23",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: D14 (one summary).",
+   "note": "One old mod page."
+  },
+  {
+   "id": "data-26",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: D5 records 'threshold_winded stat_morale 0.9600'; 'charging 34.0000' is not in the compact log.",
+   "note": "Mod values in a sibling. A mod can add rows, so a vanilla morale row is not shown; this title's table structure is confirmed (data-07)."
+  },
+  {
+   "id": "data-28",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: D21.",
+   "note": "Sibling fan wiki; one summary."
+  },
+  {
+   "id": "community-08",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C14, C12, C7 and C25.",
+   "note": "'ume_concerned_attacked_by_projectile' ('Attacked by projectile') exists as a definition (data-05)."
+  },
+  {
+   "id": "community-09",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C7 for the player quote. TV Tropes comes from C3 (and C76), not from C38 (mis-cited), and not in the quoted wording.",
+   "note": "The conflict is unresolved (recorded)."
+  },
+  {
+   "id": "community-10",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C31, C34, C35 and C8.",
+   "note": "Reception, not mechanics."
+  },
+  {
+   "id": "community-11",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C45 and C51 (3DMGame); English names from C27, C49, C78 and C80.",
+   "note": "Attribution conflicts (recorded); www.3dmgame.com is refused."
+  },
+  {
+   "id": "community-12",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C7, C9, C17 and C70; C70's thread link is INFERRED and C74 could not confirm it.",
+   "note": "Several summaries of player and mod-author statements, possibly overlapping. The key exists (data-11), but the value is not in the data."
+  },
+  {
+   "id": "community-14",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C38.",
+   "note": "Guides; one search."
+  },
+  {
+   "id": "community-18",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C20.",
+   "note": "Siblings, scope labelled correctly."
+  },
+  {
+   "id": "community-20",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C53.",
+   "note": "Genre; forum posts in one summary."
+  },
+  {
+   "id": "community-21",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: C55.",
+   "note": "Genre; one summary."
+  },
+  {
+   "id": "targeted-07",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: T9 and T6.",
+   "note": "A mod author's statement; both summaries trace to the same mod text. The key 'charge_timeout' exists (data-08)."
+  },
+  {
+   "id": "targeted-08",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: T22; T24 (same domain) did not return it.",
+   "note": "One summary. Consistent with the defined concern 'ume_concerned_army_destruction' (data-08)."
+  },
+  {
+   "id": "targeted-09",
+   "verdict": "WEAK",
+   "how": "Search not re-run (method as in official-01). Log: T6 (Widely Known), T10 (Hare-hearted; the Adventurer trait) and T20 (Reckless, Cadmean Victory); T12 and T17 failed.",
+   "note": "One summary per item. 'Adventurer' names both this trait and targeted-01's motivation entry. 'Cadmean' as the pyrrhic-victory grade is INFERRED."
+  },
+  {
+   "id": "official.not_found",
+   "verdict": "WEAK",
+   "how": "Compared with the official log and with the other angles' claims.",
+   "note": "Absences in summaries. Its own log contradicts one line: the 1.6.0 Oration of Dread line came back in S1 and S20, so it was confirmed by a second search. The Q2 line ('Every campaign-to-battle link found is an effect') holds for the official sources only: the data defines an inherited army-morale stock (data-14), and fan wikis report a hero stock that feeds morale (targeted-01/02). The Q3(b) line ('fatigue lowering morale: no source for this title') is now answered at definition level by data-07."
+  },
+  {
+   "id": "data.not_found",
+   "verdict": "CONFIRMED",
+   "how": "Same re-fetched schema_troy.ron and own parser as data-01. Re-checked the schema-based absences: no value anywhere in the file; no entry-cost key among the 129 morale or 36 army-morale keys; no 'glory', 'mood' or 'motivation'; no morale key with 'wound'; no ambush-detection key or table (only 'footstep_detection_height' and a bridge-battle detection distance match 'detect'). The PHARAOH 404 is in the finder's fetch log.",
+   "note": "The search-based absences (D3, D16-D18) were not re-run."
+  },
+  {
+   "id": "community.not_found",
+   "verdict": "WEAK",
+   "how": "Compared with the community log.",
+   "note": "Absences in summaries, consistent with the log. Its Q1/Q2 entry correctly records the unplaced NamuWiki 'joining an army' line. Its Q2 entry ('Only faction or hero stocks ... and mods') holds for the community sources only; data-14 and targeted-01/02 add more."
+  },
+  {
+   "id": "targeted.not_found",
+   "verdict": "WEAK",
+   "how": "Compared with the targeted log.",
+   "note": "Absences in summaries, consistent with the log. 'No source shows that it charges every unit for entering' agrees with data-01, which the checker confirmed."
+  },
+  {
+   "id": "hosts.json:01:www.totalwar.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:23Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'.",
+   "note": "Proxy record rotated out (it keeps 20; 29 refusals ran in sequence); the curl 403 is the evidence."
+  },
+  {
+   "id": "hosts.json:02:wiki.totalwar.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:24Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'.",
+   "note": "Proxy record rotated out (it keeps 20; 29 refusals ran in sequence); the curl 403 is the evidence."
+  },
+  {
+   "id": "hosts.json:03:totalwar.fandom.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:24Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'.",
+   "note": "Proxy record rotated out (it keeps 20; 29 refusals ran in sequence); the curl 403 is the evidence."
+  },
+  {
+   "id": "hosts.json:04:community.creative-assembly.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:24Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'.",
+   "note": "Proxy record rotated out (it keeps 20; 29 refusals ran in sequence); the curl 403 is the evidence."
+  },
+  {
+   "id": "hosts.json:05:forums.totalwar.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:24Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'.",
+   "note": "Proxy record rotated out (it keeps 20; 29 refusals ran in sequence); the curl 403 is the evidence."
+  },
+  {
+   "id": "hosts.json:06:support.sega.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:25Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'.",
+   "note": "Proxy record rotated out (it keeps 20; 29 refusals ran in sequence); the curl 403 is the evidence."
+  },
+  {
+   "id": "hosts.json:07:store.steampowered.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:25Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'.",
+   "note": "Proxy record rotated out (it keeps 20; 29 refusals ran in sequence); the curl 403 is the evidence."
+  },
+  {
+   "id": "hosts.json:08:steamcommunity.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:25Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'.",
+   "note": "Proxy record rotated out (it keeps 20; 29 refusals ran in sequence); the curl 403 is the evidence."
+  },
+  {
+   "id": "hosts.json:09:store.epicgames.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:25Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'.",
+   "note": "Proxy record rotated out (it keeps 20; 29 refusals ran in sequence); the curl 403 is the evidence."
+  },
+  {
+   "id": "hosts.json:10:www.reddit.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:26Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:26.247Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:11:old.reddit.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:26Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:26.490Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:12:www.twcenter.net",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:26Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:26.734Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:13:tw-modding.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:26Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:26.985Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:14:raw.githubusercontent.com",
+   "verdict": "CONFIRMED",
+   "how": "The checker fetched four files over HTTPS from this host: schema_troy.ron and schema_wh2.ron at 2026-11-10T20:57:37Z, schema_3k.ron and schema_wh3.ron at 21:03:53Z-21:03:55Z, all HTTP 200. The finder's raw curl line: 2026-11-10T19:18:26Z, HTTP 301, exit 0 (the WebFetch row's 301 to github.com is consistent).",
+   "note": "Reachable, as recorded. The checker did not use it to route around any refused host (the chadvandy.github.io pages were not fetched from here)."
+  },
+  {
+   "id": "hosts.json:15:en.wikipedia.org",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:27Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:27.532Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:16:www.pcgamer.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:27Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:27.569Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:17:www.pcinvasion.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:27Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:27.821Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:18:www.rockpapershotgun.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:27Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:28.045Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:19:www.gamesradar.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:28Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:28.284Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:20:www.thegamer.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:28Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:28.524Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:21:gamerant.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:28Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:28.758Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:22:screenrant.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:28Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:28.986Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:23:www.dualshockers.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:28Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:29.216Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:24:www.ign.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:29Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:29.454Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:25:wccftech.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:29Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:29.563Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:26:primagames.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:29Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:29.797Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:27:gamepur.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:29Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:30.033Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:28:www.gamepressure.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:30Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:30.260Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:29:prodigygamers.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:30Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:30.487Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:30:www.youtube.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts.tsv: 2026-11-10T19:18:30Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-curl.json: connect_rejected at 2026-11-10T19:18:30.721Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:31:www.creative-assembly.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts-extra.tsv: 2026-11-10T19:20:19Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-extra.json: connect_rejected at 2026-11-10T19:20:19.947Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:32:www.sega.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts-extra.tsv: 2026-11-10T19:20:19Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-extra.json: connect_rejected at 2026-11-10T19:20:20.171Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:33:api.steampowered.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts-extra.tsv: 2026-11-10T19:20:20Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-after-extra.json: connect_rejected at 2026-11-10T19:20:20.416Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:34:forum.paradoxplaza.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts-extra.tsv: 2026-11-10T19:26:45Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-final.json: connect_rejected at 2026-11-10T19:26:46.223Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:35:www.taleworlds.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts-extra.tsv: 2026-11-10T19:26:46Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-final.json: connect_rejected at 2026-11-10T19:26:46.465Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:36:battlebrothersgame.com",
+   "verdict": "CONFIRMED",
+   "how": "Not re-tested (a refused host is never retried). Raw log curl-hosts-extra.tsv: 2026-11-10T19:26:46Z, exit 56, 'curl: (56) CONNECT tunnel failed, response 403'. Proxy snapshot proxy-status-final.json: connect_rejected at 2026-11-10T19:26:46.710Z.",
+   "note": "Raw log and proxy record agree."
+  },
+  {
+   "id": "hosts.json:37:raw.githubusercontent.com",
+   "verdict": "CONFIRMED",
+   "how": "The checker fetched four files over HTTPS from this host: schema_troy.ron and schema_wh2.ron at 2026-11-10T20:57:37Z, schema_3k.ron and schema_wh3.ron at 21:03:53Z-21:03:55Z, all HTTP 200. The finder's raw curl line: 2026-11-10T19:18:26Z, HTTP 301, exit 0 (the WebFetch row's 301 to github.com is consistent).",
+   "note": "Reachable, as recorded. The checker did not use it to route around any refused host (the chadvandy.github.io pages were not fetched from here)."
+  },
+  {
+   "id": "hosts.json:38:(every curl-refused host above)",
+   "verdict": "WEAK",
+   "how": "Checked the logs for any later fetch of a refused host: none. The data, community and targeted curl logs test 57 new hosts, none of them in hosts.json, with no duplicates.",
+   "note": "Consistent with every log, but tool-call history is not visible to the checker, so a non-use cannot be fully verified."
+  },
+  {
+   "id": "hosts.json:39:(web search tool)",
+   "verdict": "CONFIRMED",
+   "how": "The official log holds S1-S70 (about 70 queries, standard and extended) for 19:19-19:37Z.",
+   "note": "True when recorded. By the checker's turn the tool refused the checker's only query (20:56Z): the shared per-turn budget of 200 calls was used up."
+  },
+  {
+   "id": "data.hosts",
+   "verdict": "CONFIRMED",
+   "how": "All 13 records checked against work-data/logs/curl-hosts-data.tsv. The eight refusals (www.nexusmods.com, catalogue.smods.ru, docs.google.com, gist.githubusercontent.com, web.archive.org, www.moddb.com, illwiki.com, eu4.paradoxwikis.com) are exit 56 with CONNECT 403. github.com (exit 0, HTTP 400) and gitlab.com (exit 0, 301) match 'REACHED'. The raw.githubusercontent.com schema fetches are in work-data/logs/schema-fetch.txt.",
+   "note": "No record conflicts with its log; no host from hosts.json was retested."
+  },
+  {
+   "id": "community.hosts",
+   "verdict": "CONFIRMED",
+   "how": "All 46 curl-tested hosts in work-community/logs/curl-hosts-community.tsv are exit 56 with CONNECT 403, matching their records. The checker's live proxy status (read 2026-11-10T21:07:22Z) lists connect_rejected for the last 19 of them (tieba.baidu.com ... www.tweaktown.com, 20:11:28Z-20:12:09Z). The reddit refusals by the search tool are logged as C5 and C6.",
+   "note": "No record conflicts with its log; no host from hosts.json was retested."
+  },
+  {
+   "id": "targeted.hosts",
+   "verdict": "CONFIRMED",
+   "how": "chadvandy.github.io: work-targeted/logs/curl-hosts-targeted.tsv shows exit 56, CONNECT 403 at 20:45:00Z; the checker's live proxy status lists connect_rejected for it at 2026-11-10T20:45:01.037Z. The search-budget refusal is logged as T25 and T26.",
+   "note": "Confirmed by the proxy's own record. The decision not to fetch those pages from raw.githubusercontent.com is consistent with the proxy README."
+  }
+ ],
+ "contradictions": [
+  "targeted-05 against THREE KINGDOMS and WARHAMMER III schemas (fetched by the checker, SHA-256 f09177fa...a614 and 3766315e...132e): both define cai_task_management_system_variables_tables with the same two 'level of a forces morale' thresholds, identical text. So the table is inherited from the 2019 sibling's AI, not unique to this title or configured for it.",
+  "data-02 and data-24 against this title's own descriptions: 'unit_battle_setup_night_battle_attacker_fatigue_penalty' is described here only as 'Fatigue penalty for units during autoresolve night battles' (3K and WH3: 'Fatigue penalty for all attackers in a night battle'; WH2: 'Morale bonus for units defending night battles'). The defender-morale key's text here is 'Fatigue penalty for all attackers in a night battle.' The claims' reading, that attackers start fought night battles fatigued and defenders get a morale bonus, rests on key names against the texts and drops the autoresolve limit.",
+  "official-23 (closing generalisation), official-06 (INFERRED note) and official not_found Q2 ('morale exists on the campaign side only as conditional effects, none of them a stock') against: official-18 (Battle Glory, a per-army stock that guides say buffs morale); official-19 and community-06 (Achilles' mood); targeted-01 and targeted-02 (hero motivation, a per-hero stock said to feed the hero's morale); and data-14 (an inherited 36-key military-force morale stock defined in the data, use not established).",
+  "community-01 and official not_found Q1 (no source describes a morale cost for entering or being in a battle) against targeted-01 and the community log's own C2/C76. targeted-01 (fan wiki): fighting a battle in his own territory lowers an Adventurer hero's motivation; reinforcing or being reinforced lowers a Competitive hero's; motivation feeds the hero's morale. C2/C76: an unplaced NamuWiki line, 'joining an army as lowering morale by 5%'. Not a direct contradiction (conditional, and a hero stock rather than unit morale), but the flat absence statements need this qualification.",
+  "Flank morale. The preview (official-10) and TV Tropes (community-01, community-09) say flanking especially damages or destroys morale. One player says enveloped units 'refuse to route until they are almost destroyed when surrounded' (community-09). A mod author says the flank penalty 'does not work correctly and often applies to frontal combat' (data-22). The data's term is set by first contact ('First contact from flank', data-04), which could produce both reports (INFERRED).",
+  "Post-rally window in siblings (community-12). 'In most TW titles, this is in the 10-15 second range' and 'it's 10s in Warhammer2' (Cataph's mod) against C70: a WARHAMMER mod shortens its equivalent from 60 to 45 s, and a ROME II mod sets the timer to 60 s.",
+  "official-20: Ares' sword and axe morale bonus is +20% at 'Respected' (fan wiki, S15) against +40% at tier one (PCGamesN, S66).",
+  "official-05: the camp follower with the 'all enemy units tired' action is the Disguised Trader in one summary and the Egyptian Healer in another.",
+  "community-11: 'Rallying Call' is attributed to Agamemnon (C45) and to Sarpedon (C51); 'False Omen' is listed under Sarpedon (Chinese guide) while the English guide gives 'False Portent' to Odysseus.",
+  "official-40: EU4 1.34's daily morale damage is '1% of max morale' (developer diary) against '1% of the average max morale of the enemy's troops' (patch note).",
+  "Searches that disagree: S5 did not surface the 1.1.0 'very tired' line that S3 and S13 returned (official-01). S8 and S29 did not find S1's '16 ancillaries and 1 trait' line, but S20 recorded a related one (official-07). S9 and S28 did not find the Oration of Dread line that S1 and S20 returned (official-22). S44, S45 and S48 could not find S42's two developer quotes (official-11, official-12). T10 did not find T5's Peaceful, Servile and Sentry traits (targeted-01). T12 and T17 did not confirm T6's 'Widely Known' (targeted-09). T24 did not return T22's army-destruction function (targeted-08).",
+  "Claims against their own logs. official-08 cites S1 and S20 'in both', but S20's entry has neither line. official-09 cites S6 and S52, but S52's entry lacks the line. official-15 cites 'three summaries (S1, S3, S66)', but only S1 has it and the S69 exact-phrase check failed. official not_found says Oration of Dread was 'not confirmed by a second search', though S1 and S20 both returned it. community-01 and community-09 cite 'C3 and C38 (TV Tropes)' and quote 'in particular destroys morale in Troy', but C38 has no TV Tropes content and the log never records that wording.",
+  "data-19 against the schema: it says 'eight result grades', but the loyalty_interfaction_battle_result_* keys include a ninth, 'draw'.",
+  "data-06 against the schema: 'enemy routs nearby raise it', but both weightings feed one effect named UME_CONCERNED_FRIENDS_ROUTING (a concern), and no 'encouraged' counterpart exists among the 129 morale keys.",
+  "Annex A.1 and A.3 of the morale proposal (earlier pass) against data-01: the earlier pass downloaded the same schema_troy.ron (same SHA-256) and called it table and field names only, saying the keys were 'not available'. The same file holds all 129 morale keys with descriptions, so several 'not verified for this game' cells could have been answered at definition level from it."
+ ]
+}

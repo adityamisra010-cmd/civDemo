@@ -1,0 +1,747 @@
+{
+ "angle": "official: the reachability step (hosts.json), then the developer's and publisher's own sources (patch notes and their mirrors, developer blogs, the official FAQs, store texts, developer interviews and previews), with sibling titles' official manuals kept as scope sibling and three genre developers' own blogs and diaries for G",
+ "file": "/tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/official.json",
+ "claims": [
+  {
+   "id": "official-01",
+   "questions": [
+    "Q1",
+    "Q7"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "The official patch 1.1.0 notes contain a line that makes the defenders of one scripted campaign battle start it fatigued: \"Troy's garrison now start the Odysseus' Ruse night battle very tired.\" A battle's starting fatigue state can therefore be set from the campaign context.",
+   "source": "https://totalwar.com/?p=11792 (official 1.1.0 post; host refused), as mirrored at https://totalwar.fandom.com/wiki/User_blog:Mc.abber/A_Total_War_Saga:_TROY_-_Patch_1.1.0 , https://www.gamewatcher.com/news/total-war-saga-troy-1-1-0-update-patch-notes and https://games-guides.com/a-total-war-saga-troy-update-1-1-0-patch-notes-september-9/",
+   "evidence": "Two separate search summaries (search log /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-official/notes/search-log.md, entries S3 extended and S13 extended; every \"S<n>\" below refers to that log) returned the line verbatim and attributed it to the 1.1.0 notes and their mirrors; S13 also returned \"Fixed an issue where the player's entire army could be deployed inside Odysseus' Ruse and the limit ignored.\" A third search (S5) did not surface it.",
+   "notes": "Not fetched: every host is refused. This is fatigue, not morale: no source found says how much 'very tired' lowers morale in this title. It concerns one scripted event battle (the Trojan Horse), not battles in general."
+  },
+  {
+   "id": "official-02",
+   "questions": [
+    "Q1",
+    "Q7"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "The official patch 1.5.0 notes list a fix for 'negative fatigue' being applied to armies that were attacked while in the Full Speed stance and standing in water. A campaign stance can therefore apply a fatigue effect to an army when it is attacked, that is, at the start of the battle.",
+   "source": "https://totalwar.com/?p=13265 (official 1.5.0 post, 2021-01-27; host refused)",
+   "evidence": "Search log S62 and S64 (standard): the fix \"addressed negative fatigue being applied to armies that were attacked while in Full Speed stance and standing in water\" (summary wording, under the fixes).",
+   "notes": "Two summaries of the same official page; the line itself was not read. What the effect sets (a fatigue state, its size) and whether it touches morale are not established. 'Full Speed' reads as this title's fast-movement stance (INFERRED from the wording)."
+  },
+  {
+   "id": "official-03",
+   "questions": [
+    "Q1",
+    "Q7"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "The official patch 1.7.0 notes say that armies in the Griffin Hunt stance now get the reduced fatigue they were supposed to get, and keep it while they stay in that stance: another campaign stance that sets fatigue.",
+   "source": "https://www.totalwar.com/?p=16377 (official 1.7.0 post; host refused)",
+   "evidence": "Search log S62 and S65 (standard) summaries.",
+   "notes": "One source behind both summaries, not cross-checked. The direction is a reduction (a benefit), the mirror image of official-02."
+  },
+  {
+   "id": "official-04",
+   "questions": [
+    "Q1",
+    "Q7"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Players report that the March stance makes an army start a battle tired if it attacks or is attacked after long marches, and advise avoiding long marches so that troops start the battle 'fresh'.",
+   "source": "https://forums.pcgamer.com/threads/a-total-war-saga-troy.121430/ ; https://steamcommunity.com/app/1099410/discussions/0/521957463060216705/ ; https://prodigygamers.com/2020/08/20/total-war-troy-recruitment-and-hero-stance-guide/",
+   "evidence": "Search log S16, S23, S33 (extended): a forum post \"stances can also impact how tired the troops are if you attack that round or get attacked during the AI's turn\"; \"as long as you don't do the long marches, they should start the battle 'fresh'\"; a Steam thread reports units already exhausted after disembarking and being attacked; the fan guide says March raises movement range at the cost of stamina.",
+   "notes": "Player reports and a fan guide, not official; consistent with official-02. The morale effect of starting tired is not established."
+  },
+  {
+   "id": "official-05",
+   "questions": [
+    "Q1"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "The official texts of the Rhesus & Memnon pack name pre-battle actions that leave the enemy worse off when the battle starts: Memnon's camp followers 'grant him special actions before battle' and can be assigned 'for unique strategic effects such as inducing fatigue and disabling towers'. Guides describe one follower's pre-battle action as able to 'cause all enemy units to be tired once a battle starts' (6,000 food to obtain, 2,500 food per action); a review describes a pre-battle action that brings the enemy hero to half health.",
+   "source": "https://store.steampowered.com/app/1553060/ (store page; host refused); https://www.totalwar.com/?p=16355 and https://support.sega.com/hc/en-us/articles/4417716670993-A-TOTAL-WAR-SAGA-TROY-RHESUS-MEMNON-FAQ (official FAQ; hosts refused); https://www.pcinvasion.com/total-war-saga-troy-memnon-guide-pharaohs-servant-and-camp-followers/2 ; https://primagames.com/gaming/total-war-saga-troy-memnon-guide-pharaohs-servant-and-camp-followers/2 ; https://www.nme.com/reviews/a-total-war-saga-troy-rhesus-and-memnon-review-3117585",
+   "evidence": "Search log S37, S40, S47, S50 (standard). The store and FAQ wording came back in several summaries; the per-follower details only in guide summaries.",
+   "notes": "The summaries disagree on which follower carries the fatigue action (Disguised Trader in one, Egyptian Healer in another). It is a paid action against the enemy, not a cost that every army pays for entering a battle."
+  },
+  {
+   "id": "official-06",
+   "questions": [
+    "Q1",
+    "Q2"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "A character's effects on unit morale are battle effects: the official patch 1.2.0 notes fix the display so that 'effects related to the morale of units now are properly displayed as battle effects in the Character Details screen'.",
+   "source": "https://totalwar.com/?p=11982 (official 1.2.0 post; host refused); mirror https://totalwar.fandom.com/wiki/User_blog:Mc.abber/A_Total_War_Saga:_TROY_-_Patch_1.2.0",
+   "evidence": "Search log S8, S20, S29: three summaries of the 1.2.0 notes gave this line.",
+   "notes": "INFERRED (our reading, not the source's words): together with the absence of any army morale number in every source found, morale reaches a battle from the campaign as effects carried by the hero (skills, traits, items), not as a campaign morale value."
+  },
+  {
+   "id": "official-07",
+   "questions": [
+    "Q2"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "One search summary of the official 1.2.0 notes reports that 'the universal morale effects of 16 ancillaries and 1 trait have been replaced with contextual morale effects' (to curb stacking). Two later searches of the same notes did not find the line.",
+   "source": "https://games-guides.com/a-total-war-saga-troy-update-1-2-0-patch-notes-september-25/ ; https://totalwar.fandom.com/wiki/User_blog:Mc.abber/A_Total_War_Saga:_TROY_-_Patch_1.2.0 (official post https://totalwar.com/?p=11982)",
+   "evidence": "Search log S1 (extended) only; S8 and S29 did not find it.",
+   "notes": "WEAK: one summary, not found by two others. If true, morale bonuses carried by items and traits apply only in some situations, not always."
+  },
+  {
+   "id": "official-08",
+   "questions": [
+    "Q3"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Each unit type has a base morale value that the official patches tune: 1.4.0 lowered the base morale of all high-tier units by roughly 5 to 10 % and the Cyclops' from 90 to 65; 1.3.0 lowered Initiates' from 50 to 45; 1.5.1 raised Hippotoxotai's from 50 to 60.",
+   "source": "https://support.sega.com/hc/en-gb/articles/360015921757-A-TOTAL-WAR-SAGA-TROY-PATCH-1-4-0 ; https://totalwar.com/?p=12673 (1.4.0); https://totalwar.com/?p=12358 (1.3.0); https://totalwar.fandom.com/wiki/User_blog:Mc.abber/A_Total_War_Saga:_TROY_-_Patch_1.5.1",
+   "evidence": "Search log S1 (extended) and S20 (extended): \"All high Tier units have had their base Morale lowered by roughly 5% to 10%\" and \"Hippotoxotai have had their Morale increased from 50 to 60\" in both; the 1.3.0 line in S1. The earlier pass had the 1.4.0 line from one summary.",
+   "notes": "The reference's numbers stay out of our design (D-069); they only show the scale (base values in the tens)."
+  },
+  {
+   "id": "official-09",
+   "questions": [
+    "Q3"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "In battle each unit shows a morale rating beneath its health bar, and morale can fall much faster than health (a chariot charge into a sword unit's flank breaks it).",
+   "source": "https://www.pcgamer.com/total-war-saga-troy-brings-mythical-heroes-to-bronze-age-infantry-warfare/ ; https://www.gamepur.com/guides/how-troop-morale-and-routing-works-in-a-total-war-saga-troy",
+   "evidence": "Search log S6, S52 (summaries of a preview and a guide).",
+   "notes": "Preview and guide. Describes morale as a battle quantity only."
+  },
+  {
+   "id": "official-10",
+   "questions": [
+    "Q3"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "A developer preview says flank attacks damage morale and reduce the targeted unit's defence stats.",
+   "source": "https://www.pcgamer.com/total-war-saga-troy-brings-mythical-heroes-to-bronze-age-infantry-warfare/",
+   "evidence": "Search log S3, S6, S14, S42: \"flank attacks will damage morale and reduce the targeted unit's defence stats\" (summaries quoting the preview), which adds the developers were still tweaking it.",
+   "notes": "Pre-release; no size. A mod page (Immersive Combat) claims the base game's flank penalty 'does not work correctly and often applies to frontal combat' and raises the rear penalty instead (S24): a modder's claim about separate flank and rear penalties."
+  },
+  {
+   "id": "official-11",
+   "questions": [
+    "Q3",
+    "Q8"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "A commander hero's death lowers the morale of his whole army: a developer is quoted, in one summary, that 'if your hero dies all of your army will suffer great morale penalties and it's much more likely for them to run off'; guides say the remaining troops take a huge morale penalty; one unit's 'Disciplined' trait says it 'does not suffer a morale penalty when the Hero dies'.",
+   "source": "developer quote: outlet not pinned (an extended search over https://www.cgmagonline.com/interviews/interview-creative-assembly-announces-total-war-troy/ , https://www.mmorpg.com/interviews/interview-with-a-developer-a-total-war-saga-troy-2000118363 , https://www.gamereactor.eu/total-war-saga-troy-an-epic-interview/ , https://www.shacknews.com/article/119326/a-total-war-saga-troy-interview-the-iliad-divine-will-and-more and others); https://www.gamepressure.com/total-war-saga-troy/battles/z0d813 ; https://totalwar.fandom.com/wiki/Aristomachoi",
+   "evidence": "Search log S42 (extended) gave the quote, attributed to Milcho Vasilev; S44 and S48 could not locate it. S3 and S24: guide and fan-wiki summaries.",
+   "notes": "The quote's outlet is unknown, so it counts as one summary. No size of the penalty found."
+  },
+  {
+   "id": "official-12",
+   "questions": [
+    "Q3"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Mythical units cause fear: the game director is quoted, in one summary, that they 'also have an impact on morale, which cause fear, basically, because their strength isn't so much physical, as psychological'; a preview says the Minotaur strikes fear into foes; a fan wiki lists, at Ares' 'Worshipped' level, 'All Heroes frighten enemy units in battle'.",
+   "source": "director quote: outlet not pinned (the S42 interview list in official-11); https://gamingbolt.com/?p=445133 ; https://totalwar.fandom.com/wiki/Ares",
+   "evidence": "Search log S42 (extended); S45 did not find the quote; S49 (GamingBolt); S15 (fan wiki).",
+   "notes": "WEAK for the quote. How fear acts (a flat penalty, an area, a rout trigger) not found."
+  },
+  {
+   "id": "official-13",
+   "questions": [
+    "Q3"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Summaries of the official patch notes name effects that lower enemy morale: 1.2.0 cut Savage Roar's morale reduction from 30 to 10 and made Prayer to Ares apply morale penalties to enemy units in battle; 1.6.0 gave ranged units a 'Serrated Edges' modifier that lowers the morale of affected enemies.",
+   "source": "https://totalwar.fandom.com/wiki/User_blog:Mc.abber/A_Total_War_Saga:_TROY_-_Patch_1.2.0 ; https://games-guides.com/a-total-war-saga-troy-update-1-2-0-patch-notes-september-25/ ; https://totalwar.fandom.com/wiki/User_blog:Mc.abber/A_Total_War_Saga:_TROY_-_Patch_1.6.0",
+   "evidence": "Search log S1 (extended) only; S21 found nothing on 'Savage Roar'.",
+   "notes": "WEAK: one summary. On missile fire it shows only a specific modifier of some ranged units, not a general 'under fire' morale factor (none found)."
+  },
+  {
+   "id": "official-14",
+   "questions": [
+    "Q3",
+    "Q8"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Hero abilities raise or lower morale in battle: heroes build 'rage' in combat and spend it on command abilities that inspire nearby units (preview); guides list Agamemnon's 'Rallying Cry' (melee defence and morale) and Hector's level-14 'The Shout' (combat capabilities and morale); an interview article mentions a Menelaus ability that saps enemy units' morale.",
+   "source": "https://www.pcgamer.com/total-war-saga-troy-brings-mythical-heroes-to-bronze-age-infantry-warfare/ ; https://www.gamepressure.com/total-war-saga-troy/agamemnon/z3d7f2 ; https://www.gamepressure.com/total-war-saga-troy/hector/z4d7f3 ; https://www.gamereactor.eu/total-war-saga-troy-an-epic-interview/",
+   "evidence": "Search log S3, S6, S26, S48.",
+   "notes": "Guides and previews; no sizes. The hero meter 'Aristeia' is described by one guide as a morale boost; not confirmed (S21, S26)."
+  },
+  {
+   "id": "official-15",
+   "questions": [
+    "Q8"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "The official 1.1.0 notes, as mirrored, include 'Heroes' aura now gives morale to units when the Cult of Athena is at level 3': a hero's battle aura can carry a morale bonus to nearby units, here unlocked by the faction's favour with a god.",
+   "source": "https://totalwar.fandom.com/wiki/User_blog:Mc.abber/A_Total_War_Saga:_TROY_-_Patch_1.1.0 (mirror of https://totalwar.com/?p=11792)",
+   "evidence": "Search log S1, S3, S66 (three summaries).",
+   "notes": "Aura radius and size not found; whether a hero has a morale aura without that favour level is not established."
+  },
+  {
+   "id": "official-16",
+   "questions": [
+    "Q8",
+    "Q5"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Some heroes are wounded instead of killed: the official 1.4.0 notes mention horde-army buildings being saved to the commanding hero 'in case they were immortal and were wounded instead of killed'.",
+   "source": "https://support.sega.com/hc/en-gb/articles/360015921757-A-TOTAL-WAR-SAGA-TROY-PATCH-1-4-0",
+   "evidence": "Search log S54 (one summary).",
+   "notes": "The recovery time and any morale effect of a hero's wounding were not found."
+  },
+  {
+   "id": "official-17",
+   "questions": [
+    "Q8"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Hero duels exist: the official FAQ says some heroes have a Divine Challenge, 'an active battle ability that taunts opposing characters into one-on-one combat'; the lead designer said a challenge locks the two heroes for a time, to the death or until a timer expires.",
+   "source": "https://support.sega.com/hc/en-gb/articles/360009441858-A-TOTAL-WAR-SAGA-TROY-FAQ ; https://wccftech.com/total-war-saga-troy-interview-with-lead-designer-todor-nikolov/2/",
+   "evidence": "Search log S7, S51.",
+   "notes": "No source found on a duel's morale effect in this title (contrast official-31, a sibling title)."
+  },
+  {
+   "id": "official-18",
+   "questions": [
+    "Q2",
+    "Q5"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "The closest thing found to a per-army stock that battles raise is the Amazons' Battle Glory: the official developer blog says 'each of her armies gains Battle Glory after an engagement' and can spend it on a Blood Oath granting Bloodsworn units for a short time; Amazons cannot reinforce; Battle Glory decays (text truncated). Guides add that it buffs that army's morale and movement range, is also gained by killing captives, razing and the encamp stance, and resets to zero after the Bloodsworn leave (two turns).",
+   "source": "https://totalwar.com/?p=11899 ('From Themiscyra to the Aegean: Designing the Amazons'; host refused); https://www.pcinvasion.com/total-war-saga-troy-penthesilea-amazons-guide/2 ; https://primagames.com/gaming/total-war-saga-troy-penthesilea-amazons-guide/2",
+   "evidence": "Search log S11 (two searches).",
+   "notes": "One DLC faction's mechanic, not a general army morale. The morale buff and its size come from guides only; the official text seen says 'after an engagement', not whether a defeat counts."
+  },
+  {
+   "id": "official-19",
+   "questions": [
+    "Q2",
+    "Q5"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Achilles' mood is a hero-level stock that battles move: guides say it 'can sway depending on his performance in combat and how well his armies fight against overwhelming odds', building gradually to thresholds from a 'Proud' baseline; the Outraged mood gives +40% melee attack, 100% treasure loot chance and +10% casualty replenishment; sustained moods improve troop morale and upkeep.",
+   "source": "https://www.pcinvasion.com/total-war-saga-troy-achilles-guide/2 ; https://primagames.com/gaming/total-war-saga-troy-achilles-guide/2 ; https://www.gameshedge.com/total-war-saga-troy-achilles-guide/",
+   "evidence": "Search log S38, S33.",
+   "notes": "Guides; one faction leader only; numbers unverified."
+  },
+  {
+   "id": "official-20",
+   "questions": [
+    "Q2",
+    "Q3"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Divine favour gives faction-wide morale and battle effects: the official Divine Will post says all gods start at zero favour and that the gods of war and strategy (Ares, Athena, Artemis) give battle and command improvements; guides and a fan wiki list Ares effects such as lower morale for enemy or invading armies and a morale bonus for sword and axe units (+20% at 'Respected' per the fan wiki, +40% at tier one per another article).",
+   "source": "https://totalwar.com/?p=15330 (official); https://primagames.com/gaming/total-war-saga-troy-divine-will-guide-gods ; https://totalwar.fandom.com/wiki/Ares ; https://www.pcgamesn.com/total-war-saga-troy/campaign-gameplay",
+   "evidence": "Search log S9, S15, S66.",
+   "notes": "The numbers conflict between sources (perhaps different versions)."
+  },
+  {
+   "id": "official-21",
+   "questions": [
+    "Q5",
+    "Q2"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Conduct in battle changes divine favour: the lead designer said of Ares, 'If you flee from battle, you will lose his favour', and 'You kill your captives after the battle, you get favour because Ares is bloodthirsty'.",
+   "source": "https://wccftech.com/total-war-saga-troy-interview-with-lead-designer-todor-nikolov/2/ (interview, 2019-10-17)",
+   "evidence": "Search log S7: both sentences returned verbatim in the summary; a PC Gamer preview makes the same captives point (S19).",
+   "notes": "Pre-release interview. A faction-level resource, not army morale; favour then feeds the faction-wide effects of official-20."
+  },
+  {
+   "id": "official-22",
+   "questions": [
+    "Q2"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Campaign agents lower an enemy army's morale for its battles: a fan wiki lists the Priestess skills 'Words of Agony' and 'Words of Hesitation' as '-5% to morale of all enemy units upon successful action against a foreign army'; another wiki says a priestess action against a foreign army cuts unit morale by 10% with a 60% base success rate; one summary of the 1.6.0 notes says 'Priestess' Oration of Dread now causes a larger morale debuff when the action results in Critical Success'.",
+   "source": "https://totalwar.fandom.com/wiki/Priestess/Skills ; https://en.namu.wiki/w/%ED%86%A0%ED%83%88%20%EC%9B%8C%20%EC%82%AC%EA%B0%80:%20%ED%8A%B8%EB%A1%9C%EC%9D%B4/%EC%98%81%EC%9B%85 ; https://totalwar.fandom.com/wiki/User_blog:Mc.abber/A_Total_War_Saga:_TROY_-_Patch_1.6.0",
+   "evidence": "Search log S32; S20 for the 1.6.0 line; S9 and S28 did not find 'Oration of Dread'.",
+   "notes": "Fan wikis; the 1.6.0 line is WEAK. Duration not found. Pattern: a campaign-map action whose effect is felt in battle."
+  },
+  {
+   "id": "official-23",
+   "questions": [
+    "Q2"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Hero, trait, item and faction effects give armies conditional morale bonuses (guides and wikis): Hector +10% morale for units in his own territory and '+10 morale when defending'; Paris +10% morale to all units when furious; Menelaus' Shield buffs his army's morale; Achilles in his local province gives enemy armies -5% morale; trait 'Sapper' +3/6/9% morale of all units in siege battles (this army); trait 'Bold' +3/6/9 morale of the hero; Memnon's epic-mission choices +10% morale for his army or for units in his aura; Hippolyta's 'Defend your Son' +10% morale.",
+   "source": "https://www.gamepressure.com/total-war-saga-troy/hector/z4d7f3 ; https://www.pcgamesn.com/total-war-saga-troy/hector-guide-start-position-campaign-mechanics-unique-units ; https://www.pcgamesn.com/total-war-saga-troy/paris-guide-start-position-campaign-mechanics-unique-units ; https://www.gamepur.com/guides/how-troop-morale-and-routing-works-in-a-total-war-saga-troy ; https://www.pcinvasion.com/total-war-saga-troy-achilles-guide/2 ; https://totalwar.fandom.com/wiki/Traits_(Total_War_Saga:_Troy) ; https://primagames.com/gaming/total-war-saga-troy-memnon-guide-pharaohs-servant-and-camp-followers/2 ; https://primagames.com/gaming/total-war-saga-troy-hippolyta-amazons-guide/3",
+   "evidence": "Search log S11, S21, S26, S33, S37, S38, S66; each item from one summary.",
+   "notes": "Guides and wikis; values unverified. Together they show the pattern: on the campaign side morale exists only as conditional percentage or point effects, none of them a stock."
+  },
+  {
+   "id": "official-24",
+   "questions": [
+    "Q2"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Buildings are another campaign source of a battle morale effect: the official 1.3.0 notes make region-specific buildings that granted recruitment rank to Spartoi and Corybantes give a morale effect instead; 1.7.0 changed the morale effects of the Griffin and Assuwan League mechanics.",
+   "source": "https://totalwar.com/?p=12358 ; https://www.totalwar.com/?p=16377",
+   "evidence": "Search log S1, S8.",
+   "notes": "Scope of the effect (local recruits, the region) not found."
+  },
+  {
+   "id": "official-25",
+   "questions": [
+    "Q3",
+    "Q7"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Terrain acts on heavy infantry through speed and fighting ability, not (in any source found) through morale: the official developer blog introduces 'mud, which slows down heavy infantry and reduces their fighting capabilities'; previews add speed and fatigue penalties for heavy units in mud, light units unaffected, tall grass hiding light units, and heavy units 'slow and easily exhausted'.",
+   "source": "https://www.totalwar.com/?p=8769 ('Bartering, Bronze, and Battles: TROY and the Bronze Age'; host refused); https://www.pcgamer.com/a-total-war-saga-troy-reinvents-its-battles-for-the-bronze-age ; https://techraptor.net/gaming/previews/total-war-saga-troy-preview ; https://www.pcgamer.com/total-war-saga-troy-brings-mythical-heroes-to-bronze-age-infantry-warfare/",
+   "evidence": "Search log S3, S12, S14.",
+   "notes": "No terrain morale effect and no fatigue-to-morale link were found for this title."
+  },
+  {
+   "id": "official-26",
+   "questions": [
+    "Q7"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "A community overhaul's changelog says that in the base game units got tired after about 30 seconds of fighting and that fatigue reduced armour and damage, which the mod changed.",
+   "source": "Radious Total War Mod for TROY (Steam Workshop): https://steamcommunity.com/workshop/filedetails/discussion/2593467734/3038229380331747720",
+   "evidence": "Search log S30 (one summary).",
+   "notes": "A mod author's description of the base game, not official; WEAK."
+  },
+  {
+   "id": "official-27",
+   "questions": [
+    "Q4"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "A guide says routing units cannot be controlled and can stop routing if their hero does something exceptional or their side destroys an enemy unit.",
+   "source": "https://www.gamepur.com/guides/how-troop-morale-and-routing-works-in-a-total-war-saga-troy",
+   "evidence": "Search log S3 (summary); the earlier pass had the same from one summary.",
+   "notes": "Guide, not official. No official source for this title on rally timing, frequency or shattering was found."
+  },
+  {
+   "id": "official-28",
+   "questions": [
+    "Q4",
+    "Q8"
+   ],
+   "label": "SEARCH",
+   "scope": "sibling",
+   "claim": "Total War: ROME II's official encyclopedia (an earlier title of the series): routers 'must be within the general's radius of influence for the rally to take effect'; 'units whose morale is shattered will not respond to the command to rally'; if the general is killed while units are routing, they become shattered.",
+   "source": "https://r2encv2.totalwar.com/en/manual/single-player/0087_enc_page_battle_play_phase_conflict_morale/index.html ; https://r2enc.totalwar.com/en/manual/single-player/0087_enc_page_battle_play_phase_conflict_morale (host refused)",
+   "evidence": "Search log S41, S46 (two summaries); also the earlier pass (morale proposal Annex A.4).",
+   "notes": "ROME II (2013), not the reference. The chain-reaction wording ('demoralised by allies routing') came from a WARHAMMER fan wiki, not from this manual (S46)."
+  },
+  {
+   "id": "official-29",
+   "questions": [
+    "Q1",
+    "Q6"
+   ],
+   "label": "SEARCH",
+   "scope": "sibling",
+   "claim": "Total War: ROME II's official encyclopedia charges morale at a battle's start for the army's campaign state: 'If attacked, all units in a marching army suffer reduced morale to reflect the inherent surprise element. The resultant battle will always be an ambush.' It also says a garrisoned army's units, 'if the settlement is attacked, will have improved morale'.",
+   "source": "https://r2encv2.totalwar.com/en/manual/single-player/0018_enc_page_campaign_play_military_stances/index.html ; https://r2enc.totalwar.com/en/manual/single-player/0018_enc_page_campaign_play_military_stances (host refused)",
+   "evidence": "Search log S70 (stance sentence, one summary) and S68 (garrison sentence, one summary).",
+   "notes": "ROME II, not the reference. A conditional penalty (caught while marching), not a cost of every battle. For the reference, the comparable evidence found concerns fatigue (official-02, official-04), not morale."
+  },
+  {
+   "id": "official-30",
+   "questions": [
+    "Q1",
+    "Q7"
+   ],
+   "label": "SEARCH",
+   "scope": "sibling",
+   "claim": "Total War: THREE KINGDOMS (fan wiki): an army attacked while in march stance has all its units and characters begin the battle with a fatigue level of tired.",
+   "source": "https://totalwar.fandom.com/wiki/Army_(Total_War:_Three_Kingdoms)",
+   "evidence": "Search log S16, S23 (summaries).",
+   "notes": "THREE KINGDOMS (2019), not the reference; fan wiki."
+  },
+  {
+   "id": "official-31",
+   "questions": [
+    "Q8",
+    "Q5"
+   ],
+   "label": "SEARCH",
+   "scope": "sibling",
+   "claim": "Total War: THREE KINGDOMS (Romance mode): a duel's winner gives his entire army, plus allied armies in the battle, a morale boost, and the loser's army takes a morale penalty.",
+   "source": "https://segmentnext.com/2019/05/28/total-war-three-kingdoms-duels-guide/",
+   "evidence": "Search log S34 (summary); the earlier pass noted the same from one summary.",
+   "notes": "THREE KINGDOMS, not the reference; a guide. Not found for the reference."
+  },
+  {
+   "id": "official-32",
+   "questions": [
+    "Q6"
+   ],
+   "label": "SEARCH",
+   "scope": "sibling",
+   "claim": "An ambushed army's morale penalty is documented only for sibling titles: a WARHAMMER III guide says an ambushed army immediately suffers a -10 leadership penalty that decays over about a minute; a ROME II player says an ambushed army suffers a 25% morale penalty.",
+   "source": "https://guides-factory.com/guides/total-war-warhammer-3-ambush-guide ; https://steamcommunity.com/app/214950/discussions/0/1642039363009083869",
+   "evidence": "Search log S4 (summary).",
+   "notes": "WARHAMMER III and ROME II, not the reference; a guide and a player comment; WEAK. Nothing was found for the reference."
+  },
+  {
+   "id": "official-33",
+   "questions": [
+    "Q2"
+   ],
+   "label": "SEARCH",
+   "scope": "sibling",
+   "claim": "A Total War Saga: THRONES OF BRITANNIA (the previous Saga title): in-game text quoted by a player says 'An army consumes supplies from its stock piles each turn and will suffer defections should its stockpiles run out'; the official patch notes made supplies start lower and drain faster in enemy territory, and gave each stance a supply cost.",
+   "source": "https://steamcommunity.com/app/712100/discussions/0/1696046342855184699 ; https://www.totalwar.com/?p=2933 ; https://totalwar.com/?p=3237",
+   "evidence": "Search log S35 (summary).",
+   "notes": "THRONES OF BRITANNIA, not the reference. A per-army campaign stock (supplies) whose exhaustion causes desertion; no battle-morale effect of supplies was found for it."
+  },
+  {
+   "id": "official-34",
+   "questions": [
+    "Q2"
+   ],
+   "label": "SEARCH",
+   "scope": "sibling",
+   "claim": "Total War: THREE KINGDOMS (fan wiki): an army with higher supplies gains morale and replenishment bonuses; as its supplies fall it suffers increasingly punitive attrition and morale penalties.",
+   "source": "https://totalwar.fandom.com/wiki/Food_(Total_War:_Three_Kingdoms)",
+   "evidence": "Search log S2, S25 (summaries).",
+   "notes": "THREE KINGDOMS, not the reference; fan wiki. No food or supply morale penalty was found for the reference."
+  },
+  {
+   "id": "official-35",
+   "questions": [
+    "Q6"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "Ambush is set up by stances: one summary of the official 1.3.0 notes reports 'Offensive Ambushes due to Stance: Shadow no longer allow the garrison of Troy to be autoresolved'; guides describe Stance: Shadow (Sarpedon at level 12, Speed specialization; Odysseus at level 11 in another guide) as pulling the enemy into an ambush at the moment of attack, with a movement bonus in the ambush, and a 'Master Ambusher' skill that improves ambush success and evasion (one wiki: +20% success, +15% evasion); a summary says Achilles' 'Stalk' stance turns any battle into an ambush battle.",
+   "source": "https://totalwar.com/?p=12358 ; https://www.gamepressure.com/total-war-saga-troy/sarpedon/z8d7f7 ; https://www.gry-online.pl/poradniki/total-war-troy/odyseusz-odysseus/zb1a207 ; https://en.namu.wiki/w/%ED%86%A0%ED%83%88%20%EC%9B%8C%20%EC%82%AC%EA%B0%80:%20%ED%8A%B8%EB%A1%9C%EC%9D%B4/%EC%98%81%EC%9B%85 ; https://tvtropes.org/pmwiki/pmwiki.php/Characters/ATotalWarSagaTroy",
+   "evidence": "Search log S5 (patch line, one summary; an exact-phrase check, S68, found nothing), S10, S24.",
+   "notes": "Detection rules and base success chance not found."
+  },
+  {
+   "id": "official-36",
+   "questions": [
+    "Q6"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "The army Ambush stance (fan guide): 'Conceal your army but disable your movement'; an enemy passing through is flanked and starts the battle surrounded.",
+   "source": "https://prodigygamers.com/2020/08/20/total-war-troy-recruitment-and-hero-stance-guide/",
+   "evidence": "Search log S4, S10 (summaries).",
+   "notes": "Fan guide; deployment detail only; no morale penalty for the ambushed side found for the reference."
+  },
+  {
+   "id": "official-37",
+   "questions": [
+    "Q5"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "A battle's result returns resources to the campaign: a guide says each victory yields a one-time resource payout sized by the enemy defeated; Divine Will effects raise battle captives taken (+10%, Golden Apple) and post-battle loot (+40%, Riches of the Sea); an Amazons guide advises taking replenishment over killing captives after a win; MYTHOS adds Souls earned through post-battle options.",
+   "source": "https://www.redbull.com/gb-en/a-total-war-saga-troy-tips-guide ; https://primagames.com/gaming/total-war-saga-troy-divine-will-guide-gods ; https://primagames.com/gaming/total-war-saga-troy-penthesilea-amazons-guide/2",
+   "evidence": "Search log S19, S39.",
+   "notes": "Guides. No official source found on unit experience per battle result in this title."
+  },
+  {
+   "id": "official-38",
+   "questions": [
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q7"
+   ],
+   "label": "SEARCH",
+   "scope": "reference",
+   "claim": "The developer released an official Assembly Kit for this title (a free add-on on the Epic Games Store with the series' modding tools DaVE, Terry, BoB and the Variant Editor), and a developer post says 'our entire script codebase is available for modders as well'. The game's own morale constants and effect definitions are there.",
+   "source": "https://store.epicgames.com/p/a-total-war-saga-troy--assembly-kit ; https://www.totalwar.com/?p=12191 ; https://totalwar.com/?p=15192 ; https://totalwar.com/?p=12462",
+   "evidence": "Search log S60, S63 (summaries).",
+   "notes": "A lead for the data angle (CODE). Nothing in it was read here: every host serving it is refused, and raw.githubusercontent.com serves files only by exact path."
+  },
+  {
+   "id": "official-39",
+   "questions": [
+    "Q1"
+   ],
+   "label": "KNOW",
+   "scope": "reference",
+   "claim": "HYPOTHESIS, unverified: in this series' recent titles a unit's battle morale is recomputed from its base value plus the modifiers active at that moment (casualties, flanks, a nearby commander, the battle's balance, fatigue state, timed effects) rather than drawn down from a stock. If that holds for the reference, entering a battle has no cost of its own, and start-of-battle differences come from states such as fatigue and from campaign effects.",
+   "source": "agent's background knowledge",
+   "evidence": "none; no source found in this pass confirms it",
+   "notes": "To be tested in the game data (the morale key-value table, unit fatigue effects) and the in-game help text. Never evidence."
+  },
+  {
+   "id": "official-40",
+   "questions": [
+    "G",
+    "Q1"
+   ],
+   "label": "SEARCH",
+   "scope": "genre",
+   "claim": "Europa Universalis IV (Paradox): its developer diary of 24 May 2022 (patch 1.34) says 'Deployed troops take a daily morale damage of 1% of max morale. Reserves take a daily morale damage of 2% of max morale.' Being in a battle costs morale every day whatever the casualties; before 1.33 a flat daily 0.03 also applied to deployed troops. A unit below a threshold is disorganized, and its army cannot move until morale recovers.",
+   "source": "https://admin-forum.paradoxplaza.com/forum/developer-diary/europa-universalis-iv-development-diary-24th-of-may-2022.1527592 ; https://devtrackers.gg/europa-universalis/p/c6b82983-1-34-combat ; https://forum.paradoxplaza.com/forum/threads/europa-universalis-iv-developer-diary-19-war-has-never-been-so-much-fun.665825/",
+   "evidence": "Search log S56, S58 (two summaries of the diary).",
+   "notes": "Genre. CONFLICT: a 1.34 patch note words it as 1% (deployed) and 2% (reserves) of the average max morale of the enemy's troops. It is a per-day cost of taking part, the form of D-083 DB1-R2 (b)."
+  },
+  {
+   "id": "official-41",
+   "questions": [
+    "G",
+    "Q2",
+    "Q1"
+   ],
+   "label": "SEARCH",
+   "scope": "genre",
+   "claim": "Mount & Blade II: Bannerlord (TaleWorlds): a developer blog (12/07/18) describes a party morale on the campaign map: high morale gives a slight speed boost and a small advantage in battle simulations; below a threshold troops may desert and form a party the leader cannot control; and 'At the beginning of the battle, each soldier is given a starting morale based on their party's overall morale rating.' A later patch (e1.7.0) lets agents regain up to half their initial morale in battle.",
+   "source": "https://www.gamebanshee.com/3wppf (repost of the blog); https://www.taleworlds.com/en/Games/Bannerlord/Blog/68 ; https://devtrackers.gg/mount-and-blade/p/a4c7f367-patch-notes-e1-7-0",
+   "evidence": "Search log S55, S59 (two summaries; the starting-morale sentence returned verbatim).",
+   "notes": "Genre. The clearest pattern found of a campaign stock setting each soldier's battle start."
+  },
+  {
+   "id": "official-42",
+   "questions": [
+    "G",
+    "Q3",
+    "Q4"
+   ],
+   "label": "SEARCH",
+   "scope": "genre",
+   "claim": "Battle Brothers (Overhype Studios): developer blog #20 'Bravery and Morale' describes five morale states with Steady as the default (no effect) and Wavering slightly reducing combat efficiency and making later checks harder; checks move characters between states; developer blog #4 says a character can rally only when no enemy is adjacent and that fleeing spreads to allies.",
+   "source": "https://battlebrothersgame.com/?p=883 ; https://battlebrothersgame.com/?p=389",
+   "evidence": "Search log S57 (one summary; its text for the Breaking state was garbled).",
+   "notes": "Genre; WEAK (one summary)."
+  }
+ ],
+ "hosts": [
+  {
+   "host": "www.totalwar.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy list had rotated past it), 2026-11-10T19:18:23Z"
+  },
+  {
+   "host": "wiki.totalwar.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy list had rotated past it), 2026-11-10T19:18:24Z"
+  },
+  {
+   "host": "totalwar.fandom.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy list had rotated past it), 2026-11-10T19:18:24Z"
+  },
+  {
+   "host": "community.creative-assembly.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy list had rotated past it), 2026-11-10T19:18:24Z"
+  },
+  {
+   "host": "forums.totalwar.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy list had rotated past it), 2026-11-10T19:18:24Z"
+  },
+  {
+   "host": "support.sega.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy list had rotated past it), 2026-11-10T19:18:25Z"
+  },
+  {
+   "host": "store.steampowered.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy list had rotated past it), 2026-11-10T19:18:25Z"
+  },
+  {
+   "host": "steamcommunity.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy list had rotated past it), 2026-11-10T19:18:25Z"
+  },
+  {
+   "host": "store.epicgames.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy list had rotated past it), 2026-11-10T19:18:25Z"
+  },
+  {
+   "host": "www.reddit.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:26Z"
+  },
+  {
+   "host": "old.reddit.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:26Z"
+  },
+  {
+   "host": "www.twcenter.net",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:26Z"
+  },
+  {
+   "host": "tw-modding.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:26Z"
+  },
+  {
+   "host": "raw.githubusercontent.com",
+   "tool": "curl -I (one try)",
+   "result": "REACHED: HTTP 301 to HEAD https://raw.githubusercontent.com/ (curl exit 0) at 2026-11-10T19:18:26Z"
+  },
+  {
+   "host": "en.wikipedia.org",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:27Z"
+  },
+  {
+   "host": "www.pcgamer.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:27Z"
+  },
+  {
+   "host": "www.pcinvasion.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:27Z"
+  },
+  {
+   "host": "www.rockpapershotgun.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:27Z"
+  },
+  {
+   "host": "www.gamesradar.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:28Z"
+  },
+  {
+   "host": "www.thegamer.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:28Z"
+  },
+  {
+   "host": "gamerant.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:28Z"
+  },
+  {
+   "host": "screenrant.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:28Z"
+  },
+  {
+   "host": "www.dualshockers.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:28Z"
+  },
+  {
+   "host": "www.ign.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:29Z"
+  },
+  {
+   "host": "wccftech.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:29Z"
+  },
+  {
+   "host": "primagames.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:29Z"
+  },
+  {
+   "host": "gamepur.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:29Z"
+  },
+  {
+   "host": "www.gamepressure.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:30Z"
+  },
+  {
+   "host": "prodigygamers.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:30Z"
+  },
+  {
+   "host": "www.youtube.com",
+   "tool": "curl -I (one try)",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:18:30Z"
+  },
+  {
+   "host": "www.creative-assembly.com",
+   "tool": "curl -I (one try) [extra host]",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:20:19Z"
+  },
+  {
+   "host": "www.sega.com",
+   "tool": "curl -I (one try) [extra host]",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:20:19Z"
+  },
+  {
+   "host": "api.steampowered.com",
+   "tool": "curl -I (one try) [extra host]",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:20:20Z"
+  },
+  {
+   "host": "forum.paradoxplaza.com",
+   "tool": "curl -I (one try) [extra host]",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:26:45Z"
+  },
+  {
+   "host": "www.taleworlds.com",
+   "tool": "curl -I (one try) [extra host]",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:26:46Z"
+  },
+  {
+   "host": "battlebrothersgame.com",
+   "tool": "curl -I (one try) [extra host]",
+   "result": "REFUSED: CONNECT tunnel failed, response 403 (proxy recorded connect_rejected), 2026-11-10T19:26:46Z"
+  },
+  {
+   "host": "raw.githubusercontent.com",
+   "tool": "WebFetch",
+   "result": "REACHED: 301 Moved Permanently, Location https://github.com/ (cross-host redirect, not followed by the tool) at 2026-11-10T19:19Z; one try. The host serves files by exact path only (no listing)."
+  },
+  {
+   "host": "(every curl-refused host above)",
+   "tool": "WebFetch",
+   "result": "NOT TRIED by design: the step's rule tests web fetch only on hosts curl reached, and a refused host is never retried. Only raw.githubusercontent.com is reachable from the container."
+  },
+  {
+   "host": "(web search tool)",
+   "tool": "WebSearch",
+   "result": "WORKS: about 70 queries answered 2026-11-10 19:19-19:37Z, standard and extended modes; returns result URLs and a model-written summary of the results (evidence label SEARCH, never FETCH)."
+  }
+ ],
+ "not_found": [
+  "Q1 (reference): any morale cost for entering, or simply taking part in, a battle, with or without casualties. Not found in any official source reached through search (patch notes 1.1.0 to 1.7.0 and hotfixes, developer blogs, the base-game, MYTHOS and Rhesus & Memnon FAQs, store texts, developer interviews and previews) nor in the guides those searches returned. The reference neither supports nor contradicts D-083 DB1 on this evidence. What was found at a battle's start is fatigue set by campaign context (official-01 to official-05) and campaign effects that apply in battle (official-06, official-20 to official-24).",
+  "Q1 (reference): how a unit's starting morale relates to its base morale value, and whether a fatigue state such as 'tired' or 'very tired' lowers morale in this title.",
+  "Q2 (reference): an army-wide morale number or stock on the campaign map. Every campaign-to-battle link found is an effect (hero skills, traits, items, buildings, divine favour, agent actions, faction mechanics such as Battle Glory and Achilles' mood) or a fatigue state set by a stance or a pre-battle action.",
+  "Q2 (reference): a morale penalty from food shortage, unpaid upkeep or attrition.",
+  "Q2/Q5 (reference): any persistent change of army-wide morale from winning or losing a battle. Found instead: Battle Glory gained after an engagement (one faction, official-18), Achilles' mood (one hero, official-19), Ares' favour lost by fleeing and gained by killing captives (official-21).",
+  "Q3 (reference): the morale states short of a rout and their thresholds; the morale tooltip's factor list; any number for flank, rear, hero death, fear, casualties (total or recent), a nearby friendly rout, the battle's balance or army losses.",
+  "Q3 (reference), the three Annex A cells found to overstate their evidence: (a) rout contagion - no source for this title (only a WARHAMMER fan wiki and genre developer blogs); (b) fatigue lowering morale - no source for this title (its sources tie fatigue to speed and fighting ability; fatigue-to-morale numbers were found only for MEDIEVAL II on a community wiki, S67); (c) missile fire lowering morale - no general factor found for this title, only a specific 'Serrated Edges' modifier of some ranged units (official-13, weak).",
+  "Q4 (reference): when and how often a routing unit rallies, any window after a rally, and what makes a rout permanent (shattering).",
+  "Q6 (reference): a morale penalty for the ambushed side; the base ambush success chance and the detection rules.",
+  "Q7 (reference): the fatigue states, how fast fatigue builds and recovers, and its effect on morale.",
+  "Q8 (reference): the commander's aura radius and size; a wounded hero's recovery time; any morale effect of a hero's wounding.",
+  "Sources: the outlets of two developer quotes (hero death, official-11; fear from mythical units, official-12) could not be pinned; the 1.2.0 'contextual morale effects' line (official-07) and the 1.6.0 'Oration of Dread' line (official-22) were not confirmed by a second search; 'Savage Roar' (official-13) was not found by a second search.",
+  "Reachability: no page of the developer, the publisher, a store, a forum or the press could be read directly. Every such host tested (the 30 candidates bar raw.githubusercontent.com, plus www.creative-assembly.com, www.sega.com, api.steampowered.com, forum.paradoxplaza.com, www.taleworlds.com, battlebrothersgame.com) was refused at the session's proxy: CONNECT 403, which the proxy records as connect_rejected, 'policy denial or other refusal' (hosts.json). All reference evidence here is search-result summaries (SEARCH); no FETCH or CODE claim could be made."
+ ]
+}

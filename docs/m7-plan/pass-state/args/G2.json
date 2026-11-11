@@ -1,0 +1,5 @@
+{
+ "segment 3 (running)": {"base": "1601c74", "stopAfter": "stage3"},
+ "final (queued)": {"base": "1601c74"},
+ "fresh container, skipping done segments": {"base": "1601c74", "from": "stage3 or final"}
+}

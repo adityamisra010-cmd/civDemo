@@ -1,0 +1,167 @@
+{
+ "angle": "targeted: the questions one at a time, Q1 and Q2 first, in many formulations and in the game's own interface terms (24 web searches, 10 in extended mode, until the shared search budget ran out); a re-reading of the data angle's schema copy for tables it did not read (the campaign AI's task variables, the loyalty tables); one new host tested (refused)",
+ "file": "/tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/targeted.json",
+ "claims": [
+  {
+   "id": "targeted-01",
+   "questions": [
+    "Q1",
+    "Q2",
+    "Q5"
+   ],
+   "claim": "A generic hero's motivation, a campaign quantity that feeds his battle morale (targeted-02), moves with battles according to his motivation traits, and for two traits taking part alone moves it, whatever the losses or the result. The fan wiki's hero page, as search summaries quote it: Adventurer '+2 when wins a battle in a Foreign Territory +1 after this hero ends a turn in a Province with high Foreign Influence | -2 when Fights a battle in own Territory' (and -1 for ending a turn garrisoned or encamped); Competitive: winning a battle without reinforcements raises it, reinforcing or being reinforced lowers it; Valorous: +1 when it wins a battle, -2 when it loses one. This is the only reference mechanic found in which fighting a battle as such lowers a morale-linked quantity. It is conditional (the trait, the territory, reinforcement) and it acts on one hero's campaign stock, not on every unit that enters.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://totalwar.fandom.com/wiki/Hero_(Total_War_Saga:_Troy) (fan wiki; totalwar.fandom.com refused, hosts.json), as returned by web search",
+   "evidence": "Search log /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-targeted/notes/search-log.md: T10 (extended) quoted the page's row 'Adventurer | +2 when wins a battle in a Foreign Territory +1 after this hero ends a turn in a Province with high Foreign Influence | -2 when Fights a battle in own Territory'; T5 (extended) and T14 (extended) gave the same Adventurer entries in prose, T14 with '-1 penalty for ending a turn garrisoned or encamped'; T14: 'Winning a battle without reinforcements raises motivation, while reinforcing or being reinforced lowers it' (Competitive; one summary); T6 and T13 (extended): Valorous '+1 When Athena is respected, +1 Wins a battle' / '-2 Lose a battle, -1 Ends a turn in an owned province with negative populace'. T7 (standard) did not find the Adventurer entries.",
+   "notes": "Fan wiki read through summaries; game version unknown; the full trait list was not retrieved, so whether any trait dislikes fighting a battle anywhere is NOT established. T5 also named Peaceful, Servile and Sentry traits with a penalty for ending a turn in enemy territory; T10 did not find those names, so they are not claimed. The official 1.7.0 notes confirm that 'motivation traits' exist (targeted-03); faction leaders have no motivation (targeted-02), so this never touches them. INFERRED, untested: the NamuWiki line the community angle could not place ('joining an army' lowering morale by 5 %, community not_found) may be the Competitive dislike of reinforcement. Pattern for our design (D-069): a participation trigger on a commander-level stock, conditional; none of these names or numbers is used."
+  },
+  {
+   "id": "targeted-02",
+   "questions": [
+    "Q2",
+    "Q8",
+    "Q1"
+   ],
+   "claim": "Motivation is a per-hero stock that reaches a battle through the hero. The fan wiki says it feeds the hero's morale, his rage generation in battle, happiness in the local province and campaign movement range; NamuWiki says high motivation raises the hero's morale and speeds rage recharge in battle, low motivation lowers his morale. Heroes never desert, 'even at -10 motivation'. Faction leaders (Epic Heroes) have no motivation at all. No size of the motivation-to-morale link was found.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://totalwar.fandom.com/wiki/Hero_(Total_War_Saga:_Troy) ; https://en.namu.wiki/w/%ED%86%A0%ED%83%88%20%EC%9B%8C%20%EC%82%AC%EA%B0%80:%20%ED%8A%B8%EB%A1%9C%EC%9D%B4/%EC%98%81%EC%9B%85 ; https://www.geeksundergrace.com/gaming/review-a-total-war-saga-troy/ (all through web search; the first two hosts refused, the third not tested)",
+   "evidence": "Search log /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-targeted/notes/search-log.md: T13 (extended): 'motivation feeds the hero's Morale stat, along with rage generation, local happiness, and campaign movement range'; 'there is no desertion in Troy, even at -10 motivation Heroes will continue to lead their factions army'; NamuWiki 'if motivation is high, the hero's morale increases'. T14 (extended): the same list of effects; 'Faction leaders are exempt from the motivation system'. T19 (extended): low motivation, 'the hero's morale decreases'; Epic Hero faction leaders 'have no motivation stat at all'. T6: motivation shown as feeding 'Morale of Hero'. T8 and T16: no per-point size.",
+   "notes": "Fan wikis and a review through summaries. 'The hero's morale' is read as the hero's own unit in battle (the wording 'Morale of Hero'); whether it also reaches his army is NOT established. Already known before this pass (Annex A.2; community-07 notes): motivation moves with a hero's preferences and low motivation never makes him disloyal. New here: what it feeds, the -10 floor, the faction-leader exemption. Beside the inherited army-morale family's 'morale based rebellion' key (data-14), the no-desertion statement fits that part of the family being unused in this title (INFERRED)."
+  },
+  {
+   "id": "targeted-03",
+   "questions": [
+    "Q2",
+    "Q5"
+   ],
+   "claim": "The official 1.7.0 notes, as summarised, name 'motivation traits' and fix one: 'Fixed an issue where the motivation traits Hates Trojans and Hates Danaans could be given to Trojan and Danaan heroes respectively'. The same notes make the tutorial's 'Maximum Motivation' mission complete when the player already has a maxed hero. Motivation traits are therefore an official mechanism, limited by side, and motivation has a maximum.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://www.totalwar.com/?p=16377 (official 1.7.0 post; www.totalwar.com refused, hosts.json)",
+   "evidence": "Search log /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-targeted/notes/search-log.md: T18 (standard): the fix line returned verbatim, and 'made the tutorial's Maximum Motivation mission complete if the player already has a maxed hero' (summary wording).",
+   "notes": "One summary of the official page. It supports the fan wiki's per-trait table (targeted-01) and the data's title-only loyalty-trait pool with culture and faction limits (targeted-04)."
+  },
+  {
+   "id": "targeted-04",
+   "questions": [
+    "Q2",
+    "Q5",
+    "Q1"
+   ],
+   "claim": "The data holds the structures an event-driven per-hero stock needs, under the engine's name 'loyalty'. This title alone (absent from WARHAMMER II's schema) has 'loyalty_traits_tables', a pool of 'loyalty traits' chosen for characters, each limited by culture and faction. Both titles have 'loyalty_event_effects_tables' (an event, an integer loyalty change, a loyalty factor, a percentage chance, a threshold) and a junction by which effects modify loyalty events. This title alone adds 'xp_gain_mod_from_loyalty' (XP gain scaled by character loyalty) and 'minimum_loyalty_ai_faction'. The word 'motivation' occurs nowhere in the schema. INFERRED: motivation is character loyalty under another name, and its battle triggers (fighting, winning, losing, being reinforced) are loyalty events whose changes the motivation traits set. If so, motivation also raises the XP a hero gains.",
+   "label": "CODE",
+   "scope": "reference",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; read in the data angle's copy /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/dl/rpfm-schema/schema_troy.ron, not re-fetched; hash re-computed by this angle): loyalty_traits_tables version 1 at file line 105848 (field descriptions at lines 105861, 105876, 105906; a version 0 without add_to_pool follows), loyalty_event_effects_tables at line 105677, effect_bonus_value_loyalty_event_junctions_tables at line 89211, patches > campaign_variables_tables > variable_key > lookup_hardcoded at line 158283; compared with https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_wh2.ron (TOTAL WAR: WARHAMMER II, SHA-256 54efb0ffb49839c2e280fdeeb1dfd0bfb209e05345334930b2985530ba313580; data angle's copy /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/dl/rpfm-schema-wh2/schema_wh2.ron)",
+   "evidence": "loyalty_traits_tables fields: culture 'Cultures for which the trait is applicable, empty means all'; faction 'Factions for which the trait is applicable, empty means all'; trait (references trait_info); add_to_pool 'Should this traid be added to the pool from which loyalty traits are chosen for characters.'. loyalty_event_effects_tables fields: event StringU8, loyalty_change I32, loyalty_factor (references loyalty_factors), percentage_chance I32, threshold I32. Campaign variables: 'xp_gain_mod_from_loyalty;;;;;(IN GAME) Loyalty dependent modifier for XP gain (a bonus of (character loyalty * xp_gain_mod_from_loyalty)% for all gained XP)'; 'minimum_loyalty_ai_faction;;;;;(IN GAME) The minimum possible amount of general loyalty for an AI faction (set to greater or equal to minimum_loyalty).'. grep counts, this title's schema vs WARHAMMER II's: '\"loyalty_traits_tables\"' 1 vs 0; the add_to_pool description 1 vs 0; both loyalty variables 1 vs 0; 'motivation' (any case) 0 vs 0.",
+   "notes": "Definitions only, no rows or values (data-01 notes: what the extraction is and why it is labelled CODE; if held to be a fetched page, this is FETCH with the same quotes). The mapping motivation = loyalty is INFERRED from three agreements: no motivation key or table exists; the title-only pool's culture and faction limits match the official fix of motivation traits given to the wrong side (targeted-03); the fan wiki's per-trait event table (targeted-01) has the shape of loyalty events changed by trait effects. The loyalty event keys are not in the schema (the referenced id table 'campaign_bonus_value_ids_loyalty_events' has no definition there), so no 'fights a battle' key can be quoted. The data angle searched its key lists for 'motivation', 'mood' and 'glory' (data-19 notes) and did not read these tables."
+  },
+  {
+   "id": "targeted-05",
+   "questions": [
+    "Q2"
+   ],
+   "claim": "This title's campaign AI is defined to read a per-army morale on the campaign map. A task-management table found only in this title's schema (none of its keys occurs in WARHAMMER II's) sets two thresholds on 'a forces morale' on a 0.0 to 1.0 scale: a force is released to aggressive tasks outside its faction's territory only above one, and is forced to return from such tasks below the other. Each is paired with a size threshold in units (1 to 20). What that morale level is computed from (the inherited military-force morale family, data-14, or an estimate of the army's condition), its values, and whether the player ever sees it are NOT established.",
+   "label": "CODE",
+   "scope": "reference",
+   "source": "https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_troy.ron (SHA-256 8332875a61825d0c67516ccbd155ab9c38c52f628e1ab664f91074cfbffa45e5; read in the data angle's copy /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/dl/rpfm-schema/schema_troy.ron, not re-fetched; hash re-computed by this angle): patches > cai_task_management_system_variables_tables > key > lookup_hardcoded (file lines 158238-158240); table definition cai_task_management_system_variables_tables (fields default_value F32 default 0.0, key) at line 62247; compared with https://raw.githubusercontent.com/Frodo45127/rpfm-schemas/master/schema_wh2.ron (TOTAL WAR: WARHAMMER II, SHA-256 54efb0ffb49839c2e280fdeeb1dfd0bfb209e05345334930b2985530ba313580; data angle's copy /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-data/dl/rpfm-schema-wh2/schema_wh2.ron)",
+   "evidence": "'ALLOCATOR_RELEASE_FORCES_TO_AGGRESSIVE_ACTION_MORALE_THRESHOLD;;;;;TMS Allocator, level of a forces morale for it to be released to tasks outside its faction\\'s territory or that aren\\'t support tasks for that faction. Range: 0.0-1.0'; 'ALLOCATOR_REQUIRE_FORCES_TO_RETURN_ON_POST_RELEASE_MORAL_THRESHOLD;;;;;TMS Allocator, level of a forces morale below which it will be forced to return from non-support tasks external to the faction\\'s territory. Range: 0.0-1.0'; paired keys '..._UNITS_THRESHOLD' ('size a force must be in units ... Range: 1-20'). grep counts, this title's schema vs WARHAMMER II's: 'TMS Allocator' 1 vs 0; 'cai_task_management_system_variables' 3 vs 0.",
+   "notes": "Definitions only (data-01 notes on the extraction and the CODE label). The column default is 0.0, which would make the release threshold always met; real values unknown, so the thresholds may be inactive. Reading 'a forces morale' as one value per army is INFERRED from the wording and the 0-1 range. This is the first data point that a per-army campaign morale is referred to by something configured for this title rather than only inherited (the data angle could not establish the 36-key family's use, data-14). Sibling evidence of the same idea: targeted-06. Possibly related, from guides: the encamp stance said to 'increase morale in foreign territories' (community-02) beside the inherited key 'military_force_morale_foriegn_soil' (data-14); the link is INFERRED, not tested."
+  },
+  {
+   "id": "targeted-06",
+   "questions": [
+    "Q2"
+   ],
+   "claim": "TOTAL WAR: WARHAMMER III (same developer; sibling, not the reference): its script documentation, as summarised, says the military-force interface represents any army or navy on the campaign map and exposes its morale, and that a UI wrapper exposes 'a force's current morale, a predicted next-turn value, and an IsLow flag, which is true if morale is considered low (which gives penalties)'. A later engine of the series therefore keeps a per-army campaign morale with a forecast and a penalised low state.",
+   "label": "SEARCH",
+   "scope": "sibling",
+   "source": "https://chadvandy.github.io/tw_modding_resources/WH3/campaign/model_hierarchy.html ; https://chadvandy.github.io/tw_modding_resources/WH3/cco/documentation.html (re-hosted script documentation; chadvandy.github.io refused at the proxy, connect_rejected 2026-11-10T20:45:01.037Z)",
+   "evidence": "Search log /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-targeted/notes/search-log.md: T23 (standard, restricted to chadvandy.github.io): 'Its exposed properties include morale and force type'; 'A UI wrapper exposes a force's current morale, a predicted next-turn value, and an IsLow flag, which is true if morale is considered low (which gives penalties)' (summary wording).",
+   "notes": "One summary; sibling. The same site has a TROY section (T21, T22), but its campaign pages were not returned before the search budget ran out (T25), so whether TROY's interface exposes the same is NOT established. Fits the inherited family's 'low' and 'very low' thresholds (data-14) and this title's AI thresholds (targeted-05). Whether WARHAMMER III shows the value to players was not checked."
+  },
+  {
+   "id": "targeted-07",
+   "questions": [
+    "Q3"
+   ],
+   "claim": "The base game's charge morale bonus lasts 90 seconds according to the author of a mod for this title, which cuts it to 15. Two separate searches returned the mod's statement. This confirms the figure Annex A.3 gave and the data angle could not find again (data-22 notes); it fits the key 'charge_timeout' ('the timout for morale bonus due to charging', data-08).",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://catalogue.smods.ru/?p=151662 (mirror of the Immersive Combat Mod's Workshop page, by kam2150; refused at the proxy, data angle) ; https://store.epicgames.com/en-US/mods/a-total-war-saga-troy--6f71f37ebe6a467880aae6b1eaf04558 (the mod's Epic store page; store.epicgames.com refused, hosts.json)",
+   "evidence": "Search log /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-targeted/notes/search-log.md: T9 (standard): 'lowers the charging morale bonus time from 90 seconds to 15 seconds' (also post-rally 60 to 20 s), and 'The 90-second baseline comes only from the mod's own changelog'; T6 (extended): 'lowered morale bonus time for charging from 90 seconds to 15 seconds'.",
+   "notes": "A mod author's statement about the base game, not a value read in the data. The mirror was last revised 20 Dec 2021 (T9); later patches may differ. The reference's number stays out of our design (D-069)."
+  },
+  {
+   "id": "targeted-08",
+   "questions": [
+    "Q3",
+    "Q8"
+   ],
+   "claim": "The reference's battle script documentation, in one search summary, lists an army function 'enable_army_destruction_morale_effect' that switches the army-destruction morale effect on or off. If accurate, the concern 'The army is on the brink of destruction' (data-08) is an engine effect that a scripted battle can disable.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://chadvandy.github.io/tw_modding_resources/Troy/battle/battle_army.html (re-hosted TROY battle script documentation; host refused, connect_rejected 2026-11-10T20:45:01.037Z)",
+   "evidence": "Search log /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-targeted/notes/search-log.md: T22 (standard): 'It lists an army function that toggles a morale effect for army destruction, army:enable_army_destruction_morale_effect(enable effectboolean), which is defined in the battle script source.' T24 (restricted to the same domain) did not return it.",
+   "notes": "WEAK: one summary, not confirmed by a second search; the page could not be read. No size or threshold."
+  },
+  {
+   "id": "targeted-09",
+   "questions": [
+    "Q5",
+    "Q8"
+   ],
+   "claim": "Battle records also come back as character traits that carry effects into later battles, one summary each: 'Widely Known', '+3/6/9 to morale of all units in Hero's aura', gained by winning many battles; 'Hare-hearted', from having suffered defeat in defensive battles, a melee-damage penalty; 'Adventurer' (as a trait), from having fought multiple battles very far from the capital (campaign movement, desertion attrition, battle speed); and, in a review, a 'Reckless' trait earned by winning a 'Cadmean Victory', one won at near-ruinous cost.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://totalwar.fandom.com/wiki/Traits_(Total_War_Saga:_Troy) (fan wiki; host refused) ; https://gamingtrend.com/feature/reviews/let-there-be-one-ruler-one-king-total-war-saga-troy-review/ (review; host not tested)",
+   "evidence": "Search log /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-targeted/notes/search-log.md: T6 (extended): 'Widely Known gives +3/6/9 to morale of all units in Hero's aura, and it is Gained by winning many battles'; T10 (extended): 'Hare-hearted | - | Suffered defeat in defensive battles' and 'Adventurer | - | Fought multiple battles very far away from the capital'; T20 (standard): 'the \"Reckless\" trait came from winning a \"Cadmean Victory,\" a victory at near-ruinous cost to the victor'. T12 and T17 did not confirm Widely Known or Hare-hearted.",
+   "notes": "WEAK: each item rests on one summary, and two follow-ups failed. 'Cadmean victory' fits the data's pyrrhic-victory result grade (data-19; INFERRED). Pattern for Q5: a battle's grade feeds a persistent commander trait, a slower channel than the after-battle settlement. The reference's names and numbers stay out of our design (D-069)."
+  },
+  {
+   "id": "targeted-10",
+   "questions": [
+    "G",
+    "Q1"
+   ],
+   "claim": "HYPOTHESIS, unverified (genre: XCOM 2: War of the Chosen, Firaxis Games): soldiers carry a Will stat that falls during a mission even when they are not wounded, and a soldier who ends a mission with low Will is 'Tired' and needs rest before being sent again, at the risk of negative traits. If true, it is a genre case of taking part itself costing morale, paid off after the battle.",
+   "label": "KNOW",
+   "scope": "genre",
+   "source": "agent's background knowledge",
+   "evidence": "none; not searched, because the search budget was exhausted (search log T25, T26)",
+   "notes": "To be tested before any use; never evidence. Relevant to D-083 DB1-R2 (a cost per battle or a drain with time). The tested genre case of a participation cost remains the official angle's EU4 daily drain (official-40)."
+  }
+ ],
+ "hosts": [
+  {
+   "host": "chadvandy.github.io",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://chadvandy.github.io/ (session proxy); new host, not in hosts.json or the earlier angles' lists; one try",
+   "result": "REFUSED: curl exit 56, 'curl: (56) CONNECT tunnel failed, response 403' at 2026-11-10T20:45:00Z; proxy status recentRelayFailures: kind connect_rejected, 'gateway answered 403 to CONNECT (policy denial or other refusal)', host chadvandy.github.io:443 at 2026-11-10T20:45:01.037Z; not retried with any tool; log /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-targeted/logs/curl-hosts-targeted.tsv and /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-targeted/logs/proxy-status-after-chadvandy.json"
+  },
+  {
+   "host": "raw.githubusercontent.com",
+   "tool": "none (REACHED in hosts.json)",
+   "result": "NOT USED by this angle: the schema files were read in the data angle's local copies (hashes re-computed, unchanged); the only further files that would have helped are copies of a refused host's pages, which were not fetched"
+  },
+  {
+   "host": "(web search tool)",
+   "tool": "WebSearch, standard and extended modes (runs outside the container)",
+   "result": "WORKS until the budget ran out: 24 queries answered 2026-11-10 between 20:40Z and 20:48Z (10 extended, 14 standard; 2 restricted to chadvandy.github.io); then 2 queries not performed: 'this turn's web search budget is used up (limit: 200 WebSearch calls per turn, shared by every agent in it)'. Not retried, not worked around. Answers are result URLs plus a model-written summary (label SEARCH). Log: /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-targeted/notes/search-log.md"
+  },
+  {
+   "host": "(web fetch tool)",
+   "tool": "WebFetch",
+   "result": "NOT USED: no reachable host held a relevant page; refused hosts were not retried with any tool"
+  }
+ ],
+ "not_found": [
+  "Q1 (reference), this angle's addition: 24 searches phrased in the game's interface terms (the morale tooltip's lines such as 'flanks secure', 'fighting outnumbered', 'army losses' and 'surprised'; units 'wavering' at deployment; a 'surprise attack' or ambush at the start; a second battle in the same turn; victory and defeat effects lasting turns; campaign-AI morale) found NO source for a morale cost of entering a battle, or of simply being in one, at either level, nor for a unit deploying below its base value (search log T1-T24). With the earlier angles (official not_found, community-01, data-01): on the evidence found, the reference neither supports nor contradicts D-083 DB1, and no source shows that it charges every unit for entering. The nearest mechanics are conditional: a hero's motivation lowered merely by fighting in his own territory or by being reinforced, for two traits (targeted-01); start-of-battle fatigue set on the campaign map (official-01 to official-05); terms that act without losses, such as surprise, night unpreparedness, exposed flanks and nearby enemy numbers (data-02, data-04). This is an absence in search summaries, not proof.",
+  "Q1/Q8 (reference): the size of the motivation-to-morale link; whether it reaches the hero's army or only his own unit; the full list of motivation traits, and whether any trait dislikes fighting a battle anywhere (not only in own territory).",
+  "Q2 (reference): what the campaign AI's 'forces morale' (targeted-05) is computed from, its values, and whether any army morale is shown to the player; whether TROY's script interface exposes a force morale as WARHAMMER III's does (targeted-06): the TROY pages were not returned before the search budget ran out (T25, T26).",
+  "Q2 (reference): what NamuWiki's 'joining an army' morale penalty (community not_found) refers to; one candidate, the Competitive trait's dislike of reinforcement (targeted-01), is INFERRED and untested.",
+  "Q3, Q4, Q6, Q7 (reference): nothing beyond the earlier angles. No value of any battle-morale term except the mod author's 90 s charge window (targeted-07); no rally rule, shatter count or post-rally value beyond community-12; no morale penalty for the ambushed side (T1: 'The results didn't cover surprise attacks'; T2: no source for an ambush or surprise penalty at deployment); no fatigue-to-morale size; no morale carried from one battle to a second in the same turn (T3).",
+  "G: no new genre source was searched; the search budget ran out first. The one genre item added (targeted-10) is KNOW, untested.",
+  "Sources: the web search tool's per-turn budget (200 calls, shared by every agent in the turn) was used up after 24 of this angle's queries; two more were refused by the tool (T25, T26) and the limit was not worked around. chadvandy.github.io (re-hosted script documentation for this title and its siblings) was refused at the proxy; its pages were not fetched from raw.githubusercontent.com, because that would route around a refused host (proxy README: 'Do not retry or route around it'). No page was read; this angle has no FETCH claim."
+ ]
+}

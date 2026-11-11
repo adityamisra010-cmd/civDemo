@@ -1,0 +1,537 @@
+{
+ "angle": "community: players' guides and discussions (Steam discussions and workshop pages, TWC threads, press guides and reviews, Chinese, Polish, Korean, Russian and Japanese guide sites, video titles), all read through web-search summaries, because each of the 46 community hosts tested (none in hosts.json) was refused at the proxy and Reddit is closed to the search tool itself. 82 queries, log /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-community/notes/search-log.md.",
+ "file": "/tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/community.json",
+ "claims": [
+  {
+   "id": "community-01",
+   "questions": [
+    "Q1",
+    "Q3"
+   ],
+   "claim": "Players and guides describe this title's battle morale as moved by what happens in the fight (losses, flank and rear attacks, missile fire, the commander's death, fighting outnumbered) and as recovering over time, with a fleeing unit able to return. In 80 answered community-angle searches no player, guide, review or video title describes a morale cost for entering a battle or for simply being in one.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://steamcommunity.com/app/1099410/discussions/0/4198997399065201249/ ; https://steamcommunity.com/app/1099410/discussions/0/3808409963273518364/ ; https://tvtropes.org/pmwiki/pmwiki.php/VideoGame/ATotalWarSagaTroy ; https://www.gamepur.com/guides/how-troop-morale-and-routing-works-in-a-total-war-saga-troy ; https://www.magicgameworld.com/?p=124797",
+   "evidence": "Search log C7 and C25 (Steam, players; the thread behind each line is not separated by the summaries): flank or rear hits and missile fire hurt enemy morale, 'breaking morale is the name of the game' (summary wording). C3 and C38 (TV Tropes, a fan page): flanking 'in particular destroys morale in Troy'; killing the enemy commander lowers the whole army's morale. C76 (source not separated; the results were TV Tropes, NamuWiki, Gamepur, gamepressure, a review and Steam pages): 'Morale does recover over time though, and a fleeing unit might decide to return to the fight' (summary quote). C31 and C36 (Gamepur guide): pick battles with superior force numbers to keep morale high. C24 (Magic Game World): heroes are best used in duels against enemy heroes 'to catch an early W by breaking enemy morale'. Coverage: Steam discussions and workshop pages, TWC threads, reviews, press guides, Chinese, Polish, Korean, Russian and Japanese guide sites, video titles (C1-C82).",
+   "notes": "Summaries only: no page could be read (every community host was refused; see hosts). The absence is an absence in what the search returned, not proof that no such mechanic exists, and Reddit could not be searched at all. Consistent with data-01 (no morale key charges for taking part) and the official angle's not-found. On this evidence the reference neither supports nor contradicts D-083 DB1. The start-of-battle effects that players do report are fatigue states from campaign stances and landings (official-04, community-13)."
+  },
+  {
+   "id": "community-02",
+   "questions": [
+    "Q2",
+    "Q1"
+   ],
+   "claim": "A fan guide says the campaign Encamp stance raises morale: it is 'a defensive stance which allows you to replenish your troop's health and increase morale in foreign territories', with movement disabled. A second guide says the stance gives units a higher defence when attacked. If accurate, a campaign state changes an army's morale for the battles it fights in that state.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://prodigygamers.com/2020/08/20/total-war-troy-recruitment-and-hero-stance-guide/ ; https://prodigygamers.com/?p=12579 ; https://www.gamepur.com/guides/how-army-replenishment-works-in-a-total-war-saga-troy (also served as https://vip-develop.gamepur.com/?p=86580)",
+   "evidence": "Search log C28, C29 and C33 (standard): the quoted wording came back in three summaries, all from the same 2020 fan guide (prodigygamers). C29 (Gamepur): encampment is 'the only way to gain army replenishment while in an enemy's territory', usable only with at least 50 % of campaign movement left. C33: 'the encampment stance gives your units a higher defense when attacked' (a guide; outlet not separated). The fandom page 'Foreign Encampment (Troy)' is a Spartan building chain, not this stance (C33).",
+   "notes": "WEAK: one fan guide stands behind the morale wording; no official or data source seen. The size, whether it is a battle morale effect, and when it applies (for instance only when attacked while encamped) are not established. In the data, stances apply effect bundles (data-20); the bundle rows are unknown."
+  },
+  {
+   "id": "community-03",
+   "questions": [
+    "Q2"
+   ],
+   "claim": "Campaign events give armies morale effects: guides to the MYTHOS expedition dilemmas list outcomes such as 'Eleusinian Feast' (+20 % morale, fatigue reduction), 'Peace of Mind' (+30 % morale, +20 % damage resistance), 'Safe Travels' (+15 % morale, fatigue reduction) and 'Ruined Temple' (+20 morale, +40 melee damage against Hydra units). They are effects chosen on the campaign map, not changes to a morale stock.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://www.pcinvasion.com/troy-mythos-cerberus-guide-total-war/2 ; https://www.pcinvasion.com/troy-mythos-hydra-guide-total-war/2 ; https://primagames.com/gaming/troy-mythos-cerberus-guide-total-war/2 ; https://primagames.com/gaming/troy-mythos-hydra-guide-total-war/2",
+   "evidence": "Search log C73 (standard): summary lines 'Eleusinian Feast – +20% morale; fatigue reduction', 'Peace of Mind – +30% morale; +20% damage resistance', 'Safe Travels – +15% morale; fatigue reduction', 'Ruined Temple – +20 morale; +40 melee damage vs. Hydra units'; the summary adds 'Sources differ on exact numbers'.",
+   "notes": "Press guides, one search: treat as one summary. Durations and reach (one army or all) not found. That they are effect bundles is INFERRED from their form (a named outcome with stat changes). Another campaign route by which morale reaches a battle, beside official-23 and data-15. The reference's numbers stay out of our design (D-069)."
+  },
+  {
+   "id": "community-04",
+   "questions": [
+    "Q2"
+   ],
+   "claim": "A campaign-side effect lowers the enemy's battle morale by region: a press guide lists Memnon's camp follower 'Rumormonger' as -5 % morale of all enemy units in the region (1,000 food; unlocked by default).",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://www.pcinvasion.com/total-war-saga-troy-memnon-guide-pharaohs-servant-and-camp-followers/2 ; https://primagames.com/gaming/total-war-saga-troy-memnon-guide-pharaohs-servant-and-camp-followers/2",
+   "evidence": "Search log C77 (standard, Korean query): the summary quotes the guide's table row 'Susa | Rumormonger -5% morale of all enemy units in region | 1,000 food | Unlocked by default'.",
+   "notes": "One summary of a guide; a DLC faction (Rhesus & Memnon). Complements official-05 (camp followers' pre-battle actions) and official-22 (priestess actions against armies). Pattern only: a regional morale modifier set on the campaign map and felt in battle."
+  },
+  {
+   "id": "community-05",
+   "questions": [
+    "Q2"
+   ],
+   "claim": "In what the press and guides describe, the campaign punishes an unpaid upkeep through numbers: if the faction cannot make its upkeep payment at the start of its turn, all its armies suffer attrition and their numbers 'rapidly dwindle'; armies cannot replenish outside their own territory except when encamped; and a god's favour (Hera) makes enemy armies in one's territory suffer attrition. No community source ties food, upkeep or attrition to morale in this title.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://www.vice.com/en/article/why-total-war-saga-troy-is-about-the-wrong-war ; https://vip-develop.gamepur.com/?p=86580 ; https://www.redbull.com/gb-en/a-total-war-saga-troy-tips-guide ; https://www.gamespot.com/reviews/a-total-war-saga-troy-review-kings-of-the-bronze-a/1900-6417534/",
+   "evidence": "Search log C44 (standard): Vice, as summarised: 'if a faction can't make the upkeep payment at the start of your turn, all your armies begin suffering attrition and their numbers rapidly dwindle'; Gamepur: replenishment only in owned territory, encampment the one way in enemy land; Red Bull: 'Hera causes enemy armies in your territory to suffer attrition damage'. C12 and C16 (Steam players, guides): food upkeep is the main constraint on armies; no morale line.",
+   "notes": "Summaries of a press article and guides; the Vice line was seen once by the official angle (its S25) without becoming a claim. Whether a shortage also lowers morale is NOT established: the data has an inherited food-shortage morale cap and army-morale attrition and bankruptcy keys whose use is unknown (data-14, data-16)."
+  },
+  {
+   "id": "community-06",
+   "questions": [
+    "Q5",
+    "Q2"
+   ],
+   "claim": "In the one hero-level stock found to move with battle results, Achilles' mood, a defeat pushes the hero toward a stronger state: guides list 'Losing any battle with any army or garrison' (with wars with neighbours and raided regions) among the triggers of the 'Outraged' mood (+40 % melee attack in two guides), while 'Unit in Achilles' army gets destroyed' and 'Wounded or killed heroes and allies' are triggers of 'Grieving'. Guides also say winning battles or duels affects his mood, and gifts reset it to 'Proud'.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://www.pcinvasion.com/total-war-saga-troy-achilles-guide/2 ; https://www.gameshedge.com/total-war-saga-troy-achilles-guide/ ; https://gamertweak.com/total-war-saga-troy-achilles-guide ; https://vip-develop.gamepur.com/?p=86640",
+   "evidence": "Search log C26 (Korean query; the summary quotes the PC Invasion table in English): 'Unit in Achilles' army gets destroyed. Razed settlements. Killing captives. Losing favor with gods. Wounded or killed heroes and allies.'; 'War with neighboring factions. Regions getting raided. Losing any battle with any army or garrison.' C30 (standard): the second list is 'a guide's table of triggers for Achilles' Outraged mood'; 'winning battles or duels will affect the mood of Achilles'; Outraged +40 % melee attack in two guides.",
+   "notes": "Guides; one faction leader's mechanic. Adds the battle-result triggers to official-19 and Annex A.2, which had the mood, its thresholds and the wounded-heroes trigger. Pattern: a battle outcome feeds a campaign stock whose effects then apply in battle, and a loss can make the force stronger rather than weaker."
+  },
+  {
+   "id": "community-07",
+   "questions": [
+    "Q2",
+    "Q5"
+   ],
+   "claim": "A community overhaul adds the battle-driven campaign stock that the base game lacks. The AGONY overhaul's 'Agony' scale is low with no war or a passive one; medium, its 'sweet spot' with military buffs ('e.g. improved moral'), when winning wars; and high, with public-order penalties, when fighting and losing. Won battles, raiding and declaring war raise it, and forces at home lose it faster than forces abroad. One summary also says the mod lets hero motivation be gained only by winning battles and lost by losing them, falling every turn. This is a mod author's design, not the reference's.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://steamcommunity.com/sharedfiles/filedetails/changelog/2608733972 ; https://steamcommunity.com/workshop/filedetails/discussion/2608733972/3759976879988108709 ; https://steamcommunity.com/app/1099410/discussions/0/2954914688100151878/ ; https://steamcommunity.com/sharedfiles/filedetails/changelog/2608733972?p=7",
+   "evidence": "Search log C82 (standard, Steam): the mod's description as quoted: 'low agony if no/passive war - medium (sweet spot) agony if winning wars - high agony if fighting wars but loosing'; 'medium agony provides military buffs (e.g. improved moral)'; v0.1.0 'slightly increased positive Agony gains from won battles'. C81 (standard): the motivation change, from one summary; C82 did not confirm it.",
+   "notes": "Mod content (Steam Workshop 2608733972, an overhaul for this title): community evidence of a gap players felt, not a base-game mechanic; scope 'reference' only because it modifies the reference. In the base game, guides say motivation moves with a hero's preferences and that 'no matter how low motivation gets, they won't become disloyal' (C81; motivation itself is already in Annex A.2)."
+  },
+  {
+   "id": "community-08",
+   "questions": [
+    "Q3"
+   ],
+   "claim": "Players of this title count missile fire as a morale factor in itself: a 2024 reply in a Steam thread about archers says ranged fire brings 'the morale penalty too when under missile fire, its very useful', adding that ranged units mainly serve to lure the enemy; other players name missile fire with flank and rear attacks as the way to break enemy morale.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://steamcommunity.com/app/1099410/discussions/0/3808409963273518364 ; https://steamcommunity.com/app/1099410/discussions/0/4198997399065201249/",
+   "evidence": "Search log C14 (standard): thread 'Ranged Units suck for this game.' (opened August 2023); 'A 2024 reply says the morale penalty too when under missile fire, its very useful' (summary quote); C12 returned the same line. C7 and C25: players recommend 'flank and rear attacks, plus missile fire, to break enemy morale' (summary wording).",
+   "notes": "Player statements read through summaries (weak). Bears on Annex A's overstated missile-fire cell: with the data's definition 'Attacked by projectile' (data-05) and the 1.6.0 'Serrated Edges' modifier (official-13), the community side now also reports a general under-fire penalty. Its size is unknown."
+  },
+  {
+   "id": "community-09",
+   "questions": [
+    "Q3"
+   ],
+   "claim": "One player reports behaviour at odds with a strong flank penalty in this title: enveloped units 'refuse to route until they are almost destroyed when surrounded, but break quickly when attacked head-on at even numbers'. A fan page and a preview say the opposite, that flanking is especially damaging to morale. The conflict is unresolved.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "one of the TROY threads returned by search log C7, not separated by the summary: https://steamcommunity.com/app/1099410/discussions/0/6462188978477640926/ , https://steamcommunity.com/app/1099410/discussions/0/3808409963273518364/ , https://steamcommunity.com/app/1099410/discussions/0/3196990234734079048/ , https://steamcommunity.com/app/1099410/discussions/0/3085520348636107754/ ; https://tvtropes.org/pmwiki/pmwiki.php/VideoGame/ATotalWarSagaTroy ; https://www.pcgamer.com/total-war-saga-troy-brings-mythical-heroes-to-bronze-age-infantry-warfare/",
+   "evidence": "Search log C7 (standard, Steam): the player quote above (summary quote). C3 and C38 (TV Tropes): 'flanking in particular destroys morale in Troy'. The PC Gamer preview: flank attacks damage morale (already official-10).",
+   "notes": "WEAK: one player, thread not identified. It agrees with a mod author's statement that the base game's flank penalty 'does not work correctly and often applies to frontal combat' (data-22). In the data the direction term is set by first contact ('First contact from flank', data-04), which could produce both reports (INFERRED, not tested)."
+  },
+  {
+   "id": "community-10",
+   "questions": [
+    "Q3"
+   ],
+   "claim": "Reviewers and players found that low-tier units break very early in this title: a review reposted on a forum says 'Low-tier units are simply too easy to rout' and that battles 'can feel like more of a joust ... One side will simply crumble'; a user review says light infantry 'usually rout even with the slightest melee counterpart'; a forum player says units 'take too much damage too fast, and then rout'.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://vapingunderground.com/threads/a-total-war-saga-troy-review.544853/ ; https://legacy.prod.metacritic.com/game/pc/a-total-war-saga-troy/user-reviews ; https://www.twcenter.net/threads/total-war-saga-troy-general-discussion.800042/ ; https://www.cgmagonline.com/reviews/total-war-saga-troy-review/",
+   "evidence": "Search log C31, C34 and C35 (standard): the review quotes, from a forum repost whose outlet is not named (the summary calls it IGN-style; unconfirmed); the reviewer also wished for a setting to tweak base unit morale. C31: the Metacritic user-review quote. C8: the TWC general-discussion quote. C34: CGM, the AI sends soldiers in clumps 'all too easy to break down'.",
+   "notes": "Reception, not mechanics; launch era (2020). Context: patch 1.4.0 later lowered the base morale of high-tier units by about 5-10 % (official-08). For us a calibration warning: low base morale with stepped casualty penalties can end a fight in one clash (INFERRED)."
+  },
+  {
+   "id": "community-11",
+   "questions": [
+    "Q8",
+    "Q3"
+   ],
+   "claim": "Hero abilities change morale by fixed, timed, area-limited amounts. A Chinese guide's skill texts give 'Rallying Call': self +25 morale and +10 % melee defence for 45 s; 'False Omen': -25 morale to enemies within 30 m for 60 s; an Ares skill: -15 enemy morale for 25 s; and a veteran defenders' ability: unbreakable for 25 s. English guides confirm the skills without numbers: Agamemnon's level-6 'Rallying Cry' (melee defence and morale), Odysseus' level-10 'False Portent' (wide-area enemy morale reduction), Menelaus' level-2 'Dread of Ares' (morale, vigour and fighting ability of enemies in melee range), Agamemnon's level-8 'Chosen of the Gods' (+8 % troop morale; Aeneas has a skill of that name at level 11, stronger for spear units) and Menelaus' level-9 'Heroic Spirit' (the hero neither loses morale nor flees).",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://www.3dmgame.com/gl/3815110_20.html ; https://www.3dmgame.com/gl/3815110_12.html ; https://www.gamepressure.com/total-war-saga-troy/agamemnon/z3d7f2 ; https://www.gamepressure.com/total-war-saga-troy/odysseus/z6d7f5 ; https://gamepressure.com/total-war-saga-troy/menelaus/z5d7f4 ; https://www.gry-online.pl/poradniki/total-war-troy/odyseusz-odysseus/zb1a207 ; https://www.gamepressure.com/total-war-saga-troy/aeneas/z2d7f1",
+   "evidence": "Search log C51 (standard, Chinese): the summary quotes the 3DMGame page: '③.集结召唤:45秒内,自身+25士气,+10%近战防御' (Rallying Call: 45 s, self +25 morale, +10 % melee defence) and '④.虚假预兆:60秒内,30公尺范围的敌军-25士气' (False Omen: 60 s, enemies within 30 m -25 morale). C45: '阿瑞斯的敬畏' (an Ares skill), enemies -15 morale for 25 s; '坚定不移' (veteran Trojan defenders), self unbreakable for 25 s (summary wording). C27, C49, C78 and C80: the English skill names and effects.",
+   "notes": "Attribution CONFLICTS: one Chinese summary puts Rallying Call under Agamemnon ('self and allies', C45), another under Sarpedon ('self', C51); False Omen is listed under Sarpedon (C45, C51) while the English guide gives 'False Portent' to Odysseus. The Ares skill is Menelaus' in C45 (阿瑞斯的敬畏), probably the English 'Dread of Ares' (INFERRED). Skill trees may be shared by heroes of a class (INFERRED). The English renderings of the Chinese names are ours. Version: 2020 guides. Scale: base morale values are in the tens (official-08), so 15 to 25 points is a large share of a unit's base (INFERRED). The data has a morale-value key for one ability (data-09). None of these numbers enters our design (D-069)."
+  },
+  {
+   "id": "community-12",
+   "questions": [
+    "Q4"
+   ],
+   "claim": "Players and mod authors agree that by default a rallied unit cannot rout again for about 60 seconds in this title, which players call longer than elsewhere in the series. A player: 'In most TW titles, this is in the 10-15 second range. In Troy, it's around a minute by default.' Another: at launch a broken unit had a 60-second immunity, so 'freshly returned units would continue fighting despite being absolutely smashed', and the player used a mod cutting it to 10 s. A workshop mod for this title (Cataph's Rout Timer) 'changes the post-rally unbreakable window from 60s to 15s' and notes 10 s in WARHAMMER II.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://steamcommunity.com/app/1099410/discussions/0/3196990234734079048/ (INFERRED to hold the 60-to-10 post: the only TROY thread among the C70 results) ; https://steamcommunity.com/sharedfiles/filedetails/?l=finnish&id=2591709028 ; https://steamcommunity.com/workshop/browse/?appid=1099410&section=readytouseitems&p=2",
+   "evidence": "Search log C7 (Steam, standard): both player statements (summary quotes). C70 (Steam): 'A player there got a mod that reduced the morale invulnerability from 60 to 10 seconds', with the reason quoted above. C9 and C17 (Steam): the Cataph's Rout Timer description 'from 60s to 15s', 'it's 10s in Warhammer2', and 'in TROY is by default a whole minute'; the listing now shows the item removed. With the Immersive Combat mod's '60 to 20' (data-22), four community statements give 60 s.",
+   "notes": "The two player statements may come from one thread (the summary does not separate them). Community reports read through summaries, not a value read in the data, though it fits the key 'post_rally_no_rout_timer' ('Time (in seconds) for which a unit that has just rallied cannot rout again', data-11). 'At launch' leaves open whether a patch changed it; no patch line on rally timing was found (official angle, S20). The consequence players report: rallied units return and fight on although badly mauled. The series comparison is uncertain: the same C70 summary mentions a ROME II mod setting this timer to 60 s and a WARHAMMER mod shortening its equivalent from 60 to 45 s."
+  },
+  {
+   "id": "community-13",
+   "questions": [
+    "Q7",
+    "Q1"
+   ],
+   "claim": "Players report that fatigue set on the campaign map persists in battle: a Steam thread titled 'Unable to recover fatigue/vigor in battle from forced march stance anymore?' reports that fatigue never recovered during a battle, after kiting the enemy for five minutes, for an army in the campaign's forced-march stance (so, INFERRED, one that was attacked: the fan guide's stance list says March 'removes the ability to start battles', search log C28). A forum player says units kept 'in sustained combat too long ... might start to get dragged down'. A mod commenter estimates a few minutes of rest to recover one fatigue level (modded game). No player links fatigue to morale in this title.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://steamcommunity.com/app/1099410/discussions/0/3038229380328782252/ ; https://forums.pcgamer.com/threads/a-total-war-saga-troy.121430/ ; https://steamcommunity.com/sharedfiles/filedetails/comments/2592769544",
+   "evidence": "Search log C19 (Steam, standard): the thread title, and 'fatigue never recovers after kiting an enemy for five minutes in forced march stance' (summary); 'the thread gives no confirmed cause or fix'. C75: the PC Gamer forum quote. C19: a comment on the Longer Battles Mod (for this title): 'a few minutes of resting to recover one level of fatigue'.",
+   "notes": "Player reports (weak); the thread may describe a bug. Adds to official-04 (starting tired after marches and landings). A sibling shows a cap: in WARHAMMER III forced march sets units 'very tired' at the start of the battle and 'perfect vigour' applies only to 'the newly set max' (community-15). Whether this title caps recovery the same way is NOT established."
+  },
+  {
+   "id": "community-14",
+   "questions": [
+    "Q8"
+   ],
+   "claim": "In the Historical mode, added by a free update alongside MYTHOS, a hero fights with a bodyguard retinue, and guides say the retinue 'can continue fighting even if the hero dies or is wounded'; in the default mode (Truth Behind the Myth) heroes fight as single entities without bodyguards.",
+   "label": "SEARCH",
+   "scope": "reference",
+   "source": "https://www.pcinvasion.com/total-war-saga-troy-mythos-historical-mythological-game-mode/ ; https://www.pcgamesn.com/total-war-saga-troy/historical-mode ; https://www.totalwar.com/?p=15086",
+   "evidence": "Search log C38 (extended): 'A general's unit/bodyguard retinue can continue fighting even if the hero dies or is wounded. Each hero will have three tiers of bodyguards.' (summary quote); the gods' passive buffs are removed in Historical mode and hero abilities rebalanced.",
+   "notes": "Guides, one search. Nothing on morale; it matters for how a commander's loss is modelled (the commander's unit outlives the commander). No morale or routing change specific to a mode was found."
+  },
+  {
+   "id": "community-15",
+   "questions": [
+    "Q1",
+    "Q7"
+   ],
+   "claim": "TOTAL WAR: WARHAMMER and TOTAL WAR: WARHAMMER III (same developer; siblings, not the reference): players report that an army attacked in forced-march stance starts the battle tired (WARHAMMER) or with every unit 'very tired' whatever its abilities, 'perfect vigour' then applying only to the newly set maximum (WARHAMMER III); forced-marched armies can reinforce a battle but cannot start one.",
+   "label": "SEARCH",
+   "scope": "sibling",
+   "source": "https://steamcommunity.com/app/364360/discussions/3/1728711392747829714/ ; https://steamcommunity.com/app/1142710/discussions/0/3185738755278938668/ ; https://steamcommunity.com/app/1142710/discussions/0/3415431214839895018/ ; https://steamcommunity.com/app/364360/discussions/0/1776010325114601826/",
+   "evidence": "Search log C71 (Steam, standard): summary quotes 'units in a forced march stance will all start the battle tired'; 'forced march setting every unit to very tired at the start of battles, regardless of their abilities (perfect vigour still apply in battle, but only for the newly set max)'; 'marched armies can reinforce battles, they just can't START the battle'.",
+   "notes": "Siblings; player posts. In these titles the campaign-to-battle carry-over found is a fatigue state (and, in WARHAMMER III, a vigour cap), not a morale charge. Compare official-29 (ROME II: a marching army that is attacked suffers reduced morale) and official-30 (THREE KINGDOMS: it starts tired)."
+  },
+  {
+   "id": "community-16",
+   "questions": [
+    "Q1",
+    "Q3"
+   ],
+   "claim": "TOTAL WAR: SHOGUN 2 (same developer; sibling, not the reference): its in-game encyclopedia, as a player quotes it, lists for night battles reduced visibility and range, a morale penalty unless the army's general can fight at night, and no reinforcements.",
+   "label": "SEARCH",
+   "scope": "sibling",
+   "source": "https://steamcommunity.com/app/34330/discussions/0/3109145219798183485",
+   "evidence": "Search log C65 (standard): 'The Shogun 2 post lists night battle effects: reduced visibility, range reduction, a morale penalty unless the army has a general with night-fighter capability, and no reinforcements regardless of the general's skills.' (summary)",
+   "notes": "Sibling; one summary of a player quoting the encyclopedia. A conditional start-of-battle morale penalty set by a campaign choice and offset by a commander's trait. This title has a night-attack hero skill (data-24) and an 'Unprepared for night battle' morale term (data-02); no community source describes night-battle morale for it."
+  },
+  {
+   "id": "community-17",
+   "questions": [
+    "Q3",
+    "Q4",
+    "Q1"
+   ],
+   "claim": "EMPIRE and SHOGUN-era titles of the series (same developer; siblings, not the reference), as modders read them: a unit's morale state comes from its computed morale against threshold values in the morale key-value table. Modders cite bands such as wavering from -5 to 1 with a timeout of 40 (a legacy thread) and steady between 3 and 6 (a modder's test). 'Shattered' is anything below the broken lower threshold. A broken unit waits a base timeout before it can try to rally; a poster's theory is that a wavering unit wavers for a base timeout and routs at its end if it took casualties meanwhile. A morale shock fires when about 20 % of the men are lost within 4 seconds, with recent-casualty steps at 6, 10, 15, 33 and 50 %. The tutorial's author warns that adding the factors and comparing them with the thresholds 'does not work as simply as that'.",
+   "label": "SEARCH",
+   "scope": "sibling",
+   "source": "https://www.twcenter.net/threads/how-works-the-morale-system-in-empire-total-war.403791/ ; https://www.twcenter.net/threads/questions-about-units-morale.403278/ ; https://www.twcenter.net/threads/morale-shock-explained.463698/ ; https://www.twcenter.net/threads/on-morale.404713/",
+   "evidence": "Search log C37, C61, C62 and C63 (TWC, standard and extended): summary lines as in the claim, for example 'Wavering: -5 to 1 with a timeout of 40' (an Empire and Shogun 2-era thread), 'Shogun and Empire both have 20% as value' for the 4-second shock window, and 'a shock threshold of 20, with separate recent casualties penalties at 6%, 10%, 15%, 33% and 50%'.",
+   "notes": "Siblings of 2009-2011, read by modders in threads of about 2010-2012: legacy values that may differ here. This title's table has the same key families with the same names and descriptions (data-03, data-10, data-11, data-21), so the sibling readings indicate how the keys are meant (INFERRED). Bands around zero fit a computed value rather than a drained stock (INFERRED; compare official-39, KNOW)."
+  },
+  {
+   "id": "community-18",
+   "questions": [
+    "Q6"
+   ],
+   "claim": "TOTAL WAR: WARHAMMER III and TOTAL WAR: THREE KINGDOMS (same developer; siblings, not the reference), as players describe them: an ambush has two stages. Detection comes first: on each of its turns an enemy has a chance to spot hidden armies within some range, and a spotted army leaves ambush stance for that turn. The ambush is then a separate roll, shown on the army as a success chance of 40 to 80 % by terrain plus bonuses, less the arriving army's ambush defence. A failed ambush becomes a normal battle.",
+   "label": "SEARCH",
+   "scope": "sibling",
+   "source": "https://steamcommunity.com/app/1142710/discussions/0/3842178984942298843/ ; https://steamcommunity.com/app/779340/discussions/0/1644292549025018900/ ; https://steamcommunity.com/app/594570/discussions/0/1520386297685124990/",
+   "evidence": "Search log C20 (Steam, standard): summary of 'How does Ambush stance work exactly?' (WARHAMMER III) and two THREE KINGDOMS threads, as in the claim: one player reports the shown chance 'varies between 40% and 80% depending on terrain'.",
+   "notes": "Siblings; players (one summary). For this title the data has the roll ('chance of success, generated from ground type and bonus values', data-18) but no detection key, and no player thread of this title on ambush mechanics was found."
+  },
+  {
+   "id": "community-19",
+   "questions": [
+    "G",
+    "Q2",
+    "Q5",
+    "Q1"
+   ],
+   "claim": "Gary Grigsby's War in the East 2 (2by3 Games; genre): a persistent unit morale on the operational map that battle results move. Per its rules as transcribed, a unit that wins a battle may gain 1 morale point (a check on its leader's morale); a unit that loses may lose up to 3 if it fails checks against its leader's morale and its own; a retreating unit loses 1 (2 if the leader's check fails) and a routed unit 1 more. National morale is the limit to which morale can grow without fighting experience. In the rules summarised, morale moves with results (win, loss, retreat, rout), not with taking part; forum posts add a refit gain and a chance to lose 1 point when short of supply (which title of the series is not separated).",
+   "label": "SEARCH",
+   "scope": "genre",
+   "source": "https://dornshuld.chemistry.msstate.edu/rules/wite2/23-0.html ; https://dornshuld.chemistry.msstate.edu/rules/wite2/12-0.html ; https://forums.matrixgames.com/viewtopic.php?p=3616023",
+   "evidence": "Search log C58 (domain-restricted, standard): rules 23.10.4 and 12.1.4 as summarised: 'Units that win a battle may gain 1 morale point, again relying on their leader morale value'; a loser loses 'up to 3 points if the unit fails both a check against its leader's morale rating and its own morale value'; retreat and rout costs as in the claim. C54 (Matrix forum): national morale as the 'natural' limit (a developer, as summarised); a player complains of 'severe feedback loops from the linkage of unit morale to combat victories'.",
+   "notes": "Genre. A third-party mirror of the manual, read through one summary. The closest pattern found to D-082 DA1 (a win raises the winner) at the campaign level, with leader quality gating the change; the 'feedback loop' complaint is a design risk to note."
+  },
+  {
+   "id": "community-20",
+   "questions": [
+    "G",
+    "Q3",
+    "Q4"
+   ],
+   "claim": "Field of Glory II (Byzantine Games; genre): units hold discrete cohesion levels that change through tests triggered by events. Shooting losses of roughly 5 to 10 % in a turn trigger a test, with a retest on each further casualty that turn; artillery gives -1 and being Fragmented -2; a failed test breaks a unit; a wavering unit that is charged and fails routs at once; a general always tests to rally, and a score of 6 or more raises a unit one cohesion level. Players' rule of thumb: untrained troops rout automatically above about 20 % losses.",
+   "label": "SEARCH",
+   "scope": "genre",
+   "source": "https://forum.slitherine.com/viewtopic.php?p=858740 ; https://forum.slitherine.com/viewtopic.php?p=980972 ; https://forum.slitherine.com/viewtopic.php?p=697846 ; https://forum.slitherine.com/viewtopic.php?p=865483",
+   "evidence": "Search log C53 (standard): Slitherine forum threads 'Understanding Cohesion Tests', 'Auto rout percentage', 'Cohesion test for missiles' and 'Routing Mechanics'; one post attributed to the designer, Richard Bodley Scott (a failed test breaks, a pass evades); the rest are players.",
+   "notes": "Genre; forum posts in one summary. Pattern: cohesion moves when an event triggers a test; no time-based drain and no cost for entering a battle was mentioned (not shown to be absent)."
+  },
+  {
+   "id": "community-21",
+   "questions": [
+    "G",
+    "Q3",
+    "Q7"
+   ],
+   "claim": "Ultimate General: Gettysburg (Game-Labs; genre): its field manual says morale is affected by flank or rear attacks, casualties, volley shocks, artillery fire and fatigue, and a community guide adds a morale bonus for elevation. John Tiller's Civil War Battles (John Tiller Software; genre): fatigue runs from 0 to 900, high fatigue gives -2 to morale checks and -20 % melee strength, and casualties trigger a morale check at the end of the phase.",
+   "label": "SEARCH",
+   "scope": "genre",
+   "source": "https://steamcdn-a.akamaihd.net/steam/apps/306660/manuals/Field_Manual.pdf ; https://forum.game-labs.net/topic/7336-tactics-and-multiplayer-guide-17102015-update/ ; https://johntillersoftware.com/CivilWarBattles/user/morale.html ; https://johntillersoftware.com/CivilWarBattles/user/fatigue.html",
+   "evidence": "Search log C55 (standard): 'morale is affected by many factors including flank or rear attacks, casualties, volley shocks, artillery fire and fatigue' (summary quote of the Gettysburg manual); the Tiller fatigue bands and the end-of-phase casualty check as summarised.",
+   "notes": "Genre; one summary. No guide to Ultimate General: Civil War itself was returned. Two more genre models in which fatigue feeds morale explicitly; for the reference that link is known only at definition level (data-07), with no size and no player report."
+  }
+ ],
+ "hosts": [
+  {
+   "host": "www.pcgamesn.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:22Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "www.redbull.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:22Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "www.gamewatcher.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:22Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "games-guides.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:23Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "www.gameshedge.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:23Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "explorminate.org",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:23Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "saveorquit.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:23Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "techraptor.net",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:24Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "gamingbolt.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:24Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "www.nme.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:24Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "segmentnext.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:24Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "www.gry-online.pl",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:25Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "en.namu.wiki",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:25Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "tvtropes.org",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:25Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "www.eurogamer.net",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:25Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "www.gamespot.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:25Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "gamefaqs.gamespot.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:26Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "www.polygon.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:26Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "www.vg247.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:26Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "www.shacknews.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:26Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "www.gamereactor.eu",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:27Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "forums.pcgamer.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:27Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "guides-factory.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:27Z; proxy entry rotated out before it was read (the list keeps 20)"
+  },
+  {
+   "host": "steamah.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:27Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:27.999Z"
+  },
+  {
+   "host": "steamsolo.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:28Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:28.222Z"
+  },
+  {
+   "host": "gameplay.tips",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:28Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:28.462Z"
+  },
+  {
+   "host": "bbs.nga.cn",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:28Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:28.694Z"
+  },
+  {
+   "host": "tieba.baidu.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:28Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:28.919Z"
+  },
+  {
+   "host": "www.bilibili.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:28Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:29.138Z"
+  },
+  {
+   "host": "forum.imtw.ru",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:29Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:29.405Z"
+  },
+  {
+   "host": "www.playground.ru",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:29Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:29.622Z"
+  },
+  {
+   "host": "stopgame.ru",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:29Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:29.742Z"
+  },
+  {
+   "host": "wireframe.raspberrypi.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:29Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:29.982Z"
+  },
+  {
+   "host": "www.gamersky.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:29Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:30.207Z"
+  },
+  {
+   "host": "www.3dmgame.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:30Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:30.413Z"
+  },
+  {
+   "host": "www.windowscentral.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:30Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:30.639Z"
+  },
+  {
+   "host": "www.destructoid.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:30Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:30.855Z"
+  },
+  {
+   "host": "www.resetera.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:30Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:31.060Z"
+  },
+  {
+   "host": "www.gamerguides.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:31Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:31.286Z"
+  },
+  {
+   "host": "devtrackers.gg",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:31Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:31.527Z"
+  },
+  {
+   "host": "www.gamebanshee.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:31Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:31.752Z"
+  },
+  {
+   "host": "www.vice.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:31Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:31.996Z"
+  },
+  {
+   "host": "www.neoseeker.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:11:32Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:11:32.203Z"
+  },
+  {
+   "host": "twdb.io",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:12:09Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:12:09.394Z"
+  },
+  {
+   "host": "wiki.twcenter.net",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:12:09Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:12:09.621Z"
+  },
+  {
+   "host": "www.tweaktown.com",
+   "tool": "curl -sS -o /dev/null -w '%{http_code}' --max-time 12 -I https://<host>/ (session proxy); new host, one try",
+   "result": "REFUSED: curl exit 56, CONNECT tunnel failed, response 403, at 2026-11-10T20:12:09Z; proxy recentRelayFailures: connect_rejected at 2026-11-10T20:12:09.853Z"
+  },
+  {
+   "host": "(web search tool, allowed_domains reddit.com)",
+   "tool": "WebSearch (standard), two domain-restricted queries (search log C5, C6)",
+   "result": "REFUSED by the search tool itself: 'API Error: 400 The following domains are not accessible to our user agent: [reddit.com]' (2026-11-10, about 20:13Z). Not retried. Unrestricted searches returned no Reddit page, so Reddit could not be consulted at all (www.reddit.com and old.reddit.com are also refused at the proxy, hosts.json)."
+  },
+  {
+   "host": "(web search tool)",
+   "tool": "WebSearch (runs outside the container), standard and extended modes",
+   "result": "WORKS: 82 queries 2026-11-10 20:10-20:28Z, 2 of them refused by the tool (C5, C6); 80 answered, including domain-restricted searches on steamcommunity.com, twcenter.net, youtube.com and dornshuld.chemistry.msstate.edu; each answer is result URLs plus a model-written summary (label SEARCH). Log: /tmp/claude-0/-home-user-civDemo/54b82655-610f-500e-a185-8fae64bdd108/scratchpad/m7c/research/run1/work-community/notes/search-log.md"
+  },
+  {
+   "host": "(web fetch tool)",
+   "tool": "WebFetch",
+   "result": "NOT USED: no community host was reachable (all 46 new hosts refused at the proxy; the earlier angles' refused hosts not retried with any tool, per hosts.json)"
+  }
+ ],
+ "not_found": [
+  "Q1 (reference): no community source (Steam discussions and workshop pages, TWC threads, reviews, press guides, Chinese, Polish, Korean, Russian and Japanese guide sites, video titles) says that entering a battle, or simply being in one, costs morale. None reports a morale penalty at deployment, an 'ambushed' or 'surprised' penalty, or a unit starting below its base morale. On this evidence the reference neither supports nor contradicts D-083 DB1.",
+  "Q1/Q2 (reference): whether low hero motivation lowers the hero's morale (one summary said so, search log C1, source not separated); and what a NamuWiki entry said to describe 'joining an army' as lowering morale by 5 % refers to (C2, C76; follow-ups found only Achilles' -5 % to enemy armies in his local province and Memnon's Rumormonger, C77, C78). Neither is established.",
+  "Q2 (reference): an army-wide morale number or stock on the campaign map; any morale effect of food shortage, unpaid upkeep or attrition; a persistent change of army morale from a won or lost battle. Only faction or hero stocks (Battle Glory, Achilles' mood) and mods (community-07) were found.",
+  "Q3 (reference): the morale tooltip's text, the morale states and their thresholds, and the size of any factor (flank, rear, missile fire, hero death, nearby routs, fatigue, being outnumbered); whether morale drains in a long melee without casualties (C75).",
+  "Q3 (reference): what bit-tech's 'extremely annoying and undermines what is otherwise a well-designed system' refers to (C35): not shown, so not used.",
+  "Q4 (reference): when and how often a routed unit rallies, whether a rally needs the hero nearby, and how many routs make a shatter. Only the post-rally immunity (about 60 s, community-12) surfaced.",
+  "Q5 (reference): what killing, releasing or enslaving captives does for factions other than the Amazons; experience per battle result.",
+  "Q6 (reference): how an ambush is detected, its base success chance, and any morale penalty for the ambushed side. The community gave only bait tactics (one army encamps, raids or besieges while another waits in ambush stance: Memnon and Amazon guides, C28) and campaign videos named after ambushes ('AN AMBUSH GONE AWRY!', 'Don't Ambush Achilles', 'AMBUSHING AENEAS!', C22) whose snippets state no mechanics.",
+  "Q7 (reference): the fatigue states, how fast fatigue builds and recovers, and any fatigue effect on morale.",
+  "Q8 (reference): the hero aura's radius and size; a wounded hero's recovery time (only 'a few turns', from the official 1.4.0 notes, C39); any morale effect of winning or losing a duel (Divine Challenge) in this title (C72).",
+  "Sources: Reddit could not be consulted. The proxy refuses www.reddit.com and old.reddit.com (hosts.json), the web search tool refuses a reddit.com-restricted search ('not accessible to our user agent', C5, C6), and unrestricted searches returned no Reddit page.",
+  "Sources: video descriptions. www.youtube.com is refused at the proxy; the search tool returns video titles and short snippets only, and none describes morale mechanics for this title (C18, C22, C23, C68).",
+  "Sources: every community host tested (46 new; see hosts) was refused at the proxy (CONNECT 403, recorded as connect_rejected), so no page was read and no claim here is FETCH or CODE. twdb.io, a community database site with pages for this title, is among them and is not in the search index (C41)."
+ ]
+}
