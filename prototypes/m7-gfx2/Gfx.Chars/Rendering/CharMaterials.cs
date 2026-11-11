@@ -300,7 +300,14 @@ public sealed class CharMaterials
                     return fx;
                 }
             default:
-                return null;
+                return Extension?.Invoke(r, rc, inst, part, owner);
         }
     }
+
+    /// <summary>
+    /// Effects for material kinds this class does not know (stage kit: "kit", the PBR-mapped era kit). Called with the
+    /// renderer, the render context, the instance, the part and the asset that owns the part; returns the configured
+    /// effect or null (the part is skipped).
+    /// </summary>
+    public Func<CharRenderer, RenderContext, CharInstance, GpuPart, CharAsset, Effect?>? Extension { get; set; }
 }

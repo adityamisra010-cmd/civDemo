@@ -225,3 +225,56 @@ def avatar_era(b, era, emblem_tex):
         belt(b, bc.waist_y - 0.02, colour="#1A1412", offset=0.024)
         kit.helmet(b, "tricorne", cloth("felt", "#1B1A1E", OCHRE, rough=0.95))
         kit.sword(b, metal("steel", 0.2, 0.2), cloth("leather", "#1A1412", rough=0.5), length=0.92)
+
+
+# ------------------------------------------------------------------ stage kit: ancient garments (no kit: Gfx.Gear adds it)
+def _torso_plate(b, name, offset, material, neck_drop=0.025, hip=0.09):
+    """A torso shell with separate armholes and shoulder straps (the avatar cuirass's cut, for linen or bronze)."""
+    bc = b.bc
+    nc = b.h["neck_01"] + np.array([0.0, -0.015, 0.0])
+    y_hip = bc.waist_y - hip
+
+    def plate_edges(Pf):
+        d = Pf - nc
+        dist = np.linalg.norm(d * np.array([1.0, 1.25, 1.1]), axis=1)
+        front = smoothstep(-0.02, 0.06, d[:, 2])
+        return np.maximum.reduce([(0.085 + neck_drop * front) - dist, d[:, 1] - 0.05, y_hip - Pf[:, 1]])
+    region = np.maximum.reduce([b.f_armhole(0.5, iters=40), bc.headness - 0.3, bc.legness - 0.75])
+    b.body_shell(name, region, offset, material, smooth=6, hide_margin=0.01, hem=0.006, field=plate_edges, field_smooth=30,
+                 islands=True, fair=6, trim=0.022 if material.get("colour2") else 0.0)
+
+
+def soldier_ancient(b, force, kind, seed=0):
+    """Stage kit: garments and body armour only (helmet, shield and weapons come from Gfx.Gear at runtime).
+    Force A: linen chiton with a woven border, a linen corselet (linothorax) or, for the officer, a bronze muscle cuirass,
+    leather pteruges, bronze greaves on some, bare legs, shoes. Force B (Celtic or Galatian warriors): long-sleeved wool
+    tunic with a woven border, trousers (hose), belt, shoes, a mail shirt on some. kind: hoplite, officer, warrior."""
+    bc = b.bc
+    if force["id"] == "A":
+        base_layers(b, legs="none", footwear="shoes", foot_colour=LEATHER)
+        main = force["main"] if kind != "officer" else WOAD_DARK
+        tunic(b, "chiton", main, 0.13, bc.knee_y + 0.11, fabric="linen", offset=0.0045, skirt_clear=0.008, flare=0.05,
+              trim=OCHRE, trim_w=0.016, pattern=1 if kind != "officer" else 3, folds=1.2, seed=seed)
+        if kind == "officer":
+            _torso_plate(b, "cuirass", 0.014, metal("bronze", 0.30, 0.35))
+        else:
+            # glued and stitched linen, about 6 mm thick, a woven border in the force's colour at every edge
+            _torso_plate(b, "linothorax", 0.013, cloth("linen", ["#D9CFB4", "#CFC2A0", "#DCD4C0", "#C9BB98"][seed % 4], force["main"], rough=0.8, pattern=2))
+        b.skirt("pteruges", bc.waist_y - 0.05, bc.knee_y + 0.16, 0.030, 0.05, cloth("linen" if kind != "officer" else "leather",
+                "#CBBE9C" if kind != "officer" else "#4A2F1C", force["main"] if kind != "officer" else None, rough=0.75, pattern=2),
+                pteruges=14, trim=0.012 if kind != "officer" else 0.0, folds=0.2, seed=seed + 1, top_clear=0.026)
+        if kind == "officer" or seed % 2 == 0:
+            s0, s1 = b.thigh_len + 0.03, b.thigh_len + b.shin_len - 0.03
+            legs = b.bc.leg_s()
+            region = np.where(b.bc.legness > 0.3, np.maximum(s0 - legs, legs - s1), 1.0)
+            region = np.maximum(region, -(b.N[:, 2] + 0.25) * 0.1)
+            b.body_shell("greaves", region, 0.008, metal("bronze", 0.30, 0.4), smooth=2, hide_margin=1.0)
+    else:
+        legs = ["#4B4A3A", "#5B4632", "#3E4636", "#55432F"][seed % 4]
+        base_layers(b, legs="hose", legs_colour=legs, footwear="shoes", foot_colour=DARK_LEATHER)
+        main = [MADDER, UNDYED, "#6B5A3A", MADDER_DARK][seed % 4]
+        tunic(b, "tunic", main, b.arm_len + b.fore_len * 0.85, bc.knee_y + 0.15, fabric="wool", offset=0.006, skirt_clear=0.010,
+              flare=0.05, trim=force["trim"] if main != UNDYED else MADDER, trim_w=0.018, pattern=(seed % 3) + 1, folds=1.1, seed=seed, gather=0.005)
+        if seed % 4 == 2:
+            mail_shirt(b, b.arm_len * 0.55, bc.knee_y + 0.22, rough=0.45, wear=0.55)
+        belt(b, bc.waist_y - 0.035, offset=0.022 if seed % 4 != 2 else 0.030)

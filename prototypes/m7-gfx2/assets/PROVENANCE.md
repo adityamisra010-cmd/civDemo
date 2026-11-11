@@ -301,6 +301,34 @@ three-line sine-free value hash `envHash` (`EnvGlsl.Common`) is Dave Hoskins' "h
 shader, which its author's header releases under the MIT licence (that page was not re-read from this container;
 the formula is short enough to replace if the notice is not wanted).
 
+### 3.11 Stage kit (era kit, hero asset, authored combat animation): generated items, bakes and runtime use
+
+Added 2026-11-11 by stage kit on `g2/kit` (cut from `g2/trunk` 7dd134a). **No new external file is fetched or pinned.**
+Every item of the era kit is generated in code by `Gfx.Gear` (geometry, PBR maps, rigs, clips) from fixed parameters
+and integer-hash noise; the only external inputs are the existing CC0 character rows of §3.1 and §3.2 (through the
+stage-chars identities) and the existing CMU rows of §3.4 (locomotion and idle only, at runtime, never in a kit file).
+
+| Output | Inputs | Transformations | Licence of the output | Status |
+|---|---|---|---|---|
+| Hero asset: bronze-faced aspis, `$G2_ASSETS/baked/kit/hero/aspis.glb` (glTF 2.0: three LODs, 2,048-texel base colour, normal and occlusion-roughness-metallic PNGs embedded), `MANIFEST.tsv`, `aspis.provenance.json` | none (code: `Gfx.Gear/Items/Aspis.cs`, `Gfx.Gear/Geometry`, `Gfx.Gear/Maps`, `Gfx.Gear/Bake`) | Bowl, offset rim, bronze facing turned over the rim, porpax arm band with palmette plates, antilabe cord, carrying cord in festoons from bronze staples, all as lathe/sweep/loft surfaces with rolled edges; maps painted in UV space (planished bronze with hammer facets, guilloche rim band, painted sun device with chips and scratches, dents, tarnish and verdigris, carved poplar core with adze facets and handling grime, two-ply flax cord); heights converted to normals, cavity occlusion, Toksvig-adjusted roughness mips; LOD1 and LOD2 rebuilt at lower segment counts. `scripts/bake-kit.sh` records the commit (`8df7e55` for the current file: 7,169,712 bytes, sha256 `18474bcad1abd847e2047257cf7ad2f3b51805ed8d089bb7c5d72f3b00f81928`); `--check` re-bakes in memory and compared byte for byte: identical | project-owned (original work) | SHIP-OK |
+| Era-kit items generated at scene load (not written to disk): shields (thureos, round, kite, heater, line aspides), helmets (Corinthian with horsehair crest, Montefortino, nasal, kettle hat, great helm), weapons (spear, xiphos, La Tène long sword, arming sword, axe, bow, arrow, quiver, scabbard, sling, matchlock musket), standards, display posts and rack | none (code: `Gfx.Gear/Items/*.cs`); helmets are fitted to a head measured on a stage-chars identity (§3.9, CC0 inputs) | Same pipeline as the hero; heraldry and devices are original geometric designs drawn in code (sun, crescent, wheel, spiral, lozenges, chevron, saltire). Crest hair cards use the stage-chars hair atlas (§3.9, generated) | project-owned | SHIP-OK |
+| Rigged props: the bow (five bones: grip, two limbs, two string halves; the string follows the drawing hand), the standard's cloth (a chain of five bones swung by a travelling wave) | the generated items above | Skinned at load (`Gfx.Gear/Runtime/BowRig.cs`, `Gfx.Gear/Items/Banner.cs`) | project-owned | SHIP-OK |
+| Garment outfits for the kitted forces, `$G2_ASSETS/baked/kit/outfits/<id>__anc_a.g2ch` (5) and `<id>__anc_b.g2ch` (4), `tex/{fabric,wood,trim}.r1tx`, `MANIFEST.tsv` | the stage-chars identities' CC0 inputs (`mh-core`, `mpfb2`, `mhjs-data`; §3.1–§3.3, §3.9) and `meshoptimizer` (tool) | `scripts/bake-kit-outfits.sh` → `tools/charbake/kitbake.py` with the recipe `recipes.soldier_ancient` (force A: linen chiton, linen corselet or bronze cuirass, pteruges, greaves on some; force B: wool tunic, trousers, belt, a mail shirt on one), built exactly as stage-chars outfits (§3.9), LODs by meshoptimizer; no helmets, shields or weapons (those come from Gfx.Gear). `--check` on commit 3431037: 12 files compared, 0 differ | CC0-1.0 (inputs) + generated | SHIP-OK |
+| Authored combat clips (37 per skeleton: hoplite guard, overhand thrust, shield block, heavy hit, backward and forward deaths, surrender, victory; sword guard, overhead and side cuts, block, hit, deaths, surrender, victory, each for strap and central-grip shields; archer draw-hold-loose, death and surrender) | none (keys in `Gfx.Gear/Anim/CombatClips.cs`) on the identity's skeleton (MPFB2 rig, CC0, §3.9) | Keys (pelvis, spine and head angles, hand grip frames, foot targets) eased and solved through two-bone IK into 30 fps clips at scene load (`Gfx.Gear/Anim/Authoring.cs`), clamped above the ground; added in memory to the identity's clip set, never written to a file. **No motion-capture data enters them** | project-owned | SHIP-OK |
+
+**Runtime use and legends.** The kit scenes stand on the render1 terrain bake (§3.8: grass CC0+MIT; gravel, sand and
+soil CC-BY-4.0, notices §5). The animator's locomotion and idle layers are the CMU retargets of §3.4
+(**PROTOTYPE-ONLY**). They are visible only where a character is not playing an authored clip: the walking hoplite of
+`kit-combat` (`walk-*`), the archer's first half second (`bow-rest`) and the avatar holding the aspides in `kit-hero`
+(`held-*`, idle with the shield stance). `kit-forces`, the other `kit-combat` shots and `kit-medieval` play authored
+clips from their first animator step (no crossfade from a motion-capture state), and `kit-gallery` has no characters.
+Every review sheet that contains one of the CMU-posed shots names the CMU data as PROTOTYPE-ONLY in its legend.
+
+**Algorithms implemented from common practice** (no code copied, no asset): rotation-minimising frames for sweeps;
+marching triangles for cutting surfaces by a field; height-to-normal conversion scaled by texel size; Toksvig-style
+roughness widening in mips; two-bone IK with a pole; the PNG format (zlib store/deflate through .NET's
+`ZLibStream`, CRC-32) and glTF 2.0 binary containers written from their published specifications.
+
 ## 4. Licence identifiers used for non-standard terms
 
 | Id | Meaning |

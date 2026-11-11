@@ -29,6 +29,19 @@ public sealed class AnimInput
     public string? UpperClip;
     public float UpperClipTime = -1f;
     public float UpperWeight = 1f;
+    /// <summary>Optional constraint applied last, on the solved pose (stage kit: weapon grips, two-handed holds, shield
+    /// frames, finger wraps). Presentation only, like everything here.</summary>
+    public IPoseConstraint? Constraint;
+}
+
+/// <summary>
+/// A cosmetic pose edit applied at the end of <see cref="CharAnimator.Step"/>, after locomotion, layers, stance IK, look
+/// and foot locking: it receives the solved pose (character space globals and heads, kept consistent by the
+/// <see cref="Ik"/> helpers) and the scene time. PRESENTATION ONLY.
+/// </summary>
+public interface IPoseConstraint
+{
+    void Apply(CharRig rig, Pose pose, Quaternion[] global, Vector3[] heads, in Matrix world, float t);
 }
 
 /// <summary>Per-skeleton constants: bone indices, masks, rest geometry used by the procedural layers.</summary>
@@ -226,7 +239,13 @@ public sealed class CharAnimator
         Stance(inp);
         if (inp.LookAt is { } lw) Look(Vector3.Transform(lw, Matrix.Invert(world)));
         Feet(t, dt, inp, world, contacts, state == "loco" && inp.Speed > 0.05f);
+        inp.Constraint?.Apply(_rig, _out, _g, _h, world, t);
     }
+
+    /// <summary>Character-space global rotations of the last step (read-only use: sockets, kit attachments).</summary>
+    public Quaternion[] Globals => _g;
+    /// <summary>Character-space bone heads of the last step.</summary>
+    public Vector3[] Heads => _h;
 
     void HandPose(string _, (int bone, Vector3 axis, float scale)[] fingers, string grip)
     {

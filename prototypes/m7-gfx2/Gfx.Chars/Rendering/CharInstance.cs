@@ -47,10 +47,15 @@ public sealed class CharInstance : IDisposable
     {
         get
         {
-            var c = _pelvis >= 0 ? Heads[_pelvis] : Vector3.Zero;
-            return new BoundingSphere(Vector3.Transform(c, World), 1.35f);
+            var c = _pelvis >= 0 ? Heads[_pelvis] : BoundsCentre;
+            return new BoundingSphere(Vector3.Transform(c, World), BoundsRadius);
         }
     }
+
+    /// <summary>Culling sphere radius (m) around the pelvis (characters) or <see cref="BoundsCentre"/> (props without a pelvis).</summary>
+    public float BoundsRadius = 1.35f;
+    /// <summary>Culling sphere centre in the instance's own space for skeletons without a pelvis bone (stage kit props).</summary>
+    public Vector3 BoundsCentre = Vector3.Zero;
 
     public void SolvePose()
     {

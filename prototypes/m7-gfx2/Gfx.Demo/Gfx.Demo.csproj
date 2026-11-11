@@ -16,6 +16,7 @@
     <ProjectReference Include="..\Gfx.Avatar\Gfx.Avatar.csproj" />
     <ProjectReference Include="..\Gfx.Cinematics\Gfx.Cinematics.csproj" />
     <ProjectReference Include="..\Gfx.Chars\Gfx.Chars.csproj" />
+    <ProjectReference Include="..\Gfx.Gear\Gfx.Gear.csproj" />
     <ProjectReference Include="..\Gfx.Perf\Gfx.Perf.csproj" />
     <!-- Other lanes: add your library ProjectReference here (Gfx.Proc, Gfx.Units, Gfx.Avatar, Gfx.Cinematics). -->
   </ItemGroup>

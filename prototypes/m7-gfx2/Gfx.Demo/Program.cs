@@ -18,6 +18,9 @@ public static class Program
                                     [--variants ""g2;g1;k=v;..""]  several switch sets on one loaded scene
   --interactive [scene]             windowed; WASD pan, Q/E rotate, wheel zoom, F1..F12 switch scene, Esc quit
   --chars-costs                     stage chars: CPU cost of animation, skinning prep and expression blending
+  --kit-bake [--out DIR] [--commit SHA] [--check]   stage kit: bake the hero aspis to glTF (default $G2_ASSETS/baked/kit/hero);
+                                    --check re-bakes in memory and compares with the files on disk
+  --kit-costs                       stage kit: generator, map, animation and grip costs
 Render switches (--set, comma-separated or repeated; --preset g1 = every switch at its G1 value):
   " + string.Join(" ", RenderFeatures.Keys) + @"
 Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automatically when no display).";
@@ -47,6 +50,8 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
         // G2 perf stage: the benchmark harness (Gfx.Perf) owns its own window/device; the G1 paths below are unchanged.
         if (Gfx.Perf.PerfCli.Handles(args)) return Gfx.Perf.PerfCli.Run(args, typeof(Program).Assembly);
         string Opt(string name, string def) { int i = Array.IndexOf(args, name); return i >= 0 && i + 1 < args.Length ? args[i + 1] : def; }
+        // stage kit: the hero asset's bake runs on the CPU only (no graphics device)
+        if (args[0] == "--kit-bake") return KitBakeCli.Run(Opt("--out", Gfx.Engine.Assets.AssetRoot.Baked("kit/hero")), Opt("--commit", ""), Array.IndexOf(args, "--check") >= 0);
         bool shadows = Array.IndexOf(args, "--no-shadows") < 0;
         var size = Opt("--size", "1280x720").Split('x');
         int w = int.Parse(size[0], CultureInfo.InvariantCulture), h = int.Parse(size[1], CultureInfo.InvariantCulture);
@@ -74,6 +79,8 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
             {
                 case "--chars-costs":
                     return CharsCosts.Run(gd, info);
+                case "--kit-costs":
+                    return KitCosts.Run(gd, host, info, scenes);
                 case "--sysinfo":
                     Console.Write(info.ToText());
                     foreach (var (name, err) in host.Effects.WarmupAll())

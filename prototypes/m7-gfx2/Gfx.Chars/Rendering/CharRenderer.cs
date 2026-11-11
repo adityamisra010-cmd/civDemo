@@ -30,7 +30,9 @@ public sealed class CharRenderer : IDisposable
     /// <summary>Solves every instance's skin and morphs and uploads the palette. Call once per frame before drawing.</summary>
     public void Prepare(IReadOnlyList<CharInstance> instances)
     {
-        int bones = instances.Count > 0 ? instances[0].Asset.Skeleton.Count : 1;
+        // the palette row is as wide as the largest skeleton drawn (stage kit: props have one to a few bones)
+        int bones = 1;
+        foreach (var i in instances) bones = Math.Max(bones, i.Asset.Skeleton.Count);
         if (_palette == null || _palette.Bones != bones) { _palette?.Dispose(); _palette = new BonePalette(_gd, bones, Math.Max(4, instances.Count)); }
         _palette.Reset();
         foreach (var inst in instances)

@@ -45,8 +45,9 @@ external assets in `assets/` are pinned and fetched, but **no code uses them yet
 | `Gfx.Units/` | Skeleton, procedural soldier meshes and variation, clip library baked to a bone texture, instanced GPU crowd, battle-trace playback |
 | `Gfx.Avatar/`, `Gfx.Cinematics/` | Persistent avatar profile and era dress; outcome-driven cinematic planner and player |
 | `Gfx.Chars/` (stage chars) | Character file reader (`.g2ch`), GPU skinning with a morph stream, character material shaders, LODs, sockets, the cosmetic animation layer (locomotion blend, layers, IK, look, hit reactions) |
-| `tools/charbake/` (stage chars) | Python bake of identities, outfits, LODs and clip files from the MakeHuman CC0 core and the MPFB2 rig (`scripts/bake-chars.sh`) |
-| `Gfx.Demo/` | Executable: `--sysinfo`, `--list`, `--capture`, `--bench`, `--interactive`, `--chars-costs`; the `chars-*` scenes; forwards the benchmark options to `Gfx.Perf` |
+| `tools/charbake/` (stage chars) | Python bake of identities, outfits, LODs and clip files from the MakeHuman CC0 core and the MPFB2 rig (`scripts/bake-chars.sh`); stage kit adds `kitbake.py` and the `soldier_ancient` recipe (`scripts/bake-kit-outfits.sh`) |
+| `Gfx.Gear/` (stage kit) | The era kit generated in code: mesh builder and shapes, PBR map painter, items (aspis, shields, helmets, weapons, standards), sockets and grips, the hold constraint, authored combat clips, rigged bow and standard, the hero asset's glTF bake |
+| `Gfx.Demo/` | Executable: `--sysinfo`, `--list`, `--capture`, `--bench`, `--interactive`, `--chars-costs`, `--kit-bake`, `--kit-costs`; the `chars-*` and `kit-*` scenes; forwards the benchmark options to `Gfx.Perf` |
 | `Gfx.Perf/` | Victus benchmark harness (perf stage): `--suite`, `--sweep`, `--scene`, `--gpu-selftest`; `launcher/` (CivSimBench.exe source), `package/` (Windows package files). See `reports/perf.md` |
 | `Gfx.Tests/` | xunit; `[GfxFact]` device tests skip, not fail, when no GL device can be created |
 | `fixtures/` | `battle-trace-combinedarms-s7.json`, the labelled battle-trace fixture from G1; `ez-rng-oracle.txt` and `ez-tree-js-reference.json`, the ez-tree port's reference outputs (stage env) |
@@ -191,3 +192,27 @@ renderer (`CharRenderer.FrameSeed`), so a still is reproduced bit for bit only w
 same process. Capture whole scenes as `scripts/capture-chars.sh` does; `--shots face-34` alone draws other strand
 patterns (measured at the chars + env merge: the 20 `chars-hero` stills of a whole-scene capture equal the stage's
 own final captures byte for byte, `face-34` captured alone differs in its hair pixels only).
+
+## Era kit, hero asset and combat animation (stage kit)
+
+`Gfx.Gear` generates the era kit in code (no external file): helmets (Corinthian, Montefortino, nasal, kettle hat,
+great helm), shields (aspis, thureos, round, kite, heater), weapons (spear, xiphos, La Tène long sword, arming sword,
+axe, bow, arrow, quiver, scabbard, sling, matchlock musket) and standards, each with base colour, normal and
+occlusion-roughness-metallic maps painted in UV space. Items attach to the stage-chars rig through computed sockets
+(hands, forearm, hips, back, head) and a pose constraint that closes the fists on the grips, fixes strap shields to the
+forearm and turns central-grip shields about their bar. Combat clips (thrust, overhead and side cuts, shield block,
+bow draw and loose, hit, two deaths, surrender, victory) are authored as keys and solved by IK into clips at scene
+load; they blend with the stage-chars locomotion through the animator's layers. Rendering never feeds the simulation
+(DR42): nothing here reads or writes simulation state.
+
+```
+scripts/bake-kit.sh [--check]            # hero asset: $G2_ASSETS/baked/kit/hero/aspis.glb (+ MANIFEST.tsv, provenance JSON)
+scripts/bake-kit-outfits.sh [--check]    # garments of the kitted forces: $G2_ASSETS/baked/kit/outfits (needs the chars bake)
+dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --capture kit-hero|kit-gallery|kit-forces|kit-combat|kit-medieval --out DIR
+dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --kit-costs
+```
+
+`kit-hero` bakes the aspis in memory when the glTF file is missing; `kit-forces` and `kit-combat` need the outfit
+bake. Details, before/after captures, llvmpipe costs and what still looks placeholder: `reports/kit.md`; provenance:
+`assets/PROVENANCE.md` §3.11.
+

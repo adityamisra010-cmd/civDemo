@@ -44,7 +44,7 @@ public sealed class CharEffects : IEffectSource
         yield return SkinnedDepth(CharEffectNames.DepthAlpha, alpha: true);
     }
 
-    internal static EffectBuilder Attributes(EffectBuilder b) => b
+    public static EffectBuilder Attributes(EffectBuilder b) => b
         .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)
         .Attribute("vec3 a_nrm", VertexElementUsage.Normal, 0)
         .Attribute("vec4 a_tan", VertexElementUsage.Tangent, 0)

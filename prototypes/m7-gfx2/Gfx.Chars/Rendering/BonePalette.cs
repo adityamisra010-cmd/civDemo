@@ -32,7 +32,9 @@ public sealed class BonePalette : IDisposable
         if (Used == Capacity) Grow(Capacity * 2);
         int row = Used++;
         int o = row * Bones * 3;
-        for (int j = 0; j < Bones; j++)
+        int count = Math.Min(Bones, skin.Length);
+        for (int j = count; j < Bones; j++) { _data[o + 3 * j] = _data[o + 3 * j + 1] = _data[o + 3 * j + 2] = Vector4.Zero; }
+        for (int j = 0; j < count; j++)
         {
             ref readonly var m = ref skin[j];
             _data[o + 3 * j] = new Vector4(m.M11, m.M21, m.M31, m.M41);

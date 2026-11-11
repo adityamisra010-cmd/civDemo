@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Stage kit (project named Gfx.Gear: a Gfx.Kit namespace would shadow G1's Gfx.Units.Kit enum): the era kit (helmets, shields, weapons, armour, banners) generated in code with PBR maps, the hero
+       asset (bronze aspis) and its bake, runtime sockets and grip poses, and combat animation authored in code.
+       PRESENTATION ONLY: reads baked character files and published state, never writes simulation state. -->
+  <PropertyGroup>
+    <RootNamespace>Gfx.Gear</RootNamespace>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gfx.Engine\Gfx.Engine.csproj" />
+    <ProjectReference Include="..\Gfx.Chars\Gfx.Chars.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Gfx.Tests" />
+  </ItemGroup>
+</Project>
