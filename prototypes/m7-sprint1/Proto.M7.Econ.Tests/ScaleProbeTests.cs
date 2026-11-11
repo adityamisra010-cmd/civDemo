@@ -45,6 +45,27 @@ public class ScaleProbeTests
         Assert.DoesNotContain("PersonnelShort", t.Binding);
     }
 
+    /// <summary>[CB] SEMANTIC: a capped twin issues at most the cap's orders per settlement and is a lower bound of the full twin;
+    /// a cap at or above every settlement's adult-limited order count IS the full twin. Seed 1 at turn 25, no orders (the world of
+    /// the first test, whose full twin accepts 3,500 = 175 warbands): cap 2 issues at most 2 orders in each of the 12 settlements,
+    /// every one accepted (20 soldiers each: neither adults nor stone bind so few); cap 1,000,000 equals the full twin order for
+    /// order; the twins come back in the order of the caps, each recording its cap; a non-positive cap is refused.</summary>
+    [Fact]
+    public void CappedTwin_IsALowerBound_AndACapAboveEverySettlementIsTheFullTwin()
+    {
+        var timing = new StringWriter();
+        var (_, twins) = ScaleProbe.Run(1, ScaleDriver.None, new long[] { 25 }, new long[] { 25 }, new[] { 2L, 1_000_000L, long.MaxValue }, null, timing);
+        Assert.Equal(new[] { 2L, 1_000_000L, long.MaxValue }, twins.Select(t => t.CapPerSettlement).ToArray());
+        var (capped, wide, full) = (twins[0], twins[1], twins[2]);
+        Assert.InRange(capped.OrdersIssued, 1, 2 * 12);
+        Assert.Equal(20L * capped.OrdersIssued, capped.SoldiersAfter - capped.SoldiersBefore);   // every capped order accepted
+        Assert.Equal(3_500, full.SoldiersAfter - full.SoldiersBefore);
+        Assert.True(capped.SoldiersAfter - capped.SoldiersBefore < full.SoldiersAfter - full.SoldiersBefore);
+        Assert.Equal((full.OrdersIssued, full.SoldiersBefore, full.SoldiersAfter, full.Binding), (wide.OrdersIssued, wide.SoldiersBefore, wide.SoldiersAfter, wide.Binding));
+        Assert.Equal(3, timing.ToString().Split('\n', StringSplitOptions.RemoveEmptyEntries).Length);
+        Assert.Throws<ArgumentOutOfRangeException>(() => ScaleProbe.Run(1, ScaleDriver.None, new long[] { 1 }, new long[] { 1 }, new[] { 0L }, null, null));
+    }
+
     /// <summary>SEMANTIC (the predicate's own rules at their boundaries): a settlement with exactly `per` adults takes no formation
     /// (one adult stays), with per + 1 it takes one; the purse binds when its grain persons less the soldiers already owned are
     /// fewer; no recruitable identity means no bound.</summary>

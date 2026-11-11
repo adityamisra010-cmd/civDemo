@@ -314,6 +314,7 @@ public sealed class AutoBattle
             if (s.EmbarkedOn is not null) throw new NotSupportedException(string.Create(CultureInfo.InvariantCulture, $"formation {s.Id}: embarked formations have no AutoResolver model (TacticalResolver only)"));
             string? capErr = setup.Caps.Check(s.Profile.CapFamily, s.Count);
             if (capErr is not null) throw new ArgumentException($"formation {s.Id}: {capErr}");
+            EntityShare.Validate(s);                                                                   // [CB] D-082 DA5: persons behind entities
             ConditionMath.Validate(s.Experience, s.Leadership, s.Supply);
             var f = new AF
             {
@@ -904,7 +905,8 @@ public sealed class AutoBattle
         for (int i = 0; i < n; i++) if (inFightBefore[i] && !now[i]) { broke = true; break; }
         if (!broke) return;
         var ids = new long[n]; var sides = new int[n]; var starts = new long[n]; var morale = new long[n];
-        for (int i = 0; i < n; i++) { ids[i] = _f[i].Id; sides[i] = _f[i].Side; starts[i] = _f[i].Start; morale[i] = _f[i].Morale; }
+        // [CB] D-082 DA5: the formations' sizes are their PERSONS (EntityShare.PersonsOf; = the entity count when Persons is null)
+        for (int i = 0; i < n; i++) { ids[i] = _f[i].Id; sides[i] = _f[i].Side; starts[i] = EntityShare.PersonsOf(_f[i].Spec); morale[i] = _f[i].Morale; }
         if (!LocalWinMorale.Apply(_r.LocalWinMoraleRise, _r.MoraleMax, _spp, k, checked(_s.StartMs + k * _r.StepMs), ids, sides, starts,
                                   inFightBefore, now, _lastHitStep, morale, _localWins)) return;
         for (int i = 0; i < n; i++) _f[i].Morale = morale[i];

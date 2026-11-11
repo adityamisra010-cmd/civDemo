@@ -19,6 +19,14 @@ public class SandboxTests
 {
     private static readonly Vec2L West = Cell(8, 16), East = Cell(39, 16);
 
+    /// <summary>[CB, D-082 DA5] Battle result hashes of the sessions below as lane D wrote them, MEASURED on the base 0d2db74 (a
+    /// temporary probe in a scratchpad copy of that tree; reports/H-CB.md §6). Under DA5 a force is one formation, so the sessions that
+    /// fielded a force above the persons cap now create the base's formations explicitly (same ids, sizes and anchors); these pins
+    /// show their battles are the base's battles, so every other assertion of those tests is unchanged in meaning.</summary>
+    private const string BasePrisoners = "FD7F7EBC048110DCC64E91EB10BA2548C8B53CD6433C03A8C4F2F184619CBC6E";
+    private const string BaseConserves = "19781057BA3804E724813C301F944D352FA77E009829C1D8F62425709937BC8F";
+    private const string BaseReplaySeed4 = "768128280BBAECB3BCF542DB1BCB3FF1169667B7FFB43AAAFC55140FE95B0E06";
+
     private static SandboxSession QuickAiBattle(ulong seed = 11, int n0 = 50, int n1 = 50)
     {
         var s = new SandboxSession(SandboxMode.QuickBattle, OpenField(), seed);
@@ -54,13 +62,18 @@ public class SandboxTests
         Assert.Equal((Int128)SandboxSession.MintOpening, s.Ledger.Total(Commodity.People));
         s.AddForce(0, 4, 402, 60, West, out _);
         s.AddForce(0, 3, 301, 50, Cell(4, 8), out _);
-        s.AddForce(1, 3, 301, 90, East, out var east);
-        Assert.Equal(2, east.Length);                                                     // 90 at cap 50 -> 45 + 45
+        // [CB, D-082 DA5, moved pin] Here 90 heavy infantry were one AddForce, split at the persons cap into 45 + 45. Under DA5 one
+        // AddForce is ONE formation of 50 entities standing for 90 (MEASURED on the DA5 code: 1 formation, not 2). The base battle is
+        // kept by creating the split's two formations of 45 explicitly at its anchors; the result hash below equals the base's.
+        s.AddForce(1, 3, 301, 45, East, out var e1);
+        s.AddForce(1, 3, 301, 45, Cell(39, 20), out var e2);
+        Assert.Equal((1, 1), (e1.Length, e2.Length));
         Assert.Equal(SandboxSession.MintOpening - 200, s.Ledger.Balance(s.MintAccount));
         Assert.Equal((Int128)SandboxSession.MintOpening, s.Ledger.Total(Commodity.People));
         s.OpenDeployment();
         Assert.Equal(SandboxRefusal.None, s.CloseDeployment());
         s.StartBattle(SandboxCommand.Ai, SandboxCommand.Ai);
+        Assert.Equal(BaseConserves, s.Result!.ResultHash());                             // [CB] the base's battle
         Assert.Equal((Int128)SandboxSession.MintOpening, s.Ledger.Total(Commodity.People));
         long dead = 0, wounded = 0, captured = 0, deserted = 0;
         foreach (var c in s.Casualties)
@@ -81,6 +94,7 @@ public class SandboxTests
     {
         var s = PrisonersSession();
         Assert.Equal(ResolverKind.Tactical, s.ResolverUsed);
+        Assert.Equal(BasePrisoners, s.Result!.ResultHash());                             // [CB] the base's battle (see the session)
         long captured = s.Casualties.Sum(c => c.Captured), dead = s.Casualties.Sum(c => c.Dead);
         Assert.True(captured > 0, "the scenario must take prisoners");
         Assert.Equal(captured, s.CapturedTotal);
@@ -102,13 +116,19 @@ public class SandboxTests
     }
 
     /// <summary>The prisoners scenario: a passive warband of 30 (side 0, a player side that holds) whose West exit is walled off,
-    /// against 150 knowledge-AI warriors (side 1). TacticalResolver; seed 17. Its men who rout cannot escape and surrender.</summary>
+    /// against 150 knowledge-AI warriors (side 1). TacticalResolver; seed 17. Its men who rout cannot escape and surrender.
+    /// [CB, D-082 DA5, moved pin] The 150 were one AddForce, split at the persons cap into three formations of 50 (one person per
+    /// entity, which the per-formation pin below relies on). Under DA5 one AddForce of 150 is one formation of 50 entities standing
+    /// for 150 (MEASURED on the DA5 code: Start 50 against 150 persons). The three formations are now created explicitly at the split's
+    /// anchors, so the battle is the base's (result hash pinned).</summary>
     private static SandboxSession PrisonersSession()
     {
         var s = new SandboxSession(SandboxMode.ScenarioEditor, OpenField(), 17);
         for (int y = 0; y < 32; y++) Assert.Equal(SandboxRefusal.None, s.EditTerrain(1, y, TerrainClass.Wall));   // no way to the West edge
         s.AddForce(0, 3, 301, 30, West, out _);                                          // a warband holding
-        s.AddForce(1, 3, 301, 150, East, out _);
+        s.AddForce(1, 3, 301, 50, East, out _);
+        s.AddForce(1, 3, 301, 50, Cell(39, 20), out _);
+        s.AddForce(1, 3, 301, 50, Cell(39, 24), out _);
         Assert.Equal(SandboxRefusal.None, s.OpenDeployment());
         Assert.Equal(SandboxRefusal.None, s.CloseDeployment());
         Assert.Equal(SandboxRefusal.None, s.StartBattle(SandboxCommand.Player, SandboxCommand.Ai, player0: PassiveController.Instance));
@@ -126,13 +146,14 @@ public class SandboxTests
     /// held the field.
     /// </summary>
     [Theory]
-    [InlineData(11UL)]
-    [InlineData(13UL)]
-    [InlineData(4UL)]
-    public void SandboxAccounting_MatchesTheBattleResult_PerFormation(ulong seed)
+    [InlineData(11UL, "21080F443E9766C7655F9479728DCC4F5AD79767EFAB0D0807ED312B89908404")]
+    [InlineData(13UL, "C7F4A4289AE264BAAE5D9D9CA11F88F8AA91161F38B0F429EFEF5F81291FF841")]
+    [InlineData(4UL, "E7DE351BDD368D85421C61FB9B437BA778E894F87ABA2E46C844AF3CCDED4648")]
+    public void SandboxAccounting_MatchesTheBattleResult_PerFormation(ulong seed, string baseResultHash)
     {
         var s = AutoBattleSession(seed);
         Assert.Equal(ResolverKind.Auto, s.ResolverUsed);
+        Assert.Equal(baseResultHash, s.Result!.ResultHash());                            // [CB] the base's battle (see the session)
         long max = s.DeployedSetup!.Rules.MoraleMax, routed = 0, deserted = 0;
         Assert.Equal(4, s.Casualties.Count);
         foreach (var c in s.Casualties)
@@ -155,13 +176,17 @@ public class SandboxTests
         Assert.True(routed > 0 && deserted > 0, "routed escapes and deserters: the per-formation pin has teeth");
     }
 
-    /// <summary>An AI-vs-AI (AutoResolver) battle: 50 warriors and 60 archers (side 0) against 100 warriors (side 1).</summary>
+    /// <summary>An AI-vs-AI (AutoResolver) battle: 50 warriors and 60 archers (side 0) against 100 warriors (side 1).
+    /// [CB, D-082 DA5, moved pin] The 100 were one AddForce split at the persons cap into 50 + 50; under DA5 that is one formation of
+    /// 50 entities standing for 100 (MEASURED on the DA5 code: 3 casualty rows, not 4). The two formations are now created explicitly
+    /// at the split's anchors, so each battle is the base's (result hashes pinned by the theory).</summary>
     private static SandboxSession AutoBattleSession(ulong seed)
     {
         var s = new SandboxSession(SandboxMode.QuickBattle, OpenField(), seed);
         Assert.Equal(SandboxRefusal.None, s.AddForce(0, 3, 301, 50, West, out _));
         Assert.Equal(SandboxRefusal.None, s.AddForce(0, 4, 402, 60, Cell(4, 8), out _));
-        Assert.Equal(SandboxRefusal.None, s.AddForce(1, 3, 301, 100, East, out _));
+        Assert.Equal(SandboxRefusal.None, s.AddForce(1, 3, 301, 50, East, out _));
+        Assert.Equal(SandboxRefusal.None, s.AddForce(1, 3, 301, 50, Cell(39, 20), out _));
         Assert.Equal(SandboxRefusal.None, s.OpenDeployment());
         Assert.Equal(SandboxRefusal.None, s.CloseDeployment());
         Assert.Equal(SandboxRefusal.None, s.StartBattle(SandboxCommand.Ai, SandboxCommand.Ai));
@@ -169,25 +194,38 @@ public class SandboxTests
     }
 
     /// <summary>
-    /// [verification round 1, D-R1-03] READING C1 (caps proposal §2.2), pinned as the stand-ins' CURRENT behaviour so that a change
-    /// to either rule shows here: lane D's caps prototype counts PERSONS (a 3,000-person heavy-infantry formation is refused);
-    /// the Campaign Encounter inherits lane W's ENTITY rule (the same 3,000 persons fight as one formation of 50 entities, which
-    /// the battle-entry check accepts); the sandbox's own force creation splits 3,000 at the persons cap into 60 formations.
+    /// [CB, D-082 DA5] ONE RULE for lanes W and D. Until D-082 this test (named CampaignEncounter_FieldsLaneWsFormationsByTheEntityRule_
+    /// ReadingC1b) pinned READING C1's two rules side by side: lane D's caps prototype refused 3,000 heavy infantry (counted 3,000
+    /// persons, cap 50), the Campaign Encounter fielded them as one formation of 50 entities (lane W's rule), and Quick Battle split
+    /// them into 60 formations of 50. DA5 decided C1 (b), battlefield units (moved pins, MEASURED on the DA5 code: the check accepts
+    /// with counted 50 instead of refusing with 3,000; Quick Battle makes one formation; the encounter is unchanged). Now all three
+    /// agree: the check counts 50 entities; the encounter and Quick Battle field the SAME formation for the same family and persons
+    /// (equal specs: id, count, persons, anchor, profile) and so fight the same battle, with the same casualty rows and session hash.
     /// </summary>
     [Fact]
-    public void CampaignEncounter_FieldsLaneWsFormationsByTheEntityRule_ReadingC1b()
+    public void CampaignEncounterAndForceCreation_FieldTheSameFormation_TheCapCountsBattleEntities_DA5()
     {
         var v = DirectorCaps.Values.Check(1, CapFamily.HeavyInfantry, 3_000);
-        Assert.Equal((CapRefusal.ExceedsCap, 3_000L, 50L), (v.Refusal, v.Counted, v.Cap));                       // (a) persons
+        Assert.Equal((CapRefusal.None, 50L, 50L), (v.Refusal, v.Counted, v.Cap));
         var enc = SandboxSession.FromEncounter(new CampaignEncounterSnapshot(OpenField(), new[] { (0, 0, 3, 301, 3_000L, West), (1, 1, 3, 301, 2_500L, East) }), 3);
         Assert.Equal(2, enc.Formations.Count);
-        Assert.Equal((3_000L, 50), (enc.Persons(enc.Formations[0].Id), enc.Formations[0].Count));                // (b) entities
-        Assert.Equal((2_500L, 50), (enc.Persons(enc.Formations[1].Id), enc.Formations[1].Count));
+        Assert.Equal((3_000L, 50, (long?)3_000), (enc.Persons(enc.Formations[0].Id), enc.Formations[0].Count, enc.Formations[0].Persons));
+        Assert.Equal((2_500L, 50, (long?)2_500), (enc.Persons(enc.Formations[1].Id), enc.Formations[1].Count, enc.Formations[1].Persons));
         Assert.Null(ProposedCaps.Proposed.Check(CapFamily.HeavyInfantry, enc.Formations[0].Count));
-        var wide = new SandboxSession(SandboxMode.QuickBattle, new TerrainGrid(120, 100, CellMm, TerrainClass.Open), 3);
-        Assert.Equal(SandboxRefusal.None, wide.AddForce(0, 3, 301, 3_000, Cell(30, 0), out var ids));
-        Assert.Equal(60, ids.Length);
-        Assert.All(ids, i => Assert.Equal(50, wide.Formations.Single(f => f.Id == i).Count));
+        var quick = new SandboxSession(SandboxMode.QuickBattle, OpenField(), 3);
+        Assert.Equal(SandboxRefusal.None, quick.AddForce(0, 3, 301, 3_000, West, out var q0));
+        Assert.Equal(SandboxRefusal.None, quick.AddForce(1, 3, 301, 2_500, East, out var q1));
+        Assert.Equal((1, 1), (q0.Length, q1.Length));
+        Assert.Equal(enc.Formations.ToArray(), quick.Formations.ToArray());
+        foreach (var x in new[] { enc, quick })
+        {
+            Assert.Equal(SandboxRefusal.None, x.OpenDeployment());
+            Assert.Equal(SandboxRefusal.None, x.CloseDeployment());
+            Assert.Equal(SandboxRefusal.None, x.StartBattle(SandboxCommand.Ai, SandboxCommand.Ai));
+        }
+        Assert.Equal(enc.Result!.ResultHash(), quick.Result!.ResultHash());
+        Assert.Equal(enc.Casualties.ToArray(), quick.Casualties.ToArray());
+        Assert.Equal(enc.HashHex(), quick.HashHex());
     }
 
     /// <summary>ISOLATION (DR30 "Isolated from campaign population and campaign casualties"): a Campaign Encounter loaded from lane
@@ -260,20 +298,38 @@ public class SandboxTests
         foreach (var f in SandboxCatalogue.All) Assert.Equal(f.FamilyKey, f.Profile.FamilyKey);
     }
 
-    /// <summary>READING S1, alternative (a) applied: an experimental force larger than one formation's DR24 cap is created as the
-    /// fewest formations within the cap (the engine refuses an over-cap formation); uncapped classes stay one formation.</summary>
+    /// <summary>READING S1, alternative (a) applied (confirmed by D-082 DA4: "caps in sandbox apply"): an experimental force larger
+    /// than one formation's DR24 cap is created as the fewest formations within the cap; uncapped classes stay one formation.
+    /// [CB, D-082 DA5, moved pins] Until D-082 the cap counted persons, so 130 heavy infantry were split into 44 + 43 + 43 and 5 snipers
+    /// into 2 + 2 + 1 (this test was ForceCreation_SplitsAtTheDirectorCap; MEASURED on the DA5 code: [50] and [2] instead). The cap now
+    /// counts battle entities (DA5), so the fewest formations within it is ONE for every class the sandbox fields: min(persons, cap)
+    /// entities standing for all the persons (soldier classes), one entity per person (uncapped, lane N's CAP-5 treatment). Every
+    /// formation passes the battle-entry check, and its entity count is the one rule's (DirectorCaps.EntitiesOf).</summary>
     [Fact]
-    public void ForceCreation_SplitsAtTheDirectorCap()
+    public void ForceCreation_IsOneFormation_WithinTheCapInBattleEntities_DA5()
     {
         var s = new SandboxSession(SandboxMode.QuickBattle, OpenField(), 1);
         s.AddForce(0, 3, 301, 130, Cell(4, 2), out var hi);
         s.AddForce(0, 4, 4990, 5, Cell(10, 2), out var sn);
         s.AddForce(1, 8, 4992, 100, Cell(40, 2), out var gun);
-        long[] Sizes(long[] ids) => ids.Select(i => s.Formations.Single(f => f.Id == i).Count).Select(c => (long)c).ToArray();
-        Assert.Equal(new long[] { 44, 43, 43 }, Sizes(hi));
-        Assert.Equal(new long[] { 2, 2, 1 }, Sizes(sn));
-        Assert.Equal(new long[] { 100 }, Sizes(gun));
-        foreach (var f in s.Formations) Assert.Null(ProposedCaps.Proposed.Check(f.Profile.CapFamily, f.Count));
+        s.AddForce(1, 4, 402, 60, Cell(40, 10), out var ar60);
+        s.AddForce(1, 4, 402, 61, Cell(40, 20), out var ar61);
+        (int Count, long? Persons, long Ledger) Of(long[] ids)
+        {
+            Assert.Single(ids);
+            var f = s.Formations.Single(x => x.Id == ids[0]);
+            return (f.Count, f.Persons, s.Persons(f.Id));
+        }
+        Assert.Equal((50, (long?)130, 130L), Of(hi));
+        Assert.Equal((2, (long?)5, 5L), Of(sn));
+        Assert.Equal((100, (long?)100, 100L), Of(gun));
+        Assert.Equal((60, (long?)60, 60L), Of(ar60));                 // at the cap: one person per entity
+        Assert.Equal((60, (long?)61, 61L), Of(ar61));                 // one above: 60 entities stand for 61 persons
+        foreach (var f in s.Formations)
+        {
+            Assert.Null(ProposedCaps.Proposed.Check(f.Profile.CapFamily, f.Count));
+            Assert.Equal(DirectorCaps.Values.EntitiesOf(f.Profile.CapFamily, s.Persons(f.Id)), f.Count);
+        }
     }
 
     /// <summary>DR31 / READING R5: deployment only through lane TR's DeploymentPhase — no battle before a valid deployment, the
@@ -347,17 +403,23 @@ public class SandboxTests
             s.EditTerrain(22, 16, TerrainClass.Forest);
             s.EditTerrain(23, 15, TerrainClass.Hills, 4_000);
             s.EditTerrain(-1, 0, TerrainClass.Forest);                    // refused, logged
-            s.AddForce(0, 3, 301, 70, Cell(6, 10), out _);
+            // [CB, D-082 DA5, moved pin] 70 and 100 heavy infantry were split at the persons cap (35 + 35 at (6, 10), (6, 14); 50 + 50
+            // at (40, 10), (40, 14)) and the second part of the 100 was redeployed (e[1]); under DA5 each AddForce is one formation, so
+            // e[1] did not exist (MEASURED on the DA5 code: IndexOutOfRangeException). The split's formations are created explicitly.
+            s.AddForce(0, 3, 301, 35, Cell(6, 10), out _);
+            s.AddForce(0, 3, 301, 35, Cell(6, 14), out _);
             s.AddForce(0, 4, 402, 60, Cell(3, 20), out _);
-            s.AddForce(1, 3, 301, 100, Cell(40, 10), out var e);
+            s.AddForce(1, 3, 301, 50, Cell(40, 10), out _);
+            s.AddForce(1, 3, 301, 50, Cell(40, 14), out var e);
             s.OpenDeployment();
-            s.Deploy(1, e[1], Cell(20, 20));                              // refused (middle third)
-            s.Deploy(1, e[1], Cell(42, 22));
+            s.Deploy(1, e[0], Cell(20, 20));                              // refused (middle third)
+            s.Deploy(1, e[0], Cell(42, 22));
             s.CloseDeployment();
             s.StartBattle(SandboxCommand.Ai, SandboxCommand.Ai);
             return s;
         }
         var a = Build(4);
+        Assert.Equal(BaseReplaySeed4, a.Result!.ResultHash());                           // [CB] the base's battle
         var b = SandboxSession.Replay(a);
         Assert.Equal(a.HashHex(), b.HashHex());
         Assert.Equal(a.Log.ToArray(), b.Log.ToArray());
@@ -484,42 +546,49 @@ public class SandboxTests
     }
 
     /// <summary>
-    /// [verification round 1, D-R1-14] A force of modest size is laid out INSIDE the field: column by column from the anchor, 4 cells
-    /// apart, rows wrapped inside the grid, further columns toward the side's own exit edge; it deploys through the thirds. A force
-    /// that cannot fit is refused whole (OutOfGrid; nothing minted). Before round 1 only the first anchor was checked: a 1,000-man
-    /// warband put 16 of its 20 formations off the 48 x 32 field and deployment was refused (verifier probe P6). Small forces keep
-    /// their places (the first column is the old layout).
+    /// [verification round 1, D-R1-14] A force of modest size was laid out INSIDE the field: its parts column by column from the anchor,
+    /// 4 cells apart; a force that could not fit was refused whole (OutOfGrid; nothing minted).
+    /// [CB, D-082 DA5, moved pins] That layout existed for the parts of a force split at the persons cap: 1,000 heavy infantry were 20
+    /// formations at x = 8, 4, 0, and 1,250 at (4, 16) needed a fourth column and were refused (this test was
+    /// ForceCreation_LargeForce_IsLaidOutInsideTheField_AndDeploys; MEASURED on the DA5 code: 1 formation instead of 20). Under DA5 a
+    /// force is ONE formation of 50 entities at its anchor, so nothing is laid out: it deploys, and 1,250 at (4, 16) is accepted.
+    /// THE GAP, MEASURED: the battle does not yet scale an entity by the persons it stands for (docs/m7-plan/battle-entity-proposal.md
+    /// §3, a PROPOSAL, not built). 1,000 against 1,000 fields 50 against 50 entities and fights exactly the battle of 50 against 50
+    /// (equal result hashes); only the collapse sees the persons: each category holds exactly 20 persons per entity (1,000 ÷ 50).
     /// </summary>
     [Fact]
-    public void ForceCreation_LargeForce_IsLaidOutInsideTheField_AndDeploys()
+    public void ForceCreation_LargeForce_IsOneFormation_AndDeploys_TheBattleDoesNotYetScaleEntities_DA5()
     {
-        var s = new SandboxSession(SandboxMode.QuickBattle, OpenField(), 1);
-        Assert.Equal(SandboxRefusal.None, s.AddForce(0, 3, 301, 1_000, West, out var west));           // West = cell (8, 16)
-        Assert.Equal(20, west.Length);
-        var anchors = west.Select(i => s.Formations.Single(f => f.Id == i).Anchor).ToArray();
-        for (int k = 0; k < anchors.Length; k++)
-            Assert.Equal(Cell(8 - 4 * (k / 8), (16 + 4 * (k % 8)) % 32), anchors[k]);                  // columns x = 8, 4, 0
-        Assert.Equal(anchors.Length, anchors.Distinct().Count());
-        Assert.Equal(SandboxRefusal.None, s.AddForce(1, 3, 301, 1_000, East, out var east));           // East = cell (39, 16)
-        for (int k = 0; k < east.Length; k++)
-            Assert.Equal(Cell(39 + 4 * (k / 8), (16 + 4 * (k % 8)) % 32), s.Formations.Single(f => f.Id == east[k]).Anchor);   // x = 39, 43, 47
-        Assert.Equal(SandboxRefusal.None, s.OpenDeployment());
-        Assert.Equal(SandboxRefusal.None, s.CloseDeployment());                                          // every part in its own third
-        Assert.Equal(40, s.DeployedSetup!.Formations.Length);
-        // A force that cannot fit is refused whole: 1,250 heavy infantry = 25 parts need a fourth column (x = 4, 0, -4).
+        SandboxSession Fight(long persons)
+        {
+            var s = new SandboxSession(SandboxMode.QuickBattle, OpenField(), 1);
+            Assert.Equal(SandboxRefusal.None, s.AddForce(0, 3, 301, persons, West, out var w));
+            Assert.Equal(SandboxRefusal.None, s.AddForce(1, 3, 301, persons, East, out var e));
+            Assert.Equal((1, 1), (w.Length, e.Length));
+            Assert.Equal((West, 50), (s.Formations.Single(f => f.Id == w[0]).Anchor, s.Formations.Single(f => f.Id == w[0]).Count));
+            Assert.Equal(SandboxRefusal.None, s.OpenDeployment());
+            Assert.Equal(SandboxRefusal.None, s.CloseDeployment());
+            Assert.Equal(2, s.DeployedSetup!.Formations.Length);
+            Assert.Equal(SandboxRefusal.None, s.StartBattle(SandboxCommand.Ai, SandboxCommand.Ai));
+            return s;
+        }
+        var big = Fight(1_000);
+        var small = Fight(50);
+        Assert.Equal(small.Result!.ResultHash(), big.Result!.ResultHash());
+        Assert.Equal(2, big.Casualties.Count);
+        for (int i = 0; i < 2; i++)
+        {
+            var b = big.Casualties[i]; var m = small.Casualties[i];
+            Assert.Equal((1_000L, 20 * m.Fit, 20 * m.Wounded, 20 * m.Dead, 20 * m.Captured), (b.Persons, b.Fit, b.Wounded, b.Dead, b.Captured));
+            Assert.Equal(20 * (m.RoutedReturned + m.Deserted), b.RoutedReturned + b.Deserted);
+        }
+        Assert.True(big.DeadTotal > 0);
+        Assert.Equal(20 * small.DeadTotal, big.DeadTotal);
         var t = new SandboxSession(SandboxMode.QuickBattle, OpenField(), 1);
         long mint = t.Ledger.Balance(t.MintAccount);
-        Assert.Equal(SandboxRefusal.OutOfGrid, t.AddForce(0, 3, 301, 1_250, Cell(4, 16), out var none));
-        Assert.Empty(none);
-        Assert.Empty(t.Formations);
-        Assert.Equal(mint, t.Ledger.Balance(t.MintAccount));
-        Assert.Equal((byte)SandboxRefusal.OutOfGrid, t.Log[^1].Refusal);
-        Assert.Equal(SandboxRefusal.None, t.AddForce(0, 3, 301, 1_200, Cell(8, 0), out var fits));      // 24 parts: x = 8, 4, 0
-        Assert.Equal(24, fits.Length);
-        // small forces: the first column is the pre-round-1 layout
-        var u = new SandboxSession(SandboxMode.QuickBattle, OpenField(), 1);
-        Assert.Equal(SandboxRefusal.None, u.AddForce(0, 3, 301, 130, Cell(4, 2), out var hi));
-        Assert.Equal(new[] { Cell(4, 2), Cell(4, 6), Cell(4, 10) }, hi.Select(i => u.Formations.Single(f => f.Id == i).Anchor).ToArray());
+        Assert.Equal(SandboxRefusal.None, t.AddForce(0, 3, 301, 1_250, Cell(4, 16), out var one));
+        Assert.Equal((50, (long?)1_250, Cell(4, 16)), (t.Formations.Single().Count, t.Formations.Single().Persons, t.Formations.Single().Anchor));
+        Assert.Equal(mint - 1_250, t.Ledger.Balance(t.MintAccount));
     }
 
     /// <summary>

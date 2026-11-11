@@ -37,6 +37,11 @@ public enum SandboxRefusal : byte
     NonPositive = 9,
     /// <summary>The deployment phase is already open (forces can no longer be added: the thirds are being edited).</summary>
     DeploymentOpen = 10,
+    /// <summary>[CB, verification round 1, CB-R1-02] The sandbox mint holds fewer people than the force asks for (its opening
+    /// <see cref="SandboxSession.MintOpening"/> less every force minted so far). Refused before anything is minted: under D-082 DA5
+    /// a force of any size is one formation, so a force above the mint reached the mint transfer, which threw after the formation's
+    /// id and ledger account were taken and before the edit was logged.</summary>
+    MintShort = 11,
 }
 
 /// <summary>[D] Kinds of sandbox session edits (the session log; stable codes).</summary>

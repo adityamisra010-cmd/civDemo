@@ -166,6 +166,15 @@ public sealed record FormationSpec(long Id, int Side, UnitProfile Profile, int C
     public WeaponSpec[]? Weapons { get; init; }
     /// <summary>Land only: the formation starts the battle aboard this own transport formation (Anchor is then unused).</summary>
     public long? EmbarkedOn { get; init; }
+
+    /// <summary>[CB, D-082 DA5] Land only: the persons the formation's <see cref="Count"/> battle entities stand for (null = Count, one
+    /// person per entity: every battle built before D-082). A campaign formation of P persons fights as n ≤ cap entities
+    /// (Caps.DirectorCaps.EntitiesOf), each standing for the equal share P ÷ n; at least one person per entity (P ≥ n, checked by
+    /// both resolvers through <see cref="EntityShare.Validate"/>). The resolvers read it ONLY as the formation's weight in lane MOR's
+    /// "fight it won" rule (<see cref="EntityShare.PersonsOf"/>); they do not scale an entity's hit points or output by its share
+    /// (docs/m7-plan/battle-entity-proposal.md §3, PROPOSAL, not built), and the collapse takes the persons from the campaign's ledger.
+    /// Vessel and aircraft formations keep their crews in the battle's personnel ledger (lane N), so it must be null for them.</summary>
+    public long? Persons { get; init; }
 }
 
 /// <summary>Per-side configuration.</summary>

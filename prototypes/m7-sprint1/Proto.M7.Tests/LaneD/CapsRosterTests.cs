@@ -36,10 +36,13 @@ public class CapsRosterTests
         Assert.Equal(CountedObject.Uncounted, DirectorCaps.CountedObjectOf(CapFamily.Uncapped));
     }
 
+    /// <summary>[CB, D-082 DA5, moved pins] The three soldier-class rows (heavy infantry 50, archers 60, snipers 2) were here: a
+    /// soldier formation was refused one person above its cap (READING C1 (a), persons). Under DA5 a soldier cap bounds the battle
+    /// entities the formation fights as, min(persons, cap), so one person above the cap is accepted (MEASURED on the DA5 code: the
+    /// three rows failed with MaxPersons long.MaxValue for 50, 60 and 2). They moved to
+    /// <see cref="Create_SoldierClasses_AreNeverRefusedForSize_TheyCountMinOfPersonsAndCapEntities_DA5"/>. The machine classes are
+    /// unchanged: one entity per machine, so a person above cap × crew needs a machine past the cap.</summary>
     [Theory]
-    [InlineData(CapFamily.HeavyInfantry, 50)]
-    [InlineData(CapFamily.ArchersLightInfantry, 60)]
-    [InlineData(CapFamily.Snipers, 2)]
     [InlineData(CapFamily.Tanks, 5 * TankCrew)]
     [InlineData(CapFamily.Mortars, 5 * MortarCrew)]
     [InlineData(CapFamily.Ships, 5 * HullCrew)]
@@ -58,6 +61,30 @@ public class CapsRosterTests
         Assert.Equal(DirectorCaps.CapOf(cls) + 1, over.Counted);   // ceil: a partly crewed machine is still a machine
         Assert.Equal(DirectorCaps.CapOf(cls), over.Cap);
         Assert.Equal(before, Snapshot(r));                           // a refused edit changes nothing
+    }
+
+    /// <summary>[CB, D-082 DA5] A soldier cap counts the battle entities the formation fights as, min(persons, cap): a soldier
+    /// formation is accepted at any positive size (its persons are limited by the economy, here the depot), counted at most its cap;
+    /// its full-strength persons (one person per entity) is the cap, its maximum persons long.MaxValue. The three rows moved here from
+    /// <see cref="Create_AcceptedAtTheCap_RefusedOnePersonAbove"/> (one person above the cap is accepted now).</summary>
+    [Theory]
+    [InlineData(CapFamily.HeavyInfantry, 50)]
+    [InlineData(CapFamily.ArchersLightInfantry, 60)]
+    [InlineData(CapFamily.Snipers, 2)]
+    public void Create_SoldierClasses_AreNeverRefusedForSize_TheyCountMinOfPersonsAndCapEntities_DA5(CapFamily cls, long cap)
+    {
+        var r = Roster(depot0: 2_000_000);
+        Assert.Equal((long.MaxValue, cap, cap), (r.Caps.MaxPersons(cls), r.Caps.FullStrengthPersons(cls), DirectorCaps.CapOf(cls)));
+        long id = 1;
+        foreach (long persons in new[] { 1, cap - 1, cap, cap + 1, 3 * cap + 7, 1_000_000 })
+        {
+            if (persons <= 0) continue;
+            var v = r.Create(0, id++, cls, 1, persons);
+            Assert.Equal((CapRefusal.None, Math.Min(persons, cap), cap), (v.Refusal, v.Counted, v.Cap));
+            Assert.Equal(Math.Min(persons, cap), r.Caps.EntitiesOf(cls, persons));
+        }
+        Assert.Equal(CapRefusal.DepotShort, r.Create(0, id, cls, 1, 1_000_000).Refusal);   // the economy (the depot) binds, not the cap
+        Assert.Equal(r.OpeningPersons, r.TotalPersons);
     }
 
     [Fact]
@@ -93,8 +120,14 @@ public class CapsRosterTests
         Assert.True(r.Create(0, 1, CapFamily.HeavyInfantry, 301, 30).Accepted);
         Assert.Equal(CapRefusal.DuplicateId, r.Create(1, 1, CapFamily.HeavyInfantry, 301, 10).Refusal);
         Assert.Equal(0, r.DepotOf(0));
-        // the cap is checked before the depot: an over-cap request is ExceedsCap even when the depot is short too
-        Assert.Equal(CapRefusal.ExceedsCap, r.Create(0, 2, CapFamily.HeavyInfantry, 301, 51).Refusal);
+        // the cap is checked before the depot: an over-cap request is ExceedsCap even when the depot is short too.
+        // [CB, D-082 DA5, moved pin] This was pinned with 51 heavy infantry (ExceedsCap). Under DA5 a soldier class is never over its
+        // cap (51 persons fight as 50 entities), so the same request is refused only by the empty depot (MEASURED on the DA5 code:
+        // DepotShort, not ExceedsCap). The cap-before-depot order is pinned on a machine class instead: 21 tank crew at 4 per tank
+        // are 6 tanks > 5.
+        Assert.Equal(CapRefusal.DepotShort, r.Create(0, 2, CapFamily.HeavyInfantry, 301, 51).Refusal);
+        var v = r.Create(0, 2, CapFamily.Tanks, 605, 5 * TankCrew + 1);
+        Assert.Equal((CapRefusal.ExceedsCap, 6L, 5L), (v.Refusal, v.Counted, v.Cap));
     }
 
     [Fact]
@@ -131,12 +164,24 @@ public class CapsRosterTests
         Assert.Equal(CapRefusal.ClassMismatch, r.Merge(0, 1, 4).Refusal);
         Assert.Equal(CapRefusal.ClassMismatch, r.Merge(0, 1, 5).Refusal);
         Assert.Equal(CapRefusal.NotOwner, r.Merge(0, 1, 6).Refusal);
-        var over = r.Merge(0, 1, 3);
-        Assert.Equal(CapRefusal.ExceedsCap, over.Refusal);
-        Assert.Equal(51, over.Counted);
+        // [CB, D-082 DA5, moved pin] 30 + 21 = 51 heavy infantry was refused ExceedsCap (counted 51 persons). Under DA5 it is
+        // accepted: the merged formation fights as 50 entities standing for 51 persons (MEASURED on the DA5 code: None, not
+        // ExceedsCap). The over-cap merge is pinned on tanks (machine class: one entity per tank): 12 + 9 crew at 4 per tank = 21
+        // persons = 6 tanks > 5.
+        var merged = r.Merge(0, 1, 3);
+        Assert.Equal((CapRefusal.None, 50L, 50L), (merged.Refusal, merged.Counted, merged.Cap));
+        Assert.Equal(51, r.Find(1)!.Persons);
+        Assert.Null(r.Find(3));                                                          // the absorbed formation is gone
         Assert.True(r.Merge(0, 1, 2).Accepted);
-        Assert.Equal(50, r.Find(1)!.Persons);
-        Assert.Null(r.Find(2));                                                          // the absorbed formation is gone
+        Assert.Equal(71, r.Find(1)!.Persons);
+        Assert.Null(r.Find(2));
+        Assert.True(r.Create(0, 7, CapFamily.Tanks, 605, 12).Accepted);
+        Assert.True(r.Create(0, 8, CapFamily.Tanks, 605, 9).Accepted);
+        Assert.True(r.Create(0, 9, CapFamily.Tanks, 605, 8).Accepted);
+        var over = r.Merge(0, 7, 8);
+        Assert.Equal((CapRefusal.ExceedsCap, 6L), (over.Refusal, over.Counted));
+        Assert.True(r.Merge(0, 7, 9).Accepted);                                          // 20 = 5 tanks
+        Assert.Equal(20, r.Find(7)!.Persons);
         Assert.Equal(r.OpeningPersons, r.TotalPersons);
     }
 
@@ -288,7 +333,15 @@ public class CapsRosterTests
     }
 
     /// <summary>TIE-DENSE: every formation at the same fill fraction. Recruits go round-robin in ascending id; the result and the
-    /// roster hash do not depend on the order in which the formations were created.</summary>
+    /// roster hash do not depend on the order in which the formations were created.
+    /// [CB, D-082 DA5, moved pin] The eight formations were heavy infantry at 10 of 50. Under DA5 a soldier formation has no persons
+    /// cap to fill and takes no part (MEASURED on the DA5 code: [0, 0, 0, 0, 0, 0, 0, 0] instead of [2, 2, 2, 2, 2, 1, 1, 1]). The same
+    /// tie-dense property is pinned on tanks: 4 crew of 20 (5 tanks × 4, the TEST INPUT crew), the same fill 1/5; one heavy-infantry
+    /// formation in the roster gets nothing.
+    /// [CB, verification round 1, CB-R1-01] Superseded attribution: "Under DA5 a soldier formation has no persons cap to fill and takes
+    /// no part" is READING CB-4 (a), this lane's choice for ReinforceToCaps, not something DA5 forces. Under alternative (b) (soldier
+    /// formations filled to their full complement of entities, one person each) the base test of 0d2db74 passes unchanged and the
+    /// heavy-infantry formation below would take part (MEASURED, scratchpad probe). This pin moved because of READING CB-4 (a).</summary>
     [Fact]
     public void ReinforceToCaps_TieDense_RoundRobinByIdAndIndependentOfCreationOrder()
     {
@@ -299,8 +352,11 @@ public class CapsRosterTests
         {
             var order = TestSupport.Permutation(ids.Length, (ulong)(100 + perm));
             var r = Roster(depot0: 1_000);
-            foreach (int k in order) Assert.True(r.Create(0, ids[k], CapFamily.HeavyInfantry, 301, 10).Accepted);
+            foreach (int k in order) Assert.True(r.Create(0, ids[k], CapFamily.Tanks, 605, 4).Accepted);
+            Assert.True(r.Create(0, 99, CapFamily.HeavyInfantry, 301, 10).Accepted);      // a soldier formation: no part (READING CB-4 (a))
             var got = r.ReinforceToCaps(0, 13);
+            Assert.Equal(0, got[^1]);
+            got = got[..^1];
             // ascending id 3,7,12,19,30,41,56,88: 13 = 8 + 5 -> the five lowest ids get 2, the rest 1
             Assert.Equal(new long[] { 2, 2, 2, 2, 2, 1, 1, 1 }, got);
             first ??= got;
@@ -311,31 +367,39 @@ public class CapsRosterTests
         }
     }
 
-    /// <summary>TIE-DENSE across classes: 10/50 (heavy infantry) and 12/60 (archers) are the same fraction; the exact
-    /// cross-multiplication sees the tie and the id breaks it. An independent oracle (re-sort every step) agrees.</summary>
+    /// <summary>TIE-DENSE across classes: 4/20 (tanks, 5 × 4 crew) and 200/1,000 (ships, 5 × 200 crew) are the same fraction; the
+    /// exact cross-multiplication sees the tie and the id breaks it. An independent oracle (re-sort every step) agrees.
+    /// [CB, D-082 DA5, moved pin] The tie was 10/50 (heavy infantry) = 12/60 (archers), with snipers at 1/2. Under DA5 soldier
+    /// formations have no persons cap and take no part (MEASURED on the DA5 code: [0, 0, 0, 0] instead of the oracle's [0, 11, 0, 12]).
+    /// The same exact cross-class tie is pinned on two machine classes (TEST INPUT crews); a heavy-infantry formation and an
+    /// uncapped one take no part.
+    /// [CB, verification round 1, CB-R1-01] Superseded attribution: "Under DA5 soldier formations have no persons cap and take no part"
+    /// is READING CB-4 (a), not DA5 itself; under alternative (b) the base test of 0d2db74 passes unchanged (MEASURED, scratchpad
+    /// probe). This pin moved because of READING CB-4 (a).</summary>
     [Fact]
     public void ReinforceToCaps_ExactFractionTiesAcrossClasses_BrokenByIdOnly_MatchesOracle()
     {
-        var r = Roster(depot0: 1_000);
-        Assert.True(r.Create(0, 9, CapFamily.ArchersLightInfantry, 402, 12).Accepted);   // 12/60 = 1/5
-        Assert.True(r.Create(0, 4, CapFamily.HeavyInfantry, 301, 10).Accepted);          // 10/50 = 1/5
-        Assert.True(r.Create(0, 6, CapFamily.Snipers, 4990, 1).Accepted);                // 1/2: last
+        var r = Roster(depot0: 2_000);
+        Assert.True(r.Create(0, 9, CapFamily.Ships, 906, 200).Accepted);                 // 200/1,000 = 1/5
+        Assert.True(r.Create(0, 4, CapFamily.Tanks, 605, 4).Accepted);                   // 4/20 = 1/5
+        Assert.True(r.Create(0, 6, CapFamily.Helicopters, 1102, 14).Accepted);           // 14/21 = 2/3: last
         Assert.True(r.Create(0, 2, CapFamily.Uncapped, 801, 3).Accepted);                // takes no part
-        var before = new long[] { 3, 10, 1, 12 };                                        // ascending id 2,4,6,9
-        var max = new long[] { -1, 50, 2, 60 };
+        Assert.True(r.Create(0, 3, CapFamily.HeavyInfantry, 301, 10).Accepted);          // takes no part (READING CB-4 (a))
+        var before = new long[] { 3, 10, 4, 14, 200 };                                   // ascending id 2,3,4,6,9
+        var max = new long[] { -1, -1, 5 * TankCrew, 3 * HeliCrew, 5 * HullCrew };
         var got = r.ReinforceToCaps(0, 23);
-        var oracle = Oracle(before, max, new long[] { 2, 4, 6, 9 }, 23);
+        var oracle = Oracle(before, max, new long[] { 2, 3, 4, 6, 9 }, 23);
         Assert.Equal(oracle, got);
-        Assert.Equal(0, got[0]);                      // uncapped
-        Assert.Equal(23, got[1] + got[2] + got[3]);
-        Assert.Equal(1_000 - 26 - 23, r.DepotOf(0));
-        // One recruit at the exact tie 10/50 = 12/60: the lower id (4) takes it, whatever the creation order.
-        foreach (bool archersFirst in new[] { true, false })
+        Assert.Equal((0L, 0L), (got[0], got[1]));     // uncapped, soldier
+        Assert.Equal(23, got[2] + got[3] + got[4]);
+        Assert.Equal(2_000 - 231 - 23, r.DepotOf(0));
+        // One recruit at the exact tie 4/20 = 200/1,000: the lower id (4) takes it, whatever the creation order.
+        foreach (bool shipsFirst in new[] { true, false })
         {
-            var t = Roster(depot0: 100);
-            if (archersFirst) t.Create(0, 9, CapFamily.ArchersLightInfantry, 402, 12);
-            t.Create(0, 4, CapFamily.HeavyInfantry, 301, 10);
-            if (!archersFirst) t.Create(0, 9, CapFamily.ArchersLightInfantry, 402, 12);
+            var t = Roster(depot0: 1_000);
+            if (shipsFirst) t.Create(0, 9, CapFamily.Ships, 906, 200);
+            t.Create(0, 4, CapFamily.Tanks, 605, 4);
+            if (!shipsFirst) t.Create(0, 9, CapFamily.Ships, 906, 200);
             Assert.Equal(new long[] { 1, 0 }, t.ReinforceToCaps(0, 1));
         }
         // the comparison is exact (cross-multiplication)
@@ -345,30 +409,45 @@ public class CapsRosterTests
     }
 
     /// <summary>[verification round 2, D-R2-03] ReinforceToCaps' two stopping rules (its documentation: "Stops when no capped
-    /// formation has room or the depot is empty"), each binding alone, and what it returns is what moved. Two heavy-infantry
-    /// formations of 45 (cap 50), 20 recruits. The caps bind: depot 110 after creation, 5 + 5 places, so [5, 5], both at the cap,
-    /// depot 100, and a second call moves nothing. The depot binds: 4 left after creation, so [2, 2] by the (fill, id) key
-    /// (ids 1, 2, 1, 2), persons 47 and 47, depot 0, and a second call moves nothing. (Verifier mutants C1, filling one person past
-    /// the cap, and C2, ignoring the depot, returned [6, 6] and [5, 5] while their refused grants moved nobody.)</summary>
+    /// formation has room or the depot is empty"), each binding alone, and what it returns is what moved. (Verifier mutants C1, filling
+    /// one person past the cap, and C2, ignoring the depot, returned more than moved while their refused grants moved nobody.)
+    /// [CB, D-082 DA5, moved pin] The two formations were heavy infantry at 45 of 50: [5, 5] at the caps, [2, 2] at the empty depot.
+    /// Under DA5 they have no persons cap and take no part (MEASURED on the DA5 code: [0, 0] instead of [5, 5]); a heavy-infantry
+    /// formation is reinforced past 50 persons directly (it still fights as 50 entities). The two stopping rules are pinned on tanks
+    /// (TEST INPUT crew 4, cap 5: 20 persons): two formations of 18, 20 recruits. The caps bind: [2, 2], both at 20, and a second call
+    /// moves nothing. The depot binds: 2 left after creation, so [1, 1] by the (fill, id) key, persons 19 and 19, depot 0.
+    /// [CB, verification round 1, CB-R1-01] Superseded attribution: "Under DA5 they have no persons cap and take no part" is READING
+    /// CB-4 (a), not DA5 itself; under alternative (b) the base test of 0d2db74 ([5, 5] at the caps, [2, 2] at the depot) passes
+    /// unchanged (MEASURED, scratchpad probe). This pin moved because of READING CB-4 (a); the direct reinforcement past 50 persons
+    /// below is DA5's (a soldier formation is never refused for size).</summary>
     [Fact]
     public void ReinforceToCaps_StopsAtEveryCapAndAtTheEmptyDepot_ReturningWhatMoved()
     {
         var r = Roster(depot0: 200);
-        Assert.True(r.Create(0, 1, CapFamily.HeavyInfantry, 301, 45).Accepted);
-        Assert.True(r.Create(0, 2, CapFamily.HeavyInfantry, 301, 45).Accepted);
-        Assert.Equal(110, r.DepotOf(0));
-        Assert.Equal(new long[] { 5, 5 }, r.ReinforceToCaps(0, 20));
-        Assert.Equal((50L, 50L, 100L), (r.Find(1)!.Persons, r.Find(2)!.Persons, r.DepotOf(0)));
+        Assert.True(r.Create(0, 1, CapFamily.Tanks, 605, 18).Accepted);
+        Assert.True(r.Create(0, 2, CapFamily.Tanks, 605, 18).Accepted);
+        Assert.Equal(164, r.DepotOf(0));
+        Assert.Equal(new long[] { 2, 2 }, r.ReinforceToCaps(0, 20));
+        Assert.Equal((20L, 20L, 160L), (r.Find(1)!.Persons, r.Find(2)!.Persons, r.DepotOf(0)));
         Assert.Equal(new long[] { 0, 0 }, r.ReinforceToCaps(0, 20));
-        Assert.Equal(100, r.DepotOf(0));
-        var d = Roster(depot0: 94);
-        Assert.True(d.Create(0, 1, CapFamily.HeavyInfantry, 301, 45).Accepted);
-        Assert.True(d.Create(0, 2, CapFamily.HeavyInfantry, 301, 45).Accepted);
-        Assert.Equal(4, d.DepotOf(0));
-        Assert.Equal(new long[] { 2, 2 }, d.ReinforceToCaps(0, 20));
-        Assert.Equal((47L, 47L, 0L), (d.Find(1)!.Persons, d.Find(2)!.Persons, d.DepotOf(0)));
+        Assert.Equal(160, r.DepotOf(0));
+        var d = Roster(depot0: 38);
+        Assert.True(d.Create(0, 1, CapFamily.Tanks, 605, 18).Accepted);
+        Assert.True(d.Create(0, 2, CapFamily.Tanks, 605, 18).Accepted);
+        Assert.Equal(2, d.DepotOf(0));
+        Assert.Equal(new long[] { 1, 1 }, d.ReinforceToCaps(0, 20));
+        Assert.Equal((19L, 19L, 0L), (d.Find(1)!.Persons, d.Find(2)!.Persons, d.DepotOf(0)));
         Assert.Equal(new long[] { 0, 0 }, d.ReinforceToCaps(0, 20));
-        Assert.Equal((47L, 47L), (d.Find(1)!.Persons, d.Find(2)!.Persons));
+        Assert.Equal((19L, 19L), (d.Find(1)!.Persons, d.Find(2)!.Persons));
+        // READING CB-4 (a): soldier formations take no part; DA5: nothing stops them growing past the cap in persons
+        var h = Roster(depot0: 200);
+        Assert.True(h.Create(0, 1, CapFamily.HeavyInfantry, 301, 45).Accepted);
+        Assert.True(h.Create(0, 2, CapFamily.HeavyInfantry, 301, 45).Accepted);
+        Assert.Equal(new long[] { 0, 0 }, h.ReinforceToCaps(0, 20));
+        Assert.Equal(110, h.DepotOf(0));
+        var v = h.Reinforce(0, 1, 20);
+        Assert.Equal((CapRefusal.None, 50L, 50L), (v.Refusal, v.Counted, v.Cap));
+        Assert.Equal((65L, 90L), (h.Find(1)!.Persons, h.DepotOf(0)));
     }
 
     /// <summary>Brute force: each recruit to the argmin of (fraction, id) found by a full scan with rationals compared through

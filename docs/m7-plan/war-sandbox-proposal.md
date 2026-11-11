@@ -40,7 +40,10 @@ lane renders like a campaign battle (DR7: one framework).
 `WarLedger` stand-in for the kernel Ledger):
 
 - forces are **minted** by a ledger transfer from the session's own **mint** account (opening balance 10¹², a sandbox-scope
-  number, never a campaign quantity) into one account per formation;
+  number, never a campaign quantity) into one account per formation; *verification round 1 of lane CB (CB-R1-02): a force the
+  mint cannot cover is refused (`SandboxRefusal.MintShort`), logged, before anything is minted. Under D-082 DA5 a force of any
+  size is one formation, so such a force reached the transfer and threw after its formation id and account were taken, outside
+  the log (reproduced; pinned by `AddForce_AForceTheMintCannotCover_…` in `Proto.M7.Tests/LaneCB/BattleEntityRuleTests.cs`);*
 - a finished battle moves people through **lane W's collapse** — the same casualty mapping the campaign uses
   (`BattleCollapse.Split`, DIR5 §2.9) — into the session's own **sinks**: dead, wounded, captured, deserted; survivors stay in
   their formation;
@@ -103,6 +106,10 @@ routed who escaped also counted as fit, which under-counts the dead). Now pinned
   `ForceCreation_LargeForce_IsLaidOutInsideTheField_AndDeploys`: the same force now lands in the West third and deploys, and a
   force that cannot fit is refused with nothing minted. Capacity of one call on this field: 8 parts per column; from x = 8
   (side 0) the columns are at x = 8, 4 and 0, so 24 parts (1,200 heavy infantry).
+  **[Lane CB, 2026-11-11, (D-082 DA5)]** Superseded: there is no split force any more. A force is one formation fighting as
+  `DirectorCaps.EntitiesOf` entities (§4), so the column layout, `SplitSpacingCells` and the refusal of a force that "cannot fit"
+  are gone (MEASURED: 1,000 heavy infantry are one formation of 50 entities at the anchor and deploy; 1,250 at (4, 16), refused
+  before, are accepted). The pin is now `ForceCreation_LargeForce_IsOneFormation_AndDeploys_TheBattleDoesNotYetScaleEntities_DA5`.
 - **Campaign availability stays gated by computed Age (DD; READING R2).** `CampaignAvailability.Available(computedAge, f)` =
   f's identity Age ≤ the polity's computed Age (ADR-031), so Law 4 holds; the knowledge gate of ADR-055 applies on top. MEASURED:
   the sniper team (age 8) is unavailable to a computed-Age-2 polity in the campaign and is fielded in the sandbox
@@ -127,6 +134,22 @@ DR30's "Unrestricted experimental force creation" against DR24's caps:
   exists for tests), unbounded battle cost, and sandbox results not comparable with campaign battles.
 
 Applied until the Director corrects it (also in `docs/m7-plan/caps-and-counted-objects-proposal.md` §5).
+
+**[Lane CB, 2026-11-11, (D-082 DA4, DA5)]** DA4 confirmed (a): "caps in sandbox apply". DA5 decided what a cap counts:
+"Battlefield units." (READING C1 (b)). So (a)'s "A force larger than one formation is created as the fewest formations within the
+cap, sizes as equal as possible (`FormationRoster.SplitSizes`: 130 heavy infantry → 44 + 43 + 43; 5 snipers → 2 + 2 + 1 …)" is
+replaced: counted in battle entities, the fewest formations within the cap is ONE formation for every class the sandbox fields.
+130 heavy infantry are one formation of 50 entities standing for 130 persons; 5 snipers, 2 entities standing for 5; gun crews,
+one entity per person as before. The sandbox's force creation and its Campaign Encounter now apply the same rule
+(`SandboxSession.Fielded`), so the round-1 note above is resolved: an encounter's formation and a Quick Battle formation of the
+same family and persons are the same formation and fight the same battle (MEASURED,
+`CampaignEncounterAndForceCreation_FieldTheSameFormation_TheCapCountsBattleEntities_DA5` and
+`ForceCreationAndCampaignEncounter_FieldTheSameFormation_ForEveryFamilyAndSize`). `ForceCreation_SplitsAtTheDirectorCap` is now
+`ForceCreation_IsOneFormation_WithinTheCapInBattleEntities_DA5`. **Consequence until the battle-entity design is built
+(`docs/m7-plan/battle-entity-proposal.md` §3):** an entity fights as one person whatever its share, so a sandbox force larger
+than its cap fights no harder than one of exactly its cap (MEASURED: 1,000 against 1,000 is the battle of 50 against 50; only the
+casualty rows, 20 persons per entity, differ). A user who wants every person to fight as one entity creates several formations
+(one `AddForce` each).
 
 ---
 
@@ -214,6 +237,8 @@ as a special deployment rule — that would amend DR31 and is the Director's.
   - **Hash pin (MEASURED):** `Replay_ReproducesAWholeSession_BitForBit` — a session with terrain edits, a refused edit, split
     forces, refused and accepted deployment edits and an AI-vs-AI battle replays to the same session hash (log, casualty rows,
     every ledger balance, the result hash); a different seed gives a different hash. An encounter session replays too.
+    **[Lane CB, (D-082 DA5)]** "split forces" is now five formations created explicitly at the anchors the split gave (one
+    `AddForce` each); the battle is the base's (its result hash, MEASURED on `0d2db74`, is pinned).
   - **Turn-exact order-delivery pin (MEASURED):** `PlayerBattle_OrderDeliveryPin_AndReplay` — an order submitted for pulse p
     with step offset k is delivered at StartMs + p·PulseMs + k·StepMs exactly (pulse 0 offset 0, pulse 2 offset 3), an offset
     outside the pulse is refused `BadStep` at that pulse's start, and the replay delivers every order at the same pulse and
@@ -239,6 +264,8 @@ as a special deployment rule — that would amend DR31 and is the Director's.
 5. AutoResolver acceptance is OPEN (Q4): AI-vs-AI sandbox results inherit the AutoResolver's measured parity gaps.
 6. (Round 1.) The Campaign Encounter applies lane W's entity rule, while the sandbox's own force creation applies the persons
    rule (READING C1; `docs/m7-plan/caps-and-counted-objects-proposal.md` §2.2). M7.6 must reconcile them.
+   **[Lane CB, (D-082 DA5)]** Reconciled: both apply the one rule (§4). The new limitation is the battle-entity gap of §4: a
+   formation above its cap fights as its cap of one-person entities until `docs/m7-plan/battle-entity-proposal.md` §3 is built.
 7. (Round 1.) Gun crews field one gun per person; no crew-per-gun rule is applied (§3).
 8. (Round 1, observed while fixing D-R1-10, not reported, not changed.) The session's `Ledger` and `Deployment` properties
    hand out live objects that accept writes (a ledger transfer, a `DeploymentPhase.Propose`) outside the session log. A
@@ -251,7 +278,7 @@ as a special deployment rule — that would amend DR31 and is the Director's.
 
 ## 8. For the Director
 
-1. **READING S1** (§4): caps per formation in the sandbox (applied) or lifted.
+1. **READING S1** (§4): caps per formation in the sandbox (applied) or lifted. **[Lane CB: answered (a) by D-082 DA4.]**
 2. **The two thirds-violating scenarios** (§5.1): whether option 1 (authored, Battle Test only, labelled) is acceptable, or only
    option 2 (a DIR5-legal variant). An ambush start inside the middle third as a rule would amend DR31 and is not proposed.
 3. **READING A** (§6; added in verification round 1): an AI-vs-AI sandbox battle that the AutoResolver cannot model falls back

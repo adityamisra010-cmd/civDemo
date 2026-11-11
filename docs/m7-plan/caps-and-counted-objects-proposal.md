@@ -13,6 +13,14 @@ is a controllable formation only).
 Labels used below: **DD** Director decision (quoted); **READING** an interpretation with both alternatives; **PROPOSAL**
 lane D's design; **MEASURED** run in this lane; **INFERRED** argued, not measured.
 
+**[Lane CB, 2026-11-11, (D-082 DA5).]** [D-082](../d082-morale-caps-ties-director-answers-2026-11-10.md) DA5 decided READING C1
+(§2.2): "A soldier cap counts battlefield units, not people" ("Battlefield units."; DA5-R (a) applied: "The cap bounds how many
+entities one formation fights as; a formation's size in persons is limited by the economy, not by the cap"), and DA4 confirmed
+READING S1 (a) (§5). Every statement below that counts the PERSONS of a soldier class is superseded; each is marked in place with
+"(D-082 DA5)" and the text it replaces. The one rule for lanes W and D, what one battle entity standing for many persons is, and
+the consequences (CAP-1 and CAP-2 dissolve) are in [battle-entity-proposal.md](battle-entity-proposal.md). Machine classes,
+the mortar's crewed tube and lane N's CAP-5 treatment are unchanged.
+
 ---
 
 ## 1. What is fixed and what is open
@@ -26,6 +34,7 @@ lane D's design; **MEASURED** run in this lane; **INFERRED** argued, not measure
 | "Ships 5" applies to every vessel family; drones under their airframe-class cap | **READING R6** (applied; flagged for Director confirmation in D-079 §5) | D-079 §1.5 |
 | Vehicles are battle-transient (O-11 V1); no conserved vehicle stock | **READING R7** (applied) | D-079 §1.5 |
 | Where the work lands | M7.6 (B7-07/B7-08 mapping per A-34) | D10 |
+| **(D-082 DA5)** A soldier cap counts battlefield units (battle entities), not people; DR24's caps apply in the sandbox (DA4) | **DD** | D-082 DA4, DA5 ("caps in sandbox apply"; "Battlefield units.") |
 
 ---
 
@@ -35,7 +44,9 @@ lane D's design; **MEASURED** run in this lane; **INFERRED** argued, not measure
 battle-transient entity derived from the people who crew it (READING R7, V1). So a cap is checked on what the formation's
 people field:
 
-- **soldier-counted classes:** counted = persons;
+- **soldier-counted classes:** ~~counted = persons;~~ **(D-082 DA5) counted = the battle entities the formation fights as,
+  min(persons, cap)**, so a soldier formation is never refused for size (`DirectorCaps.EntitiesOf`; battle-entity proposal §1).
+  Replaces "counted = persons";
 - **machine-counted classes:** counted = ⌈persons ÷ persons per machine⌉. A partly crewed machine is still a machine, so 21
   tank crewmen at 4 per tank are 6 tanks and exceed the cap of 5. "Persons per machine" is the crew-per-machine TUNE rule
   D10 assigns to M7.6; **no value is shipped**, and the prototype refuses a machine-counted check without one
@@ -43,9 +54,9 @@ people field:
 
 | DR24 class | Cap | Counted object (PROPOSAL) | Counted from people | Prototype (`Proto.M7/Caps/DirectorCaps.cs`) |
 |---|---:|---|---|---|
-| Heavy/aggregated infantry | 50 | one soldier | persons | `CountedObject.Soldier` |
-| Archers and lighter infantry | 60 | one soldier | persons | `CountedObject.Soldier` |
-| Snipers | 2 | one soldier | persons | `CountedObject.Soldier` |
+| Heavy/aggregated infantry | 50 | ~~one soldier~~ one battle entity (D-082 DA5) | ~~persons~~ min(persons, 50) (D-082 DA5) | `CountedObject.Soldier` |
+| Archers and lighter infantry | 60 | ~~one soldier~~ one battle entity (D-082 DA5) | ~~persons~~ min(persons, 60) (D-082 DA5) | `CountedObject.Soldier` |
+| Snipers | 2 | ~~one soldier~~ one battle entity (D-082 DA5) | ~~persons~~ min(persons, 2) (D-082 DA5) | `CountedObject.Soldier` |
 | Tanks | 5 | one armoured vehicle with its crew | ⌈persons ÷ crew⌉ | `CountedObject.Vehicle` |
 | Helicopters | 3 | one helicopter with its crew | ⌈persons ÷ crew⌉ | `CountedObject.Helicopter` |
 | Ships | 5 | one vessel with its company (every vessel family, R6) | ⌈persons ÷ company⌉ | `CountedObject.Hull` |
@@ -105,9 +116,18 @@ own deliverables used both without saying so:
   split is unnecessary.
 
 The spec says "M7.1/M7.6 must define precisely what is counted for each family" (`docs/m7-spec.md:404`). The choice is
-therefore delegated design work for M7.6 (B7-07/B7-08), and it must be made ONCE, for lanes W and D together. Lane D proposes
+therefore delegated design work for M7.6 (B7-07/B7-08), and it must be made ONCE, for lanes W and D together. ~~Lane D proposes
 (a) on the textual basis above. It is flagged for confirmation (§7) because it fixes what DR24's caps mean, and the Director
-may correct the reading.
+may correct the reading.~~
+
+**(D-082 DA5) Decided: (b).** The Director answered "Battlefield units." (DA5), replacing lane D's proposal "(a) on the textual
+basis above". Lane CB made it ONE rule for lanes W and D: `DirectorCaps.EntitiesOf` (min(persons, cap) for a soldier class) in the
+caps prototype, the roster and both of the sandbox's ways of creating a formation (`SandboxSession.Fielded`). MEASURED: the check
+accepts 3,000 heavy infantry with 50 counted entities; Quick Battle and the Campaign Encounter field the same formation of 50
+entities standing for 3,000 and fight the same battle (`CampaignEncounterAndForceCreation_FieldTheSameFormation_…_DA5`, which
+replaces `CampaignEncounter_FieldsLaneWsFormationsByTheEntityRule_ReadingC1b`). The consequences listed under (b) above follow:
+CAP-1 and CAP-2 dissolve (§3), formation size is limited by the economy, and what one entity stands for is designed in
+[battle-entity-proposal.md](battle-entity-proposal.md) (its hit points and output are a PROPOSAL, not built).
 
 ---
 
@@ -139,6 +159,11 @@ against D10's recorded basis ("retune personnel to the cap"; the caps prevail ov
 this document's own CAP-2 wording. **PROPOSAL now:** (A), with 306–308 retuned to the cap, **50** (a new band value; TUNE).
 The alternative within (A) is 40, which keeps the existing band set and leaves each formation 10 people below the cap.*
 
+**(D-082 DA5) CAP-1 dissolves.** Replaces "**PROPOSAL now:** (A), with 306–308 retuned to the cap, **50**": under DA5 a 60-person
+formation of 306, 307 or 308 (`unit-families.json` :81–:83) fights as 50 battle entities standing for 1.2 persons each, so no
+personnel exceeds anything and **no row needs a retune** (lane D's own consequence of (b), §2.2; D-082 §3). Options (A) and (B)
+are moot; nothing is retuned. Battle-entity proposal §5.
+
 ### CAP-2 — pike and shot, if spear is heavy
 
 | Row | Line | Personnel | Cap if class "heavy/aggregated" | Cap if class "lighter" |
@@ -149,6 +174,10 @@ Options: **(A)** class family 2 (`spear_anti_cavalry`, line 53: "Close-order inf
 attack", line 54) as heavy/aggregated infantry and retune 204 to the cap (TUNE, golden moves attributed); **(B)** class it
 with the lighter infantry (no change). **PROPOSAL:** (A): close-order pike blocks are the archetype of aggregated infantry; the
 other spear rows (201 at 20, 202/203 at 40; lines 61–63) are already within 50, so only 204 moves.
+
+**(D-082 DA5) CAP-2 dissolves.** Replaces "retune 204 to the cap" in (A): classed heavy, 204 `pike_and_shot` (:64, personnel
+60) fights as 50 entities standing for 1.2 persons; classed lighter, as 60. **No row is retuned** under either class. The class
+of family 2 still matters for which cap bounds its entities (50 or 60), a classing question for M7.6 only.
 
 ### CAP-3 — machines counted by number, data counts people
 
@@ -230,6 +259,9 @@ created only in an authorized packet". DR33: "Snipers are independent small spec
 - **Sniper identity (new, proposed, NOT created):** category **A** (§4 below). Home: a branch identity of `ranged_infantry`
   (family 4, line 87) at the age of rifled weapons (the age of 407, 8), personnel ≤ 2, recruited not upgraded (a branch, like
   405 longbowmen). The prototype's `sniper_team(prototype)` (key 4990, lane N) is a test identity only.
+  **(D-082 DA5)** Replaces "personnel ≤ 2" as a cap requirement: a sniper formation of more persons fights as 2 battle entities,
+  so the cap no longer bounds its personnel. DR33's "independent small specialist formations" then rests on the identity's
+  personnel band (data, TUNE in M7.6) and its cost, not on the cap. The proposal of a small band (2) stands as a design choice.
 - **Mortar identity (new, proposed, NOT created):** category **A** (§4). Two homes, both PROPOSALS: (i) a branch of `siege`
   (family 8, line 152), whose charter role already includes "later indirect fire" (charter §7.8) and whose 805/806 are its
   indirect-fire identities (lines 163–164); (ii) a branch of `ranged_infantry` (family 4), next to 408 `machine_gun_teams`
@@ -255,6 +287,11 @@ guns uncapped are item 2.*
 shows it. What such a measurement would have to show: a battle cost (time per pulse, memory) that grows past a stated budget
 with the entity count of an uncapped class at sizes the economy allows (economic-scale proposal §5); the budgets themselves
 wait on the Victus benchmark (D-079 DR50, Q9).
+**(D-082 DA5) Measured since (lane CB):** uncapped families keep one battle entity per person (lane N's treatment, unchanged),
+so their battle cost grows with their persons, while every capped class's is bounded by its cap. The TacticalResolver's cost per
+pulse grows with the square of the entities (MEASURED, battle-entity proposal §6), and the prototype engine cannot field a
+formation of 1,000 or more entities with generated ids (a hard limit, `TacticalBattle`: "generated ids need Count < 1000").
+Whether that is "the need" D10 names is the Director's to judge; no cap value is proposed (battle-entity proposal §8 item 3).
 
 ---
 
@@ -289,12 +326,20 @@ read together in two ways:
 
 This is a READING, applied until the Director corrects it; both alternatives are in `docs/m7-plan/war-sandbox-proposal.md` §4.
 
+**(D-082 DA4, DA5)** DA4 confirmed (a): "caps in sandbox apply". DA5 changes what the cap counts, so "a large experimental force
+is created as the fewest formations within the cap (`FormationRoster.SplitSizes`; 130 heavy infantry → 44 + 43 + 43)" is
+replaced: the fewest formations within the cap, counted in battle entities, is ONE formation for every class the sandbox fields
+(130 heavy infantry → one formation of 50 entities standing for 130 persons; MEASURED,
+`ForceCreation_IsOneFormation_WithinTheCapInBattleEntities_DA5`, which replaces `ForceCreation_SplitsAtTheDirectorCap`).
+
 ---
 
 ## 6. The prototype (what exists, what it proves)
 
 - `Proto.M7/Caps/DirectorCaps.cs`: the DR24 table as prototype constants (citation "D-079 DR24"), counted objects, the
   persons-per-machine input (`WithCrew`, no default), `Check` (refusal + counted + cap).
+  **(D-082 DA5)** `EntitiesOf` (the one rule; `CountOf` = `EntitiesOf`) replaces "counted = persons" for the soldier classes;
+  `MaxPersons` of a soldier class is long.MaxValue (no persons cap), `FullStrengthPersons` its cap.
 - `Proto.M7/Caps/FormationRoster.cs`: creation and every edit — `Create`, `Split`, `Merge`, `Reinforce`, `Detach`,
   `Transfer`, `Disband` — each checked completely before any person moves; all-or-nothing; people moved only by `WarLedger`
   transfers (exact conservation); one formation is one identity (merge or transfer across classes or identities refused).
@@ -311,9 +356,20 @@ This is a READING, applied until the Director corrects it; both alternatives are
 | 10 NoCrewRule | a machine-counted class without a persons-per-machine input |
 
 **Ordering.** `ReinforceToCaps` hands recruits one at a time to the formation with the least fill fraction persons ÷ max
-persons, compared exactly by cross-multiplication in `Int128`, ties to the lowest id (the CLAUDE.md composite key). Tie-dense
+persons, compared exactly by cross-multiplication in `Int128`, ties to the lowest id (the CLAUDE.md composite key).
+**(D-082 DA5)** Only formations whose cap bounds their persons take part (machine classes with a crew rule); soldier formations
+have no persons cap to fill. The tie-dense and stopping-rule tests that used heavy infantry and archers now use tanks, ships,
+helicopters and mortars (TEST INPUT crews), with the same properties pinned (lane CB report, moved pins). Tie-dense
 tests: eight formations at the same fraction created in six permuted orders give the same distribution and roster hash; the
 exact tie 10/50 = 12/60 across classes is broken by id only; an independent brute-force oracle (BigInteger rationals) agrees.
+*Verification round 1 of lane CB (CB-R1-01, CB-R1-08), corrections to the note just above: (1) "Only formations whose cap bounds
+their persons take part … soldier formations have no persons cap to fill" is READING CB-4 (a), lane CB's choice, not a consequence
+of DA5: under alternative (b) a soldier formation is filled up to its full complement of entities at one person each
+(`FullStrengthPersons`, its cap), which keeps lane D's automatic reinforcement of understrength infantry and the three original
+pins (MEASURED, scratchpad probe; both alternatives in [battle-entity-proposal.md](battle-entity-proposal.md) §1, READING CB-4);
+those three pins moved because of (a). (2) "tanks, ships, helicopters and mortars": the re-based tests use tanks, ships and
+helicopters; no mortar formation takes part. (3) "the exact tie 10/50 = 12/60 across classes": stale since lane CB; the cross-class
+tie is now 4/20 (tanks, TEST INPUT crew 4) = 200/1,000 (ships, crew 200), broken by id only, and the oracle agrees.*
 *Verification round 2 (D-R2-03): the two stopping rules, "no capped formation has room" and "the depot is empty", had no test:
 every test handed out fewer recruits than the room and the depot held, so filling one person past the cap (verifier mutant C1)
 or ignoring the depot (C2) survived the full suite (reproduced), and under each the function returned grants whose internal
@@ -341,3 +397,5 @@ in M7.6. Two readings are flagged for confirmation, both applied until corrected
 3. **READING C1** (§2.2; added in verification round 1): a soldier-class cap counts persons (a). This is applied in lane D's
    caps prototype and in the sandbox's own force creation. Lane W's collapse, and with it the sandbox's Campaign Encounter,
    applies (b), battle entities. M7.6 must reconcile the two prototypes whichever reading stands.
+   **(D-082 DA5) Answered: (b).** Reconciled by lane CB: one rule for lanes W and D (§2.2). **READING S1** (item 2) was confirmed by
+   DA4. The decisions left are in [battle-entity-proposal.md](battle-entity-proposal.md) §8.

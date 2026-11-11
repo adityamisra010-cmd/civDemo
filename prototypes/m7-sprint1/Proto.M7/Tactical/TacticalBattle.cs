@@ -158,6 +158,7 @@ public sealed partial class TacticalBattle : IEventWorld
         // lane N hook: vessel / air formations go to the domain modules (TacticalBattle.Domain.cs); ids are unique across all.
         for (int i = 1; i < allSpecs.Length; i++)
             if (allSpecs[i].Id == allSpecs[i - 1].Id) throw new ArgumentException($"duplicate formation id {allSpecs[i].Id}");
+        foreach (var x in allSpecs) EntityShare.Validate(x);                                       // [CB] D-082 DA5: persons behind entities
         var specs = Array.FindAll(allSpecs, static x => x.Domain == Domain.Land);
         var domainSpecs = Array.FindAll(allSpecs, static x => x.Domain != Domain.Land);
         _f = new Form[specs.Length];
@@ -1008,7 +1009,8 @@ public sealed partial class TacticalBattle : IEventWorld
         for (int i = 0; i < n; i++) if (inFightBefore[i] && !now[i]) { broke = true; break; }
         if (!broke) return;
         var ids = new long[n]; var sides = new int[n]; var starts = new long[n]; var morale = new long[n];
-        for (int i = 0; i < n; i++) { ids[i] = _f[i].Id; sides[i] = _f[i].Side; starts[i] = _f[i].Start; morale[i] = _f[i].Morale; }
+        // [CB] D-082 DA5: the formations' sizes are their PERSONS (EntityShare.PersonsOf; = the entity count when Persons is null)
+        for (int i = 0; i < n; i++) { ids[i] = _f[i].Id; sides[i] = _f[i].Side; starts[i] = EntityShare.PersonsOf(_f[i].Spec); morale[i] = _f[i].Morale; }
         if (!LocalWinMorale.Apply(_r.LocalWinMoraleRise, _r.MoraleMax, _r.PulseMs, t, t, ids, sides, starts, inFightBefore, now, _lastHitMs,
                                   morale, _localWins)) return;
         for (int i = 0; i < n; i++) _f[i].Morale = morale[i];

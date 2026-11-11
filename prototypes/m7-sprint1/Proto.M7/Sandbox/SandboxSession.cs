@@ -22,6 +22,13 @@ namespace Proto.M7.Sandbox;
 /// (<see cref="CampaignAvailability"/>, READING R2) is never consulted here. CAPS (READING S1, alternative (a) applied; both
 /// alternatives in the proposal §4): a force larger than one formation's DR24 cap is created as the fewest formations within the
 /// cap (<see cref="FormationRoster.SplitSizes"/>), because the same battle engine the campaign uses refuses an over-cap formation.
+/// [CB, D-082 DA4 and DA5] The caps apply in the sandbox (DA4, S1 (a) confirmed) and count BATTLE ENTITIES (DA5): every formation
+/// the sandbox creates, by force creation or from a Campaign Encounter, fights as <see cref="DirectorCaps.EntitiesOf"/> entities
+/// standing for its persons (<see cref="Fielded"/>, the one rule of lanes W and D). The fewest formations within the cap is then ONE
+/// formation for every class the sandbox fields (soldier classes: min(persons, cap) entities; uncapped: one per person), so the
+/// split at the persons cap is superseded (it applied READING C1 (a), persons; D-082 §3). The battle does not yet scale an entity's
+/// hit points or output by the persons it stands for (docs/m7-plan/battle-entity-proposal.md, PROPOSAL, not built): until it does, a
+/// formation of more persons than its cap fights as strongly as one of exactly its cap, and only the collapse sees its persons.
 ///
 /// TERRAIN. Editable cell by cell in every mode except a Campaign Encounter, which inherits the campaign terrain (TerrainLocked).
 /// DEPLOYMENT (DR31, READING R5). Always through lane TR's <see cref="DeploymentPhase"/>: each army in its own third, the middle
@@ -42,8 +49,6 @@ public sealed class SandboxSession
 {
     /// <summary>Opening balance of the sandbox mint (people). Sandbox scope only; never a campaign quantity.</summary>
     public const long MintOpening = 1_000_000_000_000;
-    /// <summary>Lateral spacing (cells) between the formations one AddForce creates, so they do not start on top of each other.</summary>
-    public const long SplitSpacingCells = 4;
 
     private sealed class Form
     {
@@ -101,7 +106,8 @@ public sealed class SandboxSession
     /// <summary>Loads a Campaign Encounter: the campaign terrain (inherited, locked) and the campaign formations, each fielded as one
     /// battle formation of min(persons, cap) entities standing for its persons (lane W's persons-and-entities rule). [D, verification
     /// round 1, D-R1-03] This is READING C1 (b), battle entities; the sandbox's own force creation applies C1 (a), persons
-    /// (docs/m7-plan/caps-and-counted-objects-proposal.md §2.2).</summary>
+    /// (docs/m7-plan/caps-and-counted-objects-proposal.md §2.2). [CB, D-082 DA5] C1 (b) is decided: the encounter and the sandbox's own
+    /// force creation now apply the same rule (<see cref="Fielded"/>), so the same family and persons give the same formation.</summary>
     public static SandboxSession FromEncounter(CampaignEncounterSnapshot snapshot, ulong seed, TacticalRules? rules = null)
     {
         var s = new SandboxSession(SandboxMode.CampaignEncounter, snapshot.Terrain, seed, rules, snapshot);
@@ -169,7 +175,16 @@ public sealed class SandboxSession
     }
 
     /// <summary>Adds <paramref name="persons"/> of a designed family to a side at an anchor, as the fewest formations within the DR24
-    /// cap (READING S1 (a)); the persons are minted from the sandbox mint. Returns the ids of the formations created.</summary>
+    /// cap (READING S1 (a)); the persons are minted from the sandbox mint. Returns the ids of the formations created.
+    /// [CB, D-082 DA5] The fewest formations within the cap, counted in battle entities, is ONE formation for every class the sandbox
+    /// fields: it fights as <see cref="Fielded"/> entities (min(persons, cap) for a soldier class, one per person when uncapped)
+    /// standing for all its persons. Before D-082 a force above the persons cap was split into several formations (lane D's
+    /// SplitSizes, laid out column by column, D-R1-14); that split and its layout are superseded with READING C1 (a).
+    /// [CB, verification round 1, CB-R1-02] A force the mint cannot cover is refused (MintShort, logged) before anything is minted.
+    /// Under DA5 a force of any size is one formation, so a force above the mint's free balance reached the mint transfer, which threw
+    /// (overdraft) after the formation's id and ledger account were taken and before the edit was logged: the session then differed
+    /// from its replay (verifier probe, reproduced). Before DA5 such a soldier force was refused or threw while it was being split,
+    /// before anything changed (INFERRED from lane D's code, not run); the uncapped gun crews reached the transfer then too.</summary>
     public SandboxRefusal AddForce(int side, int familyKey, int identityKey, long persons, Vec2L anchor, out long[] formationIds)
     {
         formationIds = Array.Empty<long>();
@@ -181,58 +196,31 @@ public sealed class SandboxSession
         else if (persons <= 0) r = SandboxRefusal.NonPositive;
         else if (fam is null) r = SandboxRefusal.UnknownFamily;
         else if (!anchor.InDocumentedRange || !_grid.InBounds(_grid.CellOf(anchor).X, _grid.CellOf(anchor).Y)) r = SandboxRefusal.OutOfGrid;
-        if (r == SandboxRefusal.None)
-        {
-            long max = DirectorCaps.Values.MaxPersons(fam!.CapClass);
-            long[] sizes = fam.CapClass == CapFamily.Uncapped ? new[] { persons } : FormationRoster.SplitSizes(persons, max);
-            // [D, verification round 1, D-R1-14] every part's anchor is laid out and checked BEFORE anything is minted: the whole
-            // force is refused when a part would leave the field (before, only the first anchor was checked, and a 1,000-man
-            // force put 16 of its 20 formations off a 48 x 32 field; verifier probe P6).
-            var at = SplitAnchors(side, anchor, sizes.Length);
-            if (at is null) r = SandboxRefusal.OutOfGrid;
-            else
-            {
-                formationIds = new long[sizes.Length];
-                for (int k = 0; k < sizes.Length; k++) formationIds[k] = NewFormation(side, fam, sizes[k], sizes[k], at[k]);
-            }
-        }
+        else if (persons > _ledger.Balance(_mint)) r = SandboxRefusal.MintShort;              // [CB, round 1, CB-R1-02]
+        if (r == SandboxRefusal.None) formationIds = new[] { NewFormation(side, fam!, persons, Fielded(fam!, persons), anchor) };
         return Record(SandboxEditKind.AddForce, side, familyKey, identityKey, formationIds.Length > 0 ? formationIds[0] : -1, persons, anchor.X, anchor.Y, r);
     }
 
     /// <summary>
-    /// [D, verification round 1, D-R1-14] The anchors of the parts of one <see cref="AddForce"/>, laid out column by column from the
-    /// anchor, <see cref="SplitSpacingCells"/> cells apart. A column holds max(1, floor(grid height / spacing)) parts, at rows
-    /// anchor.y + j * spacing wrapped inside the grid (modulo its height); each further column lies spacing cells toward the side's
-    /// own exit edge (side 0 West, side 1 East: away from the middle third). Null when a part would leave the grid. The first
-    /// column keeps the pre-round-1 positions wherever those were inside the grid. Pure integer arithmetic.
+    /// [CB, D-082 DA5] THE ONE RULE, for both ways a formation enters the sandbox (force creation, and a Campaign Encounter's campaign
+    /// formations): the battle entities a formation of <paramref name="persons"/> of <paramref name="fam"/> fights as,
+    /// <see cref="DirectorCaps.EntitiesOf"/> on the DR24 caps. Every family of <see cref="SandboxCatalogue"/> is a soldier class or
+    /// uncapped (pinned by a test), so the result is within the cap for any persons and no crew rule is needed; a machine-counted
+    /// family (one entity per machine, refused above its cap) would need a crew rule and a split, so it is refused here as a
+    /// programming error rather than guessed.
     /// </summary>
-    private Vec2L[]? SplitAnchors(int side, Vec2L anchor, int parts)
+    public static long Fielded(DesignedFamily fam, long persons)
     {
-        long step = checked(SplitSpacingCells * _grid.CellSizeMm), height = checked((long)_grid.Height * _grid.CellSizeMm);
-        long perColumn = Math.Max(1, _grid.Height / SplitSpacingCells);
-        long dir = _sides[side].Exit == ExitEdge.West ? -1 : 1;
-        var at = new Vec2L[parts];
-        for (int k = 0; k < parts; k++)
-        {
-            long column = k / perColumn, row = k % perColumn;
-            long y = checked(anchor.Y + row * step);
-            if (y >= height) y -= height;
-            var p = new Vec2L(checked(anchor.X + dir * column * step), y);
-            if (!p.InDocumentedRange) return null;
-            var c = _grid.CellOf(p);
-            if (!_grid.InBounds(c.X, c.Y)) return null;
-            at[k] = p;
-        }
-        return at;
+        if (DirectorCaps.IsMachineCounted(fam.CapClass))
+            throw new InvalidOperationException($"the sandbox fields no machine-counted class ({fam.CapClass}): it would need a persons-per-machine rule (CAP-3, M7.6)");
+        return DirectorCaps.Values.EntitiesOf(fam.CapClass, persons);
     }
 
     private void AddEncounterForce(int side, int familyKey, int identityKey, long persons, Vec2L anchor)
     {
         var fam = SandboxCatalogue.Find(familyKey, identityKey) ?? throw new ArgumentException("the encounter names a family the sandbox cannot field");
         if (persons <= 0 || (side != 0 && side != 1)) throw new ArgumentOutOfRangeException(nameof(persons));
-        long cap = DirectorCaps.CapOf(fam.CapClass);
-        long entities = fam.CapClass == CapFamily.Uncapped ? persons : Math.Min(persons, cap);
-        long id = NewFormation(side, fam, persons, entities, anchor);
+        long id = NewFormation(side, fam, persons, Fielded(fam, persons), anchor);   // [CB] the same rule as AddForce
         Record(SandboxEditKind.AddForce, side, familyKey, identityKey, id, persons, anchor.X, anchor.Y, SandboxRefusal.None);
     }
 
@@ -242,8 +230,9 @@ public sealed class SandboxSession
         int acc = _ledger.Open(Commodity.People, 0);
         _ledger.Transfer(_mint, acc, persons);
         // [D, verification round 1, D-R1-09] the family's domain weapons (a gun crew's gun), copied into the formation
-        _forms.Add(new Form { Spec = new FormationSpec(id, side, fam.Profile, checked((int)entities), anchor) { Weapons = WeaponsOf(fam) }, Family = fam,
-                              Persons = persons, Account = acc });
+        // [CB, D-082 DA5] the spec carries the persons its entities stand for (FormationSpec.Persons)
+        _forms.Add(new Form { Spec = new FormationSpec(id, side, fam.Profile, checked((int)entities), anchor) { Weapons = WeaponsOf(fam), Persons = persons },
+                              Family = fam, Persons = persons, Account = acc });
         return id;
     }
 

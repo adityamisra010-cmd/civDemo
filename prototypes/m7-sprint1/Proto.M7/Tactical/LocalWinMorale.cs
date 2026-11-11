@@ -16,7 +16,9 @@ public static class LocalWinMorale
 {
     /// <summary>The rise of a winner of <paramref name="startWinner"/> entities over a broken formation of <paramref name="startBroken"/>
     /// entities: floor(coefficient × startBroken ÷ (startBroken + startWinner)). The larger the beaten formation against one's own,
-    /// the larger the lift; 0 at coefficient 0.</summary>
+    /// the larger the lift; 0 at coefficient 0. [CB, D-082 DA5] Both resolvers pass the formations' PERSONS here
+    /// (<see cref="EntityShare.PersonsOf"/>), which equal their entity counts unless a formation's entities stand for more than one
+    /// person each; the equation is unchanged.</summary>
     public static long Rise(long coefficient, long startBroken, long startWinner)
     {
         if (coefficient < 0 || startBroken < 0 || startWinner < 0) throw new ArgumentOutOfRangeException(nameof(coefficient));

@@ -30,7 +30,13 @@ public sealed record ScalePoint(
 /// <summary>The real counterfactual at one checkpoint: soldiers the predicate actually accepted when every adult-limited
 /// order was issued (lane F's Calibration.MaxRecruitment, horizon 1).</summary>
 public sealed record ScaleTwin(ulong Seed, ScaleDriver Driver, long Turn, int OrdersIssued, long SoldiersBefore, long SoldiersAfter,
-                               string Binding);
+                               string Binding)
+{
+    /// <summary>[CB] At most this many RecruitFormation orders per settlement were issued (lane F's maxFormationsPerSettlement);
+    /// long.MaxValue = no cap, every adult-limited order (the full twin). A capped twin measures whether the shipped predicate
+    /// accepts at least that many formations AT ONCE; it is a lower bound of the full twin, never its value.</summary>
+    public long CapPerSettlement { get; init; } = long.MaxValue;
+}
 
 /// <summary>
 /// Lane D (D-079 D20, Q-L2; DR25): the economic-scale probe. Steps the canonical founded world (<see cref="EconWorld"/>,
@@ -50,7 +56,23 @@ public static class ScaleProbe
     /// turn of the driver polity (polity 1, as `sim research` defaults). <paramref name="twinAt"/> lists checkpoints at which the
     /// real max-recruitment twin also runs (horizon 1), for either driver (since verification round 2; before, only without orders).</summary>
     public static (List<ScalePoint> Points, List<ScaleTwin> Twins) Run(ulong seed, ScaleDriver driver, long[] checkpoints, long[] twinAt, TextWriter? trace)
+        => Run(seed, driver, checkpoints, twinAt, new[] { long.MaxValue }, trace, null);
+
+    /// <summary>
+    /// [CB] As <see cref="Run(ulong, ScaleDriver, long[], long[], TextWriter?)"/>, with one twin per entry of
+    /// <paramref name="twinCaps"/> at every twin checkpoint, in the order given: long.MaxValue = the full twin (every adult-limited
+    /// order); any other positive value = at most that many orders per settlement, a lower bound of the full twin (does the shipped
+    /// predicate accept at least that many formations at once?). Why capped twins exist (lane CB, reports/H-CB.md §8): Sim.Core
+    /// judges each RecruitFormation order with RecruitmentQuery.OwnerPersonnel, which visits every formation the owner holds and
+    /// finds each one's unit row by a linear scan, so the cost of one step grows with the cube of the orders it accepts; the full
+    /// twin at research turns 325 and 400 (about 10⁵ to 5 × 10⁵ orders) does not finish. <paramref name="timing"/> (optional)
+    /// receives one line per twin with its order count and wall time (Environment.TickCount64; reported only, never fed back).
+    /// </summary>
+    public static (List<ScalePoint> Points, List<ScaleTwin> Twins) Run(ulong seed, ScaleDriver driver, long[] checkpoints, long[] twinAt,
+                                                                       long[] twinCaps, TextWriter? trace, TextWriter? timing)
     {
+        foreach (long c in twinCaps)
+            if (c <= 0) throw new ArgumentOutOfRangeException(nameof(twinCaps), "a twin cap is a positive number of orders per settlement (long.MaxValue = none)");
         SimConfig cfg = EconWorld.SimCfg;
         ResearchContent content = cfg.Research ?? throw new InvalidOperationException("no research content");
         var orders = new OrderLog();
@@ -72,10 +94,16 @@ public static class ScaleProbe
             // [D, verification round 2, D-R2-05] the twin runs for EITHER driver: it was skipped for the research driver, so the
             // economic-scale proposal's research row at turn 25 was the formula, never validated (twins-research.csv held a header).
             if (Contains(twinAt, t))
-            {
-                RecruitTwin tw = Calibration.MaxRecruitment(seed, world, 1);
-                twins.Add(new ScaleTwin(seed, driver, t, tw.OrdersIssued, tw.SoldiersBefore, tw.SoldiersAfter, string.Join(" | ", tw.RefusalsAfter)));
-            }
+                foreach (long cap in twinCaps)
+                {
+                    long w0 = Environment.TickCount64;
+                    RecruitTwin tw = Calibration.MaxRecruitment(seed, world, 1, cap);
+                    twins.Add(new ScaleTwin(seed, driver, t, tw.OrdersIssued, tw.SoldiersBefore, tw.SoldiersAfter, string.Join(" | ", tw.RefusalsAfter))
+                    { CapPerSettlement = cap });
+                    timing?.WriteLine("twin seed " + seed.ToString(Inv) + " turn " + t.ToString(Inv) + " cap "
+                        + (cap == long.MaxValue ? "none" : cap.ToString(Inv)) + ": " + tw.OrdersIssued.ToString(Inv) + " orders, "
+                        + (tw.SoldiersAfter - tw.SoldiersBefore).ToString(Inv) + " accepted, " + (Environment.TickCount64 - w0).ToString(Inv) + " ms");
+                }
         }
         return (points, twins);
     }
@@ -167,8 +195,10 @@ public static class ScaleProbe
 }
 
 /// <summary>`scale-probe` command: <c>dotnet Proto.M7.Econ.dll scale-probe --seeds 42,1,2,7 --driver research|none
-/// --turns 0,25,200 [--twin-at 25,200] --out-dir DIR</c>. Writes probe-{driver}.csv, twins-{driver}.csv and one
-/// trace-{driver}-seed{S}.csv per seed (turn,population) into DIR. Wall time is reported only.</summary>
+/// --turns 0,25,200 [--twin-at 25,200] [--twin-caps none,220] --out-dir DIR</c>. Writes probe-{driver}.csv, twins-{driver}.csv and one
+/// trace-{driver}-seed{S}.csv per seed (turn,population) into DIR. Wall time is reported only. [CB] <c>--twin-caps</c> lists the
+/// twins run at every twin checkpoint, in order: "none" = the full twin (the default, as before), a number = at most that many orders
+/// per settlement; the twins CSV gains a last column capPerSettlement ("none" or the number), and one timing line per twin is printed.</summary>
 public static class ScaleProbeCli
 {
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
@@ -180,6 +210,7 @@ public static class ScaleProbeCli
         ulong[] seeds = Parse(Arg(args, "--seeds") ?? "42", s => ulong.Parse(s, Inv));
         long[] turns = Parse(Arg(args, "--turns") ?? "0,25,200", s => long.Parse(s, Inv));
         long[] twinAt = Parse(Arg(args, "--twin-at") ?? "", s => long.Parse(s, Inv));
+        long[] twinCaps = Parse(Arg(args, "--twin-caps") ?? "none", s => s == "none" ? long.MaxValue : long.Parse(s, Inv));   // [CB]
         var driver = (Arg(args, "--driver") ?? "none") == "research" ? ScaleDriver.Research : ScaleDriver.None;
         string dir = Arg(args, "--out-dir") ?? ".";
         Directory.CreateDirectory(dir);
@@ -190,16 +221,17 @@ public static class ScaleProbeCli
         {
             long t0 = Environment.TickCount64;
             using var trace = new StreamWriter(Path.Combine(dir, "trace-" + tag + "-seed" + seed.ToString(Inv) + ".csv"));
-            var (pts, tw) = ScaleProbe.Run(seed, driver, turns, twinAt, trace);
+            var (pts, tw) = ScaleProbe.Run(seed, driver, turns, twinAt, twinCaps, trace, Console.Out);
             all.AddRange(pts);
             twins.AddRange(tw);
             Console.WriteLine("seed " + seed.ToString(Inv) + " " + tag + " done in " + (Environment.TickCount64 - t0).ToString(Inv) + " ms");
         }
         File.WriteAllText(Path.Combine(dir, "probe-" + tag + ".csv"), ScaleProbe.Csv(all));
-        var sb = new StringBuilder("seed,driver,turn,ordersIssued,soldiersBefore,soldiersAfter,binding\n");
+        var sb = new StringBuilder("seed,driver,turn,ordersIssued,soldiersBefore,soldiersAfter,binding,capPerSettlement\n");
         foreach (var t in twins)
             sb.Append(string.Join(",", t.Seed.ToString(Inv), t.Driver.ToString(), t.Turn.ToString(Inv), t.OrdersIssued.ToString(Inv),
-                t.SoldiersBefore.ToString(Inv), t.SoldiersAfter.ToString(Inv), "\"" + t.Binding.Replace("\"", "'") + "\"")).Append('\n');
+                t.SoldiersBefore.ToString(Inv), t.SoldiersAfter.ToString(Inv), "\"" + t.Binding.Replace("\"", "'") + "\"",
+                t.CapPerSettlement == long.MaxValue ? "none" : t.CapPerSettlement.ToString(Inv))).Append('\n');
         File.WriteAllText(Path.Combine(dir, "twins-" + tag + ".csv"), sb.ToString());
         Console.Write(ScaleProbe.Csv(all));
         return true;

@@ -32,13 +32,22 @@ public readonly record struct RosterEdit(long Index, RosterEditKind Kind, int Ow
 /// Every edit is all-or-nothing: it is checked completely first (ownership, class, people available, the cap of EVERY formation
 /// it changes), and only an accepted edit moves people, by ledger transfers. The ledger total is constant (exact equality).
 ///
-/// THE CAP CHECK (<see cref="DirectorCaps.Check"/>) runs on the formation's people after the edit: soldier-counted classes on the
-/// people, machine-counted classes on ceil(people / persons per machine). Uncapped classes (lane N's CAP-5 treatment) are never
-/// refused for size. One formation is one identity: a merge or transfer across classes or identities is refused (ClassMismatch).
+/// THE CAP CHECK (<see cref="DirectorCaps.Check"/>) runs on the formation's people after the edit, on the battle entities those
+/// people fight as (<see cref="DirectorCaps.EntitiesOf"/>, the one rule of lanes W and D since D-082 DA5): machine-counted classes on
+/// ceil(people / persons per machine); soldier-counted classes on min(people, cap), so a soldier formation is never refused for size
+/// (its persons are limited by the economy, not by the cap; before D-082 it was refused one person above the cap). Uncapped classes
+/// (lane N's CAP-5 treatment) are never refused for size. One formation is one identity: a merge or transfer across classes or
+/// identities is refused (ClassMismatch).
 ///
 /// ORDERING. Formations are kept in ascending id. <see cref="ReinforceToCaps"/> hands recruits one at a time to the formation
 /// with the least fill fraction persons / max persons, compared EXACTLY by cross-multiplication (no division), ties to the
-/// lowest id (the CLAUDE.md composite key (score, id); tie-dense tests).
+/// lowest id (the CLAUDE.md composite key (score, id); tie-dense tests). [CB, D-082 DA5] Only formations whose cap bounds their
+/// persons take part (machine classes with a crew rule); soldier formations have no persons cap to fill.
+/// [CB, verification round 1, CB-R1-01] That sentence is READING CB-4 (a), applied: this lane's choice, NOT forced by DA5. DA5 makes
+/// the cap count entities; it does not say how ReinforceToCaps treats soldier formations. Alternative (b): fill a soldier formation
+/// up to its full complement of entities at one person each (<see cref="DirectorCaps.FullStrengthPersons"/>, the cap), persons above
+/// it by <see cref="Reinforce"/>; (b) keeps lane D's automatic reinforcement of understrength soldier formations and its three
+/// ReinforceToCaps pins, which (a) moved (docs/m7-plan/battle-entity-proposal.md §5, READING CB-4).
 /// </summary>
 public sealed class FormationRoster
 {
@@ -270,6 +279,13 @@ public sealed class FormationRoster
     /// (composite key; exact: a/b &lt; c/d iff a·d &lt; c·b in Int128). Stops when no capped formation has room or the depot is
     /// empty. Uncapped formations and machine classes without a crew rule take no part. Returns, per formation of the owner in
     /// ascending id, how many it received. Every person moves by a ledger transfer; each grant is logged as a Reinforce edit.
+    /// [CB, D-082 DA5] "Capped" means a formation whose cap bounds its PERSONS: a machine class with a crew rule (cap × persons per
+    /// machine). Soldier formations take no part: their cap bounds the entities they fight as, not their persons, so they have no
+    /// room to fill (they are reinforced by <see cref="Reinforce"/>, by any number). Before D-082 they took part up to cap persons.
+    /// [CB, verification round 1, CB-R1-01] This is READING CB-4 (a), applied, not a consequence of DA5: under alternative (b) a
+    /// soldier formation below its cap in persons is below its full complement of entities and takes part up to
+    /// <see cref="DirectorCaps.FullStrengthPersons"/> (MEASURED in a scratchpad probe: lane D's three ReinforceToCaps tests of 0d2db74
+    /// pass under (b); docs/m7-plan/battle-entity-proposal.md §5).
     /// </summary>
     public long[] ReinforceToCaps(int owner, long recruits)
     {
@@ -279,7 +295,7 @@ public sealed class FormationRoster
         for (int i = 0; i < _forms.Count; i++)
         {
             var f = _forms[i];
-            if (f.Owner == owner && f.Class != CapFamily.Uncapped && _caps.MaxPersons(f.Class) > 0) idx.Add(i);
+            if (f.Owner == owner && DirectorCaps.IsMachineCounted(f.Class) && _caps.MaxPersons(f.Class) > 0) idx.Add(i);
         }
         var pers = new long[idx.Count];
         var max = new long[idx.Count];
@@ -322,6 +338,9 @@ public sealed class FormationRoster
     /// each, as equal as possible: k = ceil(persons / maxPersons) parts; each gets floor(persons / k) and the first persons mod k
     /// get one more (exact; the parts sum to <paramref name="persons"/>). Used by sandbox force creation (READING S1, both
     /// alternatives in docs/m7-plan/war-sandbox-proposal.md §4).
+    /// [CB, D-082 DA5] No longer used by the sandbox: under the one rule a soldier or uncapped force is ONE formation (its cap bounds
+    /// its entities, not its persons). Kept as the plan of a machine class, whose people crew one machine each, so a force above
+    /// cap × persons per machine still needs several formations (SplitSizes(persons, cap × persons per machine)).
     /// </summary>
     public static long[] SplitSizes(long persons, long maxPersons)
     {
