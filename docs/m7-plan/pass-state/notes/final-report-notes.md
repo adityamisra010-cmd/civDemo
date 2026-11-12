@@ -351,3 +351,10 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 - DF1 also covers DiscoveryShortcutTests: a third Sim.Ui.Tests class that starts UiFrameHarness (3 call sites) with no [Collection] (found by a grep of every harness user: 24 files, 21 in the collection or partial classes of one).
 - Queue: lanes OC (DF7-DF11, DF9), BN (DF12), AR (DF6) after the G2 final, before the final-round verification, one agent at a time; briefs to be written (args/OC.json, BN.json, AR.json).
 - Still open: DF5 (the kernel CR), items 13-27 except where D-087 §4 settles them, and two new DF12 questions (DR24's per-family caps beside the 25-battalion cap; DR25's numbers against battalions).
+
+## Checkpoint 2026-11-12 15:20Z (fired 15:20:28Z; run 15:31Z, after the D-087 commit a8b58d8)
+- CI: run 983 + ui-artifact 487 on daedab3 green (read 14:24Z); a8b58d8 (docs only) pushed 15:31Z, its CI running.
+- G2 final: the scenes agent (a644fc06cbe4689f9, resumed 13:31Z) finished at 65c99ec (14:51:26Z; 7 commits after 0f8ae2f; clone clean); the trunk is at 65c99ec; the workflow's integrate:scenes agent (aaef09dbe84e2b387) is running. wip/g2-scenes-65c99ec.patch = git diff --binary 21a181e 65c99ec -- prototypes/m7-gfx2 (542,324 bytes; 39 files, +4477/-39) replaces g2-scenes-0f8ae2f.patch; the uncommitted snapshot is empty, so g2-scenes-uncommitted-0f8ae2f.patch is retired (its edits were committed by the stage). Both old patches remain in history at a8b58d8.
+- RR-wip.bundle (c038b95) retired: lane RR integrated as cc351e5; the bundle remains in history at a8b58d8.
+- Restore test MEASURED (15:32Z) in a fresh clone of a8b58d8: the G2 patch gives prototypes/m7-gfx2 tree b55fa6f = 65c99ec's.
+- Disk: 2.0 GB available at 15:31Z (G2 captures and builds; the DF1/DF2 validation clone).

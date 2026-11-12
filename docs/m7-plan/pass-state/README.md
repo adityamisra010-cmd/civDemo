@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 15:35 UTC: the Director answered items 1–12 of the open questions, recorded as D-087 (a tie is a tie, fighting means damage, battalions of at most 25 per army, every AI battle auto-resolved); lanes OC, BN and AR are queued after the G2 final, which is running; throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 15:33 UTC, WIP checkpoint of 15:20 (the G2 scenes stage finished at `65c99ec` and is being integrated; lane RR's bundle retired), after D-087 (the Director's answers to items 1–12: a tie is a tie, fighting means damage, battalions of at most 25 per army, every AI battle auto-resolved); lanes OC, BN and AR are queued after the G2 final; throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -189,11 +189,10 @@ Lanes MOR3 and RT each ran one verification round and one fix round, and neither
 Lane RR ran two rounds (round 2: 3 minor and 6 nit), and its fix round 2 is unverified because the workflow stops after two.
 The final round also carries RR's six round-2 nits, which no fix round received.
 
-**Checkpoint 2026-11-12 13:20 UTC** (in [wip/](wip/); the previous one was at 11:20):
-- **Lane commits after `51ab032`, as bundles:**
-  - `RR-wip.bundle` (`c038b95`, the finished lane's head, committed at 12:25; it was `4ba7f4b` at 09:20 and 11:20, `861f9f9`
-    at 07:20, `fe45f0b` at 03:20, `8610ebd` at 01:20, `ab5ec46` at 23:20 and `0a631db` from 11:12 to 21:20). The lane is
-    integrated as `cc351e5` (§1). The bundle keeps the lane's fifteen commits and is retired at the next checkpoint;
+**Checkpoint 2026-11-12 15:20 UTC** (in [wip/](wip/), taken at 15:31; the previous one was at 13:20):
+- **Lane commits after `51ab032`, as bundles:** none in flight now.
+  - `RR-wip.bundle` (`c038b95`): retired at 15:20, because the lane is integrated as `cc351e5`. The bundle, with the lane's
+    fifteen commits, remains in this branch's history at `a8b58d8`;
   - `RT-wip.bundle` (`943b43f`, the finished lane's head): retired after the 21:20 checkpoint, because the lane is integrated
     as `dc19857`. It remains in this branch's history at `f94a9b4`;
   - `MOR3-wip.bundle` (`a8ef60a`): retired at 13:45 UTC, because the lane is integrated as `e052b51`.
@@ -202,9 +201,9 @@ The final round also carries RR's six round-2 nits, which no fix round received.
   `git fetch docs/m7-plan/pass-state/wip/<KEY>-wip.bundle HEAD:lane/<KEY>`, then `git checkout lane/<KEY>`. The bundles carry
   only `HEAD`, so the `git clone -b lane/<KEY> …` form this note gave at 11:12 fails ("Remote branch lane/MOR3 not found").
   It was corrected at 13:20 after a restore test.
-- **Uncommitted edits of the paused clones.** A binary patch against the head in its file name:
-  `g2-scenes-uncommitted-0f8ae2f.patch` (4 files). It is byte-identical to a fresh snapshot taken at 13:22, so unchanged since
-  13:20 on 2026-11-11. Apply it with `git apply --binary <patch>` on its head. It snapshots work stopped mid-step, not a finished state.
+- **Uncommitted edits of the paused clones:** none now.
+- **Retired at 15:20:** `g2-scenes-uncommitted-0f8ae2f.patch`. The resumed scenes stage committed those edits, and its clone
+  holds no uncommitted edit (a fresh snapshot at 15:31 is empty). The patch remains in this branch's history at `a8b58d8`.
 - **Retired at 23:20:** `RR-uncommitted-0a631db.patch`. Lane RR resumed from those edits and committed them (MEASURED: its
   16 files, patched onto `0a631db`, are byte-identical to `955d78c`'s; at `ab5ec46`, 14 are unchanged and 2 have grown,
   `SessionCloseTests.cs` by 207 lines and `SessionWorkbook.cs` by 39 with 1 removed). The patch remains in this branch's
@@ -212,12 +211,12 @@ The final round also carries RR's six round-2 nits, which no fix round received.
 - **Retired at 15:21:** `RT-uncommitted-950d6d1.patch`. Lane RT resumed from that edit and committed it. The file as patched at
   `950d6d1` differs from `4de0682`'s only by 81 lines that `4de0682` adds. The patch remains in this branch's history at
   `afc7118`.
-- **G2 final, scenes stage**, unchanged since 13:20 (head `0f8ae2f`). `g2-scenes-0f8ae2f.patch` holds the stage's committed work
-  since trunk `21a181e`, as a binary patch of `prototypes/m7-gfx2`. It applies onto this branch's tree.
-- **Restore test (13:23, MEASURED).** In a fresh clone of this branch (`6a5b56a`):
-  - the RR bundle verified and fetched to `c038b95`, with the lane commit's tree (`8fc5be5`);
-  - the G2 committed patch alone gives a `prototypes/m7-gfx2` tree equal to `0f8ae2f`'s (`c5c617a`);
-  - both G2 patches give a tree equal to the scenes clone's working state (`a0309d3`).
+- **G2 final, scenes stage: finished** (head `65c99ec`, 14:51 UTC; seven commits after `0f8ae2f`). `g2-scenes-65c99ec.patch`
+  holds the stage's committed work since trunk `21a181e` (39 files, +4,477/−39), as a binary patch of `prototypes/m7-gfx2`, and
+  replaces `g2-scenes-0f8ae2f.patch`, which remains in this branch's history at `a8b58d8`. It applies onto this branch's tree.
+  The workflow's trunk has taken the stage (`g2/trunk` at `65c99ec`), and its integration agent is running.
+- **Restore test (15:32, MEASURED).** In a fresh clone of this branch (`a8b58d8`), the G2 patch gives a `prototypes/m7-gfx2`
+  tree equal to `65c99ec`'s (`b55fa6f`).
 
 **CI on this branch.** From `0929d28` to `afc7118`, CI's build-and-test job failed at the charter check and skipped its build and
 test steps (§1, `93f2d8a`). Run 970 on `8e4a778` (MEASURED, read 16:30 UTC) succeeded in every job: build-and-test's 22 steps,
