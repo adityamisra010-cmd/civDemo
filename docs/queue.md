@@ -1766,3 +1766,20 @@ Record: `docs/d079-m7-governance-reconciliation-2026-11-05.md` (Director decisio
 
 - **S471** (`queue.md:1200`) — "- **M5 temporal control / player agency — CR-006 OPEN, not a queue item.**" — in part (lines 1200–1208) [DIRECTOR DECISION]: the mid-turn hand-back conflict (CR-006 §1) is ruled — CR-006 Option A sub-stepping (D-076 N2) and event-triggered decision windows at non-integer time (DIR5 §2.5); retained OPEN: the 10,000 BCE epoch (CR-006 §2); "Variable turn duration by era is ALREADY SATISFIED" retained. **Replaced by** DIR5 §2.4, §2.5 (D-079 DR11–DR18). [DIRECTOR DECISION; OPEN residue]
 - **S472** (`queue.md:1738`) — "Director decision: accept until M7.4, or" — in part (lines 1735–1739) [DIRECTOR DECISION]: soldier attrition and mortality belong to M7.14 (alias "M7.4" resolved); when food or resources are constrained, growth falls first, movement is restricted next and starvation is last, automatically; retained: the measurement and the pinning test. **Replaced by** DIR5 §2.9, §2.11 (D-079 DR23, DR26–DR28). [DIRECTOR DECISION]
+
+## Dated note — 2026-11-12 (D-090 DI5; appended, the entries above are unchanged)
+
+Added on the Director's ruling D-090 DI5 (`docs/d090-test-battles-dr24-battalions-export-director-answers-2026-11-12.md`):
+lane U's proposed line, as written in `prototypes/m7-sprint1/reports/H-U.md` §11.3.
+
+- 2026-11-09 (M7 lane U verification round 2; MEASURED through `UiFrameHarness` at `9df5ffb`, whose `Sim.Ui` is that
+  of `1601c74`; FOUND, NOT FIXED): three collisions among existing map controls. (1) At the 1080 × 640 window with a
+  section and the Age panel open, the OVERLAYS tab (x 504–646, y 514–568) lies over the LEGEND tab (x 510–636) and
+  runs 10 px past the map's right margin; a click on the OVERLAYS control toggles the legend instead, so the overlay
+  controls cannot be unfolded by click there (at 1280 × 800 the same click unfolds them). (2) In placement mode at
+  1080 × 640 with the Age panel open, the placement bar (y 64–246) runs 16 px into the Age panel (top y 230) over
+  148 px. (3) The overlay key's form above its tab ignores the legend's reach and lies over the legend whenever both
+  show (1280 × 800, Age panel open, every layer, controls folded: 328.3 × 260 px; 1080 × 640, no Age panel, one layer:
+  97.5 × 180 px). Anchors: `GameUi.Overlay.cs:75–77`, `:136–138`; `GameUi.cs:1702–1709`, `:837–845`;
+  `GameUi.Placement.cs:184–186`. Presentation defects for the UI owner. Record:
+  `prototypes/m7-sprint1/reports/H-U.md` §11.

@@ -1070,3 +1070,11 @@ These reports live in the session scratchpad (`/tmp/claude-0/-home-user-civDemo/
   `Sim.Core/State` change (`InfoQuery`) for the research inspector's labels; DH7 allows the research tree's content and shape to
   change for historical accuracy, a D-047 date included where the cited evidence requires it; DH8 allows the build-pipeline
   change for a third launcher in the game zip. §6's rule stands for everything else and Q5 stays open.
+
+## Dated note — 2026-11-12 (D-090; appended, the text above is unchanged)
+
+- The Director answered the five questions still open after D-089; recorded in
+  `docs/d090-test-battles-dr24-battalions-export-director-answers-2026-11-12.md` (DI1–DI5). Battalion sizes follow DR24 (D-087
+  DF12's numbers were examples); the two test battles follow the thirds; ADR-059 is amended; the export's memory and speed work
+  (lane RR's P2, P3) is built in this pass; lane U's queue line is added. No question of that day stays open. §6's rule stands
+  for everything else and Q5 stays open.

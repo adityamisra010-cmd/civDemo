@@ -606,3 +606,66 @@ written. It supersedes "beside the six session files" above, for the game's own 
 - **The one moved test pin.** `UiSessionReplayTests.SessionLogPath_StampedFlat_LexicographicIsChronological` now
   expects `runs/.record/orders-…`.
 - **Details.** `docs/m6-session-export/README.md` §7.
+
+## Amendment — 2026-11-12 (D-086, D-088 DG2, D-090 DI3): research in the run record, a ninth sheet, the close on a worker, the trace check
+
+Recorded by the orchestrator on the Director's ruling D-090 DI3. The changes are lane RR's (D-086), integrated as `cc351e5`;
+the details and every measurement are in `docs/m6-plan/run-record-research-and-exit-2026-11.md` and
+`prototypes/m7-sprint1/reports/H-RR.md`. The sections above are unchanged.
+
+### A. Research in the run record (D-086 DE1)
+
+- The telemetry line carries the step's research: `telemetry/v6` is v5 plus `research` and `civicsBank`.
+  - One row per knowledge holder and research node that received points or completed: the node, its lane, the points
+    received and the acceleration credit among them, the progress after the turn, the cost, the repeatable level, and whether
+    it completed.
+  - One row per holder whose Civics Points bank changed: generated, drawn, left.
+- The codebook goes to v6 (`docs/m6-session-export/codebook-telemetry-v6.tsv` and `.json`, generated from `prototype/spec.py`);
+  v4 and v5 are unchanged (`make_codebook.py --check`).
+- The coded chronicle gains one `RN<key>=name` line for each research node the rows hold (`UiSession.Step`,
+  `NoteResearchNames`), so that every Research code is named in the Codebook (kept by D-087 DF4).
+
+### B. The ninth sheet, Research
+
+- Research holds those rows, coded, with every code in the Codebook (23 legend rows: `Research:col`, `Research:kind`,
+  `Research:read`).
+- A session recorded before `telemetry/v6` exports with one `NR` row (not recorded); a v6 session whose lines hold no research
+  row exports with one `NX` row. Nothing is invented.
+- The README sheet says "nine sheets" and gains the rows `close record` and `sheet Research`.
+
+### C. The close (D-086 DE2)
+
+- The close keeps its five steps and their order (save, telemetry finalize, forensic close, workbook, raw-log removal), now on a
+  worker thread (`SessionClose`, `GameUi.Closing`), while the window draws a saving screen: each step with its time, and the
+  workbook step's share of the log read.
+- A second close request starts nothing. A close that ends without a workbook keeps the screen up with the reason and the
+  recovery command, and appends the reason to `.record/export-STAMP.log`, as the headless `--export-session` now does for every
+  failure.
+- The workbook is written to `session-STAMP.xlsx.partial`, then moved into place in one rename.
+- `--export-session` rebuilds the workbook after a close interrupted at any of the five steps (tested at each).
+
+### D. The export's reading and checking
+
+- The telemetry is read line by line from the file's bytes, each line is parsed once, and the file's sha256 is computed once.
+- Self-check 3 compares the re-joined Telemetry cells with the cells verified at encode time, instead of decoding every cell a
+  second time (`TelemetryCellCodec.Decode` is a pure function). Checks 1 and 2 are unchanged.
+- MEASURED by lane RR on the Director's 850-turn files: 12.5–13.3 s and a 1,290 MB peak before; 8.8–9.7 s and 698 MB after.
+- The trace check: `SessionWorkbook.CheckTrace` applies the kernel reader's rules but reads the year as the number written, so
+  a session past turn 1270 (half-year turns from 1920 CE) exports. CR-027 (D-088 DG2) makes the kernel reader itself read the
+  year as written, for resume, replay and inspect.
+
+### E. Goldens (§7) re-pinned, with attribution (MEASURED part by part by lane RR)
+
+- `DirectorWorkbookSha` `806e0947…` → `97b13e5d…`, and `CurrentWorkbookSha` `c5ec8abd…` → `5499123d…`, for the same parts:
+  - the ninth sheet and its registration (`[Content_Types].xml`, `xl/workbook.xml`, `xl/_rels/workbook.xml.rels`);
+  - the README sheet;
+  - the Codebook.
+
+  Every other part is byte-identical, every Telemetry cell included.
+- New: `CurrentV6WorkbookSha` `e2e22311…`, the `current-v6` fixture. `EntryOrder` has 14 entries (`xl/worksheets/sheet9.xml`).
+- The telemetry tag moved from v5 to v6 in the five tests that moved for v5.
+
+### F. Pending (D-090 DI4)
+
+Lane RR's P2 (the telemetry streamed from the file) and P3 (the lines encoded and checked in parallel, in order, giving the
+same bytes) are being built in this pass as lane RX. Their result is recorded here when they land.
