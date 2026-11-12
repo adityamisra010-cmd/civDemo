@@ -1,686 +1,1162 @@
-diff --git a/prototypes/m7-gfx2/Gfx.Engine/Effects/GlslLib.cs b/prototypes/m7-gfx2/Gfx.Engine/Effects/GlslLib.cs
-index ed684e4..69441ae 100644
---- a/prototypes/m7-gfx2/Gfx.Engine/Effects/GlslLib.cs
-+++ b/prototypes/m7-gfx2/Gfx.Engine/Effects/GlslLib.cs
-@@ -109,7 +109,11 @@ float shadowSingle(vec4 lpos) {
-     return lit / 9.0;
- }
- // G2: 3x3 box of bilinear comparisons (16 texels, tent-like footprint) inside one 2x2-atlas tile.
--float shadowTile(vec3 lc, vec2 tile, float bias) {
-+// G2 polish1: receiver-plane depth bias. Each of the 16 taps compares against the receiver's plane extrapolated to that
-+// tap's texel centre (dzdst: the plane's depth change per atlas texel), not against the depth at the pixel itself; a
-+// constant bias alone let the far side of the footprint fall below the stored depth of the receiver's own surface on
-+// slopes lit at a grazing angle (contour rings across smooth hills at golden hour).
-+float shadowTile(vec3 lc, vec2 tile, float bias, vec2 dzdst) {
-     float atlas = CsmAtlas.y;
-     vec2 uv = (tile + vec2(lc.x * 0.5 + 0.5, -lc.y * 0.5 + 0.5)) * 0.5;
-     vec2 st = uv * atlas - 0.5;
-@@ -122,33 +126,52 @@ float shadowTile(vec3 lc, vec2 tile, float bias) {
-         for (int i = -1; i <= 2; i++) {
-             float wx = i == -1 ? 1.0 - f.x : (i == 2 ? f.x : 1.0);
-             vec2 p = clamp(base + vec2(float(i), float(j)) / atlas, lo, hi);
--            sum += wx * wy * (z <= texture2D(ShadowMap, p).r ? 1.0 : 0.0);
-+            float zt = z + dot(dzdst, vec2(float(i), float(j)) - f);
-+            sum += wx * wy * (zt <= texture2D(ShadowMap, p).r ? 1.0 : 0.0);
-         }
-     }
-     return sum / 9.0;
- }
-+// Polish1: the receiver plane's depth gradient per atlas texel in cascade k (clip scale s = CsmScaleK.xyz) from the
-+// screen-space derivatives of cascade 0's lookup position, clamped to a plane 85 degrees off the light (tan 11.4; texel
-+// depth = CsmOffsetK.w, one texel's world size over the cascade's depth range): silhouettes, where the derivatives
-+// straddle two surfaces, get a bounded plane instead of an unbounded one.
-+vec2 receiverPlane(vec3 dx0, vec3 dy0, vec3 s, float texelDepth) {
-+    float a = CsmAtlas.y * 0.25;
-+    vec2 sx = vec2(dx0.x * s.x, -dx0.y * s.y) * a, sy = vec2(dy0.x * s.x, -dy0.y * s.y) * a;
-+    float zx = dx0.z * s.z, zy = dy0.z * s.z;
-+    float det = sx.x * sy.y - sx.y * sy.x;
-+    if (abs(det) < 1e-12) return vec2(0.0);
-+    vec2 g = vec2(sy.y * zx - sx.y * zy, sx.x * zy - sy.x * zx) / det;
-+    float lim = 11.4 * texelDepth, len = length(g);
-+    return len > lim ? g * (lim / len) : g;
-+}
- // Cascade selection by containment (the finest cascade that holds the point, with a filter margin); blends into
--// the next cascade over the outer 10 % of each one. CsmScaleK.w is cascade K's depth bias.
-+// the next cascade over the outer 10 % of each one. CsmScaleK.w is cascade K's constant depth bias.
- float shadowCascaded(vec4 lpos) {
-     vec3 lc0 = lpos.xyz / lpos.w;
-+    // derivatives first, outside every branch (they are undefined in non-uniform control flow)
-+    vec3 dx0 = dFdx(lc0), dy0 = dFdy(lc0);
-     float margin = 1.0 - 8.0 / CsmAtlas.y;
--    vec3 c[4]; float bias[4];
-+    vec3 c[4]; float bias[4]; vec3 sc[4]; float td[4];
-     c[0] = lc0 * CsmScale0.xyz + CsmOffset0.xyz; c[1] = lc0 * CsmScale1.xyz + CsmOffset1.xyz;
-     c[2] = lc0 * CsmScale2.xyz + CsmOffset2.xyz; c[3] = lc0 * CsmScale3.xyz + CsmOffset3.xyz;
-     bias[0] = CsmScale0.w; bias[1] = CsmScale1.w; bias[2] = CsmScale2.w; bias[3] = CsmScale3.w;
-+    sc[0] = CsmScale0.xyz; sc[1] = CsmScale1.xyz; sc[2] = CsmScale2.xyz; sc[3] = CsmScale3.xyz;
-+    td[0] = CsmOffset0.w; td[1] = CsmOffset1.w; td[2] = CsmOffset2.w; td[3] = CsmOffset3.w;
-     int count = int(CsmAtlas.x + 0.5);
-     for (int k = 0; k < 4; k++) {
-         if (k >= count) break;
-         vec3 lc = c[k];
-         float m = max(abs(lc.x), abs(lc.y));
-         if (m < margin && lc.z < 1.0) {
--            float s = shadowTile(lc, vec2(mod(float(k), 2.0), floor(float(k) / 2.0)), bias[k]);
-+            float s = shadowTile(lc, vec2(mod(float(k), 2.0), floor(float(k) / 2.0)), bias[k], receiverPlane(dx0, dy0, sc[k], td[k]));
-             float edge = smoothstep(margin * 0.9, margin, m);
-             gb_casc = float(k + 1); // stage render2: cascade debug view
-             if (edge > 0.0 && k + 1 < count) {
-                 vec3 ln = c[k + 1];
-                 if (max(abs(ln.x), abs(ln.y)) < margin && ln.z < 1.0) {
--                    s = mix(s, shadowTile(ln, vec2(mod(float(k + 1), 2.0), floor(float(k + 1) / 2.0)), bias[k + 1]), edge);
-+                    s = mix(s, shadowTile(ln, vec2(mod(float(k + 1), 2.0), floor(float(k + 1) / 2.0)), bias[k + 1], receiverPlane(dx0, dy0, sc[k + 1], td[k + 1])), edge);
-                     gb_casc += edge;
-                 }
-             }
-diff --git a/prototypes/m7-gfx2/Gfx.Engine/Effects/PostEffects.cs b/prototypes/m7-gfx2/Gfx.Engine/Effects/PostEffects.cs
-index d7e27b3..f99a1fd 100644
---- a/prototypes/m7-gfx2/Gfx.Engine/Effects/PostEffects.cs
-+++ b/prototypes/m7-gfx2/Gfx.Engine/Effects/PostEffects.cs
-@@ -112,21 +112,36 @@ vec3 tap(vec2 o) { return min(texture2D(Src, v_uv + o * SrcTexel.xy).rgb, vec3(6
-     /// small bloom level, partial adaptation (target = a·mean + (1−a)·log2(reference)), then exponential smoothing
-     /// towards it (separate rates for brightening and darkening). Output r = adapted log2 luminance, g = target.
-     /// ExposureParams: x = blend factor when brightening, y = blend factor when darkening, z = a, w = log2(reference).
--    /// ExposureRange: x = min log2, y = max log2, z = 1 when a previous value exists.
-+    /// ExposureRange: x = min log2, y = max log2, z = 1 when a previous value exists, w = 1 subject metering (polish1).
-     /// </summary>
-     static EffectBuilder Exposure() => FullScreen(G2EffectNames.Exposure)
-         .Vec4("ExposureParams", Stage.Pixel).Vec4("ExposureRange", Stage.Pixel)
-         .Texture("Src", 0).Texture("Prev", 1)
-         .PixelMain(@"
-     float sum = 0.0, wsum = 0.0;
-+    bool subject = ExposureRange.w > 0.5;
-     for (int j = 0; j < 9; j++) for (int i = 0; i < 16; i++) {
-         vec2 uv = vec2((float(i) + 0.5) / 16.0, (float(j) + 0.5) / 9.0);
-         float l = dot(texture2D(Src, uv).rgb, vec3(0.2126, 0.7152, 0.0722));
-         vec2 dc = (uv - 0.5) * vec2(2.0, 2.0);
-         float w = 1.0 + 2.0 * clamp(1.0 - dot(dc, dc), 0.0, 1.0);   // centre-weighted
-+        if (subject) w *= mix(0.45, 1.35, uv.y);                    // polish1: the lower frame (v = 0 is the top) weighs more
-         sum += w * log2(clamp(l, 1e-5, 1e4)); wsum += w;
-     }
-     float mean = sum / wsum;
-+    if (subject) {
-+        // polish1 subject metering: no sample counts for more than 1.5 stops over the first mean, so a bright sky in the
-+        // frame cannot pull the exposure down far enough to crush a backlit subject
-+        float s2 = 0.0, w2 = 0.0;
-+        for (int j = 0; j < 9; j++) for (int i = 0; i < 16; i++) {
-+            vec2 uv = vec2((float(i) + 0.5) / 16.0, (float(j) + 0.5) / 9.0);
-+            float l = dot(texture2D(Src, uv).rgb, vec3(0.2126, 0.7152, 0.0722));
-+            vec2 dc = (uv - 0.5) * vec2(2.0, 2.0);
-+            float w = (1.0 + 2.0 * clamp(1.0 - dot(dc, dc), 0.0, 1.0)) * mix(0.45, 1.35, uv.y);
-+            s2 += w * min(log2(clamp(l, 1e-5, 1e4)), mean + 1.5); w2 += w;
-+        }
-+        mean = s2 / w2;
-+    }
-     float target = clamp(ExposureParams.z * mean + (1.0 - ExposureParams.z) * ExposureParams.w, ExposureRange.x, ExposureRange.y);
-     float prev = texture2D(Prev, vec2(0.5, 0.5)).r;
-     float adapted = target;
-@@ -169,9 +184,8 @@ vec3 agx(vec3 color) {
-     color = pow(max(vec3(0.0), color), vec3(2.2));
-     return clamp(fromRec2020 * color, 0.0, 1.0);
- }
--vec3 pbrNeutral(vec3 color) {
-+vec3 pbrNeutral(vec3 color, float desaturation) {
-     const float startCompression = 0.8 - 0.04;
--    const float desaturation = 0.15;
-     float x = min(color.r, min(color.g, color.b));
-     float offset = x < 0.08 ? x - 6.25 * x * x : 0.04;
-     color -= offset;
-@@ -202,6 +216,7 @@ vec3 srgbToLinearExact(vec3 c) {
-     /// </summary>
-     static EffectBuilder Composite() => FullScreen(G2EffectNames.Composite)
-         .Vec4("CompositeParams", Stage.Pixel).Vec4("CompositeParams2", Stage.Pixel).Vec4("AccumWeight", Stage.Pixel)
-+        .Vec4("ToneParams", Stage.Pixel)
-         .Texture("SceneTex", 0).Texture("BloomTex", 1).Texture("ExposureTex", 2).Texture("LutTex", 3)
-         .PixelLib(Tonemappers + @"
- vec3 applyLut(vec3 c) {
-@@ -222,7 +237,7 @@ vec3 applyLut(vec3 c) {
-     int tm = int(CompositeParams.w + 0.5);
-     vec3 t;
-     if (tm == 0) t = acesFit(c);
--    else if (tm == 1) t = pbrNeutral(c);
-+    else if (tm == 1) t = pbrNeutral(c, ToneParams.x);
-     else if (tm == 2) t = acesHill(c);
-     else if (tm == 3) t = agx(c);
-     else t = clamp(c, 0.0, 1.0);
-diff --git a/prototypes/m7-gfx2/Gfx.Engine/Effects/ScreenSpaceEffects.cs b/prototypes/m7-gfx2/Gfx.Engine/Effects/ScreenSpaceEffects.cs
-index dca215a..efc4c5f 100644
---- a/prototypes/m7-gfx2/Gfx.Engine/Effects/ScreenSpaceEffects.cs
-+++ b/prototypes/m7-gfx2/Gfx.Engine/Effects/ScreenSpaceEffects.cs
-@@ -236,7 +236,10 @@ float contactVisibility(vec2 uv, float d) {
-     cs = mix(1.0, cs, ApplyParams.y);
-     float m = 1.0 - split.r * (1.0 - ao) - split.g * (1.0 - cs);
-     if (ApplyParams.w > 2.5) m = cs; else if (ApplyParams.w > 1.5) m = ao;   // debug views: the term itself
--    gl_FragColor = vec4(vec3(max(m, 0.0)), 1.0);");
-+    // polish1: an occluded point sees less of the blue sky and more of the light bounced off its surroundings, so the
-+    // ambient share loses more blue than red where AO darkens it (the multiplier per channel, luminance about the same)
-+    vec3 mc = vec3(1.0) - split.r * (1.0 - ao) * vec3(0.88, 1.0, 1.12) - vec3(split.g * (1.0 - cs));
-+    gl_FragColor = ApplyParams.w > 1.5 ? vec4(vec3(max(m, 0.0)), 1.0) : vec4(max(mc, vec3(0.0)), 1.0);");
- 
-     /// <summary>
-     /// Debug views of the G-buffer-lite and the screen-space terms (display-ready). <c>DebugParams</c>: x = mode (1 depth,
-diff --git a/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs b/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs
-index 74edbe0..c251dd4 100644
---- a/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs
-+++ b/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs
-@@ -134,6 +134,12 @@ public sealed class SkyAtmosphere : IDisposable
-         return (T(x0, y0) * (1 - tx) + T(x1, y0) * tx) * (1 - ty) + (T(x0, y1) * (1 - tx) + T(x1, y1) * tx) * ty;
-     }
- 
-+    /// <summary>
-+    /// Polish1: irradiance on level ground from the sun (normal-incidence irradiance times the sun's elevation sine)
-+    /// and the sky, in the table's units; a Lambert ground of albedo a below the horizon has radiance a/pi times this.
-+    /// </summary>
-+    public Rgb GroundIrradiance => SunIrradiance * Math.Max(0.0, TableSunDir.Y) + SkyIrradiance;
-+
-     /// <summary>The sky (and lit ground below the horizon) as an equirect image, without the sun disc.</summary>
-     public EquirectImage ToEquirect(int w, int h)
+diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs
+index 8db63ee..b02589f 100644
+--- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs
++++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs
+@@ -32,9 +32,9 @@ public static class CrowdPoseVariants
+     public static readonly PoseVariant[] Idle =
      {
-@@ -208,7 +214,7 @@ public sealed class EnvironmentLighting : IDisposable
-     public const int SpecWidth = 256;
-     readonly GraphicsDevice _gd;
-     Texture2D? _spec, _brdf, _background;
--    int _skyVersion = -1; string? _hdriKey;
-+    int _skyVersion = -1; string? _hdriKey; Vector3? _skyGround;
-     EquirectImage? _hdriSource; string? _hdriLoadedPath; double _hdriSunU = double.NaN;
-     public Vector4[] Sh { get; } = new Vector4[9];
-     public Texture2D Specular => _spec ?? throw new InvalidOperationException("Update first");
-@@ -229,14 +235,20 @@ public sealed class EnvironmentLighting : IDisposable
-         return FloatTextures.Half4(_gd, 32, 32, _brdfData);
-     }
- 
--    /// <summary>Rebuilds from the analytic sky when its table changed.</summary>
--    public void UpdateFromSky(SkyAtmosphere sky)
-+    /// <summary>
-+    /// Rebuilds from the analytic sky when its table (or the ground albedo) changed. Polish1: with a
-+    /// <paramref name="groundAlbedo"/> the lower hemisphere is that sunlit Lambert ground (<see cref="ApplyGround"/>), so
-+    /// downward- and sideways-facing surfaces receive the meadow's bounce light rather than the sky model's air and grey
-+    /// ground; null keeps the sky table's own lower hemisphere.
-+    /// </summary>
-+    public void UpdateFromSky(SkyAtmosphere sky, Vector3? groundAlbedo = null)
-     {
--        if (_skyVersion == sky.Version && _hdriKey == null && _spec != null) return;
-+        if (_skyVersion == sky.Version && _hdriKey == null && _spec != null && _skyGround == groundAlbedo) return;
-         var sw = System.Diagnostics.Stopwatch.StartNew();
-         var src = sky.ToEquirect(SpecWidth, SpecWidth / 2);
-+        if (groundAlbedo is { } ga) ApplyGround(src, sky.GroundIrradiance, ga);
-         Build(src);
--        _skyVersion = sky.Version; _hdriKey = null;
-+        _skyVersion = sky.Version; _hdriKey = null; _skyGround = groundAlbedo;
-         _background?.Dispose(); _background = null;
-         SourceDescription = "analytic sky";
-         LastBuildMs = (float)sw.Elapsed.TotalMilliseconds;
-@@ -299,6 +311,29 @@ public sealed class EnvironmentLighting : IDisposable
- 
-     static float Fin(float v) => float.IsFinite(v) ? Math.Clamp(v, 0f, 65000f) : 0f;
- 
-+    /// <summary>
-+    /// Polish1: replaces the lower hemisphere of an equirect sky by the radiance of a sunlit Lambert ground,
-+    /// albedo / pi times the level-ground irradiance, blended in over the first 8 degrees below the horizon (the horizon
-+    /// itself keeps the sky table's haze). PRESENTATION ONLY.
-+    /// </summary>
-+    public static void ApplyGround(EquirectImage img, Rgb groundIrradiance, Vector3 albedo)
-+    {
-+        var l = new Rgb(albedo.X * groundIrradiance.R / Math.PI, albedo.Y * groundIrradiance.G / Math.PI, albedo.Z * groundIrradiance.B / Math.PI);
-+        for (int y = 0; y < img.Height; y++)
-+        {
-+            double el = Math.PI / 2 - (y + 0.5) / img.Height * Math.PI;
-+            if (el >= 0) continue;
-+            double t = Math.Clamp(-el / MathHelper.ToRadians(8f), 0, 1); t = t * t * (3 - 2 * t);
-+            for (int x = 0; x < img.Width; x++)
-+            {
-+                int o = (y * img.Width + x) * 3;
-+                img.Rgb[o] = (float)(img.Rgb[o] * (1 - t) + l.R * t);
-+                img.Rgb[o + 1] = (float)(img.Rgb[o + 1] * (1 - t) + l.G * t);
-+                img.Rgb[o + 2] = (float)(img.Rgb[o + 2] * (1 - t) + l.B * t);
-+            }
-+        }
-+    }
-+
-     static double BrightestU(EquirectImage img)
-     {
-         // column of the brightest 9×9-averaged spot in the upper hemisphere
-diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/CascadedShadowMap.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/CascadedShadowMap.cs
-index 1230d8e..2b67973 100644
---- a/prototypes/m7-gfx2/Gfx.Engine/Rendering/CascadedShadowMap.cs
-+++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/CascadedShadowMap.cs
-@@ -29,7 +29,8 @@ public sealed class CascadedShadowMap : IDisposable
-     public float[] Radius { get; } = new float[MaxCascades];
-     /// <summary>Per cascade: xyz = clip scale relative to cascade 0, w = depth bias (cascade depth units).</summary>
-     public Vector4[] Scale { get; } = new Vector4[MaxCascades];
--    /// <summary>Per cascade: xyz = clip offset relative to cascade 0.</summary>
-+    /// <summary>Per cascade: xyz = clip offset relative to cascade 0; w = one texel's world size in the cascade's depth units
-+    /// (polish1: the receiver-plane bias clamps its plane slope with it).</summary>
-     public Vector4[] Offset { get; } = new Vector4[MaxCascades];
-     public float NormalOffsetWorld { get; private set; }
-     public float BiasTexels { get; set; } = 1.6f;
-@@ -98,6 +99,7 @@ public sealed class CascadedShadowMap : IDisposable
-             ViewProj[k] = LightView * proj;
-             float depthRange = zMax - zMin;
-             Scale[k] = new Vector4(0, 0, 0, BiasTexels * texel / depthRange);
-+            Offset[k] = new Vector4(0, 0, 0, texel / depthRange);
-             if (k == 0) NormalOffsetWorld = 1.5f * texel;
-         }
-         var p0 = _proj[0];
-@@ -108,7 +110,7 @@ public sealed class CascadedShadowMap : IDisposable
-             var sc = new Vector3(pk.M11 / p0.M11, pk.M22 / p0.M22, pk.M33 / p0.M33);
-             var o = new Vector3(pk.M41 - p0.M41 * sc.X, pk.M42 - p0.M42 * sc.Y, pk.M43 - p0.M43 * sc.Z);
-             Scale[k] = new Vector4(sc, Scale[k].W);
--            Offset[k] = new Vector4(o, 0);
-+            Offset[k] = new Vector4(o, Offset[k].W);
-         }
-         for (int k = Count; k < MaxCascades; k++) { Scale[k] = new Vector4(1, 1, 1, 0); Offset[k] = new Vector4(0, 0, 10, 0); }
-     }
-diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs
-index 70f9d5d..62fb89d 100644
---- a/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs
-+++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs
-@@ -320,7 +320,7 @@ public sealed class ForwardRenderer : IDisposable
-         if (analytic)
-         {
-             _sky ??= new SkyAtmosphere(_gd);
--            _sky.Update(sun, MistHaze(f.Haze, f.Mist), f.Cloud);
-+            _sky.Update(sun, MistHaze(f.Haze * LowSunHaze(f.HazeLowSun, sun.SunElevationRadians), f.Mist), f.Cloud);
-             s2 = _sky.Derive(sun);
-         }
-         rc.Sun = s2;
-@@ -333,7 +333,7 @@ public sealed class ForwardRenderer : IDisposable
-             else
-             {
-                 if (hdri != null && !_warnedHdri) { Console.Error.WriteLine($"[render] HDRI not found: {hdri}; using the analytic sky for IBL"); _warnedHdri = true; }
--                _env.UpdateFromSky(_sky!);
-+                _env.UpdateFromSky(_sky!, f.GroundBounce ? f.GroundAlbedo : null);
-             }
-             rc.IblSpecular = _env.Specular;
-             for (int i = 0; i < 9; i++) rc.Sh[i] = _env.Sh[i];
-@@ -506,6 +506,18 @@ public sealed class ForwardRenderer : IDisposable
-     /// <summary>Stage scenes: mist also makes the air hazier (aerosol density × 1 + 1.5 × mist).</summary>
-     public static float MistHaze(float haze, float mist) => mist <= 0f ? haze : haze * (1f + 1.5f * mist);
- 
-+    /// <summary>
-+    /// Polish1: the haze factor for the sun's elevation: <paramref name="atHorizon"/> with the sun at or below 3 degrees,
-+    /// 1 from 25 degrees up, smooth between (1 = no change at any elevation).
-+    /// </summary>
-+    public static float LowSunHaze(float atHorizon, float sunElevationRadians)
-+    {
-+        if (atHorizon == 1f) return 1f;
-+        float t = Math.Clamp((MathHelper.ToDegrees(sunElevationRadians) - 3f) / 22f, 0f, 1f);
-+        t = t * t * (3f - 2f * t);
-+        return MathHelper.Lerp(atHorizon, 1f, t);
-+    }
-+
-     RenderTarget2D ResolveTaa(RenderContext rc, int w, int h, in Matrix viewProjUnjittered)
-     {
-         for (int i = 0; i < 2; i++)
-@@ -733,7 +745,7 @@ public sealed class ForwardRenderer : IDisposable
-             e.Parameters["Src"].SetValue(_bloom[src]);
-             e.Parameters["Prev"].SetValue(history ? prev : null);
-             e.Parameters["ExposureParams"].SetValue(new Vector4(1 - MathF.Exp(-dt * 1.2f), 1 - MathF.Exp(-dt * 2.5f), 0.8f, MathF.Log2(0.12f)));
--            e.Parameters["ExposureRange"].SetValue(new Vector4(-12f, 6f, history ? 1 : 0, 0));
-+            e.Parameters["ExposureRange"].SetValue(new Vector4(-12f, 6f, history ? 1 : 0, f.SubjectMetering ? 1 : 0));
-             e.CurrentTechnique.Passes[0].Apply();
-             _gd.SamplerStates[0] = SamplerState.LinearClamp; _gd.SamplerStates[1] = SamplerState.PointClamp;
-             _gd.DrawUserPrimitives(PrimitiveType.TriangleList, FullScreen.Triangle, 0, 1);
-@@ -782,6 +794,7 @@ public sealed class ForwardRenderer : IDisposable
-         comp.Parameters["CompositeParams2"].SetValue(new Vector4(f.ColorGrade ? 1 : 0, 32, accumulate ? 1 : 0, comp2 * MathF.Pow(2f, f.ExposureBiasEv)));
-         // y: the up-chain leaves the sum of one blurred copy per level in bloom[0]; the composite averages them
-         comp.Parameters["AccumWeight"].SetValue(new Vector4(accumulate ? accumWeight : 1, bloom ? 1f / _bloom.Length : 1, 0, 0));
-+        comp.Parameters["ToneParams"].SetValue(new Vector4(f.NeutralDesaturation, 0, 0, 0));
-         comp.CurrentTechnique.Passes[0].Apply();
-         _gd.SamplerStates[0] = SamplerState.PointClamp; _gd.SamplerStates[1] = SamplerState.LinearClamp;
-         _gd.SamplerStates[2] = SamplerState.PointClamp; _gd.SamplerStates[3] = SamplerState.LinearClamp;
-diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderSettings.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderSettings.cs
-index 2c8fb91..0fbbb00 100644
---- a/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderSettings.cs
-+++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderSettings.cs
-@@ -36,6 +36,20 @@ public sealed class RenderFeatures
-     public bool FarField { get; set; } = true;
-     /// <summary>Haze multiplier on the aerosol (Mie) density; scenes may set a biome default.</summary>
-     public float Haze { get; set; } = 1f;
-+    /// <summary>Polish1: the haze multiplier's factor with the sun on the horizon, rising to 1 by 25 degrees of
-+    /// elevation (1 = no change). The aerosol veil towards a low sun turned golden-hour meadows into sand.</summary>
-+    public float HazeLowSun { get; set; } = 1f;
-+    /// <summary>Polish1: the sky's image-based light takes its lower hemisphere from sunlit ground of
-+    /// <see cref="GroundAlbedo"/> (a bounce term) instead of the sky model's air and grey ground.</summary>
-+    public bool GroundBounce { get; set; } = true;
-+    /// <summary>Polish1: linear albedo of the ground under the scene for <see cref="GroundBounce"/> (default: a green meadow).</summary>
-+    public Vector3 GroundAlbedo { get; set; } = new(0.075f, 0.105f, 0.042f);
-+    /// <summary>Polish1: auto exposure meters the lower part of the frame more and clamps the brightest samples (sky) to
-+    /// 1.5 stops over the mean, so backlit subjects are not crushed; off = the centre-weighted mean.</summary>
-+    public bool SubjectMetering { get; set; } = true;
-+    /// <summary>Polish1: highlight desaturation of the PBR Neutral tonemapper (Khronos default 0.15); lower keeps coloured
-+    /// highlights (bronze, gilding) coloured.</summary>
-+    public float NeutralDesaturation { get; set; } = 0.15f;
-     // shading
-     public bool Pbr { get; set; } = true;
-     public IblSource Ibl { get; set; } = IblSource.Sky;
-@@ -173,6 +187,7 @@ public sealed class RenderFeatures
-         "debug=none|depth|ao|contact|shares|cascades", "crowdlod=<bias>", "crowdlevel=-1|0|1|2", "crowdfade=0|1", "frustum=0|1",
-         "occlusion=0|1", "castercull=0|1", "taaweight=<0..1>", "taagamma=<x>",
-         "weather=clear|overcast|mist|rain", "cloud=<0..1>", "wet=<0..1>", "rain=<0..1>", "mist=<0..1>",
-+        "hazelowsun=<x>", "bounce=0|1", "metering=subject|centre", "neutraldesat=<0..1>",
+         new(-2f, 0f, 0f, 0f, 0f, 0f, 0f),
+-        new(1f, 11f, 3.5f, -1.5f, 8f, -6f, 4f),
+-        new(-5f, -9f, -3f, 2f, -7f, 7f, -5f),
+-        new(0f, 5f, 2f, 3f, 11f, 4f, 2.5f),
++        new(1f, 11f, 3.5f, -1.5f, 9f, -11f, 4f),
++        new(-5f, -9f, -3f, 2f, -8f, 13f, -5f),
++        new(0f, 5f, 2f, 3f, 12f, 6f, 2.5f),
      };
  
-     /// <summary>Applies one <c>key=value</c> switch (case-insensitive key). Throws on an unknown key or value.</summary>
-@@ -194,6 +209,10 @@ public sealed class RenderFeatures
-             case "aerial": AerialPerspective = B(lv); break;
-             case "farfield": FarField = B(lv); break;
-             case "haze": Haze = F(v); break;
-+            case "hazelowsun": HazeLowSun = Math.Clamp(F(v), 0.05f, 4f); break;
-+            case "bounce": GroundBounce = B(lv); break;
-+            case "metering": SubjectMetering = lv switch { "subject" => true, "centre" or "center" => false, _ => throw Bad(key, v) }; break;
-+            case "neutraldesat": NeutralDesaturation = Math.Clamp(F(v), 0f, 1f); break;
-             case "pbr": Pbr = B(lv); break;
-             case "ibl": Ibl = lv switch { "none" or "off" or "0" => IblSource.None, "sky" => IblSource.Sky, "hdri" => IblSource.Hdri, _ => throw Bad(key, v) }; break;
-             case "hdri": HdriPath = v; break;
-@@ -300,6 +319,7 @@ public sealed class RenderFeatures
-         $" water={On(EnvWater)} reflect={On(EnvReflections)} structures={On(EnvStructures)} forestfloor={On(EnvForestFloor)}" +
-         $" ssao={On(Ssao)} aoradius={AoRadius:0.##} aostrength={AoStrength:0.##} contact={On(ContactShadows)} contactlen={ContactLength:0.##}" +
-         $" crowd={On(Crowd)} crowdlod={CrowdLodBias:0.##} crowdlevel={CrowdLevel} crowdfade={On(CrowdLodFade)} crowdlooks={On(CrowdLooks)} crowdblend={On(CrowdClipBlend)} frustum={On(FrustumCulling)} occlusion={On(OcclusionCulling)} castercull={On(CascadeCasterCulling)}" +
-+        $" hazelowsun={HazeLowSun:0.##} bounce={On(GroundBounce)} metering={(SubjectMetering ? "subject" : "centre")} neutraldesat={NeutralDesaturation:0.##}" +
-         $"{(Debug != DebugView.None ? " debug=" + Debug : "")}" +
-         $"{(HasWeather ? $" cloud={Cloud:0.##} wet={Wetness:0.##} rain={Rain:0.##} mist={Mist:0.##}" : "")}");
+     public static readonly string[] BaseClips = { "idle", "idle_proud" };
+@@ -106,16 +106,27 @@ public static class CrowdPoseVariants
+         int pelvis = s.TryIndex("pelvis", out int pv) ? pv : -1;
+         int spine = s["spine_02"], neck = s["neck_01"], head = s["head"], armR = s["upperarm_r"], armL = s["upperarm_l"];
+         var face = FaceForward(s);
+-        float pitchFix = v.HeadPitch - MeanHeadPitch(s, clip);
++        var trunk = Q.Mul(About(Vector3.UnitY, v.SpineTwist), About(Vector3.UnitX, v.SpineLean));
++        bool turnTrunk = v.SpineTwist != 0 || v.SpineLean != 0;
++        // the gaze correction is measured after the trunk offset (a forward lean lowers the head with it)
++        double pitchSum = 0;
++        for (int f = 0; f < clip.Frames; f++)
++        {
++            Load(s, clip, f, pose);
++            Fk.Solve(s, pose, g, hd, pelvis);
++            if (turnTrunk) { Turn(s, pose, g, spine, trunk); Fk.Solve(s, pose, g, hd, pelvis); }
++            pitchSum += MathHelper.ToDegrees(MathF.Asin(Math.Clamp(Q.Rotate(g[head], face).Y, -1f, 1f)));
++        }
++        float pitchFix = v.HeadPitch - (float)(pitchSum / Math.Max(1, clip.Frames));
+         var rot = new Quaternion[clip.Frames * n];
+         for (int f = 0; f < clip.Frames; f++)
+         {
+             Load(s, clip, f, pose);
+             Fk.Solve(s, pose, g, hd, pelvis);
+             // trunk: twist about the vertical, lean about the body's lateral axis (the character faces +Z)
+-            if (v.SpineTwist != 0 || v.SpineLean != 0)
++            if (turnTrunk)
+             {
+-                Turn(s, pose, g, spine, Q.Mul(About(Vector3.UnitY, v.SpineTwist), About(Vector3.UnitX, v.SpineLean)));
++                Turn(s, pose, g, spine, trunk);
+                 Fk.Solve(s, pose, g, hd, pelvis);
+             }
+             // gaze: pitch about the face's own lateral axis this frame, yaw about the vertical; half at the neck, half at the head
+diff --git a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
+index 498d23a..df05153 100644
+--- a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
++++ b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
+@@ -82,6 +82,44 @@ void skinVertex(out vec3 sp, out vec3 sn, out vec3 st) {
+     skinOne(a_bi.w, bw.w, p, n, t, sp, sn, st);
+ }";
  
-diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs
-index cd5a231..95ac7b4 100644
---- a/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs
-+++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs
-@@ -212,6 +212,8 @@ public sealed class EnvironmentScenery : IDisposable
-         bool trees = f.EnvTrees, rocks = f.EnvRocks;
-         Terrain.PropFilter = name => name.StartsWith("rock", StringComparison.Ordinal) ? !rocks : !trees;
-         Terrain.UseAltSplats = trees && f.EnvForestFloor;
-+        // polish1: where the ground cover thins out and ends, the ground takes the cards' look (no edge); off with the cover
-+        Terrain.CoverTint = f.EnvGroundCover && !Arid ? new Vector3(Cover.Thinning.Thin * 0.6f, Cover.Thinning.Cull, 1f) : Vector3.Zero;
-         // water is drawn after every opaque layer (DrawTransparent), so trees and structures behind it are covered
-         Terrain.DrawWaterSurface = false;
-         Terrain.UseWetMap = f.EnvWater && rc.IsG2Frame;
-diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
-index 98fe96e..a41fe6c 100644
---- a/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
-+++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
-@@ -42,10 +42,17 @@ public struct CoverInstance : IVertexType
++    /// <summary>Polish1: <c>skinVertex</c> with the cloth flutter applied to the bind-space position and normal first.</summary>
++    public const string FlutterSkinLib = @"
++void skinVertexFlutter(out vec3 sp, out vec3 sn, out vec3 st) {
++    vec3 n0 = a_nrm + m_dnrm;
++    vec3 p0 = flutter(a_pos.xyz + m_dpos, a_col.r, n0);
++    vec4 p = vec4(p0, 1.0); vec3 t = a_tan.xyz;
++    vec4 bw = a_bw * (1.0 / 255.0);
++    sp = vec3(0.0); sn = vec3(0.0); st = vec3(0.0);
++    skinOne(a_bi.x, bw.x, p, n0, t, sp, sn, st);
++    skinOne(a_bi.y, bw.y, p, n0, t, sp, sn, st);
++    skinOne(a_bi.z, bw.z, p, n0, t, sp, sn, st);
++    skinOne(a_bi.w, bw.w, p, n0, t, sp, sn, st);
++}";
++
++    /// <summary>
++    /// Polish1 (critic rank 8): cloth flutter in bind space for the hung standards (<see cref="CharInstance.Flutter"/>):
++    /// three travelling waves (across the cloth downwind, diagonally, and a fast small ripple) displace the cloth along
++    /// its normal (bind-space z), the amplitude growing from zero at the hoist to <c>Flutter.x</c> at the hem; the
++    /// analytic slope bends the normal. Only part codes 10 (cloth) and 30 (fringe) move.
++    /// </summary>
++    public const string FlutterLib = @"
++vec3 flutter(vec3 p, float partCode, inout vec3 n) {
++    if (Flutter.x <= 0.0) return p;
++    float part = floor(partCode * 255.0 + 0.5);
++    if (part != 10.0 && part != 30.0) return p;
++    float d = clamp((Flutter.z - p.y) / Flutter.w, 0.0, 1.2);
++    float t = FlutterT.x + Flutter.y * 7.31;
++    float amp = Flutter.x * d * (0.35 + 0.65 * d);
++    float damp = Flutter.x * (0.35 + 1.3 * d) * (-1.0 / Flutter.w);
++    const float k1 = 11.42397, k2 = 7.853982, k3 = 26.17994;
++    float ph1 = k1 * p.x - 5.3 * t, ph2 = k2 * (0.45 * p.x + 0.89 * p.y) - 3.6 * t, ph3 = k3 * (p.x - 0.3 * p.y) - 9.1 * t;
++    float w = 0.60 * sin(ph1) + 0.30 * sin(ph2) + 0.10 * sin(ph3);
++    float dzdx = amp * (0.60 * k1 * cos(ph1) + 0.30 * k2 * 0.45 * cos(ph2) + 0.10 * k3 * cos(ph3));
++    float dzdy = amp * (0.30 * k2 * 0.89 * cos(ph2) - 0.10 * k3 * 0.3 * cos(ph3)) + damp * w;
++    n = normalize(n + sign(n.z + 1e-6) * vec3(-dzdx, -dzdy, 0.0));
++    return p + vec3(0.0, 0.0, amp * w);
++}";
++
+     /// <summary>
+     /// Stage render2: the vertex's previous-frame position from the previous palette (morphs and the skirt push-out of
+     /// this frame are reused: object motion for TAA only needs the skeleton's motion).
+@@ -151,11 +189,12 @@ vec3 pushOut(vec3 p, vec4 a, vec4 b) {
+ 
+     static EffectBuilder SkinnedDepth(string name, bool alpha)
+     {
+-        var b = Attributes(new EffectBuilder(name)).Matrix("LightViewProj", Stage.Vertex).Varyings("float v_depth; vec2 v_uv;");
++        var b = Attributes(new EffectBuilder(name)).Matrix("LightViewProj", Stage.Vertex).Varyings("float v_depth; vec2 v_uv;")
++            .Vec4("Flutter", Stage.Vertex).Vec4("FlutterT", Stage.Vertex).VertexLib(FlutterLib).VertexLib(FlutterSkinLib);
+         if (alpha) b = b.Texture("HairTex", SlotAlbedo);
+         return b.VertexMain(@"
+     vec3 sp; vec3 sn; vec3 st;
+-    skinVertex(sp, sn, st);
++    skinVertexFlutter(sp, sn, st);
+     v_uv = a_uv;
+     gl_Position = LightViewProj_mul(vec4(sp, 1.0)); v_depth = gl_Position.z / gl_Position.w;")
+             .PixelMain(alpha ? @"
+@@ -179,7 +218,12 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+     vec3 w = sss * vec3(0.42, 0.16, 0.10);
+     vec3 diff = clamp((ndl + w) / (1.0 + w), 0.0, 1.0);
+     vec3 sh = vec3(pow(shadow, 0.45), pow(shadow, 0.8), shadow);
+-    vec3 direct = albedo / PI * SunColor.rgb * diff * sh;
++    vec3 lit = diff * sh;
++    // polish1 (critic rank 4): past the terminator and in the shadow edge the wrap left red alone (green and blue at
++    // zero), and the bluish sky fill on top made those bands magenta (lit palms at hue 355). Light scattered through
++    // skin is orange-red, not pure red: green and blue keep a floor in proportion to red
++    lit.g = max(lit.g, lit.r * 0.42); lit.b = max(lit.b, lit.r * 0.26);
++    vec3 direct = albedo / PI * SunColor.rgb * lit;
+     // specular, two lobes
+     float nol = max(dot(N, L), 0.0); float nov = max(dot(N, V), 1e-4);
+     vec3 H = normalize(V + L); float noh = max(dot(N, H), 0.0); float voh = max(dot(V, H), 0.0);
+@@ -192,6 +236,10 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+     vec3 irr; vec3 pre; vec3 R = reflect(-V, N);
+     if (LightModel.y > 0.5) { irr = shIrradiance(Nr) * IblParams.y; pre = iblSpecular(R, r1) * IblParams.z; }
+     else { irr = mix(AmbientGround.rgb, AmbientSky.rgb, Nr.y * 0.5 + 0.5) * PI; pre = mix(AmbientGround.rgb, AmbientSky.rgb, R.y * 0.5 + 0.5); }
++    // polish1 (critic rank 4): skin under the saturated blue of a clear sky went magenta (red-reflecting skin, blue light:
++    // lit palms measured at hue 327); the sky light on skin keeps 40 % of its colour, a little warmed (bounce off
++    // faces, clothes and ground fills the shade in life)
++    if (LightModel.x > 0.5) irr = mix(irr, vec3(dot(irr, vec3(0.2126, 0.7152, 0.0722))) * vec3(1.04, 1.0, 0.94), 0.6);
+     vec2 dfg = envBrdf(nov, r1);
+     float so = clamp(pow(nov + ao, exp2(-16.0 * a1 - 1.0)) - 1.0 + ao, 0.0, 1.0);
+     float skyVis = mix(0.8, 1.0, shadow);
+@@ -199,7 +247,8 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+     gbAmbient(amb); // stage render2: the ambient share for screen-space AO
+     // transmission through thin parts, lit from behind
+     float back = pow(clamp(dot(V, -L), 0.0, 1.0), 4.0) * clamp(1.0 - ndl.r, 0.0, 1.0);
+-    vec3 trans = thin * back * albedo * vec3(1.0, 0.32, 0.18) * SunColor.rgb * 0.35;
++    // polish1: thin parts (ears) transmit an orange-red, capped (they glowed saturated red-magenta against the light)
++    vec3 trans = min(thin, 0.6) * back * albedo * vec3(1.0, 0.45, 0.26) * SunColor.rgb * 0.14;
+     return direct + spec + amb + trans;
+ }";
+ 
+@@ -238,6 +287,9 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+     vec2 off = vec2(dot(V, T), dot(V, B)) / max(dot(V, Ng), 0.25);
+     vec2 uv = v_uv - off * EyeParams.y * corneaZone;
+     vec3 base = srgbToLinear(texture2D(EyeTex, uv).rgb);
++    // polish1 (critic rank 4): the sclera is a warm off-white (it read blue-grey under the sky), a touch brighter
++    float sclera = smoothstep(0.50, 0.62, r);
++    base = mix(base, base * vec3(1.18, 1.08, 0.92), sclera);
+     float limbal = 1.0 - 0.45 * smoothstep(0.30, 0.50, r) * smoothstep(0.62, 0.50, r) * step(0.0, lp.z);
+     base *= limbal;
+     float socket = smoothstep(-0.35, 0.75, lp.z) * (1.0 - 0.45 * smoothstep(0.05, 0.75, lp.y)) * (1.0 - 0.2 * smoothstep(0.2, 0.9, -lp.y));
+@@ -263,7 +315,15 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+     vec2 dfg = envBrdf(nov, EyeParams.z);
+     // the brow and lids shade the upper part of the reflection
+     float lid = 1.0 - 0.6 * clamp(Rr.y, 0.0, 1.0);
+-    c += env * (0.025 * dfg.x + dfg.y) * lid * mix(0.5, 1.0, shadow);
++    // polish1 (critic rank 4): every eye carries a catchlight. The physical cornea mirror of a clear sky (2.5 %) is too faint
++    // on a 30-pixel eye and the sun's own glint is far below a pixel, so the sky reflection is lifted 2.5 times and a soft
++    // key catchlight (GGX at roughness 0.12) is added towards the bright sky around the sun, at least 20 degrees up.
++    c += env * (0.025 * dfg.x + dfg.y) * lid * mix(0.5, 1.0, shadow) * 2.5;
++    vec3 Kd = normalize(vec3(SunDir.x, max(SunDir.y, 0.34), SunDir.z));
++    vec3 Hk = normalize(V + Kd);
++    float ak = 0.0144;
++    float catchK = dGgx(max(dot(Ng, Hk), 0.0), ak) * vSmithGgx(nov, max(dot(Ng, Kd), 0.0), ak) * 0.025 * max(dot(Ng, Kd), 0.0);
++    c += SunColor.rgb * catchK * mix(0.35, 1.0, shadow) * 0.8;
+     gl_FragColor = vec4(max(applyFog(c, v_wpos) - applyFog(vec3(0.0), v_wpos), vec3(0.0)), 1.0);";
+ 
+     /// <summary>
+@@ -302,6 +362,10 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+     vec3 hairAmb = albedo * irr / PI * mix(0.35, 1.0, layer) * mix(0.75, 1.0, shadow);
+     gbAmbient(hairAmb); // stage render2: the ambient share for screen-space AO
+     c += hairAmb;
++    // polish1 (critic rank 6c): light through the strands with the sun behind the head (the backlit commander's ginger
++    // hair crushed to black): a forward-scattering lobe, its colour the hair's absorbed along the strand
++    float fwdH = pow(clamp(dot(-V, L), 0.0, 1.0), 4.0);
++    c += SunColor.rgb * mix(0.35, 1.0, shadow) * albedo * sqrt(max(albedo, vec3(0.0))) * 0.8 * fwdH * mix(0.6, 1.0, layer);
+     gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);";
+ 
+     /// <summary>
+@@ -358,6 +422,9 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+     vec3 furAmb = albedo * irr / PI * mix(0.35, 1.0, frac) * mix(0.75, 1.0, shadow);
+     gbAmbient(furAmb); // stage render2: the ambient share for screen-space AO
+     c += furAmb;
++    // polish1 (critic rank 6c): backlit strands glow (see the hair shader), weaker in a short beard
++    float fwdF = pow(clamp(dot(-V, L), 0.0, 1.0), 4.0);
++    c += SunColor.rgb * mix(0.35, 1.0, shadow) * albedo * sqrt(max(albedo, vec3(0.0))) * 0.5 * fwdF * frac;
+     gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);";
+ 
+     /// <summary>
+diff --git a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharInstance.cs b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharInstance.cs
+index d657bc1..ced3e84 100644
+--- a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharInstance.cs
++++ b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharInstance.cs
+@@ -26,6 +26,13 @@ public sealed class CharInstance : IDisposable
+     public Dictionary<string, string> PartViews { get; } = new(StringComparer.Ordinal);
+     public HashSet<string> HiddenParts { get; } = new(StringComparer.Ordinal);
+     public Vector3 Tint = Vector3.One;
++    /// <summary>
++    /// Polish1 (critic rank 8): cloth flutter of a hung standard, applied in the vertex stage to the vertices whose part
++    /// code (vertex colour red × 255) is 10 (cloth) or 30 (fringe): x = amplitude (m) at the hem, y = phase seed,
++    /// z = the hoist's bind-space height (m), w = the cloth's height (m). Zero (the default) leaves every vertex alone.
++    /// A pure function of scene time (<c>RenderContext.TimeSeconds</c>): stills, replays and benchmarks agree.
++    /// </summary>
++    public Vector4 Flutter;
+     /// <summary>CPU time of the last morph blend + upload (ms) — the "expression blend cost".</summary>
+     public double LastMorphMs { get; private set; }
+     public int LastMorphVertices { get; private set; }
+diff --git a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharRenderer.cs b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharRenderer.cs
+index fcbf602..1fb4015 100644
+--- a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharRenderer.cs
++++ b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharRenderer.cs
+@@ -118,6 +118,8 @@ public sealed class CharRenderer : IDisposable
+         fx.Parameters["BoneRow"].SetValue(new Vector4(inst.PaletteRow, 0, 0, 0));
+         var prev = _prevPalette != null && _prevPalette.Texture.Width == _palette.Texture.Width && _prevPalette.Texture.Height == _palette.Texture.Height ? _prevPalette : _palette;
+         fx.Parameters["CharBonesPrev"]?.SetValue(prev.Texture);
++        fx.Parameters["Flutter"]?.SetValue(inst.Flutter);
++        fx.Parameters["FlutterT"]?.SetValue(new Vector4(rc.TimeSeconds, 0, 0, 0));
+         rc.Apply(fx);
+         _gd.SamplerStates[1] = SamplerState.PointClamp;
+         _gd.SamplerStates[CharEffects.SlotBonesPrev] = SamplerState.PointClamp;
+diff --git a/prototypes/m7-gfx2/Gfx.Demo/Program.cs b/prototypes/m7-gfx2/Gfx.Demo/Program.cs
+index c27ff7f..302eaee 100644
+--- a/prototypes/m7-gfx2/Gfx.Demo/Program.cs
++++ b/prototypes/m7-gfx2/Gfx.Demo/Program.cs
+@@ -130,11 +130,13 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
+         var pick = only?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+         using var rt = new RenderTarget2D(gd, w, h, false, SurfaceFormat.Color, DepthFormat.None);
+         Console.WriteLine($"[capture] {e.Name}: {renderer.Settings.Features.Describe()}");
++        float baseEv = renderer.Settings.Features.ExposureBiasEv;
+         foreach (var shot in scene.Shots)
+         {
+             if (pick != null && Array.IndexOf(pick, shot.Name) < 0) continue;
+             scene.Update(shot.SceneTime);
+             renderer.Stats.BeginFrame();
++            renderer.Settings.Features.ExposureBiasEv = baseEv + shot.ExposureEv; // polish1: per-shot exposure compensation
+             renderer.RenderStill(scene, shot.Camera, SunModel.At(shot.HourOfDay), rt, shot.SceneTime);
+             var px = Capture.ReadPixels(rt); // sync
+             double ms = renderer.Stats.EndFrame();
+diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BenchBase.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BenchBase.cs
+index 7cadacb..b32a536 100644
+--- a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BenchBase.cs
++++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BenchBase.cs
+@@ -115,6 +115,8 @@ public abstract class BenchSceneBase : EnvSceneBase, IFrameReport
+     {
+         base.Configure(settings);
+         settings.Features.ShadowDistance = ShadowDistanceM;
++        // polish1 (critic rank 6): coloured highlights (bronze, gilding, dyed cloth in sun) keep more of their colour
++        settings.Features.NeutralDesaturation = 0.08f;
+     }
+ 
+     protected virtual void DrawExtraShadows(RenderContext rc) { }
+diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneA.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneA.cs
+index 67046ec..4e49edf 100644
+--- a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneA.cs
++++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneA.cs
+@@ -89,16 +89,19 @@ public sealed class BenchCloseupScene : BenchSceneBase
+         Soldier = Hoplite(cast, "a2", "#1E1A17", Aspis.Build(new AspisSpec { Seed = 12, MapSize = 1024, BronzeFace = false, Field = "#2B4373", Device = "sun", Wear = 0.5 }),
+             1, new Vector2(0.75f, -0.35f), 0.30f, 0.9f, "iron");
+         // three more of the line behind them
+-        _line.Add(Hoplite(cast, "a1", "#7E2A20", Aspis.Build(new AspisSpec { Seed = 11, MapSize = 512, Device = "crescent", Wear = 0.6 }), 2, new Vector2(-1.9f, -2.6f), 0.1f, 1.4f, "iron"));
+-        _line.Add(Hoplite(cast, "a3", "#D8D0BC", Aspis.Build(new AspisSpec { Seed = 13, MapSize = 512, Device = "wheel", Paint = "#2A2622", Wear = 0.45 }), 3, new Vector2(0.2f, -3.1f), 0.05f, 2.1f, "bronze"));
+-        _line.Add(Hoplite(cast, "a4", "#7E2A20", Aspis.Build(new AspisSpec { Seed = 14, MapSize = 512, BronzeFace = false, Field = "#273350", Device = "crescent", Wear = 0.7 }), 4, new Vector2(2.3f, -2.7f), -0.1f, 2.7f, "iron"));
++        // polish1 (critic rank 3): the men of the line hold three different guards (the authored guard and its two
++        // variants), each at its own breathing phase and a slightly different facing
++        _line.Add(Hoplite(cast, "a1", "#7E2A20", Aspis.Build(new AspisSpec { Seed = 11, MapSize = 512, Device = "crescent", Wear = 0.6 }), 2, new Vector2(-1.9f, -2.6f), 0.16f, 1.4f, "iron", "kit.hoplite.guard.v2"));
++        _line.Add(Hoplite(cast, "a3", "#D8D0BC", Aspis.Build(new AspisSpec { Seed = 13, MapSize = 512, Device = "wheel", Paint = "#2A2622", Wear = 0.45 }), 3, new Vector2(0.2f, -3.1f), -0.04f, 2.1f, "bronze", "kit.hoplite.guard.v3"));
++        _line.Add(Hoplite(cast, "a4", "#7E2A20", Aspis.Build(new AspisSpec { Seed = 14, MapSize = 512, BronzeFace = false, Field = "#273350", Device = "crescent", Wear = 0.7 }), 4, new Vector2(2.3f, -2.7f), -0.1f, 0.45f, "iron"));
+         _banner = Banner.Create(cast.Kit, Banner.Build(new BannerSpec { Seed = 61, MapSize = 1024, Field = "#2B4373", Charge = "#C29A45", Device = "sun", Fringe = "#C29A45" }),
+             Matrix.CreateRotationY(_facing + 0.3f) * Matrix.CreateTranslation(At(-3.3f, -1.4f)));
+         Animate(2f);
+         _cEyes = Eyes(Commander.Body); _sEyes = Eyes(Soldier.Body);
+     }
+ 
+-    KitSoldier Hoplite(BenchCast cast, string id, string? crest, KitItem shield, int i, Vector2 at, float yaw, float phase, string metal)
++    KitSoldier Hoplite(BenchCast cast, string id, string? crest, KitItem shield, int i, Vector2 at, float yaw, float phase, string metal,
++        string guard = "kit.hoplite.guard")
+     {
+         var body = cast.SpawnKitOutfit(id, "anc_a");
+         var m = Gfx.Gear.Rig.KitSockets.Measure(body.Asset);
+@@ -114,7 +117,7 @@ public sealed class BenchCloseupScene : BenchSceneBase
+         Gfx.Gear.Anim.CombatClips.Install(body.Asset);
+         var s = new KitSoldier(cast.Kit, body, kit, "bench-a:" + id) { Ground = p => Env.Terrain.HeightAt(p.X, p.Z) };
+         var camSide = At(0.6f, 6f, 1.6f);
+-        s.Drive(t => new AnimInput { Speed = 0, Action = "kit.hoplite.guard", ActionStart = -phase, HoldLastFrame = true, LookAt = camSide, FootLock = false },
++        s.Drive(t => new AnimInput { Speed = 0, Action = guard, ActionStart = -phase, HoldLastFrame = true, LookAt = camSide, FootLock = false },
+             t => Place(at.X, at.Y, yaw), phase);
+         return s;
+     }
+@@ -151,7 +154,8 @@ public sealed class BenchCloseupScene : BenchSceneBase
+             new("commander-battlecry", new CameraPose(_cEyes + fwd * 0.78f - right * 0.28f + new Vector3(0, -0.03f, 0), _cEyes + new Vector3(0, -0.07f, 0), 0.50f, 0.05f, 4000f), Hour, 2.6f),
+             new("commander-grim", new CameraPose(_cEyes + fwd * 0.70f + right * 0.32f + new Vector3(0, 0.01f, 0), _cEyes + new Vector3(0, -0.06f, 0), 0.46f, 0.05f, 4000f), Hour, 1.0f),
+             new("soldier-face", new CameraPose(_sEyes + fwd * 0.62f + right * 0.42f + new Vector3(0, 0.10f, 0), _sEyes + new Vector3(0, -0.06f, 0), 0.50f, 0.05f, 4000f), Hour, 1.0f),
+-            new("kit", new CameraPose(_cEyes + fwd * 1.25f + right * 0.85f + new Vector3(0, -0.45f, 0), _cEyes + new Vector3(0.0f, -0.55f, 0) + right * 0.30f, 0.62f, 0.05f, 4000f), Hour, 1.0f),
++            // polish1 (critic rank 6): the polished bronze filling the frame clipped to cream: 0.6 EV less for this still
++            new("kit", new CameraPose(_cEyes + fwd * 1.25f + right * 0.85f + new Vector3(0, -0.45f, 0), _cEyes + new Vector3(0.0f, -0.55f, 0) + right * 0.30f, 0.62f, 0.05f, 4000f), Hour, 1.0f, -0.6f),
+             new("line", new CameraPose(At(0.8f, 6.6f, 1.55f), At(0f, -1.0f, 1.05f), 0.62f, 0.1f, 4000f), Hour, 1.0f),
+             new("two-shot-golden", new CameraPose(mid + fwd * 2.6f + right * 0.35f + new Vector3(0, -0.12f, 0), mid + new Vector3(0, -0.28f, 0), 0.62f, 0.05f, 4000f), BenchHours.Golden, 2.6f),
+         };
+diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
+index f3e8fb4..26ab9c3 100644
+--- a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
++++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
+@@ -518,8 +518,10 @@ public abstract class BenchAftermathScene : BenchSceneBase, ICameraPathScene
+             beats.Add(Beat("fallen", fEye, fT, 0.75f, 0.1f, fSide * 4f, fSide * 4f, 5f, h, "the fallen where they fell"));
+         }
+         else
+-            beats.Add(new AftermathShot("cutaway", new CameraPose(G(mid - d * 12f, 1.8f), G(mid + d * 30f, 6f), 0.8f, 0.1f, 40000f),
+-                new CameraPose(G(mid - d * 12f, 2.4f), G(mid + d * 60f, 40f), 0.8f, 0.1f, 40000f), 5f, BenchHours.Dusk, "cut away to the smoke and the sky (death content cut away)"));
++            // polish1 (critic rank 9): the still was three quarters empty sky over a strip of field; the camera now
++            // rises slowly over the victors towards the smoke on the horizon, the horizon about 0.4 of the frame up
++            beats.Add(new AftermathShot("cutaway", new CameraPose(G(mid - d * 12f, 1.8f), G(mid + d * 40f, 3f), 0.8f, 0.1f, 40000f),
++                new CameraPose(G(mid - d * 12f, 2.6f), G(mid + d * 60f, 12f), 0.8f, 0.1f, 40000f), 5f, BenchHours.Dusk, "cut away to the smoke and the sky (death content cut away)"));
+         return beats;
+     }
+ 
+@@ -573,10 +575,30 @@ public abstract class BenchAftermathScene : BenchSceneBase, ICameraPathScene
+ 
+     public override Vector3 Focus => _cPos;
+ 
++    /// <summary>Polish1 (critic rank 5d): the sight line of the beat playing at <paramref name="tau"/> when its subject is
++    /// a hero (the pair, a face, the standards); null for the field, prisoners and fallen beats, whose subject is the crowd.</summary>
++    public (Vector3 Eye, Vector3 Subject, float Radius)? SightLineAt(float tau)
++    {
++        float acc = 0;
++        for (int i = 0; i < _beats.Count; i++)
++        {
++            var b = _beats[i];
++            if (tau < acc + b.Seconds || i == _beats.Count - 1)
++            {
++                if (b.Name is not ("surrender" or "officer-face" or "commander-face" or "standards")) return null;
++                var cam = Lerp(b.From, b.To, Math.Clamp((tau - acc) / b.Seconds, 0f, 1f));
++                return (cam.Position, cam.Target, 1.5f);
++            }
++            acc += b.Seconds;
++        }
++        return null;
++    }
++
+     protected override void Animate(float t)
+     {
+-        Troops?.Update(MathF.Max(t, _tEnd));
+         float tau = MathF.Max(0f, t - _tEnd);
++        if (Troops != null) Troops.SightLine = SightLineAt(tau);
++        Troops?.Update(MathF.Max(t, _tEnd));
+         if (_commander != null)
+         {
+             _commander.Update(tau);
+diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
+index 1a5bfff..83e8d2f 100644
+--- a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
++++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
+@@ -99,6 +99,10 @@ public sealed class TraceCrowd : IDisposable
+     readonly CrowdLook[] _look;
+     readonly float[][] _yaw;          // [step][entity]
+     readonly long[] _deathMs, _surrenderMs;
++    /// <summary>Polish1 (critic rank 5f): each fallen soldier's facing and fall (back or forward), laid out once so the
++    /// bodies do not cross (NaN: the soldier does not die).</summary>
++    readonly float[] _deadYaw;
++    readonly bool[] _deadBack;
+     readonly int[][] _events;         // per entity: indices of Fire events it made and Damage events it took (time order)
+     readonly float[] _phase;
+     readonly int _idle, _idle2, _walk, _jog, _run, _thrust, _swingOver, _swingSide, _block, _kneel, _cower, _death, _death2, _stumble;
+@@ -108,6 +112,26 @@ public sealed class TraceCrowd : IDisposable
+     public bool ShowDead { get; set; } = true;
+     /// <summary>Entities drawn by a hero character instead of the crowd (their crowd agent is hidden).</summary>
+     public HashSet<int> HeroEntities { get; } = new();
++
++    /// <summary>
++    /// Polish1 (critic rank 5d; PRESENTATION ONLY): a close shot's sight line, camera to subject. Crowd soldiers whose body
++    /// stands within <c>Radius</c> of it (spear reach included), between the camera and the subject, are not drawn: the
++    /// camera solver counts bodies, so spears and shields of the soldiers beside the line still crossed the hero frame.
++    /// Null: every soldier is drawn.
++    /// </summary>
++    public (Vector3 Eye, Vector3 Subject, float Radius)? SightLine { get; set; }
++
++    /// <summary>Whether a soldier standing at <paramref name="p"/> (feet) is in the sight line's way.</summary>
++    public static bool InSightLine((Vector3 Eye, Vector3 Subject, float Radius) sl, Vector3 p)
++    {
++        var c = p + new Vector3(0f, 1.1f, 0f);
++        var d = sl.Subject - sl.Eye;
++        float len2 = d.LengthSquared();
++        if (len2 < 1e-4f) return false;
++        float s = Vector3.Dot(c - sl.Eye, d) / len2;
++        if (s <= 0f || s >= 0.92f) return false;
++        return Vector3.DistanceSquared(c, sl.Eye + d * s) < sl.Radius * sl.Radius;
++    }
+     public int Count => _agents.Length;
+     /// <summary>Counts of the last <see cref="Update"/> per presentation state (diagnostics, tests).</summary>
+     public int[] LastStates { get; } = new int[5];
+@@ -190,6 +214,7 @@ public sealed class TraceCrowd : IDisposable
+             }
+             if (last != long.MinValue) _deathMs[e] = last;
+         }
++        (_deadYaw, _deadBack) = LayOutFallen(tr, _deathMs, _yaw);
+         _idle = CrowdRenderer.Clip("idle"); _idle2 = CrowdRenderer.Clip("idle_proud"); _walk = CrowdRenderer.Clip("walk");
+         _jog = CrowdRenderer.Clip("jog"); _run = CrowdRenderer.Clip("run"); _thrust = CrowdRenderer.Clip("thrust");
+         _swingOver = CrowdRenderer.Clip("swing_over"); _swingSide = CrowdRenderer.Clip("swing_side"); _block = CrowdRenderer.Clip("block");
+@@ -202,6 +227,82 @@ public sealed class TraceCrowd : IDisposable
+     /// <summary>Scene time (s, 0 = the first snapshot) of the trace's milliseconds.</summary>
+     public float SceneTime(long ms) => (ms - Battle.Trace.StepTimeMs(0)) / 1000f;
+ 
++    /// <summary>Length (m) of a fallen body along its fall, from where the soldier stood.</summary>
++    public const float FallenLength = 1.7f;
++    /// <summary>Closest a fallen body may lie to another (m, between their centre lines) before the layout turns it.</summary>
++    public const float FallenClearance = 0.45f;
++
++    /// <summary>
++    /// Polish1 (critic rank 5f; PRESENTATION ONLY): the fallen pile interpenetrated (each death clip fell along the
++    /// soldier's last facing, a hash picking forward or back). In the order of death (time, then entity), each fallen
++    /// soldier takes the first of: the hashed fall at his facing, the other fall, then both falls turned 30, 60 and
++    /// 90 degrees either way, whose body (a segment <see cref="FallenLength"/> long from where he stood) keeps
++    /// <see cref="FallenClearance"/> from every body already down; with none clear, the one farthest from them. A pure
++    /// function of the trace: the same layout in every still, replay and benchmark frame.
++    /// </summary>
++    public static (float[] yaw, bool[] back) LayOutFallen(Gfx.Units.BattleTrace tr, long[] deathMs, float[][] yawPerStep)
++    {
++        int n = tr.Entities.Count, last = tr.StepCount - 1;
++        var yaw = new float[n]; var back = new bool[n];
++        Array.Fill(yaw, float.NaN);
++        var order = Enumerable.Range(0, n).Where(e => deathMs[e] != long.MinValue).OrderBy(e => deathMs[e]).ThenBy(e => e).ToArray();
++        var placedA = new List<Vector2>(order.Length); var placedB = new List<Vector2>(order.Length);
++        float[] turns = { 0f, 30f, -30f, 60f, -60f, 90f, -90f };
++        foreach (int e in order)
++        {
++            var (x, y) = tr.PosMm(last, e);
++            var p = new Vector2(x / 1000f, y / 1000f);
++            // the facing at death: the step of the death (the last facing he had)
++            int sd = last;
++            for (int s = 0; s <= last; s++) if (BenchBattle.Map(tr.State(s, e)) == TraceSoldierState.Dead) { sd = s; break; }
++            float y0 = yawPerStep[sd][e];
++            bool b0 = (CrowdLook.Hash((uint)e ^ 0xDEADu) & 1u) != 0;
++            float bestYaw = y0; bool bestBack = b0; float bestClear = -1f;
++            foreach (float turn in turns)
++            {
++                foreach (bool bk in new[] { b0, !b0 })
++                {
++                    float cy = y0 + MathHelper.ToRadians(turn);
++                    var dir = new Vector2(MathF.Sin(cy), MathF.Cos(cy)) * (bk ? -1f : 1f);
++                    var a0 = p; var a1 = p + dir * FallenLength;
++                    float clear = float.MaxValue;
++                    for (int k = 0; k < placedA.Count; k++)
++                    {
++                        // cheap reject: bodies whose start is farther than two lengths cannot touch
++                        if (Vector2.DistanceSquared(placedA[k], p) > 4f * FallenLength * FallenLength) continue;
++                        clear = MathF.Min(clear, SegmentDistance(a0, a1, placedA[k], placedB[k]));
++                    }
++                    if (clear >= FallenClearance) { bestYaw = cy; bestBack = bk; bestClear = clear; goto chosen; }
++                    if (clear > bestClear) { bestClear = clear; bestYaw = cy; bestBack = bk; }
++                }
++            }
++        chosen:
++            yaw[e] = bestYaw; back[e] = bestBack;
++            var d = new Vector2(MathF.Sin(bestYaw), MathF.Cos(bestYaw)) * (bestBack ? -1f : 1f);
++            placedA.Add(p); placedB.Add(p + d * FallenLength);
++        }
++        return (yaw, back);
++    }
++
++    /// <summary>Closest distance between segments [a0, a1] and [b0, b1] in the plane.</summary>
++    public static float SegmentDistance(Vector2 a0, Vector2 a1, Vector2 b0, Vector2 b1)
++    {
++        static float Cross(Vector2 u, Vector2 v) => u.X * v.Y - u.Y * v.X;
++        var r = a1 - a0; var s = b1 - b0; float den = Cross(r, s);
++        if (MathF.Abs(den) > 1e-9f)
++        {
++            float t = Cross(b0 - a0, s) / den, u = Cross(b0 - a0, r) / den;
++            if (t >= 0f && t <= 1f && u >= 0f && u <= 1f) return 0f;   // they cross
++        }
++        static float PointSeg(Vector2 p, Vector2 q0, Vector2 q1)
++        {
++            var d = q1 - q0; float l2 = d.LengthSquared();
++            float t = l2 > 1e-12f ? Math.Clamp(Vector2.Dot(p - q0, d) / l2, 0f, 1f) : 0f;
++            return Vector2.Distance(p, q0 + d * t);
++        }
++        return MathF.Min(MathF.Min(PointSeg(a0, b0, b1), PointSeg(a1, b0, b1)), MathF.Min(PointSeg(b0, a0, a1), PointSeg(b1, a0, a1)));
++    }
++
+     static float LerpAngle(float a, float b, float t)
+     {
+         float d = b - a;
+@@ -265,12 +366,14 @@ public sealed class TraceCrowd : IDisposable
+             LastStates[(int)state]++;
+             float off = _phase[e];
+             if (state == TraceSoldierState.Escaped || HeroEntities.Contains(e)) { a.Hidden = true; continue; }
++            if (SightLine is { } sl && InSightLine(sl, p)) { a.Hidden = true; continue; }
+             switch (state)
+             {
+                 case TraceSoldierState.Dead:
+                 {
+                     if (!ShowDead) { a.Hidden = true; continue; }
+-                    bool back = (CrowdLook.Hash((uint)e ^ 0xDEADu) & 1u) != 0;
++                    bool back = _deadBack[e];
++                    if (!float.IsNaN(_deadYaw[e])) a.Yaw = _deadYaw[e];
+                     a.ClipA = back ? _death2 : _death; a.TimeA = MathF.Max(0f, now - _deathMs[e] / 1000f);
+                     a.ClipB = a.ClipA; a.TimeB = a.TimeA; a.Blend = 0;
+                     continue;
+diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/RainLayer.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/RainLayer.cs
+index 4b3855c..8cc1da1 100644
+--- a/prototypes/m7-gfx2/Gfx.Engine/Rendering/RainLayer.cs
++++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/RainLayer.cs
+@@ -22,10 +22,10 @@ public sealed class RainLayer : IDisposable
+     public float Box { get; set; } = 36f;
+     public float FallSpeed { get; set; } = 7.5f;
+     /// <summary>Streak length (m): the fall during a 1/50 s exposure is 0.15 m; longer reads as heavier rain at film rates.</summary>
+-    public float Length { get; set; } = 0.42f;
++    public float Length { get; set; } = 0.70f;   // polish1 (critic rank 11): was 0.42 (the rain read thin)
+     public Vector3 Wind { get; set; } = new(1.2f, 0f, 0.6f);
+     /// <summary>Brightness of a streak relative to the ambient sky radiance.</summary>
+-    public float Brightness { get; set; } = 1.0f;
++    public float Brightness { get; set; } = 1.8f;   // polish1 (critic rank 11): was 1.0
+ 
+     readonly VertexBuffer _vb;
+     readonly IndexBuffer _ib;
+diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs
+index 143d1fa..71b5d21 100644
+--- a/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs
++++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs
+@@ -14,7 +14,7 @@ public sealed record SmokeSource(Vector3 Base, float Rate, float Life, float Ris
+ 
+     /// <summary>A plume of grey smoke from a smouldering fire: thin puffs that billow from 3 m to 20 m wide as they rise
+     /// about 20 m and drift downwind, fading as they spread.</summary>
+-    public static SmokeSource Plume(Vector3 at, float scale = 1f) => new(at, 6f * scale, 22f, 2.2f * scale, 3f * scale, 20f * scale, new Vector3(0.34f, 0.33f, 0.31f), 0.18f, 2.5f);
++    public static SmokeSource Plume(Vector3 at, float scale = 1f) => new(at, 6f * scale, 22f, 2.2f * scale, 3f * scale, 20f * scale, new Vector3(0.34f, 0.33f, 0.31f), 0.22f, 2.5f);
+     /// <summary>A low drifting dust haze over trampled ground (barely rises, wide, very faint).</summary>
+     public static SmokeSource Dust(Vector3 at, float scale = 1f) => new(at, 5f * scale, 26f, 0.15f, 6f * scale, 14f * scale, new Vector3(0.62f, 0.55f, 0.44f), 0.035f, 12f * scale) { Layer = true };
+ }
+@@ -169,7 +169,8 @@ public sealed class SmokeEffects : IEffectSource
+         n += amp * mix(mix(h00, h10, f.x), mix(h01, h11, f.x), f.y);
+         q *= 2.1; amp *= 0.5;
+     }
+-    float shape = smoothstep(1.0, 0.25, r + (n - 0.45) * 0.8);
++    // polish1 (critic rank 9): billows with a firmer, cauliflower edge (the noise cuts deeper into the disc)
++    float shape = 1.0 - smoothstep(0.25, 1.0, r + (n - 0.45) * 1.15);
+     vec3 V = normalize(v_wpos - CameraPos.xyz);
+     float d = length(v_wpos - CameraPos.xyz);
+     // a thin ground layer (dust) is seen through its thickness: its optical depth grows as 1/sin(elevation) of the
+@@ -184,10 +185,17 @@ public sealed class SmokeEffects : IEffectSource
+     float g = 0.35; float phase = 0.0796 * (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * cosT, 1.5) * 2.5;
+     vec3 ip = (v_wpos - v_centre) / max(0.5 * v_puff.x, 0.01);
+     vec3 N = normalize(ip - V * sqrt(max(0.0, 1.0 - min(dot(ip, ip), 1.0))));
+-    float sunSide = mix(0.3, 1.0, clamp(dot(N, SmokeDir.xyz) * 0.5 + 0.5, 0.0, 1.0));
+-    float skySide = mix(0.6, 1.0, clamp(N.y * 0.5 + 0.5, 0.0, 1.0));
+-    float self = mix(0.45, 1.0, n);
+-    vec3 col = v_tint.rgb * (SmokeAmb.rgb * 0.32 * self * skySide + SmokeSun.rgb * (0.10 + 0.16 * phase) * self * sunSide);
++    float sunSide = mix(0.18, 1.0, clamp(dot(N, SmokeDir.xyz) * 0.5 + 0.5, 0.0, 1.0));
++    float skySide = mix(0.55, 1.0, clamp(N.y * 0.5 + 0.5, 0.0, 1.0));
++    float self = mix(0.35, 1.05, n);
++    // polish1 (critic rank 9): young smoke is a denser grey-brown, older smoke paler; the sun's colour lights it at 45 %
++    // of its chroma and the forward lobe fades with a sun near the horizon (dusk plumes read as maroon smudges)
++    float lumS = dot(SmokeSun.rgb, vec3(0.2126, 0.7152, 0.0722));
++    vec3 sunC = mix(vec3(lumS), SmokeSun.rgb, 0.45);
++    float lowSun = smoothstep(0.02, 0.2, SmokeDir.y);
++    vec3 tint = v_tint.rgb * mix(vec3(0.72, 0.68, 0.62), vec3(1.08, 1.08, 1.10), smoothstep(0.0, 0.6, v_puff.w));
++    vec3 ambS = mix(vec3(dot(SmokeAmb.rgb, vec3(0.2126, 0.7152, 0.0722))), SmokeAmb.rgb, 0.6);
++    vec3 col = tint * (ambS * 0.36 * self * skySide + sunC * (0.10 + 0.16 * phase * mix(0.3, 1.0, lowSun)) * self * sunSide);
+     // distance fog like the scene's
+     float fog = 1.0 - exp(-FogParams.x * 0.35 * d);
+     col = mix(col, FogColor.rgb, clamp(fog, 0.0, 0.9));
+diff --git a/prototypes/m7-gfx2/Gfx.Engine/Scene/DemoScene.cs b/prototypes/m7-gfx2/Gfx.Engine/Scene/DemoScene.cs
+index 1761cb4..433c4e6 100644
+--- a/prototypes/m7-gfx2/Gfx.Engine/Scene/DemoScene.cs
++++ b/prototypes/m7-gfx2/Gfx.Engine/Scene/DemoScene.cs
+@@ -15,7 +15,9 @@ public sealed class DemoSceneAttribute(string name, string description = "") : A
  }
  
- /// <summary>Distance thinning: all tufts within <see cref="Full"/> m, then the kept share falls to <see cref="MinKeep"/>
--/// at <see cref="Thin"/> m (survivors grow to keep the coverage) and everything fades out by <see cref="Cull"/> m.</summary>
-+/// at <see cref="Thin"/> m (survivors grow to keep the coverage) and everything fades out by <see cref="Cull"/> m.
-+/// Polish1: over the last third of the range the kept share itself falls to zero (<see cref="FadeStart"/>), so tufts drop
-+/// out one by one in their random rank order instead of all shrinking at one distance (the hard cover edge).</summary>
- public sealed record CoverThinning(float Full = 14f, float Thin = 55f, float Cull = 85f, float MinKeep = 0.14f)
- {
--    public float Keep(float d) => d >= Cull ? 0f : d <= Full ? 1f : MathHelper.Lerp(1f, MinKeep, Math.Clamp((d - Full) / (Thin - Full), 0f, 1f));
-+    /// <summary>Distance (m) where the stochastic fade-out begins: two thirds of <see cref="Cull"/>.</summary>
-+    public float FadeStart => Cull * 2f / 3f;
-+    /// <summary>Share of the rank order kept at distance d without the fade (survivors grow by it).</summary>
-+    public float Density(float d) => d >= Cull ? 0f : d <= Full ? 1f : MathHelper.Lerp(1f, MinKeep, Math.Clamp((d - Full) / (Thin - Full), 0f, 1f));
-+    /// <summary>Share of the rank order drawn at distance d (density times the fade-out).</summary>
-+    public float Keep(float d) => Density(d) * (1f - SplatModel.SmoothStep(FadeStart, Cull, d));
- }
+ /// <summary>A named still for <c>--capture</c>: camera, scene time and time of day.</summary>
+-public sealed record CaptureShot(string Name, CameraPose Camera, float HourOfDay = 10f, float SceneTime = 0f);
++/// <summary>A named still of a scene. Polish1: <paramref name="ExposureEv"/> is added to the renderer's exposure
++/// compensation for this still only (a bright close-up, such as polished bronze filling the frame, can ask for less).</summary>
++public sealed record CaptureShot(string Name, CameraPose Camera, float HourOfDay = 10f, float SceneTime = 0f, float ExposureEv = 0f);
  
  /// <summary>
-@@ -467,13 +474,16 @@ public static class CoverEffects
-         .Varyings("vec3 v_wpos; vec3 v_nrm; vec2 v_uv; vec2 v_card; vec3 v_tint; vec4 v_lpos;")
-         .VertexMain(@"
-     float d = distance(CoverEye.xz, i_pos.xz);
--    float keep = d >= CoverParams.z ? 0.0 : (d <= CoverParams.x ? 1.0 : mix(1.0, CoverParams.w, clamp((d - CoverParams.x) / (CoverParams.y - CoverParams.x), 0.0, 1.0)));
-+    float dens = d >= CoverParams.z ? 0.0 : (d <= CoverParams.x ? 1.0 : mix(1.0, CoverParams.w, clamp((d - CoverParams.x) / (CoverParams.y - CoverParams.x), 0.0, 1.0)));
-+    // polish1: over the last third of the range the kept share falls to zero by rank (tufts drop out one by one)
-+    float keep = dens * (1.0 - smoothstep(CoverParams.z * 0.6667, CoverParams.z, d));
-     if (i_size.w >= keep) {
-         gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
-         v_wpos = vec3(0.0); v_nrm = vec3(0.0, 1.0, 0.0); v_uv = vec2(0.0); v_card = vec2(0.0); v_tint = vec3(0.0); v_lpos = vec4(0.0);
-     } else {
--        float grow = mix(1.0, inversesqrt(max(keep, 0.15)), 0.55);
--        float tail = clamp((CoverParams.z - d) / (0.15 * CoverParams.z), 0.0, 1.0);
-+        float grow = mix(1.0, inversesqrt(max(dens, 0.15)), 0.55);
-+        // a tuft shrinks away as the falling share reaches its rank (no pop), wherever fewer than all are kept
-+        float tail = keep >= 0.999 ? 1.0 : clamp((keep - i_size.w) / 0.03, 0.0, 1.0);
-         vec2 sz = i_size.xy * grow * tail;
-         float c = cos(i_pos.w), s = sin(i_pos.w);
-         vec3 lp = vec3(a_pos.x * sz.x, a_pos.y * sz.y, a_pos.z * sz.x);
+ /// Base for demo scenes. Lanes add scenes by subclassing in any Gfx.* assembly referenced by Gfx.Demo, with a
+diff --git a/prototypes/m7-gfx2/Gfx.Gear/Anim/CombatClips.cs b/prototypes/m7-gfx2/Gfx.Gear/Anim/CombatClips.cs
+index 85b42fc..aee65dd 100644
+--- a/prototypes/m7-gfx2/Gfx.Gear/Anim/CombatClips.cs
++++ b/prototypes/m7-gfx2/Gfx.Gear/Anim/CombatClips.cs
+@@ -74,6 +74,32 @@ public static class CombatClips
+         return a;
+     }
+ 
++    /// <summary>
++    /// Polish1 (critic rank 3): two more hoplite guards for the men of a line, so they do not all hold one pose. v2: the
++    /// spear lowered and levelled, the head turned less; v3: the spear raised higher, the hips turned further, the head
++    /// up and round. Breathing loops of other lengths (2.3 s, 1.7 s).
++    /// </summary>
++    public static Authored HopliteGuardVariant(Dims d, int variant)
++    {
++        var g = HopliteGuard(d);
++        if (variant == 2)
++        {
++            g.HeadYaw = 18; g.HeadPitch = -1; g.SpineYaw = -5; g.SpinePitch = 9;
++            g.R = g.R! with { Pos = g.R.Pos + new Vector3(0.02f, -0.07f, 0.06f), Dir = N(0f, 0.04f, -1f) };
++        }
++        else
++        {
++            g.HeadYaw = 33; g.HeadPitch = 5; g.PelvisYaw = -27; g.SpineYaw = -10;
++            g.R = g.R! with { Pos = g.R.Pos + new Vector3(-0.02f, 0.05f, -0.03f), Dir = N(0f, 0.30f, -1f) };
++        }
++        float period = variant == 2 ? 2.3f : 1.7f;
++        var a = new Authored { Name = "kit.hoplite.guard.v" + variant, Loop = true, Note = "spear guard variant " + variant + ": breathing" };
++        a.Add(g);
++        a.Then(period * 0.5f, Ease.InOut, k => { k.Pelvis.Y -= 0.007f; k.SpinePitch += 1.4f; k.R = k.R! with { Pos = k.R.Pos + new Vector3(0, -0.010f, 0) }; });
++        a.Then(period, Ease.InOut, k => { k.Pelvis = g.Pelvis; k.SpinePitch = g.SpinePitch; k.R = g.R; });
++        return a;
++    }
++
+     public static Authored HopliteThrust(Dims d, bool central = false)
+     {
+         var a = new Authored { Name = "kit.hoplite.thrust" + (central ? ".c" : ""), Note = "overhand spear thrust over the shield rim, stepping in" };
+@@ -323,6 +349,9 @@ public static class CombatClips
+         {
+             k.PelvisYaw = -5; k.SpineYaw = 0; k.SpinePitch = -6; k.HeadPitch = -14; k.HeadYaw = 0;
+             k.R = new HandKey(new Vector3(-0.17f, d.Shoulder + d.ArmReach * 0.82f, 0.08f), up, N(1f, 0, 0.3f), 1f, N(-1f, 0.2f, 0f));
++            // polish1 (critic rank 5e): with the head thrown back, the kite shield held at the guard's chest height cut
++            // through the commander's face; the shield hand drops and swings out to the shield side
++            if (weapon == "sword") k.L = k.L! with { Pos = new Vector3(0.16f, d.Shoulder - 0.42f, 0.28f) };
+             k.Expression = "battlecry";
+         });
+         a.Then(0.85f, Ease.InOut, k => { k.R = k.R! with { Pos = k.R.Pos + new Vector3(0, -0.10f, 0.02f) }; });
+@@ -344,7 +373,7 @@ public static class CombatClips
+     /// <summary>Every authored clip for one skeleton (hoplite set, sword set for strap and central-grip shields, archer).</summary>
+     public static List<Authored> All(Dims d)
+     {
+-        var l = new List<Authored> { BowShoot(d), DeathBack(d, "bow", false), Surrender(d, "bow", false) };
++        var l = new List<Authored> { BowShoot(d), DeathBack(d, "bow", false), Surrender(d, "bow", false), HopliteGuardVariant(d, 2), HopliteGuardVariant(d, 3) };
+         foreach (bool c in new[] { false, true })
+         {
+             l.AddRange(new[] { HopliteGuardLoop(d, c), HopliteThrust(d, c), ShieldBlock(d, "hoplite", c), HitFront(d, "hoplite", c),
+diff --git a/prototypes/m7-gfx2/Gfx.Gear/Items/Banner.cs b/prototypes/m7-gfx2/Gfx.Gear/Items/Banner.cs
+index cdd55e0..8cbd0c2 100644
+--- a/prototypes/m7-gfx2/Gfx.Gear/Items/Banner.cs
++++ b/prototypes/m7-gfx2/Gfx.Gear/Items/Banner.cs
+@@ -143,12 +143,17 @@ public sealed class Banner
+         var inst = world.AddAsset(f, item, 3.0f);
+         inst.World = at;
+         inst.BoundsCentre = new Vector3(0, 1.5f, 0);
++        // polish1 (critic rank 8): the cloth flutters (vertex stage) on top of the bone chain's swing
++        uint seed = 0x9E3779B9u;
++        foreach (char ch in item.Id) seed = (seed ^ ch) * 16777619u;
++        inst.Flutter = new Vector4(0.045f, (seed >> 8) * (1f / 16777216f), (float)(BarY - 0.01), (float)H);
+         return new Banner(item, inst);
+     }
+ 
+     /// <summary>Swings the cloth: each row bone turns about the crossbar's axis by a travelling wave (wind 0..1).</summary>
+     public void Pose(float t, float wind = 0.6f)
+     {
++        Instance.Flutter.X = 0.075f * Math.Clamp(wind, 0f, 1.5f);
+         var p = Instance.Pose;
+         p.Reset();
+         for (int r = 0; r < Rows; r++)
+diff --git a/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitEffects.cs b/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitEffects.cs
+index 5a10bec..1f41f70 100644
+--- a/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitEffects.cs
++++ b/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitEffects.cs
+@@ -32,6 +32,8 @@ public sealed class KitEffects : IEffectSource
+             // G2 integration with stage render2: object motion for TAA from the previous frame's palette, as every
+             // skinned character part writes it (CharEffects.Skinned); without it worn and held kit smears in motion
+             .Velocity().Texture("CharBonesPrev", CharEffects.SlotBonesPrev).VertexLib(CharEffects.PrevSkinLib)
++            // polish1: the hung standards' cloth flutter (CharInstance.Flutter; zero for every other item)
++            .Vec4("Flutter", Stage.Vertex).Vec4("FlutterT", Stage.Vertex).VertexLib(CharEffects.FlutterLib).VertexLib(CharEffects.FlutterSkinLib)
+             .Texture("KitBase", SlotBase).Texture("KitNormal", SlotNormal).Texture("KitOrm", SlotOrm)
+             .Vec4("KitParams", Stage.Pixel).Vec4("KitTint", Stage.Pixel)
+             .PixelLib(CharEffects.SurfaceLib)
+@@ -39,7 +41,7 @@ public sealed class KitEffects : IEffectSource
+ vec3 kitSrgb(vec3 c) { vec3 lo = c / 12.92; vec3 hi = pow((c + 0.055) / 1.055, vec3(2.4)); return mix(lo, hi, step(vec3(0.04045), c)); }")
+             .VertexMain(@"
+     vec3 sp; vec3 sn; vec3 st;
+-    skinVertex(sp, sn, st);
++    skinVertexFlutter(sp, sn, st);
+     v_wpos = sp; v_nrm = sn; v_tan = vec4(st, a_tan.w); v_uv = a_uv; v_col = a_col;
+     // three times the standard normal offset: large smooth metal faces in close-ups otherwise show acne stripes
+     v_lpos = LightViewProj_mul(vec4(sp + normalize(sn) * ShadowOffset.x * 3.0, 1.0));
+diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs
+index 95ac7b4..5bd997d 100644
+--- a/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs
++++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs
+@@ -103,6 +103,7 @@ public sealed class EnvironmentScenery : IDisposable
+         Flow = FlowField.Build(grid, trace);
+         WaterSurface = new EnvWater(gd, Terrain.Mesh, Water, Flow, Textures);
+         Terrain.WetMap = WaterSurface.LevelMap;
++        if (Structures != null) { Structures.GroundHeight = WaterSurface.HeightMap; Structures.GroundGeom = WaterSurface.HeightGeom; }
+         // forest floor under the canopy: dark leaf litter with moss, less red than the open-ground soil
+         var look = MaterialLook.For(grid.Biome);
+         look[(int)Material.ForestFloor] = look[(int)Material.ForestFloor] with { Tint = new Vector3(0.50f, 0.52f, 0.40f), Saturation = 0.62f };
+diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
+index 47e0c2a..19349f7 100644
+--- a/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
++++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
+@@ -184,7 +184,11 @@ public sealed class GroundCover : IDisposable
+                     if (fl > 0.6f && r < 0.30f)
+                     {
+                         int sp = (int)(PNoise.Fbm(x / 30f, z / 30f + 11f, _seed ^ 0xC0Du, 2) * 4.0f) & 3;
+-                        card = (CoverCard)((int)CoverCard.Daisy + sp); width = 0.55f; height = 0.62f;
++                        card = (CoverCard)((int)CoverCard.Daisy + sp);
++                        // polish1 (critic rank 11): flower heads read as floating yellow dots a hand across; the cards
++                        // are smaller (buttercups most), so the heads sit on visible stems among the grass
++                        float fs = card == CoverCard.Buttercup ? 0.62f : 0.82f;
++                        width = 0.55f * fs; height = 0.62f * fs;
+                     }
+                     else if (r > 0.988f) { card = r > 0.995f ? CoverCard.Thistle : CoverCard.Dock; width = 0.6f; height = 0.7f; }
+                     else
+diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/StructureRenderer.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/StructureRenderer.cs
+index 87a54cf..a42821a 100644
+--- a/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/StructureRenderer.cs
++++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/StructureRenderer.cs
+@@ -43,6 +43,11 @@ public sealed class StructureRenderer : IDisposable
+         ? (_tex.Get("bark_oak_alb_rgh.r1tex"), _tex.Get("bark_oak_nrm_ao.r1tex", normalMap: true))
+         : (_tex.Get($"st_{Name(m)}_alb_rgh.r1tex"), _tex.Get($"st_{Name(m)}_nrm_ao.r1tex", normalMap: true));
+ 
++    /// <summary>Polish1 (critic rank 10): the terrain height texture and lookup (<see cref="Water.EnvWater.HeightMap"/>);
++    /// with it the bottom metre of every piece takes an earthy grime and contact occlusion (null: none).</summary>
++    public Texture2D? GroundHeight { get; set; }
++    public Vector4 GroundGeom { get; set; }
++
+     public void Draw(RenderContext rc, bool depth)
+     {
+         if (Triangles == 0) return;
+@@ -58,9 +63,12 @@ public sealed class StructureRenderer : IDisposable
+                 e.Parameters["StAlb"].SetValue(alb); e.Parameters["StNrm"].SetValue(nrm);
+                 e.Parameters["StParams"].SetValue(new Vector4(m == (int)StMat.Thatch ? 1 : 0, m == (int)StMat.Tiles ? 1 : 0, 0, 0));
+                 e.Parameters["StEye"].SetValue(new Vector4(rc.Camera.Position, 1));
++                e.Parameters["StGround"].SetValue(GroundHeight != null ? GroundGeom : Vector4.Zero);
++                e.Parameters["StGroundTex"].SetValue(GroundHeight);
+             }
+             _gd.SetVertexBuffer(_vb[m]); _gd.Indices = _ib[m];
+             rc.Apply(e);
++            if (!depth) _gd.SamplerStates[StructureEffects.GroundSlot] = SamplerState.PointClamp;
+             _gd.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _tris[m]);
+             rc.Stats.RecordDraw(_tris[m], 1);
+         }
+@@ -75,7 +83,7 @@ public sealed class StructureRenderer : IDisposable
+ 
+ public static class StructureEffects
+ {
+-    public const int AlbSlot = GlslLib.FirstMaterialSlot, NrmSlot = GlslLib.FirstMaterialSlot + 1;
++    public const int AlbSlot = GlslLib.FirstMaterialSlot, NrmSlot = GlslLib.FirstMaterialSlot + 1, GroundSlot = GlslLib.FirstMaterialSlot + 2;
+ 
+     public static IEnumerable<EffectBuilder> Create()
+     {
+@@ -97,6 +105,7 @@ public static class StructureEffects
+             .Vec4("StParams", Stage.Pixel) // x = thatch, y = tiles
+             .Vec4("StEye", Stage.Vertex)   // the viewer: the shadow lookup offsets along the normal of the visible side
+             .Texture("StAlb", AlbSlot).Texture("StNrm", NrmSlot)
++            .Vec4("StGround", Stage.Pixel).Texture("StGroundTex", GroundSlot)   // polish1: the ground skirt
+             .Varyings("vec3 v_wpos; vec3 v_nrm; vec4 v_tan; vec2 v_uv; vec4 v_col; vec4 v_lpos;")
+             .VertexMain(@"
+     vec3 wp = a_pos.xyz;
+@@ -135,6 +144,22 @@ float vn(vec2 p) {
+     if (StParams.x > 0.5) albedo = mix(albedo, albedo * vec3(0.78, 0.82, 0.74), smoothstep(0.4, 0.9, macro) * 0.6);
+     if (StParams.y > 0.5) rough = mix(rough, rough * 0.8, smoothstep(0.5, 0.9, macro));
+     float ao = nr.b * v_col.a;
++    if (StGround.x > 0.0) {
++        // polish1 (critic rank 10): ground contact. Splashed earth, damp and grime over the bottom metre of a wall, and the
++        // occlusion of the ground at its foot (the walls stood on the grass as if pasted on)
++        vec2 f = v_wpos.xz / StGround.x + StGround.yz;
++        vec2 i = floor(f), t = f - i; vec2 inv = vec2(1.0 / StGround.w);
++        float h00 = texture2D(StGroundTex, (i + vec2(0.5, 0.5)) * inv).r, h10 = texture2D(StGroundTex, (i + vec2(1.5, 0.5)) * inv).r;
++        float h01 = texture2D(StGroundTex, (i + vec2(0.5, 1.5)) * inv).r, h11 = texture2D(StGroundTex, (i + vec2(1.5, 1.5)) * inv).r;
++        // the terrain mesh's own triangulation (each cell split along its (x+1, z)-(x, z+1) diagonal), as the water does
++        float g = t.x + t.y <= 1.0 ? h00 + (h10 - h00) * t.x + (h01 - h00) * t.y : h11 + (h01 - h11) * (1.0 - t.x) + (h10 - h11) * (1.0 - t.y);
++        float above = v_wpos.y - g;
++        float ragged = vn(v_wpos.xz * 1.7 + vec2(v_wpos.y * 0.9, 0.0)) * 0.45;
++        float skirt = (1.0 - smoothstep(0.0, 0.9 + ragged, above)) * (1.0 - 0.6 * abs(N.y)) * step(StParams.x, 0.5);
++        albedo = mix(albedo, albedo * vec3(0.62, 0.55, 0.45), skirt * 0.8);
++        rough = mix(rough, min(rough + 0.1, 1.0), skirt);
++        ao *= mix(1.0, 0.5, (1.0 - smoothstep(0.0, 0.35, above)) * step(StParams.x, 0.5));
++    }
+     vec3 c = shadePbrFull(albedo, clamp(rough, 0.3, 1.0), 0.0, ao, n, N, v_wpos, shadowPcf(v_lpos));
+     gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);");
+     }
+diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/Water/EnvWater.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/Water/EnvWater.cs
+index 2482b43..2f4c03c 100644
+--- a/prototypes/m7-gfx2/Gfx.Proc/Environment/Water/EnvWater.cs
++++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/Water/EnvWater.cs
+@@ -82,6 +82,10 @@ public sealed class EnvWater : IDisposable
+     public bool Arid { get; }
+     public int Triangles => _tris;
+     public Texture2D LevelMap => _level;
++    /// <summary>Polish1: the terrain height per grid sample (float texture) and its lookup (x cell m, y W/2, z H/2, w W),
++    /// shared with the structures' ground skirt.</summary>
++    public Texture2D HeightMap => _height;
++    public Vector4 HeightGeom => new(_m.CellM, _m.Grid.Width / 2f, _m.Grid.Height / 2f, _m.Grid.Width);
+ 
+     public EnvWater(GraphicsDevice gd, TerrainMeshData m, WaterField water, Vector2[] flow, EnvTextures tex)
+     {
+@@ -243,14 +247,19 @@ float vnoise(vec2 p) {
+     vec3 R = reflect(-V, n); R.y = abs(R.y);
+     vec3 sky = LightModel.z > 0.5 ? skyView(R) : mix(AmbientGround.rgb, AmbientSky.rgb, R.y * 0.5 + 0.5);
+     vec3 refl = sky;
++    // polish1 (critic rank 10): the wave distortion of the screen-space lookups fades out over the outer 4 % of the
++    // screen and the lookups stay inside it; before, the outer columns sampled off-screen and fell back to the bright
++    // sky (the water's outer 1-4 px columns measured twice the interior)
++    vec2 edge2 = min(smoothstep(0.0, 0.04, suv), 1.0 - smoothstep(0.96, 1.0, suv));
++    float edgeFade = min(edge2.x, edge2.y);
+     if (WaterTime.w > 0.5) {
+-        vec2 ruv = suv + n.xz * vec2(0.035, -0.035) * (0.5 + 0.5 * min(depth, 1.0));
++        vec2 ruv = clamp(suv + n.xz * vec2(0.035, -0.035) * (0.5 + 0.5 * min(depth, 1.0)) * edgeFade, vec2(0.001), vec2(0.999));
+         // the reflection is rendered for one plane (the water level near the camera); a reach at another level is
+         // offset from that plane, which matters only in proportion to its distance (the image error is an angle), so
+         // far reaches of a stepping river keep the planar reflection instead of falling back to the bright sky
+         float planeDist = abs(dot(WaterPlane.xyz, p) + WaterPlane.w);
+         float tol = max(1.2, 0.035 * dist);
+-        float wplanar = (1.0 - smoothstep(tol * 0.33, tol, planeDist)) * step(0.0, ruv.x) * step(ruv.x, 1.0) * step(0.0, ruv.y) * step(ruv.y, 1.0);
++        float wplanar = 1.0 - smoothstep(tol * 0.33, tol, planeDist);
+         refl = mix(sky, texture2D(ReflectionTex, ruv).rgb, wplanar);
+     }
+     // refraction: the bed seen through the water column, absorbed along the refracted path
+@@ -262,8 +271,8 @@ float vnoise(vec2 p) {
+     vec3 inscatter = WaterScatter.rgb * (irr / PI + SunColor.rgb * max(SunDir.y, 0.0) * sh / PI);
+     vec3 refr;
+     if (WaterTime.z > 0.5) {
+-        vec2 off = n.xz * vec2(0.025, -0.025) * min(depth, 1.5);
+-        vec3 bedCol = texture2D(SceneColor, suv + off).rgb;
++        vec2 off = n.xz * vec2(0.025, -0.025) * min(depth, 1.5) * edgeFade;
++        vec3 bedCol = texture2D(SceneColor, clamp(suv + off, vec2(0.001), vec2(0.999))).rgb;
+         refr = bedCol * trans + inscatter * (vec3(1.0) - trans);
+     } else refr = inscatter * (vec3(1.0) - trans * 0.6);
+     // sun glint (GGX), roughened where waves were filtered out
+diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/FarField.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/FarField.cs
+index 3a760c7..1591f4b 100644
+--- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/FarField.cs
++++ b/prototypes/m7-gfx2/Gfx.Proc/Presentation/FarField.cs
+@@ -83,6 +83,13 @@ public sealed class FarFieldMesh
+ 
+         float SeaWard(float x, float z) => coast switch { 0 => -z, 1 => x, 2 => z, 3 => -x, _ => 0 };
+ 
++        // polish1 (critic rank 7): forest masses (the colour's forest share, also lifted as canopy) and medium hills
++        float Forest(float x, float z)
++        {
++            float f = SplatModel.SmoothStep(0.46f, 0.56f, Noise(x, z, 0xF4u, 4, 1400f));
++            return biome switch { Biome.Arid => f * 0.25f, Biome.Tropical => MathF.Min(1, f * 1.4f), _ => f };
++        }
++
+         float Height(float x, float z)
+         {
+             float d = MathF.Max(MathF.Abs(x) - t.HalfExtentX, MathF.Abs(z) - t.HalfExtentZ);
+@@ -91,6 +98,10 @@ public sealed class FarFieldMesh
+             float ridgeAmp = biome switch { Biome.Cold => 520f, Biome.Arid => 160f, Biome.Tropical => 300f, _ => 380f };
+             float ridge = 1f - MathF.Abs(2f * Noise(x, z, 0xF2u, 4, 9000f) - 1f);
+             float far = hills + ridgeAmp * ridge * ridge * SplatModel.SmoothStep(3500f, 16000f, MathF.Max(d, 0)) + relief * 0.6f * SplatModel.SmoothStep(0f, 2500f, d);
++            // polish1: rolling hills a few hundred metres across rise from the map edge (the near far field was a plain),
++            // and woods stand about 14 m above the ground as canopy masses
++            far += relief * 0.55f * (Noise(x, z, 0xF6u, 4, 480f) - 0.5f) * 2f * SplatModel.SmoothStep(0f, 700f, MathF.Max(d, 0));
++            far += 14f * Forest(x, z) * SplatModel.SmoothStep(0f, 300f, MathF.Max(d, 0));
+             float h = MathHelper.Lerp(edge, far, SplatModel.SmoothStep(0f, 1700f, MathF.Max(d, 0)));
+             if (coast >= 0)
+             {
+@@ -106,22 +117,24 @@ public sealed class FarFieldMesh
+         Color Colour(float x, float z, float h, Vector3 n)
+         {
+             float slope = 1 - n.Y;
+-            float forest = SplatModel.SmoothStep(0.46f, 0.56f, Noise(x, z, 0xF4u, 4, 1400f));
++            float forest = Forest(x, z);
+             float dry = Noise(x, z, 0xF5u, 3, 3000f);
+             Vector3 grass, canopy, rock, sand = new(196, 178, 140), snow = new(232, 236, 240);
+             switch (biome)
+             {
+-                case Biome.Arid: grass = new(150, 128, 86); canopy = new(104, 98, 62); rock = new(150, 120, 96); forest *= 0.25f; break;
++                case Biome.Arid: grass = new(150, 128, 86); canopy = new(104, 98, 62); rock = new(150, 120, 96); break;
+                 case Biome.Cold: grass = new(98, 108, 78); canopy = new(46, 60, 46); rock = new(116, 116, 114); break;
+-                case Biome.Tropical: grass = new(78, 112, 46); canopy = new(38, 66, 30); rock = new(104, 100, 92); forest = MathF.Min(1, forest * 1.4f); break;
+-                default: grass = new(92, 108, 54); canopy = new(54, 70, 38); rock = new(122, 118, 110); break;
++                case Biome.Tropical: grass = new(78, 112, 46); canopy = new(38, 66, 30); rock = new(104, 100, 92); break;
++                // polish1: the temperate meadow's green (the terrain's retinted grass), not olive
++                default: grass = new(80, 110, 50); canopy = new(48, 68, 36); rock = new(122, 118, 110); break;
+             }
+             var c = Vector3.Lerp(grass, grass * new Vector3(1.18f, 1.05f, 0.82f), dry * 0.6f);
+             c = Vector3.Lerp(c, canopy, forest);
+             c = Vector3.Lerp(c, rock, SplatModel.SmoothStep(0.18f, 0.40f, slope));
+             if (coast >= 0) c = Vector3.Lerp(c, sand, SplatModel.SmoothStep(4f, 0.5f, h));
+             if (biome == Biome.Cold || biome == Biome.Temperate) c = Vector3.Lerp(c, snow, SplatModel.SmoothStep(biome == Biome.Cold ? 260f : 520f, biome == Biome.Cold ? 360f : 640f, h));
+-            return new Color((int)c.X, (int)c.Y, (int)c.Z);
++            // polish1: alpha carries the forest share for the shader's canopy texture
++            return new Color((int)c.X, (int)c.Y, (int)c.Z, (int)MathF.Round(255f * Math.Clamp(forest, 0f, 1f)));
+         }
+ 
+         var verts = new VertexPNC[rings * P];
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
-index a81596a..7aa0085 100644
+index b056ca5..276a003 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
-@@ -89,6 +89,9 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
-         for (int i = 0; i < 8; i++) b.Vec4("MatTint" + i, Stage.Pixel);
-         b.Vec4("MatRoughA", Stage.Pixel).Vec4("MatRoughB", Stage.Pixel)
-          .Vec4("TileScaleA", Stage.Pixel).Vec4("TileScaleB", Stage.Pixel).Vec4("TerrainOpts", Stage.Pixel);
-+        // polish1: x = meadow detail on (tones, patches, tracks, meso relief); y, z = ground-cover tint start and end
-+        // distance (m from the camera); w = ground-cover tint strength (0 when no ground cover is drawn)
-+        b.Vec4("TerrainMeadow", Stage.Pixel);
-         for (int i = 0; i < 5; i++) b.Texture("Alb" + i, AlbSlot + i);
-         for (int i = 0; i < 5; i++) b.Texture("Nrm" + i, NrmSlot + i);
-         // stage env: wet banks (TerrainOpts.w = 1): WetMap holds the nearby water surface height per grid sample
-@@ -186,7 +189,43 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
-     if (macroOn > 0.5) {
-         alb *= mix(0.86, 1.14, m1.r * 0.65 + m2.r * 0.35);
-         float grassy = bw.x;
--        alb = mix(alb, alb * vec3(1.12, 1.03, 0.80), clamp(m1.b * 0.7 + m2.g * 0.3, 0.0, 1.0) * grassy * 0.45);
-+        if (TerrainMeadow.x > 0.5) {
-+            // polish1 (critic rank 1): a meadow, not felt. World-space noise at 6 to 700 m: two grass tones (blue-green and
-+            // yellow-green), dry straw patches, trampled patches where soil shows, faint worn tracks, and a meso-scale
-+            // relief (clumps and hummocks a metre or two across) that bends the shading normal; all of it on the grassy
-+            // share only, and all of it fading into its mean with distance through the macro texture's mips.
-+            vec4 m3 = texture2D(Macro, p.xz * (1.0 / 6.3) + vec2(0.13, 0.29));
-+            vec4 m0 = texture2D(Macro, p.xz * (1.0 / 700.0) + vec2(0.57, 0.11));
-+            float tone = clamp((m1.g - 0.5) * 2.4 + (m2.g - 0.5) * 1.1 + 0.5, 0.0, 1.0);
-+            vec3 meadow = mix(vec3(0.86, 1.03, 0.94), vec3(1.17, 1.05, 0.78), tone);
-+            meadow *= mix(0.90, 1.10, m3.r);                                  // clump mottling
-+            float dry = smoothstep(0.50, 0.80, m1.b * 0.55 + m2.b * 0.45) * smoothstep(0.35, 0.65, m0.g);
-+            meadow = mix(meadow, vec3(1.62, 1.28, 0.86), dry * 0.75);          // sun-dried straw
-+            float trod = smoothstep(0.62, 0.86, m3.b * 0.5 + m2.a * 0.5) * smoothstep(0.45, 0.70, m1.a);
-+            // worn tracks: one contour of a 700 m noise, kept in segments, about 1.2 m wide, fading out when sub-pixel
-+            float tw = max(fwidth(m0.r), 1e-5), trackHalf = 0.0016;
-+            float track = (1.0 - smoothstep(trackHalf * 0.4, trackHalf, abs(m0.r - 0.5))) * min(1.0, trackHalf / tw) * smoothstep(0.52, 0.66, m0.b);
-+            float soil = clamp(trod * 0.45 + track * 0.65, 0.0, 0.8);
-+            vec3 albSoil = vec3(0.115, 0.085, 0.050) * mix(0.8, 1.2, m3.g);   // trodden earth (linear)
-+            vec3 albM = alb * meadow;
-+            albM = mix(albM, mix(albM * vec3(1.25, 1.05, 0.85), albSoil, 0.65), soil);
-+            alb = mix(alb, albM, grassy);
-+            // meso relief: a 6.3 m tile of the macro noise as height (about 0.2 m of hummocks), forward differences;
-+            // on level ground T is +x and B = cross(N, T) is -z, so the height field's normal (-dh/dx, 1, -dh/dz) adds
-+            // -T dh/dx + B dh/dz
-+            float de = 0.35;
-+            float hx = texture2D(Macro, (p.xz + vec2(de, 0.0)) * (1.0 / 6.3) + vec2(0.13, 0.29)).r;
-+            float hz = texture2D(Macro, (p.xz + vec2(0.0, de)) * (1.0 / 6.3) + vec2(0.13, 0.29)).r;
-+            vec2 gr = vec2(hx - m3.r, hz - m3.r) * (0.22 / de);
-+            n = normalize(n + (-T * gr.x + B * gr.y) * grassy * (1.0 - soil * 0.5));
-+            rough = mix(rough, min(rough + 0.08, 1.0), dry * grassy);
-+            // the ground under and beyond the ground cover's reach takes the cards' look (no edge where the cards end)
-+            float dc = distance(CameraPos.xz, p.xz);
-+            float cw = TerrainMeadow.w * smoothstep(TerrainMeadow.y, TerrainMeadow.z, dc) * grassy * (1.0 - soil);
-+            alb = mix(alb, alb * vec3(1.10, 1.07, 0.92), cw);
-+        } else {
-+            alb = mix(alb, alb * vec3(1.12, 1.03, 0.80), clamp(m1.b * 0.7 + m2.g * 0.3, 0.0, 1.0) * grassy * 0.45);
-+        }
-     }
-     if (TerrainOpts.w > 0.5) {
-         // wet banks: darker and glossier up to about 0.6 m above the nearby water surface, fading with height
-diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainMaterials.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainMaterials.cs
-index 6247bdf..8259ace 100644
---- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainMaterials.cs
-+++ b/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainMaterials.cs
-@@ -109,8 +109,12 @@ public static class MaterialLook
-     public static Entry[] For(Biome b)
+@@ -76,7 +76,17 @@ void sampleHex(sampler2D A, sampler2D N, vec2 uv, vec2 dx, vec2 dy, float maxRot
+     vec2 bxy = rot2(m1.xy, -r1) * ww.x + rot2(m2.xy, -r2) * ww.y + rot2(m3.xy, -r3) * ww.z;
+     n = vec4(bxy * 0.5 + 0.5, n1.b * ww.x + n2.b * ww.y + n3.b * ww.z, 1.0);
+ }
+-vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); return max(vec3(l) + (c - vec3(l)) * s, vec3(0.0)); }";
++vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); return max(vec3(l) + (c - vec3(l)) * s, vec3(0.0)); }
++// polish1: value noise with its analytic gradient (x = value 0..1, yz = d/dx, d/dy), not periodic (a tiled texture's
++// period showed as regular ripples across the meadow at a distance)
++float vhash(vec2 c) { return fract(sin(dot(c, vec2(127.1, 311.7))) * 43758.5453); }
++vec3 vnoise(vec2 x) {
++    vec2 i = floor(x), f = x - i;
++    vec2 u = f * f * (3.0 - 2.0 * f), du = 6.0 * f * (1.0 - f);
++    float a = vhash(i), b = vhash(i + vec2(1.0, 0.0)), c = vhash(i + vec2(0.0, 1.0)), d = vhash(i + vec2(1.0, 1.0));
++    float k1 = b - a, k2 = c - a, k4 = a - b - c + d;
++    return vec3(a + k1 * u.x + k2 * u.y + k4 * u.x * u.y, du * (vec2(k1, k2) + k4 * u.yx));
++}";
+ 
+     public static EffectBuilder TerrainPbr()
      {
-         // order: Grass, Dirt, Rock, Sand, Snow, ForestFloor, Mud, DryGrass
--        var lush = b switch { Biome.Tropical => new Vector3(0.74f, 1.12f, 0.62f), Biome.Cold => new Vector3(0.92f, 1.02f, 0.92f), Biome.Arid => new Vector3(1.75f, 1.50f, 1.05f), _ => new Vector3(0.78f, 1.10f, 0.66f) };
--        var lushSat = b == Biome.Arid ? 0.6f : 1.15f;   // arid 'grass' is pale, sparse dry grass
-+        // polish1 (critic iteration 1, rank 1): the temperate meadow was a desaturated olive (hue about 74 degrees in the
-+        // albedo, 75 in the noon frame) that a 9-degree sun turned tan; it is now the ground-cover grass cards' own green
-+        // (mean albedo about linear 0.062, 0.112, 0.028: hue near 88 degrees, HSV saturation about 0.55, luminance 0.095,
-+        // inside the published 0.08-0.15 range for green meadow), so a low sun lands on gold-green
-+        var lush = b switch { Biome.Tropical => new Vector3(0.74f, 1.12f, 0.62f), Biome.Cold => new Vector3(0.92f, 1.02f, 0.92f), Biome.Arid => new Vector3(1.75f, 1.50f, 1.05f), _ => new Vector3(0.58f, 1.01f, 0.96f) };
-+        var lushSat = b == Biome.Arid ? 0.6f : b == Biome.Temperate ? 1.2f : 1.15f;   // arid 'grass' is pale, sparse dry grass
-         return new[]
-         {
-             new Entry(0, lush, lushSat, 1.0f),                                    // Grass
+@@ -194,31 +204,37 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
+             // yellow-green), dry straw patches, trampled patches where soil shows, faint worn tracks, and a meso-scale
+             // relief (clumps and hummocks a metre or two across) that bends the shading normal; all of it on the grassy
+             // share only, and all of it fading into its mean with distance through the macro texture's mips.
+-            vec4 m3 = texture2D(Macro, p.xz * (1.0 / 6.3) + vec2(0.13, 0.29));
+             vec4 m0 = texture2D(Macro, p.xz * (1.0 / 700.0) + vec2(0.57, 0.11));
+             float tone = clamp((m1.g - 0.5) * 2.4 + (m2.g - 0.5) * 1.1 + 0.5, 0.0, 1.0);
+-            vec3 meadow = mix(vec3(0.86, 1.03, 0.94), vec3(1.17, 1.05, 0.78), tone);
+-            vec4 m5 = texture2D(Macro, p.xz * (1.0 / 2.3) + vec2(0.41, 0.83));
+-            float mott = smoothstep(0.30, 0.70, m3.r) * 0.6 + smoothstep(0.30, 0.70, m5.r) * 0.4;
+-            meadow *= mix(0.74, 1.20, mott);                                  // clump mottling (2.3 and 6.3 m tiles)
+-            float dry = smoothstep(0.50, 0.80, m1.b * 0.55 + m2.b * 0.45) * smoothstep(0.35, 0.65, m0.g);
+-            meadow = mix(meadow, vec3(1.62, 1.28, 0.86), dry * 0.75);          // sun-dried straw
+-            float trod = smoothstep(0.62, 0.86, m3.b * 0.5 + m2.a * 0.5) * smoothstep(0.45, 0.70, m1.a);
++            vec3 meadow = mix(vec3(0.88, 1.03, 0.95), vec3(1.12, 1.04, 0.84), tone);
++            // meso layers: two octaves of value noise (wavelengths 4.4 m and 1.7 m, rotated against each other), each
++            // faded out where a pixel covers more than a fifth of its wavelength (no aliasing, no repeating pattern)
++            float fp = max(length(dpx.xz), length(dpy.xz));
++            vec2 q1 = mat2(0.80, -0.60, 0.60, 0.80) * p.xz * (1.0 / 4.4), q2 = mat2(0.28, 0.96, -0.96, 0.28) * p.xz * (1.0 / 1.7) + 17.0;
++            vec3 n1 = vnoise(q1), n2 = vnoise(q2);
++            float w1 = 1.0 - smoothstep(0.22, 0.5, fp / 4.4), w2 = 1.0 - smoothstep(0.22, 0.5, fp / 1.7);
++            float mott = 0.5 + (n1.x - 0.5) * w1 * 0.65 + (n2.x - 0.5) * w2 * 0.35;
++            meadow *= mix(0.78, 1.18, clamp(mott, 0.0, 1.0));                // clump mottling
++            float dry = smoothstep(0.55, 0.82, m1.b * 0.55 + m2.b * 0.45) * smoothstep(0.35, 0.65, m0.g);
++            float trod = smoothstep(0.62, 0.86, (0.5 + (n1.x - 0.5) * w1) * 0.5 + m2.a * 0.5) * smoothstep(0.45, 0.70, m1.a);
+             // worn tracks: one contour of a 700 m noise, kept in segments, about 1.2 m wide, fading out when sub-pixel
+             float tw = max(fwidth(m0.r), 1e-5), trackHalf = 0.0016;
+             float track = (1.0 - smoothstep(trackHalf * 0.4, trackHalf, abs(m0.r - 0.5))) * min(1.0, trackHalf / tw) * smoothstep(0.52, 0.66, m0.b);
+             float soil = clamp(trod * 0.45 + track * 0.65, 0.0, 0.8);
+-            vec3 albSoil = vec3(0.115, 0.085, 0.050) * mix(0.8, 1.2, m3.g);   // trodden earth (linear)
++            vec3 albSoil = vec3(0.115, 0.085, 0.050) * mix(0.8, 1.2, n2.x);   // trodden earth (linear)
+             vec3 albM = alb * meadow;
++            // sun-dried straw: a pale, greyed buff at the grass's own brightness (a multiplier on the green base made the
++            // patches saturated yellow at a distance: hue 69, saturation 0.61 in the C vista)
++            float lm = dot(albM, vec3(0.2126, 0.7152, 0.0722));
++            albM = mix(albM, lm * vec3(1.55, 1.30, 0.78), dry * 0.6);
+             albM = mix(albM, mix(albM * vec3(1.25, 1.05, 0.85), albSoil, 0.65), soil);
+             alb = mix(alb, albM, grassy);
+-            // meso relief: a 6.3 m tile of the macro noise as height (about 0.2 m of hummocks), forward differences;
+-            // on level ground T is +x and B = cross(N, T) is -z, so the height field's normal (-dh/dx, 1, -dh/dz) adds
+-            // -T dh/dx + B dh/dz
+-            float de = 0.35;
+-            float hx = texture2D(Macro, (p.xz + vec2(de, 0.0)) * (1.0 / 6.3) + vec2(0.13, 0.29)).r;
+-            float hz = texture2D(Macro, (p.xz + vec2(0.0, de)) * (1.0 / 6.3) + vec2(0.13, 0.29)).r;
+-            vec2 gr = vec2(hx - m3.r, hz - m3.r) * (0.7 / de);
++            // meso relief: the two octaves as height (hummocks of about 0.3 m and 0.08 m), their analytic gradients back
++            // in world units (the rotations are orthonormal: grad_world = R^T grad_q / wavelength); on level ground T is +x
++            // and B = cross(N, T) is -z, so the height field's normal (-dh/dx, 1, -dh/dz) adds -T dh/dx + B dh/dz
++            vec2 g1 = vec2(dot(vec2(0.80, -0.60), n1.yz), dot(vec2(0.60, 0.80), n1.yz)) * (0.30 / 4.4) * w1;
++            vec2 g2 = vec2(dot(vec2(0.28, 0.96), n2.yz), dot(vec2(-0.96, 0.28), n2.yz)) * (0.08 / 1.7) * w2;
++            vec2 gr = g1 + g2;
+             n = normalize(n + (-T * gr.x + B * gr.y) * grassy * (1.0 - soil * 0.5));
+             rough = mix(rough, min(rough + 0.08, 1.0), dry * grassy);
+             // the ground under and beyond the ground cover's reach takes the cards' look (no edge where the cards end)
+@@ -260,7 +276,8 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
+     bool meadowOn = TerrainMeadow.x > 0.5 && macroOn > 0.5;
+     // polish1: a grass canopy shadows its own sheen (a quarter of the specular on the grassy share), and blades lit from
+     // behind glow green-yellow, as the ground-cover cards do; a low sun ahead no longer turns the meadow into sand
+-    float grassSpec = meadowOn ? mix(1.0, 0.25, bw.x) : 1.0;
++    // (wet grass keeps most of its sheen: rain leaves a film on every blade)
++    float grassSpec = meadowOn ? mix(1.0, 0.25, bw.x * (1.0 - 0.7 * clamp(Weather.x, 0.0, 1.0))) : 1.0;
+     vec3 c = shadePbrFullSpec(alb, clamp(rough, 0.05, 1.0), 0.0, ao, n, N, p, sh, grassSpec);
+     if (meadowOn) {
+         vec3 Vg = normalize(CameraPos.xyz - p);
+@@ -330,7 +347,8 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
+     /// <summary>
+     /// The land and sea beyond the battle map: vertex colour (sRGB) and normal, macro brightness variation, rough PBR,
+     /// cascaded shadows where they reach, aerial perspective, and a fade into the horizon haze at the outer edge.
+-    /// FarParams: x = fade start radius, y = fade end radius (m from the map centre).
++    /// FarParams: x = fade start radius, y = fade end radius (m from the map centre), z = 1: the polish1 countryside
++    /// (field patchwork, hedgerows and canopy; temperate maps).
+     /// </summary>
+     public static EffectBuilder FarField() => new EffectBuilder(TerrainEffectNames.FarField)
+         .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)
+@@ -345,12 +363,43 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
+     v_wpos = wp; v_nrm = a_nrm; v_col = a_col;
+     v_lpos = shadowLookup(wp, a_nrm);
+     gl_Position = ViewProj_mul(vec4(wp, 1.0));")
++        .PixelLib(Sampling)
+         .PixelMain(@"
+     vec3 n = normalize(v_nrm);
+     vec3 alb = srgbToLinear(v_col.rgb);
+     vec4 m1 = texture2D(Macro, v_wpos.xz / 1400.0), m2 = texture2D(Macro, v_wpos.xz / 310.0 + vec2(0.3, 0.6));
+     alb *= mix(0.82, 1.16, m1.r * 0.6 + m2.r * 0.4);
+-    vec3 c = shadePbr(alb, 0.93, 0.0, 1.0, n, v_wpos, shadowPcf(v_lpos));
++    float rough = 0.93;
++    if (FarParams.z > 0.5) {
++        // polish1 (critic rank 7): a countryside beyond the map instead of felt. Fields in strips (rows 70-110 m deep,
++        // fields 60-170 m wide, one crop each: pasture, hay, ripening grain, ploughed soil, stubble) with hedgerows on their
++        // borders, and the woods (the vertex alpha) as a dark crowned canopy. Everything fades by pixel footprint, and the
++        // patchwork thins out towards the horizon (aerial perspective takes over there).
++        float forest = smoothstep(0.30, 0.70, v_col.a);
++        float fpx = max(length(dFdx(v_wpos.xz)), length(dFdy(v_wpos.xz)));
++        vec2 q = vec2(0.94 * v_wpos.x + 0.34 * v_wpos.z, -0.34 * v_wpos.x + 0.94 * v_wpos.z);
++        float rowH = 90.0, row = floor(q.y / rowH);
++        float hr = vhash(vec2(row, 3.7)), width = 60.0 + 110.0 * hr;
++        float qx = q.x + hr * 517.0, col = floor(qx / width);
++        float hc = vhash(vec2(col, row + 91.0));
++        vec3 crop = hc < 0.40 ? vec3(0.068, 0.100, 0.040) : hc < 0.65 ? vec3(0.100, 0.112, 0.052)
++                  : hc < 0.80 ? vec3(0.190, 0.155, 0.070) : hc < 0.92 ? vec3(0.088, 0.064, 0.044) : vec3(0.150, 0.132, 0.085);
++        crop *= mix(0.88, 1.12, vhash(vec2(col * 1.3, row * 0.7 + 5.0)));
++        float ex = min(fract(qx / width), 1.0 - fract(qx / width)) * width, ey = min(fract(q.y / rowH), 1.0 - fract(q.y / rowH)) * rowH;
++        float hedge = (1.0 - smoothstep(1.5, 3.5, min(ex, ey))) * clamp(3.0 / max(fpx, 1e-3), 0.0, 1.0);
++        float d = length(v_wpos.xz);
++        float fields = (1.0 - forest) * (1.0 - smoothstep(9000.0, 16000.0, d)) * (1.0 - smoothstep(0.05, 0.18, 1.0 - n.y));
++        alb = mix(alb, crop, fields * 0.75);
++        alb = mix(alb, vec3(0.030, 0.048, 0.022), hedge * fields * 0.85);
++        // canopy: dark crowns mottled at about 9 m, their relief bending the normal; fading by footprint
++        float wc = 1.0 - smoothstep(0.25, 0.6, fpx / 9.0);
++        vec3 cn = vnoise(v_wpos.xz / 9.0 + 3.1);
++        vec3 canopy = vec3(0.038, 0.062, 0.028) * mix(0.62, 1.25, 0.5 + (cn.x - 0.5) * wc);
++        alb = mix(alb, canopy, forest);
++        n = normalize(n + vec3(-cn.y, 0.0, -cn.z) * (0.9 / 9.0) * wc * forest);
++        rough = mix(rough, 0.85, forest);
++    }
++    vec3 c = shadePbr(alb, rough, 0.0, 1.0, n, v_wpos, shadowPcf(v_lpos));
+     float edge = smoothstep(FarParams.x, FarParams.y, length(v_wpos.xz));
+     gl_FragColor = vec4(LightModel.z > 0.5 ? aerialPerspective(c, v_wpos, edge) : mix(applyFog(c, v_wpos), FogColor.rgb, edge), 1.0);");
+ }
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainScenery.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainScenery.cs
-index ea0af31..c82f380 100644
+index c82f380..fdefabe 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainScenery.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainScenery.cs
-@@ -58,6 +58,12 @@ public sealed class TerrainScenery : IDisposable
-     public MaterialLook.Entry[]? AltLook { get; set; }
-     VertexBuffer[]? _altVbs;
-     public float ShadowCastDistance { get; set; } = 320f;
-+    /// <summary>Polish1: meadow detail on the grassy share (tones, dry and trodden patches, tracks, meso relief); on for
-+    /// the temperate biome, and drawn only with the macro-variation switch on.</summary>
-+    public bool MeadowDetail { get; set; }
-+    /// <summary>Polish1: the ground-cover tint range (x start, y end in metres from the camera, z strength); z = 0 (the
-+    /// default) when no ground cover is drawn, so plain terrain is unchanged by it.</summary>
-+    public Vector3 CoverTint { get; set; }
-     public int LastVisibleChunks { get; private set; }
-     public int LastPropInstances { get; private set; }
-     public int TotalPropInstances { get; }
-@@ -70,6 +76,7 @@ public sealed class TerrainScenery : IDisposable
-         Weather = WeatherParams.For(grid.Biome, Mesh.MinHeightM, seed);
-         _palette = SplatModel.Palette(grid.Biome);
-         _look = MaterialLook.For(grid.Biome);
-+        MeadowDetail = grid.Biome == Biome.Temperate;
-         (_detailA, _detailB) = MaterialTextures.Create(gd, 1234u);
- 
-         _chunks = new Chunk[Mesh.Chunks.Length]; _bounds = new BoundingBox[_chunks.Length]; _visible = new (int, int)[_chunks.Length];
-@@ -113,6 +120,20 @@ public sealed class TerrainScenery : IDisposable
-     /// </summary>
-     public float Haze => Grid.Biome switch { Biome.Arid => 3.5f, Biome.Tropical => 4.0f, Biome.Cold => 2.0f, _ => 3.0f };
- 
-+    /// <summary>
-+    /// Polish1: the factor on <see cref="Haze"/> with the sun on the horizon (<see cref="RenderFeatures.HazeLowSun"/>):
-+    /// the aerosol veil towards a 9-degree sun turned the temperate meadow into sand dunes, so a low sun sees a little
-+    /// over half of it (golden hour 3 becomes about 1.8). Presentation only.
-+    /// </summary>
-+    public float HazeLowSun => Grid.Biome switch { Biome.Arid => 0.75f, _ => 0.55f };
-+
-+    /// <summary>Polish1: linear albedo of this biome's open ground for the sky light's ground bounce (presentation only).</summary>
-+    public Vector3 BounceAlbedo => Grid.Biome switch
-+    {
-+        Biome.Arid => new Vector3(0.30f, 0.24f, 0.16f), Biome.Cold => new Vector3(0.12f, 0.13f, 0.11f),
-+        Biome.Tropical => new Vector3(0.06f, 0.10f, 0.04f), _ => new Vector3(0.075f, 0.105f, 0.042f),
-+    };
-+
-     /// <summary>World box holding every shadow caster of this scenery (terrain and props, 40 m headroom for trees).</summary>
-     public BoundingBox CasterBounds => new(new Vector3(-Mesh.HalfExtentX, Mesh.MinHeightM - 10f, -Mesh.HalfExtentZ),
-                                            new Vector3(Mesh.HalfExtentX, Mesh.MaxHeightM + 40f, Mesh.HalfExtentZ));
-@@ -173,6 +194,7 @@ public sealed class TerrainScenery : IDisposable
-         p["TileScaleB"].SetValue(new Vector4(1f / ts[4], 1f / 190f, 1f / 53f, 0));
-         bool wet = UseWetMap && WetMap != null;
-         p["TerrainOpts"].SetValue(new Vector4(rc.Features.HexTiling ? 1 : 0, rc.Features.MacroVariation ? 1 : 0, 0.22f, wet ? 1 : 0));
-+        p["TerrainMeadow"].SetValue(new Vector4(MeadowDetail ? 1 : 0, CoverTint.X, CoverTint.Y, CoverTint.Z));
-         if (_wetDummy == null)
-         {
-             _wetDummy = new Texture2D(_gd, 1, 1, false, SurfaceFormat.Single);
+@@ -231,7 +231,7 @@ public sealed class TerrainScenery : IDisposable
+         EnsureFarField(rc.Device);
+         if (_farVb == null || _farIb == null) return;
+         var fx = rc.Effects.Get(TerrainEffectNames.FarField);
+-        fx.Parameters["FarParams"].SetValue(new Vector4(FarFieldMesh.OuterHalfSize * 0.35f, FarFieldMesh.OuterHalfSize * 0.95f, 0, 0));
++        fx.Parameters["FarParams"].SetValue(new Vector4(FarFieldMesh.OuterHalfSize * 0.35f, FarFieldMesh.OuterHalfSize * 0.95f, MeadowDetail ? 1 : 0, 0));
+         fx.Parameters["Macro"]?.SetValue(_materials?.Macro ?? _detailA);
+         _gd.SetVertexBuffer(_farVb); _gd.Indices = _farIb;
+         rc.Apply(fx);
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish1Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish1Tests.cs
-new file mode 100644
-index 0000000..094f8f7
---- /dev/null
+index 094f8f7..3775026 100644
+--- a/prototypes/m7-gfx2/Gfx.Tests/Polish1Tests.cs
 +++ b/prototypes/m7-gfx2/Gfx.Tests/Polish1Tests.cs
-@@ -0,0 +1,108 @@
-+using Gfx.Engine.Cameras;
-+using Gfx.Engine.Diagnostics;
-+using Gfx.Engine.Effects;
-+using Gfx.Engine.Rendering;
-+using Gfx.Engine.Scene;
-+using Microsoft.Xna.Framework;
-+using Microsoft.Xna.Framework.Graphics;
-+using Xunit;
+@@ -1,3 +1,9 @@
++using Gfx.Chars.Animation;
++using Gfx.Chars.Crowd;
++using Gfx.Chars.Format;
++using Gfx.Chars.Rendering;
++using Gfx.Demo.Scenes;
++using Gfx.Engine.Assets;
+ using Gfx.Engine.Cameras;
+ using Gfx.Engine.Diagnostics;
+ using Gfx.Engine.Effects;
+@@ -105,4 +111,108 @@ public class Polish1Tests
+             Assert.True(acne < lit / 200, $"{acne} of {lit} sunlit dome pixels self-shadowed (acne)");
+         });
+     }
 +
-+namespace Gfx.Tests;
-+
-+/// <summary>
-+/// A smooth convex dome (a sphere of 150 m radius, its centre 100 m under the ground plane's level) drawn with the
-+/// engine's instanced lit effect: a convex body never shadows a point of itself that faces the sun, so on this dome every
-+/// shadowed pixel whose surface faces the sun is shadow acne. Nothing else is in the scene.
-+/// </summary>
-+sealed class DomeScene : IRenderContent, IDisposable
-+{
-+    readonly GpuMesh _sphere;
-+    readonly InstanceBuffer<InstanceTransform> _one;
-+    public const float Radius = 150f, CentreY = -100f;
-+
-+    public DomeScene(GraphicsDevice gd)
++    static (Skeleton, CharacterFile) Identity(string id)
 +    {
-+        _sphere = GpuMesh.Create(gd, Primitives.Sphere(1f, 192, Color.White));
-+        _one = new InstanceBuffer<InstanceTransform>(gd, 1);
-+        _one.Set(new[] { InstanceTransform.From(Matrix.CreateScale(Radius) * Matrix.CreateTranslation(0, CentreY, 0), new Vector4(0.32f, 0.36f, 0.20f, 1)) });
++        string dir = AssetRoot.Baked("chars");
++        var f = CharacterFile.Load(Path.Combine(dir, id + ".g2ch"));
++        var clips = CharacterFile.Load(Path.Combine(dir, id + "__clips.g2ch"));
++        return (new Skeleton(f.Bones), clips);
 +    }
 +
-+    public void DrawShadowCasters(RenderContext rc) => _sphere.DrawInstanced(rc, rc.Effects.Get(EffectNames.InstancedDepth), _one);
-+    public void DrawOpaque(RenderContext rc) => _sphere.DrawInstanced(rc, rc.Effects.Get(EffectNames.InstancedLit), _one);
-+    public void Dispose() { _sphere.Dispose(); _one.Dispose(); }
-+}
-+
-+/// <summary>Nothing but the sky (the reference frame that tells a scene's pixels from the sky's).</summary>
-+sealed class EmptyScene : IRenderContent
-+{
-+    public void DrawShadowCasters(RenderContext rc) { }
-+    public void DrawOpaque(RenderContext rc) { }
-+}
-+
-+/// <summary>Stage polish1 (critic iteration 1): shadows, terrain, crowd variation, banners, faces, light.</summary>
-+public class Polish1Tests
-+{
-+    const int W = 320, H = 180;
-+    static readonly string OutDir = Path.Combine(AppContext.BaseDirectory, "test-output", "polish1");
-+
-+    static ForwardRenderer NewRenderer(GraphicsDevice gd, string switches)
++    /// <summary>Character-space position of a bone's joint for one crowd instance's two-clip sample (the shader's CPU twin).</summary>
++    static Vector3 Joint(CrowdAnimationBank bank, Skeleton sk, int identity, int bone, int clipA, float timeA, int clipB, float timeB, float blend)
 +    {
-+        var r = new ForwardRenderer(gd, TestGfx.Host.Effects);
-+        r.Settings.FogParams = new Vector4(0f, 0.02f, 0f, 0f);
-+        r.Settings.ShadowCasterBounds = new BoundingBox(new Vector3(-160, -100, -160), new Vector3(160, 60, 160));
-+        r.Settings.Features.SetMany("autoexposure=0,bloom=0,grade=0,aa=none,farfield=0,ssao=0,contact=0,aerial=0");
-+        if (switches.Length > 0) r.Settings.Features.SetMany(switches);
-+        return r;
++        var (a0, a1, fa) = bank.Sample(identity, clipA, timeA);
++        var (b0, b1, fb) = bank.Sample(identity, clipB, timeB);
++        var aA = new Vector4(a0, a1, fa, blend); var aB = new Vector4(b0, b1, fb, 0);
++        return bank.SkinCpu(sk.Head[bone], new[] { bone, 0, 0, 0 }, new[] { 1f, 0, 0, 0 }, aA, aB);
 +    }
-+
-+    static float Luma(Color c) => 0.2126f * c.R + 0.7152f * c.G + 0.0722f * c.B;
 +
 +    /// <summary>
-+    /// Rank 2: under a golden-hour sun (about 9 degrees up) the sunlit side of a smooth convex dome, seen from 260 m so its
-+    /// slopes fall in the outer cascades, is not darkened by the cascaded shadows anywhere: a frame with shadows and one
-+    /// without differ on fewer than 0.5 % of the dome's sunlit pixels. With the constant per-cascade bias alone the lit
-+    /// slopes drew contour bands of self-shadow (acne).
++    /// Rank 3: the idle variants raise the retargeted clips' bowed heads to the variant's gaze (within 1.5 degrees of it,
++    /// mean over the clip), and the variants move the weapon hand: at one time the right hand of variants 1-3 stands
++    /// more than 5 cm from variant 0's.
 +    /// </summary>
-+    [GfxFact]
-+    public void GrazingSunLeavesNoAcneOnASmoothLitSlope()
++    [CharsBakeFact]
++    public void CrowdIdleVariantsLiftTheBowedHeadAndMoveTheWeaponArm()
++    {
++        var notes = new List<string>();
++        foreach (var id in new[] { "a1", "b3" })
++        {
++            var (sk, clips) = Identity(id);
++            foreach (var name in CrowdPoseVariants.BaseClips)
++            {
++                var src = clips.Clip(name)!;
++                float before = CrowdPoseVariants.MeanHeadPitch(sk, src);
++                for (int k = 0; k < CrowdPoseVariants.Idle.Length; k++)
++                {
++                    var v = CrowdPoseVariants.Derive(sk, src, name + "@" + k, CrowdPoseVariants.Idle[k]);
++                    Assert.Equal(src.Frames, v.Frames);
++                    float after = CrowdPoseVariants.MeanHeadPitch(sk, v);
++                    Assert.InRange(after, CrowdPoseVariants.Idle[k].HeadPitch - 1.5f, CrowdPoseVariants.Idle[k].HeadPitch + 1.5f);
++                    if (k == 0) notes.Add($"{id} {name}: mean gaze {before:0.0} -> {after:0.0} deg");
++                }
++            }
++            var bank = CrowdAnimationBank.BuildCpu(new[] { (sk, clips) });
++            int hand = sk["hand_r"];
++            var h0 = Joint(bank, sk, 0, hand, CrowdAnimationBank.ClipIndex("idle@0"), 1.0f, 0, 0, 0);
++            for (int k = 1; k < CrowdPoseVariants.Idle.Length; k++)
++            {
++                var hk = Joint(bank, sk, 0, hand, CrowdAnimationBank.ClipIndex("idle@" + k), 1.0f, 0, 0, 0);
++                Assert.True(Vector3.Distance(h0, hk) > 0.05f, $"{id} idle@{k}: right hand only {Vector3.Distance(h0, hk):0.000} m from idle@0");
++            }
++        }
++        Console.WriteLine(string.Join("; ", notes));
++    }
++
++    /// <summary>
++    /// Rank 3: in an idle block of 10 files by 4 ranks, neighbours in a rank hold different poses at one scene time: for
++    /// at least 90 % of the adjacent pairs the right hand or the head (character space, before the soldier's yaw and
++    /// size) stands more than 4 cm apart; and every soldier's gaze is near level (the bowed heads of the retargeted idle
++    /// fail it). Presentation only: the agents are a pure function of the formation seed and time.
++    /// </summary>
++    [CharsGfxFact]
++    public void AdjacentIdleSoldiersDifferInPoseAtOneTime()
 +    {
 +        TestGfx.Host.Invoke(gd =>
 +        {
-+            using var scene = new DomeScene(gd);
-+            using var rt = new RenderTarget2D(gd, W, H, false, SurfaceFormat.Color, DepthFormat.None);
-+            var sun = SunModel.At(17.9f);
-+            Assert.InRange(sun.SunElevationRadians, MathHelper.ToRadians(6f), MathHelper.ToRadians(12f));
-+            var toSun = sun.DirectionToLight; var flat = Vector3.Normalize(new Vector3(toSun.X, 0, toSun.Z));
-+            var side = new Vector3(-flat.Z, 0, flat.X);
-+            // the camera stands sun-side of the dome and looks across its lit flank
-+            var cam = new CameraPose(flat * 260f + side * 90f + new Vector3(0, 60f, 0), new Vector3(0, 20f, 0), 0.8f, 0.5f, 2000f);
-+            using var on = NewRenderer(gd, "shadowdist=700");
-+            using var off = NewRenderer(gd, "shadowdist=700");
-+            off.Settings.Shadows = false;
-+            on.Render(scene, cam, sun, rt, 0f); var a = Capture.ReadPixels(rt);
-+            Directory.CreateDirectory(OutDir); Capture.SavePng(rt, Path.Combine(OutDir, "dome-shadows.png"));
-+            off.Render(scene, cam, sun, rt, 0f); var b = Capture.ReadPixels(rt);
-+            Capture.SavePng(rt, Path.Combine(OutDir, "dome-noshadows.png"));
-+            off.Render(new EmptyScene(), cam, sun, rt, 0f); var sky = Capture.ReadPixels(rt);
-+            // the dome's pixels (they differ from the empty frame) and among them the sunlit ones: clearly brighter than
-+            // the dome's unlit side in the frame without shadows
-+            float dark = float.MaxValue, bright = 0;
-+            for (int i = 0; i < b.Length; i++)
++            using var cast = new CrowdCast(gd, (x, z) => 0f);
++            cast.Formations.Add(new FormationSpec(Vector2.Zero, 0f, 10, 4, 0, FormationAct.Idle, 4000u));
++            cast.Update(2.0f);
++            var agents = cast.Crowd.Agents;
++            var bank = cast.Crowd.Bank;
++            var skels = new SortedDictionary<string, Skeleton>(StringComparer.Ordinal);
++            foreach (var (identity, _) in CrowdCast.Variants) if (!skels.ContainsKey(identity)) skels[identity] = Identity(identity).Item1;
++            (Vector3 hand, Vector3 head) PoseOf(in CrowdAgent a)
 +            {
-+                if (b[i] == sky[i]) continue;
-+                float l = Luma(b[i]); dark = MathF.Min(dark, l); bright = MathF.Max(bright, l);
++                var v = cast.Crowd.Variants[a.Variant]; var sk = skels[v.Identity];
++                return (Joint(bank, sk, v.BankIdentity, sk["hand_r"], a.ClipA, a.TimeA, a.ClipB, a.TimeB, a.Blend),
++                        Joint(bank, sk, v.BankIdentity, sk["head"], a.ClipA, a.TimeA, a.ClipB, a.TimeB, a.Blend));
 +            }
-+            float litFloor = dark + 0.35f * (bright - dark);
-+            int lit = 0, acne = 0;
-+            for (int i = 0; i < b.Length; i++)
++            int pairs = 0, differ = 0;
++            for (int r = 0; r < 4; r++)
++                for (int c = 0; c + 1 < 10; c++)
++                {
++                    var p = PoseOf(agents[r * 10 + c]); var q = PoseOf(agents[r * 10 + c + 1]);
++                    pairs++;
++                    if (Vector3.Distance(p.hand, q.hand) > 0.04f || Vector3.Distance(p.head, q.head) > 0.04f) differ++;
++                }
++            Assert.True(differ * 10 >= pairs * 9, $"only {differ} of {pairs} adjacent pairs differ by more than 4 cm");
++            // and every soldier looks out, not at the ground: the face's gaze (head joint to a point 10 cm in front of the
++            // face, skinned) lies between 12 degrees down and 8 up (the retargeted idle alone held it 24 degrees down)
++            foreach (var a in agents)
 +            {
-+                float lb = Luma(b[i]);
-+                if (b[i] == sky[i] || lb < litFloor) continue;
-+                lit++;
-+                if (Luma(a[i]) < lb - 3f) acne++;
++                var v = cast.Crowd.Variants[a.Variant]; var sk = skels[v.Identity];
++                int head = sk["head"];
++                var front = sk.Head[head] + CrowdPoseVariants.FaceForward(sk) * 0.1f;
++                var (a0, a1, fa) = bank.Sample(v.BankIdentity, a.ClipA, a.TimeA); var (b0, b1, fb) = bank.Sample(v.BankIdentity, a.ClipB, a.TimeB);
++                var animA = new Vector4(a0, a1, fa, a.Blend); var animB = new Vector4(b0, b1, fb, 0);
++                var ph = bank.SkinCpu(sk.Head[head], new[] { head, 0, 0, 0 }, new[] { 1f, 0, 0, 0 }, animA, animB);
++                var pf = bank.SkinCpu(front, new[] { head, 0, 0, 0 }, new[] { 1f, 0, 0, 0 }, animA, animB);
++                float gaze = MathHelper.ToDegrees(MathF.Asin(Math.Clamp(Vector3.Normalize(pf - ph).Y, -1f, 1f)));
++                Assert.InRange(gaze, -12f, 8f);
 +            }
-+            Assert.True(lit > W * H / 5, $"only {lit} sunlit dome pixels in view");
-+            Assert.True(acne < lit / 200, $"{acne} of {lit} sunlit dome pixels self-shadowed (acne)");
 +        });
 +    }
-+}
+ }

@@ -1,21 +1,23 @@
-# Pass-state snapshot: 2026-11-12T16:23:22Z
+# Pass-state snapshot: 2026-11-12T16:54:03Z
 
 Written by `docs/m7-plan/pass-state/tools/snapshot.sh` every 30 minutes while work is in flight, and committed with
 `[skip ci]`. It holds every piece of work that is not yet on this branch as a commit, so that a stopped session or a lost
 container costs at most the work since this time. The finished work is in the branch itself (README §1).
 
-Branch head when written: `fa80ab3`. In flight: g2 trunk f6ea1c1 g2 polish1 f6ea1c1 +13 int KT 821039e.
+Branch head when written: `a8feaf2`. In flight: g2 trunk f6ea1c1 g2 polish1 ffd8abd +23 int KT 821039e.
 
 | File | What | Head | Made with | Restore |
 |---|---|---|---|---|
 | g2-trunk.patch | G2 trunk /home/user/g2w/trunk (branch g2/trunk) | f6ea1c1 | git diff --binary 21a181e f6ea1c1 -- prototypes/m7-gfx2 | `git apply --binary` on this branch's tree (its prototypes/m7-gfx2 equals 21a181e's) |
-| g2-polish1-uncommitted.patch | G2 stage clone /home/user/g2w/polish1: uncommitted edits (13 paths) | f6ea1c1 | temporary index | after g2-trunk.patch |
+| g2-polish1.patch | G2 stage clone /home/user/g2w/polish1 (branch g2/polish1), commits not yet in the trunk | ffd8abd | git diff --binary 21a181e ffd8abd -- prototypes/m7-gfx2 | instead of g2-trunk.patch |
+| g2-polish1-uncommitted.patch | G2 stage clone /home/user/g2w/polish1: uncommitted edits (23 paths) | ffd8abd | temporary index | after g2-polish1.patch |
 | int-KT-uncommitted.patch | orchestrator clone /home/user/int/KT: uncommitted edits | 821039e | temporary index | `git apply --binary` on 821039e |
 | journals/*.jsonl | every workflow run's journal | — | copy | read, to see which agents finished and what they returned |
 
 ## Restore test (in a fresh clone of the branch, at this snapshot)
 
-- g2-trunk.patch on this branch's tree: PASS + g2-polish1-uncommitted.patch PASS
+- g2-polish1.patch on this branch's tree: PASS + g2-polish1-uncommitted.patch PASS
+- g2-trunk.patch on this branch's tree: PASS
 - int-KT-uncommitted.patch on 821039e: PASS
 
 ## How to resume from this snapshot in a new session
