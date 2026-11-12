@@ -1,8 +1,8 @@
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs
-index 62a5a3e..1776f5d 100644
+index 62a5a3e..c351c5e 100644
 --- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs
 +++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs
-@@ -25,6 +25,15 @@ public sealed class CrowdAnimationBank : IDisposable
+@@ -25,6 +25,19 @@ public sealed class CrowdAnimationBank : IDisposable
          "idle", "idle_proud", "walk", "walk_b", "jog", "run", "thrust", "swing_over", "swing_side", "block", "cower", "kneel",
          "death_fwd", "death_back", "stumble", "wounded_walk",
      };
@@ -13,12 +13,16 @@ index 62a5a3e..1776f5d 100644
 +    /// and shield arms by a few degrees, so neighbours who blend two different variants never share one pose.
 +    /// </summary>
 +    public static readonly string[] VariantNames = CrowdPoseVariants.Names;
-+    /// <summary>Every clip of the bank, in bank order: <see cref="ClipNames"/> then <see cref="VariantNames"/>.</summary>
-+    public static readonly string[] AllClipNames = ClipNames.Concat(VariantNames).ToArray();
++    /// <summary>Every clip of the bank, in bank order: <see cref="ClipNames"/>, <see cref="VariantNames"/>, then (polish2) the
++    /// surrender pose derived from "kneel" (<see cref="CrowdPoseVariants.DeriveSurrender"/>).</summary>
++    public static readonly string[] AllClipNames = ClipNames.Concat(VariantNames).Append(CrowdPoseVariants.Surrender).Append(BindClip).ToArray();
++    /// <summary>Polish2: a one-frame clip of the bind pose (every skin matrix the identity): kit laid on the ground is drawn
++    /// with the crowd's own effect through it, in bind space under its instance transform.</summary>
++    public const string BindClip = "@bind";
  
      public int Bones { get; }
      public int Rows { get; }
-@@ -47,13 +56,21 @@ public sealed class CrowdAnimationBank : IDisposable
+@@ -47,13 +60,29 @@ public sealed class CrowdAnimationBank : IDisposable
          _base = new int[identities.Count][];
          _clips = new ClipDef[identities.Count][];
          int rows = 0;
@@ -35,6 +39,14 @@ index 62a5a3e..1776f5d 100644
 +                ClipDef clip;
 +                if (c < ClipNames.Length)
 +                    clip = identities[i].clips.Clip(ClipNames[c]) ?? throw new InvalidDataException($"identity {i}: clip {ClipNames[c]} missing");
++                else if (AllClipNames[c] == BindClip)
++                {
++                    int nb = identities[i].skeleton.Count;
++                    var rot = new Quaternion[nb]; Array.Fill(rot, Quaternion.Identity);
++                    clip = new ClipDef { Name = BindClip, Loop = true, Fps = 30f, Frames = 1, Bones = nb, Rotations = rot, Pelvis = new Vector3[1], Contacts = new byte[1], Source = "polish2 bind pose" };
++                }
++                else if (AllClipNames[c] == CrowdPoseVariants.Surrender)
++                    clip = CrowdPoseVariants.DeriveSurrender(identities[i].skeleton, _clips[i][Array.IndexOf(ClipNames, "kneel")]);
 +                else
 +                {
 +                    var (baseName, variant) = CrowdPoseVariants.Parse(AllClipNames[c]);
@@ -43,7 +55,7 @@ index 62a5a3e..1776f5d 100644
                  _clips[i][c] = clip; _base[i][c] = rows; rows += clip.Frames;
              }
          }
-@@ -67,7 +84,7 @@ public sealed class CrowdAnimationBank : IDisposable
+@@ -67,7 +96,7 @@ public sealed class CrowdAnimationBank : IDisposable
          {
              var sk = identities[i].skeleton;
              int pelvis = sk.TryIndex("pelvis", out int p) ? p : -1;
@@ -52,7 +64,7 @@ index 62a5a3e..1776f5d 100644
              {
                  var clip = _clips[i][c];
                  for (int f = 0; f < clip.Frames; f++)
-@@ -111,7 +128,7 @@ public sealed class CrowdAnimationBank : IDisposable
+@@ -111,7 +140,7 @@ public sealed class CrowdAnimationBank : IDisposable
  
      public ClipDef Clip(int identity, int clip) => _clips[identity][clip];
      public int FirstRow(int identity, int clip) => _base[identity][clip];
@@ -61,12 +73,177 @@ index 62a5a3e..1776f5d 100644
  
      /// <summary>
      /// Rows and fraction for clip-local time <paramref name="t"/> (s): looping clips wrap, one-shot clips clamp to their
+diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdKit.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdKit.cs
+new file mode 100644
+index 0000000..9c97d26
+--- /dev/null
++++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdKit.cs
+@@ -0,0 +1,159 @@
++using Gfx.Chars.Animation;
++using Gfx.Chars.Format;
++using Microsoft.Xna.Framework;
++
++namespace Gfx.Chars.Crowd;
++
++/// <summary>What a triangle of a crowd LOD mesh belongs to: the soldier, or the kit carried in his hands.</summary>
++public enum CarriedItem : byte { None = 0, Weapon = 1, Shield = 2 }
++
++/// <summary>
++/// Polish2 (critic rank 3; PRESENTATION ONLY): the kit a crowd soldier carries in his hands, found in a baked LOD mesh
++/// (one merged mesh per look, tools/charbake/lod.py, where the shield, spear and sword are rigid parts bound to one bone
++/// each). A connected island of the mesh is carried kit when at least 90 % of its vertices are bound (weight at least
++/// 250 of 255) to a hand or forearm and it reaches more than 6 cm from that bone's axis (it sticks out of the hand) or
++/// carries a painted shield face (code 254); its side gives the item: the right hand's is the weapon, the left hand's
++/// and forearm's the shield. Sleeves, the helmet, the scabbard on the hip and the body stay. A pure function of the mesh
++/// and the skeleton.
++/// </summary>
++public static class CrowdKit
++{
++    public const float Reach = 0.06f;
++
++    /// <summary>Per triangle: the carried item it belongs to.</summary>
++    public static CarriedItem[] Classify(MeshDef m, Skeleton s)
++    {
++        int nv = m.VertexCount, nt = m.TriangleCount;
++        var bones = new Dictionary<int, CarriedItem>();
++        void Add(string name, CarriedItem item) { if (s.TryIndex(name, out int b)) bones[b] = item; }
++        Add("hand_r", CarriedItem.Weapon); Add("lowerarm_r", CarriedItem.Weapon);
++        Add("hand_l", CarriedItem.Shield); Add("lowerarm_l", CarriedItem.Shield);
++        // the dominant joint of each vertex
++        var dom = new int[nv]; var rigid = new bool[nv]; var far = new bool[nv];
++        for (int i = 0; i < nv; i++)
++        {
++            int best = 0;
++            for (int k = 1; k < 4; k++) if (m.Weights[4 * i + k] > m.Weights[4 * i + best]) best = k;
++            dom[i] = m.Joints[4 * i + best];
++            rigid[i] = m.Weights[4 * i + best] >= 250 && bones.ContainsKey(dom[i]);
++            if (rigid[i])
++            {
++                var a = s.Head[dom[i]]; var b = s.Tail[dom[i]];
++                var ab = b - a; float l2 = ab.LengthSquared();
++                float t = l2 > 1e-10f ? Math.Clamp(Vector3.Dot(m.Positions[i] - a, ab) / l2, 0f, 1f) : 0f;
++                far[i] = (m.Positions[i] - (a + ab * t)).Length() > Reach || m.Colors[4 * i + 3] == 254;
++            }
++        }
++        // connected islands (union-find over the triangles' vertices)
++        var parent = new int[nv];
++        for (int i = 0; i < nv; i++) parent[i] = i;
++        int Find(int x) { while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
++        for (int t = 0; t < nt; t++)
++        {
++            int a = Find((int)m.Indices[3 * t]), b = Find((int)m.Indices[3 * t + 1]), c = Find((int)m.Indices[3 * t + 2]);
++            if (a != b) parent[Math.Max(a, b)] = Math.Min(a, b);
++            a = Find(a); c = Find(c);
++            if (a != c) parent[Math.Max(a, c)] = Math.Min(a, c);
++        }
++        var count = new Dictionary<int, (int all, int rigid, bool far, int weaponVotes, int shieldVotes)>();
++        for (int i = 0; i < nv; i++)
++        {
++            int r = Find(i);
++            count.TryGetValue(r, out var c);
++            c.all++;
++            if (rigid[i])
++            {
++                c.rigid++; c.far |= far[i];
++                if (bones[dom[i]] == CarriedItem.Weapon) c.weaponVotes++; else c.shieldVotes++;
++            }
++            count[r] = c;
++        }
++        var item = new CarriedItem[nv];
++        for (int i = 0; i < nv; i++)
++        {
++            var c = count[Find(i)];
++            if (c.rigid >= 0.9 * c.all && c.far) item[i] = c.weaponVotes >= c.shieldVotes ? CarriedItem.Weapon : CarriedItem.Shield;
++        }
++        var tri = new CarriedItem[nt];
++        for (int t = 0; t < nt; t++) tri[t] = item[m.Indices[3 * t]];
++        return tri;
++    }
++
++    /// <summary>The index triples of the triangles of one item (or of the soldier without his kit: <see cref="CarriedItem.None"/>).</summary>
++    public static uint[] Indices(MeshDef m, CarriedItem[] tri, CarriedItem which)
++    {
++        var list = new List<uint>();
++        for (int t = 0; t < tri.Length; t++)
++            if (tri[t] == which) { list.Add(m.Indices[3 * t]); list.Add(m.Indices[3 * t + 1]); list.Add(m.Indices[3 * t + 2]); }
++        return list.ToArray();
++    }
++
++    /// <summary>
++    /// The transform that lays an item down (bind space → a frame on the ground): its centroid to the origin, its longest
++    /// extent along +X, its thinnest across the vertical (so a spear lies along the ground and a shield lies flat), resting
++    /// on y = 0. From the principal axes of the item's vertices (Jacobi eigenvectors of their covariance); <c>flip</c>
++    /// lays it on its other face. Identity when the item has no vertices.
++    /// </summary>
++    public static Matrix LieFlat(MeshDef m, uint[] indices, bool flip = false)
++    {
++        if (indices.Length == 0) return Matrix.Identity;
++        var used = indices.Distinct().ToArray();
++        var c = Vector3.Zero;
++        foreach (var i in used) c += m.Positions[i];
++        c /= used.Length;
++        var cov = new double[3, 3];
++        foreach (var i in used)
++        {
++            var d = m.Positions[i] - c;
++            double[] v = { d.X, d.Y, d.Z };
++            for (int r = 0; r < 3; r++) for (int k = 0; k < 3; k++) cov[r, k] += v[r] * v[k];
++        }
++        var (vals, vecs) = Jacobi(cov);
++        int[] order = { 0, 1, 2 };
++        Array.Sort(order, (a, b) => vals[b].CompareTo(vals[a]));
++        Vector3 Col(int j) => Vector3.Normalize(new Vector3((float)vecs[0, j], (float)vecs[1, j], (float)vecs[2, j]));
++        var x = Col(order[0]); var y = Col(order[2]);
++        if (flip) y = -y;   // the other face down
++        var z = Vector3.Normalize(Vector3.Cross(x, y)); y = Vector3.Cross(z, x);
++        // rows of the rotation: world = (p − c) · [x y z]ᵀ in the row-vector convention
++        var rot = new Matrix(x.X, y.X, z.X, 0, x.Y, y.Y, z.Y, 0, x.Z, y.Z, z.Z, 0, 0, 0, 0, 1);
++        var m0 = Matrix.CreateTranslation(-c) * rot;
++        float minY = float.MaxValue;
++        foreach (var i in used) minY = MathF.Min(minY, Vector3.Transform(m.Positions[i], m0).Y);
++        return m0 * Matrix.CreateTranslation(0, -minY + 0.005f, 0);
++    }
++
++    static (double[] vals, double[,] vecs) Jacobi(double[,] a)
++    {
++        var v = new double[3, 3] { { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
++        var m = (double[,])a.Clone();
++        for (int sweep = 0; sweep < 50; sweep++)
++        {
++            double off = Math.Abs(m[0, 1]) + Math.Abs(m[0, 2]) + Math.Abs(m[1, 2]);
++            if (off < 1e-14) break;
++            for (int p = 0; p < 2; p++)
++                for (int q = p + 1; q < 3; q++)
++                {
++                    if (Math.Abs(m[p, q]) < 1e-18) continue;
++                    double th = 0.5 * Math.Atan2(2 * m[p, q], m[q, q] - m[p, p]);
++                    double cs = Math.Cos(th), sn = Math.Sin(th);
++                    for (int k = 0; k < 3; k++)
++                    {
++                        double mkp = m[k, p], mkq = m[k, q];
++                        m[k, p] = cs * mkp - sn * mkq; m[k, q] = sn * mkp + cs * mkq;
++                    }
++                    for (int k = 0; k < 3; k++)
++                    {
++                        double mpk = m[p, k], mqk = m[q, k];
++                        m[p, k] = cs * mpk - sn * mqk; m[q, k] = sn * mpk + cs * mqk;
++                    }
++                    for (int k = 0; k < 3; k++)
++                    {
++                        double vkp = v[k, p], vkq = v[k, q];
++                        v[k, p] = cs * vkp - sn * vkq; v[k, q] = sn * vkp + cs * vkq;
++                    }
++                }
++        }
++        return (new[] { m[0, 0], m[1, 1], m[2, 2] }, v);
++    }
++}
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs
 new file mode 100644
-index 0000000..b02589f
+index 0000000..81dd034
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs
-@@ -0,0 +1,154 @@
+@@ -0,0 +1,210 @@
 +using Gfx.Chars.Animation;
 +using Gfx.Chars.Format;
 +using Microsoft.Xna.Framework;
@@ -220,7 +397,304 @@ index 0000000..b02589f
 +            Source = clip.Source + " (polish1 pose variant)",
 +        };
 +    }
++
++    /// <summary>Polish2: the bank name of the surrender pose (<see cref="DeriveSurrender"/>).</summary>
++    public const string Surrender = "kneel@surrender";
++
++    /// <summary>Upper-arm and forearm directions of the surrender pose in character space (the character faces +Z,
++    /// its left is +X): both arms raised in an open V a little forward of the head, forearms almost upright.</summary>
++    public static readonly Vector3 SurrenderUpperArmL = Vector3.Normalize(new Vector3(0.36f, 0.86f, 0.30f)),
++        SurrenderForearmL = Vector3.Normalize(new Vector3(0.14f, 0.97f, 0.16f));
++
++    /// <summary>
++    /// Polish2 (critic rank 3; PRESENTATION ONLY): the surrender pose, laid over every frame of the kneel clip: both upper
++    /// arms and forearms turned (in world space at their joints) onto the raised directions above, so the open hands stand
++    /// above the head, and the gaze bowed to a mean of 30° below level (half at the neck, half at the head). The kneel
++    /// itself, the pelvis track and the clip's length are kept. A pure function of the skeleton and the clip.
++    /// </summary>
++    public static ClipDef DeriveSurrender(Skeleton s, ClipDef kneel)
++    {
++        int n = s.Count;
++        var pose = new Pose(n); var g = new Quaternion[n]; var hd = new Vector3[n];
++        int pelvis = s.TryIndex("pelvis", out int pv) ? pv : -1;
++        int neck = s["neck_01"], head = s["head"];
++        var arms = new[] { (s["upperarm_l"], s["lowerarm_l"], s["hand_l"], 1f), (s["upperarm_r"], s["lowerarm_r"], s["hand_r"], -1f) };
++        var face = FaceForward(s);
++        var rot = new Quaternion[kneel.Frames * n];
++        for (int f = 0; f < kneel.Frames; f++)
++        {
++            Load(s, kneel, f, pose);
++            Fk.Solve(s, pose, g, hd, pelvis);
++            foreach (var (upper, lower, hand, side) in arms)
++            {
++                var upT = new Vector3(SurrenderUpperArmL.X * side, SurrenderUpperArmL.Y, SurrenderUpperArmL.Z);
++                var foT = new Vector3(SurrenderForearmL.X * side, SurrenderForearmL.Y, SurrenderForearmL.Z);
++                Turn(s, pose, g, upper, Q.Between(hd[lower] - hd[upper], upT));
++                Fk.Solve(s, pose, g, hd, pelvis);
++                Turn(s, pose, g, lower, Q.Between(hd[hand] - hd[lower], foT));
++                Fk.Solve(s, pose, g, hd, pelvis);
++            }
++            // the head bowed: pitch about the face's lateral axis to 30 degrees below level
++            var fw = Q.Rotate(g[head], face);
++            float pitch = MathHelper.ToDegrees(MathF.Asin(Math.Clamp(fw.Y, -1f, 1f)));
++            var fh = new Vector3(fw.X, 0, fw.Z);
++            fh = fh.LengthSquared() > 1e-8f ? Vector3.Normalize(fh) : Vector3.UnitZ;
++            var bow = Q.Scale(About(Vector3.Cross(fh, Vector3.UnitY), -30f - pitch), 0.5f);
++            Turn(s, pose, g, neck, bow);
++            Fk.Solve(s, pose, g, hd, pelvis);
++            Turn(s, pose, g, head, bow);
++            Fk.Solve(s, pose, g, hd, pelvis);
++            Array.Copy(pose.Local, 0, rot, f * n, n);
++        }
++        return new ClipDef
++        {
++            Name = Surrender, Loop = kneel.Loop, Fps = kneel.Fps, Frames = kneel.Frames, Bones = n, Speed = kneel.Speed,
++            Rotations = rot, Pelvis = (Vector3[])kneel.Pelvis.Clone(), Contacts = (byte[])kneel.Contacts.Clone(),
++            Source = kneel.Source + " (polish2 surrender pose)",
++        };
++    }
 +}
+diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs
+index c7e033f..a5956f8 100644
+--- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs
++++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs
+@@ -23,6 +23,32 @@ public sealed class CrowdVariant
+     public required float Height { get; init; }
+     internal readonly CrowdBatch[] Main = new CrowdBatch[3], Shadow = new CrowdBatch[3];
+     public string Key => Identity + "__" + Outfit;
++    /// <summary>Polish2 (critic rank 3): per level, the triangles of the soldier without the kit in his hands, of his
++    /// weapon and of his shield (<see cref="CrowdKit"/>; empty when the look carries none).</summary>
++    public readonly (IndexBuffer? ib, int tris)[] Unarmed = new (IndexBuffer?, int)[3], Weapon = new (IndexBuffer?, int)[3], Shield = new (IndexBuffer?, int)[3];
++    /// <summary>Polish2: the CPU copy of each level's <see cref="Unarmed"/> indices (what was uploaded; the GPU buffer is write only).</summary>
++    public readonly uint[][] UnarmedIndices = new uint[3][];
++    /// <summary>Polish2: the transforms that lay the weapon and the shield flat (bind space → a frame on the ground), from lod1.</summary>
++    public Matrix WeaponLie = Matrix.Identity, ShieldLie = Matrix.Identity, ShieldLieFlipped = Matrix.Identity;
++    public bool HasWeapon => Weapon[0].tris > 0;
++    public bool HasShield => Shield[0].tris > 0;
++    internal readonly CrowdBatch[] MainUnarmed = new CrowdBatch[3], ShadowUnarmed = new CrowdBatch[3];
++    internal readonly CrowdBatch[][] Props = { new CrowdBatch[3], new CrowdBatch[3] };
++}
++
++/// <summary>
++/// Polish2 (critic rank 3): a carried item laid on the ground (a dropped spear or shield): which look's item, and where it
++/// lies (<see cref="World"/> places the item's flat frame, see <see cref="CrowdVariant.WeaponLie"/>). Filled by a scene
++/// from published state (the trace); never written back.
++/// </summary>
++public struct CrowdProp
++{
++    public int Variant;
++    public CarriedItem Item;
++    public Matrix World;
++    public CrowdLook Look;
++    /// <summary>Lies on its other face (a shield face down).</summary>
++    public bool Flipped;
+ }
+ 
+ internal sealed class CrowdBatch(GraphicsDevice gd) : IDisposable
+@@ -134,7 +160,20 @@ public sealed class CrowdRenderer : IDisposable
+             {
+                 Identity = id, Outfit = outfit, BankIdentity = bi, Lods = new[] { l1, l2, l3 }, Skin = skin, Emblem = emblem, Height = height,
+             };
+-            for (int k = 0; k < 3; k++) { v.Main[k] = new CrowdBatch(gd); v.Shadow[k] = new CrowdBatch(gd); }
++            for (int k = 0; k < 3; k++)
++            {
++                v.Main[k] = new CrowdBatch(gd); v.Shadow[k] = new CrowdBatch(gd);
++                v.MainUnarmed[k] = new CrowdBatch(gd); v.ShadowUnarmed[k] = new CrowdBatch(gd);
++                v.Props[0][k] = new CrowdBatch(gd); v.Props[1][k] = new CrowdBatch(gd);
++                // polish2: the kit in the hands, found per level (each LOD was simplified on its own)
++                var def = v.Lods[k].Def;
++                var tri = CrowdKit.Classify(def, ident.Skeleton);
++                v.UnarmedIndices[k] = CrowdKit.Indices(def, tri, CarriedItem.None);
++                v.Unarmed[k] = Upload(gd, v.UnarmedIndices[k]);
++                var wi = CrowdKit.Indices(def, tri, CarriedItem.Weapon); var si = CrowdKit.Indices(def, tri, CarriedItem.Shield);
++                v.Weapon[k] = Upload(gd, wi); v.Shield[k] = Upload(gd, si);
++                if (k == 0) { v.WeaponLie = CrowdKit.LieFlat(def, wi); v.ShieldLie = CrowdKit.LieFlat(def, si); v.ShieldLieFlipped = CrowdKit.LieFlat(def, si, true); }
++            }
+             _variants.Add(v);
+         }
+         HasLod3 = lod3;
+@@ -144,6 +183,42 @@ public sealed class CrowdRenderer : IDisposable
+     /// <summary>Bank index of a clip name (see <see cref="CrowdAnimationBank.ClipNames"/>).</summary>
+     public static int Clip(string name) => CrowdAnimationBank.ClipIndex(name) is int i and >= 0 ? i : throw new KeyNotFoundException(name);
+ 
++    static (IndexBuffer? ib, int tris) Upload(GraphicsDevice gd, uint[] idx)
++    {
++        if (idx.Length == 0) return (null, 0);
++        var ib = new IndexBuffer(gd, IndexElementSize.ThirtyTwoBits, idx.Length, BufferUsage.WriteOnly);
++        ib.SetData(idx.Select(x => (int)x).ToArray());
++        return (ib, idx.Length / 3);
++    }
++
++    CrowdProp[] _props = Array.Empty<CrowdProp>();
++    int _propCount;
++    /// <summary>Polish2 (critic rank 3): this frame's dropped kit (see <see cref="CrowdProp"/>).</summary>
++    public void SetProps(ReadOnlySpan<CrowdProp> props)
++    {
++        if (_props.Length < props.Length) _props = new CrowdProp[props.Length];
++        props.CopyTo(_props);
++        _propCount = props.Length;
++    }
++    public ReadOnlySpan<CrowdProp> Props => _props.AsSpan(0, _propCount);
++
++    /// <summary>A prop's instance: the item's lie-flat transform under the prop's world, the bind row, the soldier's look.</summary>
++    CrowdInstance PropInstance(in CrowdProp p)
++    {
++        var v = _variants[p.Variant];
++        var inst = new CrowdInstance();
++        inst.SetWorld((p.Item == CarriedItem.Weapon ? v.WeaponLie : p.Flipped ? v.ShieldLieFlipped : v.ShieldLie) * p.World);
++        var (r0, r1, fr) = Bank.Sample(v.BankIdentity, _bindClip, 0f);
++        inst.AnimA = new Vector4(r0, r1, fr, 0); inst.AnimB = inst.AnimA; inst.PrevAnimA = inst.AnimA; inst.PrevAnimB = inst.AnimA;
++        var look = Looks ? p.Look : CrowdLook.Neutral;
++        inst.Look = look.Packed; inst.Lod = new Vector4(0, 0, look.Tarnish, look.Seed);
++        return inst;
++    }
++    readonly int _bindClip = CrowdAnimationBank.ClipIndex(CrowdAnimationBank.BindClip);
++
++    /// <summary>Level of a prop by its distance (lod1 within 30 m, lod2 within 90 m, lod3 beyond; none past 260 m).</summary>
++    static int PropLevel(float d) => d < 30f ? 0 : d < 90f ? 1 : d < 260f ? 2 : -1;
++
+     /// <summary>Takes this frame's agents: world transforms, bank rows and looks are computed once here.</summary>
+     public void SetAgents(ReadOnlySpan<CrowdAgent> agents)
+     {
+@@ -232,7 +307,7 @@ public sealed class CrowdRenderer : IDisposable
+         long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
+         Stats.ResetMain();
+         if (!rc.Features.Crowd) return;
+-        foreach (var v in _variants) for (int k = 0; k < 3; k++) v.Main[k].Count = 0;
++        foreach (var v in _variants) for (int k = 0; k < 3; k++) { v.Main[k].Count = 0; v.MainUnarmed[k].Count = 0; v.Props[0][k].Count = 0; v.Props[1][k].Count = 0; }
+         var cam = rc.Camera.Position;
+         float m22 = rc.Projection.M22, vh = rc.ViewportSize.Y;
+         bool reflection = rc.IsReflectionPass;
+@@ -254,12 +329,21 @@ public sealed class CrowdRenderer : IDisposable
+             {
+                 var inst = lv[k].level == 2 ? Coarse(drawn) : drawn;
+                 inst.Lod.X = lv[k].fade; inst.Lod.Y = lv[k].sign;
+-                v.Main[lv[k].level].Add(inst);
++                (a.Unarmed ? v.MainUnarmed : v.Main)[lv[k].level].Add(inst);
+                 Stats.PerLevel[lv[k].level]++;
+             }
+             if (n == 2) Stats.InFade++;
+             Stats.Soldiers++;
+         }
++        for (int i = 0; i < _propCount; i++)
++        {
++            ref readonly var p = ref _props[i];
++            var c = p.World.Translation + new Vector3(0, 0.3f, 0);
++            if (FrustumCulling && !rc.Frustum.IntersectsSphere(c, 1.6f)) continue;
++            int level = reflection ? 2 : PropLevel(Vector3.Distance(cam, c));
++            if (level < 0) continue;
++            _variants[p.Variant].Props[p.Item == CarriedItem.Weapon ? 0 : 1][level].Add(PropInstance(p));
++        }
+         Stats.CullMs = System.Diagnostics.Stopwatch.GetElapsedTime(t0).TotalMilliseconds;
+         var fx = rc.Effects.Get(CrowdEffectNames.Lit);
+         fx.Parameters["CrowdParams"].SetValue(new Vector4(rc.SampleIndex, rc.SampleCount, 0, 0));
+@@ -271,6 +355,12 @@ public sealed class CrowdRenderer : IDisposable
+             {
+                 var (d, t) = DrawBatch(rc, fx, v.Lods[k], v.Main[k]);
+                 Stats.Draws += d; Stats.Triangles += t;
++                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Unarmed[k], v.MainUnarmed[k]);
++                Stats.Draws += d; Stats.Triangles += t;
++                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Weapon[k], v.Props[0][k]);
++                Stats.Draws += d; Stats.Triangles += t;
++                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Shield[k], v.Props[1][k]);
++                Stats.Draws += d; Stats.Triangles += t;
+             }
+         }
+     }
+@@ -279,7 +369,7 @@ public sealed class CrowdRenderer : IDisposable
+     {
+         if (_count == 0) return;
+         long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
+-        foreach (var v in _variants) for (int k = 0; k < 3; k++) v.Shadow[k].Count = 0;
++        foreach (var v in _variants) for (int k = 0; k < 3; k++) { v.Shadow[k].Count = 0; v.ShadowUnarmed[k].Count = 0; v.Props[0][k].Count = 0; v.Props[1][k].Count = 0; }
+         if (rc.ShadowCascade <= 0) { Stats.ShadowInstances = 0; Stats.ShadowDraws = 0; Stats.ShadowTriangles = 0; Stats.ShadowCulledCascade = 0; Stats.ShadowSelectMs = 0; }
+         if (!rc.Features.Crowd) return;
+         var frustum = rc.ShadowFrustum ?? rc.Frustum;
+@@ -299,7 +389,18 @@ public sealed class CrowdRenderer : IDisposable
+             var drawn = Drawn(i);
+             var inst = level == 2 ? Coarse(drawn) : drawn;
+             inst.Lod.X = 0; inst.Lod.Y = 0;
+-            _variants[a.Variant].Shadow[level].Add(inst);
++            (a.Unarmed ? _variants[a.Variant].ShadowUnarmed : _variants[a.Variant].Shadow)[level].Add(inst);
++        }
++        for (int i = 0; i < _propCount; i++)
++        {
++            ref readonly var p = ref _props[i];
++            var c = p.World.Translation + new Vector3(0, 0.3f, 0);
++            float d2 = Vector3.DistanceSquared(cam, c);
++            if (d2 > maxD2 * 0.25f) continue;
++            if (FrustumCulling && !frustum.IntersectsSphere(c, 1.6f)) continue;
++            int level = PropLevel(MathF.Sqrt(d2));
++            if (level < 0) continue;
++            _variants[p.Variant].Props[p.Item == CarriedItem.Weapon ? 0 : 1][Math.Min(2, level + 1)].Add(PropInstance(p));
+         }
+         Stats.ShadowSelectMs += System.Diagnostics.Stopwatch.GetElapsedTime(t0).TotalMilliseconds;
+         var fx = rc.Effects.Get(CrowdEffectNames.Depth);
+@@ -308,6 +409,12 @@ public sealed class CrowdRenderer : IDisposable
+             {
+                 var (d, t) = DrawBatch(rc, fx, v.Lods[k], v.Shadow[k]);
+                 Stats.ShadowDraws += d; Stats.ShadowTriangles += t; Stats.ShadowInstances += v.Shadow[k].Count;
++                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Unarmed[k], v.ShadowUnarmed[k]);
++                Stats.ShadowDraws += d; Stats.ShadowTriangles += t; Stats.ShadowInstances += v.ShadowUnarmed[k].Count;
++                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Weapon[k], v.Props[0][k]);
++                Stats.ShadowDraws += d; Stats.ShadowTriangles += t;
++                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Shield[k], v.Props[1][k]);
++                Stats.ShadowDraws += d; Stats.ShadowTriangles += t;
+             }
+     }
+ 
+@@ -349,25 +456,34 @@ public sealed class CrowdRenderer : IDisposable
+     }
+ 
+     (int draws, long tris) DrawBatch(RenderContext rc, Effect fx, GpuPart mesh, CrowdBatch b)
++        => DrawBatch(rc, fx, mesh.Vertices, (mesh.Indices, mesh.TriangleCount), b);
++
++    (int draws, long tris) DrawBatch(RenderContext rc, Effect fx, VertexBuffer vertices, (IndexBuffer? ib, int tris) indices, CrowdBatch b)
+     {
+-        if (b.Count == 0) return (0, 0);
++        if (b.Count == 0 || indices.ib == null || indices.tris == 0) return (0, 0);
+         b.Buffer.Set(b.Items, b.Count);
+         fx.Parameters["CrowdBank"].SetValue(Bank.Texture);
+         fx.Parameters["BankInfo"].SetValue(Bank.Info);
+         fx.Parameters["BankSize"].SetValue(Bank.SizeParam);
+-        _gd.SetVertexBuffers(new VertexBufferBinding(mesh.Vertices, 0, 0), new VertexBufferBinding(b.Buffer.Buffer, 0, 1));
+-        _gd.Indices = mesh.Indices;
++        _gd.SetVertexBuffers(new VertexBufferBinding(vertices, 0, 0), new VertexBufferBinding(b.Buffer.Buffer, 0, 1));
++        _gd.Indices = indices.ib;
+         rc.Apply(fx);
+         _gd.SamplerStates[Gfx.Engine.Effects.GlslLib.BoneSlot] = SamplerState.PointClamp;
+-        _gd.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, mesh.TriangleCount, b.Count);
+-        long tris = (long)mesh.TriangleCount * b.Count;
++        _gd.DrawInstancedPrimitives(PrimitiveType.TriangleList, 0, 0, indices.tris, b.Count);
++        long tris = (long)indices.tris * b.Count;
+         rc.Stats.RecordDraw((int)Math.Min(int.MaxValue, tris), b.Count);
+         return (1, tris);
+     }
+ 
+     public void Dispose()
+     {
+-        foreach (var v in _variants) for (int k = 0; k < 3; k++) { v.Main[k].Dispose(); v.Shadow[k].Dispose(); }
++        foreach (var v in _variants)
++            for (int k = 0; k < 3; k++)
++            {
++                v.Main[k].Dispose(); v.Shadow[k].Dispose(); v.MainUnarmed[k].Dispose(); v.ShadowUnarmed[k].Dispose();
++                v.Props[0][k].Dispose(); v.Props[1][k].Dispose();
++                v.Unarmed[k].ib?.Dispose(); v.Weapon[k].ib?.Dispose(); v.Shield[k].ib?.Dispose();
++            }
+         _raw?.Dispose();
+         foreach (var a in _ownAssets) a.Dispose();
+         Bank.Dispose();
+diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs
+index 60946b5..05a2771 100644
+--- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs
++++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs
+@@ -101,4 +101,6 @@ public struct CrowdAgent
+     public float Blend;
+     public CrowdLook Look;
+     public bool Hidden;
++    /// <summary>Polish2 (critic rank 3): drawn without the kit in his hands (a surrendered or fallen soldier).</summary>
++    public bool Unarmed;
+ }
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
 index cf7b14d..df05153 100644
 --- a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
@@ -417,23 +891,43 @@ index fcbf602..1fb4015 100644
          _gd.SamplerStates[1] = SamplerState.PointClamp;
          _gd.SamplerStates[CharEffects.SlotBonesPrev] = SamplerState.PointClamp;
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Program.cs b/prototypes/m7-gfx2/Gfx.Demo/Program.cs
-index c27ff7f..302eaee 100644
+index c27ff7f..508080e 100644
 --- a/prototypes/m7-gfx2/Gfx.Demo/Program.cs
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Program.cs
-@@ -130,11 +130,13 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
+@@ -130,12 +130,18 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
          var pick = only?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
          using var rt = new RenderTarget2D(gd, w, h, false, SurfaceFormat.Color, DepthFormat.None);
          Console.WriteLine($"[capture] {e.Name}: {renderer.Settings.Features.Describe()}");
 +        float baseEv = renderer.Settings.Features.ExposureBiasEv;
++        // review aid (polish2): G2_REVIEW_CAM="ex,ey,ez,tx,ty,tz[,fovY]" renders every picked shot from that camera
++        // (its hour and scene time kept); off by default, no effect on the canonical captures
++        var reviewCam = ReviewCamera(System.Environment.GetEnvironmentVariable("G2_REVIEW_CAM"));
          foreach (var shot in scene.Shots)
          {
              if (pick != null && Array.IndexOf(pick, shot.Name) < 0) continue;
              scene.Update(shot.SceneTime);
              renderer.Stats.BeginFrame();
+-            renderer.RenderStill(scene, shot.Camera, SunModel.At(shot.HourOfDay), rt, shot.SceneTime);
 +            renderer.Settings.Features.ExposureBiasEv = baseEv + shot.ExposureEv; // polish1: per-shot exposure compensation
-             renderer.RenderStill(scene, shot.Camera, SunModel.At(shot.HourOfDay), rt, shot.SceneTime);
++            var cam = reviewCam != null ? shot.Camera with { Position = reviewCam.Value.eye, Target = reviewCam.Value.target, FovYRadians = reviewCam.Value.fov ?? shot.Camera.FovYRadians } : shot.Camera;
++            renderer.RenderStill(scene, cam, SunModel.At(shot.HourOfDay), rt, shot.SceneTime);
              var px = Capture.ReadPixels(rt); // sync
              double ms = renderer.Stats.EndFrame();
+             string path = Path.Combine(outDir, $"{e.Name}-{shot.Name}.png");
+@@ -150,6 +156,13 @@ Headless on Linux: SDL_VIDEODRIVER=offscreen LIBGL_ALWAYS_SOFTWARE=1 (set automa
+         return 0;
+     }
+ 
++    static (Vector3 eye, Vector3 target, float? fov)? ReviewCamera(string? v)
++    {
++        if (string.IsNullOrWhiteSpace(v)) return null;
++        var p = v.Split(',').Select(x => float.Parse(x, CultureInfo.InvariantCulture)).ToArray();
++        return (new Vector3(p[0], p[1], p[2]), new Vector3(p[3], p[4], p[5]), p.Length > 6 ? p[6] : null);
++    }
++
+     static int Bench(GraphicsDevice gd, GfxHost host, SceneRegistry.Entry e, int frames, int w, int h, bool shadows, SysInfo info, string[] args)
+     {
+         using var scene = e.Create();
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BenchBase.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BenchBase.cs
 new file mode 100644
 index 0000000..3ba50e1
@@ -731,6 +1225,117 @@ index 0000000..3ba50e1
 +    }
 +
 +    protected static string F(float v) => v.ToString("0.##", CultureInfo.InvariantCulture);
++}
+diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BurningWreck.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BurningWreck.cs
+new file mode 100644
+index 0000000..283fa9f
+--- /dev/null
++++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BurningWreck.cs
+@@ -0,0 +1,105 @@
++using Gfx.Proc.Environment.Structures;
++using Microsoft.Xna.Framework;
++
++namespace Gfx.Demo.Scenes.Bench;
++
++/// <summary>
++/// Polish2 (critic rank 3; PRESENTATION ONLY): a burnt-out baggage cart for the root of an aftermath smoke plume, so the
++/// smoke rises from something visibly burning instead of from bare grass. A two-wheeled cart with solid plank wheels
++/// (a common early form): its axle broken on one side, so the bed lies tilted with its front corner on the ground, one
++/// wheel still on, the other lying flat beside it, a shaft broken, a sideboard fallen, and its load of timber spilled
++/// and burning. Every piece is charred (a near-black tint over the structure kit's plank and log materials, the ends
++/// browner where the wood is not burnt through). A pure function of its place, its facing and a seed: no random state.
++/// Returns the points the flames rise from (the scene puts a <see cref="Gfx.Engine.Rendering.SmokeSource.Fire"/> on each
++/// and the plume over them).
++/// </summary>
++public static class BurningWreck
++{
++    /// <summary>Charred wood (multiplies the material albedo) and wood scorched but not burnt through.</summary>
++    public static readonly Vector3 Charred = new(0.11f, 0.095f, 0.08f), Scorched = new(0.30f, 0.22f, 0.15f);
++
++    static float H(uint x) { x ^= x >> 16; x *= 0x85EBCA6Bu; x ^= x >> 13; x *= 0xC2B2AE35u; x ^= x >> 16; return (x >> 8) / 16777216f; }
++
++    /// <summary>An oriented box (any rotation): six quads of the structure builder.</summary>
++    public static void Block(StructureBuilder b, StMat m, Vector3 centre, Vector3 half, Matrix rot, Vector3 tint, Vector2 uvOff, float aoBottom = 0.6f)
++    {
++        var x = Vector3.TransformNormal(Vector3.UnitX, rot); var y = Vector3.TransformNormal(Vector3.UnitY, rot); var z = Vector3.TransformNormal(Vector3.UnitZ, rot);
++        Vector3 P(float sx, float sy, float sz) => centre + x * (sx * half.X) + y * (sy * half.Y) + z * (sz * half.Z);
++        b.Quad(m, P(-1, -1, 1), P(1, -1, 1), P(1, 1, 1), P(-1, 1, 1), tint, uvOff, aoBottom, aoBottom, 1, 1);
++        b.Quad(m, P(1, -1, -1), P(-1, -1, -1), P(-1, 1, -1), P(1, 1, -1), tint, uvOff + new Vector2(0.37f, 0), aoBottom, aoBottom, 1, 1);
++        b.Quad(m, P(1, -1, 1), P(1, -1, -1), P(1, 1, -1), P(1, 1, 1), tint, uvOff + new Vector2(0.61f, 0), aoBottom, aoBottom, 1, 1);
++        b.Quad(m, P(-1, -1, -1), P(-1, -1, 1), P(-1, 1, 1), P(-1, 1, -1), tint, uvOff + new Vector2(0.13f, 0), aoBottom, aoBottom, 1, 1);
++        b.Quad(m, P(-1, 1, 1), P(1, 1, 1), P(1, 1, -1), P(-1, 1, -1), tint, uvOff);
++        b.Quad(m, P(-1, -1, -1), P(1, -1, -1), P(1, -1, 1), P(-1, -1, 1), tint, uvOff, aoBottom, aoBottom, aoBottom, aoBottom);
++    }
++
++    /// <summary>A solid plank wheel (a disc of radius <paramref name="r"/>, <paramref name="t"/> thick) about the axis
++    /// <paramref name="axis"/> through <paramref name="centre"/>: the rim tube and both faces.</summary>
++    public static void Wheel(StructureBuilder b, Vector3 centre, Vector3 axis, float r, float t, Vector3 tint, Vector2 uvOff)
++    {
++        var ax = Vector3.Normalize(axis);
++        var a = centre - ax * (t * 0.5f); var c = centre + ax * (t * 0.5f);
++        b.Tube(StMat.Planks, a, c, r, r, 20, tint, uvOff, 3f, 0.8f, 0.8f, capTop: true);
++        // the other face (the tube caps only its far end)
++        b.Tube(StMat.Planks, c, a, 0.0005f, r, 20, tint * 0.9f, uvOff + new Vector2(0.5f, 0), 1f, 0.8f, 0.8f, capTop: true);
++        // the hub
++        b.Tube(StMat.Wood, centre - ax * (t * 0.5f + 0.09f), centre + ax * (t * 0.5f + 0.09f), 0.09f, 0.09f, 10, tint * 0.8f, uvOff, 1f, 0.7f, 0.7f, capTop: true);
++    }
++
++    /// <summary>
++    /// Adds a wrecked cart at ground point <paramref name="at"/> (its length along <paramref name="yaw"/>) to the builder;
++    /// <paramref name="ground"/> gives the terrain height. Returns the points the flames rise from (world).
++    /// </summary>
++    public static List<Vector3> Cart(StructureBuilder b, Vector3 at, float yaw, uint seed, Func<float, float, float> ground)
++    {
++        var rotY = Matrix.CreateRotationY(yaw);
++        float g0 = ground(at.X, at.Z);
++        // local frame: x along the cart (+x its front, the shafts), z across, y up; W maps a local point to the world
++        // with the ground under it (the bed and wheel heights are relative to the ground at the cart's centre)
++        Vector3 W(Vector3 p) { var q = Vector3.Transform(p, rotY); return new Vector3(at.X + q.X, g0 + p.Y, at.Z + q.Z); }
++        Vector3 Dir(Vector3 v) => Vector3.TransformNormal(v, rotY);
++        float j(uint k) => H(seed ^ (k * 0x9E3779B9u)) - 0.5f;
++        var flames = new List<Vector3>();
++        // the bed: 2.6 x 1.4 m, 0.1 m thick; the axle broke on the left (-z) side, so the bed tilts down to its front-left
++        // corner on the ground and rests on its right wheel behind
++        var bedRot = Matrix.CreateRotationZ(-0.17f) * Matrix.CreateRotationX(0.16f) * rotY;
++        var bedC = W(new Vector3(-0.1f, 0.42f, 0.05f));
++        Block(b, StMat.Planks, bedC, new Vector3(1.3f, 0.05f, 0.7f), bedRot, Charred, new Vector2(0.2f, 0.1f));
++        // two cross beams under the bed
++        for (int k = 0; k < 2; k++)
++        {
++            var bc = bedC + Vector3.TransformNormal(new Vector3(-0.7f + 1.4f * k, -0.09f, 0f), bedRot);
++            Block(b, StMat.Wood, bc, new Vector3(0.06f, 0.05f, 0.72f), bedRot, Charred * 0.9f, new Vector2(0.3f * k, 0.2f));
++        }
++        // the right sideboard still standing, leaning out; the left one fallen flat on the ground
++        var sideRot = Matrix.CreateRotationX(-0.35f) * bedRot;
++        var sideC = bedC + Vector3.TransformNormal(new Vector3(0.05f, 0.24f, 0.72f), bedRot);
++        Block(b, StMat.Planks, sideC, new Vector3(1.2f, 0.22f, 0.025f), sideRot, Scorched * 0.6f, new Vector2(0.4f, 0.6f));
++        Block(b, StMat.Planks, W(new Vector3(-0.2f, 0.03f, -1.35f)), new Vector3(1.15f, 0.025f, 0.21f), Matrix.CreateRotationY(0.12f + 0.2f * j(1)) * rotY,
++            Charred, new Vector2(0.7f, 0.3f), 0.5f);
++        // the wheels: the right one still on the axle (standing), the left one lying flat beside the cart
++        Wheel(b, W(new Vector3(-0.35f, 0.52f, 0.86f)), Dir(new Vector3(0.10f, 0.05f, 1f)), 0.52f, 0.09f, Charred, new Vector2(0.1f, 0.0f));
++        Wheel(b, W(new Vector3(0.75f, 0.06f, -1.55f)), Vector3.Up + Dir(new Vector3(0.08f, 0, 0.05f)), 0.52f, 0.09f, Charred * 1.2f, new Vector2(0.6f, 0.4f));
++        // the axle stub under the bed
++        b.Tube(StMat.Wood, W(new Vector3(-0.35f, 0.52f, 0.95f)), W(new Vector3(-0.30f, 0.22f, -0.55f)), 0.06f, 0.06f, 8, Charred * 0.8f, Vector2.Zero, 1f, 0.6f, 0.6f);
++        // the shafts: the right one whole, from the bed's front to the ground; the left one broken half way
++        b.Tube(StMat.Logs, W(new Vector3(1.2f, 0.32f, 0.38f)), W(new Vector3(3.7f, 0.06f, 0.55f)), 0.055f, 0.045f, 8, Scorched * 0.7f, new Vector2(0.2f, 0), 1f, 0.7f, 0.8f);
++        b.Tube(StMat.Logs, W(new Vector3(1.1f, 0.08f, -0.45f)), W(new Vector3(2.2f, 0.05f, -0.62f)), 0.055f, 0.05f, 8, Charred, new Vector2(0.5f, 0), 1f, 0.6f, 0.7f);
++        b.Tube(StMat.Logs, W(new Vector3(2.45f, 0.05f, -0.80f)), W(new Vector3(3.5f, 0.05f, -1.05f)), 0.05f, 0.045f, 8, Scorched * 0.8f, new Vector2(0.8f, 0), 1f, 0.6f, 0.8f);
++        // the load: split timber spilled from the bed's low corner and burning in a heap on the ground
++        var heap = new Vector3(0.9f, 0f, -0.55f);
++        for (int k = 0; k < 9; k++)
++        {
++            float ang = k * 2.39996f + j(10 + (uint)k) * 0.6f, len = 0.9f + 0.6f * (j(20 + (uint)k) + 0.5f);
++            float rr = 0.07f + 0.04f * (j(30 + (uint)k) + 0.5f), lift = 0.06f + 0.11f * (k % 3);
++            var mid = heap + new Vector3(MathF.Cos(ang) * 0.35f, lift, MathF.Sin(ang) * 0.35f);
++            var dir = new Vector3(MathF.Cos(ang + 1.3f), 0.25f * j(40 + (uint)k), MathF.Sin(ang + 1.3f)) * (len * 0.5f);
++            b.Tube(StMat.Logs, W(mid - dir), W(mid + dir), rr, rr * 0.9f, 8, k % 3 == 0 ? Scorched * 0.7f : Charred, new Vector2(0.13f * k, 0.3f), 1f, 0.6f, 0.9f, capTop: true);
++        }
++        flames.Add(W(heap + new Vector3(0, 0.2f, 0)));
++        // the bed burns along its low side and at the back
++        flames.Add(bedC + Vector3.TransformNormal(new Vector3(0.6f, 0.08f, -0.3f), bedRot));
++        flames.Add(bedC + Vector3.TransformNormal(new Vector3(-0.8f, 0.08f, 0.2f), bedRot));
++        return flames;
++    }
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneA.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneA.cs
 new file mode 100644
@@ -1336,10 +1941,10 @@ index 0000000..1448b41
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
 new file mode 100644
-index 0000000..26ab9c3
+index 0000000..0429d70
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
-@@ -0,0 +1,646 @@
+@@ -0,0 +1,692 @@
 +using System.Globalization;
 +using Gfx.Chars.Animation;
 +using Gfx.Engine.Cameras;
@@ -1482,6 +2087,10 @@ index 0000000..26ab9c3
 +    public IReadOnlyList<AftermathShot> Beats => _beats;
 +    readonly List<AftermathShot> _beats = new();
 +    SmokeLayer _smoke = null!;
++    /// <summary>Polish2 (critic rank 3): the burnt-out carts the smoke rises from (null without plumes).</summary>
++    Gfx.Proc.Environment.Structures.StructureRenderer? _wrecks;
++    readonly List<Vector3> _wreckPlaces = new();
++    public IReadOnlyList<Vector3> WreckPlaces => _wreckPlaces;
 +    KitSoldier? _commander, _officer;
 +    Banner? _victorBanner, _defeatedBanner;
 +    Vector3 _cPos, _oPos, _fallen; float _cYaw, _oYaw;
@@ -1582,9 +2191,14 @@ index 0000000..26ab9c3
 +
 +    /// <summary>Smoke from the three 24 m cells with the most dead (fires among the wreckage) and dust from the five
 +    /// densest cells of those still on their feet or knees, none within 25-30 m of the heroes and no fire within 40 m of
-+    /// the fallen the last beat looks at (the close shots look through clear air).</summary>
++    /// the fallen the last beat looks at (the close shots look through clear air). Polish2 (critic rank 3): each fire is a
++    /// burnt-out cart (<see cref="BurningWreck"/>) on the clearest spot of its cell (<see cref="ClearSpot"/>), flames
++    /// licking up from its spilled load and its bed, the plume rising from it.</summary>
 +    void BuildSmoke()
 +    {
++        var everyone = new List<Vector3>();
++        for (int e = 0; e < Battle.Trace.Entities.Count; e++) everyone.Add(Troops.Place(e, _tEnd).pos);
++        var wrecks = new Gfx.Proc.Environment.Structures.StructureBuilder();
 +        var tr = Battle.Trace; int last = tr.StepCount - 1;
 +        var dead = new SortedDictionary<(int, int), int>();
 +        var stand = new SortedDictionary<(int, int), int>();
@@ -1605,8 +2219,18 @@ index 0000000..26ab9c3
 +            if (Outcome.CommanderEntity >= 0 && Vector2.Distance(new Vector2(at.X, at.Z), new Vector2(_cPos.X, _cPos.Z)) < 25f) continue;
 +            if (Vector2.Distance(new Vector2(at.X, at.Z), new Vector2(_fallen.X, _fallen.Z)) < 40f) continue;
 +            if (n++ >= 3) break;
-+            _smoke.Add(SmokeSource.Plume(at, 0.9f + 0.15f * n));
++            var spot = ClearSpot(new Vector2(at.X, at.Z), everyone, 4f, 10f);
++            at = new Vector3(spot.X, Env.Terrain.HeightAt(spot.X, spot.Y), spot.Y);
++            uint seed = (uint)(kv.Key.Item1 * 73856093) ^ (uint)(kv.Key.Item2 * 19349663);
++            float yaw = (seed >> 8) * (MathHelper.TwoPi / 16777216f);
++            var flames = BurningWreck.Cart(wrecks, at, yaw, seed, Env.Terrain.HeightAt);
++            _wreckPlaces.Add(at);
++            foreach (var f in flames) _smoke.Add(SmokeSource.Fire(f));
++            _smoke.Add(SmokeSource.Plume(flames[0], 0.9f + 0.15f * n));
 +        }
++        if (wrecks.Triangles > 0)
++            _wrecks = new Gfx.Proc.Environment.Structures.StructureRenderer(Device, wrecks, Env.Textures)
++            { GroundHeight = Env.WaterSurface.HeightMap, GroundGeom = Env.WaterSurface.HeightGeom };
 +        // dust: the densest cells of those still on their feet or knees, but not within 30 m of the heroes (the close
 +        // shots look through clear air)
 +        n = 0;
@@ -1617,6 +2241,30 @@ index 0000000..26ab9c3
 +            if (n++ >= 5) break;
 +            _smoke.Add(SmokeSource.Dust(at));
 +        }
++    }
++
++    /// <summary>
++    /// Polish2: the clearest spot for a wreck near <paramref name="centre"/>: the first point of a 2 m grid within
++    /// <paramref name="reach"/> m of it (nearest first, then by x, then by z) with no soldier (standing, kneeling or
++    /// fallen) within <paramref name="clear"/> m; failing that the point whose nearest soldier is farthest. Pure.
++    /// </summary>
++    public static Vector2 ClearSpot(Vector2 centre, IReadOnlyList<Vector3> soldiers, float clear, float reach)
++    {
++        var cands = new List<Vector2>();
++        int k = (int)MathF.Floor(reach / 2f);
++        for (int i = -k; i <= k; i++)
++            for (int jj = -k; jj <= k; jj++)
++                if (i * i + jj * jj <= k * k) cands.Add(new Vector2(i * 2f, jj * 2f));
++        cands.Sort((a, b) => { int c = a.LengthSquared().CompareTo(b.LengthSquared()); if (c != 0) return c; c = a.X.CompareTo(b.X); return c != 0 ? c : a.Y.CompareTo(b.Y); });
++        Vector2 best = centre; float bestD = -1f;
++        foreach (var o in cands)
++        {
++            var p = centre + o; float near = float.MaxValue;
++            foreach (var q in soldiers) near = MathF.Min(near, Vector2.DistanceSquared(p, new Vector2(q.X, q.Z)));
++            if (near >= clear * clear) return p;
++            if (near > bestD) { bestD = near; best = p; }
++        }
++        return best;
 +    }
 +
 +    float BeatStart(string name)
@@ -1962,6 +2610,7 @@ index 0000000..26ab9c3
 +    {
 +        Troops.ApplySwitches(rc.Features);
 +        if (rc.Features.Crowd) Troops.Crowd.DrawShadows(rc);
++        _wrecks?.Draw(rc, true);
 +    }
 +
 +    protected override void DrawExtraOpaque(RenderContext rc)
@@ -1969,6 +2618,7 @@ index 0000000..26ab9c3
 +        Troops.ApplySwitches(rc.Features);
 +        Troops.Crowd.Occlusion = null;
 +        if (rc.Features.Crowd) Troops.Crowd.DrawOpaque(rc);
++        _wrecks?.Draw(rc, false);
 +    }
 +
 +    protected override void DrawExtraTransparent(RenderContext rc) => _smoke.Draw(rc);
@@ -1976,9 +2626,10 @@ index 0000000..26ab9c3
 +    public override string FrameReport() => Troops.Report() + string.Format(CultureInfo.InvariantCulture,
 +        " aftermath: victor={0} defeated={1} surrender-beat={2} commander-entity={3} officer-entity={4} standing={5} prisoners={6} victor-side-surrendered={7} fallen={8} escaped={9} death-content={10} smoke-puffs={11}",
 +        Outcome.Victor, Outcome.Defeated, Outcome.Surrender, Outcome.CommanderEntity, Outcome.OfficerEntity, Outcome.VictorsStanding, Outcome.Prisoners, Outcome.VictorPrisoners,
-+        Outcome.Fallen, Outcome.Escaped, Content, _smoke.LastPuffs);
++        Outcome.Fallen, Outcome.Escaped, Content, _smoke.LastPuffs)
++        + " wrecks=" + string.Join(";", _wreckPlaces.Select(w => string.Format(CultureInfo.InvariantCulture, "{0:F1},{1:F1},{2:F1}", w.X, w.Y, w.Z)));
 +
-+    public override void Dispose() { Troops?.Dispose(); _smoke?.Dispose(); base.Dispose(); }
++    public override void Dispose() { Troops?.Dispose(); _smoke?.Dispose(); _wrecks?.Dispose(); base.Dispose(); }
 +}
 +
 +[DemoScene("bench-d-shown", "Benchmark D: cinematic aftermath of the scene-C battle from its recorded outcome; death content SHOWN (the setting's default is open, D-079 Q12)")]
@@ -2139,10 +2790,10 @@ index 0000000..3cc9dc3
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
 new file mode 100644
-index 0000000..b9b199b
+index 0000000..7c64ea6
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
-@@ -0,0 +1,486 @@
+@@ -0,0 +1,606 @@
 +using System.Globalization;
 +using System.Text.Json;
 +using Gfx.Chars.Crowd;
@@ -2248,9 +2899,13 @@ index 0000000..b9b199b
 +    /// bodies do not cross (NaN: the soldier does not die).</summary>
 +    readonly float[] _deadYaw;
 +    readonly bool[] _deadBack;
++    /// <summary>Polish2 (critic rank 3): each fallen body's settle offset (m, at most <see cref="MaxSettle"/>; zero when he
++    /// does not die).</summary>
++    readonly Vector2[] _deadOffset;
++    readonly List<CrowdProp> _props = new();
 +    readonly int[][] _events;         // per entity: indices of Fire events it made and Damage events it took (time order)
 +    readonly float[] _phase;
-+    readonly int _idle, _idle2, _walk, _jog, _run, _thrust, _swingOver, _swingSide, _block, _kneel, _cower, _death, _death2, _stumble;
++    readonly int _idle, _idle2, _walk, _jog, _run, _thrust, _swingOver, _swingSide, _block, _kneel, _cower, _death, _death2, _stumble, _surrender;
 +    // polish1: the idles' pose variants (heads up; head, trunk and arm offsets), picked per entity
 +    readonly int[] _idleV, _idle2V;
 +    /// <summary>Death content (presentation setting): when false, the dead are not drawn at all.</summary>
@@ -2342,11 +2997,13 @@ index 0000000..b9b199b
 +            if (last != long.MinValue) _deathMs[e] = last;
 +        }
 +        (_deadYaw, _deadBack) = LayOutFallen(tr, _deathMs, _yaw);
++        _deadOffset = SettleFallen(tr, _deathMs, _deadYaw, _deadBack);
 +        _idle = CrowdRenderer.Clip("idle"); _idle2 = CrowdRenderer.Clip("idle_proud"); _walk = CrowdRenderer.Clip("walk");
 +        _jog = CrowdRenderer.Clip("jog"); _run = CrowdRenderer.Clip("run"); _thrust = CrowdRenderer.Clip("thrust");
 +        _swingOver = CrowdRenderer.Clip("swing_over"); _swingSide = CrowdRenderer.Clip("swing_side"); _block = CrowdRenderer.Clip("block");
 +        _kneel = CrowdRenderer.Clip("kneel"); _cower = CrowdRenderer.Clip("cower"); _death = CrowdRenderer.Clip("death_fwd");
 +        _death2 = CrowdRenderer.Clip("death_back"); _stumble = CrowdRenderer.Clip("stumble");
++        _surrender = CrowdRenderer.Clip(Gfx.Chars.Crowd.CrowdPoseVariants.Surrender);
 +        _idleV = Enumerable.Range(0, 4).Select(k => CrowdRenderer.Clip("idle@" + k)).ToArray();
 +        _idle2V = Enumerable.Range(0, 4).Select(k => CrowdRenderer.Clip("idle_proud@" + k)).ToArray();
 +    }
@@ -2443,6 +3100,82 @@ index 0000000..b9b199b
 +        return (yaw, back);
 +    }
 +
++    /// <summary>The farthest a fallen body is moved from where the trace put him (m).</summary>
++    public const float MaxSettle = 1.0f;
++
++    /// <summary>
++    /// Polish2 (critic rank 3; PRESENTATION ONLY): the fallen settle. After <see cref="LayOutFallen"/> chose each body's
++    /// facing and fall, the bodies still lying closer than <see cref="FallenClearance"/> to one already down are moved, in
++    /// the order of death (time, then entity), by the first offset of a fixed set (0.35, 0.7 and 1.0 m in eight directions,
++    /// nearest first) that clears every body already down at its moved place; with none clear, by the offset that leaves
++    /// the most room (the nearer on a tie), or not at all when no offset does better than staying. No body moves more than
++    /// <see cref="MaxSettle"/>; the trace is not touched (the offset is the presentation's). A pure function of the trace.
++    /// </summary>
++    public static Vector2[] SettleFallen(Gfx.Units.BattleTrace tr, long[] deathMs, float[] yaw, bool[] back)
++    {
++        int n = tr.Entities.Count, last = tr.StepCount - 1;
++        var offset = new Vector2[n];
++        var order = Enumerable.Range(0, n).Where(e => deathMs[e] != long.MinValue && !float.IsNaN(yaw[e])).OrderBy(e => deathMs[e]).ThenBy(e => e).ToArray();
++        var placedA = new List<Vector2>(order.Length); var placedB = new List<Vector2>(order.Length);
++        var candidates = new List<Vector2> { Vector2.Zero };
++        foreach (float r in new[] { 0.35f, 0.7f, 1.0f })
++            for (int k = 0; k < 8; k++) candidates.Add(new Vector2(MathF.Sin(k * MathF.PI / 4f), MathF.Cos(k * MathF.PI / 4f)) * r);
++        foreach (int e in order)
++        {
++            var (x, y) = tr.PosMm(last, e);
++            var p = new Vector2(x / 1000f, y / 1000f);
++            var dir = new Vector2(MathF.Sin(yaw[e]), MathF.Cos(yaw[e])) * (back[e] ? -1f : 1f);
++            float Clear(Vector2 o)
++            {
++                var a0 = p + o; var a1 = a0 + dir * FallenLength; float clear = float.MaxValue;
++                for (int k = 0; k < placedA.Count; k++)
++                {
++                    if (Vector2.DistanceSquared(placedA[k], a0) > 4f * FallenLength * FallenLength) continue;
++                    clear = MathF.Min(clear, SegmentDistance(a0, a1, placedA[k], placedB[k]));
++                }
++                return clear;
++            }
++            Vector2 best = Vector2.Zero; float bestClear = Clear(Vector2.Zero);
++            if (bestClear < FallenClearance)
++                foreach (var o in candidates)
++                {
++                    float c = Clear(o);
++                    if (c >= FallenClearance) { best = o; break; }
++                    if (c > bestClear + 1e-4f) { bestClear = c; best = o; }
++                }
++            offset[e] = best;
++            placedA.Add(p + best); placedB.Add(p + best + dir * FallenLength);
++        }
++        return offset;
++    }
++
++    /// <summary>Polish2: whether a surrendered soldier holds his hands up (about 55 %) or kneels bowed; from the entity id.</summary>
++    public static bool SurrendersWithHandsUp(long entityId) => (CrowdLook.Hash((uint)entityId ^ 0x3B9ACA07u) >> 8) * (1f / 16777216f) < 0.55f;
++
++    /// <summary>Polish2: entity <paramref name="e"/>'s settle offset (m; zero when he does not fall).</summary>
++    public Vector2 SettleOffset(int e) => _deadOffset[e];
++
++    /// <summary>Polish2: the dropped kit of the last <see cref="Update"/> (read only; tests and reports).</summary>
++    public IReadOnlyList<CrowdProp> LastProps => _props;
++
++    /// <summary>
++    /// Polish2 (critic rank 3; PRESENTATION ONLY): where a disarmed soldier's kit lies, in his own frame (x to his left,
++    /// z ahead; m) and its turn about the vertical (radians from his facing), a pure function of the entity id: a
++    /// surrendered man has thrown his weapon down before him, across his front, and his shield beside it; a fallen man's
++    /// weapon and shield lie at his sides. The shield lies face down for about a third of the men.
++    /// </summary>
++    public static (Vector2 weapon, float weaponTurn, Vector2 shield, float shieldTurn, bool shieldFlipped) KitPlacement(long entityId, bool surrendered)
++    {
++        uint h = CrowdLook.Hash((uint)entityId ^ 0x7F4A7C15u);
++        float U(int k) => (CrowdLook.Hash(h ^ (uint)(k * 0x9E3779B9u)) >> 8) * (1f / 16777216f);
++        bool flipped = U(5) < 0.34f;
++        if (surrendered)
++            return (new Vector2(-0.25f + 0.5f * U(0), 0.75f + 0.35f * U(1)), MathF.PI / 2f + (U(2) - 0.5f) * 0.7f,
++                    new Vector2(0.55f + 0.25f * U(3), 0.45f + 0.4f * U(4)), (U(6) - 0.5f) * 1.4f, flipped);
++        return (new Vector2(-0.55f - 0.35f * U(0), 0.2f + 0.8f * U(1)), (U(2) - 0.5f) * 1.2f,
++                new Vector2(0.55f + 0.35f * U(3), 0.1f + 0.7f * U(4)), (U(6) - 0.5f) * 2.0f, flipped);
++    }
++
 +    /// <summary>Closest distance between segments [a0, a1] and [b0, b1] in the plane.</summary>
 +    public static float SegmentDistance(Vector2 a0, Vector2 a1, Vector2 b0, Vector2 b1)
 +    {
@@ -2533,17 +3266,34 @@ index 0000000..b9b199b
 +                    if (!ShowDead) { a.Hidden = true; continue; }
 +                    bool back = _deadBack[e];
 +                    if (!float.IsNaN(_deadYaw[e])) a.Yaw = _deadYaw[e];
++                    // polish2: settled at most 1 m from where the trace put him, disarmed (his kit lies beside him)
++                    var so = _deadOffset[e];
++                    if (so != Vector2.Zero) { a.Position.X += so.X; a.Position.Z += so.Y; a.Position.Y = _height(a.Position.X, a.Position.Z); }
++                    a.Unarmed = true;
 +                    a.ClipA = back ? _death2 : _death; a.TimeA = MathF.Max(0f, now - _deathMs[e] / 1000f);
 +                    a.ClipB = a.ClipA; a.TimeB = a.TimeA; a.Blend = 0;
 +                    continue;
 +                }
 +                case TraceSoldierState.Surrendered:
 +                {
-+                    // kneels from the instant of surrender and stays down, head bowed (cower blended in)
++                    // polish2 (critic rank 3): kneels from the instant of surrender, his weapon and shield thrown down
++                    // before him; about half hold their empty hands up (the surrender pose over the kneel), the others
++                    // kneel bowed with their hands down (the kneel with the cower blended in), so a field of prisoners is
++                    // not one gesture repeated
 +                    float since = MathF.Max(0f, now - _surrenderMs[e] / 1000f);
-+                    a.ClipA = _kneel; a.TimeA = since;
-+                    a.ClipB = _cower; a.TimeB = since + off;
-+                    a.Blend = 0.25f + 0.2f * off;
++                    if (SurrendersWithHandsUp(tr.Entities[e].Id))
++                    {
++                        a.ClipA = _surrender; a.TimeA = since + off;
++                        a.ClipB = _kneel; a.TimeB = since;
++                        a.Blend = 0.12f * off;
++                    }
++                    else
++                    {
++                        a.ClipA = _kneel; a.TimeA = since;
++                        a.ClipB = _cower; a.TimeB = since + off;
++                        a.Blend = 0.45f + 0.25f * off;
++                    }
++                    a.Unarmed = true;
 +                    continue;
 +                }
 +                case TraceSoldierState.Routing:
@@ -2605,6 +3355,27 @@ index 0000000..b9b199b
 +            else { a.ClipA = _idleV[pk & 3u]; a.TimeA = now + off * 7.8f; a.ClipB = _idle2V[(pk >> 2) & 3u]; a.TimeB = now + off * 3.1f + 1.7f; a.Blend = (CrowdLook.Hash((uint)e ^ 0x6C8E9CF5u) >> 8) * (1f / 16777216f); }
 +        }
 +        Crowd.SetAgents(_agents);
++        // polish2 (critic rank 3): the kit of every disarmed soldier drawn, laid on the ground by KitPlacement
++        _props.Clear();
++        for (int e = 0; e < _agents.Length; e++)
++        {
++            var a = _agents[e];
++            if (a.Hidden || !a.Unarmed) continue;
++            var v = Crowd.Variants[a.Variant];
++            bool sur = BenchBattle.Map(tr.State(s, e)) == TraceSoldierState.Surrendered;
++            var (wp, wt, sp, st, flip) = KitPlacement(tr.Entities[e].Id, sur);
++            var frame = Matrix.CreateRotationY(a.Yaw);
++            var pos = a.Position; float yawE = a.Yaw;
++            Matrix At(Vector2 local, float turn)
++            {
++                var w = pos + Vector3.Transform(new Vector3(local.X, 0, local.Y), frame);
++                w.Y = _height(w.X, w.Z);
++                return Matrix.CreateRotationY(yawE + turn) * Matrix.CreateTranslation(w);
++            }
++            if (v.HasWeapon) _props.Add(new CrowdProp { Variant = a.Variant, Item = CarriedItem.Weapon, World = At(wp, wt), Look = a.Look });
++            if (v.HasShield) _props.Add(new CrowdProp { Variant = a.Variant, Item = CarriedItem.Shield, World = At(sp, st), Look = a.Look, Flipped = flip });
++        }
++        Crowd.SetProps(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_props));
 +    }
 +
 +    int UpperBound(int[] evs, long tMs)
@@ -3443,7 +4214,7 @@ index 1230d8e..2b67973 100644
          for (int k = Count; k < MaxCascades; k++) { Scale[k] = new Vector4(1, 1, 1, 0); Offset[k] = new Vector4(0, 0, 10, 0); }
      }
 diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs
-index 735e5e9..9422799 100644
+index 735e5e9..895013b 100644
 --- a/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs
 +++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs
 @@ -199,6 +199,7 @@ public sealed class ForwardRenderer : IDisposable
@@ -3517,7 +4288,18 @@ index 735e5e9..9422799 100644
              sky.Parameters["SunDisc"].SetValue(new Vector4(cosR, 1 - cosR, 0, 0));
              sky.Parameters["SunDiscColor"].SetValue(new Vector4(disc, 1));
              bool bg = f.ShowHdriBackground && _env.Background != null && f.Ibl == IblSource.Hdri;
-@@ -492,6 +503,51 @@ public sealed class ForwardRenderer : IDisposable
+@@ -474,8 +485,9 @@ public sealed class ForwardRenderer : IDisposable
+         if (content is ITransparentContent tc)
+         {
+             if (tc.NeedsSceneColor(rc)) CopySceneColor(w, h);
++            rc.SceneDepth = gbuf ? _ss!.Depth : null;
+             tc.DrawTransparent(rc);
+-            rc.SceneColor = null;
++            rc.SceneColor = null; rc.SceneDepth = null;
+         }
+         PassEnd("transparent", _hdr);
+ 
+@@ -492,6 +504,51 @@ public sealed class ForwardRenderer : IDisposable
          Post(output, w, h, accumWeight, meter, timeSeconds, f, analytic);
      }
  
@@ -3569,7 +4351,7 @@ index 735e5e9..9422799 100644
      RenderTarget2D ResolveTaa(RenderContext rc, int w, int h, in Matrix viewProjUnjittered)
      {
          for (int i = 0; i < 2; i++)
-@@ -606,6 +662,7 @@ public sealed class ForwardRenderer : IDisposable
+@@ -606,6 +663,7 @@ public sealed class ForwardRenderer : IDisposable
              var disc = sun.LightColor / (MathF.PI * sunRadius * sunRadius);
              float peak = MathF.Max(disc.X, MathF.Max(disc.Y, disc.Z));
              if (peak > 4000f) disc *= 4000f / peak;
@@ -3577,7 +4359,7 @@ index 735e5e9..9422799 100644
              sky.Parameters["SunDisc"].SetValue(new Vector4(cosR, 1 - cosR, 0, 0));
              sky.Parameters["SunDiscColor"].SetValue(new Vector4(disc, 1));
              sky.Parameters["SkyMode"].SetValue(Vector4.Zero);
-@@ -718,7 +775,7 @@ public sealed class ForwardRenderer : IDisposable
+@@ -718,7 +776,7 @@ public sealed class ForwardRenderer : IDisposable
              e.Parameters["Src"].SetValue(_bloom[src]);
              e.Parameters["Prev"].SetValue(history ? prev : null);
              e.Parameters["ExposureParams"].SetValue(new Vector4(1 - MathF.Exp(-dt * 1.2f), 1 - MathF.Exp(-dt * 2.5f), 0.8f, MathF.Log2(0.12f)));
@@ -3586,7 +4368,7 @@ index 735e5e9..9422799 100644
              e.CurrentTechnique.Passes[0].Apply();
              _gd.SamplerStates[0] = SamplerState.LinearClamp; _gd.SamplerStates[1] = SamplerState.PointClamp;
              _gd.DrawUserPrimitives(PrimitiveType.TriangleList, FullScreen.Triangle, 0, 1);
-@@ -767,6 +824,7 @@ public sealed class ForwardRenderer : IDisposable
+@@ -767,6 +825,7 @@ public sealed class ForwardRenderer : IDisposable
          comp.Parameters["CompositeParams2"].SetValue(new Vector4(f.ColorGrade ? 1 : 0, 32, accumulate ? 1 : 0, comp2 * MathF.Pow(2f, f.ExposureBiasEv)));
          // y: the up-chain leaves the sum of one blurred copy per level in bloom[0]; the composite averages them
          comp.Parameters["AccumWeight"].SetValue(new Vector4(accumulate ? accumWeight : 1, bloom ? 1f / _bloom.Length : 1, 0, 0));
@@ -3778,7 +4560,7 @@ index 0000000..8cc1da1
 +    }
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderContext.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderContext.cs
-index a468892..d0da74a 100644
+index a468892..3ed479a 100644
 --- a/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderContext.cs
 +++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderContext.cs
 @@ -83,6 +83,12 @@ public sealed class RenderContext
@@ -3794,7 +4576,19 @@ index a468892..d0da74a 100644
      /// <summary>Aerial-perspective source terms (Rayleigh, Mie, multiple scattering) and height-fog lighting.</summary>
      public Vector4 AerialR { get; internal set; }
      public Vector4 AerialM { get; internal set; }
-@@ -156,7 +162,7 @@ public sealed class RenderContext
+@@ -110,6 +116,11 @@ public sealed class RenderContext
+     public bool IsReflectionPass { get; internal set; }
+     /// <summary>The opaque scene (linear HDR) copied before <see cref="ITransparentContent.DrawTransparent"/>, when requested.</summary>
+     public Texture2D? SceneColor { get; internal set; }
++
++    /// <summary>Polish2: the opaque scene's linear view depth in metres (the G-buffer-lite's R32F target, 1/w per pixel,
++    /// <see cref="Mgfx.GBufferLayout.SkyDepth"/> where only sky was drawn) during the transparent pass when the renderer
++    /// has it (a screen-space pass or TAA is on); null otherwise. Soft particles read it.</summary>
++    public Texture2D? SceneDepth { get; internal set; }
+     /// <summary>This frame's planar reflection (linear HDR, screen-aligned with the main view), or null.</summary>
+     public Texture2D? Reflection { get; internal set; }
+     /// <summary>The reflection plane of <see cref="Reflection"/> (xyz normal, w = −normal·point).</summary>
+@@ -156,7 +167,7 @@ public sealed class RenderContext
      sealed class StdParams
      {
          public EffectParameter? ViewProj, LightViewProj, CameraPos, SunDir, SunColor, AmbientSky, AmbientGround, FogColor, FogParams,
@@ -3803,7 +4597,7 @@ index a468892..d0da74a 100644
              AerialR, AerialM, AerialMs, FogSun, FogAmb, VelCur, VelPrev, VelParams;
          public EffectParameter?[] Sh = new EffectParameter?[9], CsmScale = new EffectParameter?[4], CsmOffset = new EffectParameter?[4];
          public bool HasG2;
-@@ -173,14 +179,15 @@ public sealed class RenderContext
+@@ -173,14 +184,15 @@ public sealed class RenderContext
              ViewProj = p["ViewProj"], LightViewProj = p["LightViewProj"], CameraPos = p["CameraPos"], SunDir = p["SunDir"], SunColor = p["SunColor"],
              AmbientSky = p["AmbientSky"], AmbientGround = p["AmbientGround"], FogColor = p["FogColor"], FogParams = p["FogParams"],
              ShadowParams = p["ShadowParams"], ShadowOffset = p["ShadowOffset"], ShadowMap = p["ShadowMap"], Bones = p["Bones"], BoneTexSize = p["BoneTexSize"],
@@ -3821,7 +4615,7 @@ index a468892..d0da74a 100644
          return s;
      });
  
-@@ -218,6 +225,8 @@ public sealed class RenderContext
+@@ -218,6 +230,8 @@ public sealed class RenderContext
              p.SkySun?.SetValue(SkySun);
              p.Aerial?.SetValue(Aerial);
              p.CsmAtlas?.SetValue(CsmAtlas);
@@ -3990,10 +4784,10 @@ index 0b78333..02d38f8 100644
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs
 new file mode 100644
-index 0000000..71b5d21
+index 0000000..3e52071
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs
-@@ -0,0 +1,204 @@
+@@ -0,0 +1,263 @@
 +using System.Runtime.InteropServices;
 +using Gfx.Engine.Effects;
 +using Gfx.Engine.Mgfx;
@@ -4008,11 +4802,18 @@ index 0000000..71b5d21
 +    /// <summary>A thin ground layer (dust): seen through its thickness, so it is faint from above and dense edge-on.</summary>
 +    public bool Layer { get; init; }
 +
-+    /// <summary>A plume of grey smoke from a smouldering fire: thin puffs that billow from 3 m to 20 m wide as they rise
-+    /// about 20 m and drift downwind, fading as they spread.</summary>
-+    public static SmokeSource Plume(Vector3 at, float scale = 1f) => new(at, 6f * scale, 22f, 2.2f * scale, 3f * scale, 20f * scale, new Vector3(0.34f, 0.33f, 0.31f), 0.22f, 2.5f);
++    /// <summary>Polish2 (critic rank 3): self-lit flame tongues, drawn additively (they add light, they hide nothing).</summary>
++    public bool Emissive { get; init; }
++
++    /// <summary>A plume of grey smoke from a fire: puffs that billow from about 2 m to 15 m wide as they rise about 25 m
++    /// and drift downwind, fading as they spread (polish2: a narrower, darker column than polish1's 3-20 m puffs).</summary>
++    public static SmokeSource Plume(Vector3 at, float scale = 1f) => new(at, 6.5f * scale, 24f, 2.6f * scale, 2.2f * scale, 15f * scale, new Vector3(0.30f, 0.285f, 0.27f), 0.26f, 2.0f);
 +    /// <summary>A low drifting dust haze over trampled ground (barely rises, wide, very faint).</summary>
 +    public static SmokeSource Dust(Vector3 at, float scale = 1f) => new(at, 5f * scale, 26f, 0.15f, 6f * scale, 14f * scale, new Vector3(0.62f, 0.55f, 0.44f), 0.035f, 12f * scale) { Layer = true };
++    /// <summary>Polish2 (critic rank 3): flames licking up from burning timber: many short-lived upright tongues (0.7 s,
++    /// about 0.4 m wide and 0.9 m tall, shrinking as they rise about a metre) over a 0.35 m spread, self-lit (radiance
++    /// about 6, 2.4, 0.7 at their hot core: a dim fire in daylight, a bright one at dusk).</summary>
++    public static SmokeSource Fire(Vector3 at, float scale = 1f) => new(at, 34f * scale, 0.7f, 1.4f * scale, 0.55f * scale, 0.2f * scale, new Vector3(6.0f, 2.4f, 0.7f), 0.9f, 0.35f * scale) { Emissive = true };
 +}
 +
 +/// <summary>
@@ -4020,7 +4821,11 @@ index 0000000..71b5d21
 +/// each puff's birth, drift (wind), rise, growth and fade a pure function of its index and the scene time (no particle
 +/// state; stills, replays and the benchmark path agree). Lit by the sun with a forward-scattering phase and by the sky
 +/// light, sorted back to front on the CPU and drawn with premultiplied alpha in the transparent pass (depth tested, not
-+/// written); the soft edge fades where a puff meets the ground (scene depth) so plumes do not cut into the terrain.
++/// written). Polish2 (critic rank 3): where the renderer has the scene's linear depth (the G-buffer-lite,
++/// <see cref="RenderContext.SceneDepth"/>), a puff fades out over the last 30 % of its size before it meets an opaque
++/// surface (soft particles: no hard line where a puff cuts into the ground, a body or a wreck); young smoke is darker and
++/// denser at its core (soot), paling as it rises and spreads; flame sources (<see cref="SmokeSource.Emissive"/>) are
++/// self-lit and add their light.
 +/// </summary>
 +public sealed class SmokeLayer : IDisposable
 +{
@@ -4048,6 +4853,11 @@ index 0000000..71b5d21
 +
 +    public SmokeLayer(GraphicsDevice gd) { _gd = gd; }
 +
++    /// <summary>Polish2: the share of a puff's size over which it fades out before an opaque surface (soft particles).</summary>
++    public const float SoftRange = 0.3f;
++    /// <summary>The smoke effect's texture slot for the scene depth.</summary>
++    public const int DepthSlot = 0;
++
 +    public void Add(SmokeSource s) => _sources.Add(s);
 +    public void Clear() => _sources.Clear();
 +
@@ -4074,13 +4884,15 @@ index 0000000..71b5d21
 +                // drift downwind, rise and spread, plus a slow meander (each puff its own phase) so plumes billow
 +                float ph = H(key ^ 0xE5u) * MathF.Tau;
 +                var meander = new Vector3(MathF.Sin(age * 0.45f + ph), 0, MathF.Cos(age * 0.37f + ph * 1.7f)) * (s.Spread * 1.2f * a);
-+                var p = s.Base + dir * (s.Spread * (0.3f + a)) + Wind * age * (0.6f + 0.4f * a) + meander
++                // flames lean with the wind but are not carried off by it (a tenth of the smoke's drift)
++                var drift = Wind * age * (0.6f + 0.4f * a) * (s.Emissive ? 0.1f : 1f);
++                var p = s.Base + dir * (s.Spread * (0.3f + a)) + drift + meander
 +                      + new Vector3(0, s.Rise * MathF.Pow(age, 0.75f) + 0.3f * s.StartSize, 0);
 +                float size = MathHelper.Lerp(s.StartSize, s.EndSize, MathF.Sqrt(a)) * (0.8f + 0.4f * H(key ^ 0xC3u));
 +                float op = s.Opacity * MathF.Min(1f, a * 8f) * (1f - a) * (1f - a);
 +                var quad = new SmokeVertex[4];
 +                for (int c = 0; c < 4; c++)
-+                    quad[c] = new SmokeVertex { Pos = new Vector4(p, c), Puff = new Vector4(size, op, H(key ^ 0xD4u), a), Tint = new Vector4(s.Tint, s.Layer ? 1f : 0f) };
++                    quad[c] = new SmokeVertex { Pos = new Vector4(p, c), Puff = new Vector4(size, op, H(key ^ 0xD4u), a), Tint = new Vector4(s.Tint, s.Emissive ? 2f : s.Layer ? 1f : 0f) };
 +                _sorted.Add((Vector3.DistanceSquared(p, eye), quad));
 +            }
 +        }
@@ -4116,11 +4928,17 @@ index 0000000..71b5d21
 +        e.Parameters["SmokeSun"].SetValue(new Vector4(rc.Sun.LightColor, 0));
 +        e.Parameters["SmokeAmb"].SetValue(new Vector4(rc.Sun.AmbientSky * MathF.PI, 0));
 +        e.Parameters["SmokeDir"].SetValue(new Vector4(rc.Sun.DirectionToLight, 0));
++        // polish2 (critic rank 3): soft particles against the scene's linear depth when the renderer has it
++        var depth = rc.SceneDepth;
++        e.Parameters["SmokeSoft"].SetValue(depth != null ? new Vector4(0, 0, 1, SoftRange) : Vector4.Zero);
++        e.Parameters["SceneDepthTex"].SetValue(depth);
 +        _gd.SetVertexBuffer(_vb); _gd.Indices = _ib;
 +        _gd.BlendState = BlendState.AlphaBlend; _gd.DepthStencilState = DepthStencilState.DepthRead; _gd.RasterizerState = RasterizerState.CullNone;
 +        rc.Apply(e);
++        _gd.SamplerStates[DepthSlot] = SamplerState.PointClamp;
 +        _gd.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, n * 2);
 +        rc.Stats.RecordDraw(1, n * 2);
++        _gd.Textures[DepthSlot] = null;
 +        _gd.BlendState = BlendState.Opaque; _gd.DepthStencilState = DepthStencilState.Default;
 +    }
 +
@@ -4140,17 +4958,24 @@ index 0000000..71b5d21
 +            .Vec4("SmokeRight", Stage.Vertex).Vec4("SmokeUp", Stage.Vertex)
 +            .Vec4("SmokeSun", Stage.Pixel).Vec4("SmokeAmb", Stage.Pixel).Vec4("SmokeDir", Stage.Pixel)
 +            .Vec4("CameraPos", Stage.Pixel).Vec4("FogParams", Stage.Pixel).Vec4("FogColor", Stage.Pixel)
++            .Vec4("SmokeSoft", Stage.Pixel)   // z 1 = scene depth bound, w soft range (share of the puff's size)
++            .Texture("SceneDepthTex", SmokeLayer.DepthSlot)
 +            .BlendedGBuffer()
-+            .Varyings("vec2 v_uv; vec4 v_puff; vec4 v_tint; vec3 v_wpos; vec3 v_centre;")
++            .Varyings("vec2 v_uv; vec4 v_puff; vec4 v_tint; vec3 v_wpos; vec3 v_centre; vec4 v_clip;")
 +            .VertexMain(@"
 +    float c = floor(a_pos.w + 0.01);
 +    vec2 corner = vec2((c == 0.0 || c == 2.0) ? -1.0 : 1.0, c < 1.5 ? -1.0 : 1.0);
-+    // a slow per-puff turn of the quad so the noise pattern does not repeat
-+    float ang = a_puff.z * 6.2831 + a_puff.w * (a_puff.z - 0.5) * 2.0;
++    // a slow per-puff turn of the quad so the noise pattern does not repeat; a flame tongue stays upright (turned about
++    // the vertical only: camera right and world up) and is drawn tall and narrow, its base at the puff's centre
++    bool fireV = a_tint.w > 1.5;
++    float ang = fireV ? 0.0 : a_puff.z * 6.2831 + a_puff.w * (a_puff.z - 0.5) * 2.0;
 +    vec2 rc = vec2(corner.x * cos(ang) - corner.y * sin(ang), corner.x * sin(ang) + corner.y * cos(ang));
-+    vec3 wp = a_pos.xyz + (SmokeRight.xyz * rc.x + SmokeUp.xyz * rc.y) * (a_puff.x * 0.5);
++    vec3 upV = fireV ? vec3(0.0, 1.0, 0.0) : SmokeUp.xyz;
++    vec2 st = fireV ? vec2(0.75, 1.6) : vec2(1.0);
++    vec3 wp = a_pos.xyz + (SmokeRight.xyz * rc.x * st.x + upV * (rc.y * st.y + (fireV ? 1.4 : 0.0))) * (a_puff.x * 0.5);
 +    v_uv = corner; v_puff = a_puff; v_tint = a_tint; v_wpos = wp; v_centre = a_pos.xyz;
-+    gl_Position = ViewProj_mul(vec4(wp, 1.0));")
++    gl_Position = ViewProj_mul(vec4(wp, 1.0));
++    v_clip = gl_Position;")
 +            .PixelMain(@"
 +    float r = length(v_uv);
 +    // soft round puff with a procedural billow (value-noise octaves in the puff's frame)
@@ -4172,9 +4997,22 @@ index 0000000..71b5d21
 +    // a thin ground layer (dust) is seen through its thickness: its optical depth grows as 1/sin(elevation) of the
 +    // view, so from above it is faint and edge-on it is dense; a puff at the camera fades out (a puff filling the
 +    // view reads as a blur, not as smoke)
-+    float layer = v_tint.w > 0.5 ? clamp(0.12 / max(abs(V.y), 0.02), 0.08, 1.0) : 1.0;
-+    float nearFade = smoothstep(0.25, 0.8, d / max(v_puff.x, 1.0));
-+    float a = clamp(shape * v_puff.y * layer * nearFade, 0.0, 1.0);
++    bool fire = v_tint.w > 1.5;
++    float layer = (v_tint.w > 0.5 && !fire) ? clamp(0.12 / max(abs(V.y), 0.02), 0.08, 1.0) : 1.0;
++    float nearFade = fire ? 1.0 : smoothstep(0.25, 0.8, d / max(v_puff.x, 1.0));
++    // polish2 (critic rank 3): soft particles: fade over the last SoftRange of the puff's size before the opaque scene
++    // (the G-buffer's linear depth, 1/w like this fragment's)
++    float soft = 1.0;
++    if (SmokeSoft.z > 0.5) {
++        vec2 suv = vec2(v_clip.x / v_clip.w * 0.5 + 0.5, -v_clip.y / v_clip.w * 0.5 + 0.5);
++        float sceneD = texture2D(SceneDepthTex, suv).r;
++        soft = clamp((sceneD - 1.0 / gl_FragCoord.w) / max(SmokeSoft.w * v_puff.x, 0.15), 0.0, 1.0);
++    }
++    // polish2 (critic rank 3): young smoke is dense at its core (soot from the fire), thinning as the puff ages
++    float young = 1.0 - smoothstep(0.0, 0.45, v_puff.w);
++    float core = 1.0 - smoothstep(0.0, 0.8, r);
++    float dense = (fire || v_tint.w > 0.5) ? 1.0 : mix(1.0, 1.0 + 1.8 * core, young);
++    float a = clamp(shape * v_puff.y * layer * nearFade * dense, 0.0, 0.94) * soft;
 +    // light: sky light plus the sun with a forward-scattering lobe (puffs glow against a low sun), each puff shaded as
 +    // a soft sphere (its sun side lighter, its far side and underside darker) so a plume reads as a volume
 +    float cosT = dot(V, SmokeDir.xyz);
@@ -4189,13 +5027,28 @@ index 0000000..71b5d21
 +    float lumS = dot(SmokeSun.rgb, vec3(0.2126, 0.7152, 0.0722));
 +    vec3 sunC = mix(vec3(lumS), SmokeSun.rgb, 0.45);
 +    float lowSun = smoothstep(0.02, 0.2, SmokeDir.y);
-+    vec3 tint = v_tint.rgb * mix(vec3(0.72, 0.68, 0.62), vec3(1.08, 1.08, 1.10), smoothstep(0.0, 0.6, v_puff.w));
++    vec3 tint = v_tint.rgb * mix(vec3(0.52, 0.48, 0.44), vec3(1.08, 1.08, 1.10), smoothstep(0.0, 0.6, v_puff.w));
++    tint *= mix(1.0, 0.55, young * core * (v_tint.w > 0.5 ? 0.0 : 1.0));
 +    vec3 ambS = mix(vec3(dot(SmokeAmb.rgb, vec3(0.2126, 0.7152, 0.0722))), SmokeAmb.rgb, 0.6);
 +    vec3 col = tint * (ambS * 0.36 * self * skySide + sunC * (0.10 + 0.16 * phase * mix(0.3, 1.0, lowSun)) * self * sunSide);
 +    // distance fog like the scene's
 +    float fog = 1.0 - exp(-FogParams.x * 0.35 * d);
 +    col = mix(col, FogColor.rgb, clamp(fog, 0.0, 0.9));
-+    gl_FragColor = vec4(col * a, a);");
++    if (fire) {
++        // a flame tongue: wide at its root, narrowing to a flickering tip (the billow noise bends it), white-yellow at
++        // its hot root, orange to red at its edges and tip; it adds light (alpha only a tenth of its coverage, so the
++        // smoke and the scene behind show through)
++        float yy = v_uv.y * 0.5 + 0.5;
++        float bend = (n - 0.5) * 0.9 * yy;
++        float halfW = mix(0.85, 0.15, pow(yy, 0.6)) * (0.7 + 0.6 * n);
++        float dx = abs(v_uv.x - bend) / halfW;
++        float tongue = exp(-dx * dx * 2.5) * smoothstep(0.0, 0.18, yy) * (1.0 - smoothstep(0.30, 1.0, yy + (n - 0.5) * 0.6));
++        float heat = clamp(tongue * (1.2 - yy) - v_puff.w * 0.35, 0.0, 1.0);
++        vec3 fc = v_tint.rgb * mix(vec3(0.80, 0.26, 0.08), vec3(1.0, 0.92, 0.72), heat * heat);
++        float fa = clamp(tongue * v_puff.y, 0.0, 1.0) * soft;
++        gl_FragColor = vec4(fc * fa * (1.0 - clamp(fog, 0.0, 0.9)), fa * 0.1);
++    } else
++        gl_FragColor = vec4(col * a, a);");
 +    }
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Engine/Scene/DemoScene.cs b/prototypes/m7-gfx2/Gfx.Engine/Scene/DemoScene.cs
@@ -6065,10 +6918,10 @@ index 0000000..77b5447
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
 new file mode 100644
-index 0000000..3c89766
+index 0000000..6cc5213
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
-@@ -0,0 +1,515 @@
+@@ -0,0 +1,679 @@
 +using Gfx.Chars.Rendering;
 +using Gfx.Engine.Atmosphere;
 +using Gfx.Engine.Effects;
@@ -6583,6 +7436,170 @@ index 0000000..3c89766
 +        var grey = new Vector4(0.3f, 0.3f, 0.3f, 1f);
 +        Assert.Equal(Mean(grey, 0f), Mean(grey, 1f));
 +    });
++
++    // ------------------------------------------------------------------ rank 3: the aftermath (disarmed, settled)
++
++    static float BoneReach(Gfx.Chars.Animation.Skeleton sk, Vector3 p)
++    {
++        float best = float.MaxValue;
++        for (int b = 0; b < sk.Head.Length; b++)
++        {
++            var a = sk.Head[b]; var ab = sk.Tail[b] - a; float l2 = ab.LengthSquared();
++            float t = l2 > 1e-10f ? Math.Clamp(Vector3.Dot(p - a, ab) / l2, 0f, 1f) : 0f;
++            best = MathF.Min(best, (p - (a + ab * t)).Length());
++        }
++        return best;
++    }
++
++    /// <summary>
++    /// Critic rank 3 (scene D): at the end of the bench battle every soldier the trace has surrendered or dead is drawn
++    /// disarmed and every soldier still fighting is drawn armed; the disarmed view the renderer uploaded for every look and
++    /// level holds no part that reaches more than 0.40 m from the skeleton (no spear, sword or shield in the hands: the
++    /// whole mesh of every armed look reaches beyond 0.5 m), the three views partition the mesh, every disarmed soldier's
++    /// kit lies on the ground within 1.6 m of him, and the trace is not touched.
++    /// </summary>
++    [BenchCrowdFact]
++    public void SurrenderedAndFallenSoldiersHoldNothingInTheirHands() => TestGfx.Host.Invoke(gd =>
++    {
++        var battle = Gfx.Demo.Scenes.Bench.BenchBattle.Load();
++        var tr = battle.Trace;
++        string before = tr.Hash();
++        using var troops = new Gfx.Demo.Scenes.Bench.TraceCrowd(gd, battle, (x, z) => 0f) { ShowDead = true };
++        troops.Update(battle.Duration);
++        int last = tr.StepCount - 1;
++        var agents = troops.Crowd.Agents.ToArray();
++        int sur = 0, dead = 0, active = 0, expectProps = 0;
++        var unarmedAt = new List<Vector3>();
++        for (int e = 0; e < agents.Length; e++)
++        {
++            if (agents[e].Hidden) continue;
++            var st = Gfx.Demo.Scenes.Bench.BenchBattle.Map(tr.State(last, e));
++            bool disarmed = st is Gfx.Demo.Scenes.Bench.TraceSoldierState.Surrendered or Gfx.Demo.Scenes.Bench.TraceSoldierState.Dead;
++            Assert.True(disarmed == agents[e].Unarmed, $"entity {e} ({st}) drawn {(agents[e].Unarmed ? "disarmed" : "armed")}");
++            if (st == Gfx.Demo.Scenes.Bench.TraceSoldierState.Surrendered) sur++;
++            else if (st == Gfx.Demo.Scenes.Bench.TraceSoldierState.Dead) dead++;
++            else active++;
++            if (agents[e].Unarmed)
++            {
++                var v = troops.Crowd.Variants[agents[e].Variant];
++                expectProps += (v.HasWeapon ? 1 : 0) + (v.HasShield ? 1 : 0);
++                unarmedAt.Add(agents[e].Position);
++            }
++        }
++        Assert.True(sur > 100 && dead > 100 && active > 50, $"surrendered {sur}, dead {dead}, active {active}");
++        // the dropped kit: one item per weapon and shield of each disarmed soldier, on the ground beside him
++        var props = troops.LastProps;
++        Assert.Equal(expectProps, props.Count);
++        foreach (var pr in props)
++        {
++            var at = pr.World.Translation;
++            float near = unarmedAt.Min(q => Vector2.Distance(new Vector2(q.X, q.Z), new Vector2(at.X, at.Z)));
++            Assert.True(near <= 1.6f, $"a dropped {pr.Item} lies {near:F2} m from the nearest disarmed soldier");
++            Assert.Equal(0f, at.Y);
++        }
++        // the disarmed views the renderer drew from
++        using var stage = new CharStage(gd);
++        float maxUnarmed = 0f; int armedLooks = 0;
++        foreach (var v in troops.Crowd.Variants)
++        {
++            var sk = stage.Asset(v.Identity).Skeleton;
++            for (int k = 0; k < 3; k++)
++            {
++                var def = v.Lods[k].Def;
++                var (ib, tris) = v.Unarmed[k];
++                Assert.Equal(def.TriangleCount, tris + v.Weapon[k].tris + v.Shield[k].tris);
++                Assert.NotNull(ib);
++                var idx = v.UnarmedIndices[k];
++                Assert.Equal(tris * 3, idx.Length);
++                foreach (uint i in idx) maxUnarmed = MathF.Max(maxUnarmed, BoneReach(sk, def.Positions[i]));
++                if (k == 0 && (v.HasWeapon || v.HasShield))
++                {
++                    float full = 0f;
++                    for (int i = 0; i < def.VertexCount; i++) full = MathF.Max(full, BoneReach(sk, def.Positions[i]));
++                    _out.WriteLine($"{v.Key}: weapon {v.Weapon[0].tris} tris, shield {v.Shield[0].tris} tris, the armed mesh reaches {full:F3} m");
++                    Assert.True(full > 0.5f, $"{v.Key}: the armed mesh reaches only {full:F2} m");
++                    armedLooks++;
++                }
++            }
++        }
++        _out.WriteLine($"surrendered {sur}, dead {dead}, active {active}; props {props.Count}; armed looks {armedLooks}; disarmed views reach {maxUnarmed:F3} m");
++        Assert.True(armedLooks >= 6, $"only {armedLooks} looks carry kit");
++        Assert.True(maxUnarmed <= 0.40f, $"a disarmed view reaches {maxUnarmed:F3} m from the skeleton (kit left in the hands)");
++        Assert.Equal(before, tr.Hash());
++    });
++
++    /// <summary>
++    /// Critic rank 3 (scene D): the fallen settle. The settle offsets are a pure function of the trace (two calls agree
++    /// bit for bit), none moves a body more than <see cref="Gfx.Demo.Scenes.Bench.TraceCrowd.MaxSettle"/>, a soldier who
++    /// does not die is not moved, some bodies do move, and the settled bodies leave fewer pairs closer than the clearance
++    /// than the layout alone did; the trace is not touched.
++    /// </summary>
++    [BenchCrowdFact]
++    public void FallenSettleWithinAMetreAsAPureFunctionOfTheTrace()
++    {
++        var tr = Gfx.Demo.Scenes.Bench.BenchBattle.Load().Trace;
++        string before = tr.Hash();
++        int n = tr.Entities.Count, steps = tr.StepCount;
++        var death = new long[n]; Array.Fill(death, long.MinValue);
++        for (int s = 0; s < steps; s++)
++            for (int e = 0; e < n; e++)
++                if (death[e] == long.MinValue && Gfx.Demo.Scenes.Bench.BenchBattle.Map(tr.State(s, e)) == Gfx.Demo.Scenes.Bench.TraceSoldierState.Dead) death[e] = tr.StepTimeMs(s);
++        var yaw = Gfx.Demo.Scenes.Bench.TraceCrowd.FacingPerStep(tr);
++        var (y1, b1) = Gfx.Demo.Scenes.Bench.TraceCrowd.LayOutFallen(tr, death, yaw);
++        var o1 = Gfx.Demo.Scenes.Bench.TraceCrowd.SettleFallen(tr, death, y1, b1);
++        var o2 = Gfx.Demo.Scenes.Bench.TraceCrowd.SettleFallen(tr, death, y1, b1);
++        Assert.Equal(o1, o2);
++        int moved = 0;
++        for (int e = 0; e < n; e++)
++        {
++            Assert.True(o1[e].Length() <= Gfx.Demo.Scenes.Bench.TraceCrowd.MaxSettle + 1e-5f, $"entity {e} moved {o1[e].Length():F3} m");
++            if (death[e] == long.MinValue) Assert.Equal(Vector2.Zero, o1[e]);
++            else if (o1[e] != Vector2.Zero) moved++;
++        }
++        var dead = Enumerable.Range(0, n).Where(e => death[e] != long.MinValue).ToArray();
++        int Close(Func<int, Vector2> off)
++        {
++            var bodies = dead.Select(e =>
++            {
++                var (x, y) = tr.PosMm(steps - 1, e);
++                var p = new Vector2(x / 1000f, y / 1000f) + off(e);
++                return (a: p, b: p + new Vector2(MathF.Sin(y1[e]), MathF.Cos(y1[e])) * (b1[e] ? -1f : 1f) * Gfx.Demo.Scenes.Bench.TraceCrowd.FallenLength);
++            }).ToArray();
++            int c = 0;
++            for (int i = 0; i < bodies.Length; i++)
++                for (int j = i + 1; j < bodies.Length; j++)
++                    if (Gfx.Demo.Scenes.Bench.TraceCrowd.SegmentDistance(bodies[i].a, bodies[i].b, bodies[j].a, bodies[j].b) < Gfx.Demo.Scenes.Bench.TraceCrowd.FallenClearance) c++;
++            return c;
++        }
++        int laid = Close(e => Vector2.Zero), settled = Close(e => o1[e]);
++        _out.WriteLine($"fallen {dead.Length}, moved {moved}; pairs closer than the clearance: laid out {laid}, settled {settled}");
++        Assert.True(moved > 0, "no body moved");
++        Assert.True(settled < laid, $"settled {settled} close pairs, laid out {laid}");
++        Assert.Equal(before, tr.Hash());
++    }
++
++    /// <summary>
++    /// Critic rank 3: where a disarmed soldier's kit lies is a pure function of his id: a surrendered man's weapon lies
++    /// before him (ahead, within 1.2 m) and his shield beside it; a fallen man's weapon and shield lie at his two sides
++    /// (weapon to his right, shield to his left); about a third of the shields lie face down, over a dense run of ids.
++    /// </summary>
++    [Fact]
++    public void DroppedKitLiesWhereTheIdPutsIt()
++    {
++        int flipped = 0, n = 3000;
++        for (long id = 1; id <= n; id++)
++        {
++            var a = Gfx.Demo.Scenes.Bench.TraceCrowd.KitPlacement(id, true);
++            Assert.Equal(a, Gfx.Demo.Scenes.Bench.TraceCrowd.KitPlacement(id, true));
++            Assert.InRange(a.weapon.Y, 0.5f, 1.2f); Assert.InRange(MathF.Abs(a.weapon.X), 0f, 0.3f);
++            Assert.InRange(a.shield.X, 0.5f, 0.85f); Assert.InRange(a.shield.Y, 0.4f, 0.9f);
++            var f = Gfx.Demo.Scenes.Bench.TraceCrowd.KitPlacement(id, false);
++            Assert.True(f.weapon.X < -0.5f && f.shield.X > 0.5f, $"id {id}: fallen kit at {f.weapon} and {f.shield}");
++            Assert.True(a.weapon.Length() <= 1.6f && a.shield.Length() <= 1.6f && f.weapon.Length() <= 1.6f && f.shield.Length() <= 1.6f);
++            if (a.shieldFlipped) flipped++;
++        }
++        Assert.InRange(flipped / (double)n, 0.30, 0.38);
++    }
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/Render2Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Render2Tests.cs
 index 1c65a3f..b7296ec 100644
