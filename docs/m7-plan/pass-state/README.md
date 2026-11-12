@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 16:16 UTC: the Director answered the last open items, recorded as D-090 (battalion sizes are DR24's; the two test battles follow the thirds; ADR-059 amended; the export made faster in a new lane RX; a queue line added); no question of the day is open; CR-027 is in its validation; the G2 final runs (first polish round); throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 17:35 UTC: CR-027 is applied (`d794358`, Tier 3 green) and joins the final-round verification; the Director answered the last open items earlier today, recorded as D-090 (battalion sizes are DR24's; the two test battles follow the thirds; ADR-059 amended; the export made faster in a new lane RX; a queue line added); no question of the day is open; the G2 final runs (first polish round); throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -177,14 +177,14 @@ and the interrupted agent restarts and continues from its clone):
 
 | # | Item | Workflow run | Script and args |
 |---|---|---|---|
-| 0 | CR-027 (D-088 DG2): the frozen kernel's trace reader reads the written year. The orchestrator applies it now, with its tests and Tier 3 | — | in a shared clone of this branch |
+| 0 | DONE: CR-027 (D-088 DG2), the frozen kernel's trace reader reads the written year. Applied in `d794358` with two new tests and lane RR's pin moved. Tier 3: 16 passed, 0 failed, 6 NOT RUN (bench not requested, no hot path; CI-only and manual checks); the 1,630-turn session reproduces hash-for-hash through `sim inspect` | — | committed `d794358`; it joins row 2 |
 | 1 | G2 final: RUNNING since 13:31 UTC (resumed). The scenes stage finished at `65c99ec` (14:51); its integration into the trunk runs; then the critic loop, the verifier and the AFTER package | `wf_d6eb0226-44e` | `m7-g2-v2.js`, args `{"base": "1601c74"}` |
 | 1a | Lane OC, battle outcomes (D-087 DF7–DF11, D-088 and D-089 DH1, DH2: a tie is a tie, fighting means damage, the Standoff tie, one role per side, the ambush trigger and its battle, walls, "fought" a required input, the player's capture choice; D-090 DI1: the "Ambush" and "Amphibious" test battles rewritten inside the thirds) | new | lane workflow, brief `args/OC.json` (to be written) |
 | 1b | Lane BN, battalions (D-087 DF12, D-088 and D-090 DI2: DR24's formation sizes as battalion sizes, PROPOSED sizes for the types DR24 does not size, the battalion as the command unit, at most 25 per army, at most 5 per side in a battle, healing) | new | lane workflow, brief `args/BN.json` (to be written) |
 | 1c | Lane AR, the AutoResolver for every domain (D-087 DF6 and D-088 DG12: aircraft, vessels, crew-served guns, embarked troops; 12 players and 40–50 such battles between turns; the parity bar, beaten where it can be) | new | lane workflow, brief `args/AR.json` (to be written) |
 | 1d | Lane RT2, the research screen and an accurate tree (D-089 DH4, DH6, DH7: the inspector's labels; polish N2, N3, N4, N6; the date review's H1, H2, B1, K1, W1, W2 with sources, the tree's shape changed where accuracy needs it) | new | lane workflow, brief `args/RT2.json` (to be written) |
 | 1e | Lane RX, the export's memory and speed (D-090 DI4: lane RR's P2 and P3, the same workbook bytes, measured before and after) | new | lane workflow, brief `args/RX.json` (to be written) |
-| 2 | Final-round verification (findings only) of lanes U, D, MOR, AP, MOR2, CB, MOR3 (`95446ff`), RT (`943b43f`) and RR (`c038b95`) | `wf_9b24d7c6-337` | `verify-final-rounds`: run its lanes one at a time, with MOR3, RT and RR added |
+| 2 | Final-round verification (findings only) of lanes U, D, MOR, AP, MOR2, CB, MOR3 (`95446ff`), RT (`943b43f`) and RR (`c038b95`), and of CR-027 (`d794358`) | `wf_9b24d7c6-337` | `verify-final-rounds`: run its lanes one at a time, with MOR3, RT, RR and CR-027 added |
 | 3 | Report draft | `wf_2a771902-a97` | `pass-report-draft` |
 
 Lanes MOR3 and RT each ran one verification round and one fix round, and neither round found a blocker or major finding (MOR3:

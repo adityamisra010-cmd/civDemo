@@ -1,9 +1,9 @@
 # CURRENT STATE — the routing document
 
-> **2026-11-11 (latest): M7 PHASE C/D PASS IN PROGRESS ON `claude/new-session-yavghm` — RESUME FROM [m7-plan/pass-state/README.md](m7-plan/pass-state/README.md).**
-> - **Where things stand:** what is done (each item a pushed commit), what is in flight (G2 segment 3, with a WIP bundle), the queue (MOR3, RR, G2 final, RT, the final report) and how to resume in a fresh session or container are in the pass-state README, rewritten at each step.
-> - **Director records of this pass:** D-079 (governance reconciliation, with dated notes), D-080..D-090; CR-027 (the trace reader, ruled).
-> - **Not done by this pass:** no merge to `main` (`7d5defc` = `m6-exit`), no tag, no release. `Sim.*` is unchanged except as D-084 and D-086 will allow for their own work.
+> **2026-11-12 (latest): M7 PHASE C/D PASS IN PROGRESS ON `claude/new-session-yavghm` — RESUME FROM [m7-plan/pass-state/README.md](m7-plan/pass-state/README.md).**
+> - **Where things stand:** what is done (each item a pushed commit), what is in flight (the G2 final, with automatic snapshots every 30 minutes), the queue (lanes OC, BN, AR, RT2 and RX, the final-round verification, the report) and how to resume in a fresh session or container are in the pass-state README, rewritten at each step.
+> - **Director records of this pass:** D-079 (governance reconciliation, with dated notes), D-080..D-090; CR-027 (the trace reader, ruled and applied in `d794358`).
+> - **Not done by this pass:** no merge to `main` (`7d5defc` = `m6-exit`), no tag, no release. `Sim.*` changes only where a Director record allows it: D-084 and D-086 (lanes RT and RR), D-087 DF1 and DF2 (two test fixes), D-088 DG2 (CR-027, the kernel's trace reader); D-089 and D-090 allow the queued lanes' changes.
 
 > **2026-11-03 (earlier): M7 UNIFIED WARFARE DIRECTION RECORDED (D-075, ADR-060); NO M7 PACKET AUTHORIZED.**
 > - **Ruling:** [D-075](d075-m7-unified-warfare-direction.md) records the Director's decisions of 2026-11-03: the "Director's Revision: Unified Warfare Architecture and M7.1–M7.20" (§A–J) is FINAL, together with the Director's clarification of the same day, including the corrected M7 critical path B7-11 → B7-12 → B7-15 → B7-16 → B7-18 → B7-24 → B7-25 → B7-29. [ADR-060](adr/adr-060-unified-warfare-simulation-architecture.md) records the architecture (one simulation kernel, land/air/naval domain modules, combined arms) as the administrative consequence. The revision and a dated note stand in [m7-spec.md](m7-spec.md).
