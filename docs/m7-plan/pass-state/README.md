@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 16:00 UTC: the Director answered items 1–14 of the second list, recorded as D-088 (all three new lanes built in this pass; the kernel trace-reader fix signed off as CR-027, being applied; one role per side; at most 5 battalions per side in a battle; healing, ambush starts, the parity bar and walls ruled); the G2 final runs (critic loop); throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 16:06 UTC: the Director answered items 15–22, recorded as D-089 ("fought" required, the player's capture choice, the research screen and an accurate tree in a new lane RT2, the rebuild launcher; D-088's readings confirmed); CR-027 (the kernel trace reader) is in its validation; the G2 final runs (critic loop); throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -179,9 +179,10 @@ and the interrupted agent restarts and continues from its clone):
 |---|---|---|---|
 | 0 | CR-027 (D-088 DG2): the frozen kernel's trace reader reads the written year. The orchestrator applies it now, with its tests and Tier 3 | — | in a shared clone of this branch |
 | 1 | G2 final: RUNNING since 13:31 UTC (resumed). The scenes stage finished at `65c99ec` (14:51); its integration into the trunk runs; then the critic loop, the verifier and the AFTER package | `wf_d6eb0226-44e` | `m7-g2-v2.js`, args `{"base": "1601c74"}` |
-| 1a | Lane OC, battle outcomes (D-087 DF7–DF11 and D-088: a tie is a tie, fighting means damage, the Standoff tie, one role per side, the ambush trigger and its battle, walls) | new | lane workflow, brief `args/OC.json` (to be written) |
+| 1a | Lane OC, battle outcomes (D-087 DF7–DF11, D-088 and D-089 DH1, DH2: a tie is a tie, fighting means damage, the Standoff tie, one role per side, the ambush trigger and its battle, walls, "fought" a required input, the player's capture choice) | new | lane workflow, brief `args/OC.json` (to be written) |
 | 1b | Lane BN, battalions (D-087 DF12 and D-088: a battalion size per unit type, the battalion as the command unit, at most 25 per army, at most 5 per side in a battle, healing) | new | lane workflow, brief `args/BN.json` (to be written) |
 | 1c | Lane AR, the AutoResolver for every domain (D-087 DF6 and D-088 DG12: aircraft, vessels, crew-served guns, embarked troops; 12 players and 40–50 such battles between turns; the parity bar, beaten where it can be) | new | lane workflow, brief `args/AR.json` (to be written) |
+| 1d | Lane RT2, the research screen and an accurate tree (D-089 DH4, DH6, DH7: the inspector's labels; polish N2, N3, N4, N6; the date review's H1, H2, B1, K1, W1, W2 with sources, the tree's shape changed where accuracy needs it) | new | lane workflow, brief `args/RT2.json` (to be written) |
 | 2 | Final-round verification (findings only) of lanes U, D, MOR, AP, MOR2, CB, MOR3 (`95446ff`), RT (`943b43f`) and RR (`c038b95`) | `wf_9b24d7c6-337` | `verify-final-rounds`: run its lanes one at a time, with MOR3, RT and RR added |
 | 3 | Report draft | `wf_2a771902-a97` | `pass-report-draft` |
 
@@ -246,8 +247,9 @@ run 486 succeeded too. The crash did not recur on the same code, which fits an i
 ## 3. Queue after the items in flight
 
 1. As each item in §2 finishes, the orchestrator verifies it (§4 step 2, or the G2 subtree method), commits, pushes, and
-   updates this README. Lanes OC, BN and AR (D-087 §5) run after the G2 final and before the final-round verification, in
-   that order: AR's AutoResolver models BN's battalions.
+   updates this README. Lanes OC, BN, AR (D-087 §5) and RT2 (D-089) run after the G2 final and before the final-round
+   verification, in that order: AR's AutoResolver models BN's battalions. The orchestrator itself makes D-089 DH8's packaging
+   change (a third launcher in the game zip).
 2. The pass's full report: 10 sections, DR52. It is built from [notes/final-report-notes.md](notes/final-report-notes.md), in
    the style of `docs/m7-plan/m7-execution-pass-report.md`.
 
@@ -303,16 +305,23 @@ are confirmed, and DF8-R2 and DF9-R2 are replaced (one role per side; the ambush
 DR25's 50,000 is an empire's total; a side brings at most 5 battalions to a battle, its own empire's first; healing (lane CB's
 READING CB-4), the parity bar (D-079 Q4, lane P's acceptance) and walls (lane MOR3's PROPOSAL) are ruled. Still open:
 
-- D-088 §5, re-asked: whether the 5-battalion limit counts battalions in total per side (applied) or per unit type; whether
-  D-087's battalion examples replace DR24's formation sizes for archers (60 to 50) and fixed-wing aircraft (1 to 2); walls per
-  level additive (applied) or doubling. The question that drew DG3 misdescribed DR24's caps as per-army limits (D-088 §0).
-- D-088's readings, applied until the Director corrects them: DG3-R1, DG5-R1, DG5-R3, DG13-R1, DG13-R2, DG13-R3 and DG13-R4
-  (walls add nothing against an attacker with artillery able to breach them; Law 4 bans era gates).
-- Earlier open items: the two thirds-violating sandbox scenarios; R6; lane U's U-Q11, the decision-tray placement and its
-  queue line; the DA3 calibration numbers (A-38, M7.14).
-- Lane MOR3 asks no question, since D-085 §4 delegated its design. Of its two PROPOSALS (H-MOR3 §13), the walls item is
-  superseded by D-088 DG13. Open: for M7.15, `Fought` as a required hand-off input (`SupportBattle.Fought` defaults to true,
-  which is fail-open).
+**Answered on 2026-11-12 (third message), recorded as [D-089](../../d089-fought-capture-choice-research-tree-launcher-director-answers-2026-11-12.md)**
+(items 15–22): "fought" a required input; the player's capture choice at the moment of capture (U-Q11); the research
+inspector's labels fixed (lane RT's N1) and its polish N2, N3, N4, N6 built now; lane RT's three readings kept; the tree made
+historically accurate, its shape changed where needed; the rebuild launcher in the game zip (lane RR's P5); and D-088's
+readings DG3-R1 (5 battalions in total per side), DG13-R3 (walls additive), DG13-R4 (breaching artillery) and DG5-R1 (one
+turn heals) confirmed. Still open:
+
+- Item 17 (D-089 §3, explained again): the two shipped test battles that start troops in the middle third ("Ambush",
+  "Amphibious"): keep as labelled tests, rewrite, or both.
+- Battalion sizes against DR24 (D-088 §5): archers 60 or the Director's 50; fixed-wing aircraft 1 or the Director's 2.
+- Items 23 (ADR-059's amendment), 24 (the export's memory and speed) and 25 (a queue line for older UI overlaps).
+- D-088's readings not yet confirmed: DG5-R3 (home territory: land the empire controls), DG13-R1 (walls in both resolvers),
+  DG13-R2 (walls multiply fighting strength).
+- Earlier open items: R6 (ships and drones under their formation caps); lane U's decision-tray placement and its queue line;
+  the DA3 calibration numbers (A-38, M7.14).
+- Lane MOR3 asks no question, since D-085 §4 delegated its design. Its two PROPOSALS (H-MOR3 §13) are settled: walls by
+  D-088 DG13, and `Fought` as a required hand-off input by D-089 DH1.
 - Lane RT ([research-tree-fixes-2026-11.md](../../m6-plan/research-tree-fixes-2026-11.md) §4–§5, H-RT §10.7):
   - Longbow: a screenshot of the detail pane as seen in play, and the build that was run.
   - N1: may the inspector's ENABLED BY and WHY LOCKED labels (`InfoQuery`) be corrected under D-084? That is a `Sim.Core/State`

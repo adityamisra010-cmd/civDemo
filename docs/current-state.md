@@ -2,7 +2,7 @@
 
 > **2026-11-11 (latest): M7 PHASE C/D PASS IN PROGRESS ON `claude/new-session-yavghm` — RESUME FROM [m7-plan/pass-state/README.md](m7-plan/pass-state/README.md).**
 > - **Where things stand:** what is done (each item a pushed commit), what is in flight (G2 segment 3, with a WIP bundle), the queue (MOR3, RR, G2 final, RT, the final report) and how to resume in a fresh session or container are in the pass-state README, rewritten at each step.
-> - **Director records of this pass:** D-079 (governance reconciliation, with dated notes), D-080..D-088; CR-027 (the trace reader, ruled).
+> - **Director records of this pass:** D-079 (governance reconciliation, with dated notes), D-080..D-089; CR-027 (the trace reader, ruled).
 > - **Not done by this pass:** no merge to `main` (`7d5defc` = `m6-exit`), no tag, no release. `Sim.*` is unchanged except as D-084 and D-086 will allow for their own work.
 
 > **2026-11-03 (earlier): M7 UNIFIED WARFARE DIRECTION RECORDED (D-075, ADR-060); NO M7 PACKET AUTHORIZED.**

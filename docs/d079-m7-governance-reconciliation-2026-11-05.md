@@ -1062,3 +1062,11 @@ These reports live in the session scratchpad (`/tmp/claude-0/-home-user-civDemo/
   own empire's first; healing, the ambush start (the ambusher's own third of the battlefield), the parity bar (Q4 answered) and
   walls are ruled. DG2 signs off a change to the frozen kernel's trace reader, recorded as `docs/adr/cr-027-session-trace-reads-the-written-year.md`.
   §6's rule stands for everything else and Q5 stays open.
+
+## Dated note — 2026-11-12 (D-089; appended, the text above is unchanged)
+
+- The Director answered items 15–22 of the second list and confirmed the readings the orchestrator had applied after D-088;
+  recorded in `docs/d089-fought-capture-choice-research-tree-launcher-director-answers-2026-11-12.md` (DH1–DH9). DH4 allows the
+  `Sim.Core/State` change (`InfoQuery`) for the research inspector's labels; DH7 allows the research tree's content and shape to
+  change for historical accuracy, a D-047 date included where the cited evidence requires it; DH8 allows the build-pipeline
+  change for a third launcher in the game zip. §6's rule stands for everything else and Q5 stays open.
