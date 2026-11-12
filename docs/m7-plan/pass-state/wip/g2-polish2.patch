@@ -503,10 +503,10 @@ index 0000000..81dd034
 +    }
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs
-index c7e033f..a5956f8 100644
+index c7e033f..05365a2 100644
 --- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs
 +++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs
-@@ -23,6 +23,32 @@ public sealed class CrowdVariant
+@@ -23,6 +23,35 @@ public sealed class CrowdVariant
      public required float Height { get; init; }
      internal readonly CrowdBatch[] Main = new CrowdBatch[3], Shadow = new CrowdBatch[3];
      public string Key => Identity + "__" + Outfit;
@@ -520,6 +520,9 @@ index c7e033f..a5956f8 100644
 +    public bool HasWeapon => Weapon[0].tris > 0;
 +    public bool HasShield => Shield[0].tris > 0;
 +    internal readonly CrowdBatch[] MainUnarmed = new CrowdBatch[3], ShadowUnarmed = new CrowdBatch[3];
++    /// <summary>Polish2 (critic rank 7): per level, the soldier and his weapon without his shield (<see cref="CrowdAgent.NoShield"/>).</summary>
++    public readonly (IndexBuffer? ib, int tris)[] NoShield = new (IndexBuffer?, int)[3];
++    internal readonly CrowdBatch[] MainNoShield = new CrowdBatch[3], ShadowNoShield = new CrowdBatch[3];
 +    internal readonly CrowdBatch[][] Props = { new CrowdBatch[3], new CrowdBatch[3] };
 +}
 +
@@ -539,7 +542,7 @@ index c7e033f..a5956f8 100644
  }
  
  internal sealed class CrowdBatch(GraphicsDevice gd) : IDisposable
-@@ -134,7 +160,20 @@ public sealed class CrowdRenderer : IDisposable
+@@ -134,7 +163,22 @@ public sealed class CrowdRenderer : IDisposable
              {
                  Identity = id, Outfit = outfit, BankIdentity = bi, Lods = new[] { l1, l2, l3 }, Skin = skin, Emblem = emblem, Height = height,
              };
@@ -548,6 +551,7 @@ index c7e033f..a5956f8 100644
 +            {
 +                v.Main[k] = new CrowdBatch(gd); v.Shadow[k] = new CrowdBatch(gd);
 +                v.MainUnarmed[k] = new CrowdBatch(gd); v.ShadowUnarmed[k] = new CrowdBatch(gd);
++                v.MainNoShield[k] = new CrowdBatch(gd); v.ShadowNoShield[k] = new CrowdBatch(gd);
 +                v.Props[0][k] = new CrowdBatch(gd); v.Props[1][k] = new CrowdBatch(gd);
 +                // polish2: the kit in the hands, found per level (each LOD was simplified on its own)
 +                var def = v.Lods[k].Def;
@@ -556,12 +560,13 @@ index c7e033f..a5956f8 100644
 +                v.Unarmed[k] = Upload(gd, v.UnarmedIndices[k]);
 +                var wi = CrowdKit.Indices(def, tri, CarriedItem.Weapon); var si = CrowdKit.Indices(def, tri, CarriedItem.Shield);
 +                v.Weapon[k] = Upload(gd, wi); v.Shield[k] = Upload(gd, si);
++                v.NoShield[k] = Upload(gd, [.. v.UnarmedIndices[k], .. wi]);
 +                if (k == 0) { v.WeaponLie = CrowdKit.LieFlat(def, wi); v.ShieldLie = CrowdKit.LieFlat(def, si); v.ShieldLieFlipped = CrowdKit.LieFlat(def, si, true); }
 +            }
              _variants.Add(v);
          }
          HasLod3 = lod3;
-@@ -144,6 +183,42 @@ public sealed class CrowdRenderer : IDisposable
+@@ -144,6 +188,42 @@ public sealed class CrowdRenderer : IDisposable
      /// <summary>Bank index of a clip name (see <see cref="CrowdAnimationBank.ClipNames"/>).</summary>
      public static int Clip(string name) => CrowdAnimationBank.ClipIndex(name) is int i and >= 0 ? i : throw new KeyNotFoundException(name);
  
@@ -604,21 +609,21 @@ index c7e033f..a5956f8 100644
      /// <summary>Takes this frame's agents: world transforms, bank rows and looks are computed once here.</summary>
      public void SetAgents(ReadOnlySpan<CrowdAgent> agents)
      {
-@@ -232,7 +307,7 @@ public sealed class CrowdRenderer : IDisposable
+@@ -232,7 +312,7 @@ public sealed class CrowdRenderer : IDisposable
          long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
          Stats.ResetMain();
          if (!rc.Features.Crowd) return;
 -        foreach (var v in _variants) for (int k = 0; k < 3; k++) v.Main[k].Count = 0;
-+        foreach (var v in _variants) for (int k = 0; k < 3; k++) { v.Main[k].Count = 0; v.MainUnarmed[k].Count = 0; v.Props[0][k].Count = 0; v.Props[1][k].Count = 0; }
++        foreach (var v in _variants) for (int k = 0; k < 3; k++) { v.Main[k].Count = 0; v.MainUnarmed[k].Count = 0; v.MainNoShield[k].Count = 0; v.Props[0][k].Count = 0; v.Props[1][k].Count = 0; }
          var cam = rc.Camera.Position;
          float m22 = rc.Projection.M22, vh = rc.ViewportSize.Y;
          bool reflection = rc.IsReflectionPass;
-@@ -254,12 +329,21 @@ public sealed class CrowdRenderer : IDisposable
+@@ -254,12 +334,21 @@ public sealed class CrowdRenderer : IDisposable
              {
                  var inst = lv[k].level == 2 ? Coarse(drawn) : drawn;
                  inst.Lod.X = lv[k].fade; inst.Lod.Y = lv[k].sign;
 -                v.Main[lv[k].level].Add(inst);
-+                (a.Unarmed ? v.MainUnarmed : v.Main)[lv[k].level].Add(inst);
++                (a.Unarmed ? v.MainUnarmed : a.NoShield ? v.MainNoShield : v.Main)[lv[k].level].Add(inst);
                  Stats.PerLevel[lv[k].level]++;
              }
              if (n == 2) Stats.InFade++;
@@ -636,11 +641,13 @@ index c7e033f..a5956f8 100644
          Stats.CullMs = System.Diagnostics.Stopwatch.GetElapsedTime(t0).TotalMilliseconds;
          var fx = rc.Effects.Get(CrowdEffectNames.Lit);
          fx.Parameters["CrowdParams"].SetValue(new Vector4(rc.SampleIndex, rc.SampleCount, 0, 0));
-@@ -271,6 +355,12 @@ public sealed class CrowdRenderer : IDisposable
+@@ -271,6 +360,14 @@ public sealed class CrowdRenderer : IDisposable
              {
                  var (d, t) = DrawBatch(rc, fx, v.Lods[k], v.Main[k]);
                  Stats.Draws += d; Stats.Triangles += t;
 +                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Unarmed[k], v.MainUnarmed[k]);
++                Stats.Draws += d; Stats.Triangles += t;
++                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.NoShield[k], v.MainNoShield[k]);
 +                Stats.Draws += d; Stats.Triangles += t;
 +                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Weapon[k], v.Props[0][k]);
 +                Stats.Draws += d; Stats.Triangles += t;
@@ -649,21 +656,22 @@ index c7e033f..a5956f8 100644
              }
          }
      }
-@@ -279,7 +369,7 @@ public sealed class CrowdRenderer : IDisposable
+@@ -279,7 +376,7 @@ public sealed class CrowdRenderer : IDisposable
      {
          if (_count == 0) return;
          long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
 -        foreach (var v in _variants) for (int k = 0; k < 3; k++) v.Shadow[k].Count = 0;
-+        foreach (var v in _variants) for (int k = 0; k < 3; k++) { v.Shadow[k].Count = 0; v.ShadowUnarmed[k].Count = 0; v.Props[0][k].Count = 0; v.Props[1][k].Count = 0; }
++        foreach (var v in _variants) for (int k = 0; k < 3; k++) { v.Shadow[k].Count = 0; v.ShadowUnarmed[k].Count = 0; v.ShadowNoShield[k].Count = 0; v.Props[0][k].Count = 0; v.Props[1][k].Count = 0; }
          if (rc.ShadowCascade <= 0) { Stats.ShadowInstances = 0; Stats.ShadowDraws = 0; Stats.ShadowTriangles = 0; Stats.ShadowCulledCascade = 0; Stats.ShadowSelectMs = 0; }
          if (!rc.Features.Crowd) return;
          var frustum = rc.ShadowFrustum ?? rc.Frustum;
-@@ -299,7 +389,18 @@ public sealed class CrowdRenderer : IDisposable
+@@ -299,7 +396,19 @@ public sealed class CrowdRenderer : IDisposable
              var drawn = Drawn(i);
              var inst = level == 2 ? Coarse(drawn) : drawn;
              inst.Lod.X = 0; inst.Lod.Y = 0;
 -            _variants[a.Variant].Shadow[level].Add(inst);
-+            (a.Unarmed ? _variants[a.Variant].ShadowUnarmed : _variants[a.Variant].Shadow)[level].Add(inst);
++            var sv = _variants[a.Variant];
++            (a.Unarmed ? sv.ShadowUnarmed : a.NoShield ? sv.ShadowNoShield : sv.Shadow)[level].Add(inst);
 +        }
 +        for (int i = 0; i < _propCount; i++)
 +        {
@@ -678,12 +686,14 @@ index c7e033f..a5956f8 100644
          }
          Stats.ShadowSelectMs += System.Diagnostics.Stopwatch.GetElapsedTime(t0).TotalMilliseconds;
          var fx = rc.Effects.Get(CrowdEffectNames.Depth);
-@@ -308,6 +409,12 @@ public sealed class CrowdRenderer : IDisposable
+@@ -308,6 +417,14 @@ public sealed class CrowdRenderer : IDisposable
              {
                  var (d, t) = DrawBatch(rc, fx, v.Lods[k], v.Shadow[k]);
                  Stats.ShadowDraws += d; Stats.ShadowTriangles += t; Stats.ShadowInstances += v.Shadow[k].Count;
 +                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Unarmed[k], v.ShadowUnarmed[k]);
 +                Stats.ShadowDraws += d; Stats.ShadowTriangles += t; Stats.ShadowInstances += v.ShadowUnarmed[k].Count;
++                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.NoShield[k], v.ShadowNoShield[k]);
++                Stats.ShadowDraws += d; Stats.ShadowTriangles += t; Stats.ShadowInstances += v.ShadowNoShield[k].Count;
 +                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Weapon[k], v.Props[0][k]);
 +                Stats.ShadowDraws += d; Stats.ShadowTriangles += t;
 +                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Shield[k], v.Props[1][k]);
@@ -691,7 +701,7 @@ index c7e033f..a5956f8 100644
              }
      }
  
-@@ -349,25 +456,34 @@ public sealed class CrowdRenderer : IDisposable
+@@ -349,25 +466,35 @@ public sealed class CrowdRenderer : IDisposable
      }
  
      (int draws, long tris) DrawBatch(RenderContext rc, Effect fx, GpuPart mesh, CrowdBatch b)
@@ -726,6 +736,7 @@ index c7e033f..a5956f8 100644
 +            for (int k = 0; k < 3; k++)
 +            {
 +                v.Main[k].Dispose(); v.Shadow[k].Dispose(); v.MainUnarmed[k].Dispose(); v.ShadowUnarmed[k].Dispose();
++                v.MainNoShield[k].Dispose(); v.ShadowNoShield[k].Dispose(); v.NoShield[k].ib?.Dispose();
 +                v.Props[0][k].Dispose(); v.Props[1][k].Dispose();
 +                v.Unarmed[k].ib?.Dispose(); v.Weapon[k].ib?.Dispose(); v.Shield[k].ib?.Dispose();
 +            }
@@ -733,15 +744,18 @@ index c7e033f..a5956f8 100644
          foreach (var a in _ownAssets) a.Dispose();
          Bank.Dispose();
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs
-index 60946b5..05a2771 100644
+index 60946b5..e3f250b 100644
 --- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs
 +++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs
-@@ -101,4 +101,6 @@ public struct CrowdAgent
+@@ -101,4 +101,9 @@ public struct CrowdAgent
      public float Blend;
      public CrowdLook Look;
      public bool Hidden;
 +    /// <summary>Polish2 (critic rank 3): drawn without the kit in his hands (a surrendered or fallen soldier).</summary>
 +    public bool Unarmed;
++    /// <summary>Polish2 (critic rank 7): drawn without his shield but with his weapon (a routing soldier who has thrown
++    /// his shield away in flight); ignored when <see cref="Unarmed"/> is set.</summary>
++    public bool NoShield;
  }
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
 index cf7b14d..f354ce6 100644
@@ -2994,10 +3008,10 @@ index 0000000..3cc9dc3
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
 new file mode 100644
-index 0000000..ec83010
+index 0000000..5bba05e
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
-@@ -0,0 +1,673 @@
+@@ -0,0 +1,698 @@
 +using System.Globalization;
 +using System.Text.Json;
 +using Gfx.Chars.Crowd;
@@ -3107,8 +3121,12 @@ index 0000000..ec83010
 +    /// does not die).</summary>
 +    readonly Vector2[] _deadOffset;
 +    readonly List<CrowdProp> _props = new();
++    /// <summary>Polish2: the entity each of <see cref="_props"/> belongs to (read only through <see cref="LastPropOwners"/>).</summary>
++    readonly List<int> _propOwners = new();
 +    /// <summary>Polish2 (critic rank 7): kit thrown away in flight: (entity, trace step, item, place, turn).</summary>
 +    readonly List<(int e, int step, CarriedItem item, Vector2 at, float turn)> _routDrops = new();
++    /// <summary>Polish2: per entity, the trace step at which he throws his shield and his weapon away in flight (-1: never).</summary>
++    readonly int[] _shieldThrown, _weaponThrown;
 +    readonly int[][] _events;         // per entity: indices of Fire events it made and Damage events it took (time order)
 +    readonly float[] _phase;
 +    readonly int _idle, _idle2, _walk, _jog, _run, _thrust, _swingOver, _swingSide, _block, _kneel, _cower, _death, _death2, _stumble, _surrender;
@@ -3205,6 +3223,9 @@ index 0000000..ec83010
 +        (_deadYaw, _deadBack) = LayOutFallen(tr, _deathMs, _yaw);
 +        _deadOffset = SettleFallen(tr, _deathMs, _deadYaw, _deadBack);
 +        _routDrops.AddRange(RoutDrops(battle, _yaw));
++        _shieldThrown = new int[tr.Entities.Count]; _weaponThrown = new int[tr.Entities.Count];
++        Array.Fill(_shieldThrown, -1); Array.Fill(_weaponThrown, -1);
++        foreach (var d in _routDrops) (d.item == CarriedItem.Shield ? _shieldThrown : _weaponThrown)[d.e] = d.step;
 +        _idle = CrowdRenderer.Clip("idle"); _idle2 = CrowdRenderer.Clip("idle_proud"); _walk = CrowdRenderer.Clip("walk");
 +        _jog = CrowdRenderer.Clip("jog"); _run = CrowdRenderer.Clip("run"); _thrust = CrowdRenderer.Clip("thrust");
 +        _swingOver = CrowdRenderer.Clip("swing_over"); _swingSide = CrowdRenderer.Clip("swing_side"); _block = CrowdRenderer.Clip("block");
@@ -3358,19 +3379,25 @@ index 0000000..ec83010
 +
 +    /// <summary>
 +    /// Polish2 (critic rank 7; PRESENTATION ONLY): the kit men throw away when they run. Every soldier the trace has
-+    /// routing drops his shield on the way, 2 to 6 steps after he first routs (but on a step he is still routing), and
-+    /// about half of them their weapon too, 4 to 11 steps after; each item lies where the trace has him at that step,
-+    /// turned from his facing by a hash. A pure function of the trace; an item shows from its step on.
++    /// routing and never fighting again drops his shield on the way, 2 to 6 steps after he first routs (but on a step he
++    /// is still routing), and about half of them their weapon too, 4 to 11 steps after and never before the shield; each
++    /// item lies where the trace has him at that step, turned from his facing by a hash. A soldier who rallies keeps his
++    /// kit. A pure function of the trace; an item shows from its step on, and from then on he is drawn without it (and
++    /// his body or his surrender does not drop it again).
 +    /// </summary>
 +    public static List<(int e, int step, CarriedItem item, Vector2 at, float turn)> RoutDrops(BenchBattle b, float[][] yawPerStep)
 +    {
 +        var tr = b.Trace; var list = new List<(int, int, CarriedItem, Vector2, float)>();
 +        for (int e = 0; e < tr.Entities.Count; e++)
 +        {
-+            int s0 = -1, s1 = -1;
++            int s0 = -1, s1 = -1; bool rallies = false;
 +            for (int s = 0; s < tr.StepCount; s++)
-+                if (BenchBattle.Map(tr.State(s, e)) == TraceSoldierState.Routing) { if (s0 < 0) s0 = s; s1 = s; }
-+            if (s0 < 0) continue;
++            {
++                var st = BenchBattle.Map(tr.State(s, e));
++                if (st == TraceSoldierState.Routing) { if (s0 < 0) s0 = s; s1 = s; }
++                else if (s0 >= 0 && st == TraceSoldierState.Active) rallies = true;
++            }
++            if (s0 < 0 || rallies) continue;
 +            uint h = CrowdLook.Hash((uint)tr.Entities[e].Id ^ 0x2C1B3C6Du);
 +            void Drop(CarriedItem item, int step, uint k)
 +            {
@@ -3379,8 +3406,9 @@ index 0000000..ec83010
 +                float turn = ((CrowdLook.Hash(h ^ k) >> 8) * (1f / 16777216f) - 0.5f) * 2.4f;
 +                list.Add((e, step, item, new Vector2(w.X, w.Z), yawPerStep[step][e] + turn));
 +            }
-+            Drop(CarriedItem.Shield, s0 + 2 + (int)(h % 5u), 0x51u);
-+            if (((h >> 8) & 1u) == 0) Drop(CarriedItem.Weapon, s0 + 4 + (int)((h >> 12) % 8u), 0x77u);
++            int shieldStep = s0 + 2 + (int)(h % 5u);
++            Drop(CarriedItem.Shield, shieldStep, 0x51u);
++            if (((h >> 8) & 1u) == 0) Drop(CarriedItem.Weapon, Math.Max(shieldStep, s0 + 4 + (int)((h >> 12) % 8u)), 0x77u);
 +        }
 +        return list;
 +    }
@@ -3417,6 +3445,9 @@ index 0000000..ec83010
 +
 +    /// <summary>Polish2: the dropped kit of the last <see cref="Update"/> (read only; tests and reports).</summary>
 +    public IReadOnlyList<CrowdProp> LastProps => _props;
++
++    /// <summary>Polish2: the entity each item of <see cref="LastProps"/> belongs to (read only; tests).</summary>
++    public IReadOnlyList<int> LastPropOwners => _propOwners;
 +
 +    /// <summary>
 +    /// Polish2 (critic rank 3; PRESENTATION ONLY): where a disarmed soldier's kit lies, in his own frame (x to his left,
@@ -3500,6 +3531,8 @@ index 0000000..ec83010
 +        float u = te > ts ? Math.Clamp((t * 1000f + t0 - ts) / (te - ts), 0f, 1f) : 0f;
 +        float segSec = te > ts ? (te - ts) / 1000f : 1f;
 +        float now = t + t0 / 1000f;
++        // polish2 (critic rank 7): whether an item thrown away in flight at trace step `step` is on the ground by now
++        bool Thrown(int step) => DropKitInFlight && step >= 0 && tr.StepTimeMs(step) <= tMs;
 +        Array.Clear(LastStates);
 +        var bank = Crowd.Bank;
 +        for (int e = 0; e < _agents.Length; e++)
@@ -3558,6 +3591,9 @@ index 0000000..ec83010
 +                }
 +                case TraceSoldierState.Routing:
 +                {
++                    // polish2 (critic rank 7): without what he has thrown away so far (it lies behind him)
++                    a.NoShield = Thrown(_shieldThrown[e]);
++                    a.Unarmed = Thrown(_weaponThrown[e]);
 +                    var clip = speed > RunSpeed * 0.8f ? _run : _jog;
 +                    float cs = MathF.Max(0.5f, bank.Clip(Crowd.Variants[a.Variant].BankIdentity, clip).Speed);
 +                    a.ClipA = clip; a.TimeA = now * (MathF.Max(speed, 1.0f) / cs) + off * 3f;
@@ -3616,13 +3652,15 @@ index 0000000..ec83010
 +        }
 +        Crowd.SetAgents(_agents);
 +        // polish2 (critic rank 3): the kit of every disarmed soldier drawn, laid on the ground by KitPlacement
-+        _props.Clear();
++        _props.Clear(); _propOwners.Clear();
 +        for (int e = 0; e < _agents.Length; e++)
 +        {
 +            var a = _agents[e];
 +            if (a.Hidden || !a.Unarmed) continue;
 +            var v = Crowd.Variants[a.Variant];
-+            bool sur = BenchBattle.Map(tr.State(s, e)) == TraceSoldierState.Surrendered;
++            var se = BenchBattle.Map(tr.State(s, e));
++            if (se is not (TraceSoldierState.Surrendered or TraceSoldierState.Dead)) continue;
++            bool sur = se == TraceSoldierState.Surrendered;
 +            var (wp, wt, sp, st, flip) = KitPlacement(tr.Entities[e].Id, sur);
 +            var frame = Matrix.CreateRotationY(a.Yaw);
 +            var pos = a.Position; float yawE = a.Yaw;
@@ -3632,8 +3670,8 @@ index 0000000..ec83010
 +                w.Y = _height(w.X, w.Z);
 +                return Matrix.CreateRotationY(yawE + turn) * Matrix.CreateTranslation(w);
 +            }
-+            if (v.HasWeapon) _props.Add(new CrowdProp { Variant = a.Variant, Item = CarriedItem.Weapon, World = At(wp, wt), Look = a.Look });
-+            if (v.HasShield) _props.Add(new CrowdProp { Variant = a.Variant, Item = CarriedItem.Shield, World = At(sp, st), Look = a.Look, Flipped = flip });
++            if (v.HasWeapon && !Thrown(_weaponThrown[e])) { _props.Add(new CrowdProp { Variant = a.Variant, Item = CarriedItem.Weapon, World = At(wp, wt), Look = a.Look }); _propOwners.Add(e); }
++            if (v.HasShield && !Thrown(_shieldThrown[e])) { _props.Add(new CrowdProp { Variant = a.Variant, Item = CarriedItem.Shield, World = At(sp, st), Look = a.Look, Flipped = flip }); _propOwners.Add(e); }
 +        }
 +        // polish2 (critic rank 7): the kit thrown away in flight, from the step it was dropped
 +        if (DropKitInFlight)
@@ -3645,6 +3683,7 @@ index 0000000..ec83010
 +                var w = new Vector3(d.at.X, _height(d.at.X, d.at.Y), d.at.Y);
 +                bool flip = (CrowdLook.Hash((uint)d.e ^ 0x6A09E667u) & 3u) == 0u;
 +                _props.Add(new CrowdProp { Variant = _variant[d.e], Item = d.item, World = Matrix.CreateRotationY(d.turn) * Matrix.CreateTranslation(w), Look = _look[d.e], Flipped = flip });
++                _propOwners.Add(d.e);
 +            }
 +        Crowd.SetProps(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_props));
 +    }
@@ -7438,10 +7477,10 @@ index 0000000..77b5447
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
 new file mode 100644
-index 0000000..9ab70ca
+index 0000000..00b6434
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
-@@ -0,0 +1,784 @@
+@@ -0,0 +1,830 @@
 +using Gfx.Chars.Rendering;
 +using Gfx.Engine.Atmosphere;
 +using Gfx.Engine.Effects;
@@ -8027,7 +8066,8 @@ index 0000000..9ab70ca
 +    /// disarmed and every soldier still fighting is drawn armed; the disarmed view the renderer uploaded for every look and
 +    /// level holds no part that reaches more than 0.40 m from the skeleton (no spear, sword or shield in the hands: the
 +    /// whole mesh of every armed look reaches beyond 0.5 m), the three views partition the mesh, every disarmed soldier's
-+    /// kit lies on the ground within 1.6 m of him, and the trace is not touched.
++    /// kit lies on the ground within 1.6 m of him, and the trace is not touched. Rank 7: the kit thrown away in flight lies
++    /// where the trace has its owner routing; no item lies on the ground twice or both on the ground and in a hand.
 +    /// </summary>
 +    [BenchCrowdFact]
 +    public void SurrenderedAndFallenSoldiersHoldNothingInTheirHands() => TestGfx.Host.Invoke(gd =>
@@ -8105,10 +8145,55 @@ index 0000000..9ab70ca
 +            var v = troops.Crowd.Variants[agents[d.e].Variant];
 +            if (d.item == Gfx.Chars.Crowd.CarriedItem.Weapon ? v.HasWeapon : v.HasShield) flight++;
 +        }
-+        troops.DropKitInFlight = true;
-+        troops.Update(battle.Duration);
 +        Assert.True(flight > 100, $"{flight} items dropped in flight");
-+        Assert.Equal(expectProps + flight, troops.LastProps.Count);
++        // with the kit thrown away in flight drawn: no item lies on the ground twice, and none is both on the ground and
++        // in its owner's hand, at the battle's end and at four times during the rout; a routing soldier drawn without his
++        // shield or his weapon has thrown it away by then (it lies on the field: nothing vanishes); at the end every
++        // surrendered or fallen soldier's kit lies on the ground exactly once (beside him, or along his rout)
++        troops.DropKitInFlight = true;
++        var dropSteps = troops.FlightDrops.Select(d => d.step).OrderBy(x => x).ToArray();
++        var times = new List<float>();
++        foreach (double q in new[] { 0.1, 0.35, 0.6, 0.85 })
++            times.Add((tr.StepTimeMs(dropSteps[(int)(q * (dropSteps.Length - 1))]) - tr.StepTimeMs(0)) / 1000f + 0.5f);
++        times.Add(battle.Duration);
++        int routingWithoutShield = 0, routingUnarmed = 0;
++        foreach (float t in times)
++        {
++            troops.Update(t);
++            var ag = troops.Crowd.Agents.ToArray();
++            var items = troops.LastProps; var owners = troops.LastPropOwners;
++            Assert.Equal(items.Count, owners.Count);
++            var onGround = new HashSet<(int, Gfx.Chars.Crowd.CarriedItem)>();
++            for (int i = 0; i < items.Count; i++)
++            {
++                int e = owners[i];
++                Assert.True(onGround.Add((e, items[i].Item)), $"t {t:F1} s: entity {e}'s {items[i].Item} lies on the ground twice");
++                var a = ag[e];
++                bool inHand = !a.Hidden && !a.Unarmed && !(items[i].Item == Gfx.Chars.Crowd.CarriedItem.Shield && a.NoShield);
++                Assert.False(inHand, $"t {t:F1} s: entity {e}'s {items[i].Item} is on the ground and in his hand");
++            }
++            for (int e = 0; e < ag.Length; e++)
++            {
++                if (ag[e].Hidden) continue;
++                var v = troops.Crowd.Variants[ag[e].Variant];
++                var st = troops.StateAt(e, t);
++                if (st == Gfx.Demo.Scenes.Bench.TraceSoldierState.Routing)
++                {
++                    // nothing vanishes: an item not in his hands lies on the ground
++                    bool shieldInHand = !ag[e].Unarmed && !ag[e].NoShield, weaponInHand = !ag[e].Unarmed;
++                    if (v.HasShield && !shieldInHand) { routingWithoutShield++; Assert.Contains((e, Gfx.Chars.Crowd.CarriedItem.Shield), onGround); }
++                    if (v.HasWeapon && !weaponInHand) { routingUnarmed++; Assert.Contains((e, Gfx.Chars.Crowd.CarriedItem.Weapon), onGround); }
++                }
++                else if (t == battle.Duration && st is Gfx.Demo.Scenes.Bench.TraceSoldierState.Surrendered or Gfx.Demo.Scenes.Bench.TraceSoldierState.Dead)
++                {
++                    if (v.HasWeapon) Assert.Contains((e, Gfx.Chars.Crowd.CarriedItem.Weapon), onGround);
++                    if (v.HasShield) Assert.Contains((e, Gfx.Chars.Crowd.CarriedItem.Shield), onGround);
++                }
++            }
++            _out.WriteLine($"t {t:F1} s: {items.Count} items on the ground");
++        }
++        _out.WriteLine($"routing soldiers drawn without their shield {routingWithoutShield}, without their weapon {routingUnarmed} (over the four rout times)");
++        Assert.True(routingWithoutShield > 50 && routingUnarmed > 20, $"routing without shield {routingWithoutShield}, unarmed {routingUnarmed}");
 +        Assert.True(armedLooks >= 6, $"only {armedLooks} looks carry kit");
 +        Assert.True(maxUnarmed <= 0.40f, $"a disarmed view reaches {maxUnarmed:F3} m from the skeleton (kit left in the hands)");
 +        Assert.Equal(before, tr.Hash());

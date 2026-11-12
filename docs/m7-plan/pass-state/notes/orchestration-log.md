@@ -75,3 +75,5 @@
 2026-11-12T19:41:48Z 19:40 check-in: CI 991 (737e66b) SUCCESS, all CI green; G2 critic2 running (polish1 on trunk b11e14b 18:58Z); README row 1 refreshed and pushed; snapshot run; loop bj87bx58e running; check-in re-armed 21:40Z.
 2026-11-12T20:56:07Z snapshot loop bj87bx58e ended (20:25Z d97580e; 20:55Z a7617e6; G2 critic2 done, polish2 running at 8f6ac9d +2); relaunched as bdab1axaq. At the 01:40Z stop, TaskStop the loop's current task id (newest 'relaunched as' line).
 2026-11-12T21:41:17Z 21:40 check-in: no new CI (newest CI commit 737e66b green); G2 critic2 needs-work, 13 issues; polish2 running (b9901ed WIP); README row 1 refreshed and pushed; snapshot run; loop bdab1axaq running; check-in re-armed 23:40Z.
+2026-11-12T22:26:47Z snapshot loop bdab1axaq ended (22:26Z 391daa0; G2 polish2 3b2d622 +2); relaunched as brewyr5ya. At the 01:40Z stop, TaskStop the loop's current task id (newest 'relaunched as' line).
+2026-11-12T22:54:49Z disk nearly full (303 MB free of the allowance); freed the bin/obj of finished clones (list: m7gov/binobj-to-free-2026-11-12-2230.txt; polish2 and polish2-base excluded, sources/.git/TestResults kept): free 303 -> 951 MB
