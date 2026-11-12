@@ -1043,3 +1043,13 @@ These reports live in the session scratchpad (`/tmp/claude-0/-home-user-civDemo/
   keep research (node, how much, turn); recorded in `docs/d086-run-record-research-and-exit-export-2026-11-11.md` (DE1–DE3). For
   that work only, READING DE-R (a) lets `Sim.Ui`, `Sim.Core/Observability` and read-only `Sim.Core/State` queries change, with
   their tests; no kernel, simulation state or world hash changes; §6's rule stands for everything else and Q5 stays open.
+
+## Dated note — 2026-11-12 (D-087; appended, the text above is unchanged)
+
+- The Director answered items 1–12 of the orchestrator's list of open questions; recorded in
+  `docs/d087-ties-battalions-autoresolve-director-answers-2026-11-12.md` (DF1–DF12). A tie is a tie (D-082 DA6 and DA7's
+  tie-break superseded), fighting means damage (D-085 DD1-R2), armies fight in battalions of a per-type size with at most 25 per
+  army (lane CB's E1 superseded at the command level), and every AI-vs-AI battle is auto-resolved (lane D's READING A
+  superseded). DF1 and DF2 let the orchestrator put the `Sim.Ui.Tests` classes that drive the headless frame harness into the `ImGui
+  context` collection and make one `Sim.Tests` budget assertion Release-only, test code only; §6's rule stands for everything else and Q5 stays open. Lane RR's P1 (a change to the frozen
+  kernel's `SessionTrace.Parse`) still waits for the Director (D-087 DF5).

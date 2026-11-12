@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 13:30 UTC: lane RR integrated as `cc351e5` after Tier 3 on the squashed tree, with the 13:20 checkpoint folded in; CI run 982 on `6a5b56a` passed every job; throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 15:35 UTC: the Director answered items 1–12 of the open questions, recorded as D-087 (a tie is a tie, fighting means damage, battalions of at most 25 per army, every AI battle auto-resolved); lanes OC, BN and AR are queued after the G2 final, which is running; throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -172,12 +172,15 @@ lane.
   18 bounded mutants were killed by semantic tests. The fix rounds' counts are above. The lane makes proposals P1–P6 and asks
   the Director no question (§5).
 
-**Paused**, in this order of resumption (each with `resumeFromRunId`: finished agents replay from cache, and the interrupted
-agent restarts and continues from its clone):
+**Queue, in order, one agent at a time** (a paused workflow resumes with `resumeFromRunId`: finished agents replay from cache,
+and the interrupted agent restarts and continues from its clone):
 
 | # | Item | Workflow run | Script and args |
 |---|---|---|---|
-| 1 | G2 final: scenes A–E built, captures in progress | `wf_d6eb0226-44e` | `m7-g2-v2.js`, args `{"base": "1601c74"}` |
+| 1 | G2 final: RUNNING since 13:31 UTC (resumed). The scenes stage finished at `65c99ec` (14:51); its integration into the trunk runs; then the critic loop, the verifier and the AFTER package | `wf_d6eb0226-44e` | `m7-g2-v2.js`, args `{"base": "1601c74"}` |
+| 1a | Lane OC, battle outcomes (D-087 DF7–DF11: a tie is a tie, fighting means damage, the Standoff tie, the defender as the attacked army, the ambush trigger) | new | lane workflow, brief `args/OC.json` (to be written) |
+| 1b | Lane BN, battalions (D-087 DF12: a battalion size per unit type, the battalion as the command unit, at most 25 per army) | new | lane workflow, brief `args/BN.json` (to be written) |
+| 1c | Lane AR, the AutoResolver for every domain (D-087 DF6: aircraft, vessels, crew-served guns, embarked troops; 12 players and 40–50 such battles between turns) | new | lane workflow, brief `args/AR.json` (to be written) |
 | 2 | Final-round verification (findings only) of lanes U, D, MOR, AP, MOR2, CB, MOR3 (`95446ff`), RT (`943b43f`) and RR (`c038b95`) | `wf_9b24d7c6-337` | `verify-final-rounds`: run its lanes one at a time, with MOR3, RT and RR added |
 | 3 | Report draft | `wf_2a771902-a97` | `pass-report-draft` |
 
@@ -243,7 +246,8 @@ run 486 succeeded too. The crash did not recur on the same code, which fits an i
 ## 3. Queue after the items in flight
 
 1. As each item in §2 finishes, the orchestrator verifies it (§4 step 2, or the G2 subtree method), commits, pushes, and
-   updates this README.
+   updates this README. Lanes OC, BN and AR (D-087 §5) run after the G2 final and before the final-round verification, in
+   that order: AR's AutoResolver models BN's battalions.
 2. The pass's full report: 10 sections, DR52. It is built from [notes/final-report-notes.md](notes/final-report-notes.md), in
    the style of `docs/m7-plan/m7-execution-pass-report.md`.
 
@@ -285,16 +289,23 @@ branch's head; for G2, use `"from": "final"`.
 
 ## 5. Open questions for the Director (as of this update)
 
-- READING A (War Sandbox: run or refuse a battle the AutoResolver cannot model).
-- D-085's readings: fighting judged per battle (applied) or per formation; any attack (applied) or only an attack that
-  deals damage.
-- Lane AP: Q-AP1 who defends; Q-AP2 ambush battles and the deployment thirds; Q-AP3 the Standoff extension; Q-AP4 equal
-  sides in both resolvers.
-- Lane CB:
-  - E1 for M7.6;
-  - READING CB-1;
-  - a performance cap for uncapped families (cavalry, siege, air defence, missiles, reconnaissance);
-  - READING CB-4.
+**Answered on 2026-11-12, recorded as [D-087](../../d087-ties-battalions-autoresolve-director-answers-2026-11-12.md)** (items
+1–12 of the orchestrator's plain-language list): lane D's READING A (superseded: every AI battle is auto-resolved); D-085's
+second reading (fighting means damage); lane AP's Q-AP1, Q-AP3 and Q-AP4 (the attacked army defends; a Standoff and equal sides
+end in a tie, in both resolvers); lane CB's E1, READING CB-1 and the performance cap (armies fight in battalions, at most 25);
+lane RR's research-name hook (kept); the ImGui test race (fixed), the Debug bench budget (Release only) and the slow-test
+record (nothing to record: the test takes 14.5 s in Release). Still open:
+
+- Lane RR's P1, the kernel change request (D-087 DF5): the Director asked whether several CSV files would help, supposing a row
+  or column limit. D-087 §3 answers: no limit is reached; the cause is the half-year number format of the trace's year, which
+  more files would repeat. It still needs the Director's yes.
+- D-087's readings, each applied until the Director corrects it: DF7-R1 (damage judged in the battle, not by the army), DF8-R1
+  (routing units rejoin after a tie), DF8-R2 (each army's own role), DF9-R1 (the hidden army's size sets the ambush radius),
+  DF9-R2 (an ambush battle is exempt from the deployment thirds; this is lane AP's Q-AP2, flagged), DF12-R1 (the battalion is
+  the command unit, with the entity rule kept inside it).
+- New with D-087 DF12: whether DR24's per-family caps (for example "Ships 5") stand beside the 25-battalion army cap, and how
+  DR25's numbers meet battalions (25 battalions of 50 archers hold 1,250 archers).
+- Lane CB: READING CB-4 (reinforcement: with battalions, whether a battalion is refilled).
 - Earlier open items: the two thirds-violating sandbox scenarios; R6; lane U's U-Q11, the decision-tray placement and its
   queue line; the DA3 calibration numbers (A-38, M7.14); lane P's acceptance (D-079 Q4).
 - Lane MOR3 asks no question, since D-085 §4 delegated its design. It leaves two PROPOSALS (H-MOR3 §13):
@@ -310,7 +321,8 @@ branch's head; for G2, use `"from": "final"`.
   - PROPOSALS: N2 (the hover path's dependent edges), N3 (spine lane spacing), N4 (subheadings under REQUIRES), N6 (a
     route-aware estimate for a node not yet open).
 - Lane RR (from its handbacks; integrated as `cc351e5`): no question for the Director, and six PROPOSALS. Its
-  fix rounds also raised items for the orchestrator:
+  fix rounds also raised items for the orchestrator. The Director has since ruled on the first four below (D-087 DF1–DF4) and
+  asked about P1 (DF5); the bullets keep the evidence:
   - Its question: is the hook that writes research-name lines into the chronicle each turn (`UiSession.Step`) in scope?
     That is the per-turn record path, not one of the paths the brief names. The orchestrator's reading is yes: DE1 asks for
     every code in the Codebook, and the chronicle's name lines are the record's only legend (ADR-059). The change is
