@@ -126,20 +126,33 @@ public class SessionExportTests
     /// 136e853c72d8596cb81785dd438dfeb6dbe527ca0e1ce53fd8532e8bf0c365e5: the eight sheet parts changed (README gains the
     /// 'codes' row and describes the codes; Manifest, Orders, Trace, Chronicle, Telemetry and Forensic carry codes, their
     /// headers included; the Codebook appends the legend and the QT texts after its unchanged telemetry codebook); the
-    /// five container parts are byte-identical and every Telemetry cell is byte-identical (only its header row is coded).</summary>
-    internal const string DirectorWorkbookSha = "806e0947fec8a0e6a126d1dca37a94aa3afa98d71784c5a822cb03af240f1fb1";
+    /// five container parts are byte-identical and every Telemetry cell is byte-identical (only its header row is coded).
+    /// RE-PINNED by D-086 (lane RR, 2026-11-11) from 806e0947fec8a0e6a126d1dca37a94aa3afa98d71784c5a822cb03af240f1fb1,
+    /// MEASURED part by part (decoded entries, base 51ab032 against this tree): the ninth sheet, Research, is added
+    /// (xl/worksheets/sheet9.xml, and its registration in [Content_Types].xml, xl/workbook.xml, xl/_rels/workbook.xml.rels);
+    /// the README (sheet1) says "nine sheets", gains the 'close record' and 'sheet Research' rows and names the Research
+    /// legend sections in its 'codes' row; the Codebook (sheet7) gains the 23 Research legend rows. Every other part —
+    /// _rels/.rels, styles.xml, Manifest, Orders, Trace, Chronicle, Telemetry, Forensic — is byte-identical.</summary>
+    internal const string DirectorWorkbookSha = "97b13e5d0e37517ae9ca35229ec182476e8da4e0755bfe21a5528d0dd8392242";
 
     /// <summary>The CONTENT golden of the current-tree (telemetry/v5) session's workbook (Fixtures/session-export/current-v5).
     /// RE-PINNED likewise (2026-10-29) from 6d488a2c97bcbb143f274ddf97784cf4daf170d301b3e1e340718b532139560d, for the same
-    /// parts and reasons; its prose (pre-amendment) chronicle file is shown line by line as QT codes.</summary>
-    internal const string CurrentWorkbookSha = "c5ec8abd82a11de7bdead82d1e342e21055de74a88c50ad125ba8dd3df578313";
+    /// parts and reasons; its prose (pre-amendment) chronicle file is shown line by line as QT codes.
+    /// RE-PINNED by D-086 (2026-11-11) from c5ec8abd82a11de7bdead82d1e342e21055de74a88c50ad125ba8dd3df578313, for the same
+    /// parts as <see cref="DirectorWorkbookSha"/> (MEASURED likewise; every other part byte-identical).</summary>
+    internal const string CurrentWorkbookSha = "5499123df85f35d2a92a6fa756391d60cb9f00ac25e6581990e02dffd62e89d0";
 
-    /// <summary>The fixed entry order of every workbook with the eight sheets.</summary>
+    /// <summary>D-086 DE1: the CONTENT golden of the current-v6 session's workbook (Fixtures/session-export/current-v6), a
+    /// session written by this tree (telemetry/v6, coded chronicle with research node names): pinned when first written.</summary>
+    internal const string CurrentV6WorkbookSha = "e2e22311e3f89f456d5c2873d5ca773f10aec6c82f1b10d15a7fc1f805ad5f74";
+
+    /// <summary>The fixed entry order of every workbook with the nine sheets (D-086 DE1 added the Research sheet, last).</summary>
     internal static readonly string[] EntryOrder =
     [
         "[Content_Types].xml", "_rels/.rels", "xl/workbook.xml", "xl/_rels/workbook.xml.rels", "xl/styles.xml",
         "xl/worksheets/sheet1.xml", "xl/worksheets/sheet2.xml", "xl/worksheets/sheet3.xml", "xl/worksheets/sheet4.xml",
         "xl/worksheets/sheet5.xml", "xl/worksheets/sheet6.xml", "xl/worksheets/sheet7.xml", "xl/worksheets/sheet8.xml",
+        "xl/worksheets/sheet9.xml",
     ];
 
     // ------------------------------------------------------------------------------------- codec goldens --
@@ -147,6 +160,7 @@ public class SessionExportTests
     [Theory]
     [InlineData("director-68", "v4", 68)]
     [InlineData("current-v5", "v5", 16)]
+    [InlineData("current-v6", "v6", 16)]   // D-086 DE1: telemetry/v6, the research rows (codebook v6)
     public void TheCodecsCellsAreThePrototypes_AndEveryCellDecodesToItsLineByteForByte(string fixture, string codebook, int turns)
     {
         List<(string Name, byte[] Bytes)> files = ExportFixtures.Files(fixture);
@@ -201,7 +215,7 @@ public class SessionExportTests
     public void JsonTextReprintsTheWritersLinesExactly()
     {
         // The codec's printer is the writer's printer: every real line of both fixtures re-prints byte for byte.
-        foreach (string fixture in new[] { "director-68", "current-v5" })
+        foreach (string fixture in new[] { "director-68", "current-v5", "current-v6" })
             foreach (string line in ExportFixtures.Lines(ExportFixtures.Bytes(ExportFixtures.Files(fixture), "telemetry-")))
                 Assert.Equal(line, JsonText.Serialize(JsonText.Parse(line)));
     }
@@ -361,7 +375,7 @@ public class SessionExportTests
     public void RefusalsAreNamed_UnknownSchema_ChangedShape_BadCell()
     {
         JObj doc = RealLine();
-        doc.Set("schema", new JStr("telemetry/v6"));
+        doc.Set("schema", new JStr("telemetry/v7"));   // D-086 moved the writer to v6 (codebook v6): v7 is the unknown vintage now
         Assert.Equal(SessionExportException.TelemetrySchemaUnknown,
             Assert.Throws<SessionExportException>(() => TelemetryCellCodec.Encode(JsonText.Serialize(doc))).Code);
         doc.Set("schema", new JStr("telemetry/v5"));
@@ -741,6 +755,50 @@ public class SessionExportTests
         Assert.Equal("v5", back.Sheets[6][0][1]);   // Codebook sheet: codebook v5 first, the workbook legend after it
     }
 
+    /// <summary>D-086 DE1 — the current-tree session of Fixtures/session-export/current-v6 (telemetry/v6): its workbook's
+    /// CONTENT golden, every cell the prototype's and decoding to its line, the Codebook led by codebook v6, and the Research
+    /// sheet holding exactly the research rows of the telemetry lines (16 turns: the player's and the AI empire's, with the AI's
+    /// completions), every node named by the coded chronicle's name lines.</summary>
+    [Fact]
+    public void ACurrentTreeSession_v6_ExportsTheSameContent_AndItsResearchSheetHoldsItsResearchRows()
+    {
+        List<(string Name, byte[] Bytes)> files = ExportFixtures.Files("current-v6");
+        Assert.Equal(6, files.Count);
+        SessionExportResult r = SessionWorkbook.Build(ExportFixtures.Manifest(files), ExportFixtures.Reader(files));
+        Assert.Equal(r.Bytes, SessionWorkbook.Build(ExportFixtures.Manifest(files), ExportFixtures.Reader(files)).Bytes);
+        Assert.Equal(EntryOrder, OoxmlWorkbook.Entries(r.Bytes).Select(e => e.Name).ToArray());
+        string content = ExportFixtures.ContentSha(r.Bytes);
+        Assert.True(CurrentV6WorkbookSha == content, "the current-v6 workbook's content sha256 is " + content);
+        Assert.Equal(["v6"], r.Codebooks);
+        OoxmlWorkbook.Content back = OoxmlWorkbook.Read(r.Bytes);
+        string[] lines = ExportFixtures.Lines(ExportFixtures.Bytes(files, "telemetry-"));
+        IReadOnlyList<string> cells = SessionWorkbook.JoinTelemetry(back.Sheets[5]);
+        string[] proto = ExportFixtures.PrototypeCells("current-v6");
+        Assert.Equal(lines.Length, cells.Count);
+        for (int i = 0; i < cells.Count; i++)
+        {
+            Assert.Equal(proto[i], cells[i]);
+            Assert.Equal(lines[i], TelemetryCellCodec.Decode(cells[i]));
+        }
+        Assert.Equal("v6", back.Sheets[6][0][1]);
+
+        TelemetryRecordFile telemetry = TelemetryRecordFile.Parse(lines, "current-v6");
+        IReadOnlyList<string[]> research = back.Sheets[Array.IndexOf(SessionWorkbook.SheetNames, "Research")];
+        int expected = 1, completions = 0;
+        foreach (TelemetryTurn t in telemetry.Turns)
+        {
+            expected += t.Research!.Steps.Length + t.Research.Bank.Length;
+            foreach (ResearchStep step in t.Research.Steps) if (step.Completed) completions++;
+        }
+        Assert.Equal(expected, research.Count);
+        Assert.True(completions > 0, "the 16 turns hold completions");
+        Assert.Equal(["1", "PL1", "RP", "RN12", "LT", "17.383314761717482", "0", "17.383314761717482", "415.6551", "0"], research[1]);
+        List<(string Section, string Code, string Meaning)> legend = SessionExportCodesTests.Legend(back.Sheets[6]);
+        for (int i = 1; i < research.Count; i++)
+            if (research[i].Length > 3 && research[i][3].Length > 0)
+                Assert.Contains(legend, e => e.Section == "Chronicle:names" && e.Code == research[i][3]);
+    }
+
     // ------------------------------------------------------------------- the headless command and the hook --
 
     [Fact]
@@ -855,7 +913,7 @@ public class SessionExportTests
             Assert.True(closeInWorkbook, "the workbook's Forensic sheet holds the close record: the export ran after the close");
             IReadOnlyList<string> cells = SessionWorkbook.JoinTelemetry(back.Sheets[5]);
             Assert.Equal(3, cells.Count);
-            Assert.StartsWith("v5 ", cells[0], StringComparison.Ordinal);
+            Assert.StartsWith("v6 ", cells[0], StringComparison.Ordinal);   // D-086 DE1: the writer's tag is telemetry/v6
             var lines = new List<string>();
             foreach (string c in cells) lines.Add(TelemetryCellCodec.Decode(c));
             // the removed file, rebuilt from the sheet, is byte for byte the file the close record hashed
@@ -997,8 +1055,9 @@ public class SessionExportTests
             Array.Sort(now, StringComparer.Ordinal);
             Assert.Equal(files, now);
             OoxmlWorkbook.Content a = OoxmlWorkbook.Read(first), b = OoxmlWorkbook.Read(File.ReadAllBytes(xlsx));
-            for (int s = 1; s < SessionWorkbook.SheetNames.Length - 1; s++)   // Manifest … Codebook: identical
-                Assert.Equal(a.Sheets[s], b.Sheets[s]);
+            // Manifest … Codebook, and (D-086 DE1) the Research sheet: identical — the research rows come back with the telemetry
+            foreach (string name in new[] { "Manifest", "Orders", "Trace", "Chronicle", "Telemetry", "Codebook", "Research" })
+                Assert.Equal(a.Sheets[Array.IndexOf(SessionWorkbook.SheetNames, name)], b.Sheets[Array.IndexOf(SessionWorkbook.SheetNames, name)]);
             Assert.Contains("recovered from the earlier workbook's Telemetry sheet", ReadmeValue(b, "file telemetry"), StringComparison.Ordinal);
             byte[] second = File.ReadAllBytes(xlsx);
 
@@ -1037,5 +1096,17 @@ public class SessionExportTests
         if (dir is null) return;
         UiSession session = UiSession.Start(42, aiEmpiresOverride: 1);
         ExportFixtures.PlayToDisk(session, dir, "20261028-120000-a1", turns: 16, ExportFixtures.FixtureOrders);
+    }
+
+    /// <summary>NOT A CHECK — the generator of Fixtures/session-export/current-v6 (D-086; README there): the current-v5
+    /// recipe (seed 42, one AI empire, 16 turns, the same player orders) written by this tree — telemetry/v6 with the research
+    /// rows, a coded chronicle naming every research node the rows hold. Runs only with CIVSIM_WRITE_EXPORT_FIXTURE_V6=DIR.</summary>
+    [Fact]
+    public void Tool_WritesTheCurrentV6Fixture_OnlyWhenAsked()
+    {
+        string? dir = Environment.GetEnvironmentVariable("CIVSIM_WRITE_EXPORT_FIXTURE_V6");
+        if (dir is null) return;
+        UiSession session = UiSession.Start(42, aiEmpiresOverride: 1);
+        ExportFixtures.PlayToDisk(session, dir, "20261111-120000-a1", turns: 16, ExportFixtures.FixtureOrders);
     }
 }

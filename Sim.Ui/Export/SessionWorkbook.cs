@@ -66,12 +66,13 @@ public enum RawTelemetry
 /// iteration, no float; <see cref="OoxmlWorkbook"/> for the container). Reading the six files changes none of them: the
 /// export runs after the forensic close record, which therefore neither lists the workbook nor is altered by it.
 /// </summary>
-public static class SessionWorkbook
+public static partial class SessionWorkbook
 {
     public const string ExporterVersion = "session-export/v1";
 
-    /// <summary>The sheets, in order.</summary>
-    public static readonly string[] SheetNames = ["README", "Manifest", "Orders", "Trace", "Chronicle", "Telemetry", "Codebook", "Forensic"];
+    /// <summary>The sheets, in order. D-086 DE1 added Research LAST, so every earlier sheet keeps its position.</summary>
+    public static readonly string[] SheetNames =
+        ["README", "Manifest", "Orders", "Trace", "Chronicle", "Telemetry", "Codebook", "Forensic", "Research"];
 
     /// <summary>The workbook path for a manifest: <c>session-STAMP.json</c> → <c>session-STAMP.xlsx</c>, beside it — EXCEPT
     /// (Director 2026-11-02, "one Excel file in runs") when the manifest is in a session record folder
@@ -87,14 +88,17 @@ public static class SessionWorkbook
     }
 
     /// <summary>Exports the session whose manifest is <paramref name="manifestPath"/> to <see cref="WorkbookPathFor"/>.
-    /// The file is written only after the self-check passed, in one write.
+    /// The file is written only after the self-check passed — D-086 DE2: written first to <see cref="PartialPathFor"/> in the
+    /// manifest's folder (the hidden record folder for a game session), then moved over the workbook path in one rename, so
+    /// a close interrupted while the workbook is being written never leaves a half-written workbook in <c>runs\</c>.
     ///
     /// ADR-059 amendment 2026-10-29 — A SESSION WHOSE RAW TELEMETRY LOG WAS REMOVED. When the manifest's telemetry file
     /// is not beside it but a workbook is, the telemetry is read back from that workbook's Telemetry sheet (every cell
     /// decoded to its line) and used only if the rebuilt bytes have the sha256 the forensic close record lists for the
     /// file; otherwise the export is the named refusal <see cref="SessionExportException.TelemetryUnrecoverable"/> and
     /// the existing workbook is left untouched — never replaced by one without the telemetry.</summary>
-    public static (string Path, SessionExportResult Result) ExportBeside(string manifestPath, RawTelemetry raw = RawTelemetry.Kept)
+    public static (string Path, SessionExportResult Result) ExportBeside(string manifestPath, RawTelemetry raw = RawTelemetry.Kept,
+        Action<double>? progress = null)
     {
         string full = Path.GetFullPath(manifestPath);
         string dir = Path.GetDirectoryName(full) ?? "";
@@ -105,9 +109,43 @@ public static class SessionWorkbook
             read = name => name == telemetryName ? recovered : ReadBeside(dir, name);
             raw = RawTelemetry.RecoveredFromWorkbook;
         }
-        SessionExportResult result = Build(Path.GetFileName(full), read, raw: raw);
-        File.WriteAllBytes(outPath, result.Bytes);
+        SessionExportResult result = Build(Path.GetFileName(full), read, raw: raw, progress: progress);
+        WriteWhole(outPath, PartialPathFor(full), result.Bytes);
         return (outPath, result);
+    }
+
+    /// <summary>D-086 DE2: where the workbook is written before it is moved into place — beside the manifest (for a game
+    /// session the hidden record folder), named after the workbook with <c>.partial</c> appended.</summary>
+    public static string PartialPathFor(string manifestPath) =>
+        Path.Combine(Path.GetDirectoryName(Path.GetFullPath(manifestPath)) ?? "",
+            Path.GetFileName(WorkbookPathFor(Path.GetFullPath(manifestPath))) + ".partial");
+
+    /// <summary>D-086 DE2: writes <paramref name="bytes"/> to <paramref name="partial"/>, flushed to disk, then moves it over
+    /// <paramref name="path"/> (one rename on the same volume): a reader sees the old workbook or the whole new one, never
+    /// a part. A failure removes the partial file (best effort) and is reported as before (IOException).</summary>
+    internal static void WriteWhole(string path, string partial, byte[] bytes)
+    {
+        try
+        {
+            using (var f = new FileStream(partial, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                f.Write(bytes);
+                f.Flush(flushToDisk: true);
+            }
+            File.Move(partial, path, overwrite: true);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            try
+            {
+                if (File.Exists(partial)) File.Delete(partial);
+            }
+            catch (Exception d) when (d is IOException or UnauthorizedAccessException)
+            {
+                // the partial file stays in the record folder; the next export overwrites it
+            }
+            throw e as IOException ?? new IOException(e.Message, e);
+        }
     }
 
     /// <summary>The telemetry file's bytes rebuilt from its decoded lines: each line followed by '\n' (the writer's
@@ -263,8 +301,11 @@ public static class SessionWorkbook
 
     private sealed record FileEntry(string Role, string Name, byte[]? Bytes, string? Recovered = null)
     {
+        private string? _sha256;
         public bool Present => Bytes is not null;
-        public string Sha256 => Bytes is null ? "" : ForensicIdentity.Sha256Hex(Bytes);
+        /// <summary>The file's sha256, computed once (D-086 DE2: the export read it several times, each a full hash of a log
+        /// that can be hundreds of MB).</summary>
+        public string Sha256 => _sha256 ??= Bytes is null ? "" : ForensicIdentity.Sha256Hex(Bytes);
     }
 
     /// <summary>Builds and self-checks the workbook from the files <paramref name="read"/> returns by name (null =
@@ -276,7 +317,7 @@ public static class SessionWorkbook
     /// present, its decoded lines rebuild it byte for byte and the forensic close record lists it with the same sha256;
     /// <see cref="RawTelemetry.RecoveredFromWorkbook"/> is refused unless that last check holds.</summary>
     public static SessionExportResult Build(string manifestName, Func<string, byte[]?> read, int cellLimit = OoxmlWorkbook.MaxCellChars,
-        RawTelemetry raw = RawTelemetry.Kept)
+        RawTelemetry raw = RawTelemetry.Kept, Action<double>? progress = null)
     {
         if (cellLimit is < 16 or > OoxmlWorkbook.MaxCellChars) throw new ArgumentOutOfRangeException(nameof(cellLimit));
 
@@ -316,40 +357,69 @@ public static class SessionWorkbook
                 return OrderLog.Load(ms);
             });
         string[]? traceLines = trace.Present ? Lines(trace) : null;
-        if (traceLines is not null) Guard(trace, () => SessionTrace.Parse(traceLines, trace.Name));
+        if (traceLines is not null) Guard(trace, () => CheckTrace(traceLines, trace.Name));
         string[]? chronicleLines = chronicle.Present ? Lines(chronicle) : null;
-        string[]? telemetryLines = telemetry.Present ? Lines(telemetry) : null;
         string[]? forensicLines = forensic.Present ? Lines(forensic) : null;
         ForensicRecordFile? forensicFile = forensicLines is null ? null : Guard(forensic, () => ForensicRecordFile.Parse(forensicLines, forensic.Name));
 
-        // ---- Telemetry: one coded cell per line, self-checked, split under A17
+        // ---- Telemetry: one coded cell per line, self-checked, split under A17. D-086 DE2: STREAMED — each line is decoded from
+        //      the file's bytes, parsed ONCE (its schema tag, turn, cell and research rows all come from that one parse) and
+        //      dropped; only its verified cell is kept. The file is never held as one string or as an array of lines.
         var telemetrySheet = new SheetModel("Telemetry", [8, 200]);
         telemetrySheet.Rows.Add(["T", "TC"]);
+        var researchSheet = new ResearchSheet();
         var codebooks = new List<string>();
         var schemas = new List<string>();
+        var verifiedCells = new List<string>();
         int continuation = 0, longest = 0;
         string firstTurn = "", lastTurn = "";
-        if (telemetryLines is not null)
+        // the decoded lines, each followed by a line feed, are the file byte for byte (the raw log's removal needs it)
+        bool rebuildsExactly = telemetry.Present;
+        if (telemetry.Present)
         {
-            for (int i = 0; i < telemetryLines.Length; i++)
+            byte[] tb = telemetry.Bytes!;
+            var utf8 = new UTF8Encoding(false, throwOnInvalidBytes: true);
+            byte[] again = [];
+            int start = 0, number = 0;
+            while (start < tb.Length)
             {
-                string line = telemetryLines[i];
-                string where = telemetry.Name + " line " + (i + 1).ToString(CultureInfo.InvariantCulture);
+                int nl = Array.IndexOf(tb, (byte)'\n', start);
+                int end = nl < 0 ? tb.Length : nl;
+                number++;
+                string where = telemetry.Name + " line " + number.ToString(CultureInfo.InvariantCulture);
+                string line;
+                try
+                {
+                    line = utf8.GetString(tb, start, end - start);
+                }
+                catch (DecoderFallbackException e)
+                {
+                    throw new SessionExportException(SessionExportException.RecordUnreadable, telemetry.Name + " is not UTF-8 text", e);
+                }
                 if (line.Length == 0)
                     throw new SessionExportException(SessionExportException.RecordUnreadable, where + " is empty");
-                TelemetryCodebook cb = Wrap(where, () => TelemetryCellCodec.CodebookOf(line));
-                if (!codebooks.Contains(cb.Version)) codebooks.Add(cb.Version);
-                string turn = Wrap(where, () => TurnOf(line, schemas));
-                string cell = Wrap(where, () => TelemetryCellCodec.EncodeChecked(line, where));
-                IReadOnlyList<string> parts = TelemetryCellCodec.Split(cell, cellLimit, cb.ContinuationMark);
-                if (i == 0) firstTurn = turn;
+                int n = utf8.GetByteCount(line);
+                if (again.Length < n) again = new byte[Math.Max(n, again.Length * 2)];
+                utf8.GetBytes(line, 0, line.Length, again, 0);
+                if (n != end - start || !again.AsSpan(0, n).SequenceEqual(tb.AsSpan(start, end - start))) rebuildsExactly = false;
+                TelemetryCellCodec.ParsedLine parsed = Wrap(where, () => TelemetryCellCodec.EncodeCheckedParsed(line, where));
+                if (!codebooks.Contains(parsed.Codebook.Version)) codebooks.Add(parsed.Codebook.Version);
+                string turn = TurnOf(parsed.Doc, schemas);
+                IReadOnlyList<string> parts = TelemetryCellCodec.Split(parsed.Cell, cellLimit, parsed.Codebook.ContinuationMark);
+                if (number == 1) firstTurn = turn;
                 lastTurn = turn;
                 telemetrySheet.Rows.Add([turn, parts[0]]);
                 for (int k = 1; k < parts.Count; k++) telemetrySheet.Rows.Add(["", parts[k]]);
                 continuation += parts.Count - 1;
                 foreach (string p in parts) longest = Math.Max(longest, p.Length);
+                verifiedCells.Add(parsed.Cell);
+                researchSheet.Add(turn, parsed.Doc);
+                start = end + 1;
+                progress?.Invoke((double)Math.Min(start, tb.Length) / tb.Length);
             }
+            if (tb.Length > 0 && tb[^1] != (byte)'\n') rebuildsExactly = false;   // the last line has no line feed
         }
+        int telemetryCount = verifiedCells.Count;
 
         // ---- the raw log's fate (ADR-059 amendment 2026-10-29): removable only when the workbook can stand in for it
         string? listedTelemetrySha = null;
@@ -360,8 +430,7 @@ public static class SessionWorkbook
             throw new SessionExportException(SessionExportException.TelemetryUnrecoverable,
                 telemetry.Name + ": the recovered telemetry is not the file the forensic close record lists");
         if (raw == RawTelemetry.RemovedAfterExport
-            && !(telemetry.Present && listedTelemetrySha == telemetry.Sha256
-                 && TelemetryBytesOf(telemetryLines!).AsSpan().SequenceEqual(telemetry.Bytes)))
+            && !(telemetry.Present && listedTelemetrySha == telemetry.Sha256 && rebuildsExactly))
             raw = RawTelemetry.Kept;
 
         // ---- the coded sheets, built in sheet order so the QT codes number by first use; the Codebook (the legend) last
@@ -371,25 +440,36 @@ public static class SessionWorkbook
         SheetModel ordersSheet = OrdersSheet(orders, log, forensicFile, texts);
         SheetModel traceSheet = TraceSheet(trace, traceLines, forensicFile, texts);
         SheetModel chronicleSheet = ChronicleSheet(chronicle, chronicleLines, forensicFile, cellLimit, texts, names);
-        if (telemetryLines is null) telemetrySheet.Rows.Add(Missing(telemetry, forensicFile, texts));
+        if (!telemetry.Present) telemetrySheet.Rows.Add(Missing(telemetry, forensicFile, texts));
         SheetModel forensicSheet = ForensicSheet(forensic, forensicLines, forensicFile, files, cellLimit, texts);
+        // D-086 DE1: the Research sheet comes after Forensic in sheet order, so its QT codes (none: it holds codes and numbers
+        // only, or the NP row of a missing telemetry file) number after every earlier sheet's.
+        SheetModel research = researchSheet.Build(telemetry, forensicFile, texts, Missing);
         SheetModel codebookSheet = CodebookSheet(codebooks, names, texts, cellLimit);
         var sheets = new List<SheetModel>
         {
-            Readme(manifest, manifestName, files, schemas, codebooks, telemetryLines?.Length ?? 0, firstTurn, lastTurn, continuation, raw,
-                chronicleLines),
-            manifestSheet, ordersSheet, traceSheet, chronicleSheet, telemetrySheet, codebookSheet, forensicSheet,
+            Readme(manifest, manifestName, files, schemas, codebooks, telemetryCount, firstTurn, lastTurn, continuation, raw,
+                chronicleLines, researchSheet, forensicFile),
+            manifestSheet, ordersSheet, traceSheet, chronicleSheet, telemetrySheet, codebookSheet, forensicSheet, research,
         };
 
         byte[] bytes = OoxmlWorkbook.Write(sheets);
-        SelfCheck(bytes, sheets, telemetryLines);
-        return new SessionExportResult(bytes, ForensicIdentity.Sha256Hex(bytes), sheets, telemetryLines?.Length ?? 0,
+        SelfCheck(bytes, sheets, verifiedCells);
+        return new SessionExportResult(bytes, ForensicIdentity.Sha256Hex(bytes), sheets, telemetryCount,
             continuation, longest, codebooks, raw, telemetry.Name, telemetry.Present ? telemetry.Sha256 : null);
     }
 
     // ------------------------------------------------------------------------------------- the self-check --
 
-    private static void SelfCheck(byte[] bytes, IReadOnlyList<SheetModel> sheets, string[]? telemetryLines)
+    /// <summary>The self-check (ADR-059 §6) of a workbook about to be written. (1) happened at encode time: every cell was
+    /// decoded back to its source line byte for byte (<see cref="TelemetryCellCodec.EncodeCheckedParsed"/>), and
+    /// <paramref name="verifiedCells"/> are exactly those cells. Here: (2) the workbook reads back through ZipArchive and
+    /// XmlReader with every cell of every sheet the text it wrote, and (3) the Telemetry sheet's rows, continuation rows
+    /// re-joined, are the verified cells in order. D-086 DE2: (3) compares the re-joined cells with the verified cells as
+    /// text instead of decoding them a second time — the decoder is a pure function of the cell, so a cell equal to a
+    /// verified cell decodes to the same line; the second decode added time (about a fifth of the export, measured), not
+    /// assurance.</summary>
+    private static void SelfCheck(byte[] bytes, IReadOnlyList<SheetModel> sheets, IReadOnlyList<string> verifiedCells)
     {
         OoxmlWorkbook.Content back;
         try
@@ -414,19 +494,16 @@ public static class SessionWorkbook
                     throw new SessionExportException(SessionExportException.WorkbookReadBack,
                         $"{sheets[s].Name} row {(r + 1).ToString(CultureInfo.InvariantCulture)} reads back differently");
         }
-        if (telemetryLines is null || telemetryLines.Length == 0) return;
+        if (verifiedCells.Count == 0) return;
         int t = Array.IndexOf(SheetNames, "Telemetry");
         IReadOnlyList<string> cells = JoinTelemetry(back.Sheets[t]);
-        if (cells.Count != telemetryLines.Length)
+        if (cells.Count != verifiedCells.Count)
             throw new SessionExportException(SessionExportException.RoundTripMismatch,
-                $"the Telemetry sheet holds {cells.Count} turns, the file {telemetryLines.Length}");
+                $"the Telemetry sheet holds {cells.Count} turns, the file {verifiedCells.Count}");
         for (int i = 0; i < cells.Count; i++)
-        {
-            string decoded = TelemetryCellCodec.Decode(cells[i]);
-            if (!string.Equals(decoded, telemetryLines[i], StringComparison.Ordinal))
+            if (!string.Equals(cells[i], verifiedCells[i], StringComparison.Ordinal))
                 throw new SessionExportException(SessionExportException.RoundTripMismatch,
-                    $"telemetry line {(i + 1).ToString(CultureInfo.InvariantCulture)}: the workbook's cell decodes to a different line");
-        }
+                    $"telemetry line {(i + 1).ToString(CultureInfo.InvariantCulture)}: the workbook's cell is not the cell decoded back to the line");
     }
 
     /// <summary>The Telemetry sheet's coded cells, continuation rows joined (D-066 A17): a row whose column A is empty
@@ -461,11 +538,12 @@ public static class SessionWorkbook
     // ------------------------------------------------------------------------------------------- sheets --
 
     private static SheetModel Readme(SessionManifest m, string manifestName, FileEntry[] files, List<string> schemas,
-        List<string> codebooks, int turns, string firstTurn, string lastTurn, int continuation, RawTelemetry raw, string[]? chronicleLines)
+        List<string> codebooks, int turns, string firstTurn, string lastTurn, int continuation, RawTelemetry raw, string[]? chronicleLines,
+        ResearchSheet research, ForensicRecordFile? forensicFile)
     {
         var s = new SheetModel("README", [22, 140]);
         void R(string a, string b) => s.Rows.Add([a, b]);
-        R("Session workbook", "One played session in one file: the six session files as eight sheets (D-066 A14-A17; ADR-059). "
+        R("Session workbook", "One played session in one file: the six session files as nine sheets (D-066 A14-A17; ADR-059; D-086). "
             + (raw == RawTelemetry.Kept
                 ? "The six files stay the record (resume reads them); this workbook is a reading copy written beside them, from them alone."
                 : "The manifest, orders, trace, chronicle and forensic files stay the record (resume reads them, and rebuilds the "
@@ -481,11 +559,24 @@ public static class SessionWorkbook
         R("telemetry schema", schemas.Count == 0 ? "(no telemetry)" : string.Join(", ", schemas));
         R("codebook", codebooks.Count == 0 ? "(none: no telemetry)" : string.Join(", ", codebooks));
         R("turns in telemetry", turns == 0 ? "0" : turns.ToString(CultureInfo.InvariantCulture) + " (turn " + firstTurn + " to turn " + lastTurn + ")");
+        // D-086 DE2: whether the game finished closing this session, said plainly (the files were complete before the workbook
+        // step started only if the close record is there).
+        FileEntry forensicEntry = files[5];
+        R("close record", forensicEntry.Name.Length == 0 ? "The manifest names no forensic file, so whether the session closed is not recorded."
+            : !forensicEntry.Present ? "The forensic file is not present, so whether the game finished closing this session is not recorded here."
+            : forensicFile?.Close is not null
+                ? "The forensic file holds the close record: the game finished saving this session and hashed its files (the "
+                  + "Forensic sheet compares those hashes with the files now; after a resume, the files the resumed play appended to "
+                  + "no longer match them)."
+                : "The forensic file holds NO close record: either the game did not finish closing this session (the close was "
+                  + "interrupted, or the game crashed or was ended by force), or the session was resumed, and a resumed session "
+                  + "writes no close record. The workbook is built from the files as they are, and the raw telemetry log is kept.");
         R("codes", "Only this sheet and the Codebook carry words (ADR-059 amendment 2026-10-29). Every other sheet holds codes, numbers "
             + "and identifiers (file names, hashes, version tags, JSON keys), its column headers included. The Codebook defines "
             + "every code: first the telemetry codebook, then the legend (column A the section - all, type, Manifest:col, "
             + "Orders:col, Orders:kind, Orders:read, Trace:col, Chronicle:col, Chronicle:event, Chronicle:field, Telemetry:col, "
-            + "Forensic:col, Forensic:file - column B the code, column D its meaning), then 'Chronicle:names' (what the chronicle's named codes "
+            + "Forensic:col, Forensic:file, Research:col, Research:kind, Research:read - column B the code, column D its meaning), then "
+            + "'Chronicle:names' (what the chronicle's named codes "
             + "name, e.g. ST12 = a settlement's name) and 'QT:texts' (the exact text of each QT code: a text a session file holds that "
             + "is neither a code nor an identifier).");
         R("EMPTY", "EMPTY never means 0 - it means the codebook default (the Codebook sheet, column 'default when the field is EMPTY').");
@@ -511,6 +602,11 @@ public static class SessionWorkbook
             + "then every code the other sheets use, the names of the chronicle's named codes and the texts of the QT codes.");
         R("sheet Forensic", "forensic-*.jsonl: the run and close records as KY / VL / TY rows, then the XF table: every session file "
             + "with its sha256 now and as the close record lists it.");
+        R("sheet Research", "D-086: every knowledge holder's research, read from the telemetry lines (telemetry/v6 and later): one row "
+            + "per turn, holder and research node that received points (RP) or completed (RC) that turn - the points it received, the "
+            + "part of them that was acceleration credit, its progress after the turn and its cost - and one row per turn and holder "
+            + "for the Civics Points bank (BK: generated, drawn, left). A node's name is the Codebook's 'Chronicle:names' row RN<key>. "
+            + research.Summary());
         foreach (FileEntry f in files)
             R("file " + f.Role, f.Name.Length == 0 ? "not named by the manifest"
                 : f.Role == "telemetry" && f.Present && raw != RawTelemetry.Kept ? TelemetryFileLine(f, raw)
@@ -676,6 +772,44 @@ public static class SessionWorkbook
         return (kind, target, amount);
     }
 
+    /// <summary>
+    /// D-086 DE2 — THE TRACE FILE'S CHECK. The trace is shown as it is (<see cref="TraceSheet"/>); this only refuses a file
+    /// that is not a trace: the header, then lines of six columns — turn, year, population, settlements, food (integers;
+    /// the year a number), hash — every malformed line named by its number, as <see cref="SessionTrace.Parse"/> does. It
+    /// differs from that reader in ONE respect, found by measurement: the year is read as the number the writer
+    /// (<see cref="SessionTrace.Line"/>) wrote, <c>WorldDateYears</c>, which is fractional from world year 5920 on (1920 CE,
+    /// where a turn is half a year: <c>5920.5</c>); <see cref="SessionTrace.Parse"/> reads it as an integer and throws,
+    /// so before D-086 every session played past turn 1270 was refused (<c>record-unreadable</c>) and lost its workbook at
+    /// close. <see cref="SessionTrace"/> is in the frozen kernel; its own reader is left as it is (a proposal for the Director).
+    /// Returns the number of trace lines checked.
+    /// </summary>
+    internal static int CheckTrace(string[] lines, string describedAs)
+    {
+        int rows = 0;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            int number = i + 1;
+            string line = lines[i].Trim();
+            if (line.Length == 0) continue;
+            if (number == 1 && line == SessionTrace.Header) continue;
+            string[] parts = line.Split(',');
+            if (parts.Length != 6)
+                throw new InvalidDataException(
+                    $"{describedAs} line {number.ToString(CultureInfo.InvariantCulture)}: expected 6 columns ({SessionTrace.Header}), found {parts.Length.ToString(CultureInfo.InvariantCulture)}.");
+            // the integer columns exactly as SessionTrace.Parse reads them (NumberStyles.Integer); the year as a number
+            bool ok = long.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out _)
+                && double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double year) && double.IsFinite(year)
+                && long.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out _)
+                && int.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out _)
+                && long.TryParse(parts[4], NumberStyles.Integer, CultureInfo.InvariantCulture, out _);
+            if (!ok)
+                throw new InvalidDataException(
+                    $"{describedAs} line {number.ToString(CultureInfo.InvariantCulture)}: not a trace line ({SessionTrace.Header}: integers, the year a number): {line}");
+            rows++;
+        }
+        return rows;
+    }
+
     private static SheetModel TraceSheet(FileEntry f, string[]? lines, ForensicRecordFile? fr, WorkbookCodes.Texts texts)
     {
         var s = new SheetModel("Trace", [7, 8, 11, 11, 11, 66]);
@@ -733,7 +867,7 @@ public static class SessionWorkbook
             s.Rows.Add(["codebook", "(none)", "", "the session has no telemetry, so no cell needs a codebook"]);
         foreach (string v in codebooks)
         {
-            TelemetryCodebook cb = v == "v5" ? TelemetryCodebook.V5 : TelemetryCodebook.V4;
+            TelemetryCodebook cb = TelemetryCodebook.ForVersion(v) ?? TelemetryCodebook.V4;
             s.Rows.Add(["codebook", v, "", "cells whose first token is " + string.Join(", ", Codes(cb)) + " are read with the rows below"]);
             foreach (string line in cb.Tsv.Split('\n'))
                 if (line.Length > 0) s.Rows.Add(line.Split('\t'));
@@ -824,9 +958,8 @@ public static class SessionWorkbook
         return row.ToArray();
     }
 
-    private static string TurnOf(string line, List<string> schemas)
+    private static string TurnOf(JObj doc, List<string> schemas)
     {
-        var doc = (JObj)JsonText.Parse(line);
         string tag = doc.Get("schema") is JStr s ? s.Value : "";
         if (!schemas.Contains(tag)) schemas.Add(tag);
         return doc.Get("turn") is JObj t && t.Get("turn") is JNum n ? n.Text : "";

@@ -32,7 +32,7 @@ namespace Sim.Core.Observability;
 /// </summary>
 public static class TelemetryWriter
 {
-    public const string Schema = "telemetry/v5";
+    public const string Schema = "telemetry/v6";
 
     /// <summary>The vintages <see cref="Sim.Core.Observability.Forensic.TelemetryRecordFile"/>
     /// accepts, newest first. v3 = v2 + the T4.21-5 foodState/migrationPlan
@@ -47,8 +47,14 @@ public static class TelemetryWriter
     /// 23 goods and order kinds 16–18. The tag moves with the field set (the T4.20 rule above), so that a reader —
     /// the session export's codebook first (one codebook per schema) — can tell the two shapes apart. Every v4 key keeps
     /// its v4 meaning and position, so this reader reads a v5 line as it reads a v4 line. Telemetry text only: no
-    /// simulation state, no canonical schema and no world hash changes.</summary>
-    public static readonly string[] ReadableSchemas = ["telemetry/v5", "telemetry/v4", "telemetry/v3", "telemetry/v2"];
+    /// simulation state, no canonical schema and no world hash changes.
+    /// v6 (D-086 DE1, the Director 2026-11-11: the run record keeps research) = v5 + two arrays appended to the turn object
+    /// after <c>causes</c>: <c>research</c> (one row per knowledge holder and node that received points or completed in
+    /// the step — <see cref="ResearchStep"/>) and <c>civicsBank</c> (one row per Civics Points bank that changed —
+    /// <see cref="CivicsBankStep"/>). Every v5 key keeps its v5 meaning and position, so a v5 line is a v6 line without the
+    /// two arrays (the reader says research is not recorded) — codebook v6 (docs/m6-session-export). An observation of
+    /// research rows that already exist: no simulation state, no canonical schema and no world hash changes.</summary>
+    public static readonly string[] ReadableSchemas = ["telemetry/v6", "telemetry/v5", "telemetry/v4", "telemetry/v3", "telemetry/v2"];
 
     /// <summary>Every observation in the history, one line each.</summary>
     public static void WriteAll(Stream output, IObservationHistory history)
@@ -203,6 +209,36 @@ public static class TelemetryWriter
         json.WriteNumber("grainDelta", t.Causes.GrainDelta);
         json.WriteNumber("grainExplained", t.Causes.GrainExplained);
         json.WriteEndObject();
+
+        // telemetry/v6 (D-086 DE1): the step's research and Civics Points banks, after every v5 key. A record built without
+        // them (a hand-built one) writes empty arrays, as does a world without research content.
+        json.WriteStartArray("research");
+        foreach (ResearchStep r in t.Research ?? [])
+        {
+            json.WriteStartObject();
+            json.WriteNumber("holder", r.Holder);
+            json.WriteNumber("node", r.Node);
+            json.WriteString("tree", r.Tree);
+            Num(json, "received", r.Received);
+            Num(json, "credit", r.Credit);
+            Num(json, "progress", r.Progress);
+            Num(json, "cost", r.Cost);
+            json.WriteNumber("level", r.Level);
+            json.WriteBoolean("completed", r.Completed);
+            json.WriteEndObject();
+        }
+        json.WriteEndArray();
+        json.WriteStartArray("civicsBank");
+        foreach (CivicsBankStep b in t.CivicsBank ?? [])
+        {
+            json.WriteStartObject();
+            json.WriteNumber("holder", b.Holder);
+            json.WriteNumber("generatedMilli", b.GeneratedMilli);
+            json.WriteNumber("drawnMilli", b.DrawnMilli);
+            json.WriteNumber("balanceMilli", b.BalanceMilli);
+            json.WriteEndObject();
+        }
+        json.WriteEndArray();
 
         json.WriteEndObject();
     }

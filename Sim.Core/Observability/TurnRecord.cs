@@ -36,7 +36,49 @@ public sealed record TurnRecord(
     FlowsSummary Flows,
     OrderApplied[] Orders,            // READ  the log rows whose Turn == prev.Clock.Turn
     PolicyInForce[] Policy,           // RECOMPUTED Sectors.Share on prev SectorAllocations (Default when no row)
-    CausesRecord Causes);
+    CausesRecord Causes,
+    // D-086 DE1 (telemetry/v6): the step's research, every knowledge holder's — DIFFERENCED from the research tables
+    // (ResearchObservation.Observe). Null on a record built without them (a hand-built record): the writer writes empty
+    // arrays, the same as a world without research content.
+    ResearchStep[]? Research = null,
+    CivicsBankStep[]? CivicsBank = null);
+
+/// <summary>
+/// D-086 DE1 (the Director, 2026-11-11: "it should record which node was researched and how much and which turn also";
+/// readings DE1-R1..R3 (a)) — ONE NODE OF ONE KNOWLEDGE HOLDER'S RESEARCH IN ONE STEP: a node whose stored progress moved
+/// in the step that produced turn <see cref="TurnRecord.Turn"/>, or that completed in it (a completion row says so). Every
+/// knowledge holder ResearchSystem steps: the roster polities (the player's Empire and each AI Empire) and the city-states
+/// (a settlement no Empire controls researches under its reserved local key, State.SettlementKnowledge.LocalHolder).
+///
+/// An OBSERVATION of rows that already exist (D-086 DE-R (a)): nothing here is stored in the world, read by a system or
+/// part of a hash. Each field states its §0 kind. The units are the node's own: Research Points for a technology, Civics
+/// Points for a civic in the two-lane model (research.json tuning.civicsPoints) — the unit of its cost.
+/// </summary>
+public readonly record struct ResearchStep(
+    int Holder,          // READ  the rows' PolityId: ≥ 0 a roster polity; < 0 a city-state's local key, −1 − settlement id
+    int Node,            // READ  the node's ResearchNodeId (research.json key)
+    string Tree,         // READ  content: "Technology" or "Civics" — the node's tree, which is its lane in the two-lane model
+    double Received,     // DIFFERENCED the points the node received in this step: progress after − progress before
+                         //   (ResearchProgress; 0 when the holder had no row). On completion: Progress − progress before.
+    double Credit,       // DIFFERENCED of Received, acceleration credit (Eureka, foreign exposure): Σ over sources of
+                         //   ResearchCredits next − prev, per source. The rest came from the lane's points (RP; CP from the bank).
+    double Progress,     // READ  the progress row after the step. On completion RECOMPUTED: max(progress before, Cost) — the
+                         //   system sets progress to EXACTLY the cost when a credit reaches it (ResearchSystem.Credit) and
+                         //   removes the row; a node already at its cost (its cost fell) completes with what it had.
+    double Cost,         // RECOMPUTED ResearchQuery.EffectiveCost(prev, content, holder, node) — the cost the step itself used
+    int Level,           // READ  ResearchLevels after the step (ADR-049 repeatable levels; 0 = no row)
+    bool Completed);     // DIFFERENCED the node completed in this step: a ResearchCompleted row appeared, or its level rose
+
+/// <summary>
+/// D-086 DE1-R2 (a) ("for Civics this also covers the banked Civics Points drawn") — ONE KNOWLEDGE HOLDER'S CIVICS POINTS
+/// BANK IN ONE STEP (ADR-043; CivicsPointsRow, integer milli-CP): what the step generated, what it drew for the holder's civics
+/// and the balance left. A row only for a holder whose account changed. An OBSERVATION, like <see cref="ResearchStep"/>.
+/// </summary>
+public readonly record struct CivicsBankStep(
+    int Holder,          // READ  the account's PolityId (as ResearchStep.Holder)
+    long GeneratedMilli, // DIFFERENCED CivicsPointsRow.GeneratedMilli next − prev (0 prev when the account is new)
+    long DrawnMilli,     // DIFFERENCED CivicsPointsRow.SpentMilli next − prev: the CP drawn from the bank in this step
+    long BalanceMilli);  // READ  CivicsPointsRow.BalanceMilli after the step
 
 /// <summary>One (reason, units) leg of a world-level flow — DIFFERENCED from the
 /// cumulative ledger row. <see cref="Name"/> is display only (ReasonIds carries no

@@ -50,3 +50,34 @@ fixture's prose as what the current tree's prose record still reproduces.
 
 These files are a frozen record. A later change to the simulation does not make them wrong: the export reads files,
 never a replay.
+
+## `current-v6/`: a current-tree session with research rows (`telemetry/v6`, D-086)
+
+The same recipe as `current-v5`, written by the lane RR tree: seed 42 on the canonical world, one AI empire, 16 turns,
+the same player orders. The generator is `SessionExportTests.Tool_WritesTheCurrentV6Fixture_OnlyWhenAsked`, run with
+`CIVSIM_WRITE_EXPORT_FIXTURE_V6=DIR`. Re-running it on the lane RR tree gave these six files back byte for byte
+(measured 2026-11-11).
+
+- **Telemetry.** Every line carries the `research` and `civicsBank` arrays of `telemetry/v6`. The research rows are
+  the player's empire's (holder 1: 16 rows, no completion) and the AI empire's (holder 2: 32 rows, two of them
+  completions). The bank rows are those two holders' (16 each).
+  - **Corrected (verification round 2, RR-R2-01).** This item said the rows include the city-states'. They do not: a
+    founded game has no city-state. Founding gives every settlement to an empire, a colony inherits its founder's
+    control, and a revolted place passes to a new polity (R3).
+  - City-state rows are tested on a session with one settlement released before the first turn
+    (`RunRecordResearchTests.ACityStatesResearch_IsInTheRunRecord_AfterTheRosterPolities_CodedStByItsSettlement`) and
+    on the rigs of `ResearchObservationTests`.
+- **Chronicle.** The chronicle is the coded file (`chronicle-codes/v1`). Its name lines name every research node the
+  research rows hold, so the workbook's Codebook names every `RN` code of the Research sheet.
+- **Trace.** The trace is byte for byte the `current-v5` trace: the same 16 world hashes.
+- **Prototype cells.** `prototype-cells.txt.gz` is `encode.py`'s output: 16 cells, codebook v6, the longest 10,397
+  characters, no `!` escape. `decode.py` gives the telemetry back byte for byte.
+
+| File | Bytes | sha256 |
+|---|---|---|
+| `session-20261111-120000-a1.json` | 548 | `69f0394f…2d0d87` |
+| `orders-20261111-120000-a1.bin` | 604 | `afd233bb…a03a9` |
+| `chronicle-20261111-120000-a1.txt` | 472 | `6de2e589…be856b` |
+| `trace-20261111-120000-a1.csv` | 1,468 | `0bbb6dcd…9b4c8b` |
+| `telemetry-20261111-120000-a1.jsonl` (gzip'd here) | 1,765,749 | `941b99f7…26c8a5` |
+| `forensic-20261111-120000-a1.jsonl` | 10,986 | `c6b79b96…11f181` |

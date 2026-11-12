@@ -869,7 +869,8 @@ public sealed class UiSession
         // only GAINED settlements leaves every existing name unchanged (pinned by a test).
         if (World.Settlements.Count != prev.Settlements.Count)
             Names = Sim.Core.Chronicle.NameRegistry.Build(_chronicleCfg, World.Seed, World);
-        _observations.Observe(prev, World, _simCfg, OrderApplied.For(Orders, prev.Clock.Turn));
+        TurnObservation observed = _observations.Observe(prev, World, _simCfg, OrderApplied.For(Orders, prev.Clock.Turn));
+        NoteResearchNames(observed.Turn.Research);   // D-086 DE1: the record's name lines name every node the research rows hold
         Knowledge = _knowledgeOf(World);   // P7: what the player knows of the world the step produced
         ObserveChronicle();
         _events.Observe(prev, World, _simCfg, Names.Name, _annals, Knowledge, coded: _record);
@@ -879,6 +880,25 @@ public sealed class UiSession
         Ownership.Capture(World, UiPlayer.Empire);   // the resources view: the player's settlements after the step
         Unlocked.Capture(World, _simCfg, UiPlayer.Empire);   // the resources view: goods unlocked by the step stay unlocked
         CaptureTrace();
+    }
+
+    /// <summary>
+    /// D-086 DE1 — the session record's legend for the research rows: every research node a step's research rows mention
+    /// (every knowledge holder's, telemetry/v6) gets its name line <c>RN&lt;key&gt;=name</c> in the coded chronicle
+    /// (<see cref="Sim.Core.Chronicle.ChronicleCode.Record.Note"/>, first note wins — the same code and name the RM event
+    /// notes). The session workbook moves the name lines to its Codebook ('Chronicle:names'), so the Research sheet's RN
+    /// codes are named there; the telemetry cells stay codes and numbers. A node's name is content, shown to the player in
+    /// the research tree, so naming it reveals nothing a hidden-settlement filter (P7) withholds. Shared by live play and
+    /// the resume replay (both run <see cref="Step"/>), so a resumed session's name lines are rebuilt identically.
+    /// </summary>
+    private void NoteResearchNames(ResearchStep[]? steps)
+    {
+        if (steps is null || _simCfg.Research is not { } content) return;
+        foreach (ResearchStep r in steps)
+        {
+            int i = content.IndexOf(new ResearchNodeId(r.Node));
+            if (i >= 0) _record.Note("RN" + r.Node.ToString(CultureInfo.InvariantCulture), content.Nodes[i].Name);
+        }
     }
 
     /// <summary>One trace line for the world as it now stands. Called AFTER the
@@ -1216,17 +1236,26 @@ public sealed class UiSession
     /// </summary>
     public string? ExportWorkbook(string sessionLogPath, TextWriter? errors, Action<string>? delete, Action<int>? pause)
     {
+        if (ExportWorkbookStep(sessionLogPath, errors) is not ({ } path, { } result)) return null;
+        RemoveRawTelemetryStep(sessionLogPath, path, result, errors, delete, pause);
+        return path;
+    }
+
+    /// <summary>
+    /// D-086 DE2 — the WORKBOOK STEP of the close on its own (<see cref="ExportWorkbook(string, TextWriter?)"/> is this, then
+    /// <see cref="RemoveRawTelemetryStep"/>): the workbook built from the record files, self-checked and written. Null when
+    /// nothing was written (no manifest on disk, or a refusal or I/O failure, reported on <paramref name="errors"/>).
+    /// <paramref name="progress"/> receives the share of the telemetry log read so far (0–1), for the saving screen.
+    /// </summary>
+    public (string Path, Export.SessionExportResult Result)? ExportWorkbookStep(string sessionLogPath, TextWriter? errors,
+        Action<double>? progress = null)
+    {
         string manifest = ManifestPath(sessionLogPath);
         if (!File.Exists(manifest)) return null;
         try
         {
-            (string path, Export.SessionExportResult result) = Export.SessionWorkbook.ExportBeside(manifest,
-                KeepRawTelemetry ? Export.RawTelemetry.Kept : Export.RawTelemetry.RemovedAfterExport);
-            if (!KeepRawTelemetry && result.RawTelemetry != Export.RawTelemetry.RecoveredFromWorkbook
-                && Export.SessionWorkbook.RemoveRawTelemetry(path, Path.Combine(Path.GetDirectoryName(Path.GetFullPath(manifest)) ?? "",
-                    result.TelemetryFile), result, delete, pause) is { } kept)
-                ReportKept(sessionLogPath, errors, "raw telemetry log kept in the session record (" + result.TelemetryFile + "): " + kept);
-            return path;
+            return Export.SessionWorkbook.ExportBeside(manifest,
+                KeepRawTelemetry ? Export.RawTelemetry.Kept : Export.RawTelemetry.RemovedAfterExport, progress);
         }
         catch (Export.SessionExportException e)
         {
@@ -1239,6 +1268,27 @@ public sealed class UiSession
             return null;
         }
     }
+
+    /// <summary>
+    /// D-086 DE2 — the RAW TELEMETRY REMOVAL STEP of the close on its own, after <see cref="ExportWorkbookStep"/> wrote
+    /// <paramref name="path"/>: unless <see cref="KeepRawTelemetry"/> (or the telemetry was itself recovered from an earlier
+    /// workbook), the raw log is removed when <see cref="Export.SessionWorkbook.RemoveRawTelemetry(string, string, Export.SessionExportResult, Action{string}?, Action{int}?)"/>
+    /// verifies it may be; a log kept is reported on <paramref name="errors"/> and in the export log, exactly as before.
+    /// </summary>
+    public void RemoveRawTelemetryStep(string sessionLogPath, string path, Export.SessionExportResult result, TextWriter? errors,
+        Action<string>? delete = null, Action<int>? pause = null)
+    {
+        if (KeepRawTelemetry || result.RawTelemetry == Export.RawTelemetry.RecoveredFromWorkbook) return;
+        string manifest = ManifestPath(sessionLogPath);
+        if (Export.SessionWorkbook.RemoveRawTelemetry(path, Path.Combine(Path.GetDirectoryName(Path.GetFullPath(manifest)) ?? "",
+                result.TelemetryFile), result, delete, pause) is { } kept)
+            ReportKept(sessionLogPath, errors, "raw telemetry log kept in the session record (" + result.TelemetryFile + "): " + kept);
+    }
+
+    /// <summary>D-086 DE2: a close step that failed — on <paramref name="errors"/> and appended to the export log, like a kept
+    /// raw log (the Windows launcher discards stderr). Never throws.</summary>
+    public static void ReportCloseProblem(string sessionLogPath, TextWriter? errors, string reason) =>
+        ReportKept(sessionLogPath, errors, reason);
 
     /// <summary>Director 2026-11-02: why the raw telemetry log was kept, on <paramref name="errors"/> and appended to
     /// <see cref="ExportLogPath"/> (a line: the local time, then the reason). Never throws: a log that cannot be written is

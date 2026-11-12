@@ -73,7 +73,7 @@ public sealed record CbNameMap(string Map, string? Fallback, (BigInteger Id, str
 /// the machine-readable twin (<c>docs/m6-session-export/codebook-telemetry-vN.json</c>) that
 /// <c>prototype/make_codebook.py</c> generates from <c>prototype/spec.py</c> — the single source of the table — embedded
 /// in Sim.Ui with the TSV the Codebook sheet shows. v4 reads telemetry/v2, v3 and v4 lines (cell heads v2/v3/v4);
-/// v5 reads telemetry/v5 (head v5).
+/// v5 reads telemetry/v5 (head v5); v6 reads telemetry/v6 (head v6; D-086 DE1: v5 + the research rows).
 /// </summary>
 public sealed class TelemetryCodebook
 {
@@ -131,20 +131,32 @@ public sealed class TelemetryCodebook
 
     public static TelemetryCodebook V4 { get; } = Load("v4");
     public static TelemetryCodebook V5 { get; } = Load("v5");
+    public static TelemetryCodebook V6 { get; } = Load("v6");
 
-    /// <summary>The codebook of a schema tag (telemetry/v2, v3, v4 → v4; telemetry/v5 → v5), or null.</summary>
+    /// <summary>Every codebook, newest first (the order <see cref="ForSchema"/> and <see cref="ForHead"/> search).</summary>
+    public static IReadOnlyList<TelemetryCodebook> All { get; } = [V6, V5, V4];
+
+    /// <summary>The codebook of a version (<c>v4</c>, <c>v5</c>, <c>v6</c>), or null.</summary>
+    public static TelemetryCodebook? ForVersion(string version)
+    {
+        foreach (TelemetryCodebook cb in All)
+            if (string.Equals(cb.Version, version, StringComparison.Ordinal)) return cb;
+        return null;
+    }
+
+    /// <summary>The codebook of a schema tag (telemetry/v2, v3, v4 → v4; telemetry/v5 → v5; telemetry/v6 → v6), or null.</summary>
     public static TelemetryCodebook? ForSchema(string tag)
     {
-        foreach (TelemetryCodebook cb in new[] { V5, V4 })
+        foreach (TelemetryCodebook cb in All)
             foreach ((string t, string _) in cb.SchemaCodes)
                 if (string.Equals(t, tag, StringComparison.Ordinal)) return cb;
         return null;
     }
 
-    /// <summary>The codebook of a cell's first token (v2, v3, v4 → v4; v5 → v5), or null.</summary>
+    /// <summary>The codebook of a cell's first token (v2, v3, v4 → v4; v5 → v5; v6 → v6), or null.</summary>
     public static TelemetryCodebook? ForHead(string head)
     {
-        foreach (TelemetryCodebook cb in new[] { V5, V4 })
+        foreach (TelemetryCodebook cb in All)
             foreach ((string _, string c) in cb.SchemaCodes)
                 if (string.Equals(c, head, StringComparison.Ordinal)) return cb;
         return null;

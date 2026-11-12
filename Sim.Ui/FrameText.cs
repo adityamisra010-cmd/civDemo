@@ -51,6 +51,8 @@ public static class FrameSurface
     public const string Overlay = "overlay";
     /// <summary>M5 S1d: the settlement-placement mode — its bar over the map and its hint beside the pointer.</summary>
     public const string Placement = "placement";
+    /// <summary>D-086 DE2: the saving screen the window shows while the session closes.</summary>
+    public const string Closing = "closing";
 }
 
 /// <summary>

@@ -299,10 +299,21 @@ public sealed class SimUiGame : Game
 
     /// <summary>Rebuilds the cached HUD snapshot for the current selection, the action surface and the
 
+    /// <summary>
+    /// D-086 DE2 (the Director, 2026-11-11: "The screen froze and i think the excel didn't come"). A close request — the
+    /// window's close button, Alt+F4, Escape with nothing open — STARTS the session close (<see cref="GameUi.HostExiting"/>:
+    /// the final save, the telemetry finalize, the forensic close record, the workbook, the raw log's removal, in that order,
+    /// on a worker thread) and CANCELS the exit (MonoGame 3.8.5's <see cref="ExitingEventArgs.Cancel"/>), so the game loop
+    /// keeps running and draws the saving screen instead of freezing. When the close is done (<see cref="GameUi.HostShouldExit"/>)
+    /// Update asks to exit again and this lets it through. A second request while the close runs changes nothing.
+    /// </summary>
     protected override void OnExiting(object sender, ExitingEventArgs args)
     {
-        // A final save, the telemetry flushed past the OS buffers, then the forensic close record (P0/P1).
-        _ui?.SaveOnExit();
+        if (_ui is { } ui && ui.HostExiting())
+        {
+            args.Cancel = true;
+            return;
+        }
         base.OnExiting(sender, args);
     }
 
@@ -318,7 +329,9 @@ public sealed class SimUiGame : Game
             ui.SetViewport(v.Width, v.Height);
             ui.Update(_mouse, _keyboard, gameTime.ElapsedGameTime.TotalSeconds, IsActive);
             FollowUiScale();
-            if (ui.ExitRequested) Exit();
+            // D-086 DE2: Escape asks to exit (the close starts in OnExiting); while the run is saved, the exit comes when the
+            // close allows it.
+            if (ui.HostShouldExit()) Exit();
         }
         base.Update(gameTime);
     }
@@ -331,6 +344,18 @@ public sealed class SimUiGame : Game
         GraphicsDevice.Clear(new Color(
             ParchmentPalette.PaperShade.R, ParchmentPalette.PaperShade.G, ParchmentPalette.PaperShade.B));
         if (_ui is not { } ui) { base.Draw(gameTime); return; }
+        if (ui.Closing)
+        {
+            // D-086 DE2: the saving screen alone, on the paper — no map: nothing drawn reads the session the close is writing.
+            ui.Fps = _fps;
+            ui.PrepareFrame();
+            _imgui!.BeforeLayout(gameTime);
+            ui.Draw();
+            _imgui.AfterLayout();
+            DrawFibreOverlay(_fibreSoftTexture);
+            base.Draw(gameTime);
+            return;
+        }
         Rectangle viewport = Viewport();
         Camera cam = ui.Camera;
         if (_riverBands.Update(cam.Zoom)) RebuildRiverBuffer(_riverBands.Band!.Value);   // D-A3; P2: once per zoom band

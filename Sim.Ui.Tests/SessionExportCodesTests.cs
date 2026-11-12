@@ -133,6 +133,7 @@ public class SessionExportCodesTests
     [Theory]
     [InlineData("director-68")]
     [InlineData("current-v5")]
+    [InlineData("current-v6")]   // D-086 DE1: the Research sheet with its rows, coded
     public void NoWordOutsideTheLegendSheets_AndEveryCodeIsDefined_OnTheFixtures(string fixture)
     {
         OoxmlWorkbook.Content back = Fixture(fixture);

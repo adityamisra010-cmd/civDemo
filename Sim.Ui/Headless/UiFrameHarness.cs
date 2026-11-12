@@ -26,6 +26,22 @@ public sealed class UiFrameHarness : IDisposable
     /// <summary>Times the UI asked to exit (Escape with nothing open); the harness acknowledges and goes on.</summary>
     public int ExitRequests { get; private set; }
 
+    /// <summary>D-086 DE2: when true, each frame takes the WINDOW HOST's exit decision after Update, as SimUiGame's tick
+    /// does — <see cref="GameUi.HostShouldExit"/>, and when it says exit, the window's exit (<see cref="CloseWindow"/>) —
+    /// instead of acknowledging an exit request and going on. False by default (the playability gate's mode). One
+    /// difference from the window: MonoGame skips the Draw of the tick that calls Exit; the harness draws it.</summary>
+    public bool Host { get; set; }
+
+    /// <summary>D-086 DE2: in <see cref="Host"/> mode, whether the window has exited (its exit was not cancelled).</summary>
+    public bool Exited { get; private set; }
+
+    /// <summary>D-086 DE2: the window is asked to exit — its close button or Alt+F4, or the exit the host itself asks for —
+    /// as MonoGame raises <c>OnExiting</c>: the exit goes through unless <see cref="GameUi.HostExiting"/> cancels it.</summary>
+    public void CloseWindow()
+    {
+        if (!Ui.HostExiting()) Exited = true;
+    }
+
     /// <summary>Every defect seen, with the frame it was seen on.</summary>
     public List<string> Problems { get; } = [];
 
@@ -117,7 +133,11 @@ public sealed class UiFrameHarness : IDisposable
             Gui.Rebuild(Ui.WantedScale);
             Ui.SetFonts(Gui.Fonts);
         }
-        if (Ui.ExitRequested) { ExitRequests++; Ui.ExitRequested = false; }
+        if (Host)
+        {
+            if (Ui.HostShouldExit()) { ExitRequests++; CloseWindow(); }   // SimUiGame.Update's Exit, then its OnExiting
+        }
+        else if (Ui.ExitRequested) { ExitRequests++; Ui.ExitRequested = false; }
         Ui.PrepareFrame();
         Gui.BeginFrame(mouse, keyboard, dt);
         Ui.Draw();

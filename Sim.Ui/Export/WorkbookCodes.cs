@@ -196,6 +196,31 @@ public static class WorkbookCodes
         E("Forensic:file", "NL", "not listed by the close record");
         E("Forensic:file", "LN", "listed, but the file is NOT PRESENT now");
         E("Forensic:file", "SF", "the forensic file holds the close record; it lists no hash of itself");
+
+        // D-086 DE1: the Research sheet (read from the telemetry lines' research rows, telemetry/v6).
+        E("Research:col", "T", "turn: the telemetry line's turn (the research of the step that produced this turn)");
+        E("Research:col", "HD", "holder: the polity or city-state that researched (rows 'Research:read')");
+        E("Research:col", "KD", "row kind (rows 'Research:kind')");
+        E("Research:col", "RN", "research node (RN<key>; its name is the 'Chronicle:names' row RN<key>)");
+        E("Research:col", "LN", "lane: LT technology (paid in Research Points), LC civics (paid in Civics Points in the two-lane model)");
+        E("Research:col", "PR", "points the node received this turn, in the unit of its cost (credit included): its progress after the turn less its progress before, a difference of two stored numbers, so its last digits can carry binary rounding (for example 20.831000000000003 for a bank draw DR of 20.831)");
+        E("Research:col", "AC", "of PR, acceleration credit (an Idea or foreign exposure); the rest came from the lane's points");
+        E("Research:col", "PG", "the node's progress after the turn (on a completion row: what it completed with, its cost)");
+        E("Research:col", "CS", "the node's cost this turn (its effective cost for this holder)");
+        E("Research:col", "LV", "repeatable level after the turn (0 = a node without levels)");
+        E("Research:col", "GN", "Civics Points the holder generated this turn (BK rows)");
+        E("Research:col", "DR", "Civics Points drawn from the holder's bank this turn, for its civics (BK rows); a completing civic draws what it lacked, rounded up to 0.001");
+        E("Research:col", "BL", "Civics Points left in the holder's bank after the turn (BK rows)");
+        E("Research:kind", "RP", "a node received points this turn");
+        E("Research:kind", "RC", "a node COMPLETED this turn (its completion row)");
+        E("Research:kind", "BK", "the holder's Civics Points bank this turn (GN DR BL)");
+        E("Research:kind", "NR", "NR, then n: n telemetry lines carry no research rows (written before telemetry/v6); nothing is invented for them");
+        E("Research:kind", "NX", "NX, then n: research is recorded on n lines and no node received points on any of them");
+        E("Research:read", "PL", "PL<id>: a polity (PL1 = the player's empire)");
+        E("Research:read", "ST", "ST<id>: a city-state - the settlement with that id, researching on its own");
+        E("Research:read", "RN", "RN<key>: research node key");
+        E("Research:read", "LT", "the technology lane");
+        E("Research:read", "LC", "the civics lane");
         return l;
     }
 

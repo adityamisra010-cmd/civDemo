@@ -606,13 +606,81 @@ public sealed partial class GameUi
 
     /// <summary>The host is exiting: a final save, the telemetry flushed past the OS buffers, then the forensic
     /// close record (which content-hashes every companion, so it is written last of the six), and then the one-file
-    /// session workbook (ADR-059), which only READS the six — so the close record neither lists it nor changes.</summary>
-    public void SaveOnExit()
+    /// session workbook (ADR-059), which only READS the six — so the close record neither lists it nor changes.
+    /// D-086 DE2: the same five steps (<see cref="SessionClose"/>), run here on the calling thread, returning when they are
+    /// done. The window uses <see cref="BeginClose"/> instead, which runs them on a worker while it draws the saving
+    /// screen.</summary>
+    public void SaveOnExit() => BeginClose(background: false);
+
+    // --- D-086 DE2: the close, off the game thread -----------------------------------------------------------
+
+    private SessionClose? _close;
+    private double _closingSeconds;
+
+    /// <summary>D-086 DE2: true from the first close request on. From then the UI takes no game input, draws only the saving
+    /// screen (<see cref="DrawClosing"/>) and never touches the session again: the close's worker owns it.</summary>
+    public bool Closing => _close is not null;
+
+    /// <summary>D-086 DE2: the close has finished (every step ran, or one failed and was reported): the host may exit.</summary>
+    public bool CloseFinished => _close?.Finished ?? false;
+
+    /// <summary>D-086 DE2: the close (null before the first close request).</summary>
+    public SessionClose? Close => _close;
+
+    /// <summary>D-086 DE2: how many times the player asked to close (the window's close button, Alt+F4, Escape); the saving
+    /// screen says so from the second on.</summary>
+    public int CloseRequests { get; private set; }
+
+    /// <summary>D-086 DE2 TEST SEAM: called on the close's worker before each step with its index (a throw is an
+    /// interruption there). Null in the game.</summary>
+    public Action<int>? CloseStepHook { get; set; }
+
+    /// <summary>D-086 DE2 TEST SEAM (verification round 2, RR-R2-03): called on the close's worker each time the workbook step
+    /// reports its progress (the share of the telemetry log read); blocking in it holds the close there. Null in the game.</summary>
+    public Action<double>? CloseProgressHook { get; set; }
+
+    /// <summary>D-086 DE2: where the close reports a refusal or a failure (the game: stderr).</summary>
+    public TextWriter CloseErrors { get; set; } = Console.Error;
+
+    /// <summary>
+    /// D-086 DE2: a close request. The first starts the close — on a worker thread when <paramref name="background"/> (the
+    /// window), else on this thread (<see cref="SaveOnExit"/>) — and puts the UI in its saving state; a later one only counts
+    /// (a close already under way is never started twice).
+    /// </summary>
+    public void BeginClose(bool background = true)
     {
-        SaveSession();
-        _session.FinalizeTelemetry(UiSession.TelemetryPath(_sessionLogPath));
-        _session.ExportForensicClose(_sessionLogPath);
-        _session.ExportWorkbook(_sessionLogPath, Console.Error);
+        CloseRequests++;
+        if (_close is { Finished: true }) _closeRequestedAfterFinish = true;   // the saving screen showed a problem: now quit
+        if (_close is not null) return;
+        _close = new SessionClose(_session, _sessionLogPath, SaveSession, CloseErrors, CloseStepHook, CloseProgressHook);
+        _close.Start(background);
+    }
+
+    /// <summary>
+    /// D-086 DE2 — THE WINDOW IS ABOUT TO EXIT (the host's <c>OnExiting</c>: the window's close button, Alt+F4, or the exit the
+    /// host itself asked for). Returns true when the exit must be CANCELLED: the request starts the close on its worker (the
+    /// first one) or only counts (the close is running, or it ended without a workbook and this is not yet the player's
+    /// answer to that). Returns false when the window may close now: the close succeeded, or it ended without a workbook and
+    /// this request is the player's second one. The host's whole decision, so the headless harness drives exactly it.
+    /// </summary>
+    public bool HostExiting()
+    {
+        if (ExitAllowed) return false;
+        BeginClose();
+        return !ExitAllowed;
+    }
+
+    /// <summary>
+    /// D-086 DE2 — WHETHER THE HOST SHOULD ASK THE WINDOW TO EXIT after this frame's <see cref="Update"/>: before any close, when
+    /// the player asked to quit (<see cref="ExitRequested"/>: Escape with nothing open; the close then starts in
+    /// <see cref="HostExiting"/>); during the close, once it allows the exit (<see cref="ExitAllowed"/>). Clears
+    /// <see cref="ExitRequested"/> when it answers true.
+    /// </summary>
+    public bool HostShouldExit()
+    {
+        bool exit = Closing ? ExitAllowed : ExitRequested;
+        if (exit) ExitRequested = false;
+        return exit;
     }
 
     private Rectangle Viewport() => new(0, 0, _viewportWidth, _viewportHeight);
@@ -627,6 +695,17 @@ public sealed partial class GameUi
     /// </summary>
     public void Update(MouseState mouse, KeyboardState keyboard, double dtSeconds, bool active = true)
     {
+        if (Closing)
+        {
+            // D-086 DE2: while the run is saved the UI takes no game input (the session is the close's). Once the close has
+            // ended without a workbook the saving screen says why; Escape then quits, like the window's close button.
+            _closingSeconds += dtSeconds;
+            if (_close!.Finished && active && keyboard.IsKeyDown(Keys.Escape) && !_lastKeyboard.IsKeyDown(Keys.Escape))
+                BeginClose();
+            _lastMouse = mouse;
+            _lastKeyboard = keyboard;
+            return;
+        }
         UpdateInput(mouse, keyboard, dtSeconds, active);
         // P2: the map camera eases its shown view toward the target this frame's input set (wheel, W A S D, a glide),
         // once per frame on every path — frame-rate independent (Camera.Advance). UI state only.
@@ -1181,6 +1260,11 @@ public sealed partial class GameUi
     /// </summary>
     public void Draw()
     {
+        if (Closing)
+        {
+            DrawClosing();   // D-086 DE2: the saving screen alone
+            return;
+        }
         Controls.BeginFrame();
         FrameText.BeginFrame();   // P6: the frame's text, recorded as it is drawn
         _lastLensCommands = [];

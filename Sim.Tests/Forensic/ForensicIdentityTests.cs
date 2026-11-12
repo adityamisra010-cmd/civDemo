@@ -146,7 +146,7 @@ public class ForensicIdentityTests
         // moved to v3 with the foodState/migrationPlan sections, and to v4 with
         // ADR-033 D4's social.tax object. The forensic tag below did NOT move —
         // this file's own field set is unchanged.
-        Assert.Equal("telemetry/v5", run.Schemas.Telemetry);   // D-066 A15 (ADR-059): v5 names the M7 pass's line shape
+        Assert.Equal("telemetry/v6", run.Schemas.Telemetry);   // D-066 A15 v5; D-086 DE1: v6 = v5 + the research rows
         Assert.Equal(TelemetryWriter.Schema, run.Schemas.Telemetry);
         Assert.Equal("session-manifest/v2", run.Schemas.SessionManifest);
         Assert.Equal("forensic/v1", run.Schemas.Forensic);

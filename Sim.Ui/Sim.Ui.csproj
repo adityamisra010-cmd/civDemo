@@ -33,11 +33,14 @@
     <EmbeddedResource Include="UiContent\world\settlement-classes.json" LogicalName="Sim.Ui.settlement-classes.json" />
     <!-- ADR-059 (D-066 A14-A17): the session export's codebooks — the TSV the workbook's Codebook sheet shows and its
          machine-readable twin the codec reads — generated from docs/m6-session-export/prototype/spec.py, the single
-         source (make_codebook.py; CI checks they are current). One codebook per telemetry schema: v4 and v5. -->
+         source (make_codebook.py; CI checks they are current). One codebook per telemetry schema: v4, v5 and v6. -->
     <EmbeddedResource Include="..\docs\m6-session-export\codebook-telemetry-v4.tsv" LogicalName="Sim.Ui.codebook-telemetry-v4.tsv" />
     <EmbeddedResource Include="..\docs\m6-session-export\codebook-telemetry-v4.json" LogicalName="Sim.Ui.codebook-telemetry-v4.json" />
     <EmbeddedResource Include="..\docs\m6-session-export\codebook-telemetry-v5.tsv" LogicalName="Sim.Ui.codebook-telemetry-v5.tsv" />
     <EmbeddedResource Include="..\docs\m6-session-export\codebook-telemetry-v5.json" LogicalName="Sim.Ui.codebook-telemetry-v5.json" />
+    <!-- D-086 DE1: codebook v6 reads telemetry/v6 (v5 + the research rows). -->
+    <EmbeddedResource Include="..\docs\m6-session-export\codebook-telemetry-v6.tsv" LogicalName="Sim.Ui.codebook-telemetry-v6.tsv" />
+    <EmbeddedResource Include="..\docs\m6-session-export\codebook-telemetry-v6.json" LogicalName="Sim.Ui.codebook-telemetry-v6.json" />
   </ItemGroup>
 
   <ItemGroup>

@@ -272,10 +272,13 @@ public static class Observer
             pop.Closing - pop.Opening, births - deaths - starvation,
             grainStock.Closing - grainStock.Opening, endowment + harvest - eaten - spoilage - overflow - expedition - military - fodder);
 
+        // D-086 DE1 (telemetry/v6): the step's research, every knowledge holder's — DIFFERENCED from the research tables.
+        (ResearchStep[] research, CivicsBankStep[] civicsBank) = ResearchObservation.Observe(prev, next, cfg.Research);
+
         return new TurnRecord(
             next.Clock.Turn, next.Clock.WorldDateYears, next.Clock.DtYears,
             stocks.ToArray(), population, grainAccount, dwellings, goodAccounts.ToArray(),
-            flows, orders, policy, causes);
+            flows, orders, policy, causes, research, civicsBank);
     }
 
     private static T Account<T>(long opening, long closing, long netFlow, Func<long, long, bool, long, T> make)

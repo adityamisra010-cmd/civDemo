@@ -99,12 +99,25 @@ public sealed record TelemetrySettlement(
     TelemetryFoodState FoodState, TelemetryMigrationPlan MigrationPlan,
     TelemetryTax Tax);
 
-/// <summary>One observed step, as the saved telemetry record carries it.</summary>
+/// <summary>One observed step, as the saved telemetry record carries it. <paramref name="Research"/> (D-086 DE1,
+/// telemetry/v6) is the step's research rows, <see cref="TelemetryResearch.Absent"/> on a v2–v5 line.</summary>
 public sealed record TelemetryTurn(
     long Turn, double Year, double DtYears,
     long PopOpening, long Births, long NaturalDeaths, long Starvation, long PopClosing,
     bool PopReconciles, long PopDiscrepancy,
-    GrainTotals Grain, FlowsTotals Flows, OrderRow[] Orders, TelemetrySettlement[] Settlements);
+    GrainTotals Grain, FlowsTotals Flows, OrderRow[] Orders, TelemetrySettlement[] Settlements,
+    TelemetryResearch? Research = null);
+
+/// <summary>
+/// D-086 DE1 (telemetry/v6): the step's research rows (<see cref="ResearchStep"/>) and Civics Points bank rows
+/// (<see cref="CivicsBankStep"/>) as the file carries them, or <see cref="Absent"/> on a telemetry/v2–v5 line — whose
+/// <see cref="Recorded"/> flag is FALSE, so "the file does not record research" is never read as "nothing was researched".
+/// Presence is decided by the ARRAY: a v6 line with an empty research array is a recorded "nothing this step".
+/// </summary>
+public sealed record TelemetryResearch(bool Recorded, ResearchStep[] Steps, CivicsBankStep[] Bank)
+{
+    public static TelemetryResearch Absent { get; } = new(false, [], []);
+}
 
 /// <summary>
 /// THE TELEMETRY READER. Until this packet the telemetry file was WRITE-ONLY —
@@ -243,7 +256,25 @@ public sealed class TelemetryRecordFile
                 Lng(flows, "migrantsMoved"), (int)Lng(flows, "settlementsFounded"), (int)Lng(flows, "controlLost"),
                 Lng(flows, "tradeUnits"), (int)Lng(flows, "tradeFlowCount"), Bln(flows, "unattributedGrainTransfer")),
             Orders: [.. orders],
-            Settlements: [.. settlements]);
+            Settlements: [.. settlements],
+            Research: ReadResearch(t));
+    }
+
+    /// <summary>D-086 DE1 (telemetry/v6): the turn's research and civicsBank arrays, or Absent when the line carries no
+    /// research array (telemetry/v2–v5). Every value READ, nothing recomputed.</summary>
+    private static TelemetryResearch ReadResearch(JsonElement t)
+    {
+        if (t.ValueKind != JsonValueKind.Object
+            || !t.TryGetProperty("research", out JsonElement r) || r.ValueKind != JsonValueKind.Array)
+            return TelemetryResearch.Absent;
+        var steps = new List<ResearchStep>();
+        foreach (JsonElement s in r.EnumerateArray())
+            steps.Add(new ResearchStep((int)Lng(s, "holder"), (int)Lng(s, "node"), Str(s, "tree") ?? "",
+                Dbl(s, "received"), Dbl(s, "credit"), Dbl(s, "progress"), Dbl(s, "cost"), (int)Lng(s, "level"), Bln(s, "completed")));
+        var bank = new List<CivicsBankStep>();
+        foreach (JsonElement b in Arr(t, "civicsBank"))
+            bank.Add(new CivicsBankStep((int)Lng(b, "holder"), Lng(b, "generatedMilli"), Lng(b, "drawnMilli"), Lng(b, "balanceMilli")));
+        return new TelemetryResearch(true, [.. steps], [.. bank]);
     }
 
     private static TelemetrySettlement ReadSettlement(JsonElement s)

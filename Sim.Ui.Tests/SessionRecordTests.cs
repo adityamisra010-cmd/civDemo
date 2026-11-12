@@ -118,7 +118,7 @@ public class SessionRecordTests
             Assert.Contains("\"schema\":\"" + TelemetryWriter.Schema + "\"", lines[0]);
             // ADR-033 D4: v4 adds social.tax (the M5 tax burden on happiness).
             // D-066 A15 (ADR-059): v5 names the M7 pass's line shape (grain.military / grain.fodder, 23 goods).
-            Assert.Equal("telemetry/v5", TelemetryWriter.Schema);
+            Assert.Equal("telemetry/v6", TelemetryWriter.Schema);   // D-086 DE1: v6 = v5 + the research rows
         }
         finally
         {

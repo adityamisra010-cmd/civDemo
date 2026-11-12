@@ -441,20 +441,52 @@ V5 = Codebook(
     SETTLEMENT_TEMPLATE=SETTLEMENT_TEMPLATE, TURN_SECTION_ORDER=TURN_SECTION_ORDER,
     SETTLEMENT_SECTION_ORDER=SETTLEMENT_SECTION_ORDER)
 
-CODEBOOKS = {'v4': V4, 'v5': V5}
+# ---------------------------------------------------------------- codebook v6
+# telemetry/v6 (D-086 DE1, the Director 2026-11-11: the run record keeps research) = telemetry/v5 plus two arrays
+# appended to the turn object after "causes" (TelemetryWriter; Sim.Core/Observability/ResearchObservation.cs):
+#   - turn.research[]: one row per knowledge holder and node that received points or completed in the step:
+#     holder (>= 0 a roster polity; < 0 a city-state's local key, -1 - settlement id), node (research.json key),
+#     tree (Technology / Civics), received, credit (of received, acceleration credit), progress (after the step),
+#     cost (the effective cost the step used), level (repeatable level after the step), completed;
+#   - turn.civicsBank[]: one row per Civics Points bank that changed: holder, generatedMilli, drawnMilli,
+#     balanceMilli (integer milli-CP).
+# Every other section, field, position and default is codebook v5's.
+ENUMS_V6 = {k: dict(v) for k, v in ENUMS_V5.items()}
+ENUMS_V6['tree'] = {'Technology': 'T', 'Civics': 'C'}
+
+TURN_SECTIONS_V6 = dict(TURN_SECTIONS_V5)
+TURN_SECTIONS_V6['r'] = ('table', ['holder', 'node', 'tree', 'received', 'credit', 'progress', 'cost', 'level', 'completed'],
+                         [('holder', 'i', None), ('node', 'i', None), ('received', 'd', None), ('cost', 'd', None),
+                          ('progress', 'd', R('R.received')), ('tree', 'e:tree', ('k', S('Technology'))),
+                          ('credit', 'd', Z), ('level', 'i', Z), ('completed', 'b', FALSE)], 'empty')
+TURN_SECTIONS_V6['b'] = ('table', ['holder', 'generatedMilli', 'drawnMilli', 'balanceMilli'],
+                         [('holder', 'i', None), ('balanceMilli', 'i', None), ('generatedMilli', 'i', Z),
+                          ('drawnMilli', 'i', Z)], 'empty')
+TURN_TEMPLATE_V6 = _grain_v5(TURN_TEMPLATE) + [('research', '@', 'r'), ('civicsBank', '@', 'b')]
+TURN_SECTION_ORDER_V6 = TURN_SECTION_ORDER[:TURN_SECTION_ORDER.index('A')] + ['r', 'b', 'A']
+
+V6 = Codebook(
+    version='v6', SCHEMA_CODES={'telemetry/v6': 'v6'}, REASONS=REASONS_V5, GOODS=GOODS_V5,
+    QUANTITIES=QUANTITIES_V5, CLASSES=CLASSES, NEEDS=NEEDS, NAME_MAPS=NAME_MAPS_V5, ENUMS=ENUMS_V6,
+    NONFINITE=NONFINITE, CONSTANTS=(C1, C2_V5, C3, C4, C5), TURN_SECTIONS=TURN_SECTIONS_V6, ATTR_ROW=ATTR_ROW,
+    SETTLEMENT_SECTIONS=SETTLEMENT_SECTIONS_V5, TURN_TEMPLATE=TURN_TEMPLATE_V6,
+    SETTLEMENT_TEMPLATE=SETTLEMENT_TEMPLATE, TURN_SECTION_ORDER=TURN_SECTION_ORDER_V6,
+    SETTLEMENT_SECTION_ORDER=SETTLEMENT_SECTION_ORDER)
+
+CODEBOOKS = {'v4': V4, 'v5': V5, 'v6': V6}
 
 
 def codebook_for_schema(tag):
     """The codebook of a telemetry schema tag, or None (README §5.4: one codebook per schema)."""
-    for cb in (V5, V4):
+    for cb in (V6, V5, V4):
         if tag in cb.SCHEMA_CODES:
             return cb
     return None
 
 
 def codebook_for_head(head):
-    """The codebook of a cell's first token (v2, v3, v4 -> v4; v5 -> v5), or None."""
-    for cb in (V5, V4):
+    """The codebook of a cell's first token (v2, v3, v4 -> v4; v5 -> v5; v6 -> v6), or None."""
+    for cb in (V6, V5, V4):
         if head in cb.SCHEMA_CODES.values():
             return cb
     return None

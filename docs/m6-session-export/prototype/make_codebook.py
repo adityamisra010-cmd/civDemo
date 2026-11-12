@@ -1,7 +1,7 @@
 """Generate the codebooks (the workbook's Codebook sheet, and its machine-readable twin) from spec.py.
 
-    python3 -I make_codebook.py            # writes ../codebook-telemetry-v4.tsv, -v5.tsv, -v4.json, -v5.json
-    python3 -I make_codebook.py --check    # exit 1 if any of the four files differs from what spec.py gives
+    python3 -I make_codebook.py            # writes ../codebook-telemetry-v4.tsv, -v5.tsv, -v6.tsv and their .json twins
+    python3 -I make_codebook.py --check    # exit 1 if any of the six files differs from what spec.py gives
 
 spec.py is the single source. The TSV is the table a reader (or a reading AI) decodes a cell with;
 the JSON carries the same codebook for a program (the C# exporter embeds both, ADR-059). The v4 TSV
@@ -89,7 +89,7 @@ def pretty_ref(p, codes):
 TYPES = {'i': 'integer', 'd': 'double', 'b': 'bool 1/0', 'c': 'constant text', 'da': 'doubles joined by ;',
          'legs': 'ledger legs', 'e:kind': 'order kind code', 'e:state': 'food state code',
          'e:famine': 'famine reason code', 'n:quantity': 'name', 'n:good': 'name', 'n:class': 'name',
-         'n:need': 'name', 'n:reason': 'name'}
+         'n:need': 'name', 'n:reason': 'name', 'e:tree': 'research tree code'}
 
 
 def tsv_rows(cb):
@@ -98,7 +98,7 @@ def tsv_rows(cb):
     spath = section_paths(cb.SETTLEMENT_TEMPLATE, 'settlements[].', {})
     spath['#'] = 'settlements[] (identity)'
     tpath['t'] = 'turn'
-    v5 = cb.version == 'v5'
+    v5 = cb.version in ('v5', 'v6')   # the v5 grammar rows hold for every later codebook
     rows = [('sheet', 'code', 'pos', 'json field', 'type', 'default when the field is EMPTY', 'notes')]
     R = rows.append
 
@@ -125,8 +125,16 @@ def tsv_rows(cb):
         R(('grammar', '', '', '', '', '', 'Continuation (workbook, D-066 A17): a turn longer than 32767 characters is split '
            'at a | into further rows. A continuation row has an EMPTY column A and its cell starts with > followed by the '
            '| that was cut. Join: drop the > and append the rest to the cell above (repeat for each continuation row).'))
-        R(('grammar', 'v5', '', 'schema', '', '', 'first token of the cell: v5 = telemetry/v5 (cells v2, v3 and v4 are '
-           'read with codebook v4)'))
+        if cb.version == 'v6':
+            R(('grammar', 'v6', '', 'schema', '', '', 'first token of the cell: v6 = telemetry/v6 (cells v2, v3 and v4 are '
+               'read with codebook v4, cells v5 with codebook v5)'))
+            R(('grammar', '', '', '', '', '', 'Research (D-086): the r table holds one row per knowledge holder and research '
+               'node that received points or completed in the turn; the b table one row per Civics Points bank that changed '
+               '(milli = thousandths of a Civics Point). holder: 0 or more = a polity; below 0 = a city-state, settlement '
+               '-1 - holder.'))
+        else:
+            R(('grammar', 'v5', '', 'schema', '', '', 'first token of the cell: v5 = telemetry/v5 (cells v2, v3 and v4 are '
+               'read with codebook v4)'))
     else:
         R(('grammar', 'v4', '', 'schema', '', '', 'first token of the cell: v4 = telemetry/v4 (v3, v2 likewise)'))
     R(('grammar', 'A', '', 'settlements[].migration.allAttractiveness (line level)', '', '',
@@ -253,7 +261,7 @@ def json_text(cb):
 
 def outputs():
     out = []
-    for v in ('v4', 'v5'):
+    for v in ('v4', 'v5', 'v6'):
         cb = SP.CODEBOOKS[v]
         out.append(('codebook-telemetry-%s.tsv' % v, tsv_text(cb)))
         out.append(('codebook-telemetry-%s.json' % v, json_text(cb)))
@@ -281,7 +289,7 @@ def main(argv):
         if stale:
             print('STALE (run make_codebook.py):', ', '.join(stale))
             return 1
-        print('codebooks current: v4, v5 (TSV + JSON)')
+        print('codebooks current: v4, v5, v6 (TSV + JSON)')
     return 0
 
 

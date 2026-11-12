@@ -55,9 +55,28 @@ public static class TelemetryCellCodec
     }
 
     /// <summary>The exporter's self-checked encode: the cell, decoded, must give back <paramref name="line"/> exactly.</summary>
-    public static string EncodeChecked(string line, string describedAs)
+    public static string EncodeChecked(string line, string describedAs) => EncodeCheckedParsed(line, describedAs).Cell;
+
+    /// <summary>D-086 DE2 (the export's time on a long game): one telemetry line PARSED ONCE — its document, the codebook its
+    /// schema tag selects, and its self-checked cell (the cell, decoded, gives back the line exactly). The exporter reads the
+    /// turn number, the schema tag and the research rows from <see cref="ParsedLine.Doc"/> instead of parsing the line again
+    /// for each. The encoder only reads the document.</summary>
+    public sealed record ParsedLine(JObj Doc, TelemetryCodebook Codebook, string Cell);
+
+    /// <summary>As <see cref="EncodeChecked"/>, returning the parsed line with its cell (<see cref="ParsedLine"/>).</summary>
+    public static ParsedLine EncodeCheckedParsed(string line, string describedAs)
     {
-        string cell = Encode(line);
+        JObj doc = ParseLine(line);
+        TelemetryCodebook cb = CodebookOfDoc(doc);
+        string cell;
+        try
+        {
+            cell = new Encoder(cb).EncodeLine(doc);
+        }
+        catch (Exception e) when (e is not SessionExportException)
+        {
+            throw new SessionExportException(SessionExportException.TelemetryShape, e.Message, e);
+        }
         string back;
         try
         {
@@ -71,7 +90,7 @@ public static class TelemetryCellCodec
         if (!string.Equals(back, line, StringComparison.Ordinal))
             throw new SessionExportException(SessionExportException.RoundTripMismatch,
                 $"{describedAs}: the coded cell decodes to a different line (first difference at character {FirstDifference(back, line)})");
-        return cell;
+        return new ParsedLine(doc, cb, cell);
     }
 
     /// <summary>
