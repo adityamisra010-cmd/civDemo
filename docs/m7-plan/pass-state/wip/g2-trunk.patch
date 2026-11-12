@@ -6087,7 +6087,7 @@ index dee79a6..db8fe53 100644
      }
  
 diff --git a/prototypes/m7-gfx2/README.md b/prototypes/m7-gfx2/README.md
-index 12e7b8e..2ac5f39 100644
+index 12e7b8e..0d6a148 100644
 --- a/prototypes/m7-gfx2/README.md
 +++ b/prototypes/m7-gfx2/README.md
 @@ -48,7 +48,9 @@ external assets in `assets/` are pinned and fetched, but **no code uses them yet
@@ -6123,7 +6123,7 @@ index 12e7b8e..2ac5f39 100644
  ## Characters (stage chars)
  
  Soldiers, the force A commander and the player avatar (G1 PlayerFixture identity) built from the MakeHuman CC0 core
-@@ -241,3 +258,63 @@ Details, captures, llvmpipe costs, tests, mutants and what still looks placehold
+@@ -241,3 +258,77 @@ Details, captures, llvmpipe costs, tests, mutants and what still looks placehold
    to TAA; key 9 cycles none / FXAA / TAA.
  - **Reproduce:** `scripts/capture-render2.sh OUT_DIR`, `scripts/review-sheets-render2.py`, `scripts/bench-render2.sh
    OUT_DIR` (llvmpipe costs: crowd at 220 / 2,000 / 10,000, LOD sweep, culling, AO, contact shadows, TAA).
@@ -6187,6 +6187,20 @@ index 12e7b8e..2ac5f39 100644
 +scripts/review-sheets-polish1.py BEFORE_DIR AFTER_DIR SHEETS_DIR REVIEW_DIR   # before/after sheets per critic issue
 +scripts/measure-polish1.py BEFORE_DIR AFTER_DIR                      # the report's region measurements
 +```
++
++**Since the polish1 merge (`g2/trunk`, 2026-11-12):** polish1's defaults reach every G2 frame, not only the benchmark
++scenes. The ground bounce and subject metering are on by default, and every temperate terrain draws the meadow detail
++and the far land's fields and woods (`TerrainScenery.MeadowDetail`, with the macro-variation and far-field switches on,
++as they are by default). Measured here (llvmpipe, not Victus evidence) with the check commands of the earlier
++integrations at 1280×720: the stills of `terrain-temperate` (day), `chars-forces` (6), `env-temperate` (the two
++settlement shots), `kit-forces` (8) and `crowd-formation` (6) differ in 23 of 23 from the trunk's renders before polish1.
++Side by side, nothing broke. The meadow is greener and varied in all of them, and the land beyond the map shows fields
++and woods where it is in view. The `kit-forces` dusk meadow is green instead of sand (mean hue of the open ground 43° →
++66°). The commander's face in `chars-forces` is warmer (mean hue of the face 13° → 25°). The `crowd-formation` close,
++front-low and rear stills are brighter (mean luma +3.9 to +6.8 of 255). The committed review JPEGs of the stages render1,
++chars, env, kit and render2 (`reports/captures/`) show those stages' frames from before polish1. The benchmark scenes
++need no new bake or asset: the scenes note in the Victus section still lists what a package must carry. On this tree,
++`scripts/capture-scenes.sh` renders 47 of 47 stills byte-identical to polish1's canonical set.
 diff --git a/prototypes/m7-gfx2/assets/PROVENANCE.md b/prototypes/m7-gfx2/assets/PROVENANCE.md
 index 607c164..23d7a5d 100644
 --- a/prototypes/m7-gfx2/assets/PROVENANCE.md
