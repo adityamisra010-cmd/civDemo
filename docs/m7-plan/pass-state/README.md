@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 17:35 UTC: CR-027 is applied (`d794358`, Tier 3 green) and joins the final-round verification; the Director answered the last open items earlier today, recorded as D-090 (battalion sizes are DR24's; the two test battles follow the thirds; ADR-059 amended; the export made faster in a new lane RX; a queue line added); no question of the day is open; the G2 final runs (first polish round); throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 18:27 UTC. **Pace (Director, 2026-11-12 17:40 UTC, "Work 8 h, then stop"): the work stops at about 01:40 UTC on 2026-11-13 and pauses until the Director writes; a scheduled STOP message does it after a final snapshot.** Since 17:20 UTC: CR-027 applied (`d794358`, 17:22 UTC; Tier 3 green; CI run 990 and ui-artifact run 494 green) and on the final-round verification queue; the briefs of lanes OC, BN, AR, RT2 and RX written (`86ced60`); D-089 DH8's third launcher made (`737e66b`) and checked on the CI artifact. The Director answered the last open items earlier today (D-090); no question is open. The G2 final runs (first polish round); throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -187,7 +187,7 @@ and the interrupted agent restarts and continues from its clone):
 | 2 | Final-round verification (findings only) of lanes U, D, MOR, AP, MOR2, CB, MOR3 (`95446ff`), RT (`943b43f`) and RR (`c038b95`), and of CR-027 (`d794358`) | `wf_9b24d7c6-337` | `verify-final-rounds`: run its lanes one at a time, with MOR3, RT, RR and CR-027 added |
 | 3 | Report draft | `wf_2a771902-a97` | `pass-report-draft` |
 
-Lanes OC, BN, AR, RT2 and RX each run as a workflow of their own, one at a time, in that order. Each starts from the development branch's head after the previous lane's integration: the briefs' `base` reads `SET-AT-LAUNCH` and is set when the lane is launched. The v3 scripts are the v2 scripts with their shared context brought up to D-090 and CR-027 (the decisions D-087 to D-090, what they supersede, and the work integrated since lane CB); the protocol (implement, two adversarial verification rounds, fix rounds on reproduced findings only) is unchanged. Walls (D-088 DG13) are in lane AR's brief, as D-088 §4 assigns them; this table listed them under lane OC until 2026-11-12 17:40 UTC.
+Lanes OC, BN, AR, RT2 and RX each run as a workflow of their own, one at a time, in that order. Each starts from the development branch's head after the previous lane's integration: the briefs' `base` reads `SET-AT-LAUNCH` and is set when the lane is launched. The v3 scripts are the v2 scripts with their shared context brought up to D-090 and CR-027 (the decisions D-087 to D-090, what they supersede, and the work integrated since lane CB); the protocol (implement, two adversarial verification rounds, fix rounds on reproduced findings only) is unchanged. Walls (D-088 DG13) are in lane AR's brief, as D-088 §4 assigns them; this table listed them under lane OC until 2026-11-12 17:34 UTC (`86ced60`).
 
 Lanes MOR3 and RT each ran one verification round and one fix round, and neither round found a blocker or major finding (MOR3:
 3 minor and 5 nit; RT: 4 minor and 2 nit). So their fix rounds are unverified, like the final rounds of the six lanes above.
@@ -235,8 +235,9 @@ run 486 succeeded too. The crash did not recur on the same code, which fits an i
 
 1. As each item in §2 finishes, the orchestrator verifies it (§4 step 2, or the G2 subtree method), commits, pushes, and
    updates this README. Lanes OC, BN, AR (D-087 §5), RT2 (D-089) and RX (D-090) run after the G2 final and before the
-   final-round verification, in that order: AR's AutoResolver models BN's battalions. The orchestrator itself makes D-089 DH8's packaging
-   change (a third launcher in the game zip).
+   final-round verification, in that order: AR's AutoResolver models BN's battalions. The orchestrator made D-089 DH8's packaging
+   change in `737e66b` (a third launcher, `Rebuild the run workbook.cmd`, in the game zip), checked on the CI artifact: ui-artifact run 495
+   printed the launcher, its "zip root" line lists it, and the Windows smoke of the shipped exe passed.
 2. The pass's full report: 10 sections, DR52. It is built from [notes/final-report-notes.md](notes/final-report-notes.md), in
    the style of `docs/m7-plan/m7-execution-pass-report.md`.
 
