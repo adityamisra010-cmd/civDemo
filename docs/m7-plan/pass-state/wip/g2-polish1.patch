@@ -4405,7 +4405,7 @@ index 2482b43..2f4c03c 100644
      } else refr = inscatter * (vec3(1.0) - trans * 0.6);
      // sun glint (GGX), roughened where waves were filtered out
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/FarField.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/FarField.cs
-index 3a760c7..d24e0c4 100644
+index 3a760c7..23fd32d 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/FarField.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Presentation/FarField.cs
 @@ -83,6 +83,13 @@ public sealed class FarFieldMesh
@@ -4422,18 +4422,21 @@ index 3a760c7..d24e0c4 100644
          float Height(float x, float z)
          {
              float d = MathF.Max(MathF.Abs(x) - t.HalfExtentX, MathF.Abs(z) - t.HalfExtentZ);
-@@ -91,6 +98,10 @@ public sealed class FarFieldMesh
+@@ -91,6 +98,13 @@ public sealed class FarFieldMesh
              float ridgeAmp = biome switch { Biome.Cold => 520f, Biome.Arid => 160f, Biome.Tropical => 300f, _ => 380f };
              float ridge = 1f - MathF.Abs(2f * Noise(x, z, 0xF2u, 4, 9000f) - 1f);
              float far = hills + ridgeAmp * ridge * ridge * SplatModel.SmoothStep(3500f, 16000f, MathF.Max(d, 0)) + relief * 0.6f * SplatModel.SmoothStep(0f, 2500f, d);
 +            // polish1: rolling hills a few hundred metres across rise from the map edge (the near far field was a plain),
 +            // and woods stand about 14 m above the ground as canopy masses
-+            far += relief * 0.55f * (Noise(x, z, 0xF6u, 4, 480f) - 0.5f) * 2f * SplatModel.SmoothStep(0f, 700f, MathF.Max(d, 0));
-+            far += 14f * Forest(x, z) * SplatModel.SmoothStep(0f, 300f, MathF.Max(d, 0));
++            // (two octaves from 600 m: with four from 480 m the 60-120 m octaves rippled into dunes under a low sun)
++            far += relief * 0.45f * (Noise(x, z, 0xF6u, 2, 600f) - 0.5f) * 2f * SplatModel.SmoothStep(0f, 700f, MathF.Max(d, 0));
++            // the woods rise as gentle masses on a smooth two-octave mask (14 m on the four-octave colour mask made small
++            // steep mounds whose lit and shaded sides read as dunes or swell towards a low sun)
++            far += 6f * SplatModel.SmoothStep(0.42f, 0.68f, Noise(x, z, 0xF4u, 2, 1400f)) * SplatModel.SmoothStep(0f, 300f, MathF.Max(d, 0));
              float h = MathHelper.Lerp(edge, far, SplatModel.SmoothStep(0f, 1700f, MathF.Max(d, 0)));
              if (coast >= 0)
              {
-@@ -106,22 +117,24 @@ public sealed class FarFieldMesh
+@@ -106,22 +120,24 @@ public sealed class FarFieldMesh
          Color Colour(float x, float z, float h, Vector3 n)
          {
              float slope = 1 - n.Y;
@@ -4464,7 +4467,7 @@ index 3a760c7..d24e0c4 100644
  
          var verts = new VertexPNC[rings * P];
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
-index d85a423..7581767 100644
+index d85a423..8c203f6 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
 @@ -76,7 +76,17 @@ void sampleHex(sampler2D A, sampler2D N, vec2 uv, vec2 dx, vec2 dy, float maxRot
@@ -4595,7 +4598,7 @@ index d85a423..7581767 100644
      /// </summary>
      public static EffectBuilder FarField() => new EffectBuilder(TerrainEffectNames.FarField)
          .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)
-@@ -278,12 +363,50 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
+@@ -278,12 +363,60 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
      v_wpos = wp; v_nrm = a_nrm; v_col = a_col;
      v_lpos = shadowLookup(wp, a_nrm);
      gl_Position = ViewProj_mul(vec4(wp, 1.0));")
@@ -4612,15 +4615,20 @@ index d85a423..7581767 100644
 +        // fields 60-170 m wide, one crop each: pasture, hay, ripening grain, ploughed soil, stubble) with hedgerows on their
 +        // borders, and the woods (the vertex alpha) as a dark crowned canopy. Everything fades by pixel footprint, and the
 +        // patchwork thins out towards the horizon (aerial perspective takes over there).
-+        // woods broken by glades and clearings a few hundred metres across (the macro texture at 310 m), so a wooded
-+        // valley reads as woodland and fields, not one dark sheet under the haze
-+        float forest = smoothstep(0.30, 0.70, v_col.a) * (1.0 - smoothstep(0.58, 0.70, m2.g));
++        // woods broken by clearings a few hundred metres across (the macro texture at 1,400 m), so a wooded valley reads
++        // as woodland and fields, not one dark sheet under the haze (the 310 m texture's features, 40-80 m, beat into
++        // ripples like a sea's when seen edge-on towards a low sun)
++        float forest = smoothstep(0.30, 0.70, v_col.a) * (1.0 - smoothstep(0.56, 0.72, m1.g));
 +        float fpx = max(length(dFdx(v_wpos.xz)), length(dFdy(v_wpos.xz)));
-+        vec2 q = vec2(0.94 * v_wpos.x + 0.34 * v_wpos.z, -0.34 * v_wpos.x + 0.94 * v_wpos.z);
-+        float rowH = 90.0, row = floor(q.y / rowH);
-+        float hr = vhash(vec2(row, 3.7)), width = 60.0 + 110.0 * hr;
++        // each 1.2 km block of land lays its strips its own way and its own depth (one orientation everywhere made long
++        // parallel bands that read as dunes or swell under a low sun)
++        vec2 blk = floor(v_wpos.xz / 1200.0);
++        float ang = vhash(blk + 7.1) * 3.14159, ca = cos(ang), sa = sin(ang);
++        vec2 q = vec2(ca * v_wpos.x + sa * v_wpos.z, -sa * v_wpos.x + ca * v_wpos.z);
++        float rowH = 65.0 + 55.0 * vhash(blk + 3.3), row = floor(q.y / rowH);
++        float hr = vhash(vec2(row, 3.7) + blk * 13.0), width = 60.0 + 110.0 * hr;
 +        float qx = q.x + hr * 517.0, col = floor(qx / width);
-+        float hc = vhash(vec2(col, row + 91.0));
++        float hc = vhash(vec2(col, row + 91.0) + blk * 7.0);
 +        vec3 crop = hc < 0.40 ? vec3(0.068, 0.100, 0.040) : hc < 0.65 ? vec3(0.120, 0.130, 0.060)
 +                  : hc < 0.80 ? vec3(0.220, 0.180, 0.080) : hc < 0.92 ? vec3(0.088, 0.064, 0.044) : vec3(0.190, 0.170, 0.110);
 +        crop *= mix(0.88, 1.12, vhash(vec2(col * 1.3, row * 0.7 + 5.0)));
@@ -4628,22 +4636,27 @@ index d85a423..7581767 100644
 +        // them (seen edge-on towards a low sun, the strips beat into ripples that read as dunes or a sea)
 +        float dRow = max(abs(dFdx(q.y)), abs(dFdy(q.y))), dCol = max(abs(dFdx(qx)), abs(dFdy(qx)));
 +        float fieldDetail = 1.0 - smoothstep(0.12, 0.3, max(dRow / rowH, dCol / width));
++        // and towards a low sun (under 10-30 degrees) the patchwork gives way to the mean: in the golden and dusk vistas the
++        // crops' brightness steps under the aerosol glow read as swell on a sea, not as fields
++        fieldDetail *= smoothstep(0.17, 0.5, SunDir.y);
 +        crop = mix(vec3(0.116, 0.121, 0.057), crop, fieldDetail);
 +        float ex = min(fract(qx / width), 1.0 - fract(qx / width)) * width, ey = min(fract(q.y / rowH), 1.0 - fract(q.y / rowH)) * rowH;
 +        float hedge = (1.0 - smoothstep(1.5, 3.5, min(ex, ey))) * (1.0 - smoothstep(1.5, 4.0, max(dRow, dCol)));
 +        float d = length(v_wpos.xz);
 +        float fields = (1.0 - forest) * (1.0 - smoothstep(9000.0, 16000.0, d)) * (1.0 - smoothstep(0.05, 0.18, 1.0 - n.y));
 +        alb = mix(alb, crop, fields * 0.75);
-+        alb = mix(alb, vec3(0.030, 0.048, 0.022), hedge * fields * 0.85);
++        alb = mix(alb, vec3(0.030, 0.048, 0.022), hedge * fields * 0.85 * smoothstep(0.17, 0.5, SunDir.y));
 +        // canopy: dark crowns mottled at about 9 m, their relief bending the normal; fading by footprint
 +        float wc = 1.0 - smoothstep(0.25, 0.6, fpx / 9.0);
 +        vec3 cn = vnoise(v_wpos.xz / 9.0 + 3.1);
-+        vec3 canopy = vec3(0.038, 0.062, 0.028) * mix(0.62, 1.25, 0.5 + (cn.x - 0.5) * wc) * mix(0.75, 1.45, m1.b * 0.5 + m2.b * 0.5);
++        vec3 canopy = vec3(0.038, 0.062, 0.028) * mix(0.62, 1.25, 0.5 + (cn.x - 0.5) * wc) * mix(0.75, 1.45, m1.b);
 +        alb = mix(alb, canopy, forest);
 +        n = normalize(n + vec3(-cn.y, 0.0, -cn.z) * (0.9 / 9.0) * wc * forest);
 +        rough = mix(rough, 0.85, forest);
 +    }
-+    vec3 c = shadePbr(alb, rough, 0.0, 1.0, n, v_wpos, shadowPcf(v_lpos));
++    // polish1: vegetated land far off keeps a fifth of its specular (a canopy shadows its own sheen): with full GGX the
++    // rolling far land towards a low sun glittered like a sea (and the flat plain of before read as sand)
++    vec3 c = shadePbrFullSpec(alb, rough, 0.0, 1.0, n, n, v_wpos, shadowPcf(v_lpos), FarParams.z > 0.5 ? 0.2 : 1.0);
      float edge = smoothstep(FarParams.x, FarParams.y, length(v_wpos.xz));
      gl_FragColor = vec4(LightModel.z > 0.5 ? aerialPerspective(c, v_wpos, edge) : mix(applyFog(c, v_wpos), FogColor.rgb, edge), 1.0);");
  }
@@ -9391,10 +9404,10 @@ HcmV?d00001
 
 diff --git a/prototypes/m7-gfx2/reports/polish1.md b/prototypes/m7-gfx2/reports/polish1.md
 new file mode 100644
-index 0000000..4c2b363
+index 0000000..4d2d89b
 --- /dev/null
 +++ b/prototypes/m7-gfx2/reports/polish1.md
-@@ -0,0 +1,118 @@
+@@ -0,0 +1,128 @@
 +# G2 stage polish1: the visual critic's first pass, worked most visible first
 +
 +Stage agent polish1, branch `g2/polish1` (cut from `g2/trunk` f6ea1c1), 2026-11-12. Scope: the eleven ranked issues of
@@ -9431,7 +9444,7 @@ index 0000000..4c2b363
 +| 4 | Faces | Skin: the sky fill keeps 40 % of its chroma, warmed; the wrap light past the terminator keeps green and blue in proportion to red (it was red alone: magenta bands); ear transmission capped and orange; warm sclera; a catchlight in every cornea (`CharEffects`) | D officer: lit palms hue 355 → 14–15 | partly: no brow or lash cards, no hairline strand cards |
 +| 5 | Clipping, grips and crowd LOD in hero beats, fallen interpenetration | Crowd soldiers in a close beat's sight line (camera to subject, 1.5 m radius, not past 92 % of the way) are not drawn (`TraceCrowd.SightLine`, `SceneD.SightLineAt`); the sword victory pose lowers the shield hand and swings it out (`CombatClips.Victory`); the fallen are laid out once in the order of death, each turned (0, ±30, ±60, ±90°) and its fall picked to keep 0.45 m from the bodies already down (`TraceCrowd.LayOutFallen`) | D officer close-up: the spear at his chin gone; D surrender: the kite shield no longer crosses the commander's face; bench fallen: close body pairs 4,905 → 3,630 (572 of the 769 fallen lie within 0.45 m of another, so the pile cannot clear) | partly: no hide masks, corrective shapes, fist grips or LOD0 swap |
 +| 6 | No bounce or fill light | The sky light's lower hemisphere is sunlit ground of an effective albedo (temperate 0.22, 0.21, 0.14; labelled artistic) instead of the atmosphere's grey ground (`SceneLighting.ApplyGround`); occluded ambient loses more blue than red (`ScreenSpaceEffects`); auto exposure weights the lower frame and clamps the sky (`metering=subject`); tone-map shoulder desaturation 0.08 on the benchmark scenes; kit shot at −0.6 EV; a transmission lobe for back-lit hair and beards (`CharEffects`) | E fortification shaded wall RGB 48,54,64 → 51,56,57; parapet 81,84,90 → 84,86,85; A golden two-shot: the commander's hair reads ginger | partly: no fill or rim light rig |
-+| 7 | Land beyond the 1 km map flat | Far field: rolling hills rising from the map edge, woods raised as masses, fields in strips of five crops with hedgerows, woods broken by clearings, canopy tone and relief (`FarField`, far-field shader); the height fog thinned to 0.15 with the sun high (`foghighsun`; it lay over the far land at noon) | C noon vista far band mean RGB 101,120,118 (sat 0.16) → 92,113,105 (0.18) at 960; E vista noon, E fortification and D standards: hills and fields on the horizon | partly: the C noon vista's far valley is still a hazy band |
++| 7 | Land beyond the 1 km map flat | Far field: rolling hills rising from the map edge, woods raised as masses, fields in strips of five crops with hedgerows, woods broken by clearings, canopy tone and relief (`FarField`, far-field shader); the patchwork fades to the crops' mean where a pixel spans a fair share of a field (seen edge-on towards a low sun the strips first beat into ripples that read as dunes or a sea: caught in the first canonical run and fixed); the height fog thinned to 0.15 with the sun high (`foghighsun`; it lay over the far land at noon) | FAR_BAND; hills and fields on the horizon of B, D and E shots | partly: at golden hour and dusk the far land is a smooth haze |
 +| 8 | Rigid banners | Vertex-stage cloth flutter: three travelling waves whose amplitude grows from the hoist, analytic normal ripple, amplitude 0.10 × wind (`CharEffects.FlutterLib`, `KitEffects`, `Banner`) | visible as a rippled hem and shading bands; small at the canonical framings | yes |
 +| 9 | Smoke haze columns, maroon smudges | Puffs eroded by noise into billows, a denser darker young base, the sun's colour on smoke at 45 % and the low-sun forward lobe reduced, ambient desaturated (`SmokeLayer`); the cut-away reframed so the field, the standard and the smoke share the frame with the sky (`SceneD`) | cut-away: sky from about 70 % of the frame to about 45 %; the plumes grey-brown instead of maroon | partly: no self-shadowing sample or soft-particle fade |
 +| 10 | Settlements, fortification and river placeholders | Wall-base grime and contact occlusion from the terrain height (`StructureRenderer`, `EnvWater.HeightMap`); hut walls 1.6–2.1 m and roof pitches 43–54° (`StructureKit`); anisotropic sampling of structure textures; the water's reflection and refraction lookups clamped and faded at the screen edge (`EnvWater`) | E river: the outer columns 129.3 vs 59.5 at 1920 → 70.9 vs 70.4 at 960 (no bright band) | partly: no gate passage, villagers, hearth smoke or meandering river |
@@ -9444,7 +9457,17 @@ index 0000000..4c2b363
 +## 3. Tests
 +
 +Builds: `M7Gfx2.slnx` Release and Debug, **0 errors, 0 warnings** each (warnings are errors in this tree), on the final
-+commit. Gfx tests: TESTS_SUMMARY
++commit. Gfx tests (301 in `Gfx.Tests`, 295 of the earlier stages and 6 new), run in four class groups, one test host
++each (the whole suite in one host was OOM-killed once beside a capture and another session's tests, after 202 had
++passed):
++
++| Group | Classes | Release | Debug |
++|---|---|---|---|
++| 1 | PerfUnit, Render1Math, Render2Math, EnvLayout, Camera, EngineUnit, Frustum, EffectLoad, Units, Cinematic, PerfProcess | 147 passed (29 s) | 147 passed (44 s) |
++| 2 | Chars, Avatar, Kit, Crowd | 73 passed (26 s) | 73 passed (53 s) |
++| 3 | Scenes, Polish1, Terrain, EnvTree, EnvRender, Integration, PerfEnvTap | 52 passed (53 s) | 52 passed (108 s) |
++| 4 | Render1Render, Render2Render, Render, PerfDevice | 29 passed (72 s) | 29 passed (146 s) |
++| | **total** | **301 passed, 0 failed, 0 skipped** | **301 passed, 0 failed, 0 skipped** |
 +
 +New tests (`Gfx.Tests/Polish1Tests.cs`, 6; presentation only, each states its property):
 +
