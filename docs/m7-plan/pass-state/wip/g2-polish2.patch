@@ -73,6 +73,54 @@ index 62a5a3e..c351c5e 100644
  
      /// <summary>
      /// Rows and fraction for clip-local time <paramref name="t"/> (s): looping clips wrap, one-shot clips clamp to their
+diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdEffects.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdEffects.cs
+index 927ce1c..4be4389 100644
+--- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdEffects.cs
++++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdEffects.cs
+@@ -132,20 +132,40 @@ vec3 dyeShift(vec3 c, float h, float v) {
+     vec3 albedo; float rough; float metal = 0.0;
+     if (code > 254.5) {
+         albedo = srgbToLinear(texture2D(SkinTex, v_uv).rgb) * (1.0 + 0.12 * v_look.z);
++        // polish2 (critic rank 9): bright near-neutral texels of the skin atlas (the whites of the eyes, the teeth) were
++        // glowing dots at crowd distances: they take the shadowed tone of an eye socket
++        float lumS = dot(albedo, vec3(0.2126, 0.7152, 0.0722));
++        float mxS = max(albedo.r, max(albedo.g, albedo.b)), mnS = min(albedo.r, min(albedo.g, albedo.b));
++        float satS = (mxS - mnS) / max(mxS, 1e-3);
++        albedo = mix(albedo, vec3(0.085, 0.06, 0.05), smoothstep(0.20, 0.38, lumS) * (1.0 - smoothstep(0.10, 0.22, satS)));
+         rough = 0.5;
+-    } else if (code > 253.5) { albedo = srgbToLinear(texture2D(Emblem, v_uv).rgb) * mix(0.92, 1.04, v_lod.w); rough = 0.62; }
++    } else if (code > 253.5) {
++        // polish2 (critic rank 6): the painted face weathered (a fifth of its chroma gone, a little darker)
++        vec3 em = srgbToLinear(texture2D(Emblem, v_uv).rgb) * mix(0.92, 1.04, v_lod.w);
++        albedo = mix(vec3(dot(em, vec3(0.2126, 0.7152, 0.0722))), em, 0.8) * 0.92; rough = 0.68;
++    }
+     else {
+         vec3 srgb = v_col.rgb;
+         if (code > 127.5) {
+             metal = 1.0; rough = (code - 128.0) / 99.0;
+-            albedo = srgbToLinear(srgb) * (1.0 - 0.25 * v_lod.z);
+-            rough = clamp(rough + 0.18 * v_lod.z, 0.05, 1.0);
++            // polish2 (critic rank 6): field-worn iron and bronze: darker (oiled, sooted, oxidised; reflectance about 0.4
++            // instead of 0.56 for iron) and rougher, so a crowd's helmets read as grey metal, not white plastic
++            albedo = srgbToLinear(srgb) * 0.72 * (1.0 - 0.35 * v_lod.z);
++            rough = clamp(rough + 0.12 + 0.2 * v_lod.z, 0.3, 1.0);
+         } else {
+             rough = code / 99.0;
+             float mx = max(srgb.r, max(srgb.g, srgb.b)), mn = min(srgb.r, min(srgb.g, srgb.b));
+             float sat = (mx - mn) / max(mx, 1e-3);
++            // polish2 (critic rank 9): hair and beards (above the shoulders, near-neutral) are warm greys; under the sky's
++            // blue fill a neutral or violet-grey beard read as blue-grey
++            if (v_h > 1.38 && sat < 0.22) srgb *= vec3(1.07, 1.0, 0.86);
++            // polish2 (critic rank 9): the eyeballs merged into the LOD carry the sclera's near-white as their vertex
++            // colour: at crowd distances that is a glowing dot, so near-white at eye height takes a shadowed socket tone
++            if (v_h > 1.45 && mx > 0.72 && sat < 0.16) srgb = vec3(0.30, 0.235, 0.20);
+             srgb = mix(srgb, dyeShift(srgb, v_look.x, v_look.y), smoothstep(0.08, 0.30, sat));
+             albedo = srgbToLinear(clamp(srgb, 0.0, 1.0));
++            // polish2 (critic rank 6): plant dyes on worn wool are muted: 15 % of the chroma gone
++            albedo = mix(vec3(dot(albedo, vec3(0.2126, 0.7152, 0.0722))), albedo, 0.85);
+         }
+     }
+     // mud and dust on the lower legs and feet (not on metal)
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdKit.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdKit.cs
 new file mode 100644
 index 0000000..9c97d26
@@ -696,7 +744,7 @@ index 60946b5..05a2771 100644
 +    public bool Unarmed;
  }
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
-index cf7b14d..df05153 100644
+index cf7b14d..f354ce6 100644
 --- a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
 +++ b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
 @@ -82,6 +82,44 @@ void skinVertex(out vec3 sp, out vec3 sn, out vec3 st) {
@@ -813,7 +861,7 @@ index cf7b14d..df05153 100644
      float limbal = 1.0 - 0.45 * smoothstep(0.30, 0.50, r) * smoothstep(0.62, 0.50, r) * step(0.0, lp.z);
      base *= limbal;
      float socket = smoothstep(-0.35, 0.75, lp.z) * (1.0 - 0.45 * smoothstep(0.05, 0.75, lp.y)) * (1.0 - 0.2 * smoothstep(0.2, 0.9, -lp.y));
-@@ -261,7 +315,15 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+@@ -261,7 +315,20 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
      vec2 dfg = envBrdf(nov, EyeParams.z);
      // the brow and lids shade the upper part of the reflection
      float lid = 1.0 - 0.6 * clamp(Rr.y, 0.0, 1.0);
@@ -821,16 +869,21 @@ index cf7b14d..df05153 100644
 +    // polish1 (critic rank 4): every eye carries a catchlight. The physical cornea mirror of a clear sky (2.5 %) is too faint
 +    // on a 30-pixel eye and the sun's own glint is far below a pixel, so the sky reflection is lifted 2.5 times and a soft
 +    // key catchlight (GGX at roughness 0.12) is added towards the bright sky around the sun, at least 20 degrees up.
-+    c += env * (0.025 * dfg.x + dfg.y) * lid * mix(0.5, 1.0, shadow) * 2.5;
++    // polish2 (critic rank 9): the lift and the key catchlight are for an eye a camera is close to; once a pixel covers
++    // more than about 3 mm of the face (an eye under about 8 pixels) they fade out, so mid-distance faces do not carry
++    // glowing dots
++    float pxm = length(fwidth(v_wpos));
++    float close = 1.0 - smoothstep(0.003, 0.009, pxm);
++    c += env * (0.025 * dfg.x + dfg.y) * lid * mix(0.5, 1.0, shadow) * mix(1.0, 2.5, close);
 +    vec3 Kd = normalize(vec3(SunDir.x, max(SunDir.y, 0.34), SunDir.z));
 +    vec3 Hk = normalize(V + Kd);
 +    float ak = 0.0144;
 +    float catchK = dGgx(max(dot(Ng, Hk), 0.0), ak) * vSmithGgx(nov, max(dot(Ng, Kd), 0.0), ak) * 0.025 * max(dot(Ng, Kd), 0.0);
-+    c += SunColor.rgb * catchK * mix(0.35, 1.0, shadow) * 0.8;
++    c += SunColor.rgb * catchK * mix(0.35, 1.0, shadow) * 0.8 * close;
      gl_FragColor = vec4(max(applyFog(c, v_wpos) - applyFog(vec3(0.0), v_wpos), vec3(0.0)), 1.0);";
  
      /// <summary>
-@@ -300,6 +362,10 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+@@ -300,6 +367,10 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
      vec3 hairAmb = albedo * irr / PI * mix(0.35, 1.0, layer) * mix(0.75, 1.0, shadow);
      gbAmbient(hairAmb); // stage render2: the ambient share for screen-space AO
      c += hairAmb;
@@ -841,7 +894,7 @@ index cf7b14d..df05153 100644
      gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);";
  
      /// <summary>
-@@ -356,6 +422,9 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+@@ -356,6 +427,9 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
      vec3 furAmb = albedo * irr / PI * mix(0.35, 1.0, frac) * mix(0.75, 1.0, shadow);
      gbAmbient(furAmb); // stage render2: the ambient share for screen-space AO
      c += furAmb;
@@ -851,7 +904,7 @@ index cf7b14d..df05153 100644
      gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);";
  
      /// <summary>
-@@ -400,6 +469,7 @@ vec3 envReflect(vec3 R, float rough) {
+@@ -400,6 +474,7 @@ vec3 envReflect(vec3 R, float rough) {
      return mix(sky, ground, below);
  }
  vec3 shadeSurface(vec3 albedo, float rough, float metal, float ao, vec3 N, vec3 Ng, vec3 wpos, float shadow, float sheen) {
@@ -928,6 +981,132 @@ index c27ff7f..508080e 100644
      static int Bench(GraphicsDevice gd, GfxHost host, SceneRegistry.Entry e, int frames, int w, int h, bool shadows, SysInfo info, string[] args)
      {
          using var scene = e.Create();
+diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BattleMarks.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BattleMarks.cs
+new file mode 100644
+index 0000000..013853e
+--- /dev/null
++++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BattleMarks.cs
+@@ -0,0 +1,120 @@
++using Gfx.Proc.Presentation;
++using Microsoft.Xna.Framework;
++
++namespace Gfx.Demo.Scenes.Bench;
++
++/// <summary>
++/// Polish2 (critic ranks 6 and 7; PRESENTATION ONLY): the marks a battle leaves on the ground, read from the trace: where
++/// men stood, marched and fought the turf is trodden (darker, bare in patches, the grass pressed down and thinned), and
++/// no grass grows through a fallen body. Pure functions of the trace and the terrain grid; nothing is written back.
++/// </summary>
++public static class BattleMarks
++{
++    /// <summary>Soldier-seconds per square metre at which the ground is about two-thirds trodden (1 − e⁻¹).</summary>
++    public const float WearScale = 40f;
++
++    /// <summary>
++    /// The trodden share (0..1) of every terrain grid sample after the trace's steps 0..<paramref name="lastStep"/>:
++    /// each soldier on the field (active, routing or surrendered; not the dead, who lie still, nor the escaped) deposits
++    /// the step's duration onto the four samples around him (bilinear), and a sample's share is 1 − exp(−s / (A k)) for
++    /// its soldier-seconds s, its area A and <see cref="WearScale"/> k.
++    /// </summary>
++    public static float[] Trodden(BenchBattle b, TerrainMeshData m, int lastStep)
++    {
++        var tr = b.Trace; var g = m.Grid; int W = g.Width, H = g.Height;
++        var acc = new double[W * H];
++        lastStep = Math.Min(lastStep, tr.StepCount - 1);
++        for (int s = 0; s <= lastStep; s++)
++        {
++            double dt = (s + 1 < tr.StepCount ? tr.StepTimeMs(s + 1) - tr.StepTimeMs(s) : tr.StepMs) / 1000.0;
++            for (int e = 0; e < tr.Entities.Count; e++)
++            {
++                var st = BenchBattle.Map(tr.State(s, e));
++                if (st is TraceSoldierState.Dead or TraceSoldierState.Escaped) continue;
++                var (x, y) = tr.PosMm(s, e); var w = b.World(x, y);
++                float fx = w.X / m.CellM + W / 2, fz = w.Z / m.CellM + H / 2;
++                int ix = (int)MathF.Floor(fx), iz = (int)MathF.Floor(fz);
++                float tx = fx - ix, tz = fz - iz;
++                for (int k = 0; k < 4; k++)
++                {
++                    int sx = ix + (k & 1), sz = iz + (k >> 1);
++                    if (sx < 0 || sz < 0 || sx >= W || sz >= H) continue;
++                    acc[sz * W + sx] += dt * ((k & 1) == 1 ? tx : 1 - tx) * ((k >> 1) == 1 ? tz : 1 - tz);
++                }
++            }
++        }
++        var outv = new float[W * H];
++        double area = m.CellM * (double)m.CellM;
++        for (int i = 0; i < outv.Length; i++) outv[i] = (float)(1.0 - Math.Exp(-acc[i] / (area * WearScale)));
++        return outv;
++    }
++
++    /// <summary>The trodden share at world (x, z): bilinear over the grid samples (the ground cover's lookup).</summary>
++    public static float TroddenAt(TerrainMeshData m, float[] trodden, float x, float z)
++    {
++        int W = m.Grid.Width, H = m.Grid.Height;
++        float fx = x / m.CellM + W / 2, fz = z / m.CellM + H / 2;
++        int ix = (int)MathF.Floor(fx), iz = (int)MathF.Floor(fz);
++        float tx = fx - ix, tz = fz - iz, v = 0f;
++        for (int k = 0; k < 4; k++)
++        {
++            int sx = Math.Clamp(ix + (k & 1), 0, W - 1), sz = Math.Clamp(iz + (k >> 1), 0, H - 1);
++            v += trodden[sz * W + sx] * ((k & 1) == 1 ? tx : 1 - tx) * ((k >> 1) == 1 ? tz : 1 - tz);
++        }
++        return v;
++    }
++
++    /// <summary>
++    /// Trodden turf in the splats (in place): of the grass, dry grass and forest floor weight at a sample, a share of
++    /// 0.65 × trodden goes to mud (60 %) and dirt (40 %), so the trodden field reads darker and patchily bare.
++    /// </summary>
++    public static void TreadSplats(float[] splats, float[] trodden)
++    {
++        int n = SplatModel.Count, grass = (int)Material.Grass, dry = (int)Material.DryGrass, ff = (int)Material.ForestFloor;
++        int mud = (int)Material.Mud, dirt = (int)Material.Dirt;
++        for (int i = 0; i < trodden.Length; i++)
++        {
++            float t = trodden[i] * 0.65f;
++            if (t <= 0f) continue;
++            int o = i * n;
++            float moved = (splats[o + grass] + splats[o + dry] + splats[o + ff]) * t;
++            splats[o + grass] *= 1f - t; splats[o + dry] *= 1f - t; splats[o + ff] *= 1f - t;
++            splats[o + mud] += moved * 0.6f; splats[o + dirt] += moved * 0.4f;
++        }
++    }
++
++    /// <summary>
++    /// A point test for "a body lies here": within <paramref name="halfWidth"/> m of any of the segments (a 2 m grid hash
++    /// of the segments, so a test costs a few segment distances). Pure.
++    /// </summary>
++    public static Func<float, float, bool> BodyMask(IReadOnlyList<(Vector2 a, Vector2 b)> bodies, float halfWidth = 0.32f)
++    {
++        const float cell = 2f;
++        var grid = new Dictionary<(int, int), List<int>>();
++        for (int i = 0; i < bodies.Count; i++)
++        {
++            var (a, b) = bodies[i];
++            int x0 = (int)MathF.Floor((MathF.Min(a.X, b.X) - halfWidth) / cell), x1 = (int)MathF.Floor((MathF.Max(a.X, b.X) + halfWidth) / cell);
++            int z0 = (int)MathF.Floor((MathF.Min(a.Y, b.Y) - halfWidth) / cell), z1 = (int)MathF.Floor((MathF.Max(a.Y, b.Y) + halfWidth) / cell);
++            for (int z = z0; z <= z1; z++)
++                for (int x = x0; x <= x1; x++)
++                {
++                    if (!grid.TryGetValue((x, z), out var l)) grid[(x, z)] = l = new List<int>();
++                    l.Add(i);
++                }
++        }
++        float hw2 = halfWidth * halfWidth;
++        return (x, z) =>
++        {
++            if (!grid.TryGetValue(((int)MathF.Floor(x / cell), (int)MathF.Floor(z / cell)), out var l)) return false;
++            var p = new Vector2(x, z);
++            foreach (int i in l)
++            {
++                var (a, b) = bodies[i]; var d = b - a; float l2 = d.LengthSquared();
++                float t = l2 > 1e-12f ? Math.Clamp(Vector2.Dot(p - a, d) / l2, 0f, 1f) : 0f;
++                if (Vector2.DistanceSquared(p, a + d * t) < hw2) return true;
++            }
++            return false;
++        };
++    }
++}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BenchBase.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BenchBase.cs
 new file mode 100644
 index 0000000..3ba50e1
@@ -1727,10 +1906,10 @@ index 0000000..67eacde
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneC.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneC.cs
 new file mode 100644
-index 0000000..1448b41
+index 0000000..e8bf40a
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneC.cs
-@@ -0,0 +1,208 @@
+@@ -0,0 +1,218 @@
 +using System.Globalization;
 +using Gfx.Engine.Cameras;
 +using Gfx.Engine.Rendering;
@@ -1755,6 +1934,8 @@ index 0000000..1448b41
 +    public BenchBattle Battle { get; private set; } = null!;
 +    public TraceCrowd Troops { get; private set; } = null!;
 +    BattleOccluders _occ = null!;
++    /// <summary>Polish2 (critic rank 7): dust kicked up where the fighting is densest, each source active over its window.</summary>
++    SmokeLayer _dust = null!;
 +    readonly Gfx.Engine.Scene.OcclusionBuffer _ob = new(256, 144);
 +    bool _occOn;
 +
@@ -1791,6 +1972,12 @@ index 0000000..1448b41
 +        Troops = new TraceCrowd(Device, Battle, m.HeightAt);
 +        _occ = new BattleOccluders(m);
 +        if (Env.Settlement is { } s) _occ.AddWallRing(s.Outline, 3.4f, m.HeightAt);
++        // polish2 (critic rank 7): dust over the densest fighting: every 10 s of the battle from 30 s, a low dust haze
++        // where the blows fall thickest about that time (FightCentre), active for 7 s either side (pure: the trace)
++        _dust = new SmokeLayer(Device);
++        for (float t = 30f; t <= Battle.Duration; t += 10f)
++            if (FightCentre(t, 5f) is { } at)
++                _dust.Add(SmokeSource.Dust(at, 0.9f) with { ActiveFrom = t - 7f, ActiveTo = t + 7f });
 +    }
 +
 +    /// <summary>Centroid of a side's soldiers in a state at scene time t (falls back to all of the side).</summary>
@@ -1932,19 +2119,21 @@ index 0000000..1448b41
 +        if (rc.Features.Crowd) Troops.Crowd.DrawOpaque(rc);
 +    }
 +
-+    public override string FrameReport() => Troops.Report() + string.Format(CultureInfo.InvariantCulture,
++    protected override void DrawExtraTransparent(RenderContext rc) => _dust?.Draw(rc);
++
++    public override string FrameReport() => Troops.Report() + string.Format(CultureInfo.InvariantCulture, " dust-puffs={0} props={1}", _dust?.LastPuffs ?? 0, Troops.LastProps.Count) + string.Format(CultureInfo.InvariantCulture,
 +        " battle={0} holds-field={1} duration={2:F0}s clash-at=({4:F0},{5:F0}) clash-eye=({6:F0},{7:F1},{8:F0}) melee-at=({9:F0},{10:F0}){3}", Battle.Reason, Battle.HoldsField, Battle.Duration,
 +        _occOn ? string.Format(CultureInfo.InvariantCulture, " occlusion=on occluder-tris={0} hidden={1}", _ob.TrianglesRasterized, _ob.Occluded) : " occlusion=off",
 +        ClashAt.X, ClashAt.Z, ClashEye.X, ClashEye.Y, ClashEye.Z, MeleeAt.X, MeleeAt.Z);
 +
-+    public override void Dispose() { Troops?.Dispose(); base.Dispose(); }
++    public override void Dispose() { Troops?.Dispose(); _dust?.Dispose(); base.Dispose(); }
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
 new file mode 100644
-index 0000000..0429d70
+index 0000000..d5fb166
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
-@@ -0,0 +1,692 @@
+@@ -0,0 +1,704 @@
 +using System.Globalization;
 +using Gfx.Chars.Animation;
 +using Gfx.Engine.Cameras;
@@ -2091,6 +2280,8 @@ index 0000000..0429d70
 +    Gfx.Proc.Environment.Structures.StructureRenderer? _wrecks;
 +    readonly List<Vector3> _wreckPlaces = new();
 +    public IReadOnlyList<Vector3> WreckPlaces => _wreckPlaces;
++    /// <summary>Polish2: the share of the terrain grid samples more than half trodden (frame report).</summary>
++    public float TroddenShare { get; private set; }
 +    KitSoldier? _commander, _officer;
 +    Banner? _victorBanner, _defeatedBanner;
 +    Vector3 _cPos, _oPos, _fallen; float _cYaw, _oYaw;
@@ -2134,6 +2325,15 @@ index 0000000..0429d70
 +        BuildHeroes();
 +        _fallen = FallenCentre();
 +        BuildSmoke();
++        // polish2 (critic ranks 6 and 7): the battle's marks on the ground: the turf trodden where men stood, marched and
++        // fought (the whole trace), and no grass growing through a fallen body (only when the dead are shown); set before
++        // the first frame (the ground cover reads them as its tiles are made)
++        var trodden = BattleMarks.Trodden(Battle, m, Battle.Trace.StepCount - 1);
++        BattleMarks.TreadSplats(Env.EnvSplats, trodden);
++        Env.Terrain.SetAltSplats(Env.EnvSplats);
++        Env.Cover.Wear = (x, z) => BattleMarks.TroddenAt(m, trodden, x, z);
++        if (Content == DeathContent.Shown) Env.Cover.Cleared = BattleMarks.BodyMask(Troops.FallenBodies());
++        TroddenShare = trodden.Count(v => v > 0.5f) / (float)trodden.Length;
 +        Animate(_tEnd);
 +    }
 +
@@ -2627,7 +2827,8 @@ index 0000000..0429d70
 +        " aftermath: victor={0} defeated={1} surrender-beat={2} commander-entity={3} officer-entity={4} standing={5} prisoners={6} victor-side-surrendered={7} fallen={8} escaped={9} death-content={10} smoke-puffs={11}",
 +        Outcome.Victor, Outcome.Defeated, Outcome.Surrender, Outcome.CommanderEntity, Outcome.OfficerEntity, Outcome.VictorsStanding, Outcome.Prisoners, Outcome.VictorPrisoners,
 +        Outcome.Fallen, Outcome.Escaped, Content, _smoke.LastPuffs)
-+        + " wrecks=" + string.Join(";", _wreckPlaces.Select(w => string.Format(CultureInfo.InvariantCulture, "{0:F1},{1:F1},{2:F1}", w.X, w.Y, w.Z)));
++        + " wrecks=" + string.Join(";", _wreckPlaces.Select(w => string.Format(CultureInfo.InvariantCulture, "{0:F1},{1:F1},{2:F1}", w.X, w.Y, w.Z)))
++        + string.Format(CultureInfo.InvariantCulture, " trodden>0.5={0:P1} cell={1:F1}m props={2} flight-drops={3}", TroddenShare, Env.Terrain.Mesh.CellM, Troops.LastProps.Count, Troops.FlightDrops.Count);
 +
 +    public override void Dispose() { Troops?.Dispose(); _smoke?.Dispose(); _wrecks?.Dispose(); base.Dispose(); }
 +}
@@ -2790,10 +2991,10 @@ index 0000000..3cc9dc3
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
 new file mode 100644
-index 0000000..7c64ea6
+index 0000000..ec83010
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
-@@ -0,0 +1,606 @@
+@@ -0,0 +1,673 @@
 +using System.Globalization;
 +using System.Text.Json;
 +using Gfx.Chars.Crowd;
@@ -2903,6 +3104,8 @@ index 0000000..7c64ea6
 +    /// does not die).</summary>
 +    readonly Vector2[] _deadOffset;
 +    readonly List<CrowdProp> _props = new();
++    /// <summary>Polish2 (critic rank 7): kit thrown away in flight: (entity, trace step, item, place, turn).</summary>
++    readonly List<(int e, int step, CarriedItem item, Vector2 at, float turn)> _routDrops = new();
 +    readonly int[][] _events;         // per entity: indices of Fire events it made and Damage events it took (time order)
 +    readonly float[] _phase;
 +    readonly int _idle, _idle2, _walk, _jog, _run, _thrust, _swingOver, _swingSide, _block, _kneel, _cower, _death, _death2, _stumble, _surrender;
@@ -2998,6 +3201,7 @@ index 0000000..7c64ea6
 +        }
 +        (_deadYaw, _deadBack) = LayOutFallen(tr, _deathMs, _yaw);
 +        _deadOffset = SettleFallen(tr, _deathMs, _deadYaw, _deadBack);
++        _routDrops.AddRange(RoutDrops(battle, _yaw));
 +        _idle = CrowdRenderer.Clip("idle"); _idle2 = CrowdRenderer.Clip("idle_proud"); _walk = CrowdRenderer.Clip("walk");
 +        _jog = CrowdRenderer.Clip("jog"); _run = CrowdRenderer.Clip("run"); _thrust = CrowdRenderer.Clip("thrust");
 +        _swingOver = CrowdRenderer.Clip("swing_over"); _swingSide = CrowdRenderer.Clip("swing_side"); _block = CrowdRenderer.Clip("block");
@@ -3148,6 +3352,59 @@ index 0000000..7c64ea6
 +        }
 +        return offset;
 +    }
++
++    /// <summary>
++    /// Polish2 (critic rank 7; PRESENTATION ONLY): the kit men throw away when they run. Every soldier the trace has
++    /// routing drops his shield on the way, 2 to 6 steps after he first routs (but on a step he is still routing), and
++    /// about half of them their weapon too, 4 to 11 steps after; each item lies where the trace has him at that step,
++    /// turned from his facing by a hash. A pure function of the trace; an item shows from its step on.
++    /// </summary>
++    public static List<(int e, int step, CarriedItem item, Vector2 at, float turn)> RoutDrops(BenchBattle b, float[][] yawPerStep)
++    {
++        var tr = b.Trace; var list = new List<(int, int, CarriedItem, Vector2, float)>();
++        for (int e = 0; e < tr.Entities.Count; e++)
++        {
++            int s0 = -1, s1 = -1;
++            for (int s = 0; s < tr.StepCount; s++)
++                if (BenchBattle.Map(tr.State(s, e)) == TraceSoldierState.Routing) { if (s0 < 0) s0 = s; s1 = s; }
++            if (s0 < 0) continue;
++            uint h = CrowdLook.Hash((uint)tr.Entities[e].Id ^ 0x2C1B3C6Du);
++            void Drop(CarriedItem item, int step, uint k)
++            {
++                step = Math.Min(step, s1);
++                var (x, y) = tr.PosMm(step, e); var w = b.World(x, y);
++                float turn = ((CrowdLook.Hash(h ^ k) >> 8) * (1f / 16777216f) - 0.5f) * 2.4f;
++                list.Add((e, step, item, new Vector2(w.X, w.Z), yawPerStep[step][e] + turn));
++            }
++            Drop(CarriedItem.Shield, s0 + 2 + (int)(h % 5u), 0x51u);
++            if (((h >> 8) & 1u) == 0) Drop(CarriedItem.Weapon, s0 + 4 + (int)((h >> 12) % 8u), 0x77u);
++        }
++        return list;
++    }
++
++    /// <summary>Polish2: the kit dropped in flight (read only; tests and reports).</summary>
++    public IReadOnlyList<(int e, int step, CarriedItem item, Vector2 at, float turn)> FlightDrops => _routDrops;
++
++    /// <summary>
++    /// Polish2 (critic ranks 6 and 7): each fallen soldier's body on the ground as a segment in the plane (from where he
++    /// lies, settled, along his fall, <see cref="FallenLength"/> long): what the ground cover keeps clear of.
++    /// </summary>
++    public List<(Vector2 a, Vector2 b)> FallenBodies()
++    {
++        var tr = Battle.Trace; int last = tr.StepCount - 1; var list = new List<(Vector2, Vector2)>();
++        for (int e = 0; e < tr.Entities.Count; e++)
++        {
++            if (float.IsNaN(_deadYaw[e]) || BenchBattle.Map(tr.State(last, e)) != TraceSoldierState.Dead) continue;
++            var p = Battle.World(tr.PosMm(last, e).x, tr.PosMm(last, e).y);
++            var a = new Vector2(p.X, p.Z) + _deadOffset[e];
++            var d = new Vector2(MathF.Sin(_deadYaw[e]), MathF.Cos(_deadYaw[e])) * (_deadBack[e] ? -1f : 1f);
++            list.Add((a, a + d * FallenLength));
++        }
++        return list;
++    }
++
++    /// <summary>Polish2: draw the kit dropped in flight (on by default).</summary>
++    public bool DropKitInFlight { get; set; } = true;
 +
 +    /// <summary>Polish2: whether a surrendered soldier holds his hands up (about 55 %) or kneels bowed; from the entity id.</summary>
 +    public static bool SurrendersWithHandsUp(long entityId) => (CrowdLook.Hash((uint)entityId ^ 0x3B9ACA07u) >> 8) * (1f / 16777216f) < 0.55f;
@@ -3375,6 +3632,17 @@ index 0000000..7c64ea6
 +            if (v.HasWeapon) _props.Add(new CrowdProp { Variant = a.Variant, Item = CarriedItem.Weapon, World = At(wp, wt), Look = a.Look });
 +            if (v.HasShield) _props.Add(new CrowdProp { Variant = a.Variant, Item = CarriedItem.Shield, World = At(sp, st), Look = a.Look, Flipped = flip });
 +        }
++        // polish2 (critic rank 7): the kit thrown away in flight, from the step it was dropped
++        if (DropKitInFlight)
++            foreach (var d in _routDrops)
++            {
++                if (tr.StepTimeMs(d.step) > tMs) continue;
++                var v = Crowd.Variants[_variant[d.e]];
++                if (d.item == CarriedItem.Weapon ? !v.HasWeapon : !v.HasShield) continue;
++                var w = new Vector3(d.at.X, _height(d.at.X, d.at.Y), d.at.Y);
++                bool flip = (CrowdLook.Hash((uint)d.e ^ 0x6A09E667u) & 3u) == 0u;
++                _props.Add(new CrowdProp { Variant = _variant[d.e], Item = d.item, World = Matrix.CreateRotationY(d.turn) * Matrix.CreateTranslation(w), Look = _look[d.e], Flipped = flip });
++            }
 +        Crowd.SetProps(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_props));
 +    }
 +
@@ -4784,10 +5052,10 @@ index 0b78333..02d38f8 100644
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs
 new file mode 100644
-index 0000000..3e52071
+index 0000000..9b852b0
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs
-@@ -0,0 +1,263 @@
+@@ -0,0 +1,279 @@
 +using System.Runtime.InteropServices;
 +using Gfx.Engine.Effects;
 +using Gfx.Engine.Mgfx;
@@ -4804,6 +5072,20 @@ index 0000000..3e52071
 +
 +    /// <summary>Polish2 (critic rank 3): self-lit flame tongues, drawn additively (they add light, they hide nothing).</summary>
 +    public bool Emissive { get; init; }
++
++    /// <summary>Polish2 (critic rank 7): the scene-time window (s) the source is active in; its puffs fade in over the
++    /// first 3 s and out over the last 3 s (the default: always).</summary>
++    public float ActiveFrom { get; init; } = float.NegativeInfinity;
++    public float ActiveTo { get; init; } = float.PositiveInfinity;
++
++    /// <summary>The source's weight at scene time <paramref name="t"/>: 0 outside its window, ramps of 3 s at its ends.</summary>
++    public float WeightAt(float t)
++    {
++        if (t <= ActiveFrom || t >= ActiveTo) return 0f;
++        float a = float.IsNegativeInfinity(ActiveFrom) ? 1f : Math.Clamp((t - ActiveFrom) / 3f, 0f, 1f);
++        float b = float.IsPositiveInfinity(ActiveTo) ? 1f : Math.Clamp((ActiveTo - t) / 3f, 0f, 1f);
++        return MathF.Min(a, b);
++    }
 +
 +    /// <summary>A plume of grey smoke from a fire: puffs that billow from about 2 m to 15 m wide as they rise about 25 m
 +    /// and drift downwind, fading as they spread (polish2: a narrower, darker column than polish1's 3-20 m puffs).</summary>
@@ -4870,6 +5152,8 @@ index 0000000..3e52071
 +        for (int si = 0; si < _sources.Count; si++)
 +        {
 +            var s = _sources[si];
++            float weight = s.WeightAt(t);
++            if (weight <= 0f) continue;
 +            int n = Math.Max(1, (int)MathF.Ceiling(s.Rate * s.Life));
 +            float period = n / s.Rate;
 +            for (int i = 0; i < n; i++)
@@ -4889,7 +5173,7 @@ index 0000000..3e52071
 +                var p = s.Base + dir * (s.Spread * (0.3f + a)) + drift + meander
 +                      + new Vector3(0, s.Rise * MathF.Pow(age, 0.75f) + 0.3f * s.StartSize, 0);
 +                float size = MathHelper.Lerp(s.StartSize, s.EndSize, MathF.Sqrt(a)) * (0.8f + 0.4f * H(key ^ 0xC3u));
-+                float op = s.Opacity * MathF.Min(1f, a * 8f) * (1f - a) * (1f - a);
++                float op = s.Opacity * MathF.Min(1f, a * 8f) * (1f - a) * (1f - a) * weight;
 +                var quad = new SmokeVertex[4];
 +                for (int c = 0; c < 4; c++)
 +                    quad[c] = new SmokeVertex { Pos = new Vector4(p, c), Puff = new Vector4(size, op, H(key ^ 0xD4u), a), Tint = new Vector4(s.Tint, s.Emissive ? 2f : s.Layer ? 1f : 0f) };
@@ -5667,7 +5951,7 @@ index 5df2a6f..13a7a59 100644
      c += vec3(dGgx(noh, a) * vSmithGgx(nov, nol, a) * F * specScale) * SunColor.rgb * (nol * sh);
      vec3 irr = LightModel.y > 0.5 ? shIrradiance(n) * IblParams.y : mix(AmbientGround.rgb, AmbientSky.rgb, n.y * 0.5 + 0.5) * PI;
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs
-index 702db7c..5bd997d 100644
+index 702db7c..5ee6c3b 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/EnvironmentScenery.cs
 @@ -65,7 +65,7 @@ public sealed class EnvironmentScenery : IDisposable
@@ -5679,7 +5963,7 @@ index 702db7c..5bd997d 100644
      {
          options ??= EnvironmentOptions.Default;
          _gd = gd; Grid = grid;
-@@ -88,7 +88,9 @@ public sealed class EnvironmentScenery : IDisposable
+@@ -88,19 +88,23 @@ public sealed class EnvironmentScenery : IDisposable
          }
          StructureBuildMs = sw.Elapsed.TotalMilliseconds;
          sw.Restart();
@@ -5690,7 +5974,9 @@ index 702db7c..5bd997d 100644
          if (extraTrees != null) Forest.Trees.AddRange(extraTrees);
          LayoutMs = sw.Elapsed.TotalMilliseconds;
  
-@@ -97,10 +99,11 @@ public sealed class EnvironmentScenery : IDisposable
+         // canopy-driven forest floor: replace the cell-based forest-floor weight by the canopy cover
+         EnvSplats = ForestFloorSplats(Terrain.Mesh, Forest.Canopy);
++        if (!Arid) RiverBanks(Terrain.Mesh, EnvSplats, Water, seed);
          if (Settlement != null) TrampledGround(Terrain.Mesh, EnvSplats, Settlement, seed);
          Terrain.SetAltSplats(EnvSplats);
          Cover = new GroundCover(gd, Terrain.Mesh, EnvSplats, Water, Exclusions, seed, Textures);
@@ -5703,7 +5989,91 @@ index 702db7c..5bd997d 100644
          // forest floor under the canopy: dark leaf litter with moss, less red than the open-ground soil
          var look = MaterialLook.For(grid.Biome);
          look[(int)Material.ForestFloor] = look[(int)Material.ForestFloor] with { Tint = new Vector3(0.50f, 0.52f, 0.40f), Saturation = 0.62f };
-@@ -210,6 +213,8 @@ public sealed class EnvironmentScenery : IDisposable
+@@ -153,16 +157,20 @@ public sealed class EnvironmentScenery : IDisposable
+         bool arid = g.Biome == Biome.Arid;
+         // talus slopes (the generator's slope limit keeps them under about 31°) are Mountain cells: as bare rock they read
+         // as a concrete channel. Below 38° keep a third of the rock as outcrops (noise-placed) and grow grass or scree on
+-        // the rest. Presentation only: the cells stay Mountain for movement and cover.
++        // the rest. Presentation only: the cells stay Mountain for movement and cover. Polish2 (critic rank 4): in green
++        // biomes the same holds up to about 57° (slope 0.45), the rock share rising with the slope (a pale rock band
++        // still covered the upper bank of the river shot)
++        float slopeTop = arid ? 0.21f : 0.45f;
+         for (int y = 0; y < g.Height; y++)
+             for (int x = 0; x < g.Width; x++)
+             {
+                 int i = y * g.Width + x, o = i * n;
+                 var p = m.SamplePosition(x, y);
+                 float slope = 1 - m.NormalAt(p.X, p.Z).Y;
+-                if (src[o + rock] < 0.05f || slope > 0.21f) continue;
++                if (src[o + rock] < 0.05f || slope > slopeTop) continue;
+                 float outcrop = PNoise.Fbm(p.X / 18f, p.Z / 18f, (uint)g.Seed ^ 0xE5u, 3);
+-                float keep = SplatModel.SmoothStep(0.5f, 0.68f, outcrop) * 0.85f + 0.12f + SplatModel.SmoothStep(0.15f, 0.21f, slope) * 0.6f;
++                float keep = SplatModel.SmoothStep(0.5f, 0.68f, outcrop) * 0.85f + 0.12f
++                    + (arid ? SplatModel.SmoothStep(0.15f, 0.21f, slope) * 0.6f : SplatModel.SmoothStep(0.18f, 0.45f, slope) * 0.6f);
+                 float moved = src[o + rock] * (1f - Math.Clamp(keep, 0f, 1f));
+                 src[o + rock] -= moved;
+                 if (arid) { src[o + dryGrass] += moved * 0.55f; src[o + dirt] += moved * 0.45f; }
+@@ -183,7 +191,46 @@ public sealed class EnvironmentScenery : IDisposable
+         return dst;
+     }
+ 
+-    /// <summary>Inside a settlement the ground is trodden: bare soil and gravel near the buildings and along the ways.</summary>
++    /// <summary>
++    /// Polish2 (critic rank 4; PRESENTATION ONLY): a river's banks read as earth and turf, not as a pale rock spillway.
++    /// On the dry samples near water (<see cref="WaterField"/>) up to 20 m above it (fading out from 10 m), the bare rock
++    /// and sand of the splats are moved: wet silt (mud) over the last 1.4 m above the waterline, turf creeping over the
++    /// gentler slopes and over the bank's lip (more of it where the slope is gentler, broken by noise, so the edge of the
++    /// grass is ragged), raw earth on the steep cut between; a rock outcrop stays only where the bank is a true cliff (over
++    /// about 55 degrees) and the noise puts one. The cells and their classes are not touched (movement and cover keep them).
++    /// </summary>
++    public static void RiverBanks(TerrainMeshData m, float[] splats, WaterField water, uint seed)
++    {
++        var g = m.Grid; int n = SplatModel.Count;
++        var surf = water.Samples;
++        int rock = (int)Material.Rock, sand = (int)Material.Sand, mud = (int)Material.Mud, dirt = (int)Material.Dirt, grass = (int)Material.Grass;
++        for (int y = 0; y < g.Height; y++)
++            for (int x = 0; x < g.Width; x++)
++            {
++                int i = y * g.Width + x;
++                float sw = surf[i];
++                if (float.IsNaN(sw) || g.WaterDepthMm[i] > 0) continue;
++                var p = m.SamplePosition(x, y);
++                float fb = p.Y - sw;
++                if (fb > 20f || fb < -0.5f) continue;
++                float slope = 1 - m.NormalAt(p.X, p.Z).Y;
++                float bank = SplatModel.SmoothStep(20f, 10f, fb);
++                float noise = PNoise.Fbm(p.X / 7f, p.Z / 7f, seed ^ 0xBA4Bu, 3);
++                int o = i * n;
++                float keepRock = SplatModel.SmoothStep(0.40f, 0.55f, slope) * SplatModel.SmoothStep(0.5f, 0.72f, noise);
++                float fromRock = splats[o + rock] * (1f - keepRock) * bank, fromSand = splats[o + sand] * 0.85f * bank;
++                float moved = fromRock + fromSand;
++                if (moved <= 0f) continue;
++                splats[o + rock] -= fromRock; splats[o + sand] -= fromSand;
++                float wet = SplatModel.SmoothStep(1.4f, 0.15f, fb);
++                float turf = Math.Clamp(SplatModel.SmoothStep(0.46f, 0.14f, slope) * (0.45f + 0.8f * noise), 0f, 1f) * SplatModel.SmoothStep(0.3f, 1.8f, fb) * (1f - wet);
++                float earth = Math.Max(0f, 1f - turf - wet);
++                splats[o + mud] += moved * wet; splats[o + grass] += moved * turf; splats[o + dirt] += moved * earth;
++            }
++    }
++
++    /// <summary>Inside a settlement the ground is trodden: bare soil and gravel near the buildings and along the ways (polish2:
++    /// on the level ground only; slopes over about 25 degrees keep their turf).</summary>
+     static void TrampledGround(TerrainMeshData m, float[] splats, SettlementPlan s, uint seed)
+     {
+         var g = m.Grid; int n = SplatModel.Count;
+@@ -195,7 +242,10 @@ public sealed class EnvironmentScenery : IDisposable
+                 if (d > s.Radius + 6) continue;
+                 float inside = SplatModel.SmoothStep(s.Radius + 4, s.Radius - 6, d);
+                 float noise = PNoise.Fbm(p.X / 7f, p.Z / 7f, seed ^ 0xD1u, 3);
+-                float dirt = inside * (0.45f + 0.5f * noise);
++                // polish2 (critic rank 4): feet wear the level ground bare, not a steep slope (the trodden ring of the
++                // village above the river lay over its bank as a pale band of bare earth)
++                float slope = 1 - m.NormalAt(p.X, p.Z).Y;
++                float dirt = inside * (0.45f + 0.5f * noise) * (1f - SplatModel.SmoothStep(0.05f, 0.16f, slope));
+                 int o = (y * g.Width + x) * n;
+                 for (int k = 0; k < n; k++) splats[o + k] *= 1 - dirt;
+                 splats[o + (int)Material.Dirt] += dirt * 0.35f;
+@@ -210,6 +260,8 @@ public sealed class EnvironmentScenery : IDisposable
          bool trees = f.EnvTrees, rocks = f.EnvRocks;
          Terrain.PropFilter = name => name.StartsWith("rock", StringComparison.Ordinal) ? !rocks : !trees;
          Terrain.UseAltSplats = trees && f.EnvForestFloor;
@@ -5757,7 +6127,7 @@ index f663251..7b406c5 100644
      public float ReflectionScale => 0.5f;
      public override void Dispose() => Env?.Dispose();
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
-index 98fe96e..461fe6d 100644
+index 98fe96e..74ffda6 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
 @@ -42,10 +42,19 @@ public struct CoverInstance : IVertexType
@@ -5783,7 +6153,34 @@ index 98fe96e..461fe6d 100644
  }
  
  /// <summary>
-@@ -175,7 +184,11 @@ public sealed class GroundCover : IDisposable
+@@ -88,6 +97,16 @@ public sealed class GroundCover : IDisposable
+     public float WindStrength { get; set; } = 0.35f;
+     public Vector3 WindDirection { get; set; } = Vector3.Normalize(new Vector3(0.8f, 0, 0.6f));
+ 
++    /// <summary>
++    /// Polish2 (critic ranks 6 and 7; PRESENTATION ONLY): optional ground wear the scene reads from published state (a
++    /// battle trace), consulted when a tile is first generated, so a scene sets them before its first frame.
++    /// <see cref="Cleared"/>: no tuft or fern grows at (x, z) (a body lies there); <see cref="Wear"/>: 0..1 trodden at
++    /// (x, z): up to three quarters of the tufts gone (the rank hash picks them) and the rest pressed down to 45 % of
++    /// their height.
++    /// </summary>
++    public Func<float, float, bool>? Cleared { get; set; }
++    public Func<float, float, float>? Wear { get; set; }
++
+     public GroundCover(GraphicsDevice gd, TerrainMeshData mesh, float[] splats, WaterField water, IReadOnlyList<Exclusion> exclusions, uint seed, EnvTextures tex)
+     {
+         _gd = gd; _m = mesh; _splats = splats; _water = water; _ex = exclusions; _seed = seed; _tex = tex;
+@@ -148,6 +167,9 @@ public sealed class GroundCover : IDisposable
+                 var cls = _m.ClassAt(x, z);
+                 if (cls == TerrainClass.Road && H01(_seed ^ 0xC05u, gx, gz) > 0.08f) continue;
+                 if (Blocked(x, z)) continue;
++                if (Cleared != null && Cleared(x, z)) continue;
++                float wear = Wear != null ? Math.Clamp(Wear(x, z), 0f, 1f) : 0f;
++                if (wear > 0f && H01(_seed ^ 0xC14u, gx, gz) < wear * 0.75f) continue;
+                 float pick = H01(_seed ^ 0xC06u, gx, gz);
+                 float sz = 0.8f + 0.45f * H01(_seed ^ 0xC07u, gx, gz);
+                 CoverCard card; float width, height; bool fern = false;
+@@ -175,7 +197,11 @@ public sealed class GroundCover : IDisposable
                      if (fl > 0.6f && r < 0.30f)
                      {
                          int sp = (int)(PNoise.Fbm(x / 30f, z / 30f + 11f, _seed ^ 0xC0Du, 2) * 4.0f) & 3;
@@ -5796,7 +6193,7 @@ index 98fe96e..461fe6d 100644
                      }
                      else if (r > 0.988f) { card = r > 0.995f ? CoverCard.Thistle : CoverCard.Dock; width = 0.6f; height = 0.7f; }
                      else
-@@ -187,6 +200,9 @@ public sealed class GroundCover : IDisposable
+@@ -187,8 +213,13 @@ public sealed class GroundCover : IDisposable
                  }
                  float br = 0.82f + 0.3f * H01(_seed ^ 0xC0Fu, gx, gz);
                  var tint = new Vector3(br * (1.0f + 0.08f * (patch - 0.5f)), br, br * (1.0f - 0.1f * (patch - 0.5f)));
@@ -5805,8 +6202,12 @@ index 98fe96e..461fe6d 100644
 +                tint *= new Vector3(1f + 0.10f * hue, 1f, 1f - 0.12f * hue);
                  // sedge blades are paler and yellower than the drawn card in summer light
                  if (card == CoverCard.Sedge) tint *= new Vector3(1.12f, 1.06f, 0.82f);
++                // trodden: pressed down and bruised (darker, a little browner)
++                if (wear > 0f) { height *= 1f - 0.55f * wear; tint *= new Vector3(1f - 0.18f * wear, 1f - 0.24f * wear, 1f - 0.30f * wear); }
                  var inst = new CoverInstance
-@@ -467,13 +483,16 @@ public static class CoverEffects
+                 {
+                     PosYaw = new Vector4(x, _m.HeightAt(x, z) - 0.03f, z, H01(_seed ^ 0xC10u, gx, gz) * MathHelper.TwoPi),
+@@ -467,13 +498,16 @@ public static class CoverEffects
          .Varyings("vec3 v_wpos; vec3 v_nrm; vec2 v_uv; vec2 v_card; vec3 v_tint; vec4 v_lpos;")
          .VertexMain(@"
      float d = distance(CoverEye.xz, i_pos.xz);
@@ -5826,7 +6227,7 @@ index 98fe96e..461fe6d 100644
          vec2 sz = i_size.xy * grow * tail;
          float c = cos(i_pos.w), s = sin(i_pos.w);
          vec3 lp = vec3(a_pos.x * sz.x, a_pos.y * sz.y, a_pos.z * sz.x);
-@@ -519,7 +538,11 @@ public static class CoverEffects
+@@ -519,7 +553,11 @@ public static class CoverEffects
      vec3 L = SunDir.xyz;
      float back = max(dot(-Fd, L), 0.0);
      float fwd = pow(max(dot(-V, L), 0.0), 5.0);
@@ -6043,7 +6444,7 @@ index 9ac36c5..b4cc01d 100644
      }
  }
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/Water/EnvWater.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/Water/EnvWater.cs
-index 2482b43..2f4c03c 100644
+index 2482b43..3d9c65c 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Environment/Water/EnvWater.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/Water/EnvWater.cs
 @@ -82,6 +82,10 @@ public sealed class EnvWater : IDisposable
@@ -6057,7 +6458,60 @@ index 2482b43..2f4c03c 100644
  
      public EnvWater(GraphicsDevice gd, TerrainMeshData m, WaterField water, Vector2[] flow, EnvTextures tex)
      {
-@@ -243,14 +247,19 @@ float vnoise(vec2 p) {
+@@ -143,16 +147,20 @@ public sealed class EnvWater : IDisposable
+         p["WaterNrm"].SetValue(_tex.Get("water_nrm.r1tex", normalMap: true));
+         p["SceneColor"].SetValue(rc.SceneColor);
+         p["ReflectionTex"].SetValue(rc.Reflection);
++        // polish2 (critic rank 4): the scene's linear depth (when the renderer has it) for a soft, foamed contact edge
++        p["SceneDepthTex"].SetValue(rc.SceneDepth);
++        p["WaterSoft"].SetValue(new Vector4(rc.SceneDepth != null ? 1 : 0, 0, 0, 0));
+         _gd.BlendState = BlendState.AlphaBlend; _gd.DepthStencilState = DepthStencilState.DepthRead;
+         _gd.SetVertexBuffer(_vb); _gd.Indices = _ib;
+         rc.Apply(e);
+         var ss = _gd.SamplerStates;
+         ss[WaterEffects.HeightSlot] = SamplerState.PointClamp; ss[WaterEffects.NrmSlot] = SamplerState.LinearWrap;
+         ss[WaterEffects.SceneSlot] = SamplerState.LinearClamp; ss[WaterEffects.ReflSlot] = SamplerState.LinearClamp;
++        ss[WaterEffects.DepthSlot] = SamplerState.PointClamp;
+         _gd.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, _tris);
+         rc.Stats.RecordDraw(_tris, 1);
+         _gd.BlendState = BlendState.Opaque; _gd.DepthStencilState = DepthStencilState.Default;
+-        for (int i = 2; i < 7; i++) _gd.Textures[i] = null;
++        for (int i = 2; i < 8; i++) _gd.Textures[i] = null;
+     }
+ 
+     public void Dispose() { _vb?.Dispose(); _ib?.Dispose(); _height.Dispose(); _level.Dispose(); }
+@@ -161,7 +169,7 @@ public sealed class EnvWater : IDisposable
+ public static class WaterEffects
+ {
+     public const int HeightSlot = GlslLib.FirstMaterialSlot, NrmSlot = GlslLib.FirstMaterialSlot + 1,
+-        SceneSlot = GlslLib.FirstMaterialSlot + 2, ReflSlot = GlslLib.FirstMaterialSlot + 3;
++        SceneSlot = GlslLib.FirstMaterialSlot + 2, ReflSlot = GlslLib.FirstMaterialSlot + 3, DepthSlot = GlslLib.FirstMaterialSlot + 4;
+ 
+     public static EffectBuilder Create() => new EffectBuilder(EnvEffectNames.Water).BlendedGBuffer()
+         .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)
+@@ -173,7 +181,9 @@ public static class WaterEffects
+         .Vec4("WaterPlane", Stage.Pixel)  // reflection plane (xyz normal, w = -n.p)
+         .Vec4("WaterScatter", Stage.Pixel).Vec4("WaterAbsorb", Stage.Pixel).Vec4("Viewport", Stage.Pixel)
+         .Vec4("WaterGeom", Stage.Pixel)   // x = cell size m, y = W/2, z = H/2 (sample offsets), w = grid size (texels)
++        .Vec4("WaterSoft", Stage.Pixel)   // x 1 = scene depth bound (polish2)
+         .Texture("TerrainHeight", HeightSlot).Texture("WaterNrm", NrmSlot).Texture("SceneColor", SceneSlot).Texture("ReflectionTex", ReflSlot)
++        .Texture("SceneDepthTex", DepthSlot)
+         .Varyings("vec3 v_wpos; vec4 v_flow; vec4 v_lpos; vec4 v_clip;")
+         .VertexMain(@"
+     vec3 wp = a_pos.xyz;
+@@ -218,6 +228,11 @@ float vnoise(vec2 p) {
+     float bed = terrainAt(p.xz);
+     float depth = p.y - bed;
+     if (depth < -0.05) discard;
++    // polish2 (critic rank 4): how far behind the water surface the opaque scene lies along this pixel's ray (the
++    // G-buffer's linear depth minus this fragment's): small where the water meets a bank, a boulder or a post, whatever
++    // the terrain texture's resolution; large (1e4) without the depth
++    float contact = 1.0e4;
++    if (WaterSoft.x > 0.5) contact = texture2D(SceneDepthTex, clamp(suv, vec2(0.001), vec2(0.999))).r - 1.0 / gl_FragCoord.w;
+     vec2 flow = v_flow.xy;
+     float speed = length(flow);
+     // normals: flow-advected waves at two scales, calmer at the banks and in still water
+@@ -243,14 +258,19 @@ float vnoise(vec2 p) {
      vec3 R = reflect(-V, n); R.y = abs(R.y);
      vec3 sky = LightModel.z > 0.5 ? skyView(R) : mix(AmbientGround.rgb, AmbientSky.rgb, R.y * 0.5 + 0.5);
      vec3 refl = sky;
@@ -6079,7 +6533,7 @@ index 2482b43..2f4c03c 100644
          refl = mix(sky, texture2D(ReflectionTex, ruv).rgb, wplanar);
      }
      // refraction: the bed seen through the water column, absorbed along the refracted path
-@@ -262,8 +271,8 @@ float vnoise(vec2 p) {
+@@ -262,8 +282,8 @@ float vnoise(vec2 p) {
      vec3 inscatter = WaterScatter.rgb * (irr / PI + SunColor.rgb * max(SunDir.y, 0.0) * sh / PI);
      vec3 refr;
      if (WaterTime.z > 0.5) {
@@ -6090,6 +6544,23 @@ index 2482b43..2f4c03c 100644
          refr = bedCol * trans + inscatter * (vec3(1.0) - trans);
      } else refr = inscatter * (vec3(1.0) - trans * 0.6);
      // sun glint (GGX), roughened where waves were filtered out
+@@ -276,14 +296,14 @@ float vnoise(vec2 p) {
+     vec2 fuv = p.xz - flow * t * 0.9;
+     float fnoise = vnoise(fuv * 2.3) * 0.6 + vnoise(fuv * 6.1 + 3.7) * 0.4;
+     // foam collects in patches where the current presses on the bank (never a continuous line along it)
+-    float shore = 1.0 - smoothstep(0.02, 0.22, depth);
++    float shore = 1.0 - smoothstep(0.02, 0.22, min(depth, contact * 0.6));
+     float rapid = smoothstep(0.85, 1.15, speed) * (1.0 - smoothstep(0.25, 0.8, depth));
+     float patches = smoothstep(0.55, 0.8, vnoise(fuv * 0.35 + 9.1));
+     float foam = smoothstep(0.66, 0.92, fnoise) * max(shore * patches, rapid * 0.6) * smoothstep(0.15, 0.7, speed + 0.25 * patches);
+     vec3 foamCol = vec3(0.62, 0.64, 0.62) * (irr / PI + SunColor.rgb * max(SunDir.y, 0.0) * sh / PI);
+     c = mix(c, foamCol, foam * 0.85);
+     // soft shore edge: the water thins out over the last 20 cm, so the waterline is a gradient, not a cut
+-    float alpha = smoothstep(-0.02, 0.2, depth);
++    float alpha = smoothstep(-0.02, 0.2, depth) * smoothstep(0.0, 0.35, contact);
+     if (WaterTime.z < 0.5) alpha *= clamp(1.0 - trans.g * (1.0 - F), 0.35, 0.97);
+     gl_FragColor = vec4(applyFog(c, p), alpha);");
+ }
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/FarField.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/FarField.cs
 index 3a760c7..23fd32d 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/FarField.cs
@@ -6153,7 +6624,7 @@ index 3a760c7..23fd32d 100644
  
          var verts = new VertexPNC[rings * P];
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
-index d85a423..8c203f6 100644
+index d85a423..323a688 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
 @@ -76,7 +76,17 @@ void sampleHex(sampler2D A, sampler2D N, vec2 uv, vec2 dx, vec2 dy, float maxRot
@@ -6185,7 +6656,7 @@ index d85a423..8c203f6 100644
          for (int i = 0; i < 5; i++) b.Texture("Alb" + i, AlbSlot + i);
          for (int i = 0; i < 5; i++) b.Texture("Nrm" + i, NrmSlot + i);
          // stage env: wet banks (TerrainOpts.w = 1): WetMap holds the nearby water surface height per grid sample
-@@ -186,7 +199,51 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
+@@ -186,21 +199,96 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
      if (macroOn > 0.5) {
          alb *= mix(0.86, 1.14, m1.r * 0.65 + m2.r * 0.35);
          float grassy = bw.x;
@@ -6238,8 +6709,21 @@ index d85a423..8c203f6 100644
      }
      if (TerrainOpts.w > 0.5) {
          // wet banks: darker and glossier up to about 0.6 m above the nearby water surface, fading with height
-@@ -200,7 +257,34 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
-         rough = mix(rough, 0.28, wet * 0.85);
+         float hw = texture2D(WetMap, vec2(p.x * WetParams.x + WetParams.y, p.z * WetParams.z + WetParams.w)).r;
+         float above = p.y - hw;
+-        float wet = (1.0 - smoothstep(0.0, 0.6, above)) * step(-50.0, above);
++        // polish2 (critic rank 4): a ragged wet band (its upper edge wanders by about +-0.25 m with the macro texture)
++        // of dark silt, damp rather than mirror-glossy: a rough 0.28 film reflected the bright sky as a pale strip
++        // along the whole waterline (the spillway look)
++        float rag = (m1.g * 0.6 + m2.b * 0.4 - 0.5) * 0.5;
++        float wet = (1.0 - smoothstep(0.0, 0.6, above + rag)) * step(-50.0, above);
+         // under water: silt evens out the bed (lower contrast)
+         float sub = (1.0 - smoothstep(-0.05, 0.0, above)) * step(-50.0, above);
+         alb = mix(alb, vec3(dot(alb, vec3(0.3333))) * vec3(1.0, 0.98, 0.9), sub * 0.55);
+-        alb *= mix(1.0, 0.55, wet);
+-        rough = mix(rough, 0.28, wet * 0.85);
++        alb = mix(alb, alb * vec3(0.50, 0.46, 0.40), wet);
++        rough = mix(rough, 0.48, wet * 0.85);
      }
      float ao = mix(0.62, 1.0, smoothstep(0.0, 0.55, h));
 -    vec3 c = shadePbrFull(alb, clamp(rough, 0.05, 1.0), 0.0, ao, n, N, p, shadowPcf(v_lpos));
@@ -6274,7 +6758,7 @@ index d85a423..8c203f6 100644
      gl_FragColor = vec4(applyFog(c, p), 1.0);");
      }
  
-@@ -263,7 +347,8 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
+@@ -263,7 +351,8 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
      /// <summary>
      /// The land and sea beyond the battle map: vertex colour (sRGB) and normal, macro brightness variation, rough PBR,
      /// cascaded shadows where they reach, aerial perspective, and a fade into the horizon haze at the outer edge.
@@ -6284,7 +6768,7 @@ index d85a423..8c203f6 100644
      /// </summary>
      public static EffectBuilder FarField() => new EffectBuilder(TerrainEffectNames.FarField)
          .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)
-@@ -278,12 +363,60 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
+@@ -278,12 +367,60 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
      v_wpos = wp; v_nrm = a_nrm; v_col = a_col;
      v_lpos = shadowLookup(wp, a_nrm);
      gl_Position = ViewProj_mul(vec4(wp, 1.0));")
@@ -6347,10 +6831,10 @@ index d85a423..8c203f6 100644
      gl_FragColor = vec4(LightModel.z > 0.5 ? aerialPerspective(c, v_wpos, edge) : mix(applyFog(c, v_wpos), FogColor.rgb, edge), 1.0);");
  }
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainMaterials.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainMaterials.cs
-index 6247bdf..8259ace 100644
+index 6247bdf..164161d 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainMaterials.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainMaterials.cs
-@@ -109,8 +109,12 @@ public static class MaterialLook
+@@ -109,13 +109,19 @@ public static class MaterialLook
      public static Entry[] For(Biome b)
      {
          // order: Grass, Dirt, Rock, Sand, Snow, ForestFloor, Mud, DryGrass
@@ -6365,6 +6849,14 @@ index 6247bdf..8259ace 100644
          return new[]
          {
              new Entry(0, lush, lushSat, 1.0f),                                    // Grass
+             new Entry(1, b == Biome.Arid ? new Vector3(1.25f, 1.08f, 0.86f) : new Vector3(1.0f, 0.97f, 0.92f), 0.9f, 1.0f), // Dirt: gravel and stony tracks (warm in deserts)
+-            new Entry(2, b == Biome.Arid ? new Vector3(1.18f, 1.0f, 0.82f) : new Vector3(0.92f, 0.88f, 0.82f), 0.9f, 1.0f), // Rock: a little warm and dark
++            // polish2 (critic rank 4): rock in the green biomes darker and browner (weathered, lichened faces; the pale
++            // grey read as poured concrete on the river shot's cliff band)
++            new Entry(2, b == Biome.Arid ? new Vector3(1.18f, 1.0f, 0.82f) : new Vector3(0.66f, 0.62f, 0.54f), 0.85f, 1.0f), // Rock: warm and dark
+             new Entry(3, Vector3.One, 1.0f, 1.0f),                                // Sand
+             new Entry(3, new Vector3(2.7f, 2.75f, 2.95f), 0.05f, 0.55f),          // Snow (whitened sand set)
+             new Entry(4, new Vector3(0.62f, 0.62f, 0.50f), 0.85f, 1.05f),         // ForestFloor: dark litter
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainScenery.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainScenery.cs
 index ea0af31..1db626b 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainScenery.cs
