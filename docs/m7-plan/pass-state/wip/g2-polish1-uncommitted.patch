@@ -143,6 +143,103 @@ index d7e27b3..f99a1fd 100644
      else if (tm == 2) t = acesHill(c);
      else if (tm == 3) t = agx(c);
      else t = clamp(c, 0.0, 1.0);
+diff --git a/prototypes/m7-gfx2/Gfx.Engine/Effects/ScreenSpaceEffects.cs b/prototypes/m7-gfx2/Gfx.Engine/Effects/ScreenSpaceEffects.cs
+index dca215a..efc4c5f 100644
+--- a/prototypes/m7-gfx2/Gfx.Engine/Effects/ScreenSpaceEffects.cs
++++ b/prototypes/m7-gfx2/Gfx.Engine/Effects/ScreenSpaceEffects.cs
+@@ -236,7 +236,10 @@ float contactVisibility(vec2 uv, float d) {
+     cs = mix(1.0, cs, ApplyParams.y);
+     float m = 1.0 - split.r * (1.0 - ao) - split.g * (1.0 - cs);
+     if (ApplyParams.w > 2.5) m = cs; else if (ApplyParams.w > 1.5) m = ao;   // debug views: the term itself
+-    gl_FragColor = vec4(vec3(max(m, 0.0)), 1.0);");
++    // polish1: an occluded point sees less of the blue sky and more of the light bounced off its surroundings, so the
++    // ambient share loses more blue than red where AO darkens it (the multiplier per channel, luminance about the same)
++    vec3 mc = vec3(1.0) - split.r * (1.0 - ao) * vec3(0.88, 1.0, 1.12) - vec3(split.g * (1.0 - cs));
++    gl_FragColor = ApplyParams.w > 1.5 ? vec4(vec3(max(m, 0.0)), 1.0) : vec4(max(mc, vec3(0.0)), 1.0);");
+ 
+     /// <summary>
+     /// Debug views of the G-buffer-lite and the screen-space terms (display-ready). <c>DebugParams</c>: x = mode (1 depth,
+diff --git a/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs b/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs
+index 74edbe0..c251dd4 100644
+--- a/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs
++++ b/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs
+@@ -134,6 +134,12 @@ public sealed class SkyAtmosphere : IDisposable
+         return (T(x0, y0) * (1 - tx) + T(x1, y0) * tx) * (1 - ty) + (T(x0, y1) * (1 - tx) + T(x1, y1) * tx) * ty;
+     }
+ 
++    /// <summary>
++    /// Polish1: irradiance on level ground from the sun (normal-incidence irradiance times the sun's elevation sine)
++    /// and the sky, in the table's units; a Lambert ground of albedo a below the horizon has radiance a/pi times this.
++    /// </summary>
++    public Rgb GroundIrradiance => SunIrradiance * Math.Max(0.0, TableSunDir.Y) + SkyIrradiance;
++
+     /// <summary>The sky (and lit ground below the horizon) as an equirect image, without the sun disc.</summary>
+     public EquirectImage ToEquirect(int w, int h)
+     {
+@@ -208,7 +214,7 @@ public sealed class EnvironmentLighting : IDisposable
+     public const int SpecWidth = 256;
+     readonly GraphicsDevice _gd;
+     Texture2D? _spec, _brdf, _background;
+-    int _skyVersion = -1; string? _hdriKey;
++    int _skyVersion = -1; string? _hdriKey; Vector3? _skyGround;
+     EquirectImage? _hdriSource; string? _hdriLoadedPath; double _hdriSunU = double.NaN;
+     public Vector4[] Sh { get; } = new Vector4[9];
+     public Texture2D Specular => _spec ?? throw new InvalidOperationException("Update first");
+@@ -229,14 +235,20 @@ public sealed class EnvironmentLighting : IDisposable
+         return FloatTextures.Half4(_gd, 32, 32, _brdfData);
+     }
+ 
+-    /// <summary>Rebuilds from the analytic sky when its table changed.</summary>
+-    public void UpdateFromSky(SkyAtmosphere sky)
++    /// <summary>
++    /// Rebuilds from the analytic sky when its table (or the ground albedo) changed. Polish1: with a
++    /// <paramref name="groundAlbedo"/> the lower hemisphere is that sunlit Lambert ground (<see cref="ApplyGround"/>), so
++    /// downward- and sideways-facing surfaces receive the meadow's bounce light rather than the sky model's air and grey
++    /// ground; null keeps the sky table's own lower hemisphere.
++    /// </summary>
++    public void UpdateFromSky(SkyAtmosphere sky, Vector3? groundAlbedo = null)
+     {
+-        if (_skyVersion == sky.Version && _hdriKey == null && _spec != null) return;
++        if (_skyVersion == sky.Version && _hdriKey == null && _spec != null && _skyGround == groundAlbedo) return;
+         var sw = System.Diagnostics.Stopwatch.StartNew();
+         var src = sky.ToEquirect(SpecWidth, SpecWidth / 2);
++        if (groundAlbedo is { } ga) ApplyGround(src, sky.GroundIrradiance, ga);
+         Build(src);
+-        _skyVersion = sky.Version; _hdriKey = null;
++        _skyVersion = sky.Version; _hdriKey = null; _skyGround = groundAlbedo;
+         _background?.Dispose(); _background = null;
+         SourceDescription = "analytic sky";
+         LastBuildMs = (float)sw.Elapsed.TotalMilliseconds;
+@@ -299,6 +311,29 @@ public sealed class EnvironmentLighting : IDisposable
+ 
+     static float Fin(float v) => float.IsFinite(v) ? Math.Clamp(v, 0f, 65000f) : 0f;
+ 
++    /// <summary>
++    /// Polish1: replaces the lower hemisphere of an equirect sky by the radiance of a sunlit Lambert ground,
++    /// albedo / pi times the level-ground irradiance, blended in over the first 8 degrees below the horizon (the horizon
++    /// itself keeps the sky table's haze). PRESENTATION ONLY.
++    /// </summary>
++    public static void ApplyGround(EquirectImage img, Rgb groundIrradiance, Vector3 albedo)
++    {
++        var l = new Rgb(albedo.X * groundIrradiance.R / Math.PI, albedo.Y * groundIrradiance.G / Math.PI, albedo.Z * groundIrradiance.B / Math.PI);
++        for (int y = 0; y < img.Height; y++)
++        {
++            double el = Math.PI / 2 - (y + 0.5) / img.Height * Math.PI;
++            if (el >= 0) continue;
++            double t = Math.Clamp(-el / MathHelper.ToRadians(8f), 0, 1); t = t * t * (3 - 2 * t);
++            for (int x = 0; x < img.Width; x++)
++            {
++                int o = (y * img.Width + x) * 3;
++                img.Rgb[o] = (float)(img.Rgb[o] * (1 - t) + l.R * t);
++                img.Rgb[o + 1] = (float)(img.Rgb[o + 1] * (1 - t) + l.G * t);
++                img.Rgb[o + 2] = (float)(img.Rgb[o + 2] * (1 - t) + l.B * t);
++            }
++        }
++    }
++
+     static double BrightestU(EquirectImage img)
+     {
+         // column of the brightest 9×9-averaged spot in the upper hemisphere
 diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/CascadedShadowMap.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/CascadedShadowMap.cs
 index 1230d8e..2b67973 100644
 --- a/prototypes/m7-gfx2/Gfx.Engine/Rendering/CascadedShadowMap.cs
@@ -420,7 +517,7 @@ index 6247bdf..8259ace 100644
          {
              new Entry(0, lush, lushSat, 1.0f),                                    // Grass
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainScenery.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainScenery.cs
-index ea0af31..61b057a 100644
+index ea0af31..c82f380 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainScenery.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainScenery.cs
 @@ -58,6 +58,12 @@ public sealed class TerrainScenery : IDisposable
@@ -444,7 +541,28 @@ index ea0af31..61b057a 100644
          (_detailA, _detailB) = MaterialTextures.Create(gd, 1234u);
  
          _chunks = new Chunk[Mesh.Chunks.Length]; _bounds = new BoundingBox[_chunks.Length]; _visible = new (int, int)[_chunks.Length];
-@@ -173,6 +180,7 @@ public sealed class TerrainScenery : IDisposable
+@@ -113,6 +120,20 @@ public sealed class TerrainScenery : IDisposable
+     /// </summary>
+     public float Haze => Grid.Biome switch { Biome.Arid => 3.5f, Biome.Tropical => 4.0f, Biome.Cold => 2.0f, _ => 3.0f };
+ 
++    /// <summary>
++    /// Polish1: the factor on <see cref="Haze"/> with the sun on the horizon (<see cref="RenderFeatures.HazeLowSun"/>):
++    /// the aerosol veil towards a 9-degree sun turned the temperate meadow into sand dunes, so a low sun sees a little
++    /// over half of it (golden hour 3 becomes about 1.8). Presentation only.
++    /// </summary>
++    public float HazeLowSun => Grid.Biome switch { Biome.Arid => 0.75f, _ => 0.55f };
++
++    /// <summary>Polish1: linear albedo of this biome's open ground for the sky light's ground bounce (presentation only).</summary>
++    public Vector3 BounceAlbedo => Grid.Biome switch
++    {
++        Biome.Arid => new Vector3(0.30f, 0.24f, 0.16f), Biome.Cold => new Vector3(0.12f, 0.13f, 0.11f),
++        Biome.Tropical => new Vector3(0.06f, 0.10f, 0.04f), _ => new Vector3(0.075f, 0.105f, 0.042f),
++    };
++
+     /// <summary>World box holding every shadow caster of this scenery (terrain and props, 40 m headroom for trees).</summary>
+     public BoundingBox CasterBounds => new(new Vector3(-Mesh.HalfExtentX, Mesh.MinHeightM - 10f, -Mesh.HalfExtentZ),
+                                            new Vector3(Mesh.HalfExtentX, Mesh.MaxHeightM + 40f, Mesh.HalfExtentZ));
+@@ -173,6 +194,7 @@ public sealed class TerrainScenery : IDisposable
          p["TileScaleB"].SetValue(new Vector4(1f / ts[4], 1f / 190f, 1f / 53f, 0));
          bool wet = UseWetMap && WetMap != null;
          p["TerrainOpts"].SetValue(new Vector4(rc.Features.HexTiling ? 1 : 0, rc.Features.MacroVariation ? 1 : 0, 0.22f, wet ? 1 : 0));

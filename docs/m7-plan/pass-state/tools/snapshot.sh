@@ -26,6 +26,8 @@ NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 exec 9>"$SP/m7gov/git.lock"; flock 9
 TMP=$(mktemp -d "$SP/m7gov/snap.XXXXXX"); trap 'rm -rf "$TMP"' EXIT
 NEW=$TMP/wip; mkdir -p "$NEW/journals"
+printf '%s\n' '# Checkpoint patches carry diff context lines with a single space; they are data, not source.' \
+  '*.patch -whitespace' > "$NEW/.gitattributes"
 ROWS=$TMP/rows.md; TESTS=$TMP/tests.md; : > "$ROWS"; : > "$TESTS"; SUMMARY=()
 
 uncommitted() {  # $1 repo, $2 output patch: the clone's uncommitted edits against its HEAD, through a temporary index
