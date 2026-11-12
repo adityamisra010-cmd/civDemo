@@ -664,6 +664,10 @@ public class PopulationTests
             Console.WriteLine($"bench {phase}: {ms:F2} ms total over 200 turns, {bytes} bytes allocated");
         }
         Console.WriteLine($"bench total: {totalMs:F1} ms for 200 founded turns (dev 256²)");
+#if !DEBUG
+        // D-087 DF2 (Director, 2026-11-12): the wall-clock budget is checked in the optimized (Release) build only, the build
+        // CI and scripts/validate.sh test. An unoptimized Debug build runs the same 200 turns and reports the timings above.
         Assert.True(totalMs < 5000, $"200 founded turns took {totalMs:F0} ms");
+#endif
     }
 }

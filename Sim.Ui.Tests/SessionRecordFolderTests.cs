@@ -12,6 +12,9 @@ namespace Sim.Ui.Tests;
 /// still reads the older flat layout. The raw telemetry log's removal after a verified export is retried, and a log it
 /// could not remove is reported in <c>.record/export-STAMP.log</c> as well as on stderr.
 /// </summary>
+// D-087 DF1 (Director, 2026-11-12): this class drives ImGui frames through the headless harness, and ImGui's context is
+// process-wide, so it joins the "ImGui context" collection and never runs beside another class that draws frames.
+[Collection("ImGui context")]
 public class SessionRecordFolderTests
 {
     private static string TempDir(string name)

@@ -51,6 +51,9 @@ public sealed class NowUsableFixture
 ///   no node or entity id is named in the code; the gate rows pass in a research-done state.</item>
 /// </list>
 /// </summary>
+// D-087 DF1 (Director, 2026-11-12): this class drives ImGui frames through the headless harness, and ImGui's context is
+// process-wide, so it joins the "ImGui context" collection and never runs beside another class that draws frames.
+[Collection("ImGui context")]
 public class DiscoveryShortcutTests(NowUsableFixture fx) : IClassFixture<NowUsableFixture>
 {
     private static readonly PolityId Me = UiPlayer.Empire;

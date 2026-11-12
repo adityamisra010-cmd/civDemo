@@ -118,6 +118,9 @@ internal static class ExportFixtures
 /// the workbook goldens of the Director's 68-turn session and of a current-tree session, the headless command and the
 /// session-close hook.
 /// </summary>
+// D-087 DF1 (Director, 2026-11-12): this class drives ImGui frames through the headless harness, and ImGui's context is
+// process-wide, so it joins the "ImGui context" collection and never runs beside another class that draws frames.
+[Collection("ImGui context")]
 public class SessionExportTests
 {
     /// <summary>The CONTENT golden (<see cref="ExportFixtures.ContentSha"/>) of the Director's 68-turn session's workbook
