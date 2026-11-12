@@ -263,3 +263,43 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 - RR bundle 8610ebd -> fe45f0b (309,719 bytes, written by the lane at 02:23:19Z).
 - G2 scenes (0f8ae2f): fresh snapshots byte-identical to 13:20.
 - Restore test MEASURED in a fresh clone of 7364c86: the RR bundle verifies and fetches to fe45f0b (tree 314524d = the lane clone's); G2 committed patch alone gives c5c617a, both patches give a0309d3 (= the scenes clone's working state).
+
+## Checkpoint 2026-11-12 05:21Z (nothing changed; no commit)
+- CI (read 05:21Z): ci.yml run 978 and ui-artifact 483 on 43a66ca SUCCESS (CI 03:24:35-04:14:41Z). No failed run on any pushed commit.
+- RR fix round 1 (agent aab3d9497bc799236) still running: no commit after fe45f0b (02:23:14Z); 2 uncommitted report files (+170 lines) in flight, not snapshotted (running lane); at 05:18:52Z it started `validate.sh integration --base 51ab032` under the shared lock (Release Sim.Tests running at 05:21).
+- RR-wip.bundle, g2-scenes-0f8ae2f.patch and g2-scenes-uncommitted-0f8ae2f.patch: fresh copies byte-identical to the committed files (cmp).
+- Restore test MEASURED in a fresh clone of the PUSHED head 43a66ca (files read from the commit with cat-file): the RR bundle verifies and fetches to fe45f0b (tree 314524d = the lane clone's); G2 committed patch alone gives c5c617a, both patches give a0309d3. The routine says to skip the commit when nothing changed, so none was made.
+
+## Lane RR fix round 1 done; verification round 2 (no blocker or major); fix round 2 running; checkpoint 2026-11-12 07:20Z
+- CI (read 07:21Z): no push since 43a66ca; ci.yml 978 and ui-artifact 483 SUCCESS.
+- Fix round 1 (agent aab3d9497bc799236, fix:RR:r1) returned at 06:11:01Z. Commits fe45f0b (02:23:14Z, code and tests) and 861f9f9 (06:09:00Z, docs: H-RR section 10 +216, main report +4). Lane diff 51ab032..861f9f9: 44 files, +9193/-114 (MEASURED). Lane claims (NOT re-measured by the orchestrator):
+  - RR-R1-01..04 all REPRODUCED on 8610ebd before any change (V01-V05, V11, V21, V25, V32 survive; RR-R1-04 as uid 65534: exit 134, unhandled UnauthorizedAccessException, no export log).
+  - Fixes: 3 rig tests (repeatable levels 1-3 completing on turns 1/3/5 at costs 1000/1250/1562.5; exposure credit over 3 steps; an empty v6 line reads as recorded); NX row, 7-column trace line and keep-raw close tests; RR-R1-02 docs only (300-turn game: chronicle 254 -> 269 lines, +15 RN name lines, every other line identical; Codebook Chronicle:names 115 -> 130); SessionExportCommand catch-all (stderr + export log, exit 2) with a test seam and a 2-case test (also MEASURED for a 256 MB heap-limit OutOfMemoryException).
+  - Mutants 12/12 killed on fe45f0b by semantic tests (bound max(60 s, 5x clean); none hung).
+  - Validation: Debug Sim.Tests full 3441/0/36 of 3477 (1 h 43 m); Debug Sim.Ui.Tests full 1298/0/0 (33 m 22 s; a first attempt was cut by the 2-hour background limit, no result, not counted); validate.sh integration --base 51ab032 under the lock: 7 PASS (one of them export-codebook PASS (cached), counted without its label: RR-R2-09), 1 NOT RUN; simtests-full 3441/0/36 (1961 s); uitests-full 1298/0/0 (911 s); validate.sh full: 13 PASS, charters FAIL (the known base false positive), 8 NOT RUN. validate.sh targeted: uitests-selected FAILED twice on the pre-existing ImGui race (SessionExportTests vs SessionRecordFolderTests).
+  - No golden, pin, world hash or fixture moved in this round.
+  - Coordinator question: the NoteResearchNames hook in UiSession.Step (per-turn chronicle path) in scope? Orchestrator's reading (README section 5): yes, as the means to DE1's "every code in the Codebook" (the chronicle's name lines are the record's only legend, ADR-059); attributed; the Director may rule otherwise.
+  - Coordinator proposal: [Collection("ImGui context")] on SessionExportTests and SessionRecordFolderTests; pre-existing on 51ab032; outside D-086's own work, so it waits for the Director (D-079 Q5).
+- Verification round 2 (agent a0330ac78a3c7d498, verify:RR:r2), pinned to 861f9f9 (worktree /home/user/m7w/verify-RR-r2, base clone /home/user/m7w/verify-RR-r2-base), 06:11:01-07:04:37Z. Its MEASURED figures (the verifier's; NOT re-measured by the orchestrator):
+  - Round-1 fixes hold: S01/S04/S11 (= V01/V04/V11) killed by the new rig tests; research.json: repeatableLevels true, 13 levelled nodes, foreignExposure 0.01/yr.
+  - RR-R1-02 re-measured on its own 300-turn game: chronicle 254 -> 269 lines (5,200 -> 5,549 bytes), the 15 added lines all RN name lines; event lines, trace and order log identical; 14 of the 15 nodes researched only by the AI. At 1,630 turns the two chronicles are byte-identical (the player has completed every node the AI researched by then).
+  - Director's files: base 12.98/13.38/13.48 s, 1,290 MB, sha256 01d3c33e...; lane 9.29/9.33 s, 698/704 MB, 6,843,388 bytes, sha256 40ba3d35...; Research sheet = header + one NR 850 row.
+  - 1,630 turns: telemetry 356,083,779 (base) and 357,314,698 (lane) bytes; traces byte-identical, 180 half-year lines from 5920.5 at turn 1271; base refuses after 0.54 s; the lane writes 16,678,721 bytes in 18.85 s, 1,556 MB peak, 11 continuation rows.
+  - The ImGui race is pre-existing: base 51ab032, grouped filter of four export classes crashed 2 of 3 Debug runs (imgui.cpp:11039).
+  - Lane test classes Debug all pass (ResearchObservationTests 11/11, RunRecordResearchTests 5/5, SessionCloseTests 17/17, SessionExportTests 30/30, SessionExportCodesTests 9/9, SessionRecordTests 7/7, SessionRecordFolderTests 10/10); moved-pin classes Release 37/37; validate.sh targeted --base 8610ebd 5/5 PASS (Sim.Tests selection 472/0/22; Sim.Ui.Tests selection 62/62).
+  - Mutants: 12, bound 10x clean, none hung: W02, W03 killed semantically; W07, W09 killed by the content golden only; W01, W04, W05, W06, W08, W10, W11, W12 survive.
+  - NOT RUN: full suites, validate integration/full, smoke, in-game close timings, Windows close, re-runs of V21/V25/V32/N1-N3.
+- Findings: no blocker, no major.
+  - RR-R2-01 minor: city-state research rows pinned by no test or fixture (W01 bank-row sort removed, W06 ST code shifted, both survive); the current-v6 fixture holds holders {1,2} only, yet its README and a test docstring claim city-states; seeds measured hold no city-state rows; the path is live in content (SettlementKnowledge.ResearchesLocally, pace 0.25).
+  - RR-R2-02 minor: completion with cost fallen below progress untested (W04 survives); reachable via ResearchCostModifiers.
+  - RR-R2-03 minor: the saving screen's workbook progress untested (W10, W11 survive).
+  - RR-R2-04 nit: README research counts and two number formats pinned only by the golden (W07, W09) or not at all (W05).
+  - RR-R2-05 nit: NX legend vs code condition differ (W08 survives).
+  - RR-R2-06 nit: --export-session crashes (exit 134) when runs\.record cannot be listed (ResolveManifest catches IOException only).
+  - RR-R2-07 nit: a step-5 failure after the workbook was written shows "The run workbook was not written".
+  - RR-R2-08 nit: CheckTrace accepts the header on any line (W12 survives).
+  - RR-R2-09 nit: a cached pass counted without its label; the main report's section 2 and 5 counts not updated.
+- Fix round 2 (agent a9bf8ea4ee497e869, fix:RR:r2) since 07:04:37Z. At 07:22 its clone held uncommitted edits in 4 files (in flight, not snapshotted). The workflow's 2-round cap means fix round 2 ends unverified: RR joins the final-round verification queue.
+- RR bundle fe45f0b -> 861f9f9 (316,978 bytes, written by the lane at 06:09:14Z).
+- G2 scenes (0f8ae2f): fresh snapshots byte-identical to 13:20.
+- Restore test MEASURED in a fresh clone of 43a66ca: the RR bundle verifies and fetches to 861f9f9 (tree d3b3a9e = the lane commit's); G2 committed patch alone gives c5c617a, both patches give a0309d3.
