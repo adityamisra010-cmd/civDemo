@@ -7438,10 +7438,10 @@ index 0000000..77b5447
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
 new file mode 100644
-index 0000000..97e84ee
+index 0000000..9ab70ca
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
-@@ -0,0 +1,733 @@
+@@ -0,0 +1,784 @@
 +using Gfx.Chars.Rendering;
 +using Gfx.Engine.Atmosphere;
 +using Gfx.Engine.Effects;
@@ -7689,6 +7689,57 @@ index 0000000..97e84ee
 +        Assert.Equal(0, KitAssets.ShellLayers(cards));
 +        Assert.Equal(HairKind.Beard, KitAssets.KindOf(beard));
 +        Assert.Equal(HairKind.Scalp, KitAssets.KindOf(cards));
++    }
++
++    /// <summary>
++    /// The root rule on its own (polish2, rank 1): a fur or scalp-shell strand rooted under the metal is hidden at every
++    /// shell however far its outer shells reach, even where the cover calls an outer shell's own place free. The cover
++    /// here is a closed helmet with its over band taken away (only the space under the metal counts), so the centroid
++    /// test alone would keep the outer shells that poke out of it. With the real cover, the over band hides most of those
++    /// shells as well, which is why the 8-azimuth pixel test cannot see this rule; this test pins it directly.
++    /// </summary>
++    [CharsBakeFact]
++    public void AStrandRootedUnderTheMetalIsHiddenAtEveryShell()
++    {
++        var f = Gfx.Chars.Format.CharacterFile.Load(Path.Combine(Gfx.Engine.Assets.AssetRoot.Baked("chars"), "a4.g2ch"));
++        var s = new Gfx.Chars.Animation.Skeleton(f.Bones);
++        var sockets = KitSockets.Compute(f, s);
++        var m = KitSockets.Measure(f, s);
++        var hair = f.Mesh("hair")!;
++        var kind = KitAssets.KindOf(hair);
++        int layers = KitAssets.ShellLayers(hair), n = hair.VertexCount / layers;
++        Assert.Equal(12, layers);
++        HairPlace UnderOnly(KitItem it, Vector3 p, HairKind k) => Helmets.PlaceHair(it, p, k) == HairPlace.Under ? HairPlace.Under : HairPlace.Free;
++        var stats = new List<(string Helmet, int Poking, int Kept, int Outer, int RootedUnder)>();
++        foreach (var helmet in new[] { "corinthian", "greathelm", "kettle" })
++        {
++            var helm = Helmets.Build(new HelmetSpec { Kind = helmet, Seed = 3, MapSize = 0, Lod = 1, Crest = null }, m);
++            var toItem = Matrix.Invert(sockets["head"].Bind) * helm.Frame("head");
++            bool Under(Vector3 p) => UnderOnly(helm, Vector3.Transform(p, toItem), kind) == HairPlace.Under;
++            Vector3 Root(uint a, uint b, uint c) => (hair.Positions[a % n] + hair.Positions[b % n] + hair.Positions[c % n]) / 3f;
++            // the case the rule exists for: outer-shell triangles whose own centroid is out of the metal, rooted under it
++            int poking = 0;
++            for (int t = 0; t < hair.Indices.Length; t += 3)
++            {
++                uint a = hair.Indices[t], b = hair.Indices[t + 1], c = hair.Indices[t + 2];
++                if (a >= n && Under(Root(a, b, c)) && !Under((hair.Positions[a] + hair.Positions[b] + hair.Positions[c]) / 3f)) poking++;
++            }
++            var kept = KitAssets.HairView(hair, new[] { (helm, "head", sockets["head"]) }, UnderOnly);
++            int rootedUnder = 0, outer = 0;
++            for (int t = 0; t < kept.Length; t += 3)
++            {
++                if (kept[t] >= n) outer++;
++                if (Under(Root(kept[t], kept[t + 1], kept[t + 2]))) rootedUnder++;
++            }
++            stats.Add((helmet, poking, kept.Length / 3, outer, rootedUnder));
++        }
++        var all = string.Join("; ", stats.Select(x => $"{x.Helmet}: {x.Poking} outer-shell triangles poke out of the metal from a root under it, {x.Kept} of {hair.TriangleCount} kept ({x.Outer} outer), {x.RootedUnder} kept rooted under the metal"));
++        // every helmet: no kept triangle is rooted under the metal
++        Assert.True(stats.All(x => x.RootedUnder == 0), all);
++        // the corinthian and the kettle have the case the rule exists for (outer shells out of the metal from a root under
++        // it; the great helm's metal holds every shell); the kettle keeps the shells of the hair below its rim
++        Assert.True(stats[0].Poking > 50 && stats[2].Poking > 50, all);
++        Assert.True(stats[2].Outer > 1000, all);
 +    }
 +
 +    // ------------------------------------------------------------------------------------------------ cloud layer (rank 2)
@@ -9147,10 +9198,10 @@ index 12e7b8e..0d6a148 100644
 +need no new bake or asset: the scenes note in the Victus section still lists what a package must carry. On this tree,
 +`scripts/capture-scenes.sh` renders 47 of 47 stills byte-identical to polish1's canonical set.
 diff --git a/prototypes/m7-gfx2/assets/PROVENANCE.md b/prototypes/m7-gfx2/assets/PROVENANCE.md
-index 607c164..23d7a5d 100644
+index 607c164..778cd5f 100644
 --- a/prototypes/m7-gfx2/assets/PROVENANCE.md
 +++ b/prototypes/m7-gfx2/assets/PROVENANCE.md
-@@ -360,6 +360,56 @@ masked software-rasterised hierarchical depth buffer for occlusion culling (comm
+@@ -360,6 +360,82 @@ masked software-rasterised hierarchical depth buffer for occlusion culling (comm
  themselves (bounding-sphere fit, texel snapping, tent PCF, blend band) are render1's (§3.8); render2 adds their debug
  view, caster culling and tests.
  
@@ -9203,6 +9254,32 @@ index 607c164..23d7a5d 100644
 +derivatives (common practice), a forward-scattering transmission lobe for hair (after the TT lobe of Marschner et al.
 +2003, simplified), a sunlit Lambert ground as the lower hemisphere of the sky light (common practice), cloth flutter as
 +travelling sine waves with analytic normals (common practice).
++
++### 3.15 Stage polish2 (visual critic iteration 2): runtime transformations only
++
++Added 2026-11-12 by stage polish2 on `g2/polish2` (cut from `g2/trunk` f86ebf7). **No new external file is downloaded
++or pinned, no bake is re-run and no `manifest.tsv` row changes.** Every change is code that transforms existing rows at
++run time or generates geometry in code (presentation only; nothing here is read by the simulation, and the battle trace
++is read-only: tests hash it before and after).
++
++| Output or runtime use | Inputs | Transformations | Licence of the output | Status |
++|---|---|---|---|---|
++| Hair under helmets (`Gfx.Gear/Items/Helmets.cs` `PlaceHair`, `Gfx.Gear/Runtime/KitAssets.cs` `Worn`, `ShellLayers`) | the stage-chars hair shells and cards (§3.9), the generated helmets (§3.11) | per triangle at wear time: each hair vertex placed free, under or over the helmet's analytic shell; fur-shell layers hidden by their root, cards by corners and edge midpoints; scalp hair never shows through a face plate's openings | project code | own |
++| Cloud layer and its shadows (`Gfx.Engine/Atmosphere/CloudLayer.cs`, `GlslLib.CloudLib`, the sky composite in `PostEffects`) | none (procedural value-noise fBm; no texture) | a slab of fBm density, a pure function of world xz and a fixed scene offset; sky lighting with self-shading and a forward lobe; the shadow multiplies the sun's light in `shadowPcf` | project code | own |
++| Gamut compression after the tone curve (`PostEffects` composite, CPU twin `GamutCompression.cs`); capped transmission chroma (`GroundCover`, `TreeEffects`) | the rendered frame | luminance-preserving compression of out-of-gamut chroma (knee 0.78, limit 0.88); half of the transmission chroma kept; a per-tuft hue jitter | project code | own |
++| Disarmed crowd, dropped kit, surrender poses, fallen settle (`Gfx.Chars/Crowd/CrowdKit.cs`, `CrowdRenderer`, `CrowdPoseVariants.DeriveSurrender`, the `@bind` bank clip, `TraceCrowd`) | the crowd LOD meshes (§3.12) and the CMU-derived `kneel` clip (§3.4, §3.9); the battle trace (§3.13), read only | per LOD mesh: islands rigidly bound to a hand or forearm that reach out of it found and split into weapon and shield index views, each laid flat by its principal axes; a surrender pose derived from the kneel by turning the arms and bowing the head; dropped kit and settle offsets pure functions of the trace and entity ids | project code (the surrender pose is a derivative of a CMU-derived clip: `LicenseRef-CMU-Mocap`, as the clip it is made from) | own / PROTOTYPE-ONLY (as the CMU base) |
++| Burnt-out carts (`Gfx.Demo/Scenes/Bench/BurningWreck.cs`) | the structure kit's plank and log materials (§3.10) | geometry built in code (boxes and tubes), charred tint | project code | own |
++| Smoke soft particles, dense young smoke, flame tongues (`Gfx.Engine/Rendering/SmokeLayer.cs`) | the G-buffer's linear depth | procedural billboards (no texture) | project code | own |
++| River banks, trodden village ground, darker temperate rock, water contact edge (`EnvironmentScenery.RiverBanks`, `TrampledGround`, `TerrainMaterials`, `G2TerrainEffects`, `EnvWater`) | the render1 terrain bake (§3.8), the env bakes (§3.10) | splat weights moved (rock and sand near water to silt, earth and turf); tint and roughness changes; the water's alpha and foam from the scene depth | project code | own |
++| Battle marks (`Gfx.Demo/Scenes/Bench/BattleMarks.cs`, `GroundCover.Wear`/`Cleared`, scene C dust) | the battle trace (§3.13), read only | trodden share per terrain sample from soldier-seconds, splats and ground cover worn by it; no tuft inside a fallen body; dust sources at the densest fighting, each active over its window | project code | own |
++| Crowd shading (`Gfx.Chars/Crowd/CrowdEffects.cs`), hero catchlight fade (`CharEffects`) | the crowd LOD vertex colours and skin atlas (§3.12, §3.9) | iron darker and rougher; dyes and paint muted; near-white eye texels and eye vertices at eye height to a socket tone; near-neutral hair above the shoulders warmed; the cornea lift and key catchlight fade with the pixel footprint | project code | own |
++| The avatar as scene D's commander; the era triptych and interactive sequences in `scripts/capture-scenes.sh` | the chars bake's avatar identity and its era outfits (§3.9) | casting and capture only | project code | own |
++
++**Algorithms implemented from publications or common practice** (no code copied, no asset): value-noise fBm with domain
++warping for clouds (common practice), the Henyey–Greenstein phase function (Henyey and Greenstein 1941), Beer–Lambert
++optical depth (common practice), soft particles against the scene depth (common practice), luminance-preserving gamut
++compression of out-of-range chroma (common practice in colour pipelines), principal axes by Jacobi rotations (common
++numerical practice), union-find connected components (common practice).
 +
  ## 4. Licence identifiers used for non-standard terms
  
@@ -15477,6 +15554,86 @@ index 0000000..b19655e
 +    print(f"{shot}, pixels with a channel at 250 or more: before {clipped(BEFORE, shot):.2%} | after {clipped(AFTER, shot):.2%}")
 +cut = "d-cutaway/bench-d-cutaway-06-cutaway"
 +print(f"D cut-away, sky above the first textured row band: before {horizon(BEFORE, cut):.0%} | after {horizon(AFTER, cut):.0%} of the frame height")
+diff --git a/prototypes/m7-gfx2/scripts/measure-polish2.py b/prototypes/m7-gfx2/scripts/measure-polish2.py
+new file mode 100755
+index 0000000..72b6d49
+--- /dev/null
++++ b/prototypes/m7-gfx2/scripts/measure-polish2.py
+@@ -0,0 +1,74 @@
++#!/usr/bin/env python3
++"""The measured figures of reports/polish2.md §1: region statistics of the canonical captures, before and after.
++
++Usage: measure-polish2.py BEFORE_DIR AFTER_DIR
++  BEFORE_DIR, AFTER_DIR: outputs of scripts/capture-scenes.sh (1920x1080; same folder and file names).
++Per region: mean RGB, HSV hue (degrees) and saturation of the mean colour, the median luminance standard deviation in
++24 px windows (local contrast), the share of near-white pixels (every channel 225 or more) and, over the brightest tenth
++of the region's pixels, the mean HSV saturation and the share above 0.75 (the golden-hour "neon" measure).
++Every frame measured here was rendered by llvmpipe (not Victus evidence); these are prototype frames, not production art.
++"""
++import colorsys
++import sys
++
++import numpy as np
++from PIL import Image
++
++BEFORE, AFTER = sys.argv[1:3]
++REGIONS = [  # name, shot, box (x0, y0, x1, y1 as fractions of the frame)
++    ("B wide noon, sky", "b/bench-b-wide-noon", (0.0, 0.0, 1.0, 0.18)),
++    ("C vista noon, sky", "c/bench-c-vista-noon", (0.0, 0.0, 1.0, 0.12)),
++    ("E vista golden, sky", "e/bench-e-vista-golden", (0.0, 0.0, 1.0, 0.18)),
++    ("C clash golden, foreground cover", "c/bench-c-clash-golden", (0.0, 0.80, 0.4, 0.98)),
++    ("C vista golden, foreground cover", "c/bench-c-vista-golden", (0.05, 0.80, 0.55, 0.97)),
++    ("A two-shot golden, ground", "a/bench-a-two-shot-golden", (0.0, 0.85, 1.0, 1.0)),
++    ("E river, far bank", "e/bench-e-river", (0.20, 0.42, 0.90, 0.80)),
++    ("C melee low, crowd", "c/bench-c-melee-low", (0.0, 0.38, 1.0, 0.85)),
++    ("B front, close soldiers", "b/bench-b-front", (0.0, 0.40, 0.75, 0.95)),
++    ("D field, the fallen cluster's ground", "d-shown/bench-d-shown-00-field", (0.25, 0.55, 0.55, 0.90)),
++    ("D fallen, ground around the bodies", "d-shown/bench-d-shown-06-fallen", (0.0, 0.0, 1.0, 1.0)),
++]
++
++
++def luminance(rgb):
++    return 0.2126 * rgb[..., 0] + 0.7152 * rgb[..., 1] + 0.0722 * rgb[..., 2]
++
++
++def local_std(lum, k=24):
++    return [lum[y:y + k, x:x + k].std() for y in range(0, lum.shape[0] - k + 1, k) for x in range(0, lum.shape[1] - k + 1, k)]
++
++
++def region(root, shot, box):
++    im = np.asarray(Image.open(f"{root}/{shot}.png").convert("RGB")).astype(np.float64)
++    h, w, _ = im.shape
++    x0, y0, x1, y1 = box
++    return im[int(y0 * h):int(y1 * h), int(x0 * w):int(x1 * w)]
++
++
++def stats(px):
++    mean = px.reshape(-1, 3).mean(0)
++    hh, ss, _ = colorsys.rgb_to_hsv(*(mean / 255.0))
++    lum = luminance(px)
++    contrast = float(np.median(local_std(lum))) if min(lum.shape) >= 24 else float(lum.std())
++    flat = px.reshape(-1, 3)
++    white = float((flat.min(1) >= 225).mean())
++    mx, mn = flat.max(1), flat.min(1)
++    sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0.0)
++    l = luminance(flat)
++    top = l >= np.quantile(l, 0.9)
++    return mean, hh * 360.0, ss, contrast, white, float(sat[top].mean()), float((sat[top] > 0.75).mean())
++
++
++def fmt(s):
++    mean, hue, sat, con, white, tsat, tneon = s
++    return (f"RGB {mean[0]:.0f},{mean[1]:.0f},{mean[2]:.0f} hue {hue:.0f} sat {sat:.2f} contrast {con:.1f} "
++            f"white {100 * white:.2f} % brightest-tenth sat {tsat:.2f} (>0.75: {100 * tneon:.0f} %)")
++
++
++print("llvmpipe, not Victus evidence; prototype frames")
++for name, shot, box in REGIONS:
++    try:
++        b = stats(region(BEFORE, shot, box)); a = stats(region(AFTER, shot, box))
++        print(f"{name}:\n  before {fmt(b)}\n  after  {fmt(a)}")
++    except FileNotFoundError as e:
++        print(f"{name}: missing {e.filename}")
 diff --git a/prototypes/m7-gfx2/scripts/review-sheets-polish1.py b/prototypes/m7-gfx2/scripts/review-sheets-polish1.py
 new file mode 100644
 index 0000000..bf8bae3
@@ -15608,6 +15765,131 @@ index 0000000..bf8bae3
 +small([("a", "bench-a-commander-grim", FACE, "A commander"), ("d-shown", "bench-d-shown-03-officer-face", None, "D officer"),
 +       ("d-shown", "bench-d-shown-02-surrender", None, "D surrender"), ("a", "bench-a-two-shot-golden", None, "A two-shot golden")],
 +      (288, 162), "polish1: faces and hero beats", os.path.join(REVIEW, "polish1-02-faces-hero.jpg"), 50)
+diff --git a/prototypes/m7-gfx2/scripts/review-sheets-polish2.py b/prototypes/m7-gfx2/scripts/review-sheets-polish2.py
+new file mode 100755
+index 0000000..da5485d
+--- /dev/null
++++ b/prototypes/m7-gfx2/scripts/review-sheets-polish2.py
+@@ -0,0 +1,119 @@
++#!/usr/bin/env python3
++"""Review sheets of the polish2 stage: BEFORE (polish1's canonical captures) against AFTER (the same shots captured on
++the polish2 build), one sheet per critic issue (full size, for the scratchpad), and two small review JPEGs for
++reports/captures/polish2 (the committed G2 budget is already used up: they are kept tiny).
++
++Usage: review-sheets-polish2.py BEFORE_DIR AFTER_DIR SHEETS_DIR REVIEW_DIR
++  BEFORE_DIR, AFTER_DIR: outputs of scripts/capture-scenes.sh (same folder and file names).
++Every legend says: llvmpipe, not Victus evidence. Placeholder graphics: these are prototype frames, not production art.
++"""
++import os
++import sys
++from PIL import Image, ImageDraw
++
++BEFORE, AFTER, SHEETS, REVIEW = sys.argv[1:5]
++LLVM = "llvmpipe, not Victus evidence; prototype graphics"
++
++
++def path(root, folder, name):
++    return os.path.join(root, folder, name + ".png")
++
++
++def load(p, size, crop=None):
++    if p is None or not os.path.exists(p):
++        im = Image.new("RGB", size, (40, 40, 40))
++        ImageDraw.Draw(im).text((8, 24), "missing: " + (os.path.basename(p) if p else "-"), fill=(220, 220, 220))
++        return im
++    im = Image.open(p).convert("RGB")
++    if crop:
++        w, h = im.size
++        x0, y0, x1, y1 = crop
++        im = im.crop((int(x0 * w), int(y0 * h), int(x1 * w), int(y1 * h)))
++    return im.resize(size, Image.LANCZOS)
++
++
++def label(draw, xy, text, w):
++    x, y = xy
++    draw.rectangle([x, y, x + min(w, len(text) * 6 + 6), y + 13], fill=(0, 0, 0))
++    draw.text((x + 3, y + 1), text, fill=(235, 235, 235))
++
++
++def sheet(title, rows, out, cell=(800, 450), quality=86):
++    """rows: list of (folder, shot, crop or None, caption)."""
++    w, h = cell
++    head = 34
++    img = Image.new("RGB", (2 * w + 6, head + len(rows) * (h + 4)), (16, 16, 16))
++    d = ImageDraw.Draw(img)
++    d.text((6, 4), title, fill=(255, 255, 255))
++    d.text((6, 18), "BEFORE (left: polish1) vs AFTER (right: polish2); " + LLVM, fill=(200, 200, 200))
++    for i, (folder, shot, crop, cap) in enumerate(rows):
++        y = head + i * (h + 4)
++        img.paste(load(path(BEFORE, folder, shot), cell, crop), (0, y))
++        img.paste(load(path(AFTER, folder, shot), cell, crop), (w + 6, y))
++        label(d, (0, y), f"before: {shot}{' (crop)' if crop else ''}", w)
++        label(d, (w + 6, y), f"after: {cap}", w)
++    img.save(out, quality=quality, optimize=True)
++    print(out)
++
++
++FACE = (0.25, 0.0, 0.75, 0.62)
++issues = [
++    ("01-helmet-hair", "Rank 1: no hair through a closed helmet (hair placed free, under or over the metal)", [
++        ("a", "bench-a-commander-battlecry", FACE, "commander battlecry"), ("a", "bench-a-two-shot", None, "two-shot"),
++        ("a", "bench-a-two-shot-golden", None, "two-shot golden"), ("a", "bench-a-line", None, "line")]),
++    ("02-clouds", "Rank 2: a deterministic cloud layer (heaps high sun, streaks low sun) and its shadows on the land", [
++        ("b", "bench-b-wide-noon", None, "wide noon"), ("c", "bench-c-vista-noon", None, "vista noon"),
++        ("e", "bench-e-vista-golden", None, "vista golden"), ("c", "bench-c-vista-dusk", None, "vista dusk")]),
++    ("03-aftermath", "Rank 3: the aftermath (disarmed prisoners and fallen, kit on the ground, settled bodies, fires)", [
++        ("d-shown", "bench-d-shown-00-field", None, "field"), ("d-shown", "bench-d-shown-01-prisoners", None, "prisoners"),
++        ("d-shown", "bench-d-shown-06-fallen", None, "fallen"), ("d-cutaway", "bench-d-cutaway-06-cutaway", None, "cut-away")]),
++    ("04-river", "Rank 4: the river's banks (turf and earth, damp ragged wet band, darker rock, soft water edge)", [
++        ("e", "bench-e-river", None, "river"), ("e", "bench-e-settlement", None, "settlement"),
++        ("e-rain", "bench-e-river", None, "river, rain")]),
++    ("05-golden", "Rank 5: golden-hour ground cover (gamut compression, capped transmission chroma, per-tuft hue)", [
++        ("c", "bench-c-clash-golden", None, "clash golden"), ("c", "bench-c-vista-golden", None, "vista golden"),
++        ("a", "bench-a-two-shot-golden", None, "two-shot golden"), ("b", "bench-b-wide-golden", None, "wide golden")]),
++    ("06-crowd", "Rank 6: the close crowd (duller iron, muted dyes, weathered paint; LOD meshes unchanged)", [
++        ("c", "bench-c-melee-low", None, "melee low"), ("b", "bench-b-front", None, "front"),
++        ("b", "bench-b-between", None, "between")]),
++    ("07-marks", "Rank 7: the battle's marks (trodden turf, no grass through bodies, kit dropped in flight, dust)", [
++        ("d-shown", "bench-d-shown-00-field", None, "field"), ("d-shown", "bench-d-shown-06-fallen", None, "fallen"),
++        ("c", "bench-c-clash-noon", None, "clash noon"), ("c", "bench-c-rout", None, "rout")]),
++    ("09-faces-mid", "Rank 9: mid-distance faces (crowd eye whites and teeth, warm beards, hero catchlights fade)", [
++        ("b", "bench-b-front", (0.0, 0.40, 0.33, 0.62), "front (crop)"), ("d-shown", "bench-d-shown-01-prisoners", None, "prisoners"),
++        ("d-shown", "bench-d-shown-02-surrender", None, "surrender")]),
++    ("12-avatar", "Rank 12: the player's avatar plays scene D's victorious commander", [
++        ("d-shown", "bench-d-shown-04-commander-face", None, "commander"), ("d-shown", "bench-d-shown-02-surrender", None, "surrender"),
++        ("d-shown", "bench-d-shown-05-standards", None, "standards")]),
++]
++os.makedirs(SHEETS, exist_ok=True)
++os.makedirs(REVIEW, exist_ok=True)
++for key, title, rows in issues:
++    sheet(title, rows, os.path.join(SHEETS, f"polish2-{key}.jpg"))
++
++
++def small(rows, cell, title, out, quality):
++    """rows: list of (folder, shot, crop, caption); two columns: before | after."""
++    cw, ch = cell
++    img = Image.new("RGB", (2 * (cw + 2), 26 + len(rows) * (ch + 2)), (16, 16, 16))
++    d = ImageDraw.Draw(img)
++    d.text((4, 2), title, fill=(255, 255, 255))
++    d.text((4, 13), "before (left) vs after (right); " + LLVM, fill=(200, 200, 200))
++    for i, (folder, shot, crop, cap) in enumerate(rows):
++        y = 26 + i * (ch + 2)
++        for j, root in enumerate([BEFORE, AFTER]):
++            x = j * (cw + 2)
++            img.paste(load(path(root, folder, shot), cell, crop), (x, y))
++            lab = ("before " if j == 0 else "after ") + cap
++            d.rectangle([x, y, x + len(lab) * 6 + 4, y + 11], fill=(0, 0, 0))
++            d.text((x + 2, y), lab, fill=(235, 235, 235))
++    img.save(out, quality=quality, optimize=True)
++    print(out, os.path.getsize(out))
++
++
++small([("b", "bench-b-wide-noon", None, "B wide noon"), ("c", "bench-c-clash-golden", None, "C clash golden"),
++       ("e", "bench-e-river", None, "E river"), ("d-shown", "bench-d-shown-00-field", None, "D field")],
++      (256, 144), "polish2: clouds, golden ground, river, battlefield marks", os.path.join(REVIEW, "polish2-01-before-after.jpg"), 48)
++small([("a", "bench-a-commander-battlecry", FACE, "A battlecry"), ("d-shown", "bench-d-shown-06-fallen", None, "D fallen"),
++       ("d-shown", "bench-d-shown-01-prisoners", None, "D prisoners"), ("c", "bench-c-melee-low", None, "C melee")],
++      (256, 144), "polish2: helmet hair, aftermath, crowd", os.path.join(REVIEW, "polish2-02-hair-aftermath-crowd.jpg"), 48)
 diff --git a/prototypes/m7-gfx2/scripts/review-sheets-scenes.py b/prototypes/m7-gfx2/scripts/review-sheets-scenes.py
 new file mode 100644
 index 0000000..94a5abd
