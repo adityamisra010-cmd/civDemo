@@ -1,10 +1,10 @@
-# Pass-state snapshot: 2026-11-12T19:41:41Z
+# Pass-state snapshot: 2026-11-12T19:55:26Z
 
 Written by `docs/m7-plan/pass-state/tools/snapshot.sh` every 30 minutes while work is in flight, and committed with
 `[skip ci]`. It holds every piece of work that is not yet on this branch as a commit, so that a stopped session or a lost
 container costs at most the work since this time. The finished work is in the branch itself (README §1).
 
-Branch head when written: `5774b46`. In flight: g2 trunk f86ebf7.
+Branch head when written: `2b86c8e`. In flight: g2 trunk f86ebf7.
 
 | File | What | Head | Made with | Restore |
 |---|---|---|---|---|

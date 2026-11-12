@@ -72,3 +72,4 @@
 2026-11-12T17:54:50Z snapshot loop b08iqo2e7 ended (last 17:54:26Z, 7015499; g2 polish1 8fb760d); relaunched as bukyo3461 (3 x 30 min). At the 01:40Z stop, TaskStop the loop's current task id (see the newest 'relaunched as' line).
 2026-11-12T18:26:20Z 18:25 CI read: CI 990 (992cf50, CR-027) SUCCESS; ui-artifact 495 (737e66b, DH8) SUCCESS with the launcher printed and listed at the zip root, windows-smoke SUCCESS; CI 991 (737e66b) in progress. README refreshed and pushed.
 2026-11-12T19:25:31Z snapshot loop bukyo3461 ended (18:54Z 873367e; 19:25Z cce1433, g2 trunk b11e14b = polish1's report commit); relaunched as bj87bx58e. At the 01:40Z stop, TaskStop the loop's current task id (newest 'relaunched as' line).
+2026-11-12T19:41:48Z 19:40 check-in: CI 991 (737e66b) SUCCESS, all CI green; G2 critic2 running (polish1 on trunk b11e14b 18:58Z); README row 1 refreshed and pushed; snapshot run; loop bj87bx58e running; check-in re-armed 21:40Z.
