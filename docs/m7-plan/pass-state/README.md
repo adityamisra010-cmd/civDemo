@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 09:20 UTC, WIP checkpoint (lane RR: fix round 2 has committed four times, up to `4ba7f4b`, and is running its closing suites; CI green on `01b0509`; throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 11:20 UTC, WIP checkpoint (CI run 980 on `cf0b7f2` failed on a test race that predates this pass, not on the commit; lane RR's fix round 2 is in its closing runs at `4ba7f4b`; throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -126,10 +126,15 @@ The other six findings (RR-R2-04 to RR-R2-09) are nits:
 
 **Fix round 2** has been running since 07:04 UTC. The workflow runs at most two rounds, so it stops after this fix round,
 which will be unverified. RR then joins the final-round verification queue below. By 09:21 it had committed `b2e7710` to
-`4ba7f4b` (above). Its own logs, read then and not re-measured:
+`4ba7f4b` (above), and by 11:21 nothing more. Its own logs, read at 11:21 and not re-measured:
 - seven bounded mutants killed, each by a named semantic test;
 - the Debug Sim.Ui.Tests full suite passed (1,301 passed, 0 failed, 0 skipped);
-- the Debug Sim.Tests full suite running under the shared lock since 08:41 UTC.
+- the Debug Sim.Tests full suite ran under the shared lock from 08:41 to 11:19 UTC (2 h 37 min; fix round 1's took 1 h 43
+  min) and failed one test, the wall-clock bench `PopulationTests.ProductionPipeline_PerPhaseBench_Reported`: its 200 founded
+  turns took 5,359 ms against a 5,000 ms limit (3,442 passed, 1 failed, 36 skipped). The test file is identical on this
+  branch, and the lane changes no `Sim.Core` file outside `Observability` (MEASURED). The lane has to account for it, and the
+  orchestrator runs the suites again at integration;
+- `validate.sh integration` running under the lock since 11:19 UTC.
 
 Lane diff from `51ab032` to `4ba7f4b`: 44 files, +9,669/−114 (MEASURED).
 
@@ -164,11 +169,12 @@ Lanes MOR3 and RT each ran one verification round and one fix round, and neither
 3 minor and 5 nit; RT: 4 minor and 2 nit). So their fix rounds are unverified, like the final rounds of the six lanes above.
 Lane RR runs two rounds, and its fix round 2 will be unverified because the workflow stops after two.
 
-**Checkpoint 2026-11-12 09:20 UTC** (in [wip/](wip/); the previous one was at 07:20):
+**Checkpoint 2026-11-12 11:20 UTC** (in [wip/](wip/); the previous one was at 09:20):
 - **Lane commits after `51ab032`, as bundles:**
-  - `RR-wip.bundle` (`4ba7f4b`, fix round 2's fourth commit; it was `861f9f9` at 07:20, `fe45f0b` at 03:20, `8610ebd` at
-    01:20, `ab5ec46` at 23:20 and `0a631db` from 11:12 to 21:20). The lane is running fix round 2's closing suites. Its clone
-    was clean at 09:20, and any edits after that are in flight and not snapshotted; only paused clones' edits are;
+  - `RR-wip.bundle` (`4ba7f4b`, fix round 2's fourth commit, unchanged since 09:20; it was `861f9f9` at 07:20, `fe45f0b` at
+    03:20, `8610ebd` at 01:20, `ab5ec46` at 23:20 and `0a631db` from 11:12 to 21:20). The lane is running fix round 2's
+    closing runs. Its clone was clean at 11:21, and any edits after that are in flight and not snapshotted; only paused
+    clones' edits are;
   - `RT-wip.bundle` (`943b43f`, the finished lane's head): retired after the 21:20 checkpoint, because the lane is integrated
     as `dc19857`. It remains in this branch's history at `f94a9b4`;
   - `MOR3-wip.bundle` (`a8ef60a`): retired at 13:45 UTC, because the lane is integrated as `e052b51`.
@@ -178,7 +184,7 @@ Lane RR runs two rounds, and its fix round 2 will be unverified because the work
   only `HEAD`, so the `git clone -b lane/<KEY> …` form this note gave at 11:12 fails ("Remote branch lane/MOR3 not found").
   It was corrected at 13:20 after a restore test.
 - **Uncommitted edits of the paused clones.** A binary patch against the head in its file name:
-  `g2-scenes-uncommitted-0f8ae2f.patch` (4 files). It is byte-identical to a fresh snapshot taken at 09:20, so unchanged since
+  `g2-scenes-uncommitted-0f8ae2f.patch` (4 files). It is byte-identical to a fresh snapshot taken at 11:23, so unchanged since
   13:20. Apply it with `git apply --binary <patch>` on its head. It snapshots work stopped mid-step, not a finished state.
 - **Retired at 23:20:** `RR-uncommitted-0a631db.patch`. Lane RR resumed from those edits and committed them (MEASURED: its
   16 files, patched onto `0a631db`, are byte-identical to `955d78c`'s; at `ab5ec46`, 14 are unchanged and 2 have grown,
@@ -189,7 +195,7 @@ Lane RR runs two rounds, and its fix round 2 will be unverified because the work
   `afc7118`.
 - **G2 final, scenes stage**, unchanged since 13:20 (head `0f8ae2f`). `g2-scenes-0f8ae2f.patch` holds the stage's committed work
   since trunk `21a181e`, as a binary patch of `prototypes/m7-gfx2`. It applies onto this branch's tree.
-- **Restore test (09:21, MEASURED).** In a fresh clone of this branch (`01b0509`):
+- **Restore test (11:24, MEASURED).** In a fresh clone of this branch (`cf0b7f2`):
   - the RR bundle verified and fetched to `4ba7f4b`, with the lane commit's tree (`2a3ac9a`);
   - the G2 committed patch alone gives a `prototypes/m7-gfx2` tree equal to `0f8ae2f`'s (`c5c617a`);
   - both G2 patches give a tree equal to the scenes clone's working state (`a0309d3`).
@@ -202,6 +208,17 @@ also succeeded. Every run since has succeeded in every job too (MEASURED, read 2
 determinism, determinism-xproc and calibration. Run 974 is the first on a `Sim.*` change of this pass (lane RT): its whole Sim.slnx Test
 step took 48 min and its determinism harness 17 min. `calibration-nightly` was skipped, as it runs only on schedule.
 `ui-artifact` runs 476 to 484 succeeded. The orchestrator reads the head's CI result after each push.
+
+**Run 980 on `cf0b7f2` failed** (MEASURED, read 2026-11-12 11:21 UTC). Its build-and-test job's Test step (`dotnet test
+Sim.slnx`) was aborted when the Sim.Ui.Tests test host crashed, after 342 passed tests, on an ImGui assertion: "Invalid
+DisplaySize value!" (`imgui.cpp:11040`). Sim.Tests passed in the same step (3,449 passed, 0 failed, 36 skipped), and
+determinism, determinism-xproc, calibration and `ui-artifact` run 485 succeeded. The commit changes only this folder; its code
+is `01b0509`'s, on which run 979 passed every job. The cause is a test race that has been on `main` since `m6-exit`:
+`SessionExportTests` and `SessionRecordFolderTests` each close the real `GameUi` through the headless frame harness, which
+runs ImGui frames on its process-wide context, but neither class joins the `ImGui context` collection (no parallel runs) that
+27 other test classes join. So xUnit 2.9.3, which runs test collections in parallel by default, can run the two at once. Lane
+RR's fix round 2 caught the same crash in a blame run, with a test of each class in flight. Its one-line fix is lane RR's
+proposal and waits for the Director (§5). The next push runs CI again on the same code.
 
 ## 3. Queue after the items in flight
 
@@ -280,7 +297,8 @@ branch's head; for G2, use `"from": "final"`.
     attributed in the lane's reports, and the Director may rule otherwise at acceptance.
   - Its proposal: a one-line `[Collection("ImGui context")]` on two `Sim.Ui.Tests` classes, to stop a test-host crash on an
     ImGui assertion. The crash predates this pass: on base `51ab032`, verification round 2 reproduced it in 2 of 3 Debug runs
-    of the grouped filter. The fix is outside D-086's own work, so it waits for the Director under D-079 Q5.
+    of the grouped filter. On 2026-11-12 it also failed CI run 980 on this branch (§2). The fix is outside D-086's own work,
+    so it waits for the Director under D-079 §6, whose rule stands outside the work D-084 and D-086 authorize.
   - P1 needs the Director's sign-off: a change to the frozen kernel's `SessionTrace.Parse`, so that sessions past turn 1270
     can be continued, replayed and inspected again.
   - P2: stream the telemetry from the file.
