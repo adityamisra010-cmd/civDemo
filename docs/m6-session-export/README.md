@@ -180,9 +180,12 @@ The game writes `runs\session-STAMP.xlsx` while it closes. It writes the record 
 `runs\.record\` first, so the workbook can always be rebuilt from them if the close did not finish.
 
 1. Leave `runs\.record` where it is. Do not delete or move it: "Continue last game" reads it too.
-2. Open a command prompt in the game folder, the folder that holds `Play civ-sim.cmd` and the `app` folder. In
-   Explorer, click the address bar of that folder, type `cmd` and press Enter.
-3. Run this command:
+2. Double-click `Rebuild the run workbook.cmd` in the game folder, the folder that holds `Play civ-sim.cmd` and the
+   `app` folder. It runs the command of step 3 for you and closes its window when the workbook is written (D-089 DH8;
+   in every game zip built after 2026-11-12). To run the command by hand, or to rebuild an older session, use step 3
+   instead.
+3. Open a command prompt in the game folder. In Explorer, click the address bar of that folder, type `cmd` and press
+   Enter. Run this command:
 
    ```
    start /wait "" "app\Sim.Ui.exe" --export-session runs

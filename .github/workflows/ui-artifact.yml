@@ -103,6 +103,16 @@ jobs:
           cat "publish/sim-ui-win-x64/Continue last game.cmd"
           grep -q -- '--resume runs' "publish/sim-ui-win-x64/Continue last game.cmd" \
             || { echo "continue launcher does not pass --resume runs"; exit 1; }
+          # D-089 DH8 (Director, 2026-11-12, lane RR's P5): the third launcher REBUILDS THE RUN WORKBOOK when a close
+          # ended without one (ADR-059's recovery; docs/m6-session-export/README.md), with no command prompt to type in.
+          # `--export-session runs` reads the newest session in runs\.record\ and writes runs\session-STAMP.xlsx, headless;
+          # `start /wait` keeps this window open until the workbook is written (the exe is a window application and prints
+          # nothing), and the echo line says so.
+          printf '@echo off\r\ncd /d "%%~dp0"\r\necho Rebuilding the run workbook from runs\\.record - this window closes when it is done.\r\nstart /wait "" "app\\Sim.Ui.exe" --export-session runs\r\n' \
+            > "publish/sim-ui-win-x64/Rebuild the run workbook.cmd"
+          cat "publish/sim-ui-win-x64/Rebuild the run workbook.cmd"
+          grep -q -- 'start /wait "" "app\\Sim.Ui.exe" --export-session runs' "publish/sim-ui-win-x64/Rebuild the run workbook.cmd" \
+            || { echo "rebuild launcher does not run --export-session runs with start /wait"; exit 1; }
 
       - name: Assert the publish is complete (director hardening, T1.7)
         # An empty or partial publish must never go green: the exe and every
@@ -120,6 +130,7 @@ jobs:
           done
           test -f "publish/sim-ui-win-x64/Play civ-sim.cmd" || { echo "MISSING: launcher"; exit 1; }
           test -f "publish/sim-ui-win-x64/Continue last game.cmd" || { echo "MISSING: continue launcher"; exit 1; }
+          test -f "publish/sim-ui-win-x64/Rebuild the run workbook.cmd" || { echo "MISSING: rebuild launcher"; exit 1; }
           test -d "publish/sim-ui-win-x64/app/assets" || { echo "MISSING: app/assets"; exit 1; }
           echo "zip root: $(ls publish/sim-ui-win-x64 | tr '\n' ' ')"
           echo "app/ contains $(ls publish/sim-ui-win-x64/app | wc -l) files, $(du -sh publish/sim-ui-win-x64/app | cut -f1)"
