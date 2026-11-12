@@ -1053,3 +1053,12 @@ These reports live in the session scratchpad (`/tmp/claude-0/-home-user-civDemo/
   superseded). DF1 and DF2 let the orchestrator put the `Sim.Ui.Tests` classes that drive the headless frame harness into the `ImGui
   context` collection and make one `Sim.Tests` budget assertion Release-only, test code only; §6's rule stands for everything else and Q5 stays open. Lane RR's P1 (a change to the frozen
   kernel's `SessionTrace.Parse`) still waits for the Director (D-087 DF5).
+
+## Dated note — 2026-11-12 (D-088; appended, the text above is unchanged)
+
+- The Director answered items 1–14 of the orchestrator's second list; recorded in
+  `docs/d088-battalion-limits-healing-walls-director-answers-2026-11-12.md` (DG1–DG13). Lanes OC, BN and AR are built and
+  tested in this pass; a side holds the attacker's or the defender's role; a side brings at most 5 battalions to a battle, its
+  own empire's first; healing, the ambush start (the ambusher's own third of the battlefield), the parity bar (Q4 answered) and
+  walls are ruled. DG2 signs off a change to the frozen kernel's trace reader, recorded as `docs/adr/cr-027-session-trace-reads-the-written-year.md`.
+  §6's rule stands for everything else and Q5 stays open.

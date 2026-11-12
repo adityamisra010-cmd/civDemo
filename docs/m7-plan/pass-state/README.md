@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 15:33 UTC, WIP checkpoint of 15:20 (the G2 scenes stage finished at `65c99ec` and is being integrated; lane RR's bundle retired), after D-087 (the Director's answers to items 1–12: a tie is a tie, fighting means damage, battalions of at most 25 per army, every AI battle auto-resolved); lanes OC, BN and AR are queued after the G2 final; throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 16:00 UTC: the Director answered items 1–14 of the second list, recorded as D-088 (all three new lanes built in this pass; the kernel trace-reader fix signed off as CR-027, being applied; one role per side; at most 5 battalions per side in a battle; healing, ambush starts, the parity bar and walls ruled); the G2 final runs (critic loop); throttled to one agent. Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -177,10 +177,11 @@ and the interrupted agent restarts and continues from its clone):
 
 | # | Item | Workflow run | Script and args |
 |---|---|---|---|
+| 0 | CR-027 (D-088 DG2): the frozen kernel's trace reader reads the written year. The orchestrator applies it now, with its tests and Tier 3 | — | in a shared clone of this branch |
 | 1 | G2 final: RUNNING since 13:31 UTC (resumed). The scenes stage finished at `65c99ec` (14:51); its integration into the trunk runs; then the critic loop, the verifier and the AFTER package | `wf_d6eb0226-44e` | `m7-g2-v2.js`, args `{"base": "1601c74"}` |
-| 1a | Lane OC, battle outcomes (D-087 DF7–DF11: a tie is a tie, fighting means damage, the Standoff tie, the defender as the attacked army, the ambush trigger) | new | lane workflow, brief `args/OC.json` (to be written) |
-| 1b | Lane BN, battalions (D-087 DF12: a battalion size per unit type, the battalion as the command unit, at most 25 per army) | new | lane workflow, brief `args/BN.json` (to be written) |
-| 1c | Lane AR, the AutoResolver for every domain (D-087 DF6: aircraft, vessels, crew-served guns, embarked troops; 12 players and 40–50 such battles between turns) | new | lane workflow, brief `args/AR.json` (to be written) |
+| 1a | Lane OC, battle outcomes (D-087 DF7–DF11 and D-088: a tie is a tie, fighting means damage, the Standoff tie, one role per side, the ambush trigger and its battle, walls) | new | lane workflow, brief `args/OC.json` (to be written) |
+| 1b | Lane BN, battalions (D-087 DF12 and D-088: a battalion size per unit type, the battalion as the command unit, at most 25 per army, at most 5 per side in a battle, healing) | new | lane workflow, brief `args/BN.json` (to be written) |
+| 1c | Lane AR, the AutoResolver for every domain (D-087 DF6 and D-088 DG12: aircraft, vessels, crew-served guns, embarked troops; 12 players and 40–50 such battles between turns; the parity bar, beaten where it can be) | new | lane workflow, brief `args/AR.json` (to be written) |
 | 2 | Final-round verification (findings only) of lanes U, D, MOR, AP, MOR2, CB, MOR3 (`95446ff`), RT (`943b43f`) and RR (`c038b95`) | `wf_9b24d7c6-337` | `verify-final-rounds`: run its lanes one at a time, with MOR3, RT and RR added |
 | 3 | Report draft | `wf_2a771902-a97` | `pass-report-draft` |
 
@@ -293,24 +294,25 @@ branch's head; for G2, use `"from": "final"`.
 second reading (fighting means damage); lane AP's Q-AP1, Q-AP3 and Q-AP4 (the attacked army defends; a Standoff and equal sides
 end in a tie, in both resolvers); lane CB's E1, READING CB-1 and the performance cap (armies fight in battalions, at most 25);
 lane RR's research-name hook (kept); the ImGui test race (fixed), the Debug bench budget (Release only) and the slow-test
-record (nothing to record: the test takes 14.5 s in Release). Still open:
+record (nothing to record: the test takes 14.5 s in Release).
 
-- Lane RR's P1, the kernel change request (D-087 DF5): the Director asked whether several CSV files would help, supposing a row
-  or column limit. D-087 §3 answers: no limit is reached; the cause is the half-year number format of the trace's year, which
-  more files would repeat. It still needs the Director's yes.
-- D-087's readings, each applied until the Director corrects it: DF7-R1 (damage judged in the battle, not by the army), DF8-R1
-  (routing units rejoin after a tie), DF8-R2 (each army's own role), DF9-R1 (the hidden army's size sets the ambush radius),
-  DF9-R2 (an ambush battle is exempt from the deployment thirds; this is lane AP's Q-AP2, flagged), DF12-R1 (the battalion is
-  the command unit, with the entity rule kept inside it).
-- New with D-087 DF12: whether DR24's per-family caps (for example "Ships 5") stand beside the 25-battalion army cap, and how
-  DR25's numbers meet battalions (25 battalions of 50 archers hold 1,250 archers).
-- Lane CB: READING CB-4 (reinforcement: with battalions, whether a battalion is refilled).
+**Answered on 2026-11-12 (second message), recorded as [D-088](../../d088-battalion-limits-healing-walls-director-answers-2026-11-12.md)**
+(items 1–14 of the orchestrator's second list): lanes OC, BN and AR are built in this pass; lane RR's P1 is signed off
+([CR-027](../../adr/cr-027-session-trace-reads-the-written-year.md)); D-087's readings DF7-R1, DF7-R2, DF8-R1, DF9-R1 and DF12-R1
+are confirmed, and DF8-R2 and DF9-R2 are replaced (one role per side; the ambusher deploys in its own third of the battlefield);
+DR25's 50,000 is an empire's total; a side brings at most 5 battalions to a battle, its own empire's first; healing (lane CB's
+READING CB-4), the parity bar (D-079 Q4, lane P's acceptance) and walls (lane MOR3's PROPOSAL) are ruled. Still open:
+
+- D-088 §5, re-asked: whether the 5-battalion limit counts battalions in total per side (applied) or per unit type; whether
+  D-087's battalion examples replace DR24's formation sizes for archers (60 to 50) and fixed-wing aircraft (1 to 2); walls per
+  level additive (applied) or doubling. The question that drew DG3 misdescribed DR24's caps as per-army limits (D-088 §0).
+- D-088's readings, applied until the Director corrects them: DG3-R1, DG5-R1, DG5-R3, DG13-R1, DG13-R2, DG13-R3 and DG13-R4
+  (walls add nothing against an attacker with artillery able to breach them; Law 4 bans era gates).
 - Earlier open items: the two thirds-violating sandbox scenarios; R6; lane U's U-Q11, the decision-tray placement and its
-  queue line; the DA3 calibration numbers (A-38, M7.14); lane P's acceptance (D-079 Q4).
-- Lane MOR3 asks no question, since D-085 §4 delegated its design. It leaves two PROPOSALS (H-MOR3 §13):
-  - a lane P parity item: walls in the AutoResolver's contact and line of fire. Today, on a walled setup, the TacticalResolver
-    has no fighting while the AutoResolver fights from step 0.
-  - for M7.15: `Fought` as a required hand-off input. `SupportBattle.Fought` defaults to true, which is fail-open.
+  queue line; the DA3 calibration numbers (A-38, M7.14).
+- Lane MOR3 asks no question, since D-085 §4 delegated its design. Of its two PROPOSALS (H-MOR3 §13), the walls item is
+  superseded by D-088 DG13. Open: for M7.15, `Fought` as a required hand-off input (`SupportBattle.Fought` defaults to true,
+  which is fail-open).
 - Lane RT ([research-tree-fixes-2026-11.md](../../m6-plan/research-tree-fixes-2026-11.md) §4–§5, H-RT §10.7):
   - Longbow: a screenshot of the detail pane as seen in play, and the build that was run.
   - N1: may the inspector's ENABLED BY and WHY LOCKED labels (`InfoQuery`) be corrected under D-084? That is a `Sim.Core/State`
