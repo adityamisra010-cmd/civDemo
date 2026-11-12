@@ -1,16 +1,16 @@
-# Pass-state snapshot: 2026-11-12T17:54:26Z
+# Pass-state snapshot: 2026-11-12T18:24:45Z
 
 Written by `docs/m7-plan/pass-state/tools/snapshot.sh` every 30 minutes while work is in flight, and committed with
 `[skip ci]`. It holds every piece of work that is not yet on this branch as a commit, so that a stopped session or a lost
 container costs at most the work since this time. The finished work is in the branch itself (README §1).
 
-Branch head when written: `818e1ba`. In flight: g2 trunk f6ea1c1 g2 polish1 8fb760d +1.
+Branch head when written: `7015499`. In flight: g2 trunk f6ea1c1 g2 polish1 a5abd94 +7.
 
 | File | What | Head | Made with | Restore |
 |---|---|---|---|---|
 | g2-trunk.patch | G2 trunk /home/user/g2w/trunk (branch g2/trunk) | f6ea1c1 | git diff --binary 21a181e f6ea1c1 -- prototypes/m7-gfx2 | `git apply --binary` on this branch's tree (its prototypes/m7-gfx2 equals 21a181e's) |
-| g2-polish1.patch | G2 stage clone /home/user/g2w/polish1 (branch g2/polish1), commits not yet in the trunk | 8fb760d | git diff --binary 21a181e 8fb760d -- prototypes/m7-gfx2 | instead of g2-trunk.patch |
-| g2-polish1-uncommitted.patch | G2 stage clone /home/user/g2w/polish1: uncommitted edits (1 paths) | 8fb760d | temporary index | after g2-polish1.patch |
+| g2-polish1.patch | G2 stage clone /home/user/g2w/polish1 (branch g2/polish1), commits not yet in the trunk | a5abd94 | git diff --binary 21a181e a5abd94 -- prototypes/m7-gfx2 | instead of g2-trunk.patch |
+| g2-polish1-uncommitted.patch | G2 stage clone /home/user/g2w/polish1: uncommitted edits (7 paths) | a5abd94 | temporary index | after g2-polish1.patch |
 | journals/*.jsonl | every workflow run's journal | — | copy | read, to see which agents finished and what they returned |
 
 ## Restore test (in a fresh clone of the branch, at this snapshot)

@@ -1,52 +1,478 @@
+diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs
+index bed345e..6412300 100644
+--- a/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs
++++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/ForwardRenderer.cs
+@@ -345,7 +345,7 @@ public sealed class ForwardRenderer : IDisposable
+         rc.SkySun = analytic ? new Vector4(_sky!.TableSunDir, 1) : Vector4.Zero;
+         bool aerial = analytic && f.AerialPerspective;
+         // w: G1's height-fog density is scaled down; the physically based aerial perspective carries the long range
+-        rc.Aerial = analytic ? new Vector4(_sky!.AerialExtinction, HeightFogScale * HighSunFog(f.FogHighSun, sun.SunElevationRadians)) : Vector4.Zero;
++        rc.Aerial = analytic ? new Vector4(_sky!.AerialExtinction, HeightFogScale * HighSunFog(f.FogHighSun, sun.SunElevationRadians, f.Mist, f.Rain)) : Vector4.Zero;
+         if (analytic) (rc.AerialR, rc.AerialM, rc.AerialMs, rc.FogSun, rc.FogAmb) = _sky!.AerialTerms(s2);
+         bool csm = Settings.Shadows && f.ShadowTechnique == ShadowTechnique.Cascaded;
+         rc.LightModel = new Vector4(f.Pbr ? 1 : 0, ibl ? 1 : 0, aerial ? 1 : 0, csm ? 1 : 0);
+@@ -506,10 +506,6 @@ public sealed class ForwardRenderer : IDisposable
+     /// <summary>Stage scenes: mist also makes the air hazier (aerosol density × 1 + 1.5 × mist).</summary>
+     public static float MistHaze(float haze, float mist) => mist <= 0f ? haze : haze * (1f + 1.5f * mist);
+ 
+-    /// <summary>
+-    /// Polish1: the haze factor for the sun's elevation: <paramref name="atHorizon"/> with the sun at or below 3 degrees,
+-    /// 1 from 25 degrees up, smooth between (1 = no change at any elevation).
+-    /// </summary>
+     /// <summary>Polish1: the height fog's factor for a sun at <paramref name="sunElevationRadians"/>: 1 up to 15 degrees,
+     /// easing to <paramref name="atHighSun"/> by 45 (<see cref="RenderFeatures.FogHighSun"/>).</summary>
+     public static float HighSunFog(float atHighSun, float sunElevationRadians)
+@@ -520,6 +516,22 @@ public sealed class ForwardRenderer : IDisposable
+         return MathHelper.Lerp(1f, atHighSun, t);
+     }
+ 
++    /// <summary>
++    /// Polish1: <see cref="HighSunFog(float, float)"/> for the clear air only. A high sun thins the clear day's valley
++    /// haze, not the weather's mist and rain: the factor at high sun returns towards 1 in proportion to mist + rain
++    /// (clamped to 1), so the rain and mist looks keep their misty distance, and a clear frame (mist = rain = 0) gets
++    /// exactly the clear-air factor.
++    /// </summary>
++    public static float HighSunFog(float atHighSun, float sunElevationRadians, float mist, float rain)
++    {
++        float weather = Math.Clamp(mist + rain, 0f, 1f);
++        return HighSunFog(weather >= 1f ? 1f : MathHelper.Lerp(atHighSun, 1f, weather), sunElevationRadians);
++    }
++
++    /// <summary>
++    /// Polish1: the haze factor for the sun's elevation: <paramref name="atHorizon"/> with the sun at or below 3 degrees,
++    /// 1 from 25 degrees up, smooth between (1 = no change at any elevation).
++    /// </summary>
+     public static float LowSunHaze(float atHorizon, float sunElevationRadians)
+     {
+         if (atHorizon == 1f) return 1f;
+diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderSettings.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderSettings.cs
+index 6320f27..b5fe08f 100644
+--- a/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderSettings.cs
++++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/RenderSettings.cs
+@@ -40,7 +40,8 @@ public sealed class RenderFeatures
+     /// elevation (1 = no change). The aerosol veil towards a low sun turned golden-hour meadows into sand.</summary>
+     public float HazeLowSun { get; set; } = 1f;
+     /// <summary>Polish1: the factor on the G2 height fog with the sun high, from 1 at 15 degrees of elevation to this
+-    /// at 45 (1 = no change). Valley haze thins as the day warms; at noon it hid the land beyond the map.</summary>
++    /// at 45 (1 = no change). Valley haze thins as the day warms; at noon it hid the land beyond the map. Clear air
++    /// only: mist and rain bring the factor back towards 1 (<see cref="ForwardRenderer.HighSunFog(float, float, float, float)"/>).</summary>
+     public float FogHighSun { get; set; } = 1f;
+     /// <summary>Polish1: the sky's image-based light takes its lower hemisphere from sunlit ground of
+     /// <see cref="GroundAlbedo"/> (a bounce term) instead of the sky model's air and grey ground.</summary>
+diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish1Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish1Tests.cs
+index b10c1d9..77b5447 100644
+--- a/prototypes/m7-gfx2/Gfx.Tests/Polish1Tests.cs
++++ b/prototypes/m7-gfx2/Gfx.Tests/Polish1Tests.cs
+@@ -326,4 +326,46 @@ public class Polish1Tests
+         Assert.False(In(0f, 9.6f));     // at the subject (the pair, the officer's guards)
+         Assert.False(In(0f, 14f));      // past the subject
+     }
++
++    /// <summary>
++    /// Rank 7 against rank 11: a high sun thins the clear air's height fog (the noon haze that hid the land beyond the
++    /// map), not the weather's: with the rain or mist look the factor stays 1, so their distance stays misty. A clear
++    /// frame gets exactly the clear-air factor, and a low sun thins nothing.
++    /// </summary>
++    [Fact]
++    public void HighSunThinsTheClearAirsFogNotTheWeathers()
++    {
++        float noon = MathHelper.ToRadians(62f), low = MathHelper.ToRadians(10f);
++        Assert.Equal(1f, ForwardRenderer.HighSunFog(0.15f, low, 0f, 0f));
++        Assert.Equal(0.15f, ForwardRenderer.HighSunFog(0.15f, noon, 0f, 0f), 5);
++        Assert.Equal(ForwardRenderer.HighSunFog(0.15f, noon), ForwardRenderer.HighSunFog(0.15f, noon, 0f, 0f));
++        foreach (var w in new[] { WeatherPresets.Rain, WeatherPresets.Mist })
++            Assert.Equal(1f, ForwardRenderer.HighSunFog(0.15f, noon, w.Mist, w.Rain));
++        // a thin mist keeps part of its fog: lerp(0.15, 1, 0.3) = 0.405
++        Assert.Equal(0.405f, ForwardRenderer.HighSunFog(0.15f, noon, 0.3f, 0f), 4);
++    }
++
++    /// <summary>The renderer feeds the weather into the height fog's factor: at noon with <c>foghighsun=0.15</c> the
++    /// clear frame's fog scale is 0.15 of the G2 scale, the rain and mist frames' the full G2 scale.</summary>
++    [GfxFact]
++    public void TheRendererThinsOnlyTheClearAirsFogAtNoon()
++    {
++        TestGfx.Host.Invoke(gd =>
++        {
++            using var rt = new RenderTarget2D(gd, 64, 36, false, SurfaceFormat.Color, DepthFormat.None);
++            var sun = SunModel.At(12f);
++            Assert.True(sun.SunElevationRadians > MathHelper.ToRadians(45f));
++            var cam = new CameraPose(new Vector3(0, 2f, 0), new Vector3(100f, 2f, 0), 0.8f, 0.5f, 2000f);
++            float FogScale(string weather)
++            {
++                using var r = new ForwardRenderer(gd, TestGfx.Host.Effects);
++                r.Settings.Features.SetMany("foghighsun=0.15,ssao=0,contact=0" + weather);
++                r.Render(new EmptyScene(), cam, sun, rt, 0f);
++                return r.Context.Aerial.W;
++            }
++            Assert.Equal(ForwardRenderer.HeightFogScale * 0.15f, FogScale(""), 4);
++            Assert.Equal(ForwardRenderer.HeightFogScale, FogScale(",weather=rain"), 5);
++            Assert.Equal(ForwardRenderer.HeightFogScale, FogScale(",weather=mist"), 5);
++        });
++    }
+ }
+diff --git a/prototypes/m7-gfx2/README.md b/prototypes/m7-gfx2/README.md
+index 3bf475f..2ac5f39 100644
+--- a/prototypes/m7-gfx2/README.md
++++ b/prototypes/m7-gfx2/README.md
+@@ -308,7 +308,7 @@ default and so change every G2 frame with the analytic sky or auto exposure:
+ | Switch | Meaning | Env scenes set |
+ |---|---|---|
+ | `hazelowsun=<x>` | factor on the aerosol haze with the sun on the horizon, easing to 1 by 25 degrees | 0.55 (arid 0.75) |
+-| `foghighsun=<x>` | factor on the height fog with the sun high, from 1 at 15 degrees to x at 45 | 0.15 (arid 0.3) |
++| `foghighsun=<x>` | factor on the clear air's height fog with the sun high, from 1 at 15 degrees to x at 45 (mist and rain bring it back towards 1) | 0.15 (arid 0.3) |
+ | `bounce=0\|1` | the sky light's lower hemisphere is sunlit ground of the scene's ground albedo | on; biome albedo |
+ | `metering=subject\|centre` | auto exposure weights the lower frame and clamps samples 1.5 stops over the mean | subject (default) |
+ | `neutraldesat=<0..1>` | how far the tone map's shoulder desaturates highlights (default 0.15) | benchmark scenes 0.08 |
+@@ -316,4 +316,5 @@ default and so change every G2 frame with the analytic sky or auto exposure:
+ ```
+ scripts/capture-scenes.sh OUT_DIR                                    # the canonical stills, as for stage scenes
+ scripts/review-sheets-polish1.py BEFORE_DIR AFTER_DIR SHEETS_DIR REVIEW_DIR   # before/after sheets per critic issue
++scripts/measure-polish1.py BEFORE_DIR AFTER_DIR                      # the report's region measurements
+ ```
+diff --git a/prototypes/m7-gfx2/assets/PROVENANCE.md b/prototypes/m7-gfx2/assets/PROVENANCE.md
+index 07ace4f..23d7a5d 100644
+--- a/prototypes/m7-gfx2/assets/PROVENANCE.md
++++ b/prototypes/m7-gfx2/assets/PROVENANCE.md
+@@ -393,7 +393,7 @@ horizontal layer) (common practice; Henyey and Greenstein 1941).
+ 
+ ### 3.14 Stage polish1 (visual critic iteration 1): runtime transformations only
+ 
+-Added 2026-11-12 by stage polish1 on `g2/polish1` (cut from `g2/trunk` 1601c74). **No new external file is downloaded
++Added 2026-11-12 by stage polish1 on `g2/polish1` (cut from `g2/trunk` f6ea1c1). **No new external file is downloaded
+ or pinned, no bake is re-run and no `manifest.tsv` row changes.** Every change is code that transforms existing rows at
+ run time (presentation only; nothing here is read by the simulation, and the battle trace is read-only).
+ 
+@@ -401,7 +401,7 @@ run time (presentation only; nothing here is read by the simulation, and the bat
+ |---|---|---|---|---|
+ | Crowd idle pose variants (`Gfx.Chars/Crowd/CrowdPoseVariants.cs`; clips `idle@0..3`, `idle_proud@0..3` in the crowd animation bank) | the stage-chars `idle` and `idle_proud` clips, which are CMU-derived (§3.4, §3.9) | per frame: forward kinematics, then world-space turns at spine_02, neck_01 and head, upperarm_r and upperarm_l folded back into local rotations; the head's mean gaze set to a per-variant target (−5° to +1°) | inherits the source clips' terms | **PROTOTYPE-ONLY** (CMU motion, as its source) |
+ | Hoplite guard variants `kit.hoplite.guard.v2`, `.v3` (`Gfx.Gear/Anim/CombatClips.cs`); the sword victory pose with the shield hand lowered | the authored kit clips (§3.11) | authored keys baked by the kit IK | project code | own |
+-| Meadow terrain, far land, structures, water edge, rain, smoke, light and skin shading | the render1 terrain bake (§3.8), the env bakes (§3.10), the characters (§3.9) | Code: `G2TerrainEffects` (meadow tones, value-noise mottling and relief, dry and trodden patches, tracks, grass specular and transmission; far-land fields, hedgerows, woods and clearings), `TerrainMaterials` (temperate grass tint), `FarField` (hills, forest masses), `GroundCover` (rank fade to 130 m, smaller flower cards), `StructureRenderer`/`StructureKit` (wall-base grime and contact occlusion from the terrain height, hut variation, anisotropic sampling), `EnvWater` (screen-edge fade), `RainLayer`, `SmokeLayer`, `SceneLighting.ApplyGround` (ground bounce), `PostEffects` (subject metering, tone-map desaturation), `ScreenSpaceEffects` (AO tint), `GlslLib` (receiver-plane shadow bias, specular scale), `CharEffects`/`KitEffects` (skin wrap clamp, sky fill on skin, ear cap, sclera, catchlights, hair and beard transmission, standard flutter) | project code | own |
++| Meadow terrain, far land, structures, water edge, rain, smoke, light and skin shading | the render1 terrain bake (§3.8), the env bakes (§3.10), the characters (§3.9) | Code: `G2TerrainEffects` (meadow tones, value-noise mottling and relief, dry and trodden patches, tracks, grass specular and transmission; far-land fields, hedgerows, woods and clearings), `TerrainMaterials` (temperate grass tint), `FarField` (hills, forest masses), `GroundCover` (rank fade to 130 m, smaller flower cards), `StructureRenderer`/`StructureKit` (wall-base grime and contact occlusion from the terrain height, hut variation, anisotropic sampling), `EnvWater` (screen-edge fade), `RainLayer`, `SmokeLayer`, `SceneLighting.ApplyGround` (ground bounce), `PostEffects` (subject metering, tone-map desaturation), `ScreenSpaceEffects` (AO tint), `GlslLib` (receiver-plane shadow bias, specular scale), `ForwardRenderer` (low-sun haze and high-sun fog factors; the fog factor for clear air only), `CharEffects`/`KitEffects` (skin wrap clamp, sky fill on skin, ear cap, sclera, catchlights, hair and beard transmission, standard flutter) | project code | own |
+ | Hero-beat staging (`TraceCrowd.SightLine`, `TraceCrowd.LayOutFallen`, `SceneD.SightLineAt`, the cut-away framing) | the battle trace (§3.13), read only | crowd soldiers in a close shot's sight line are not drawn; each fallen soldier's facing and fall are chosen once, in the order of death, to keep bodies apart; positions and states stay the trace's | project code | own |
+ 
+ **Algorithms implemented from publications or common practice** (no code copied, no asset): receiver-plane depth bias
 diff --git a/prototypes/m7-gfx2/reports/polish1.md b/prototypes/m7-gfx2/reports/polish1.md
-index 4d2d89b..49b8250 100644
+index b271ac1..3390fe1 100644
 --- a/prototypes/m7-gfx2/reports/polish1.md
 +++ b/prototypes/m7-gfx2/reports/polish1.md
-@@ -34,7 +34,7 @@ in 24 px windows at 1920 or 12 px at 960) or counts from the tests of §3.
- | 4 | Faces | Skin: the sky fill keeps 40 % of its chroma, warmed; the wrap light past the terminator keeps green and blue in proportion to red (it was red alone: magenta bands); ear transmission capped and orange; warm sclera; a catchlight in every cornea (`CharEffects`) | D officer: lit palms hue 355 → 14–15 | partly: no brow or lash cards, no hairline strand cards |
- | 5 | Clipping, grips and crowd LOD in hero beats, fallen interpenetration | Crowd soldiers in a close beat's sight line (camera to subject, 1.5 m radius, not past 92 % of the way) are not drawn (`TraceCrowd.SightLine`, `SceneD.SightLineAt`); the sword victory pose lowers the shield hand and swings it out (`CombatClips.Victory`); the fallen are laid out once in the order of death, each turned (0, ±30, ±60, ±90°) and its fall picked to keep 0.45 m from the bodies already down (`TraceCrowd.LayOutFallen`) | D officer close-up: the spear at his chin gone; D surrender: the kite shield no longer crosses the commander's face; bench fallen: close body pairs 4,905 → 3,630 (572 of the 769 fallen lie within 0.45 m of another, so the pile cannot clear) | partly: no hide masks, corrective shapes, fist grips or LOD0 swap |
- | 6 | No bounce or fill light | The sky light's lower hemisphere is sunlit ground of an effective albedo (temperate 0.22, 0.21, 0.14; labelled artistic) instead of the atmosphere's grey ground (`SceneLighting.ApplyGround`); occluded ambient loses more blue than red (`ScreenSpaceEffects`); auto exposure weights the lower frame and clamps the sky (`metering=subject`); tone-map shoulder desaturation 0.08 on the benchmark scenes; kit shot at −0.6 EV; a transmission lobe for back-lit hair and beards (`CharEffects`) | E fortification shaded wall RGB 48,54,64 → 51,56,57; parapet 81,84,90 → 84,86,85; A golden two-shot: the commander's hair reads ginger | partly: no fill or rim light rig |
--| 7 | Land beyond the 1 km map flat | Far field: rolling hills rising from the map edge, woods raised as masses, fields in strips of five crops with hedgerows, woods broken by clearings, canopy tone and relief (`FarField`, far-field shader); the patchwork fades to the crops' mean where a pixel spans a fair share of a field (seen edge-on towards a low sun the strips first beat into ripples that read as dunes or a sea: caught in the first canonical run and fixed); the height fog thinned to 0.15 with the sun high (`foghighsun`; it lay over the far land at noon) | FAR_BAND; hills and fields on the horizon of B, D and E shots | partly: at golden hour and dusk the far land is a smooth haze |
-+| 7 | Land beyond the 1 km map flat | Far field: rolling hills rising from the map edge (two octaves from 600 m), woods raised 6 m as masses, fields in strips of five crops with hedgerows laid per 1.2 km block, woods broken by clearings at the 1,400 m scale, canopy tone and relief (`FarField`, far-field shader); the patchwork fades to the crops' mean where a pixel spans a fair share of a field and towards a low sun; the far land keeps a fifth of its specular (§6: with full GGX the rolling land towards a low sun glittered like a sea, and the flat plain of before read as sand); the height fog thinned to 0.15 with the sun high (`foghighsun`) | FAR_BAND; hills and fields on the horizon of B, D and E shots | partly: no impostor woods or settlements far off |
- | 8 | Rigid banners | Vertex-stage cloth flutter: three travelling waves whose amplitude grows from the hoist, analytic normal ripple, amplitude 0.10 × wind (`CharEffects.FlutterLib`, `KitEffects`, `Banner`) | visible as a rippled hem and shading bands; small at the canonical framings | yes |
- | 9 | Smoke haze columns, maroon smudges | Puffs eroded by noise into billows, a denser darker young base, the sun's colour on smoke at 45 % and the low-sun forward lobe reduced, ambient desaturated (`SmokeLayer`); the cut-away reframed so the field, the standard and the smoke share the frame with the sky (`SceneD`) | cut-away: sky from about 70 % of the frame to about 45 %; the plumes grey-brown instead of maroon | partly: no self-shadowing sample or soft-particle fade |
- | 10 | Settlements, fortification and river placeholders | Wall-base grime and contact occlusion from the terrain height (`StructureRenderer`, `EnvWater.HeightMap`); hut walls 1.6–2.1 m and roof pitches 43–54° (`StructureKit`); anisotropic sampling of structure textures; the water's reflection and refraction lookups clamped and faded at the screen edge (`EnvWater`) | E river: the outer columns 129.3 vs 59.5 at 1920 → 70.9 vs 70.4 at 960 (no bright band) | partly: no gate passage, villagers, hearth smoke or meandering river |
-@@ -46,17 +46,17 @@ TBD
+@@ -5,61 +5,97 @@ the visual critic's iteration 1 on the benchmark scenes A–E (`reports/scenes.m
+ the canonical capture set again and before/after sheets per issue. MonoGame 3D only, presentation only (DR42: nothing
+ here reads back into the simulation; the battle trace of scenes C and D is read-only). All numbers below were measured
+ in this container on **llvmpipe (Mesa software GL on 4 logical CPUs of an Intel Xeon at 2.10 GHz, 15 GB RAM, shared with
+-other sessions; one-minute load average between 2.9 and 8.5 while this stage ran): llvmpipe, not Victus evidence**. No
++other sessions; one-minute load average between 1.3 and 9.1 while this stage ran): llvmpipe, not Victus evidence**. No
+ hardware GPU ran this code. Quality references were used as references only; nothing player-facing names another game
+-(D-069).
+-
+-**Verdict, honestly.** Every one of the eleven issues was worked; eight of them visibly change the canonical stills
+-and three only partly (§1). The largest steps are the meadow (rank 1: green, varied, no sand at golden hour, no hard
+-edge where the ground cover ends), the acne (rank 2: gone on the grazing-light test and in the rout and vistas), the
+-crowd idles (rank 3: heads up, weapons at different angles, neighbours in different poses), skin and hair against the
+-light (ranks 4 and 6: no magenta palms, the backlit commander's ginger hair), the hero beats' crossing spears and the
+-shield through the commander's face (rank 5), the land beyond the map (rank 7: hills, fields and woods instead of a flat
+-plain) and the water's bright screen edge (rank 10). What is still placeholder is listed in §5: faces at the closest
+-framings, the dense fallen pile, the noon vista's far valley (still a hazy band), the settlements' life, the rain, the
+-smoke's structure. None of this is production quality, and none of it says anything about performance on the Victus.
++(D-069). These are prototype frames, not production art.
++
++**Verdict, honestly.** All eleven issues were worked. Four are done to the extent the critic's note asked (ranks 1, 2,
++3 and 8); seven only partly (4, 5, 6, 7, 9, 10, 11), and §1 names what is missing for each. Ten of the eleven change the
++canonical stills visibly; the standards' flutter (rank 8) is small at the canonical framings. The largest steps: the
++meadow (green instead of sand at golden hour, varied instead of flat felt, no hard line where the ground cover ended),
++the land beyond the map (hills, woods and fields instead of a flat hazy plain), the shadow acne (gone in the grazing-sun
++test and the rout and vista shots), the close beats' staging (no crowd soldier between the camera and the officer or the
++commander), the skin (no magenta palms or cheek bands) and the river's bright screen edge (gone). Still placeholder
++(§5): faces at the closest framings, the fallen pile, the far land's woods and settlements, the villages' life, smoke
++structure, rain splashes. None of it is production quality, and none of it says anything about performance on the
++Victus.
+ 
+ ## 1. What changed, per issue
+ 
+ Before = the stage-scenes canonical captures (`captures/scenes/g2/`, G2 at f6ea1c1); after = this stage's canonical
+-captures (`captures/polish1/`, commit b471b22). The measured figures are mean colours and local contrast of the named
+-regions (`polish1-work/tools/region.py`: mean RGB, HSV hue and saturation, median of the luminance standard deviation
+-in 24 px windows at 1920 or 12 px at 960) or counts from the tests of §3.
++captures (`captures/polish1/`, §2), both 1920 × 1080 with 8 samples. The measured figures come from
++`scripts/measure-polish1.py BEFORE AFTER` (committed): mean colour, its HSV hue and saturation, and local contrast
++(median luminance standard deviation in 24 px windows) of named regions, plus single-column means and clipped-pixel
++shares; or from the tests of §3. Each row's sheet is `captures/polish1/sheets/polish1-NN-*.jpg` (before left, after
++right).
+ 
+ | Rank | Issue | What changed (files) | Measured before → after | Done |
+ |---|---|---|---|---|
+-| 1 | Meadow terrain flat felt, hard cover edge, sand at golden hour | Temperate grass retinted (`TerrainMaterials`); in the terrain shader two grass tones, value-noise clumps and hummocks at 4.4 m and 1.7 m with analytic normals (no tiling period), dry-grass patches as a pale buff at the grass's own brightness, trodden patches, worn tracks, all fading by pixel footprint (`G2TerrainEffects`); the grass's GGX sheen scaled to a quarter (it made a 9° sun's meadow ten times brighter in sun colour than in green: the "sand"), back-lit transmission; ground cover thinned by rank from 70 m to 130 m and the ground under it tinted to the cards (`GroundCover`, `EnvironmentScenery`); golden-hour haze factor 0.55 (`hazelowsun`) | C vista golden mid meadow hue 42, sat 0.53 → 51, 0.63; B wide noon mid meadow hue 72, sat 0.38, local std 1.4 → 85, 0.47, 6.1; E vista noon foreground hue 70, sat 0.45, std 1.7 → 78, 0.53 (all 960×540 iteration frames) | yes |
+-| 2 | Cascade shadow acne | Receiver-plane depth bias per PCF tap from the screen derivatives of the shadow coordinate, clamped at 85°, with each cascade's texel depth (`GlslLib.shadowCascaded`, `CascadedShadowMap`) | grazing-sun dome test: 5,587 of 20,421 sun-facing pixels self-shadowed without it (mutant), under 0.5 % with it (§3) | yes |
+-| 3 | Clone-army crowds | Four pose variants of each crowd idle (gaze levelled to −5…+1°, head turn, trunk twist and lean, weapon and shield arm swings) baked into the animation bank (`CrowdPoseVariants`, `CrowdAnimationBank`); picked per soldier by entity hash with their own time offsets and blends (`CrowdCast`, `TraceCrowd`); two authored hoplite guard variants for scene A's line (`CombatClips`) | idle block of 40: gaze −20.5…+11.9°, mean −0.1° (the base clips on the same agents: −34.3…+29.8°); 36 of 36 neighbour pairs differ by > 4 cm at one time | yes |
+-| 4 | Faces | Skin: the sky fill keeps 40 % of its chroma, warmed; the wrap light past the terminator keeps green and blue in proportion to red (it was red alone: magenta bands); ear transmission capped and orange; warm sclera; a catchlight in every cornea (`CharEffects`) | D officer: lit palms hue 355 → 14–15 | partly: no brow or lash cards, no hairline strand cards |
+-| 5 | Clipping, grips and crowd LOD in hero beats, fallen interpenetration | Crowd soldiers in a close beat's sight line (camera to subject, 1.5 m radius, not past 92 % of the way) are not drawn (`TraceCrowd.SightLine`, `SceneD.SightLineAt`); the sword victory pose lowers the shield hand and swings it out (`CombatClips.Victory`); the fallen are laid out once in the order of death, each turned (0, ±30, ±60, ±90°) and its fall picked to keep 0.45 m from the bodies already down (`TraceCrowd.LayOutFallen`) | D officer close-up: the spear at his chin gone; D surrender: the kite shield no longer crosses the commander's face; bench fallen: close body pairs 4,905 → 3,630 (572 of the 769 fallen lie within 0.45 m of another, so the pile cannot clear) | partly: no hide masks, corrective shapes, fist grips or LOD0 swap |
+-| 6 | No bounce or fill light | The sky light's lower hemisphere is sunlit ground of an effective albedo (temperate 0.22, 0.21, 0.14; labelled artistic) instead of the atmosphere's grey ground (`SceneLighting.ApplyGround`); occluded ambient loses more blue than red (`ScreenSpaceEffects`); auto exposure weights the lower frame and clamps the sky (`metering=subject`); tone-map shoulder desaturation 0.08 on the benchmark scenes; kit shot at −0.6 EV; a transmission lobe for back-lit hair and beards (`CharEffects`) | E fortification shaded wall RGB 48,54,64 → 51,56,57; parapet 81,84,90 → 84,86,85; A golden two-shot: the commander's hair reads ginger | partly: no fill or rim light rig |
+-| 7 | Land beyond the 1 km map flat | Far field: rolling hills rising from the map edge (two octaves from 600 m), woods raised 6 m as masses, fields in strips of five crops with hedgerows laid per 1.2 km block, woods broken by clearings at the 1,400 m scale, canopy tone and relief (`FarField`, far-field shader); the patchwork fades to the crops' mean where a pixel spans a fair share of a field and towards a low sun; the far land keeps a fifth of its specular (§6: with full GGX the rolling land towards a low sun glittered like a sea, and the flat plain of before read as sand); the height fog thinned to 0.15 with the sun high (`foghighsun`) | FAR_BAND; hills and fields on the horizon of B, D and E shots | partly: no impostor woods or settlements far off |
+-| 8 | Rigid banners | Vertex-stage cloth flutter: three travelling waves whose amplitude grows from the hoist, analytic normal ripple, amplitude 0.10 × wind (`CharEffects.FlutterLib`, `KitEffects`, `Banner`) | visible as a rippled hem and shading bands; small at the canonical framings | yes |
+-| 9 | Smoke haze columns, maroon smudges | Puffs eroded by noise into billows, a denser darker young base, the sun's colour on smoke at 45 % and the low-sun forward lobe reduced, ambient desaturated (`SmokeLayer`); the cut-away reframed so the field, the standard and the smoke share the frame with the sky (`SceneD`) | cut-away: sky from about 70 % of the frame to about 45 %; the plumes grey-brown instead of maroon | partly: no self-shadowing sample or soft-particle fade |
+-| 10 | Settlements, fortification and river placeholders | Wall-base grime and contact occlusion from the terrain height (`StructureRenderer`, `EnvWater.HeightMap`); hut walls 1.6–2.1 m and roof pitches 43–54° (`StructureKit`); anisotropic sampling of structure textures; the water's reflection and refraction lookups clamped and faded at the screen edge (`EnvWater`) | E river: the outer columns 129.3 vs 59.5 at 1920 → 70.9 vs 70.4 at 960 (no bright band) | partly: no gate passage, villagers, hearth smoke or meandering river |
+-| 11 | Thin rain | Streaks 0.70 m long (was 0.42) and 1.8 × brighter; wet grass keeps its sheen; flower cards smaller (buttercups 0.62 ×) (`RainLayer`, `G2TerrainEffects`, `GroundCover`) | B rain front: flower heads no longer read as yellow dots a hand across | partly: no splashes; puddles unchanged |
++| 1 | Meadow terrain flat felt, hard cover edge, sand at golden hour (sheet 01) | Temperate grass retinted (`TerrainMaterials`); in the terrain shader two grass tones, value-noise clumps and hummocks at 4.4 m and 1.7 m with analytic normals (no tiling period), dry-grass patches as a pale buff at the grass's own brightness, trodden patches, worn tracks, all fading by pixel footprint (`G2TerrainEffects`); the grass's GGX sheen scaled to a quarter (it made a 9° sun's meadow ten times brighter in sun colour than in green: the "sand"), back-lit transmission; ground cover thinned by rank from 70 m to 130 m and the ground under it tinted to the cards (`GroundCover`, `EnvironmentScenery`); golden-hour haze factor 0.55 (`hazelowsun`) | C vista golden, foreground meadow: RGB 65,64,12 (hue 59) → 71,80,12 (hue 68); C vista noon, foreground: hue 76 → 85, saturation 0.55 → 0.62; E vista noon, foreground: hue 71 → 77, local contrast 1.3 → 3.3; B wide noon, the meadow beyond the ground cover: saturation 0.39 → 0.60, local contrast 1.4 → 3.1 (the line where the cover stopped is gone) | yes |
++| 2 | Cascade shadow acne (sheet 02) | Receiver-plane depth bias per PCF tap from the screen derivatives of the shadow coordinate, clamped at 85°, with each cascade's texel depth (`GlslLib.shadowCascaded`, `CascadedShadowMap`) | grazing-sun dome test: 5,587 of 20,421 sun-facing pixels self-shadowed without it (mutant), under 0.5 % with it (§3); the rout's and the golden vista's lit slopes lose their contour bands | yes |
++| 3 | Clone-army crowds (sheet 03) | Four pose variants of each crowd idle (gaze levelled to −5…+1°, head turn, trunk twist and lean, weapon and shield arm swings) baked into the animation bank (`CrowdPoseVariants`, `CrowdAnimationBank`); picked per soldier by entity hash with their own time offsets and blends (`CrowdCast`, `TraceCrowd`); two authored hoplite guard variants for scene A's line (`CombatClips`) | idle block of 40: gaze −20.5…+11.9°, mean −0.1° (the base clips on the same agents: −34.3…+29.8°); 36 of 36 neighbour pairs differ by > 4 cm at one time | yes |
++| 4 | Faces (sheet 04) | Skin: the sky fill keeps 40 % of its chroma, warmed; the wrap light past the terminator keeps green and blue in proportion to red (it was red alone: magenta bands); ear transmission capped and orange; warm sclera; a catchlight in every cornea (`CharEffects`) | D officer, raised left palm: RGB 169,111,126 (hue 345, magenta) → 188,139,119 (hue 17); A commander: the pink band on cheek and ear is gone | partly: no brow or lash cards, no hairline strand cards |
++| 5 | Clipping, grips and crowd LOD in hero beats, fallen interpenetration (sheet 05) | Crowd soldiers in a close beat's sight line (camera to subject, 1.5 m radius, not past 92 % of the way) are not drawn (`TraceCrowd.SightLine`, `SceneD.SightLineAt`); the sword victory pose lowers the shield hand and swings it out (`CombatClips.Victory`); the fallen are laid out once in the order of death, each turned (0, ±30, ±60, ±90°) and its fall picked to keep 0.45 m from the bodies already down (`TraceCrowd.LayOutFallen`) | D commander: the two crowd soldiers between the camera and the commander are gone; D officer: the spear across his chin is gone; D surrender: the kite shield lowered off the commander's face; bench fallen: close body pairs 4,905 → 3,630 (572 of the 769 fallen lie within 0.45 m of another, so the pile cannot clear) | partly: no hide masks, corrective shapes, fist grips or LOD0 swap |
++| 6 | No bounce or fill light (sheet 06) | The sky light's lower hemisphere is sunlit ground of an effective albedo (temperate 0.22, 0.21, 0.14; labelled artistic) instead of the atmosphere's grey ground (`SceneLighting.ApplyGround`); occluded ambient loses more blue than red (`ScreenSpaceEffects`); auto exposure weights the lower frame and clamps the sky (`metering=subject`); tone-map shoulder desaturation 0.08 on the benchmark scenes; kit shot at −0.6 EV; a transmission lobe for back-lit hair and beards (`CharEffects`) | E fortification, shaded front wall: RGB 48,54,64 (hue 216, saturation 0.25: blue) → 55,60,61 (saturation 0.10); parapet 81,84,90 → 91,93,92; A kit: clipped pixels 7.9 % → 6.1 % (A soldier face 3.4 % → 3.8 %); A golden two-shot: the commander's hair reads ginger | partly: no fill or rim light rig |
++| 7 | Land beyond the 1 km map flat (sheet 07) | Far field: rolling hills rising from the map edge (two octaves from 600 m), woods raised 6 m as masses, fields in strips of five crops with hedgerows laid per 1.2 km block, woods broken by clearings at the 1,400 m scale, canopy tone and relief (`FarField`, far-field shader); the patchwork fades to the crops' mean where a pixel spans a fair share of a field and towards a low sun; the far land keeps a fifth of its specular (§6); the clear air's height fog thinned to 0.15 with the sun high (`foghighsun`; rain and mist keep theirs, rank 11) | C vista noon, far band: RGB 93,112,106 (saturation 0.17, local contrast 1.1) → 63,90,77 (0.30, 4.4); hills, woods and fields on the horizon of the B, D and E shots | partly: no impostor woods, villages or roads far off |
++| 8 | Rigid banners (sheet 08) | Vertex-stage cloth flutter: three travelling waves whose amplitude grows from the hoist, analytic normal ripple, amplitude 0.10 × wind (`CharEffects.FlutterLib`, `KitEffects`, `Banner`) | visible as a curled hem and shading bands in B standard; small at the other canonical framings | yes |
++| 9 | Smoke haze columns, maroon smudges (sheet 09) | Puffs eroded by noise into billows, a denser darker young base, the sun's colour on smoke at 45 % and the low-sun forward lobe reduced, ambient desaturated (`SmokeLayer`); the cut-away reframed so the field, the standard and the smoke share the frame with the sky (`SceneD`) | D cut-away: sky above the first textured rows 71 % → 36 % of the frame height; the plumes grey-brown instead of maroon (at dusk their tops still read as dark smudges) | partly: no self-shadowing or soft-particle fade |
++| 10 | Settlements, fortification and river placeholders (sheet 10) | Wall-base grime and contact occlusion from the terrain height (`StructureRenderer`, `EnvWater.HeightMap`); hut walls 1.6–2.1 m and roof pitches 43–54° (`StructureKit`); anisotropic sampling of structure textures; the water's reflection and refraction lookups clamped and faded at the screen edge (`EnvWater`) | E river, column means over the water: right edge 129.3 against 59.8 nine columns in → 73.2 against 73.9; left edge 77.3 against 39.0 → 43.6 against 42.7 | partly: no gate passage, villagers, hearth smoke or meandering river |
++| 11 | Thin rain (sheet 11) | Streaks 0.70 m long (was 0.42) and 1.8 × brighter; wet grass keeps its sheen; flower cards smaller (buttercups 0.62 ×) (`RainLayer`, `G2TerrainEffects`, `GroundCover`); the high-sun fog thinning of rank 7 applies to clear air only, so the rain look keeps its misty distance (`ForwardRenderer.HighSunFog` with mist and rain) | ⟨RAIN⟩ | partly: no splashes; puddles unchanged |
+ 
+ ## 2. Captures
+ 
+-TBD
++**The canonical set** (`scripts/capture-scenes.sh`, 1920 × 1080, 8 accumulated samples per still, llvmpipe): 47 stills
++in `<scratchpad>/m7gfx2/captures/polish1/` (the issue's `polish-1/` is a link to it), with the folder and file names of
++the stage-scenes set it is compared with (`captures/scenes/g2/`): scene A 7, B 7, C 9, D shown 7, D cut-away 2, E 7,
++and the weather looks: B rain 2, B mist 1, C rain 1, C mist 1, E rain 2, E mist 1. Scene A was captured on b471b22 and
++scenes B–E (clear) on 8fb760d; the weather looks on ⟨COMMIT⟩, after the rain fog fix (§6). ⟨IDENT⟩ Capture times on
++llvmpipe: A 374 s, B 206 s, C 212 s, D shown 198 s, D cut-away 100 s, E 158 s, weather ⟨WTIME⟩.
++
++**Sheets** (scratchpad, full size, not committed): per issue `sheets/polish1-01-meadow.jpg` … `polish1-11-rain.jpg`
++(`scripts/review-sheets-polish1.py`, 800 × 450 cells, before left and after right), and the G1-against-G2 sheets of the
++stage scenes regenerated from this set (`scripts/review-sheets-scenes.py`): `scenes-A` … `scenes-E`, `scenes-D-states`,
++`scenes-hours`, `scenes-weather`.
++
++**Committed review JPEGs** (`reports/captures/polish1/`): `polish1-01-before-after.jpg` (54,611 bytes: C vista golden,
++B wide noon, C vista noon, E fortification, D cut-away) and `polish1-02-faces-hero.jpg` (58,608 bytes: A commander, D
++officer, D surrender, A golden two-shot), 288 × 162 cells at JPEG quality 50. They are deliberately tiny: G2's committed
++review JPEGs were already at 6,015,093 bytes in 52 files before this stage; with these two they are 6,128,312 bytes in
++54 files, 2 % over the ~6 MB guide read as 6,000,000 bytes (under it read as 6 MiB). The full-size sheets stay in the
++scratchpad.
++
++**What I saw, sheet by sheet** (every still of the set was looked at on the sheets; the noted ones also at full size):
++
++- 01 meadow: C vista golden goes from sand-yellow to green with dry patches; B wide noon loses the straight line where
++  the ground cover stopped, and the land behind the river gains hills and fields; E vista noon gains patches and relief;
++  C clash golden is greener and more varied. The golden vista's far land, straight into the sun, is still a bright
++  haze band.
++- 02 acne: the rout's and the golden vista's lit slopes lose their banding; the D field is unchanged apart from the
++  meadow.
++- 03 crowds: B front heads level and weapons at different angles; A line's hoplites hold their shields at different
++  heights; B between: little visible at that distance. The buttercups are smaller in every weather (rank 11's cards).
++- 04 faces: the commander's pink band on cheek and ear is gone, the skin warmer; the officer's palms are no longer
++  magenta (they read grey-beige in shade); the helmeted soldier's face is unchanged.
++- 05 hero beats: the sight-line hiding is the clearest change (D commander, D standards); the officer loses the spear
++  at his chin; the surrender's shield is lower; the fallen pile is somewhat less crossed but still interpenetrates.
++- 06 light: the fortification's shaded walls are neutral grey instead of blue; the kit shot's aspis highlight is
++  smaller; melee low is nearly unchanged; the golden two-shot's commander has ginger hair and a more orange face.
++- 07 far land: the noon vistas show hills, dark woods and field patches to the horizon instead of a flat haze plain; at
++  dusk the change is small (the far land is in shadow and haze).
++- 08 banners: B standard's banner hem curls; elsewhere small.
++- 09 smoke: at the D field and prisoners framings the smoke looks the same; the cut-away is reframed (sky 36 % instead of
++  71 %), with grey-brown plumes, the standard and the field in frame.
++- 10 settlements: the fortification's walls are darker where they meet the ground; the huts differ in height and pitch;
++  the river's edge band is too thin to see at sheet scale (measured in §1).
++- 11 rain: ⟨RAINLOOK⟩
++- scenes-A … E, hours, D-states, weather: consistent with the above; at dusk the cut-away's grass reads straw-orange, and
++  the C dusk shots are strongly orange (the sky model's twilight, unchanged by this stage).
  
  ## 3. Tests
  
--Builds: `M7Gfx2.slnx` Release and Debug, **0 errors, 0 warnings** each (warnings are errors in this tree), on the final
--commit. Gfx tests (301 in `Gfx.Tests`, 295 of the earlier stages and 6 new), run in four class groups, one test host
-+Builds: `M7Gfx2.slnx` Release and Debug, **0 errors, 0 warnings** each (warnings are errors in this tree), on 8fb760d
-+(the last code commit; later commits change only the report, README, PROVENANCE, scripts and review JPEGs). Gfx tests (301 in `Gfx.Tests`, 295 of the earlier stages and 6 new), run in four class groups, one test host
- each (the whole suite in one host was OOM-killed once beside a capture and another session's tests, after 202 had
- passed):
+-Builds: `M7Gfx2.slnx` Release and Debug, **0 errors, 0 warnings** each (warnings are errors in this tree), on 8fb760d
+-(the last code commit; later commits change only the report, README, PROVENANCE, scripts and review JPEGs). Gfx tests (301 in `Gfx.Tests`, 295 of the earlier stages and 6 new), run in four class groups, one test host
+-each (the whole suite in one host was OOM-killed once beside a capture and another session's tests, after 202 had
+-passed):
++⟨TESTS⟩
  
- | Group | Classes | Release | Debug |
- |---|---|---|---|
--| 1 | PerfUnit, Render1Math, Render2Math, EnvLayout, Camera, EngineUnit, Frustum, EffectLoad, Units, Cinematic, PerfProcess | 147 passed (29 s) | 147 passed (44 s) |
--| 2 | Chars, Avatar, Kit, Crowd | 73 passed (26 s) | 73 passed (53 s) |
--| 3 | Scenes, Polish1, Terrain, EnvTree, EnvRender, Integration, PerfEnvTap | 52 passed (53 s) | 52 passed (108 s) |
--| 4 | Render1Render, Render2Render, Render, PerfDevice | 29 passed (72 s) | 29 passed (146 s) |
-+| 1 | PerfUnit, Render1Math, Render2Math, EnvLayout, Camera, EngineUnit, Frustum, EffectLoad, Units, Cinematic, PerfProcess | 147 passed (27 s) | 147 passed (40 s) |
-+| 2 | Chars, Avatar, Kit, Crowd | 73 passed (24 s) | 73 passed (47 s) |
-+| 3 | Scenes, Polish1, Terrain, EnvTree, EnvRender, Integration, PerfEnvTap | 52 passed (49 s) | 52 passed (109 s) |
-+| 4 | Render1Render, Render2Render, Render, PerfDevice | 29 passed (65 s) | 29 passed (151 s) |
- | | **total** | **301 passed, 0 failed, 0 skipped** | **301 passed, 0 failed, 0 skipped** |
+-| Group | Classes | Release | Debug |
+-|---|---|---|---|
+-| 1 | PerfUnit, Render1Math, Render2Math, EnvLayout, Camera, EngineUnit, Frustum, EffectLoad, Units, Cinematic, PerfProcess | 147 passed (27 s) | 147 passed (40 s) |
+-| 2 | Chars, Avatar, Kit, Crowd | 73 passed (24 s) | 73 passed (47 s) |
+-| 3 | Scenes, Polish1, Terrain, EnvTree, EnvRender, Integration, PerfEnvTap | 52 passed (49 s) | 52 passed (109 s) |
+-| 4 | Render1Render, Render2Render, Render, PerfDevice | 29 passed (65 s) | 29 passed (151 s) |
+-| | **total** | **301 passed, 0 failed, 0 skipped** | **301 passed, 0 failed, 0 skipped** |
+-
+-New tests (`Gfx.Tests/Polish1Tests.cs`, 6; presentation only, each states its property):
++New tests (`Gfx.Tests/Polish1Tests.cs`, 8; presentation only, each states its property):
  
- New tests (`Gfx.Tests/Polish1Tests.cs`, 6; presentation only, each states its property):
-@@ -109,6 +109,14 @@ TBD
-   choices, not measurements of grass.
- - **The noon height-fog factor** (0.15 at 45° of sun) is a presentation rule (valley haze thins as the day warms); the
-   golden-hour and dusk shots keep their fog.
-+- **The far land's sea glitter, found in the canonical run.** The first canonical run (commit b471b22) showed the far
-+  land beyond the C vista's hill as a band of fine dark crescents at golden hour and dusk, at 1920 × 1080 only (the 960 ×
-+  540 iteration frames had hidden it). Two re-runs were stopped and the band hunted at 1920 × 1080 with 2 samples: it
-+  stayed with the field strips faded, with the relief cut to two octaves, with the woods' rise cut to 6 m on a smooth
-+  mask, with the clearings moved to the 1,400 m scale and with the shadow distance cut to 150 m; it went with the far
-+  field off, and with the far land's specular scaled to 0.2 (the cause: full GGX on rough rolling land seen towards a
-+  9° sun). The other changes of the hunt were kept. Scenes B–E and the weather looks were captured on the fixed build
-+  (8fb760d); scene A, which shows no far land, on b471b22.
+ | Test | Property | Evidence of teeth |
+ |---|---|---|
+@@ -69,60 +105,61 @@ New tests (`Gfx.Tests/Polish1Tests.cs`, 6; presentation only, each states its pr
+ | `SegmentDistanceMeasuresCrossingParallelAndCollinearBodies` | the fallen-body geometry: crossing 0, parallel offset, collinear gap, order independence | — |
+ | `FallenAreLaidOutApartInTheOrderOfDeath` | on the bench battle's trace, the layout leaves fewer close body pairs than the hashed falls, the first to fall keeps his own facing and fall, a soldier who does not die gets no layout, and the layout is a pure function of the trace | measured 4,905 → 3,630 close pairs |
+ | `SightLineHidesOnlySoldiersBetweenTheCameraAndTheSubject` | a soldier on or within 1.5 m of the camera-to-subject line is hidden; behind the camera, at or past the subject, or 2 m off it is not | — |
++| `HighSunThinsTheClearAirsFogNotTheWeathers` | the high-sun fog factor: 0.15 at noon in clear air, 1 with a low sun, exactly the clear-air factor when mist = rain = 0, 1 with the rain or mist look, 0.405 with a thin mist of 0.3 | ⟨FOGTEETH⟩ |
++| `TheRendererThinsOnlyTheClearAirsFogAtNoon` | a noon frame with `foghighsun=0.15` hands the shaders 0.15 of the G2 fog scale in clear air and the full scale with `weather=rain` or `weather=mist` | ⟨FOGTEETH2⟩ |
+ 
+ Changed test: `Render2MathTests.LitSurfaceEffectsReportTheirAmbientLight` (§6).
+ 
+ **Weather-off identity, re-baselined deliberately.** The stage-scenes identity (weather off byte-identical to the build
+-before weather) no longer holds by design: this stage changes the clear look itself. The new baseline, on the final
+-build 8fb760d: with no weather switch and with `weather=clear`, 4 of 4 stills are byte-identical (960 × 540, 2 samples;
+-sha256 prefixes `c9c16258d38563fd` B front, `7e78499b19b35b98` B wide noon, `53f93610e2ed3016` E river,
+-`3d5c6d9b767a9cc4` E settlement).
++before weather) no longer holds by design: this stage changes the clear look itself. ⟨IDENT2⟩
+ 
+ ## 4. Costs (llvmpipe, not Victus evidence)
+ 
+-TBD
++⟨COSTS⟩
+ 
+ ## 5. What still looks placeholder
+ 
+ - **Faces at the closest framings.** Skin no longer goes magenta, the eyes have catchlights and the back-lit hair reads,
+-  but brows and lashes are painted (no alpha cards), the hairline is a painted cap edge, and the commander's cheeks
+-  still blush pink in sun. A close-up reads as a game character, not a person.
++  but brows and lashes are painted (no alpha cards), the hairline is a painted cap edge, the shaded palms read grey, and
++  the commander's face goes orange in golden light. A close-up reads as a game character, not a person.
+ - **Crowd motion.** The idle variants break the clone look in stills; in motion the crowd still loops CMU idles and
+   locomotion (PROTOTYPE-ONLY), soldiers do not fight body to body, open palms still hold spears in the crowd (no fist
+   grip), and crowd LOD1 helmets are faceted at the closest beats (no LOD0 swap).
+ - **The fallen.** The trace puts 572 of its 769 fallen within 0.45 m of another, closer than bodies 1.7 m long can lie
+-  apart; the layout cuts the crossing pairs by a quarter but the pile still interpenetrates. A settle step (bodies
+-  stacking on each other) would be needed.
+-- **The land beyond the map** now has hills, fields and woods, and reads on the horizon of the E and D shots; in the C
+-  noon vista the far valley at 1–9 km is still a flat, hazy blue-green band (mean saturation 0.18, local contrast about
+-  1 level).
++  apart; the layout cuts the close pairs by a quarter but the pile still interpenetrates. A settle step (bodies stacking
++  on each other) would be needed.
++- **The land beyond the map** now has hills, woods and fields (the C noon far band's local contrast 1.1 → 4.4), but it is
++  a mottled patchwork: no woods with a canopy silhouette, no villages, roads or rivers at distance, and straight into a
++  low sun it is still a bright haze band.
+ - **Settlements.** Wall bases are grounded and the huts differ in size and pitch, but the villages are empty (no
+   villagers, animals, hearth smoke), the gate is a flat dark tunnel, and the river is still the straight flume.
+-- **Smoke** is still billboard puffs with a noise edge: no self-shadowing, no soft-particle fade at intersections.
++- **Smoke** is still billboard puffs with a noise edge: no self-shadowing, no soft-particle fade at intersections; at
++  dusk the plume tops read as dark smudges.
+ - **Rain** is streaks and a wet look; no splashes, and the puddles still read as flat grey patches.
+ - **Standards** ripple at the vertex stage only; at the canonical framings the flutter is small.
+ 
+ ## 6. Limitations and notes
+ 
+ - **llvmpipe only.** Every frame and number here is software rendering on a shared 4-CPU machine. Load from other
+-  sessions moved between 2.9 and 9.1 during the stage; the costs of §4 were taken in an after/before/before/after order
++  sessions moved between 1.3 and 9.1 during the stage; the costs of §4 were taken in an after/before/before/after order
+   to spread that drift, and still say nothing about the Victus.
+ - **The ground-bounce albedo is artistic** (labelled in code): the meadow's own albedo (0.075, 0.105, 0.042) was tried
+   first and darkened and greened the fill on shaded walls by about 40 %; the value used is the effective albedo of a
+   mixed surround (0.22, 0.21, 0.14), near the atmosphere model's grey 0.25.
+-- **Weather and low sun.** The golden-hour meadow no longer reads as sand because the grass's specular sheen is
+-  scaled to a quarter (a canopy shadows its own sheen) and the low-sun haze factor is 0.55; both are presentation
+-  choices, not measurements of grass.
+-- **The noon height-fog factor** (0.15 at 45° of sun) is a presentation rule (valley haze thins as the day warms); the
+-  golden-hour and dusk shots keep their fog.
++- **Low and high sun.** The golden-hour meadow no longer reads as sand because the grass's specular sheen is scaled to
++  a quarter (a canopy shadows its own sheen) and the low-sun haze factor is 0.55; the noon height-fog factor (0.15 at 45°
++  of sun) is a presentation rule (valley haze thins as the day warms). None of these is a measurement of grass or air.
+ - **The far land's sea glitter, found in the canonical run.** The first canonical run (commit b471b22) showed the far
+   land beyond the C vista's hill as a band of fine dark crescents at golden hour and dusk, at 1920 × 1080 only (the 960 ×
+   540 iteration frames had hidden it). Two re-runs were stopped and the band hunted at 1920 × 1080 with 2 samples: it
+   stayed with the field strips faded, with the relief cut to two octaves, with the woods' rise cut to 6 m on a smooth
+   mask, with the clearings moved to the 1,400 m scale and with the shadow distance cut to 150 m; it went with the far
+   field off, and with the far land's specular scaled to 0.2 (the cause: full GGX on rough rolling land seen towards a
+-  9° sun). The other changes of the hunt were kept. Scenes B–E and the weather looks were captured on the fixed build
+-  (8fb760d); scene A, which shows no far land, on b471b22.
++  9° sun). The other changes of the hunt were kept.
++- **The rain lost its misty distance, found when looking at the canonical set.** On 8fb760d the noon rain shots showed
++  the far hills and the tree line crisp: the high-sun factor of rank 7 multiplied the whole height fog, including the
++  density the rain and mist looks add. Fixed in ⟨COMMIT⟩ (the factor returns to 1 in proportion to mist + rain; a clear
++  frame computes exactly what it did, ⟨IDENTSHORT⟩), with two tests (§3); the weather looks were captured again.
  - **An earlier-stage test was updated** for a refactor: `Render2MathTests.LitSurfaceEffectsReportTheirAmbientLight`
    now accepts `shadePbrFullSpec` (the terrain's shading with a specular scale) as an ambient reporter and checks that
    `shadePbrFull` calls it; the property (every lit surface reports its ambient share) is unchanged.
+@@ -137,6 +174,7 @@ dotnet build M7Gfx2.slnx -c Release -m:1 -nodeReuse:false
+ G2_DEMO_DLL=<copy of Gfx.Demo/bin/Release/net10.0>/Gfx.Demo.dll scripts/capture-scenes.sh OUT_DIR   # 1920x1080, 8 samples
+ scripts/review-sheets-polish1.py BEFORE_DIR OUT_DIR SHEETS_DIR REVIEW_DIR
+ scripts/review-sheets-scenes.py OUT_DIR G1_DIR SHEETS_DIR SCRATCH_REVIEW_DIR                     # G1 vs G2 sheets, updated
++scripts/measure-polish1.py BEFORE_DIR OUT_DIR                                                     # the figures of §1
+ dotnet test Gfx.Tests/Gfx.Tests.csproj -c Release --no-build --filter "FullyQualifiedName~Gfx.Tests.Polish1Tests."
+ dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --suite smoke --out DIR                         # llvmpipe costs, slots A-E
+ ```
+diff --git a/prototypes/m7-gfx2/scripts/measure-polish1.py b/prototypes/m7-gfx2/scripts/measure-polish1.py
+new file mode 100755
+index 0000000..b19655e
+--- /dev/null
++++ b/prototypes/m7-gfx2/scripts/measure-polish1.py
+@@ -0,0 +1,86 @@
++#!/usr/bin/env python3
++"""The measured figures of reports/polish1.md §1: region statistics of the canonical captures, before and after.
++
++Usage: measure-polish1.py BEFORE_DIR AFTER_DIR
++  BEFORE_DIR, AFTER_DIR: outputs of scripts/capture-scenes.sh (1920x1080; same folder and file names).
++Per region: mean RGB, HSV hue (degrees) and saturation of the mean colour, and the median luminance standard deviation
++in 24 px windows (local contrast). The river's screen edge: the mean luminance of single columns over the water (the
++bottom 11 % of the frame). Clipping: the share of pixels with any channel at 250 or more. The cut-away's horizon: the first band of 24 rows from the top whose median local
++contrast exceeds 2 levels (the sky above it is smooth), as a fraction of the frame height.
++Every frame measured here was rendered by llvmpipe (not Victus evidence); these are prototype frames, not production art.
++"""
++import colorsys
++import sys
++
++import numpy as np
++from PIL import Image
++
++BEFORE, AFTER = sys.argv[1:3]
++REGIONS = [  # name, shot, box (x0, y0, x1, y1 as fractions of the frame)
++    ("C vista golden, foreground meadow", "c/bench-c-vista-golden", (0.05, 0.80, 0.55, 0.97)),
++    ("C vista noon, foreground meadow", "c/bench-c-vista-noon", (0.05, 0.80, 0.55, 0.97)),
++    ("C vista noon, far band", "c/bench-c-vista-noon", (0.0, 0.08, 0.45, 0.25)),
++    ("C clash golden, foreground meadow", "c/bench-c-clash-golden", (0.0, 0.80, 0.4, 0.98)),
++    ("B wide noon, mid meadow", "b/bench-b-wide-noon", (0.45, 0.55, 0.95, 0.75)),
++    ("B wide noon, meadow beyond the ground cover", "b/bench-b-wide-noon", (0.85, 0.45, 0.95, 0.50)),
++    ("E vista noon, foreground meadow", "e/bench-e-vista-noon", (0.0, 0.62, 0.45, 1.0)),
++    ("E fortification, shaded front wall", "e/bench-e-fortification", (0.583, 0.611, 0.635, 0.685)),
++    ("E fortification, parapet", "e/bench-e-fortification", (0.26, 0.528, 0.333, 0.556)),
++    ("D officer, raised left palm", "d-shown/bench-d-shown-03-officer-face", (0.22, 0.01, 0.30, 0.09)),
++    ("B rain wide noon, the distance (tree line and hills)", "b-rain/bench-b-wide-noon", (0.0, 0.11, 0.65, 0.27)),
++    ("C rain clash noon, far band", "c-rain/bench-c-clash-noon", (0.0, 0.13, 0.60, 0.30)),
++]
++
++
++def luminance(rgb):
++    return 0.2126 * rgb[..., 0] + 0.7152 * rgb[..., 1] + 0.0722 * rgb[..., 2]
++
++
++def local_std(lum, k=24):
++    return [lum[y:y + k, x:x + k].std() for y in range(0, lum.shape[0] - k + 1, k) for x in range(0, lum.shape[1] - k + 1, k)]
++
++
++def load(root, shot):
++    return np.asarray(Image.open(f"{root}/{shot}.png").convert("RGB")).astype(np.float64)
++
++
++def region(root, shot, box):
++    im = load(root, shot)
++    h, w, _ = im.shape
++    x0, y0, x1, y1 = box
++    r = im[int(y0 * h):int(y1 * h), int(x0 * w):int(x1 * w)]
++    m = r.reshape(-1, 3).mean(0)
++    hue, sat, _ = colorsys.rgb_to_hsv(*(m / 255))
++    return f"RGB {tuple(int(round(v)) for v in m)} hue {hue * 360:.0f} sat {sat:.2f} std {np.median(local_std(luminance(r))):.1f}"
++
++
++def river_edge(root):
++    lum = luminance(load(root, "e/bench-e-river"))
++    h, w = lum.shape
++    y0 = int(h * 0.89)
++    return {x: round(float(lum[y0:, x].mean()), 1) for x in (0, 2, 8, w - 9, w - 3, w - 1)}
++
++
++def horizon(root, shot):
++    lum = luminance(load(root, shot))
++    h = lum.shape[0]
++    k = 24
++    for y in range(0, h - k + 1, k):
++        band = lum[y:y + k]
++        if np.median([band[:, x:x + k].std() for x in range(0, band.shape[1] - k + 1, k)]) > 2.0:
++            return y / h
++    return 1.0
++
++
++def clipped(root, shot):
++    im = load(root, shot)
++    return float((im.max(axis=2) >= 250).mean())
++
++
++for name, shot, box in REGIONS:
++    print(f"{name}: before {region(BEFORE, shot, box)} | after {region(AFTER, shot, box)}")
++print(f"E river, column mean luminance over the water: before {river_edge(BEFORE)} | after {river_edge(AFTER)}")
++for shot in ("a/bench-a-kit", "a/bench-a-soldier-face"):
++    print(f"{shot}, pixels with a channel at 250 or more: before {clipped(BEFORE, shot):.2%} | after {clipped(AFTER, shot):.2%}")
++cut = "d-cutaway/bench-d-cutaway-06-cutaway"
++print(f"D cut-away, sky above the first textured row band: before {horizon(BEFORE, cut):.0%} | after {horizon(AFTER, cut):.0%} of the frame height")
