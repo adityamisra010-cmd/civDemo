@@ -59,9 +59,13 @@ public static class SessionTrace
 
     /// <summary>
     /// A parsed trace line. Only the fields a comparison needs are surfaced;
-    /// the file is the artifact, this is just the reader.
+    /// the file is the artifact, this is just the reader. <see cref="Year"/> is the
+    /// year as <see cref="Line"/> writes it, <c>WorldDateYears</c>, a double: from
+    /// world year 5920 (1920 CE) a turn is half a year, so from turn 1271 the year
+    /// can be fractional (<c>5920.5</c>). CR-027 (D-088 DG2): the reader read it as
+    /// a whole number and refused every session longer than 1,270 turns.
     /// </summary>
-    public readonly record struct Row(long Turn, long Year, long Population, int Settlements, long Food, string Hash);
+    public readonly record struct Row(long Turn, double Year, long Population, int Settlements, long Food, string Hash);
 
     /// <summary>
     /// Reads a trace file, skipping the header. A malformed line throws with its
@@ -86,9 +90,18 @@ public static class SessionTrace
                     $"{describedAs} line {number}: expected 6 columns ({Header}), found {parts.Length}.");
             }
 
+            // CR-027: the year is read as the number written; a year that is not a
+            // finite number (NaN, Infinity) is no year the writer writes.
+            double year = double.Parse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture);
+            if (!double.IsFinite(year))
+            {
+                throw new InvalidDataException(
+                    $"{describedAs} line {number}: the year '{parts[1]}' is not a finite number.");
+            }
+
             rows.Add(new Row(
                 long.Parse(parts[0], CultureInfo.InvariantCulture),
-                long.Parse(parts[1], CultureInfo.InvariantCulture),
+                year,
                 long.Parse(parts[2], CultureInfo.InvariantCulture),
                 int.Parse(parts[3], CultureInfo.InvariantCulture),
                 long.Parse(parts[4], CultureInfo.InvariantCulture),

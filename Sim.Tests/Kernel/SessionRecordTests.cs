@@ -218,6 +218,41 @@ public class SessionRecordTests
     }
 
     [Fact]
+    public void AHalfYearTraceLine_ReadsTheYearAsWritten_AndTheWritersOwnHalfYearRoundTrips()
+    {
+        // CR-027 (D-088 DG2): from world year 5920 (1920 CE, turn 1271) a turn is half a year, and the writer writes the year
+        // as it is. The reader read it as a whole number and refused the line, so no session longer than 1,270 turns could
+        // be continued, replayed or inspected.
+        IReadOnlyList<SessionTrace.Row> rows = SessionTrace.Parse(
+            [SessionTrace.Header, "1271,5920.5,100,4,500,ab12", "1272,5921,100,4,500,cd34"], "half-year trace");
+        Assert.Equal(5920.5, rows[0].Year);
+        Assert.Equal(5921.0, rows[1].Year);
+
+        WorldState world = SnapshotTests.CanonicalExecutor().Run(SnapshotTests.Genesis(42), 3);
+        world.Clock = world.Clock with { SimDays = 5920 * SimClock.YearDays + SimClock.YearDays / 2 };
+        Assert.Equal(5920.5, world.Clock.WorldDateYears);
+        string line = SessionTrace.Line(world, grainGoodId: 1);
+        Assert.Contains(",5920.5,", line, StringComparison.Ordinal);
+        SessionTrace.Row row = Assert.Single(SessionTrace.Parse([SessionTrace.Header, line], "test"));
+        Assert.Equal(world.Clock.WorldDateYears, row.Year);
+        Assert.Equal(WorldHash.ComputeHex(world), row.Hash);
+    }
+
+    [Fact]
+    public void AYearThatIsNotAFiniteNumber_IsRefusedWithItsLineNumber()
+    {
+        // CR-027: the year is read as a double, so NaN and the infinities would parse; the writer never writes them, so the
+        // reader refuses them by line, as it refuses a line with the wrong column count.
+        foreach (string year in new[] { "NaN", "Infinity", "-Infinity" })
+        {
+            var e = Assert.Throws<InvalidDataException>(() => SessionTrace.Parse(
+                [SessionTrace.Header, "0,0,100,4,500,abc", $"1,{year},100,4,500,abc"], "runs/t.csv"));
+            Assert.Contains("runs/t.csv", e.Message, StringComparison.Ordinal);
+            Assert.Contains("line 3", e.Message, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public void AMalformedTraceLineTHROWSWithItsLineNumberRatherThanBeingSkipped()
     {
         // A trace read with holes in it makes a divergence report quietly

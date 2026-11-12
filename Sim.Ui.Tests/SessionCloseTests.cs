@@ -555,9 +555,10 @@ public class SessionCloseTests
     /// <summary>
     /// A SESSION PLAYED PAST WORLD YEAR 5920 KEEPS ITS WORKBOOK (found by measurement, D-086 DE2): from 1920 CE a turn is half
     /// a year, and the trace writer (<see cref="Sim.Core.Kernel.SessionTrace.Line"/>) writes the year as it is,
-    /// <c>5920.5</c>. The kernel's own reader (<see cref="Sim.Core.Kernel.SessionTrace.Parse"/>, frozen) reads the year as an
-    /// integer and throws on it, and the export used that reader as its check: every session past turn 1270 was refused
-    /// (<c>record-unreadable</c>) and lost its workbook at close. The export now checks the trace with its own reader, which
+    /// <c>5920.5</c>. The kernel's own reader (<see cref="Sim.Core.Kernel.SessionTrace.Parse"/>, frozen) read the year as an
+    /// integer and threw on it, and the export used that reader as its check: every session past turn 1270 was refused
+    /// (<c>record-unreadable</c>) and lost its workbook at close. Since CR-027 (D-088 DG2) the kernel reader reads the year as
+    /// the number written too, and the test pins that both readers read the writer's half-year text. The export now checks the trace with its own reader, which
     /// reads the year as the number written: the current-v6 session with half-year years exports, its Trace sheet the lines
     /// as written; a line that is not a trace line is still refused, by its number.
     /// </summary>
@@ -575,8 +576,11 @@ public class SessionCloseTests
             halves.Add(string.Join(',', p));
         }
         Assert.Contains("5920.5", halves[1], StringComparison.Ordinal);
-        // the frozen kernel reader refuses the writer's own text (the defect, reported to the Director as a proposal)
-        Assert.Throws<FormatException>(() => Sim.Core.Kernel.SessionTrace.Parse(halves, "half-year trace"));
+        // CR-027 (D-088 DG2, 2026-11-12): the kernel reader now reads the writer's own half-year text, each year exactly as
+        // written. Before CR-027 it threw FormatException here (the defect lane RR measured and proposed as P1).
+        IReadOnlyList<Sim.Core.Kernel.SessionTrace.Row> kernelRows = Sim.Core.Kernel.SessionTrace.Parse(halves, "half-year trace");
+        Assert.Equal(halves.Count - 1, kernelRows.Count);
+        for (int i = 1; i < halves.Count; i++) Assert.Equal(5920.0 + 0.5 * i, kernelRows[i - 1].Year);
 
         files[t] = (files[t].Name, System.Text.Encoding.UTF8.GetBytes(string.Join('\n', halves) + "\n"));
         SessionExportResult r = SessionWorkbook.Build(ExportFixtures.Manifest(files), ExportFixtures.Reader(files));
