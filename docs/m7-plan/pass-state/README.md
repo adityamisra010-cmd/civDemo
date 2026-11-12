@@ -192,34 +192,18 @@ Lanes MOR3 and RT each ran one verification round and one fix round, and neither
 Lane RR ran two rounds (round 2: 3 minor and 6 nit), and its fix round 2 is unverified because the workflow stops after two.
 The final round also carries RR's six round-2 nits, which no fix round received.
 
-**Checkpoint 2026-11-12 15:20 UTC** (in [wip/](wip/), taken at 15:31; the previous one was at 13:20):
-- **Lane commits after `51ab032`, as bundles:** none in flight now.
-  - `RR-wip.bundle` (`c038b95`): retired at 15:20, because the lane is integrated as `cc351e5`. The bundle, with the lane's
-    fifteen commits, remains in this branch's history at `a8b58d8`;
-  - `RT-wip.bundle` (`943b43f`, the finished lane's head): retired after the 21:20 checkpoint, because the lane is integrated
-    as `dc19857`. It remains in this branch's history at `f94a9b4`;
-  - `MOR3-wip.bundle` (`a8ef60a`): retired at 13:45 UTC, because the lane is integrated as `e052b51`.
-
-  Each bundle needs `51ab032`, so restore it into a clone of this branch:
-  `git fetch docs/m7-plan/pass-state/wip/<KEY>-wip.bundle HEAD:lane/<KEY>`, then `git checkout lane/<KEY>`. The bundles carry
-  only `HEAD`, so the `git clone -b lane/<KEY> …` form this note gave at 11:12 fails ("Remote branch lane/MOR3 not found").
-  It was corrected at 13:20 after a restore test.
-- **Uncommitted edits of the paused clones:** none now.
-- **Retired at 15:20:** `g2-scenes-uncommitted-0f8ae2f.patch`. The resumed scenes stage committed those edits, and its clone
-  holds no uncommitted edit (a fresh snapshot at 15:31 is empty). The patch remains in this branch's history at `a8b58d8`.
-- **Retired at 23:20:** `RR-uncommitted-0a631db.patch`. Lane RR resumed from those edits and committed them (MEASURED: its
-  16 files, patched onto `0a631db`, are byte-identical to `955d78c`'s; at `ab5ec46`, 14 are unchanged and 2 have grown,
-  `SessionCloseTests.cs` by 207 lines and `SessionWorkbook.cs` by 39 with 1 removed). The patch remains in this branch's
-  history at `46c7a9d`.
-- **Retired at 15:21:** `RT-uncommitted-950d6d1.patch`. Lane RT resumed from that edit and committed it. The file as patched at
-  `950d6d1` differs from `4de0682`'s only by 81 lines that `4de0682` adds. The patch remains in this branch's history at
-  `afc7118`.
-- **G2 final, scenes stage: finished** (head `65c99ec`, 14:51 UTC; seven commits after `0f8ae2f`). `g2-scenes-65c99ec.patch`
-  holds the stage's committed work since trunk `21a181e` (39 files, +4,477/−39), as a binary patch of `prototypes/m7-gfx2`, and
-  replaces `g2-scenes-0f8ae2f.patch`, which remains in this branch's history at `a8b58d8`. It applies onto this branch's tree.
-  The workflow's trunk has taken the stage (`g2/trunk` at `65c99ec`), and its integration agent is running.
-- **Restore test (15:32, MEASURED).** In a fresh clone of this branch (`a8b58d8`), the G2 patch gives a `prototypes/m7-gfx2`
-  tree equal to `65c99ec`'s (`b55fa6f`).
+**Snapshots of the work in flight: automatic every 30 minutes since 2026-11-12 16:22 UTC** (Director, 2026-11-12: "Do
+stuff in a way that if i stop you, you are able to re continue without losing in your work").
+[`tools/snapshot.sh`](tools/snapshot.sh) writes every piece of unfinished work into [wip/](wip/) and pushes it as
+`docs: pass-state auto-snapshot … [skip ci]`; the commits touch only this folder's `wip/`, `notes/` and `tools/`, and skip CI.
+- **What it holds:** the G2 trunk's work since `21a181e` and every G2 stage clone's commits and uncommitted edits as binary
+  patches; every lane in flight as a bundle and an uncommitted-edits patch; the orchestrator's own unfinished clones (for
+  example CR-027's fix) as patches; every workflow's journal (`wip/journals/`, each finished agent's result); and the notes.
+- **[wip/SNAPSHOT.md](wip/SNAPSHOT.md)** names each file, its head, how it was made and how to restore it, with a restore
+  test run in a fresh clone of the branch at each snapshot.
+- **A stop loses at most the work since the last snapshot.** The finished work is on the branch (§1).
+- **Earlier checkpoints:** the manual checkpoints of 2026-11-11 and 2026-11-12 (to 15:20 UTC) and their retired bundles and
+  patches are in this branch's history; this README's earlier versions describe each.
 
 **CI on this branch.** From `0929d28` to `afc7118`, CI's build-and-test job failed at the charter check and skipped its build and
 test steps (§1, `93f2d8a`). Run 970 on `8e4a778` (MEASURED, read 16:30 UTC) succeeded in every job: build-and-test's 22 steps,
@@ -259,6 +243,9 @@ branch's head; for G2, use `"from": "final"`.
 
 ## 4. How to resume in a fresh session or container
 
+0. **Start from the latest snapshot:** [wip/SNAPSHOT.md](wip/SNAPSHOT.md) lists what was in flight and how to restore each
+   piece. Restore those first, then continue each item from where its files and journals show it stopped, instead of
+   starting it again.
 1. **Bootstrap.** Run `./scripts/bootstrap.sh` (the .NET 10 SDK; containers do not keep it). Read `CLAUDE.md`,
    `docs/current-state.md`, this README, then D-079..D-086.
 2. **Lanes.** The lane workflow takes `{base, lanes:[{key, title, brief}]}` from `args/<KEY>.json`. It:
