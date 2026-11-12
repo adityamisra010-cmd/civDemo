@@ -1,0 +1,205 @@
+diff --git a/prototypes/m7-gfx2/scripts/measure-polish2.py b/prototypes/m7-gfx2/scripts/measure-polish2.py
+new file mode 100644
+index 0000000..72b6d49
+--- /dev/null
++++ b/prototypes/m7-gfx2/scripts/measure-polish2.py
+@@ -0,0 +1,74 @@
++#!/usr/bin/env python3
++"""The measured figures of reports/polish2.md §1: region statistics of the canonical captures, before and after.
++
++Usage: measure-polish2.py BEFORE_DIR AFTER_DIR
++  BEFORE_DIR, AFTER_DIR: outputs of scripts/capture-scenes.sh (1920x1080; same folder and file names).
++Per region: mean RGB, HSV hue (degrees) and saturation of the mean colour, the median luminance standard deviation in
++24 px windows (local contrast), the share of near-white pixels (every channel 225 or more) and, over the brightest tenth
++of the region's pixels, the mean HSV saturation and the share above 0.75 (the golden-hour "neon" measure).
++Every frame measured here was rendered by llvmpipe (not Victus evidence); these are prototype frames, not production art.
++"""
++import colorsys
++import sys
++
++import numpy as np
++from PIL import Image
++
++BEFORE, AFTER = sys.argv[1:3]
++REGIONS = [  # name, shot, box (x0, y0, x1, y1 as fractions of the frame)
++    ("B wide noon, sky", "b/bench-b-wide-noon", (0.0, 0.0, 1.0, 0.18)),
++    ("C vista noon, sky", "c/bench-c-vista-noon", (0.0, 0.0, 1.0, 0.12)),
++    ("E vista golden, sky", "e/bench-e-vista-golden", (0.0, 0.0, 1.0, 0.18)),
++    ("C clash golden, foreground cover", "c/bench-c-clash-golden", (0.0, 0.80, 0.4, 0.98)),
++    ("C vista golden, foreground cover", "c/bench-c-vista-golden", (0.05, 0.80, 0.55, 0.97)),
++    ("A two-shot golden, ground", "a/bench-a-two-shot-golden", (0.0, 0.85, 1.0, 1.0)),
++    ("E river, far bank", "e/bench-e-river", (0.20, 0.42, 0.90, 0.80)),
++    ("C melee low, crowd", "c/bench-c-melee-low", (0.0, 0.38, 1.0, 0.85)),
++    ("B front, close soldiers", "b/bench-b-front", (0.0, 0.40, 0.75, 0.95)),
++    ("D field, the fallen cluster's ground", "d-shown/bench-d-shown-00-field", (0.25, 0.55, 0.55, 0.90)),
++    ("D fallen, ground around the bodies", "d-shown/bench-d-shown-06-fallen", (0.0, 0.0, 1.0, 1.0)),
++]
++
++
++def luminance(rgb):
++    return 0.2126 * rgb[..., 0] + 0.7152 * rgb[..., 1] + 0.0722 * rgb[..., 2]
++
++
++def local_std(lum, k=24):
++    return [lum[y:y + k, x:x + k].std() for y in range(0, lum.shape[0] - k + 1, k) for x in range(0, lum.shape[1] - k + 1, k)]
++
++
++def region(root, shot, box):
++    im = np.asarray(Image.open(f"{root}/{shot}.png").convert("RGB")).astype(np.float64)
++    h, w, _ = im.shape
++    x0, y0, x1, y1 = box
++    return im[int(y0 * h):int(y1 * h), int(x0 * w):int(x1 * w)]
++
++
++def stats(px):
++    mean = px.reshape(-1, 3).mean(0)
++    hh, ss, _ = colorsys.rgb_to_hsv(*(mean / 255.0))
++    lum = luminance(px)
++    contrast = float(np.median(local_std(lum))) if min(lum.shape) >= 24 else float(lum.std())
++    flat = px.reshape(-1, 3)
++    white = float((flat.min(1) >= 225).mean())
++    mx, mn = flat.max(1), flat.min(1)
++    sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0.0)
++    l = luminance(flat)
++    top = l >= np.quantile(l, 0.9)
++    return mean, hh * 360.0, ss, contrast, white, float(sat[top].mean()), float((sat[top] > 0.75).mean())
++
++
++def fmt(s):
++    mean, hue, sat, con, white, tsat, tneon = s
++    return (f"RGB {mean[0]:.0f},{mean[1]:.0f},{mean[2]:.0f} hue {hue:.0f} sat {sat:.2f} contrast {con:.1f} "
++            f"white {100 * white:.2f} % brightest-tenth sat {tsat:.2f} (>0.75: {100 * tneon:.0f} %)")
++
++
++print("llvmpipe, not Victus evidence; prototype frames")
++for name, shot, box in REGIONS:
++    try:
++        b = stats(region(BEFORE, shot, box)); a = stats(region(AFTER, shot, box))
++        print(f"{name}:\n  before {fmt(b)}\n  after  {fmt(a)}")
++    except FileNotFoundError as e:
++        print(f"{name}: missing {e.filename}")
+diff --git a/prototypes/m7-gfx2/scripts/review-sheets-polish2.py b/prototypes/m7-gfx2/scripts/review-sheets-polish2.py
+new file mode 100644
+index 0000000..da5485d
+--- /dev/null
++++ b/prototypes/m7-gfx2/scripts/review-sheets-polish2.py
+@@ -0,0 +1,119 @@
++#!/usr/bin/env python3
++"""Review sheets of the polish2 stage: BEFORE (polish1's canonical captures) against AFTER (the same shots captured on
++the polish2 build), one sheet per critic issue (full size, for the scratchpad), and two small review JPEGs for
++reports/captures/polish2 (the committed G2 budget is already used up: they are kept tiny).
++
++Usage: review-sheets-polish2.py BEFORE_DIR AFTER_DIR SHEETS_DIR REVIEW_DIR
++  BEFORE_DIR, AFTER_DIR: outputs of scripts/capture-scenes.sh (same folder and file names).
++Every legend says: llvmpipe, not Victus evidence. Placeholder graphics: these are prototype frames, not production art.
++"""
++import os
++import sys
++from PIL import Image, ImageDraw
++
++BEFORE, AFTER, SHEETS, REVIEW = sys.argv[1:5]
++LLVM = "llvmpipe, not Victus evidence; prototype graphics"
++
++
++def path(root, folder, name):
++    return os.path.join(root, folder, name + ".png")
++
++
++def load(p, size, crop=None):
++    if p is None or not os.path.exists(p):
++        im = Image.new("RGB", size, (40, 40, 40))
++        ImageDraw.Draw(im).text((8, 24), "missing: " + (os.path.basename(p) if p else "-"), fill=(220, 220, 220))
++        return im
++    im = Image.open(p).convert("RGB")
++    if crop:
++        w, h = im.size
++        x0, y0, x1, y1 = crop
++        im = im.crop((int(x0 * w), int(y0 * h), int(x1 * w), int(y1 * h)))
++    return im.resize(size, Image.LANCZOS)
++
++
++def label(draw, xy, text, w):
++    x, y = xy
++    draw.rectangle([x, y, x + min(w, len(text) * 6 + 6), y + 13], fill=(0, 0, 0))
++    draw.text((x + 3, y + 1), text, fill=(235, 235, 235))
++
++
++def sheet(title, rows, out, cell=(800, 450), quality=86):
++    """rows: list of (folder, shot, crop or None, caption)."""
++    w, h = cell
++    head = 34
++    img = Image.new("RGB", (2 * w + 6, head + len(rows) * (h + 4)), (16, 16, 16))
++    d = ImageDraw.Draw(img)
++    d.text((6, 4), title, fill=(255, 255, 255))
++    d.text((6, 18), "BEFORE (left: polish1) vs AFTER (right: polish2); " + LLVM, fill=(200, 200, 200))
++    for i, (folder, shot, crop, cap) in enumerate(rows):
++        y = head + i * (h + 4)
++        img.paste(load(path(BEFORE, folder, shot), cell, crop), (0, y))
++        img.paste(load(path(AFTER, folder, shot), cell, crop), (w + 6, y))
++        label(d, (0, y), f"before: {shot}{' (crop)' if crop else ''}", w)
++        label(d, (w + 6, y), f"after: {cap}", w)
++    img.save(out, quality=quality, optimize=True)
++    print(out)
++
++
++FACE = (0.25, 0.0, 0.75, 0.62)
++issues = [
++    ("01-helmet-hair", "Rank 1: no hair through a closed helmet (hair placed free, under or over the metal)", [
++        ("a", "bench-a-commander-battlecry", FACE, "commander battlecry"), ("a", "bench-a-two-shot", None, "two-shot"),
++        ("a", "bench-a-two-shot-golden", None, "two-shot golden"), ("a", "bench-a-line", None, "line")]),
++    ("02-clouds", "Rank 2: a deterministic cloud layer (heaps high sun, streaks low sun) and its shadows on the land", [
++        ("b", "bench-b-wide-noon", None, "wide noon"), ("c", "bench-c-vista-noon", None, "vista noon"),
++        ("e", "bench-e-vista-golden", None, "vista golden"), ("c", "bench-c-vista-dusk", None, "vista dusk")]),
++    ("03-aftermath", "Rank 3: the aftermath (disarmed prisoners and fallen, kit on the ground, settled bodies, fires)", [
++        ("d-shown", "bench-d-shown-00-field", None, "field"), ("d-shown", "bench-d-shown-01-prisoners", None, "prisoners"),
++        ("d-shown", "bench-d-shown-06-fallen", None, "fallen"), ("d-cutaway", "bench-d-cutaway-06-cutaway", None, "cut-away")]),
++    ("04-river", "Rank 4: the river's banks (turf and earth, damp ragged wet band, darker rock, soft water edge)", [
++        ("e", "bench-e-river", None, "river"), ("e", "bench-e-settlement", None, "settlement"),
++        ("e-rain", "bench-e-river", None, "river, rain")]),
++    ("05-golden", "Rank 5: golden-hour ground cover (gamut compression, capped transmission chroma, per-tuft hue)", [
++        ("c", "bench-c-clash-golden", None, "clash golden"), ("c", "bench-c-vista-golden", None, "vista golden"),
++        ("a", "bench-a-two-shot-golden", None, "two-shot golden"), ("b", "bench-b-wide-golden", None, "wide golden")]),
++    ("06-crowd", "Rank 6: the close crowd (duller iron, muted dyes, weathered paint; LOD meshes unchanged)", [
++        ("c", "bench-c-melee-low", None, "melee low"), ("b", "bench-b-front", None, "front"),
++        ("b", "bench-b-between", None, "between")]),
++    ("07-marks", "Rank 7: the battle's marks (trodden turf, no grass through bodies, kit dropped in flight, dust)", [
++        ("d-shown", "bench-d-shown-00-field", None, "field"), ("d-shown", "bench-d-shown-06-fallen", None, "fallen"),
++        ("c", "bench-c-clash-noon", None, "clash noon"), ("c", "bench-c-rout", None, "rout")]),
++    ("09-faces-mid", "Rank 9: mid-distance faces (crowd eye whites and teeth, warm beards, hero catchlights fade)", [
++        ("b", "bench-b-front", (0.0, 0.40, 0.33, 0.62), "front (crop)"), ("d-shown", "bench-d-shown-01-prisoners", None, "prisoners"),
++        ("d-shown", "bench-d-shown-02-surrender", None, "surrender")]),
++    ("12-avatar", "Rank 12: the player's avatar plays scene D's victorious commander", [
++        ("d-shown", "bench-d-shown-04-commander-face", None, "commander"), ("d-shown", "bench-d-shown-02-surrender", None, "surrender"),
++        ("d-shown", "bench-d-shown-05-standards", None, "standards")]),
++]
++os.makedirs(SHEETS, exist_ok=True)
++os.makedirs(REVIEW, exist_ok=True)
++for key, title, rows in issues:
++    sheet(title, rows, os.path.join(SHEETS, f"polish2-{key}.jpg"))
++
++
++def small(rows, cell, title, out, quality):
++    """rows: list of (folder, shot, crop, caption); two columns: before | after."""
++    cw, ch = cell
++    img = Image.new("RGB", (2 * (cw + 2), 26 + len(rows) * (ch + 2)), (16, 16, 16))
++    d = ImageDraw.Draw(img)
++    d.text((4, 2), title, fill=(255, 255, 255))
++    d.text((4, 13), "before (left) vs after (right); " + LLVM, fill=(200, 200, 200))
++    for i, (folder, shot, crop, cap) in enumerate(rows):
++        y = 26 + i * (ch + 2)
++        for j, root in enumerate([BEFORE, AFTER]):
++            x = j * (cw + 2)
++            img.paste(load(path(root, folder, shot), cell, crop), (x, y))
++            lab = ("before " if j == 0 else "after ") + cap
++            d.rectangle([x, y, x + len(lab) * 6 + 4, y + 11], fill=(0, 0, 0))
++            d.text((x + 2, y), lab, fill=(235, 235, 235))
++    img.save(out, quality=quality, optimize=True)
++    print(out, os.path.getsize(out))
++
++
++small([("b", "bench-b-wide-noon", None, "B wide noon"), ("c", "bench-c-clash-golden", None, "C clash golden"),
++       ("e", "bench-e-river", None, "E river"), ("d-shown", "bench-d-shown-00-field", None, "D field")],
++      (256, 144), "polish2: clouds, golden ground, river, battlefield marks", os.path.join(REVIEW, "polish2-01-before-after.jpg"), 48)
++small([("a", "bench-a-commander-battlecry", FACE, "A battlecry"), ("d-shown", "bench-d-shown-06-fallen", None, "D fallen"),
++       ("d-shown", "bench-d-shown-01-prisoners", None, "D prisoners"), ("c", "bench-c-melee-low", None, "C melee")],
++      (256, 144), "polish2: helmet hair, aftermath, crowd", os.path.join(REVIEW, "polish2-02-hair-aftermath-crowd.jpg"), 48)

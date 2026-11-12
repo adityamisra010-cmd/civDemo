@@ -2130,10 +2130,10 @@ index 0000000..e8bf40a
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
 new file mode 100644
-index 0000000..d5fb166
+index 0000000..794b6f3
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
-@@ -0,0 +1,704 @@
+@@ -0,0 +1,707 @@
 +using System.Globalization;
 +using Gfx.Chars.Animation;
 +using Gfx.Engine.Cameras;
@@ -2274,6 +2274,8 @@ index 0000000..d5fb166
 +    public TraceCrowd Troops { get; private set; } = null!;
 +    public AftermathPlan Outcome { get; private set; } = null!;
 +    public IReadOnlyList<AftermathShot> Beats => _beats;
++    /// <summary>Polish2 (critic rank 12): who plays the victors' commander: the player's avatar in its medieval outfit.</summary>
++    public const string CommanderIdentity = "avatar", CommanderOutfit = "era_medieval";
 +    readonly List<AftermathShot> _beats = new();
 +    SmokeLayer _smoke = null!;
 +    /// <summary>Polish2 (critic rank 3): the burnt-out carts the smoke rises from (null without plumes).</summary>
@@ -2342,8 +2344,9 @@ index 0000000..d5fb166
 +        if (Outcome.CommanderEntity < 0) return;
 +        var cast = EnsureCast();
 +        Vector3 G(Vector3 p) => new(p.X, Env.Terrain.HeightAt(p.X, p.Z), p.Z);
-+        // the commander: the victors' kit (stage-chars mail and surcoat), bare-headed, heater shield and arming sword
-+        var cBody = cast.Stage.Spawn("commander_a", "kit_a");
++        // the commander: polish2 (critic rank 12): the player's avatar (the persistent identity of the chars bake, in its
++        // medieval outfit) leads the victors, bare-headed, with a heater shield and an arming sword
++        var cBody = cast.Stage.Spawn(CommanderIdentity, CommanderOutfit);
 +        KitAssets.StripBakedKit(cBody);
 +        Gfx.Gear.Anim.CombatClips.Install(cBody.Asset);
 +        var cKit = new Loadout
@@ -6933,6 +6936,31 @@ index ea0af31..1db626b 100644
          fx.Parameters["Macro"]?.SetValue(_materials?.Macro ?? _detailA);
          _gd.SetVertexBuffer(_farVb); _gd.Indices = _farIb;
          rc.Apply(fx);
+diff --git a/prototypes/m7-gfx2/Gfx.Tests/CrowdTests.cs b/prototypes/m7-gfx2/Gfx.Tests/CrowdTests.cs
+index 40aff5b..26727e3 100644
+--- a/prototypes/m7-gfx2/Gfx.Tests/CrowdTests.cs
++++ b/prototypes/m7-gfx2/Gfx.Tests/CrowdTests.cs
+@@ -189,11 +189,18 @@ public class CrowdTests
+             var world = Matrix.CreateRotationY(0.6f);
+             var vp = Cam.View * Cam.Projection(1f);
+             Span<int> j = stackalloc int[4]; Span<float> w = stackalloc float[4];
+-            // variant 0's rows lie in the bank's first column, variant 7's in its last (the shader's column wrap)
++            // variant 0's rows lie in the bank's first column, variant 7's in its last (the shader's column wrap). Polish2:
++            // the bank gained two clips per identity (the surrender pose and the bind pose of dropped kit), which moved the
++            // thrust of variant 7 out of the last column; variant 7 is now sampled with the first of its moving clips whose
++            // frame lies in the last column (thrust, the surrender pose, the kneel, the cower)
+             Assert.True(crowd.Bank.Columns >= 2, $"{crowd.Bank.Columns} bank column(s)");
++            var look = CrowdLook.FromKey(7) with { Height = 1, Width = 1 };
++            int last7 = new[] { "thrust", CrowdPoseVariants.Surrender, "kneel", "cower" }.Select(CrowdRenderer.Clip)
++                .First(c => (int)crowd.Instance(7, world, c, 0.9f, c, 0.9f, 0, look).AnimA.X / CrowdAnimationBank.RowsPerColumn == crowd.Bank.Columns - 1);
+             foreach (int variant in new[] { 0, 7 })
+             {
+-                var inst = crowd.Instance(variant, world, thrust, 0.9f, thrust, 0.9f, 0, CrowdLook.FromKey(7) with { Height = 1, Width = 1 });
++                int clip = variant == 0 ? thrust : last7;
++                var inst = crowd.Instance(variant, world, clip, 0.9f, clip, 0.9f, 0, look);
+                 Assert.Equal(variant == 0 ? 0 : crowd.Bank.Columns - 1, (int)inst.AnimA.X / CrowdAnimationBank.RowsPerColumn);
+                 var px = Draw(gd, r, crowd, rt, rc => crowd.DrawRaw(rc, variant, 0, new[] { inst }));
+                 var (x0, y0, x1, y1, n) = Silhouette(sky, px);
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/KitTests.cs b/prototypes/m7-gfx2/Gfx.Tests/KitTests.cs
 index c6de489..b2ba2f2 100644
 --- a/prototypes/m7-gfx2/Gfx.Tests/KitTests.cs
@@ -7410,10 +7438,10 @@ index 0000000..77b5447
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
 new file mode 100644
-index 0000000..6cc5213
+index 0000000..97e84ee
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
-@@ -0,0 +1,679 @@
+@@ -0,0 +1,733 @@
 +using Gfx.Chars.Rendering;
 +using Gfx.Engine.Atmosphere;
 +using Gfx.Engine.Effects;
@@ -7956,7 +7984,7 @@ index 0000000..6cc5213
 +        var battle = Gfx.Demo.Scenes.Bench.BenchBattle.Load();
 +        var tr = battle.Trace;
 +        string before = tr.Hash();
-+        using var troops = new Gfx.Demo.Scenes.Bench.TraceCrowd(gd, battle, (x, z) => 0f) { ShowDead = true };
++        using var troops = new Gfx.Demo.Scenes.Bench.TraceCrowd(gd, battle, (x, z) => 0f) { ShowDead = true, DropKitInFlight = false };
 +        troops.Update(battle.Duration);
 +        int last = tr.StepCount - 1;
 +        var agents = troops.Crowd.Agents.ToArray();
@@ -8015,6 +8043,21 @@ index 0000000..6cc5213
 +            }
 +        }
 +        _out.WriteLine($"surrendered {sur}, dead {dead}, active {active}; props {props.Count}; armed looks {armedLooks}; disarmed views reach {maxUnarmed:F3} m");
++        // the kit thrown away in flight (rank 7): every dropped item belongs to a soldier the trace has routing at the
++        // item's step and lies where the trace has him then; at the battle's end all of them lie on the field
++        int flight = 0;
++        foreach (var d in troops.FlightDrops)
++        {
++            Assert.Equal(Gfx.Demo.Scenes.Bench.TraceSoldierState.Routing, Gfx.Demo.Scenes.Bench.BenchBattle.Map(tr.State(d.step, d.e)));
++            var (x, y) = tr.PosMm(d.step, d.e); var w = battle.World(x, y);
++            Assert.Equal(new Vector2(w.X, w.Z), d.at);
++            var v = troops.Crowd.Variants[agents[d.e].Variant];
++            if (d.item == Gfx.Chars.Crowd.CarriedItem.Weapon ? v.HasWeapon : v.HasShield) flight++;
++        }
++        troops.DropKitInFlight = true;
++        troops.Update(battle.Duration);
++        Assert.True(flight > 100, $"{flight} items dropped in flight");
++        Assert.Equal(expectProps + flight, troops.LastProps.Count);
 +        Assert.True(armedLooks >= 6, $"only {armedLooks} looks carry kit");
 +        Assert.True(maxUnarmed <= 0.40f, $"a disarmed view reaches {maxUnarmed:F3} m from the skeleton (kit left in the hands)");
 +        Assert.Equal(before, tr.Hash());
@@ -8091,6 +8134,45 @@ index 0000000..6cc5213
 +            if (a.shieldFlipped) flipped++;
 +        }
 +        Assert.InRange(flipped / (double)n, 0.30, 0.38);
++    }
++
++    // ------------------------------------------------------------------ rank 7: the battle's marks
++
++    /// <summary>
++    /// Critic rank 7: the trodden ground is a pure function of the trace (two calls agree bit for bit), only grows with
++    /// time (after half the battle no sample is more trodden than after all of it), marks some ground more than half
++    /// trodden and leaves most of the map untouched; the body mask holds a point on a body and not one 0.5 m beside it;
++    /// a dust source is silent outside its window and full inside it; the trace is not touched.
++    /// </summary>
++    [BenchCrowdFact]
++    public void BattleMarksAreAPureFunctionOfTheTrace()
++    {
++        var battle = Gfx.Demo.Scenes.Bench.BenchBattle.Load();
++        string before = battle.Trace.Hash();
++        var grid = Gfx.Proc.Authoritative.BattleTerrainGenerator.Generate(Gfx.Proc.Scenes.TerrainTemperateScene.FixtureInputs, out _);
++        var m = Gfx.Proc.Presentation.TerrainMeshData.Build(grid);
++        int last = battle.Trace.StepCount - 1;
++        var a = Gfx.Demo.Scenes.Bench.BattleMarks.Trodden(battle, m, last);
++        var b = Gfx.Demo.Scenes.Bench.BattleMarks.Trodden(battle, m, last);
++        Assert.Equal(a, b);
++        var half = Gfx.Demo.Scenes.Bench.BattleMarks.Trodden(battle, m, last / 2);
++        int grew = 0;
++        for (int i = 0; i < a.Length; i++)
++        {
++            Assert.InRange(a[i], 0f, 1f);
++            Assert.True(half[i] <= a[i], $"sample {i}: {half[i]} after half the battle, {a[i]} after all of it");
++            if (a[i] > half[i]) grew++;
++        }
++        int trodden = a.Count(v => v > 0.5f), untouched = a.Count(v => v == 0f);
++        _out.WriteLine($"samples {a.Length}: more than half trodden {trodden}, untouched {untouched}, grew in the second half {grew}");
++        Assert.True(trodden > 50 && untouched > a.Length / 2 && grew > 0, $"trodden {trodden}, untouched {untouched}, grew {grew}");
++        var mask = Gfx.Demo.Scenes.Bench.BattleMarks.BodyMask(new List<(Vector2, Vector2)> { (new Vector2(10f, 4f), new Vector2(11.7f, 4f)) });
++        Assert.True(mask(10.8f, 4.2f)); Assert.True(mask(9.8f, 4f));
++        Assert.False(mask(10.8f, 4.5f)); Assert.False(mask(13f, 4f)); Assert.False(mask(-10.8f, -4.2f));
++        var dust = SmokeSource.Dust(Vector3.Zero) with { ActiveFrom = 20f, ActiveTo = 34f };
++        Assert.Equal(0f, dust.WeightAt(19f)); Assert.Equal(0f, dust.WeightAt(35f)); Assert.Equal(1f, dust.WeightAt(27f));
++        Assert.InRange(dust.WeightAt(21.5f), 0.49f, 0.51f);
++        Assert.Equal(before, battle.Trace.Hash());
 +    }
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/Render2Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Render2Tests.cs
@@ -15177,17 +15259,19 @@ index 0000000..f889b17
 +echo "bench-scenes: done ($out)"
 diff --git a/prototypes/m7-gfx2/scripts/capture-scenes.sh b/prototypes/m7-gfx2/scripts/capture-scenes.sh
 new file mode 100755
-index 0000000..141ef9c
+index 0000000..28bcc76
 --- /dev/null
 +++ b/prototypes/m7-gfx2/scripts/capture-scenes.sh
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,69 @@
 +#!/usr/bin/env bash
 +# Canonical captures of stage scenes: the five benchmark scenes at 1920x1080 as accumulated stills (every shot at its
 +# own hour: B, C and E at noon, golden hour and dusk), both death-content states of scene D, and rain and mist looks of
-+# B, C and E.
++# B, C and E. Polish2 (critic ranks 12 and 13): the avatar's era triptych (one identity, three outfits) and, per
++# benchmark scene, a short interactive sequence (no still accumulation, TAA as in play: 12 frames at 1280x720 along a
++# slow orbit, frames 0, 6 and 11 saved), so the set shows how a frame looks in motion, not only accumulated stills.
 +#
 +# Usage: scripts/capture-scenes.sh OUT_DIR [GROUPS] [SAMPLES]
-+#   GROUPS: any of a,b,c,d,e,weather (default: all); SAMPLES: accumulation samples per still (default 8)
++#   GROUPS: any of a,b,c,d,e,weather,avatar,motion (default: all); SAMPLES: accumulation samples per still (default 8)
 +# Needs a Release build of M7Gfx2.slnx, the render1, env, chars, kit-outfit and crowd bakes, and the battle trace
 +# (scripts/export-battle-trace.sh). Frames rendered without a GPU are llvmpipe frames (not Victus evidence). The crowd
 +# soldiers of B, C and D are posed by CMU motion capture: PROTOTYPE-ONLY; scene A's cast and the heroes of B and D by the
@@ -15195,7 +15279,7 @@ index 0000000..141ef9c
 +set -euo pipefail
 +here="$(cd "$(dirname "$0")" && pwd)"
 +out="${1:?usage: capture-scenes.sh OUT_DIR [GROUPS] [SAMPLES]}"
-+groups="${2:-a,b,c,d,e,weather}"
++groups="${2:-a,b,c,d,e,weather,avatar,motion}"
 +samples="${3:-8}"
 +# G2_DEMO_DLL: another copy of the Release build to run (e.g. a copy of its bin folder, so the tree can be rebuilt while
 +# a long capture runs)
@@ -15212,6 +15296,14 @@ index 0000000..141ef9c
 +  echo "   $(( $(date +%s) - t0 )) s"
 +}
 +has() { case ",$groups," in *",$1,"*) return 0 ;; *) return 1 ;; esac; }
++mot() { # name scene shot: 12 interactive frames (aa=taa, one sample each) along a 0.25 degree-per-frame orbit
++  local name=$1 scene=$2 shot=$3
++  echo "== motion $name: $scene $shot"
++  local t0; t0=$(date +%s)
++  nice -n 10 dotnet "$demo" --motion "$scene" --shot "$shot" --frames 12 --orbit 0.25 --save 0,6,11 --size 1280x720 \
++    --set aa=taa --tag seq --out "$out/motion-$name" > "$out/motion-$name.log" 2>&1
++  echo "   $(( $(date +%s) - t0 )) s"
++}
 +# every shot of every scene (each scene's shots carry their own hours)
 +has a && cap a bench-a ""
 +has b && cap b bench-b ""
@@ -15229,6 +15321,15 @@ index 0000000..141ef9c
 +  cap c-mist bench-c weather=mist --shots vista-golden
 +  cap e-rain bench-e weather=rain --shots settlement,river
 +  cap e-mist bench-e weather=mist --shots vista-golden
++fi
++# the avatar: one identity in three eras (the chars bake's era outfits), and as scene D's victorious commander above
++has avatar && cap avatar-eras chars-eras "" --shots lineup,lineup-34
++if has motion; then
++  mot a bench-a two-shot
++  mot b bench-b front
++  mot c bench-c clash-noon
++  mot d bench-d-shown 01-prisoners
++  mot e bench-e settlement
 +fi
 +echo "capture-scenes: done ($out)"
 diff --git a/prototypes/m7-gfx2/scripts/export-battle-trace.sh b/prototypes/m7-gfx2/scripts/export-battle-trace.sh
