@@ -1,6 +1,6 @@
 # M7 pass state: what is done, what is in flight, and how to resume
 
-**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 07:20 UTC, WIP checkpoint (lane RR: fix round 1 finished at `861f9f9`; verification round 2 found no blocker or major finding, 3 minor and 6 nit; fix round 2 is running; CI green on `43a66ca`; throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
+**Living document, rewritten by the orchestrator at each step of the pass.** Last update: 2026-11-12 09:20 UTC, WIP checkpoint (lane RR: fix round 2 has committed four times, up to `4ba7f4b`, and is running its closing suites; CI green on `01b0509`; throttled to one agent). Its purpose (Director, 2026-11-11: "ensure everything is on the repo so that just in case we stop this pass in
 between, things arent lost and re started again"): if this session or its container is lost, a new session can pick up the
 pass from the repository alone, without redoing finished work.
 
@@ -57,8 +57,8 @@ final-round verification queue below. The orchestrator integrated the lane as `d
 **Running since 21:51 UTC: lane RR (D-086)**, resumed (`wf_b1a17355-cee`, base `51ab032`, [args/RR.json](args/RR.json)).
 No agent of its run had completed, so its implementation agent restarted and continued from its clone. The clone then held two
 WIP commits (`88f125e`, `0a631db`) and uncommitted edits in 16 files. Its brief gained a resume note (where it stopped, what the
-clone holds) and a note on the charters failure of its base, which `93f2d8a` fixed here. Since resuming, the lane has made ten
-commits (times from `git log`):
+clone holds) and a note on the charters failure of its base, which `93f2d8a` fixed here. Since resuming, the lane has made
+fourteen commits (times from `git log`):
 - `955d78c` (22:02): the 16 uncommitted files, byte for byte, with the test pins on telemetry/v6, the current-v6 export
   fixture and the workbook goldens re-pinned;
 - `b849773` (22:35): the host's exit decision in `GameUi`, export-log lines on a failed close, a trace check for half-year turns;
@@ -70,7 +70,13 @@ commits (times from `git log`):
 - `fe45f0b` (02:23, fix round 1): tests for repeatable-level completions, exposure credit, the Research sheet's NX row, the
   trace check's column rule and the keep-raw close; the headless export logs every failure (7 files, +348/−14);
 - `861f9f9` (06:09, fix round 1): the lane report's section 10 (verdicts, mutants, validation) and four lines of the main
-  report (docs only; 2 files, +220).
+  report (docs only; 2 files, +220);
+- `b2e7710` (07:32, fix round 2): tests for a city-state's research rows end to end, a node whose cost fell below its
+  progress, and the workbook step's progress on the saving screen, with the `GameUi` and `SessionClose` code they reach
+  (6 files, +387/−76);
+- `1e385ca` (07:43, fix round 2): the city-state test's docstring (1 file, +2/−2);
+- `1cdd101` (07:45) and `4ba7f4b` (08:28), fix round 2: the main report and the lane report, with section 11 (verdicts,
+  changes, tests, mutants) (docs only; together 2 files, +176/−11).
 
 The implementation agent finished at 00:08 UTC with head `8610ebd` (lane diff from `51ab032`: 44 files, +8,636/−111).
 **Verification round 1**, pinned to `8610ebd`, ran from 00:08 to 01:49 UTC. Its verifier reports that DE1 and DE2 are
@@ -119,7 +125,13 @@ The other six findings (RR-R2-04 to RR-R2-09) are nits:
 - two reporting slips: a cached pass is counted without its label, and the main report's counts were not updated.
 
 **Fix round 2** has been running since 07:04 UTC. The workflow runs at most two rounds, so it stops after this fix round,
-which will be unverified. RR then joins the final-round verification queue below.
+which will be unverified. RR then joins the final-round verification queue below. By 09:21 it had committed `b2e7710` to
+`4ba7f4b` (above). Its own logs, read then and not re-measured:
+- seven bounded mutants killed, each by a named semantic test;
+- the Debug Sim.Ui.Tests full suite passed (1,301 passed, 0 failed, 0 skipped);
+- the Debug Sim.Tests full suite running under the shared lock since 08:41 UTC.
+
+Lane diff from `51ab032` to `4ba7f4b`: 44 files, +9,669/−114 (MEASURED).
 
 Lane claims, from its handbacks. Verification rounds 1 and 2 report them reproduced where they re-measured them (above). The
 orchestrator measures again at integration. The main report is `docs/m6-plan/run-record-research-and-exit-2026-11.md` in the
@@ -152,12 +164,11 @@ Lanes MOR3 and RT each ran one verification round and one fix round, and neither
 3 minor and 5 nit; RT: 4 minor and 2 nit). So their fix rounds are unverified, like the final rounds of the six lanes above.
 Lane RR runs two rounds, and its fix round 2 will be unverified because the workflow stops after two.
 
-**Checkpoint 2026-11-12 07:20 UTC** (in [wip/](wip/); the previous one was at 03:20; the 05:21 check found nothing changed and
-made no commit):
+**Checkpoint 2026-11-12 09:20 UTC** (in [wip/](wip/); the previous one was at 07:20):
 - **Lane commits after `51ab032`, as bundles:**
-  - `RR-wip.bundle` (`861f9f9`, fix round 1's last commit; it was `fe45f0b` at 03:20, `8610ebd` at 01:20, `ab5ec46` at 23:20
-    and `0a631db` from 11:12 to 21:20). The lane is running fix round 2. Its clone was clean at 07:21, and its edits since
-    then are in flight and not snapshotted; only paused clones' edits are;
+  - `RR-wip.bundle` (`4ba7f4b`, fix round 2's fourth commit; it was `861f9f9` at 07:20, `fe45f0b` at 03:20, `8610ebd` at
+    01:20, `ab5ec46` at 23:20 and `0a631db` from 11:12 to 21:20). The lane is running fix round 2's closing suites. Its clone
+    was clean at 09:20, and any edits after that are in flight and not snapshotted; only paused clones' edits are;
   - `RT-wip.bundle` (`943b43f`, the finished lane's head): retired after the 21:20 checkpoint, because the lane is integrated
     as `dc19857`. It remains in this branch's history at `f94a9b4`;
   - `MOR3-wip.bundle` (`a8ef60a`): retired at 13:45 UTC, because the lane is integrated as `e052b51`.
@@ -167,7 +178,7 @@ made no commit):
   only `HEAD`, so the `git clone -b lane/<KEY> …` form this note gave at 11:12 fails ("Remote branch lane/MOR3 not found").
   It was corrected at 13:20 after a restore test.
 - **Uncommitted edits of the paused clones.** A binary patch against the head in its file name:
-  `g2-scenes-uncommitted-0f8ae2f.patch` (4 files). It is byte-identical to a fresh snapshot taken at 07:20, so unchanged since
+  `g2-scenes-uncommitted-0f8ae2f.patch` (4 files). It is byte-identical to a fresh snapshot taken at 09:20, so unchanged since
   13:20. Apply it with `git apply --binary <patch>` on its head. It snapshots work stopped mid-step, not a finished state.
 - **Retired at 23:20:** `RR-uncommitted-0a631db.patch`. Lane RR resumed from those edits and committed them (MEASURED: its
   16 files, patched onto `0a631db`, are byte-identical to `955d78c`'s; at `ab5ec46`, 14 are unchanged and 2 have grown,
@@ -178,19 +189,19 @@ made no commit):
   `afc7118`.
 - **G2 final, scenes stage**, unchanged since 13:20 (head `0f8ae2f`). `g2-scenes-0f8ae2f.patch` holds the stage's committed work
   since trunk `21a181e`, as a binary patch of `prototypes/m7-gfx2`. It applies onto this branch's tree.
-- **Restore test (07:20, MEASURED).** In a fresh clone of this branch (`43a66ca`):
-  - the RR bundle verified and fetched to `861f9f9`, with the lane commit's tree (`d3b3a9e`);
+- **Restore test (09:21, MEASURED).** In a fresh clone of this branch (`01b0509`):
+  - the RR bundle verified and fetched to `4ba7f4b`, with the lane commit's tree (`2a3ac9a`);
   - the G2 committed patch alone gives a `prototypes/m7-gfx2` tree equal to `0f8ae2f`'s (`c5c617a`);
   - both G2 patches give a tree equal to the scenes clone's working state (`a0309d3`).
 
 **CI on this branch.** From `0929d28` to `afc7118`, CI's build-and-test job failed at the charter check and skipped its build and
 test steps (§1, `93f2d8a`). Run 970 on `8e4a778` (MEASURED, read 16:30 UTC) succeeded in every job: build-and-test's 22 steps,
 including the whole Sim.slnx Test step (49 min) and the read-only proof; determinism; determinism-xproc; calibration. `ui-artifact`
-also succeeded. Every run since has succeeded in every job too (MEASURED, read 2026-11-12 07:21 UTC): runs 971 to 978, on
-`a2025c0`, `b90078b`, `f94a9b4`, `dc19857`, `46c7a9d`, `39cf76a`, `7364c86` and `43a66ca`, each with build-and-test's 22 steps,
+also succeeded. Every run since has succeeded in every job too (MEASURED, read 2026-11-12 09:22 UTC): runs 971 to 979, on
+`a2025c0`, `b90078b`, `f94a9b4`, `dc19857`, `46c7a9d`, `39cf76a`, `7364c86`, `43a66ca` and `01b0509`, each with build-and-test's 22 steps,
 determinism, determinism-xproc and calibration. Run 974 is the first on a `Sim.*` change of this pass (lane RT): its whole Sim.slnx Test
 step took 48 min and its determinism harness 17 min. `calibration-nightly` was skipped, as it runs only on schedule.
-`ui-artifact` runs 476 to 483 succeeded. The orchestrator reads the head's CI result after each push.
+`ui-artifact` runs 476 to 484 succeeded. The orchestrator reads the head's CI result after each push.
 
 ## 3. Queue after the items in flight
 

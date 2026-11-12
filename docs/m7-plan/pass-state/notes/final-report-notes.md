@@ -303,3 +303,16 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 - RR bundle fe45f0b -> 861f9f9 (316,978 bytes, written by the lane at 06:09:14Z).
 - G2 scenes (0f8ae2f): fresh snapshots byte-identical to 13:20.
 - Restore test MEASURED in a fresh clone of 43a66ca: the RR bundle verifies and fetches to 861f9f9 (tree d3b3a9e = the lane commit's); G2 committed patch alone gives c5c617a, both patches give a0309d3.
+
+## Checkpoint 2026-11-12 09:20Z (RR fix round 2 committed b2e7710..4ba7f4b; closing suites running)
+- CI on 01b0509 (read 09:22Z, MEASURED): CI run 979 succeeded in every job (build-and-test 22 steps, Test step 07:27:01-08:09:00Z; determinism 15.5 min; determinism-xproc; calibration; calibration-nightly skipped, schedule only); ui-artifact 484 succeeded.
+- RR fix round 2 (agent a9bf8ea4ee497e869) commits since 861f9f9 (git log times):
+  - b2e7710 07:32:07Z tests for city-state rows end to end, a cost that fell, the workbook step's progress (6 files +387/-76: ResearchObservationTests.cs, Fixtures/session-export/README.md, RunRecordResearchTests.cs, SessionCloseTests.cs, Sim.Ui/GameUi.cs, Sim.Ui/SessionClose.cs);
+  - 1e385ca 07:43:31Z the city-state test's docstring states only measured facts (1 file +2/-2);
+  - 1cdd101 07:45:42Z reports, section 11 (2 files +172/-10);
+  - 4ba7f4b 08:28:17Z main report section 2 points to the rounds' file lists; H-RR 11.1 wording (2 files +5/-2). 1e385ca..4ba7f4b together: 2 files +176/-11.
+  - 861f9f9..4ba7f4b: 8 files +563/-87. Lane diff 51ab032..4ba7f4b: 44 files +9,669/-114 (MEASURED).
+- Its own logs (m7c/RR-fix2/logs, read 09:21Z; lane claims, NOT re-measured): mutants-kill.out: W01, W06, W04, W10, W11, X1, X2 KILLED, each by a named semantic test, restored, git status clean; closing.status: Debug build 08:06:30-08:06:58Z rc=0; Debug Sim.Ui.Tests full 08:06:59-08:41:51Z rc=0, 1301/0/0 (34 m 49 s); Debug Sim.Tests full under the shared lock since 08:41:51Z.
+- RR-wip.bundle 861f9f9 -> 4ba7f4b (331,137 bytes, written by the lane at 08:28). Clone clean at 09:20.
+- G2 scenes (0f8ae2f): fresh snapshots byte-identical to 13:20 (cmp).
+- Restore test MEASURED (09:21Z) in a fresh clone of 01b0509: the RR bundle verifies and fetches to 4ba7f4b (tree 2a3ac9a = the lane commit's); G2 committed patch alone gives c5c617a, both patches give a0309d3.
