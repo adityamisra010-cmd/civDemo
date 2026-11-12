@@ -391,3 +391,7 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 
 ## Pace: work until ~01:40 UTC on 2026-11-13, then stop (Director, 2026-11-12 17:40 UTC)
 - The Director wrote "Stop all tasks and take a pause in 8 hours"; asked which reading, the Director chose "Work 8 h, then stop". The queue continues one agent at a time; at about 01:40 UTC every workflow, agent and loop stops after a final snapshot, the check-ins are disabled, the README says PAUSED, and the work waits for the Director's next message. A scheduled STOP message (send_later, 2026-11-13T01:40:00Z) does it; the check-in's prompt carries the same rule.
+
+## CI read at 18:25 UTC (CR-027 and D-089 DH8)
+- CI run 990 (ci.yml, 992cf50, containing CR-027's d794358): SUCCESS (17:23-18:13Z). ui-artifact 494 on 992cf50: SUCCESS.
+- ui-artifact 495 on 737e66b (DH8): SUCCESS. Build job 131368108556: "Write the launcher" printed the third launcher (@echo off / cd /d "%~dp0" / echo Rebuilding the run workbook from runs\.record - this window closes when it is done. / start /wait "" "app\Sim.Ui.exe" --export-session runs); "zip root: Continue last game.cmd Play civ-sim.cmd Rebuild the run workbook.cmd app"; artifact sim-ui-win-x64-737e66b, 82,961,529 bytes, sha256 4ef4cc93...2972d. windows-smoke job: SUCCESS (the shipped exe's headless ImGui smoke). CI run 991 (ci.yml, 737e66b): in progress at 18:27Z (read at the 19:40Z check-in).
