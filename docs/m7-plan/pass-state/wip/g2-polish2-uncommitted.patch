@@ -1,563 +1,90 @@
-diff --git a/prototypes/m7-gfx2/Gfx.Gear/Items/Helmets.cs b/prototypes/m7-gfx2/Gfx.Gear/Items/Helmets.cs
-index f361f42..aa654e0 100644
---- a/prototypes/m7-gfx2/Gfx.Gear/Items/Helmets.cs
-+++ b/prototypes/m7-gfx2/Gfx.Gear/Items/Helmets.cs
-@@ -6,6 +6,12 @@ using static Gfx.Gear.Maps.Noise;
- 
- namespace Gfx.Gear.Items;
- 
-+/// <summary>Which hair a covering test is asked about: scalp hair (shells, cards, tails) or the beard and moustache.</summary>
-+public enum HairKind { Scalp, Beard }
-+
-+/// <summary>Where a hair point sits relative to a helmet: free to show, under the metal, or over it (on its surface).</summary>
-+public enum HairPlace { Free, Under, Over }
-+
- /// <summary>Parameters of a helmet (fitted to one identity's head measurements).</summary>
- public sealed record HelmetSpec
- {
-@@ -82,12 +88,21 @@ public static class Helmets
-         bool bronze = spec.Kind is "corinthian" or "montefortino";
-         double eye = m.EyeY - cy;           // eye line in the head frame (about -0.03)
-         Func<double, double, double> keep;  // (azimuth, y) -> field, <= 0 keeps
-+        // polish2 (critic rank 1): the lower edge alone, without the openings ((azimuth, y) -> field, <= 0 on or above the
-+        // edge), written with the same expressions as keep's edge term; the shell mesh is built from keep as before
-+        Func<double, double, double> rim;
-         double bottom;
-         switch (spec.Kind)
-         {
-             case "corinthian":
-             {
-                 bottom = m.ChinY - cy - 0.005;
-+                rim = (az, y) =>
-+                {
-+                    double a = Math.Abs(az);
-+                    double low = bottom + 0.015 * Smoothstep(0.9, 1.5, a) + 0.045 * Smoothstep(1.45, 1.75, a) * (1 - Smoothstep(2.0, 2.5, a)) + 0.04 * Smoothstep(2.2, 2.9, a);
-+                    return low - y;
-+                };
-                 sh.Top += 0.006;
-                 sh.Extra = (az, y) =>
-                 {
-@@ -126,23 +141,27 @@ public static class Helmets
-                 sh.Top += 0.010;
-                 sh.Extra = (az, y) => 0.003 + 0.016 * Smoothstep(2.2, 3.1, Math.Abs(az)) * Smoothstep(eye + 0.05, eye + 0.008, y);
-                 keep = (az, y) => (bottom + 0.002 * Math.Cos(az)) - y;
-+                rim = keep;
-                 break;
-             case "nasal":
-                 bottom = eye + 0.022;
-                 sh.Top += 0.045; sh.Cone = 0.75;                                                   // a tall conical crown
-                 sh.Extra = (az, y) => 0.004 * (1 - Math.Max(0, y / sh.Top));
-                 keep = (az, y) => bottom - y;
-+                rim = keep;
-                 break;
-             case "kettle":
-                 bottom = eye + 0.030;
-                 sh.Extra = (az, y) => 0.006 + 0.012 * Math.Pow(Math.Max(0, y / sh.Top), 3);
-                 keep = (az, y) => bottom - y;
-+                rim = keep;
-                 break;
-             default: // greathelm
-                 bottom = m.ChinY - cy - 0.025;
-                 sh.Top += 0.004;
-                 sh.Extra = (az, y) => 0.012 + 0.010 * Smoothstep(eye, bottom, y);
-                 sh.SectionScale = _ => 1.0;
-+                rim = (az, y) => bottom - y;
-                 keep = (az, y) =>
-                 {
-                     double f = bottom - y;
-@@ -175,28 +194,103 @@ public static class Helmets
-             item.Parts.Add(new KitPart { Name = "crest", Mesh = Crest(spec, sh), Material = "hair", HairColour = spec.Crest });
-         if (spec.MapSize > 0) item.Maps["helmet"] = Paint(spec, mesh, bronze);
-         item.Frames["head"] = Matrix.Identity;
--        _covers[item.Id] = (sh, keep, bottom);
-+        // polish2: keyed by the item object (two wearers' helmets of one kind and seed share an id but not a fit)
-+        _covers.AddOrUpdate(item, new Cover(sh, keep, rim, bottom, spec.Kind is "corinthian" or "greathelm"));
-         return item;
-     }
- 
--    static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (Shape sh, Func<double, double, double> keep, double bottom)> _covers = new();
-+    sealed record Cover(Shape Sh, Func<double, double, double> Keep, Func<double, double, double> Rim, double Bottom, bool FacePlate);
-+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<KitItem, Cover> _covers = new();
- 
-     /// <summary>
-     /// True when a point (item space = head frame) lies inside the helmet: within the shell's section at its height
--    /// and not in an opening. Used to hide the wearer's hair under it.
-+    /// and not in an opening (the helmet's volume, 4 mm of slack outside the shell).
+diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs
+index 1776f5d..bc3461b 100644
+--- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs
++++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs
+@@ -32,8 +32,9 @@ public sealed class CrowdAnimationBank : IDisposable
+     /// and shield arms by a few degrees, so neighbours who blend two different variants never share one pose.
      /// </summary>
-     public static bool Covers(KitItem item, Vector3 p)
-     {
--        if (!_covers.TryGetValue(item.Id, out var c)) return false;
-+        if (!_covers.TryGetValue(item, out var c)) return false;
-         double y = p.Y;
--        if (y < c.bottom - 0.004 || y > c.sh.Top + 0.02) return false;
-+        if (y < c.Bottom - 0.004 || y > c.Sh.Top + 0.02) return false;
-         double az = Math.Atan2(p.X, p.Z);
--        if (c.keep(az, y) > 0.002) return false;                 // in an opening or below the edge
--        var q = c.sh.At(az, Math.Min(y, c.sh.Top - 1e-4));
-+        if (c.Keep(az, y) > 0.002) return false;                 // in an opening or below the edge
-+        var q = c.Sh.At(az, Math.Min(y, c.Sh.Top - 1e-4));
-         double rShell = Math.Sqrt(q.X * q.X + q.Z * q.Z), r = Math.Sqrt(p.X * p.X + p.Z * p.Z);
-         return r < rShell + 0.004;
-     }
+     public static readonly string[] VariantNames = CrowdPoseVariants.Names;
+-    /// <summary>Every clip of the bank, in bank order: <see cref="ClipNames"/> then <see cref="VariantNames"/>.</summary>
+-    public static readonly string[] AllClipNames = ClipNames.Concat(VariantNames).ToArray();
++    /// <summary>Every clip of the bank, in bank order: <see cref="ClipNames"/>, <see cref="VariantNames"/>, then (polish2) the
++    /// surrender pose derived from "kneel" (<see cref="CrowdPoseVariants.DeriveSurrender"/>).</summary>
++    public static readonly string[] AllClipNames = ClipNames.Concat(VariantNames).Append(CrowdPoseVariants.Surrender).ToArray();
  
-+    /// <summary>How far (m) outside a helmet's outer shell hair above its lower edge still counts as under it.</summary>
-+    public const double HairReach = 0.08;
-+
-+    /// <summary>
-+    /// Polish2 (critic rank 1): true when the wearer's hair at <paramref name="p"/> (item space = head frame) cannot be seen
-+    /// because the helmet is over it. Hair is under the helmet when it lies at or above the helmet's lower edge at its
-+    /// azimuth, no higher than 2 cm over the crown, and within <see cref="HairReach"/> of the outer shell: hair cannot
-+    /// stand off a helmeted head, so a strand or card outside the metal above the edge is a strand pushed through it.
-+    /// Openings show only the face and, for <see cref="HairKind.Beard"/>, the beard and moustache in them; scalp hair
-+    /// never shows through a face plate's eye openings, slots or breaths (the Corinthian and the great helm), whatever
-+    /// the opening test says. Below the edge hair hangs free.
-+    /// </summary>
-+    public static bool CoversHair(KitItem item, Vector3 p, HairKind kind) => PlaceHair(item, p, kind) != HairPlace.Free;
-+
-+    /// <summary>
-+    /// Where hair at <paramref name="p"/> (item space) sits relative to the helmet (see <see cref="CoversHair"/>): free
-+    /// (below the edge, beyond reach, or in an opening it may show through), under the metal (inside the outer shell),
-+    /// or over it (at or outside the outer shell, above the edge: a strand that would be drawn on the helmet's surface).
-+    /// A hair triangle with any corner over the metal is a strand drawn across the helmet.
-+    /// </summary>
-+    public static HairPlace PlaceHair(KitItem item, Vector3 p, HairKind kind)
-+    {
-+        if (!_covers.TryGetValue(item, out var c)) return HairPlace.Free;
-+        double y = p.Y;
-+        if (y > c.Sh.Top + 0.02) return HairPlace.Free;
-+        double az = Math.Atan2(p.X, p.Z);
-+        if (c.Rim(az, y) > 0.0) return HairPlace.Free;           // below the lower edge at this azimuth
-+        var q = c.Sh.At(az, Math.Min(y, c.Sh.Top - 1e-4));
-+        double rShell = Math.Sqrt(q.X * q.X + q.Z * q.Z), r = Math.Sqrt(p.X * p.X + p.Z * p.Z);
-+        if (r > rShell + HairReach) return HairPlace.Free;
-+        bool opening = c.Keep(az, y) > 0.002;
-+        if (opening && !(kind == HairKind.Scalp && c.FacePlate)) return HairPlace.Free;
-+        return r >= rShell - 0.003 ? HairPlace.Over : HairPlace.Under;
-+    }
-+
-+    /// <summary>
-+    /// Review aid (polish2): the terms <see cref="PlaceHair"/> decides on at a point (item space): the lower-edge field
-+    /// (&gt; 0 below the edge), the outer shell's radius and the point's radius at its azimuth and height (m), and
-+    /// whether the point lies in an opening. Null for an item not built here.
-+    /// </summary>
-+    public static (double rim, double rShell, double r, bool opening)? HairTerms(KitItem item, Vector3 p)
-+    {
-+        if (!_covers.TryGetValue(item, out var c)) return null;
-+        double az = Math.Atan2(p.X, p.Z);
-+        var q = c.Sh.At(az, Math.Min(p.Y, c.Sh.Top - 1e-4));
-+        return (c.Rim(az, p.Y), Math.Sqrt(q.X * q.X + q.Z * q.Z), Math.Sqrt(p.X * p.X + p.Z * p.Z), c.Keep(az, p.Y) > 0.002);
-+    }
-+
-+    /// <summary>
-+    /// Polish2: the helmet's outer envelope in item space: the shell surface from the crown down to the lower edge, with
-+    /// the face openings closed (one sided, outward). Test and review masks: everything the helmet stands in front of.
-+    /// Empty for an item that is not a helmet built here.
-+    /// </summary>
-+    public static KitMesh Envelope(KitItem item, int nu = 96, int nv = 48)
-+    {
-+        if (!_covers.TryGetValue(item, out var c)) return new KitMesh("envelope");
-+        var sh = c.Sh;
-+        double yTop = sh.Top, yBot = sh.Bottom - 0.02;
-+        var grid = Shapes.Grid(nu, nv, (u, v) =>
-+        {
-+            double az = Math.PI * (2 * u - 1);
-+            double y = yTop - (yTop - yBot) * (v * v * 0.35 + v * 0.65);
-+            if (v == 0) y = yTop - 1e-5;
-+            return sh.At(az, y);
-+        }, ShellRect, new Color(PartShell, 0, 0, 255));
-+        var rim = c.Rim;
-+        var clipped = Shapes.Clip(grid, (i, p) => rim(Math.Atan2(p.X, p.Z), p.Y), minIsland: 30);
-+        clipped.ComputeNormals(70f);
-+        Shapes.OrientOutward(clipped, new Vector3(0, (float)(sh.Bottom * 0.5), 0));
-+        clipped.ComputeNormals(70f);
-+        return clipped;
-+    }
-+
-     static KitMesh BuildShell(HelmetSpec spec, Shape sh, Func<double, double, double> keep)
-     {
-         bool hi = spec.Lod == 0;
-diff --git a/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitAssets.cs b/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitAssets.cs
-index 836e6f5..b2ac8c7 100644
---- a/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitAssets.cs
-+++ b/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitAssets.cs
-@@ -88,11 +88,11 @@ public static class KitAssets
- 
-     /// <summary>
-     /// Worn kit: each item is placed by aligning its frame with a socket of the identity (bind space) and bound rigidly to
--    /// the socket's bone. A covering test (a helmet's inner volume, in item space) trims the identity's hair: a hair
--    /// triangle whose centroid lies inside the helmet is left out of the view (keyed by <paramref name="id"/>).
-+    /// the socket's bone. A covering test (in item space, for scalp hair or the beard) trims the identity's hair: see
-+    /// <see cref="HairView"/> (the view is keyed by <paramref name="id"/>).
-     /// </summary>
-     public static CharAsset Worn(GraphicsDevice gd, CharAsset identity, string id, IEnumerable<(KitItem item, string frame, KitSocket socket)> items,
--        KitTextureCache cache, Func<KitItem, Vector3, bool>? covers = null)
-+        KitTextureCache cache, Func<KitItem, Vector3, HairKind, HairPlace>? covers = null)
-     {
-         var f = new CharacterFile();
-         f.Info["id"] = id;
-@@ -130,17 +130,73 @@ public static class KitAssets
-         return asset;
+     public int Bones { get; }
+     public int Rows { get; }
+@@ -66,6 +67,8 @@ public sealed class CrowdAnimationBank : IDisposable
+                 ClipDef clip;
+                 if (c < ClipNames.Length)
+                     clip = identities[i].clips.Clip(ClipNames[c]) ?? throw new InvalidDataException($"identity {i}: clip {ClipNames[c]} missing");
++                else if (AllClipNames[c] == CrowdPoseVariants.Surrender)
++                    clip = CrowdPoseVariants.DeriveSurrender(identities[i].skeleton, _clips[i][Array.IndexOf(ClipNames, "kneel")]);
+                 else
+                 {
+                     var (baseName, variant) = CrowdPoseVariants.Parse(AllClipNames[c]);
+diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs
+index b02589f..81dd034 100644
+--- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs
++++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs
+@@ -151,4 +151,60 @@ public static class CrowdPoseVariants
+             Source = clip.Source + " (polish1 pose variant)",
+         };
      }
- 
--    /// <summary>The triangles (index triples) of a hair mesh whose centroid no covering item contains.</summary>
--    public static uint[] HairView(MeshDef hm, IReadOnlyList<(KitItem item, string frame, KitSocket socket)> items, Func<KitItem, Vector3, bool> covers)
-+    /// <summary>Which hair a mesh is (beards and moustaches by name; everything else scalp hair, shells, cards and tails).</summary>
-+    public static HairKind KindOf(MeshDef hm) => hm.Name.StartsWith("beard", StringComparison.Ordinal) ? HairKind.Beard : HairKind.Scalp;
++
++    /// <summary>Polish2: the bank name of the surrender pose (<see cref="DeriveSurrender"/>).</summary>
++    public const string Surrender = "kneel@surrender";
++
++    /// <summary>Upper-arm and forearm directions of the surrender pose in character space (the character faces +Z,
++    /// its left is +X): both arms raised in an open V a little forward of the head, forearms almost upright.</summary>
++    public static readonly Vector3 SurrenderUpperArmL = Vector3.Normalize(new Vector3(0.36f, 0.86f, 0.30f)),
++        SurrenderForearmL = Vector3.Normalize(new Vector3(0.14f, 0.97f, 0.16f));
 +
 +    /// <summary>
-+    /// Shell layers of a fur or scalp-shell mesh as the bake writes them (tools/charbake/hair.py: <c>fur_shells</c>,
-+    /// <c>scalp_shells</c>): <c>layers</c> blocks of the same vertices, block k (1-based) offset k/layers of the strand
-+    /// length off the skin, its fraction in vertex colour alpha (truncated to 8 bits), its UVs those of block 1. Returns
-+    /// 0 when the mesh is not laid out that way (cards, or a file from another bake).
++    /// Polish2 (critic rank 3; PRESENTATION ONLY): the surrender pose, laid over every frame of the kneel clip: both upper
++    /// arms and forearms turned (in world space at their joints) onto the raised directions above, so the open hands stand
++    /// above the head, and the gaze bowed to a mean of 30° below level (half at the neck, half at the head). The kneel
++    /// itself, the pelvis track and the clip's length are kept. A pure function of the skeleton and the clip.
 +    /// </summary>
-+    public static int ShellLayers(MeshDef hm)
++    public static ClipDef DeriveSurrender(Skeleton s, ClipDef kneel)
 +    {
-+        if (hm.Material is not ("fur" or "hairshell") || hm.VertexCount == 0) return 0;
-+        int aMin = 255;
-+        for (int i = 0; i < hm.VertexCount; i++) aMin = Math.Min(aMin, hm.Colors[4 * i + 3]);
-+        if (aMin <= 0) return 0;
-+        int layers = (int)Math.Round(255.0 / aMin);
-+        if (layers < 2 || hm.VertexCount % layers != 0) return 0;
-+        int n = hm.VertexCount / layers;
-+        for (int i = 0; i < hm.VertexCount; i += Math.Max(1, hm.VertexCount / 257))
++        int n = s.Count;
++        var pose = new Pose(n); var g = new Quaternion[n]; var hd = new Vector3[n];
++        int pelvis = s.TryIndex("pelvis", out int pv) ? pv : -1;
++        int neck = s["neck_01"], head = s["head"];
++        var arms = new[] { (s["upperarm_l"], s["lowerarm_l"], s["hand_l"], 1f), (s["upperarm_r"], s["lowerarm_r"], s["hand_r"], -1f) };
++        var face = FaceForward(s);
++        var rot = new Quaternion[kneel.Frames * n];
++        for (int f = 0; f < kneel.Frames; f++)
 +        {
-+            int k = i / n + 1;
-+            int a = (int)(k / (double)layers * 255.0);
-+            if (Math.Abs(hm.Colors[4 * i + 3] - a) > 1 || hm.Uvs[i] != hm.Uvs[i % n]) return 0;
-+        }
-+        return layers;
-+    }
-+
-+    /// <summary>
-+    /// The triangles (index triples) of a hair mesh no covering item hides (<paramref name="place"/> says where a point in
-+    /// item space sits: free, under the metal or over it). Polish2 (critic rank 1): a triangle is hidden when its centroid
-+    /// is under or over the metal, or when any corner is over it (a card crossing the helmet's lower edge with its top
-+    /// standing out over the rim; only the corners decide that, a triangle tucked under the metal shows below the edge),
-+    /// and a fur or scalp shell triangle also when its root is (the same triangle in the innermost shell, a millimetre
-+    /// or so off the skin): a strand rooted under the metal is hidden at every shell however far its shells reach, so
-+    /// shells do not extrude through the helmet.
-+    /// </summary>
-+    public static uint[] HairView(MeshDef hm, IReadOnlyList<(KitItem item, string frame, KitSocket socket)> items, Func<KitItem, Vector3, HairKind, HairPlace> place)
-     {
-         var toItem = items.Select(x => Matrix.Invert(x.socket.Bind) * x.item.Frame(x.frame)).ToArray();
-+        var kind = KindOf(hm);
-+        int layers = ShellLayers(hm);
-+        int n = layers > 0 ? hm.VertexCount / layers : 0;
-+        bool Hidden(Vector3 c)
-+        {
-+            for (int k = 0; k < items.Count; k++) if (place(items[k].item, Vector3.Transform(c, toItem[k]), kind) != HairPlace.Free) return true;
-+            return false;
-+        }
-+        bool Over(Vector3 c)
-+        {
-+            for (int k = 0; k < items.Count; k++) if (place(items[k].item, Vector3.Transform(c, toItem[k]), kind) == HairPlace.Over) return true;
-+            return false;
-+        }
-         var keep = new List<uint>();
-         for (int t = 0; t < hm.Indices.Length; t += 3)
-         {
--            var c = (hm.Positions[hm.Indices[t]] + hm.Positions[hm.Indices[t + 1]] + hm.Positions[hm.Indices[t + 2]]) / 3f;
--            bool hidden = false;
--            for (int k = 0; k < items.Count && !hidden; k++) hidden = covers(items[k].item, Vector3.Transform(c, toItem[k]));
--            if (!hidden) { keep.Add(hm.Indices[t]); keep.Add(hm.Indices[t + 1]); keep.Add(hm.Indices[t + 2]); }
-+            uint i0 = hm.Indices[t], i1 = hm.Indices[t + 1], i2 = hm.Indices[t + 2];
-+            Vector3 p0 = hm.Positions[i0], p1 = hm.Positions[i1], p2 = hm.Positions[i2];
-+            var c = (p0 + p1 + p2) / 3f;
-+            // corners and edge midpoints: a chord between two corners under a concave part of the shell (a flared nape)
-+            // can still cross the metal
-+            bool hidden = Hidden(c) || Over(p0) || Over(p1) || Over(p2) || Over((p0 + p1) * 0.5f) || Over((p1 + p2) * 0.5f) || Over((p2 + p0) * 0.5f);
-+            if (!hidden && layers > 0)
++            Load(s, kneel, f, pose);
++            Fk.Solve(s, pose, g, hd, pelvis);
++            foreach (var (upper, lower, hand, side) in arms)
 +            {
-+                var root = (hm.Positions[i0 % n] + hm.Positions[i1 % n] + hm.Positions[i2 % n]) / 3f;
-+                hidden = Hidden(root);
++                var upT = new Vector3(SurrenderUpperArmL.X * side, SurrenderUpperArmL.Y, SurrenderUpperArmL.Z);
++                var foT = new Vector3(SurrenderForearmL.X * side, SurrenderForearmL.Y, SurrenderForearmL.Z);
++                Turn(s, pose, g, upper, Q.Between(hd[lower] - hd[upper], upT));
++                Fk.Solve(s, pose, g, hd, pelvis);
++                Turn(s, pose, g, lower, Q.Between(hd[hand] - hd[lower], foT));
++                Fk.Solve(s, pose, g, hd, pelvis);
 +            }
-+            if (!hidden) { keep.Add(i0); keep.Add(i1); keep.Add(i2); }
-         }
-         return keep.ToArray();
-     }
-diff --git a/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitSoldier.cs b/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitSoldier.cs
-index 84c7c57..94e600c 100644
---- a/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitSoldier.cs
-+++ b/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitSoldier.cs
-@@ -57,7 +57,7 @@ public sealed class KitSoldier
-         if (kit.Helmet != null) worn.Add((kit.Helmet, "head", sockets["head"]));
-         foreach (var (item, frame, socket) in kit.Carried) worn.Add((item, frame, sockets[socket]));
-         if (worn.Count > 0)
--            world.Wear(body, wornId, worn, kit.Helmet != null ? (it, p) => it == kit.Helmet && Helmets.Covers(it, p) : null);
-+            world.Wear(body, wornId, worn, kit.Helmet != null ? (it, p, hk) => it == kit.Helmet ? Helmets.PlaceHair(it, p, hk) : HairPlace.Free : null);
-         if (kit.Right != null) RightProp = world.AddProp(kit.Right, Matrix.Identity);
-         if (kit.Left != null) LeftProp = world.AddProp(kit.Left, Matrix.Identity);
-     }
-diff --git a/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitWorld.cs b/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitWorld.cs
-index 1c57caf..cdf575a 100644
---- a/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitWorld.cs
-+++ b/prototypes/m7-gfx2/Gfx.Gear/Runtime/KitWorld.cs
-@@ -68,7 +68,7 @@ public sealed class KitWorld : IDisposable
-     }
- 
-     /// <summary>Dresses an identity instance in worn kit (items fixed to its sockets), trimming hair under covering items.</summary>
--    public CharAsset Wear(CharInstance inst, string id, IEnumerable<(KitItem item, string frame, Rig.KitSocket socket)> items, Func<KitItem, Vector3, bool>? covers = null)
-+    public CharAsset Wear(CharInstance inst, string id, IEnumerable<(KitItem item, string frame, Rig.KitSocket socket)> items, Func<KitItem, Vector3, HairKind, HairPlace>? covers = null)
-     {
-         var a = KitAssets.Worn(_gd, inst.Asset, id, items, Cache, covers);
-         _assets.Add(a);
-diff --git a/prototypes/m7-gfx2/Gfx.Tests/KitTests.cs b/prototypes/m7-gfx2/Gfx.Tests/KitTests.cs
-index c6de489..b2ba2f2 100644
---- a/prototypes/m7-gfx2/Gfx.Tests/KitTests.cs
-+++ b/prototypes/m7-gfx2/Gfx.Tests/KitTests.cs
-@@ -356,7 +356,7 @@ public sealed class KitTests
-         foreach (var kind in new[] { "corinthian", "kettle", "nasal" })
-         {
-             var helm = Helmets.Build(new HelmetSpec { Kind = kind, MapSize = 0, Lod = 1 }, m);
--            var kept = KitAssets.HairView(hair, new[] { (helm, "head", k["head"]) }, Helmets.Covers);
-+            var kept = KitAssets.HairView(hair, new[] { (helm, "head", k["head"]) }, Helmets.PlaceHair);
-             Assert.True(kept.Length < hair.Indices.Length * 0.6, $"{kind}: kept {kept.Length / 3} of {hair.TriangleCount} hair triangles");
-             // the crown is covered; a point in front of the eyes is not (eye openings, or no face guard at all)
-             var head = k["head"].Bind.Translation;
-diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
-new file mode 100644
-index 0000000..3fe171d
---- /dev/null
-+++ b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
-@@ -0,0 +1,241 @@
-+using Gfx.Chars.Rendering;
-+using Gfx.Engine.Cameras;
-+using Gfx.Engine.Diagnostics;
-+using Gfx.Engine.Rendering;
-+using Gfx.Engine.Scene;
-+using Gfx.Gear.Items;
-+using Gfx.Gear.Maps;
-+using Gfx.Gear.Rig;
-+using Gfx.Gear.Runtime;
-+using Microsoft.Xna.Framework;
-+using Microsoft.Xna.Framework.Graphics;
-+using Xunit;
-+
-+namespace Gfx.Tests;
-+
-+/// <summary>
-+/// Stage polish2 (the visual critic's second pass): helmets over hair (rank 1). Presentation only: every property here
-+/// is about what is drawn; nothing reads or writes a simulation.
-+/// </summary>
-+[Collection(EnvSerialCollection.Name)]
-+public sealed class Polish2Tests
-+{
-+    // review aid: POLISH2_HAIR_SIZE renders the hair frames larger (the test's pixel bounds assume the default)
-+    static readonly int W = int.TryParse(Environment.GetEnvironmentVariable("POLISH2_HAIR_SIZE"), out int sz) ? sz : 160, H = W;
-+
-+    sealed class Probe(CharStage stage) : IRenderContent
-+    {
-+        /// <summary>Back-face culling for the frame (the envelope mask), or null for the renderer's own state.</summary>
-+        public RasterizerState? Raster;
-+        public void DrawShadowCasters(RenderContext rc) { }
-+        public void DrawOpaque(RenderContext rc)
-+        {
-+            var prev = rc.Device.RasterizerState;
-+            if (Raster != null) rc.Device.RasterizerState = Raster;
-+            stage.DrawOpaque(rc);
-+            rc.Device.RasterizerState = prev;
++            // the head bowed: pitch about the face's lateral axis to 30 degrees below level
++            var fw = Q.Rotate(g[head], face);
++            float pitch = MathHelper.ToDegrees(MathF.Asin(Math.Clamp(fw.Y, -1f, 1f)));
++            var fh = new Vector3(fw.X, 0, fw.Z);
++            fh = fh.LengthSquared() > 1e-8f ? Vector3.Normalize(fh) : Vector3.UnitZ;
++            var bow = Q.Scale(About(Vector3.Cross(fh, Vector3.UnitY), -30f - pitch), 0.5f);
++            Turn(s, pose, g, neck, bow);
++            Fk.Solve(s, pose, g, hd, pelvis);
++            Turn(s, pose, g, head, bow);
++            Fk.Solve(s, pose, g, hd, pelvis);
++            Array.Copy(pose.Local, 0, rot, f * n, n);
 +        }
++        return new ClipDef
++        {
++            Name = Surrender, Loop = kneel.Loop, Fps = kneel.Fps, Frames = kneel.Frames, Bones = n, Speed = kneel.Speed,
++            Rotations = rot, Pelvis = (Vector3[])kneel.Pelvis.Clone(), Contacts = (byte[])kneel.Contacts.Clone(),
++            Source = kneel.Source + " (polish2 surrender pose)",
++        };
 +    }
-+
-+    /// <summary>
-+    /// The culling that keeps a mesh's outward faces: XNA culls by screen winding, and a triangle whose geometric normal
-+    /// (b - a) x (c - a) faces the camera winds counter-clockwise on screen. Decided by the majority of the mesh's
-+    /// triangles against their vertex normals (which <c>Shapes.OrientOutward</c> turned outward).
-+    /// </summary>
-+    static RasterizerState OutwardCulling(Gfx.Gear.Geometry.KitMesh m)
-+    {
-+        int agree = 0;
-+        for (int t = 0; t + 2 < m.Indices.Count; t += 3)
-+        {
-+            var a = m.Positions[m.Indices[t]]; var b = m.Positions[m.Indices[t + 1]]; var c = m.Positions[m.Indices[t + 2]];
-+            agree += Vector3.Dot(Vector3.Cross(b - a, c - a), m.Normals[m.Indices[t]]) > 0 ? 1 : -1;
-+        }
-+        return agree > 0 ? RasterizerState.CullClockwise : RasterizerState.CullCounterClockwise;
-+    }
-+
-+    static ForwardRenderer NewRenderer(GraphicsDevice gd)
-+    {
-+        var r = new ForwardRenderer(gd, TestGfx.Host.Effects);
-+        r.Settings.Shadows = false;
-+        r.Settings.Features.SetMany("autoexposure=0,bloom=0,grade=0,aa=none,farfield=0,ssao=0,contact=0");
-+        return r;
-+    }
-+
-+    /// <summary>Scalp-hair and beard pixels of one helmeted head, counted inside the helmet's envelope mask.</summary>
-+    internal sealed record HairCount(string Identity, string Helmet, int[] ScalpInMask, int[] BeardInMask, int[] ScalpTotal, int[] MaskTotal, int[] BeardTotal);
-+
-+    /// <summary>The eight camera azimuths (degrees; 0 = in front of the face).</summary>
-+    internal static readonly int[] Azimuths = { 0, 45, 90, 135, 180, 225, 270, 315 };
-+
-+    /// <summary>
-+    /// Renders an identity in the bind pose wearing one helmet (no crest) from eight azimuths around the head, and counts
-+    /// (a) scalp-hair pixels (shells, cards and tails: the frame with them minus the frame without them) and (b) beard
-+    /// pixels (likewise) that fall inside the helmet's envelope mask (the shell from the crown to its lower edge with
-+    /// the face openings closed, drawn alone with its back faces culled, eroded by one pixel): hair the helmet stands in
-+    /// front of. Brows and lashes are hidden in every
-+    /// frame (their hashed alpha changes per frame); nothing else in the frames varies (a control frame is drawn twice
-+    /// and must match). <paramref name="covers"/> is the hair-trimming rule under test (null: no trimming).
-+    /// </summary>
-+    internal static HairCount CountHair(GraphicsDevice gd, string identity, string helmet, Func<KitItem, Vector3, HairKind, HairPlace>? covers)
-+    {
-+        using var stage = new CharStage(gd);
-+        using var kit = new KitWorld(gd, stage);
-+        using var rt = new RenderTarget2D(gd, W, H, false, SurfaceFormat.Color, DepthFormat.None);
-+        using var r = NewRenderer(gd);
-+        var body = new CharInstance(stage.Asset(identity));
-+        stage.Instances.Add(body);
-+        var sockets = KitSockets.For(body.Asset);
-+        var m = KitSockets.Measure(body.Asset);
-+        var helm = Helmets.Build(new HelmetSpec { Kind = helmet, Seed = 3, MapSize = 64, Lod = 0, Crest = null }, m);
-+        var envMesh = Helmets.Envelope(helm);
-+        var envItem = new KitItem { Id = "test.envelope." + helmet, Kind = "test.envelope" };
-+        envItem.Parts.Add(new KitPart { Name = "envelope", Mesh = envMesh, Maps = "env" });
-+        var maps = new MapSet("env", 16, 16);
-+        maps.PaintMesh(envMesh, 1, _ => Texel.Of(new Vector3(0.9f, 0.1f, 0.6f), 0.6f, 0f));
-+        envItem.Maps["env"] = maps.Finish(1);
-+        envItem.Frames["head"] = Matrix.Identity;
-+        kit.Wear(body, "polish2-test", new[] { (helm, "head", sockets["head"]), (envItem, "head", sockets["head"]) },
-+            covers == null ? null : (it, p, k) => it == helm ? covers(it, p, k) : HairPlace.Free);
-+        stage.Invalidate();
-+        body.SolvePose();
-+
-+        var parts = body.AllParts().Select(p => (p.Name, p.Material)).Distinct().ToArray();
-+        string envPart = envItem.Id + ":envelope";
-+        bool IsScalp(string n) => KitAssets.IsHair(n) && !n.StartsWith("beard", StringComparison.Ordinal);
-+        bool IsBeard(string n) => n.StartsWith("beard", StringComparison.Ordinal);
-+        bool IsLod(string n) => n.EndsWith("_lod", StringComparison.Ordinal);
-+        void Show(Func<string, string, bool> visible)
-+        {
-+            body.HiddenParts.Clear();
-+            foreach (var (n, mat) in parts) if (!visible(n, mat) || IsLod(n)) body.HiddenParts.Add(n);
-+        }
-+        bool Base(string n, string mat) => n != envPart && !IsScalp(n) && !IsBeard(n) && mat is not ("brow" or "lash");
-+
-+        var centre = sockets["head"].Bind.Translation + new Vector3(0, -0.015f, 0);
-+        var res = new HairCount(identity, helmet, new int[8], new int[8], new int[8], new int[8], new int[8]);
-+        var probe = new Probe(stage);
-+        var envCull = OutwardCulling(envMesh);
-+        Color[] Frame(CameraPose cam)
-+        {
-+            r.Render(probe, cam, SunModel.At(11f), rt, 0f);
-+            return Capture.ReadPixels(rt);
-+        }
-+        static bool Differs(Color a, Color b) => Math.Abs(a.R - b.R) + Math.Abs(a.G - b.G) + Math.Abs(a.B - b.B) > 6;
-+        for (int k = 0; k < Azimuths.Length; k++)
-+        {
-+            float az = MathHelper.ToRadians(Azimuths[k]);
-+            var eye = centre + new Vector3(MathF.Sin(az) * 0.62f, 0.05f, MathF.Cos(az) * 0.62f);
-+            var cam = new CameraPose(eye, centre, 0.55f, 0.05f, 50f);
-+            Show((n, mat) => false); var sky = Frame(cam);
-+            Show((n, mat) => n == envPart); probe.Raster = envCull; var env = Frame(cam); probe.Raster = null;
-+            Show(Base); var bare = Frame(cam);
-+            var bare2 = Frame(cam);
-+            Assert.Equal(0, Capture.CountChanged(bare, bare2));
-+            Show((n, mat) => Base(n, mat) || IsScalp(n)); var scalp = Frame(cam);
-+            Show((n, mat) => Base(n, mat) || IsBeard(n)); var beard = Frame(cam);
-+            var marked = DumpDir != null ? (Color[])scalp.Clone() : null;
-+            // the envelope mask eroded by one pixel: the envelope's clipped edge and the solid helmet's rolled edge
-+            // rasterise up to a pixel apart along the lower edge
-+            var raw = new bool[W * H];
-+            for (int i = 0; i < W * H; i++) raw[i] = Differs(env[i], sky[i]);
-+            bool In(int x, int y) => x >= 0 && y >= 0 && x < W && y < H && raw[y * W + x];
-+            for (int i = 0; i < W * H; i++)
-+            {
-+                int x = i % W, y = i / W;
-+                bool mask = raw[i] && In(x - 1, y) && In(x + 1, y) && In(x, y - 1) && In(x, y + 1);
-+                if (raw[i]) res.MaskTotal[k]++;
-+                bool sh = Differs(scalp[i], bare[i]), bh = Differs(beard[i], bare[i]);
-+                if (sh) { res.ScalpTotal[k]++; if (mask) res.ScalpInMask[k]++; }
-+                if (bh) { res.BeardTotal[k]++; if (mask) res.BeardInMask[k]++; }
-+                if (marked != null && mask && (sh || bh)) marked[i] = sh ? Color.Red : Color.Cyan;
-+            }
-+            if (marked != null)
-+            {
-+                Directory.CreateDirectory(DumpDir!);
-+                var tag = $"{identity}-{helmet}-{(covers == null ? "untrimmed" : "trimmed")}-{Azimuths[k]:000}";
-+                using var img = new Texture2D(gd, W, H); img.SetData(marked);
-+                using (var fs = File.Create(Path.Combine(DumpDir!, tag + ".png"))) img.SaveAsPng(fs, W, H);
-+                img.SetData(env);
-+                using (var fs = File.Create(Path.Combine(DumpDir!, tag + "-env.png"))) img.SaveAsPng(fs, W, H);
-+            }
-+        }
-+        return res;
-+    }
-+
-+    /// <summary>Review aid: with POLISH2_HAIR_DUMP set, every counted frame is written there (hair inside the mask marked red, beard cyan).</summary>
-+    static readonly string? DumpDir = Environment.GetEnvironmentVariable("POLISH2_HAIR_DUMP");
-+
-+    static string Describe(HairCount c) => $"{c.Identity} in a {c.Helmet}: scalp hair in the mask by azimuth [{string.Join(",", c.ScalpInMask)}], " +
-+        $"beard in the mask [{string.Join(",", c.BeardInMask)}], scalp total [{string.Join(",", c.ScalpTotal)}], mask [{string.Join(",", c.MaskTotal)}]";
-+
-+    /// <summary>
-+    /// Critic rank 1 (polish2): a closed helmet shows none of its wearer's scalp hair. For three identities (a4: medium
-+    /// grey hair, long cards and 14 mm shells, and a 4 cm full beard, the case scene A showed; the avatar: tied back with a
-+    /// queue and a full beard; a2: short hair and a moustache) under the two face-plate helmets (Corinthian, great helm),
-+    /// seen from eight azimuths: no scalp-hair pixel lies inside the helmet's envelope mask (over the bronze or iron, or in
-+    /// its eye openings and slots), and from the sides and behind (90° to 270°) no beard pixel does either (no beard shell
-+    /// reaches out through the cheek guards). Controls in the test: with the hair left untrimmed the same frames show
-+    /// scalp hair inside the mask, so the count can see the fault; the masks are not empty.
-+    /// </summary>
-+    [CharsGfxFact]
-+    public void ClosedHelmetsShowNoHairThroughTheMetalFromAnySide() => TestGfx.Host.Invoke(gd =>
-+    {
-+        int controlHits = 0;
-+        foreach (var id in new[] { "a4", "avatar", "a2" })
-+            foreach (var helmet in new[] { "corinthian", "greathelm" })
-+            {
-+                var c = CountHair(gd, id, helmet, Helmets.PlaceHair);
-+                for (int k = 0; k < Azimuths.Length; k++)
-+                {
-+                    Assert.True(c.MaskTotal[k] > 2000, $"{Describe(c)}: the envelope mask at {Azimuths[k]}° has only {c.MaskTotal[k]} pixels");
-+                    Assert.True(c.ScalpInMask[k] == 0, $"{Describe(c)}: scalp hair inside the helmet at {Azimuths[k]}°");
-+                    if (Azimuths[k] >= 90 && Azimuths[k] <= 270)
-+                        Assert.True(c.BeardInMask[k] == 0, $"{Describe(c)}: beard through the metal at {Azimuths[k]}°");
-+                }
-+                if (id == "a4")
-+                {
-+                    var none = CountHair(gd, id, helmet, null);
-+                    controlHits += none.ScalpInMask.Sum();
-+                    Assert.True(none.ScalpInMask.Sum() > 500, $"control (untrimmed hair) {Describe(none)}: the count does not see hair inside the helmet");
-+                }
-+            }
-+        Assert.True(controlHits > 0);
-+    });
-+
-+    /// <summary>
-+    /// The trimming does not over-reach (polish2): hair below an open helmet's lower edge still shows. a4's long grey hair
-+    /// under a kettle hat and under a Montefortino is still drawn from every azimuth, and none of it inside the helmet's
-+    /// envelope mask.
-+    /// </summary>
-+    [CharsGfxFact]
-+    public void OpenHelmetsLeaveTheHairBelowTheirEdge() => TestGfx.Host.Invoke(gd =>
-+    {
-+        foreach (var helmet in new[] { "kettle", "montefortino" })
-+        {
-+            var c = CountHair(gd, "a4", helmet, Helmets.PlaceHair);
-+            for (int k = 0; k < Azimuths.Length; k++)
-+            {
-+                Assert.True(c.ScalpInMask[k] == 0, $"{Describe(c)}: scalp hair inside the helmet at {Azimuths[k]}°");
-+                Assert.True(c.ScalpTotal[k] > 150, $"{Describe(c)}: only {c.ScalpTotal[k]} hair pixels below the edge at {Azimuths[k]}°");
-+            }
-+        }
-+    });
-+
-+    /// <summary>
-+    /// The shell layout the root test relies on (polish2): every fur and scalp-shell mesh of the bake is recognised as
-+    /// layered blocks of the same vertices (a mesh from another bake would fall back to centroid tests), and card meshes
-+    /// are not.
-+    /// </summary>
-+    [CharsBakeFact]
-+    public void ShellMeshesAreRecognisedAsLayers()
-+    {
-+        var f = Gfx.Chars.Format.CharacterFile.Load(Path.Combine(Gfx.Engine.Assets.AssetRoot.Baked("chars"), "a4.g2ch"));
-+        var hair = f.Mesh("hair")!; var beard = f.Mesh("beard")!; var cards = f.Mesh("hair_long")!;
-+        Assert.Equal("hairshell", hair.Material);
-+        Assert.Equal(12, KitAssets.ShellLayers(hair));
-+        Assert.Equal(12, KitAssets.ShellLayers(beard));
-+        Assert.Equal(0, KitAssets.ShellLayers(cards));
-+        Assert.Equal(HairKind.Beard, KitAssets.KindOf(beard));
-+        Assert.Equal(HairKind.Scalp, KitAssets.KindOf(cards));
-+    }
-+}
+ }
