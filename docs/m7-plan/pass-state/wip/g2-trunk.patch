@@ -3971,7 +3971,7 @@ index dee79a6..db8fe53 100644
      }
  
 diff --git a/prototypes/m7-gfx2/README.md b/prototypes/m7-gfx2/README.md
-index 12e7b8e..8ce9ef7 100644
+index 12e7b8e..1e20caa 100644
 --- a/prototypes/m7-gfx2/README.md
 +++ b/prototypes/m7-gfx2/README.md
 @@ -48,7 +48,9 @@ external assets in `assets/` are pinned and fetched, but **no code uses them yet
@@ -3985,7 +3985,29 @@ index 12e7b8e..8ce9ef7 100644
  | `Gfx.Tests/` | xunit; `[GfxFact]` device tests skip, not fail, when no GL device can be created |
  | `fixtures/` | `battle-trace-combinedarms-s7.json`, the labelled battle-trace fixture from G1; `ez-rng-oracle.txt` and `ez-tree-js-reference.json`, the ez-tree port's reference outputs (stage env) |
  | `scripts/check-gfx-determinism.sh` | Integer-only scan of `Gfx.Proc/Authoritative` |
-@@ -241,3 +243,38 @@ Details, captures, llvmpipe costs, tests, mutants and what still looks placehold
+@@ -176,6 +178,21 @@ before (test `PerfEnvTapTests`). The suite's slots A–E still bind the G1 stand
+ `--bind A=chars-hero,…` runs the new scenes, which also need their bakes (`$G2_ASSETS/baked/chars`, `…/env`) that
+ the Windows package does not carry yet.
+ 
++**Since the scenes merge (`g2/trunk`, 2026-11-12):** the suite's default slots bind the five benchmark scenes
++(A=`bench-a`, B=`bench-b`, C=`bench-c`, D=`bench-d-shown`, E=`bench-e`; `--bind g1` restores the G1 stand-ins of the
++paragraph above), and `--gpu-selftest` renders its slot-A frame from `bench-a` (here, with the bakes: exit 0, slot A
++loaded in 46 s; llvmpipe, not Victus evidence). These scenes read the render1, env, chars, kit, crowd and trace bakes
++(`baked/render1`, `env`, `chars`, `kit`, `crowd`, `trace`: 184 files, 701,395,454 bytes here), and
++`scripts/package-victus.sh` copies none of them, so a package built from this tree cannot measure them yet. Measured
++here with `G2_ASSETS` pointing at an empty folder, which is what such a package would find: `--gpu-selftest` exits 1
++(`slot A render FAILED: FileNotFoundException: kit outfit bake missing`), and `run-benchmark.bat` judges a GPU check
++by its `VICTUS_CHECK` line and fails it on exit code 3 only, so its suite would still run; `--suite smoke` records 4
++run errors in 5 runs (A: kit outfit bake missing; B: character bake missing; C and D: battle trace missing); slot E
++runs and is reported with no flag, although it draws its trees and structures white (the stand-ins of `EnvTextures`,
++whose `Failures` list nothing reports) on G1's procedural ground materials (one `[terrain]` console line). The AFTER
++package (its own name and README text, these bakes in `assets/baked/` next to the executable, where `AssetRoot` looks,
++and the notices and PROTOTYPE-ONLY flags of `assets/PROVENANCE.md`) is a separate step.
++
+ ## Characters (stage chars)
+ 
+ Soldiers, the force A commander and the player avatar (G1 PlayerFixture identity) built from the MakeHuman CC0 core
+@@ -241,3 +258,38 @@ Details, captures, llvmpipe costs, tests, mutants and what still looks placehold
    to TAA; key 9 cycles none / FXAA / TAA.
  - **Reproduce:** `scripts/capture-render2.sh OUT_DIR`, `scripts/review-sheets-render2.py`, `scripts/bench-render2.sh
    OUT_DIR` (llvmpipe costs: crowd at 220 / 2,000 / 10,000, LOD sweep, culling, AO, contact shadows, TAA).

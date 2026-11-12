@@ -1,2 +1,0 @@
-# Checkpoint patches carry diff context lines with a single space; they are data, not source.
-*.patch -whitespace
