@@ -1,9 +1,9 @@
 diff --git a/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/CaptureChoiceTests.cs b/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/CaptureChoiceTests.cs
 new file mode 100644
-index 0000000..1544bc1
+index 0000000..17d7666
 --- /dev/null
 +++ b/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/CaptureChoiceTests.cs
-@@ -0,0 +1,225 @@
+@@ -0,0 +1,240 @@
 +using Proto.M7.Events;
 +using Proto.M7.Fixed;
 +using Proto.M7.War;
@@ -186,192 +186,61 @@ index 0000000..1544bc1
 +        Assert.Equal(live.W.OrderResults.ToArray(), replay.W.OrderResults.ToArray());
 +        Assert.Equal(live.R.Orders.HashHex(), replay.R.Orders.HashHex());
 +        Assert.Contains(replay.R.Windows, w => w.AfterOrders && w.InstantMs == Start);
-+        // the log's consequence flag has teeth: the same order logged as a window order is refused at the gate, and the city stays occupied
-+        var wrong = new SubTurnOrderLog();
-+        foreach (var o in live.R.Orders.Orders) wrong.Append(o.InstantMs, o.Kind, o.A, o.B);
-+        var mis = Assaulted(replay: wrong);
++        // the log's phase flag is replayed: the same two orders logged as window orders replay as a same-window choice (no consequence
++        // window opens; the windows and the world differ from the live run's)
++        var flat = new SubTurnOrderLog();
++        foreach (var o in live.R.Orders.Orders) flat.Append(o.InstantMs, o.Kind, o.A, o.B);
++        var mis = Assaulted(replay: flat);
 +        mis.R.RunUntil(Start + Day);
-+        Assert.Equal((byte)Disposition.Occupy, mis.W.SettlementOutcomes.Single().Disposition);
++        Assert.DoesNotContain(mis.R.Windows, w => w.AfterOrders);
++        Assert.NotEqual(live.R.WindowsHashHex(), mis.R.WindowsHashHex());
 +        Assert.NotEqual(live.W.StateHashHex(), mis.W.StateHashHex());
++        // and an order logged in the wrong phase is refused at the gate: the assault logged as a consequence-window order takes nothing
++        var wrong = new SubTurnOrderLog();
++        wrong.Append(Start, Assault.Item1, Assault.Item2, Assault.Item3, afterConsequence: true);
++        var none = Assaulted(replay: wrong);
++        none.R.RunUntil(Start + Day);
++        Assert.Empty(none.Siege.Captures);
++        Assert.Equal(1, none.S.RefusedCount);
 +    }
 +
 +    /// <summary>The event core's guards (EventRules R4's exception): a consequence can be raised only from a WINDOW ORDER at its own
-+    /// instant — not from a world event, and not from an order issued at a consequence window (no chain).</summary>
++    /// instant — not from a world event, and not from an order issued at a consequence window (no chain). Driven through the runner:
++    /// a world event at 10 (refused to raise), a window order at its window (raises: one consequence window at 10), an order at that
++    /// consequence window (refused to raise; nothing further opens).</summary>
 +    [Fact]
 +    public void ADecisionInstantIsRaisedOnlyByAWindowOrder_NeverByAWorldEventOrAConsequenceOrder()
 +    {
 +        var s = new EventScheduler(0);
-+        var world = new Probe(s);
-+        s.Schedule(10, EventClass.System, 0, 0, 1);
-+        s.ExecuteNext(world, out _);                                                    // a world event: refused
-+        Assert.IsType<InvalidOperationException>(world.Error);
-+        s.ScheduleOrder(10, 0, 2, 0, 0);
-+        world.Error = null;
-+        s.ExecuteNext(world, out _);                                                    // a window order: allowed
-+        Assert.Null(world.Error);
-+        s.ExecuteNext(world, out var consequence);
-+        Assert.Equal((byte)EventClass.OrderConsequence, consequence.Key.Class);
-+        s.ScheduleOrder(10, 1, 2, 0, 0, afterConsequence: true);
-+        s.ExecuteNext(world, out _);                                                    // an order at the consequence window: refused
-+        Assert.IsType<InvalidOperationException>(world.Error);
++        var world = new Probe();
++        s.Schedule(10, EventClass.Significant, 0, 0, 1);
++        var r = new Runner(s, world, new SignificantKinds(1, 3), true);
++        Assert.Equal(new RunResult(RunStatus.Interrupted, 10), r.RunUntil(100));
++        Assert.Single(world.Errors);                                                   // the world event could not raise one
++        r.IssueOrder(2, 0, 0);
++        Assert.Equal(new RunResult(RunStatus.Interrupted, 10), r.RunUntil(100));        // the window order raised one: asked at 10
++        Assert.True(r.Windows[^1].AfterOrders);
++        Assert.Equal((byte)EventClass.OrderConsequence, Assert.Single(r.Windows[^1].Hits).Class);
++        Assert.Equal(1, world.Consequences);
++        Assert.Single(world.Errors);
++        Assert.True(r.IssueOrder(2, 0, 0).AfterConsequence);
++        Assert.Equal(RunStatus.ReachedLimit, r.RunUntil(100).Status);                   // the consequence-window order could not
++        Assert.Equal(2, world.Errors.Count);
++        Assert.All(world.Errors, e => Assert.IsType<InvalidOperationException>(e));
++        Assert.Equal(1, world.Consequences);
++        Assert.Equal(2, r.Windows.Count);
 +    }
 +
 +    private sealed class Probe : IEventWorld
 +    {
-+        public Probe(EventScheduler s) { }
-+        public Exception? Error;
++        public readonly List<Exception> Errors = new();
++        public int Consequences;
 +        public bool IsLive(EntityRef e) => true;
 +        public void Execute(in ScheduledEvent ev, EventScheduler s)
 +        {
-+            if (ev.Key.Class == (byte)EventClass.OrderConsequence) return;
++            if (ev.Key.Class == (byte)EventClass.OrderConsequence) { Consequences++; return; }
 +            try { s.ScheduleConsequence(ev.Key.TimeMs, 0, 0, 3); }
-+            catch (Exception e) { Error = e; }
-+        }
-+    }
-+}
-diff --git a/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/ZzProbeOC.cs b/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/ZzProbeOC.cs
-new file mode 100644
-index 0000000..4301668
---- /dev/null
-+++ b/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/ZzProbeOC.cs
-@@ -0,0 +1,140 @@
-+// SCRATCH PROBE (lane OC completion stage) — never committed; removed by exact name before every commit.
-+using System.Text;
-+using Proto.M7.Fixed;
-+using Proto.M7.Spatial;
-+using Proto.M7.Tactical;
-+using Xunit;
-+using Xunit.Abstractions;
-+
-+namespace Proto.M7.Tests.LaneOC;
-+
-+public sealed class ZzProbeOC
-+{
-+    private readonly ITestOutputHelper _o;
-+    public ZzProbeOC(ITestOutputHelper o) { _o = o; }
-+
-+    private static Vec2L A(long cx, long cy) => MultiDomainScenarios.A(cx, cy);
-+
-+    public static BattleSetup OldAmphibious(ulong seed)
-+    {
-+        var g = new TerrainGrid(64, 40, MultiDomainScenarios.AmphibCell, TerrainClass.Open);
-+        for (int y = 0; y < 40; y++)
-+            for (int x = 0; x < 64; x++)
-+            {
-+                if (x <= 27) g.Set(x, y, TerrainClass.Water);
-+                else if (x <= 33 && y >= 3 && y <= 9) g.Set(x, y, TerrainClass.Hills, 20_000);
-+                else if (x >= 32 && x <= 37 && y >= 12 && y <= 31) g.Set(x, y, TerrainClass.Forest);
-+            }
-+        var forms = new[]
-+        {
-+            MultiDomainScenarios.Fleet(10, 0, DomainProfiles.TurretWarship, 2, A(12, 14)),
-+            MultiDomainScenarios.Fleet(11, 0, DomainProfiles.SteamTransport with { Capacity = 30 }, 2, A(6, 22)),
-+            new FormationSpec(12, 0, MultiDomainScenarios.Rifles50m, 50, A(6, 22)) { EmbarkedOn = 11 },
-+            MultiDomainScenarios.Flight(13, 0, DomainProfiles.StrikeAircraft, 1),
-+            MultiDomainScenarios.Flight(14, 0, DomainProfiles.Fighter, 1),
-+            new FormationSpec(20, 1, MultiDomainScenarios.Rifles50m, 50, A(34, 20)),
-+            new FormationSpec(21, 1, DomainProfiles.GunCrew, 5, A(31, 6)) { Weapons = new[] { DomainProfiles.CoastalGun } },
-+            new FormationSpec(22, 1, DomainProfiles.GunCrew, 5, A(40, 18)) { Weapons = new[] { DomainProfiles.AaGun } },
-+            new FormationSpec(23, 1, DomainProfiles.Sniper with { RangeCells = 14, SightCells = 16 }, 2, A(33, 26)),
-+            MultiDomainScenarios.Flight(24, 1, DomainProfiles.Fighter, 1),
-+        };
-+        return new BattleSetup(g, TerrainCostTable.PlaceholderTestTable(), ConcealmentTable.PlaceholderTestTable(),
-+            MultiDomainScenarios.Sides(new[] { A(35, 20) }, new[] { A(34, 20) }), forms, seed)
-+        { MultiDomain = new MultiDomainSetup { Rules = new DomainRules() }, Rules = new TacticalRules { SlotSpacingMm = 5_000 }, Defender = 1 };
-+    }
-+
-+    public static ScriptedController OldPlan() => new ScriptedController()
-+        .Add(0, new OrderRequest(10, OrderKind.Attack, 0, 21))
-+        .Add(0, new OrderRequest(13, OrderKind.Attack, 0, 21))
-+        .Add(0, new OrderRequest(14, OrderKind.Escort, 0, 13))
-+        .Add(1, new OrderRequest(11, OrderKind.MoveTo, 0, -1, A(27, 20)))
-+        .Add(2, new OrderRequest(10, OrderKind.Bombard, 0, -1, A(33, 18)))
-+        .Add(3, new OrderRequest(12, OrderKind.Disembark, 0, -1, A(31, 20)))
-+        .Add(6, new OrderRequest(12, OrderKind.Attack, 0, 20))
-+        .Add(8, new OrderRequest(12, OrderKind.Attack, 0, 23));
-+
-+    public static BattleSetup OldAmbush(ulong seed, bool mirrored)
-+    {
-+        var grid = TacticalScenarios.OpenField();
-+        long X(long col) => mirrored ? TacticalScenarios.MirrorColumn(col) : col;
-+        Vec2L C(long col, long row) => TacticalScenarios.Cell(X(col), row);
-+        for (long r = 0; r <= TacticalScenarios.FieldH - 1; r++) for (long c = 23; c <= 29; c++) grid.Set(X(c), r, TerrainClass.Jungle);
-+        var HI = UnitProfiles.HeavyInfantry;
-+        var forms = new[] { new FormationSpec(1, 0, HI, 50, C(14, 16)), new FormationSpec(2, 1, HI, 50, C(27, 16)) { Posture = Posture.Ambush } };
-+        var sides = new[]
-+        {
-+            new SideSpec(mirrored ? ExitEdge.East : ExitEdge.West) { Objectives = new[] { C(40, 16) } },
-+            new SideSpec(mirrored ? ExitEdge.West : ExitEdge.East) { Objectives = Array.Empty<Vec2L>() },
-+        };
-+        return new BattleSetup(grid, TerrainCostTable.PlaceholderTestTable(), ConcealmentTable.PlaceholderTestTable(), sides, forms, seed)
-+        { Rules = new TacticalRules(), Defender = 1 };
-+    }
-+
-+    private static string Sum(BattleResult r)
-+    {
-+        var sb = new StringBuilder();
-+        sb.Append($"{r.Resolver} {r.Reason} side {r.Side} holds {r.HoldsField} win {r.Winner}/{r.WinBasis} pulses {r.Pulses} end {r.EndMs} fight {r.FirstFightMs?.ToString() ?? "null"} trace {r.TraceHash[..8]} state {r.StateHash[..8]}");
-+        foreach (var f in r.Formations.OrderBy(f => f.FormationId))
-+            sb.Append($"\n   F{f.FormationId} s{f.Side} {f.Domain} start {f.Start} surv {f.Survivors} kil {f.Killed} sur {f.Surrendered} act {f.ActiveAtEnd} esc {f.Escaped} rout {f.RoutedEscaped} rej {f.RejoinedAtTie} mor {f.MoraleEnd} dmgD {f.DamageDealt} dmgT {f.DamageTaken} att {f.AttacksMade} emb {f.EmbarkedAtEnd} ent {f.EnteredAtMs?.ToString() ?? "-"}");
-+        return sb.ToString();
-+    }
-+
-+    [Fact]
-+    public void Probe_Amphibious()
-+    {
-+        foreach (ulong seed in new ulong[] { 42, 7, 3, 1 })
-+        {
-+            var o = Proto.M7.Tests.MultiDomain.DT.RunChecked(new TacticalBattle(OldAmphibious(seed), OldPlan(), MultiDomainScenarios.AmphibiousDefence()));
-+            var n = Proto.M7.Tests.MultiDomain.DT.RunChecked(new TacticalBattle(MultiDomainScenarios.Amphibious(seed), MultiDomainScenarios.AmphibiousPlan(), MultiDomainScenarios.AmphibiousDefence()));
-+            _o.WriteLine($"seed {seed} OLD {Sum(o)}\n   pers {o.Personnel!.Hash[..8]}");
-+            _o.WriteLine($"seed {seed} NEW {Sum(n)}\n   pers {n.Personnel!.Hash[..8]}");
-+        }
-+    }
-+
-+    [Fact]
-+    public void Probe_Ambush()
-+    {
-+        var co = AutoCoefficients.Sprint1;
-+        for (ulong seed = 1; seed <= 4; seed++)
-+            foreach (bool m in new[] { false, true })
-+            {
-+                var to = new TacticalBattle(OldAmbush(seed, m), new KnowledgeAi(), new KnowledgeAi()).Run();
-+                var tn = new TacticalBattle(ParityScenarios.Build(ParityScenarioId.Ambush, seed, m), new KnowledgeAi(), new KnowledgeAi()).Run();
-+                var ao = new AutoBattle(OldAmbush(seed, m), co).Run();
-+                var an = new AutoBattle(ParityScenarios.Build(ParityScenarioId.Ambush, seed, m), co).Run();
-+                _o.WriteLine($"seed {seed} mir {m}\n OLD T {Sum(to)}\n NEW T {Sum(tn)}\n OLD A {Sum(ao)}\n NEW A {Sum(an)}");
-+            }
-+    }
-+
-+    private static TerrainEffects WithTransmissionOne(TerrainEffects p)
-+    {
-+        int n = TerrainCostTable.ClassCount;
-+        var fh = new long[n]; var op = new bool[n]; var tr = new Q32[n]; var ft = new Q32[n]; var oc = new Q32[n];
-+        for (int i = 0; i < n; i++)
-+        {
-+            var c = (TerrainClass)i;
-+            fh[i] = p.FeatureHeightMm(c); op[i] = p.Opaque(c); tr[i] = Q32.One; ft[i] = p.Footing(c); oc[i] = p.OrderCap(c);
-+        }
-+        return TerrainEffects.Create(fh, op, tr, ft, oc, p.ClimbNum, p.ClimbDen, p.MeleeSlope, p.MissileElevation, p.GradientCap, p.CohesionFloor);
-+    }
-+
-+    [Fact]
-+    public void Probe_AmphibAttribution()
-+    {
-+        foreach (bool old in new[] { true, false })
-+        {
-+            BattleResult Run(TerrainEffects fx, InactivityModel model)
-+            {
-+                var s0 = old ? OldAmphibious(42) : MultiDomainScenarios.Amphibious(42);
-+                var s = s0 with { Effects = fx, Rules = s0.Rules with { Inactivity = model } };
-+                return Proto.M7.Tests.MultiDomain.DT.RunChecked(new TacticalBattle(s, old ? OldPlan() : MultiDomainScenarios.AmphibiousPlan(), MultiDomainScenarios.AmphibiousDefence()));
-+            }
-+            var off = Run(TerrainEffects.SliceCEquivalent(), InactivityModel.LegacySideDisengage);
-+            var tr1 = Run(WithTransmissionOne(TerrainEffects.Placeholder), InactivityModel.LegacySideDisengage);
-+            var on = Run(TerrainEffects.Placeholder, InactivityModel.LegacySideDisengage);
-+            var dir5 = Run(TerrainEffects.Placeholder, InactivityModel.HiddenStationary);
-+            string L(string n, BattleResult r) => $"{n}: {r.Reason} pulses {r.Pulses} trace {r.TraceHash} result {r.ResultHash()} state {r.StateHash} pers {r.Personnel!.Hash} F23dmg {r.Formations.Single(f => f.FormationId == 23).DamageDealt} diseng {string.Join(",", r.Formations.Select(f => f.DisengagedEscaped))}";
-+            _o.WriteLine($"{(old ? "OLD" : "NEW")}\n {L("off", off)}\n {L("tr1", tr1)}\n {L("on", on)}\n {L("dir5", dir5)}");
++            catch (InvalidOperationException e) { Errors.Add(e); }
 +        }
 +    }
 +}
@@ -426,7 +295,7 @@ index dfc19a2..60accb1 100644
  ///    stable event identity (source id, instant, kind, index), NEVER by Seq, window index or a sequential cursor that an
  ///    order or a stop could advance. So a draw does not depend on whether a window was shown, whether the runner stopped,
 diff --git a/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs b/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs
-index d0be6d2..d4ac4d7 100644
+index d0be6d2..c7688c2 100644
 --- a/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs
 +++ b/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs
 @@ -57,6 +57,27 @@ public sealed class EventScheduler
@@ -444,7 +313,7 @@ index d0be6d2..d4ac4d7 100644
 +    /// OrderConsequence event at the executing order's instant. Allowed only while an order of class PlayerOrder executes and only at
 +    /// its instant — so a world event, a consequence or an order issued at a consequence window can never raise one (no chain).
 +    /// </summary>
-+    internal long ScheduleConsequence(long timeMs, int priority, long sourceId, int kind, long a = 0, long b = 0, long c = 0)
++    public long ScheduleConsequence(long timeMs, int priority, long sourceId, int kind, long a = 0, long b = 0, long c = 0)
 +    {
 +        if (_lastKey.Class != (byte)EventClass.PlayerOrder || timeMs != _lastKey.TimeMs)
 +            throw new InvalidOperationException("a decision instant is raised only by a window order's consequence, at the order's instant (D-089 DH2)");

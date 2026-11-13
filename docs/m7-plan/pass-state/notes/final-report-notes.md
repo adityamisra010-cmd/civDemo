@@ -443,3 +443,18 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
   - RT2, then RX: 18-26.5 h;
   - then the report and close-out: 2-4 h.
   - About 20-30 hours in all; one stream at a time, about 50-70 hours.
+
+## Third hour at full power (2026-11-13 about 12:02-13:03 UTC; stopped 13:12 UTC), then PAUSED
+- The Director, about 12:02 UTC: "go full power for one hour".
+- The container had restarted at 12:01 UTC. tools/ramdisk-restore.sh rebuilt the RAM disk and polish round 3's clone.
+- Three workflows ran in parallel on 4 CPUs.
+- G2 polish round 3 made 4 commits (153b688, 20954de, a4ab145, 9dbf72d):
+  - the fallen relaxed apart after the settle (critic rank 3);
+  - the fallen beat framed by what it shows;
+  - the on-screen cloud-shadow test also checks the band past the fade;
+  - the report draft carries this sitting's measurements (Release test groups 325 / 0 / 0; mutants re-run).
+  It stopped in its last stage (builds, tests, costs, report, commit), with 4 uncommitted paths that include the review captures.
+- Lane OC's new completion stage built brief items 8 (4a8dd1d: the Ambush and Amphibious test battles inside the deployment thirds), 5 (695a748: one role per side, roles from the engagement) and 6 (f19d255: the ambush on the map). Item 7, the player's capture choice, was in progress: 8 uncommitted paths, saved as a patch.
+- Lane RT2 (new, base 3bdea00) made 2 commits: f4b0e8d (the date review's H1, H2, B1, K1, W1 and W2 applied, D-089 DH7) and 50e4642 (inspector prerequisite lines keep their grouping, DH4). The polish items N2-N6 were in progress: 7 uncommitted paths, saved as a patch.
+- The scheduled STOP message did not fire on time; the orchestrator stopped at 13:12 UTC and deleted it.
+- Resources: lowest available memory 2,506 MB; lowest free disk 152 MB; load up to 32 on 4 CPUs.
