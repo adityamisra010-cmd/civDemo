@@ -2314,10 +2314,10 @@ index 0000000..e8bf40a
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
 new file mode 100644
-index 0000000..9bfe3df
+index 0000000..0f5cd19
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
-@@ -0,0 +1,713 @@
+@@ -0,0 +1,764 @@
 +using System.Globalization;
 +using Gfx.Chars.Animation;
 +using Gfx.Engine.Cameras;
@@ -2668,7 +2668,7 @@ index 0000000..9bfe3df
 +    protected override void BuildShots()
 +    {
 +        _beats.Clear();
-+        _beats.AddRange(PlanBeats(Outcome, _cPos, _oPos, _cYaw, _fallen, FieldCentre(), PrisonersCentre(), Occluders(), G, ShieldSide()));
++        _beats.AddRange(PlanBeats(Outcome, _cPos, _oPos, _cYaw, _fallen, FieldCentre(), PrisonersCentre(), Occluders(), G, ShieldSide(), FallenViewScore));
 +        // the opening crane is high over the field: turned to the clearest view of the trees
 +        if (_beats.Count > 0 && _beats[0].Name == "field")
 +        {
@@ -2826,10 +2826,13 @@ index 0000000..9bfe3df
 +    /// close shot's way, the ground function (position, height above the ground) and the side of the commander's
 +    /// shield arm. Each close shot's camera is turned to the view with the fewest soldiers across it (<see cref="Solve"/>,
 +    /// <see cref="FirstClearest"/>). Beats 1-6 are the same in both content states; the 7th is "fallen"
-+    /// (<see cref="DeathContent.Shown"/>) or "cutaway".
++    /// (<see cref="DeathContent.Shown"/>) or "cutaway". Polish3: with <paramref name="fallenView"/> (a score of a view from
++    /// an eye to a target) the fallen beat takes the best of 48 views of the densest fallen (16 directions, 8, 11 and 14 m
++    /// off, 1.5 m up, looking at it); without it, the fixed view towards the prisoners.
 +    /// </summary>
 +    public static List<AftermathShot> PlanBeats(AftermathPlan plan, Vector3 commander, Vector3 officer, float commanderYaw,
-+        Vector3 fallen, Vector3 field, Vector3 prisoners, IReadOnlyList<Vector3> occ, Func<Vector3, float, Vector3> G, int shieldSide = 1)
++        Vector3 fallen, Vector3 field, Vector3 prisoners, IReadOnlyList<Vector3> occ, Func<Vector3, float, Vector3> G, int shieldSide = 1,
++        Func<Vector3, Vector3, float>? fallenView = null)
 +    {
 +        var beats = new List<AftermathShot>();
 +        float h = BenchHours.Golden;
@@ -2897,6 +2900,22 @@ index 0000000..9bfe3df
 +            var acr = new Vector3(-toP.Z, 0f, toP.X);
 +            var fT = G(fallen + toP * 5f, 0.6f);
 +            var fEye = Solve(G(fallen - toP * 4.5f + acr * 2.2f, 1.9f), fT, occ, G, 60f);
++            // polish3 (critic rank 3): the prisoners kneel among the fallen, so the fixed view had them in its foreground,
++            // hands up; the view is chosen by what it shows: of 48 from the edge of the fallen towards their densest part,
++            // the best by fallenView (a few bodies near, no living near, prisoners beyond; the first on a tie)
++            if (fallenView != null)
++            {
++                float best = float.NegativeInfinity;
++                for (int r = 0; r < 3; r++)
++                    for (int k = 0; k < 16; k++)
++                    {
++                        float a = k * MathF.Tau / 16f, dist = 8f + 3f * r;
++                        var dir = new Vector3(MathF.Sin(a), 0f, MathF.Cos(a));
++                        var eye = G(fallen + dir * dist, 1.5f); var tgt = G(fallen, 0.3f);
++                        float sc = fallenView(eye, tgt);
++                        if (sc > best) { best = sc; fEye = eye; fT = tgt; }
++                    }
++            }
 +            var fSide = Vector3.Normalize(Vector3.Cross(Vector3.Normalize(fT - fEye), Vector3.Up));
 +            beats.Add(Beat("fallen", fEye, fT, 0.75f, 0.1f, fSide * 4f, fSide * 4f, 5f, h, "the fallen where they fell"));
 +        }
@@ -2906,6 +2925,38 @@ index 0000000..9bfe3df
 +            beats.Add(new AftermathShot("cutaway", new CameraPose(G(mid - d * 12f, 1.8f), G(mid + d * 40f, 3f), 0.8f, 0.1f, 40000f),
 +                new CameraPose(G(mid - d * 12f, 2.6f), G(mid + d * 60f, 12f), 0.8f, 0.1f, 40000f), 5f, BenchHours.Dusk, "cut away to the smoke and the sky (death content cut away)"));
 +        return beats;
++    }
++
++    /// <summary>
++    /// Polish3 (critic rank 3): how well a view from <paramref name="eye"/> towards <paramref name="target"/> frames the
++    /// fallen beat: a few bodies near the camera and the prisoners beyond, not a carpet of the dead nor the living in front.
++    /// Every soldier as he lies or kneels at rest (the fallen settled and relaxed, the prisoners placed) inside the frame's
++    /// half-width (0.7 of the distance ahead) is counted near (1 to 6 m ahead) or beyond (6 to 20 m); the score is the near
++    /// bodies up to six, less 0.7 for each near body past six, 2 for each near prisoner and 3 for each near standing man,
++    /// plus 0.15 for each prisoner beyond (at most 40). Reads the trace only.
++    /// </summary>
++    float FallenViewScore(Vector3 eye, Vector3 target)
++    {
++        var tr = Battle.Trace; int last = tr.StepCount - 1;
++        var f = new Vector2(target.X - eye.X, target.Z - eye.Z);
++        if (f.LengthSquared() < 1e-6f) return float.NegativeInfinity;
++        f = Vector2.Normalize(f);
++        int bodiesNear = 0, prisonersNear = 0, standingNear = 0, prisonersBeyond = 0;
++        for (int e = 0; e < tr.Entities.Count; e++)
++        {
++            var st = BenchBattle.Map(tr.State(last, e));
++            if (st is not (TraceSoldierState.Dead or TraceSoldierState.Surrendered or TraceSoldierState.Active)) continue;
++            var (p, _) = Troops.Place(e, _tEnd);
++            var q = new Vector2(p.X, p.Z) + (st == TraceSoldierState.Dead ? Troops.SettleOffset(e) : st == TraceSoldierState.Surrendered ? Troops.PrisonerOffset(e) : Vector2.Zero);
++            var v = q - new Vector2(eye.X, eye.Z);
++            float along = Vector2.Dot(v, f), across = MathF.Abs(v.X * f.Y - v.Y * f.X);
++            if (along < 1f || along > 20f || across > along * 0.7f) continue;
++            bool near = along <= 6f;
++            if (st == TraceSoldierState.Dead) { if (near) bodiesNear++; }
++            else if (st == TraceSoldierState.Surrendered) { if (near) prisonersNear++; else prisonersBeyond++; }
++            else if (near) standingNear++;
++        }
++        return Math.Min(bodiesNear, 6) - 0.7f * Math.Max(0, bodiesNear - 6) - 2f * prisonersNear - 3f * standingNear + 0.15f * Math.Min(prisonersBeyond, 40);
 +    }
 +
 +    /// <summary>The centre of the densest cluster of the fallen on the field: the dead soldier with the most dead within
@@ -9146,10 +9197,10 @@ index 0000000..77c6a65
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs
 new file mode 100644
-index 0000000..cfec869
+index 0000000..03afce6
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs
-@@ -0,0 +1,482 @@
+@@ -0,0 +1,526 @@
 +using Gfx.Chars.Animation;
 +using Gfx.Chars.Crowd;
 +using Gfx.Chars.Format;
@@ -9269,7 +9320,8 @@ index 0000000..cfec869
 +    /// from 600 m up at its edge, under a noon sun and a 0.45 cover (an offset with thick cloud both under 1.5 km and
 +    /// beyond 4.5 km of the camera, found by the CPU twin), against the same frame without a layer: the brightness ratio
 +    /// follows the twin's seen shadow (r over 0.95); where the layer is thick (twin shadow under 0.4) the near ground keeps
-+    /// under 0.6 of its brightness and the far ground over 0.85.
++    /// under 0.6 of its brightness, the far ground over 0.85, and the ground between 4.5 and 7 km (just past the fade's
++    /// end) over 0.88.
 +    /// </summary>
 +    [GfxFact]
 +    public void FarCloudShadowsAreLiftedAndNearOnesAreNot() => TestGfx.Host.Invoke(gd =>
@@ -9307,7 +9359,7 @@ index 0000000..cfec869
 +        none.Render(scene, cam, sun, rt, 0f);
 +        var bare = Capture.ReadPixels(rt);
 +        var ratio = new List<double>(); var twin = new List<double>();
-+        double nearSum = 0, farSum = 0; int nn = 0, nf = 0;
++        double nearSum = 0, farSum = 0, midSum = 0; int nn = 0, nf = 0, nm = 0;
 +        for (int y = 0; y < h; y++)
 +            for (int x = 0; x < w; x++)
 +            {
@@ -9321,13 +9373,18 @@ index 0000000..cfec869
 +                float d = Vector3.Distance(g.Value, cam.Position);
 +                if (s < 0.4f && d < 1500f) { nearSum += q; nn++; }
 +                if (s < 0.4f && d > 4500f) { farSum += q; nf++; }
++                if (s < 0.4f && d > 4500f && d < 7000f) { midSum += q; nm++; }
 +            }
 +        double r = Pearson(ratio, twin);
-+        _out.WriteLine($"offset {off}; r = {r:F4}; thick cloud near ({nn} px) {nearSum / Math.Max(1, nn):F3}, far ({nf} px) {farSum / Math.Max(1, nf):F3}");
++        _out.WriteLine($"offset {off}; r = {r:F4}; thick cloud near ({nn} px) {nearSum / Math.Max(1, nn):F3}, far ({nf} px) {farSum / Math.Max(1, nf):F3}, 4.5-7 km ({nm} px) {midSum / Math.Max(1, nm):F3}");
 +        Assert.True(nn > 100 && nf > 100, $"{nn} near and {nf} far pixels under thick cloud");
 +        Assert.True(r > 0.95, $"brightness ratio against the twin's seen shadow: r = {r:F3}");
 +        Assert.True(nearSum / nn < 0.6, $"near ground under thick cloud keeps {nearSum / nn:F2} of its brightness");
 +        Assert.True(farSum / nf > 0.85, $"far ground under thick cloud keeps only {farSum / nf:F2} of its brightness");
++        // the fade has ended by 4.5 km (the critic: faded out between about 1.5 and 4 km): the band just past it keeps as
++        // much as the far ground (measured 0.929; 0.801 with the fade's end at 8 km)
++        Assert.True(nm > 100, $"{nm} pixels under thick cloud between 4.5 and 7 km");
++        Assert.True(midSum / nm > 0.88, $"ground 4.5-7 km away under thick cloud keeps only {midSum / nm:F2} of its brightness");
 +    });
 +
 +    // ------------------------------------------------------------------ rank 8: wetness never lifts luminance
@@ -9539,6 +9596,44 @@ index 0000000..cfec869
 +            Assert.True(MathF.Abs(Vector2.Distance(c1, c2) - want) < 1e-4f, $"pair {k}: closest points {Vector2.Distance(c1, c2):F5} apart, SegmentDistance {want:F5}");
 +        }
 +        Assert.Equal(before, tr.Hash());
++    }
++
++    /// <summary>
++    /// Rank 3: the fallen beat is framed by what it shows. Given a view score, the beat takes the best of its 48 views
++    /// round the densest fallen (16 directions, 8, 11 and 14 m off, 1.5 m up, looking at it): with a score that rewards
++    /// one direction and distance, the beat's camera stands there; with a score that is the same everywhere, the first
++    /// view (straight +z, 8 m off) wins the tie; without a score the beat keeps its fixed view. The other six beats do not
++    /// change with the score.
++    /// </summary>
++    [Fact]
++    public void FallenBeatTakesTheBestScoredView()
++    {
++        static Vector3 Flat(Vector3 p, float up) => new(p.X, up, p.Z);
++        var plan = new Gfx.Demo.Scenes.Bench.AftermathPlan(0, 1, true, 0, 1, Gfx.Demo.Scenes.Bench.DeathContent.Shown, 10, 5, 0, 7, 3);
++        var occ = new List<Vector3> { new(1.5f, 0f, 3f), new(-4f, 0f, 1f) };
++        var fallen = new Vector3(12, 0, 9);
++        List<Gfx.Demo.Scenes.Bench.AftermathShot> Beats(Func<Vector3, Vector3, float>? score) =>
++            Gfx.Demo.Scenes.Bench.BenchAftermathScene.PlanBeats(plan, Vector3.Zero, new Vector3(3, 0, 0), 0f, fallen,
++                new Vector3(30, 0, 30), new Vector3(5, 0, 2), occ, Flat, 1, score);
++        var none = Beats(null);
++        // the eye of the wanted view: direction 5 of 16 (112.5 degrees from +z), the middle distance (11 m)
++        float a = 5 * MathF.Tau / 16f;
++        var want = fallen + new Vector3(MathF.Sin(a), 0f, MathF.Cos(a)) * 11f + new Vector3(0, 1.5f, 0);
++        var picked = Beats((eye, target) => -Vector3.Distance(eye, want));
++        var flat = Beats((eye, target) => 0f);
++        Assert.Equal(none.Take(6), picked.Take(6));
++        // the still is taken at StillAt of the beat's slow move: that is where the chosen view stands
++        static (Vector3 eye, Vector3 target) Still(Gfx.Demo.Scenes.Bench.AftermathShot b) =>
++            (Vector3.Lerp(b.From.Position, b.To.Position, Gfx.Demo.Scenes.Bench.BenchAftermathScene.StillAt),
++             Vector3.Lerp(b.From.Target, b.To.Target, Gfx.Demo.Scenes.Bench.BenchAftermathScene.StillAt));
++        var f = picked[6];
++        Assert.Equal("fallen", f.Name);
++        var (eye, target) = Still(f);
++        Assert.True(Vector3.Distance(eye, want) < 1e-3f, $"the still stands at {eye}, the best view is at {want}");
++        Assert.True(Vector3.Distance(target, new Vector3(fallen.X, 0.3f, fallen.Z)) < 1e-3f, $"the still looks at {target}");
++        var first = fallen + new Vector3(0f, 1.5f, 8f);
++        Assert.True(Vector3.Distance(Still(flat[6]).eye, first) < 1e-3f, $"a tie goes to the first view: {Still(flat[6]).eye}");
++        Assert.True(Vector3.Distance(Still(none[6]).eye, eye) > 1f, "without a score the beat keeps its fixed view");
 +    }
 +
 +    /// <summary>
@@ -10489,7 +10584,7 @@ index dee79a6..db8fe53 100644
      }
  
 diff --git a/prototypes/m7-gfx2/README.md b/prototypes/m7-gfx2/README.md
-index 12e7b8e..9c241ff 100644
+index 12e7b8e..a32696a 100644
 --- a/prototypes/m7-gfx2/README.md
 +++ b/prototypes/m7-gfx2/README.md
 @@ -48,7 +48,9 @@ external assets in `assets/` are pinned and fetched, but **no code uses them yet
@@ -10525,7 +10620,7 @@ index 12e7b8e..9c241ff 100644
  ## Characters (stage chars)
  
  Soldiers, the force A commander and the player avatar (G1 PlayerFixture identity) built from the MakeHuman CC0 core
-@@ -241,3 +258,158 @@ Details, captures, llvmpipe costs, tests, mutants and what still looks placehold
+@@ -241,3 +258,160 @@ Details, captures, llvmpipe costs, tests, mutants and what still looks placehold
    to TAA; key 9 cycles none / FXAA / TAA.
  - **Reproduce:** `scripts/capture-render2.sh OUT_DIR`, `scripts/review-sheets-render2.py`, `scripts/bench-render2.sh
    OUT_DIR` (llvmpipe costs: crowd at 220 / 2,000 / 10,000, LOD sweep, culling, AO, contact shadows, TAA).
@@ -10676,8 +10771,10 @@ index 12e7b8e..9c241ff 100644
 +and its shadow edge softer; crowd beards keep a dark-brown floor; dead crowd soldiers lie with their arms down;
 +weathered walls (rain streaks, moss on top faces, grime low down); darker, mossier boulders; bronze helmets warmer and
 +smoother. Benchmark scenes only: the cloud offset search also keeps the shots' middle distance lit; hearth smoke over
-+the village; in scene D prisoners kneel apart from the fallen in four poses, dropped shields rest tilted, the victors
-+stand at rest without their spears, and the fallen beat is framed low and close.
++the village; in scenes C and D the fallen are relaxed apart after the settle (clear of each other, of the kneeling
++prisoners and of the men standing at the end; at most 2.5 m from the trace), in scene D prisoners kneel apart from the
++fallen in four poses, dropped shields rest tilted, the victors stand at rest without their spears, and the fallen beat
++is framed low and close by what it shows (of 48 views, a few bodies near, no living man near, the prisoners beyond).
 +
 +```
 +scripts/capture-scenes.sh OUT_DIR
@@ -10685,10 +10782,10 @@ index 12e7b8e..9c241ff 100644
 +scripts/measure-polish3.py BEFORE_DIR AFTER_DIR      # the critic's far/near luma boxes and region statistics
 +```
 diff --git a/prototypes/m7-gfx2/assets/PROVENANCE.md b/prototypes/m7-gfx2/assets/PROVENANCE.md
-index 607c164..188e5ec 100644
+index 607c164..fd956b8 100644
 --- a/prototypes/m7-gfx2/assets/PROVENANCE.md
 +++ b/prototypes/m7-gfx2/assets/PROVENANCE.md
-@@ -360,6 +360,103 @@ masked software-rasterised hierarchical depth buffer for occlusion culling (comm
+@@ -360,6 +360,104 @@ masked software-rasterised hierarchical depth buffer for occlusion culling (comm
  themselves (bounding-sphere fit, texel snapping, tent PCF, blend band) are render1's (§3.8); render2 adds their debug
  view, caster culling and tests.
  
@@ -10779,7 +10876,7 @@ index 607c164..188e5ec 100644
 +|---|---|---|---|---|
 +| Cloud-shadow distance fade, far-field rings, haze and low-sun colour (`GlslLib`, `CloudLayer`, `FarField.cs`, `G2TerrainEffects.FarField`, `SceneLighting.AerialTerms`) | none new (procedural; the far field's existing biome colours) | the shadow's depth faded with the camera distance; rings 7 % apart with wider normal footprints; normals flattened and the horizon's colour blended in with distance; a greener crop mean and a green floor with the sun low; the valley haze's phase and sun term reduced near the horizon | project code | own |
 +| Sky streaks and heap edges (`GlslLib.CloudLib` domain, `PostEffects` sky pass) | none (procedural) | less stretch; gap and fray noise; two fine edge octaves; the unlit far side darker with the sun low; chroma held at 0.35 saturation | project code | own |
-+| Prisoner placement, four surrender poses, fallen arms laid down, tilted shields, a no-weapon crowd view (`TraceCrowd`, `CrowdPoseVariants.DeriveKneelArms`/`LayArmsDown`, `CrowdAnimationBank`, `CrowdRenderer`) | the crowd LOD meshes (§3.12) and the CMU-derived `kneel`, `death_fwd` and `death_back` clips (§3.4, §3.9); the battle trace (§3.13), read only | two more poses derived from the kneel by turning the arms and bowing the head; the death clips' arms laid down once the body is down; per LOD mesh a view with the shield but not the weapon; offsets and tilts pure functions of the trace and entity ids | project code (the poses and laid-down clips are derivatives of CMU-derived clips: `LicenseRef-CMU-Mocap`, as the clips they are made from) | own / PROTOTYPE-ONLY (as the CMU base) |
++| Prisoner placement, the fallen relaxed apart (`TraceCrowd.RelaxFallen`), four surrender poses, fallen arms laid down, tilted shields, a no-weapon crowd view (`TraceCrowd`, `CrowdPoseVariants.DeriveKneelArms`/`LayArmsDown`, `CrowdAnimationBank`, `CrowdRenderer`) | the crowd LOD meshes (§3.12) and the CMU-derived `kneel`, `death_fwd` and `death_back` clips (§3.4, §3.9); the battle trace (§3.13), read only | two more poses derived from the kneel by turning the arms and bowing the head; the death clips' arms laid down once the body is down; the fallen bodies pushed apart by Jacobi passes and lifted off the living (at most 2.5 m from the trace); per LOD mesh a view with the shield but not the weapon; offsets and tilts pure functions of the trace and entity ids | project code (the poses and laid-down clips are derivatives of CMU-derived clips: `LicenseRef-CMU-Mocap`, as the clips they are made from) | own / PROTOTYPE-ONLY (as the CMU base) |
 +| Skin shade and penumbra (`CharEffects`), crowd beards (`CrowdEffects`), bronze helmets (`Helmets.Paint`) | the chars bake (§3.9), the generated helmets (§3.11) | a warm shade tone and a five-tap shadow average on skin; a dark-brown floor for beards and hair above the shoulders; a warmer, more saturated and smoother bronze with fewer bright scratches | project code | own |
 +| Wetness cap, puddle mask, grass transmission cap (`GlslLib.shadePbrFullSpec`, `G2TerrainEffects`, `GroundCover`) | the render1 and env bakes (§3.8, §3.10) | the wet shading scaled to the dry one's luminance where brighter; puddles only on level, low relief; the light through a card capped at 1.5 times its lit albedo; a darker base-to-tip gradient | project code | own |
 +| Wall weathering, boulders, hearth smoke (`StructureRenderer`, `Rocks.cs`, `Settlements.IronAgeVillage` hearths, `SmokeSource.Hearth`, `BenchBase`) | the env bakes (§3.10) | rain streaks, moss and grime on walls; darker, mossier boulders; thin smoke columns from some roundhouse roofs | project code | own |
@@ -10787,7 +10884,8 @@ index 607c164..188e5ec 100644
 +**Algorithms implemented from publications or common practice** (no code copied, no asset): distance-faded cloud
 +shadows and horizon-colour blending for aerial perspective (common practice), the Henyey–Greenstein phase function
 +(Henyey and Greenstein 1941), deterministic candidate search for spacing (common practice), luminance clamping (common
-+practice).
++practice), Jacobi relaxation of distance constraints with fixed points projected out (common practice in position-based
++layout), closest points of two segments (Ericson, Real-Time Collision Detection, 2005, §5.1.9).
 +
  ## 4. Licence identifiers used for non-standard terms
  
@@ -18329,6 +18427,245 @@ index 0000000..5b0045f
 +G2_REVIEW_CAM="ex,ey,ez,tx,ty,tz[,fovY]" dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --capture bench-d-shown --out DIR
 +                                                                       # review aid: any shot from another camera
 +```
+diff --git a/prototypes/m7-gfx2/reports/polish3.md b/prototypes/m7-gfx2/reports/polish3.md
+new file mode 100644
+index 0000000..67ac3ee
+--- /dev/null
++++ b/prototypes/m7-gfx2/reports/polish3.md
+@@ -0,0 +1,233 @@
++# G2 stage polish3: the visual critic's third pass, worked most visible first
++
++Stage agent polish3, branch `g2/polish3` (cut from `g2/trunk` f677707, polish2 integrated), 2026-11-13. Scope: the
++nine ranked issues of the visual critic's iteration 3 on the benchmark scenes A–E, as many as could be done well, then
++the canonical capture set again and before/after sheets per issue. MonoGame 3D only, presentation only (DR42: nothing
++here reads back into the simulation; the battle trace of scenes C and D is read-only, and the tests that read it hash it
++before and after). All numbers below were measured in this container on **llvmpipe (Mesa software GL on 4 logical
++CPUs, 15 GB RAM, shared with simulation lanes that built and ran their suites at the same time): llvmpipe, not Victus
++evidence**. No hardware GPU ran this code. The Director's quality references were used as references only; nothing
++player-facing names another game (D-069). These are prototype frames, not production art.
++
++**How the stage ran.** In two sittings. The first (to 4f8b953, 09:40 UTC) made the changes of ranks 1, 2, 4, 5, 7, 8
++and 9 and the first half of rank 3, with six tests, and captured a canonical set. The container then restarted, which
++emptied the RAM disk holding the clone's build, the captures and every log (the root disk had about 200 MB free, so
++they could not live there). The orchestrator restored the clone from the WIP bundle plus the uncommitted draft of this
++report. The second sitting (12:05 to @@END@@ UTC) rebuilt, added the relaxation of the fallen and the fallen beat's
++framing (rank 3), strengthened one test, re-ran every test and every mutant of the first sitting (their records were
++lost: only what was measured again is reported), captured the whole canonical set again and wrote this report.
++
++**Verdict.** A visible step on the worst artefact and on the aftermath, small steps elsewhere, three issues still
++open. The far land no longer goes dark at noon: the critic's far/near luma is now 0.81–1.14 in the four canonical noon
++stills (was 0.44–0.90; acceptance 0.8), but the golden-hour far band is still warm olive (hue 36–37°, acceptance
++80–160°) and a pale terrace band survives in one shot. The aftermath reads as an aftermath: prisoners kneel apart from
++the dead in four poses (436 → 44 within 0.75 m of a body), the dead lie with their arms down and are relaxed apart
++(crossing bodies 294 → 100), shields rest tilted, and the fallen beat now shows a few bodies in front and the prisoners
++beyond. Low-sun skies lost their combed streaks; shaded skin is warm, not grey (blue/red 0.62 → 0.46); the bronze
++reads as bronze; wet ground can no longer shine brighter than dry. Still open or nearly so: the crowd's torn hems and
++the hero stand-ins for the nearest soldiers (rank 2), the river (rank 6) and the village's life (rank 7); skin detail
++(pores, brows, beards, hands) is untouched. Nothing here is production art.
++
++## 1. What changed, per issue
++
++Before = polish2's canonical captures (`captures/polish2/`); after = this stage's canonical captures
++(`captures/polish-3/`, also reachable as `captures/polish3/`; §2), both 1920 × 1080 with 8 samples, the same shots.
++Figures marked *capture* come from `scripts/measure-polish3.py BEFORE AFTER` (the critic's own far/near boxes from
++`critic3/tools/farland-luma.py`, and region statistics); figures marked *test* come from the tests of §3. Each row's
++sheet is `captures/polish-3/sheets/polish3-NN-*.jpg` (before left, after right). "Looked at" is what I saw in the
++after frames at full size; "open" is what is still wrong.
++
++| Rank | What changed (commits) | Measured, before → after | Looked at (after) | Open |
++|---|---|---|---|---|
++| **1** far land | Cloud shadows fade with the camera distance: all of a shadow is kept to 1.5 km, a fifth from 4 km on (GLSL `cloudShadowFade`; CPU twin `CloudLayer.ShadowSeen`); the benchmark scenes' cloud-offset search also keeps the shots' middle distance lit; the far field's rings 7 % apart (were 17 %) with normals taken over the ring spacing, flattened and blended towards the horizon colour with distance, greener crops at low sun; the valley haze's forward lobe broader and dimmer with the sun low (40ff8fd, c2bb0d6). Sheet `polish3-01-far-land`. | *Capture*, noon far/near luma (critic boxes; acceptance ≥ 0.8): C vista 0.44 → **0.81**, C clash 0.51 → **0.82**, E vista 0.58 → **0.89**, B wide 0.90 → **1.14**; the noon far band's hue 187–203° (teal) → 141–184°. Golden hour: far/near 2.28 → 1.73 (C vista), 1.92 → 1.61 (C clash); hue 36° → 37° and 36° → 36° (acceptance 80–160°: **not met**). Dusk: saturation 0.72 → 0.60, 0.60 → 0.44. *Test*: near ground under thick cloud keeps 0.488 of its brightness, far 0.929, 4.5–7 km 0.929. | B, C and E noon vistas: no dark band; the far land reads lighter and hazier than the meadow, with field patchwork. Golden: dark olive land in a warm haze, not a beige plain. Dusk: mauve-brown, not orange. C rout: a pale terrace band remains, softer. | Golden-hour hue; terraces softened, not gone; no output dither. |
++| **2** crowd up close | Crowd beards and dark hair above the shoulders keep a dark-brown floor (skin atlas and vertex-colour paths); scene D's victors at rest are drawn without their spears (a crowd view with the shield, without the weapon); a prisoner's thrown spear is placed clear of standing men (c2bb0d6). Sheet `polish3-02-crowd`. | No metric for the beard floor (a shader constant). *Measured once with a scratch test on the bench trace* (not committed): prisoners within 0.5 m of a man standing at the end 5 → 0. | D surrender: no spear crosses the bystanders. D commander face: the kettle-hat soldier's lower face is still black (back-lit dark beard). C melee, B front: hems still torn into dark and pale shards. | Torn hems (2a), hero stand-ins for the nearest soldiers (2b), a spear-crossing test (2c), faceted helmets, the back-lit black beard. |
++| **3** aftermath | Prisoners kneel apart from the fallen: moved up to 4 m towards the victors, 0.75 m clear of bodies and each other, 0.7 m of standing men; four surrender poses (hands up, on the head, behind the neck, bowed); the dead lay their arms down once the body is down; dropped shields rest tilted 10–40° (c2bb0d6, b781165). **This sitting:** the fallen relaxed apart after the settle (up to 64 Jacobi passes, kneeling prisoners and standing men fixed, every body within 2.5 m of the trace; 153b688) and the fallen beat framed by what it shows (of 48 views round the densest fallen, a few bodies near, no living near, prisoners beyond; 20954de). Sheet `polish3-03-aftermath`. | *Test* (bench trace, 769 fallen, 559 prisoners): prisoners within 0.75 m of a body's centre line 436 → **44**; body pairs crossing 294 → **100**, closer than 0.2 m 1,084 → **495**, closer than 0.45 m 2,370 → 1,606; living men with a body inside their clearance 77 → **29**; drift from the settle median 0.48 m, at most 2.24 m. Prisoner poses over 4,000 ids: bowed 1,748, hands up 912, on the head 742, behind the neck 598. | D prisoners: a looser group, four poses, shields on edge and tilted. D fallen: low and close, a few bodies in front, the field of fallen, the prisoners beyond (was a top-down mass of raised hands). C melee: the raised dead hand is gone. | Two death falls only (3b); overlaps left in the densest heaps; a prisoner through a standing man in the surrender beat (§6); repeated crowd faces; a carpet of dropped shields. |
++| **4** skin | A warm shaded tone in the hero skin shading and a five-tap softer penumbra on skin (c2bb0d6). Sheet `polish3-04-skin`. | *Capture*: the officer's shaded skin (darkest 30 % of his face) RGB 105,78,66 → 133,84,61, blue/red **0.62 → 0.46**. | D officer face: the shaded half is warm peach, not grey-blue; the edge softer but still irregular. A commander: barely changed. | Pores, cavity AO, beard roots, brow and lash cards, hands. |
++| **5** skies | Streak cover at low sun 0.42 → 0.22 and less drawn out; gap and fray noise break them into wisps; chroma held at 0.35 saturation at dusk; two fine edge octaves on the heaps; the far side of a cloud darker with the sun low (40ff8fd). Sheet `polish3-05-skies`. | *Capture*: D cut-away dusk sky saturation 0.12 → **0.06** (near-white share 0.9 % → 8.0 %: sunlit cloud tops); D surrender sky saturation 0.18 → 0.27 (more blue between fewer streaks), near-white 1.96 % → 0.16 %. | D surrender, standards, commander face: open sky with a few wisps instead of combed streaks. D cut-away: soft pink-white wisps. C melee: open blue. B front: heaps with crisper edges, cores still blue-grey. | A sparse heap layer at low sun; blue-grey heap cores. |
++| **6** river | Darker, mossier boulders (c2bb0d6). Sheet `polish3-06-river`. | *Capture*: E river region RGB 50,63,49 → 44,60,49. | E river: boulders a little darker; everything else as before. | Shoreline, water colour by depth, reeds, boulder shapes, triplanar banks: open. |
++| **7** fort, village | Walls weathered: rain streaks under the crenellations, moss on top faces, grime low down; hearth smoke from the great house and every third roundhouse (c2bb0d6). Sheet `polish3-07-settlement`. | *Capture*: E wall region RGB 66,72,62 → 64,70,60. | E fortification: light grime low on regular block walls. E settlement: three smoke columns, bent flat in the wind. | Villagers, paths, pens, woodpiles, dark doors, broken merlons, rubble. |
++| **8** wet ground, grass | Wet shading scaled down to the dry shading's luminance where it came out brighter; puddles only on level, low relief; light through grass cards capped at 1.5 times the lit albedo, a darker base-to-tip gradient (c2bb0d6, bbc0a05). Sheet `polish3-08-wet-grass`. | *Test*: a dark soil at grazing angles: the worst wet pixel +0.44 (8-bit) over its dry twin with the cap, +6.01 without (mutant M3). *Capture*: C rain ground RGB 55,66,39 → 53,64,38. | C rain clash: no pale ground at this distance (before or after). B front in rain: pale puddle patches remain between the tufts. B standard: sunlit tufts on the left still pale mint. | Backlit grass; puddle patches in B rain. |
++| **9** bronze | Helmet bronze warmer, more saturated and smoother, fewer bright scratches (40ff8fd). Sheet `polish3-09-bronze`. | *Capture*: A soldier face, helmet region RGB 125,109,75 → 115,95,53, saturation **0.40 → 0.54**. | Warm bronze instead of chalky cream; one broad soft highlight, little reflection of sky or ground. | Patina and dirt in the crevices; a stronger environment reflection. |
++
++## 2. Captures
++
++**Where.** `<scratchpad>/m7gfx2/captures/polish-3/` (the orchestrator's link to `/dev/shm/ram/captures/polish-3`;
++`captures/polish3/` is a second link to the same folder), the same folder and file names as `captures/scenes/` and
++`captures/polish2/`: 49 stills (A 7, B 7, C 9, D shown 7, D cut-away 2, E 7, rain and mist looks of B, C and E 8, the
++avatar's era triptych 2) and 15 motion frames (frames 0, 6 and 11 of a 12-frame interactive orbit per scene), 238 MB of
++PNG. `load-start.txt` names the build of each group, the time and the load; the run logs are `capture-run.log` (A, B),
++`capture-run-2.log` (the rest) and `d-shown-06.log`.
++
++**Builds.** Release builds, each copied out of the tree before its run so the tree could be rebuilt meanwhile: A and B
++on 4f8b953 (12:15 UTC); C, D, E, the weather looks, the avatar and the motion sequences on 153b688 (the relaxation,
++12:24 UTC; the first run had started C on 4f8b953 and was stopped there); D's fallen beat alone again on 20954de (its
++framing, 12:40 UTC). After 4f8b953 the only runtime code that changed is `TraceCrowd` (scenes C and D) and scene D's
++last beat, so every frame shows the final code.
++
++**Time (llvmpipe, not Victus evidence).** 2,079 s of capture in all at 1920 × 1080 with 8 samples (motion: 1280 × 720,
++TAA, one sample a frame): A 292 s, B 180, C 233, D shown 208 (+ 90 for the fallen beat again), D cut-away 102, E 146,
++weather 371, avatar 35, motion 422. The one-minute load average read 5.6 at the start and 10.1 at the restart: a
++simulation lane ran its suites at the same time, so these times say little even about llvmpipe.
++
++**Looked at.** Every still of A–E against its polish2 twin, at full size where the critic pointed: the far land in all
++noon, golden and dusk vistas (B wide, C vista and clash, C rout, E vista, D cut-away), the crowd hems and faces (B front
++and standard, C melee low, D surrender and commander face), the aftermath (D prisoners, surrender, fallen, field), the
++skin (A commander, D officer, zoomed), the skies (D surrender, standards, cut-away; B front; C melee and advance), the
++river, the fort and the village (E), the rain looks (C clash, B front) and the bronze (A soldier face). What I saw is in
++the "Looked at" and "Open" columns of §1 and in §5.
++
++**Review sheets.** @@SHEETS@@
++
++## 3. Tests
++
++Builds: `M7Gfx2.slnx` Release and Debug: **0 errors, 0 warnings** each (warnings are errors in this tree). Gfx tests:
++**325 in 28 classes** (`--list-tests`), 317 from the earlier stages and 8 in `Polish3Tests`, run in polish2's four class
++groups (with `Polish3Tests` in group 3), one test host each, on a4ab145 (the tests' last change; the runtime code is
++20954de's):
++
++| Group (test classes) | Release: passed / failed / skipped (time) | Debug: passed / failed / skipped (time) |
++|---|---|---|
++| 1: PerfUnit, Render1Math, Render2Math, EnvLayout, Camera, EngineUnit, Frustum, EffectLoad, Units, Cinematic, PerfProcess | 147 / 0 / 0 (47 s) | @@D1@@ |
++| 2: Chars, Avatar, Kit, Crowd | 73 / 0 / 0 (25 s) | @@D2@@ |
++| 3: Scenes, Polish1, Polish2, Polish3, Terrain, EnvTree, EnvRender, Integration, PerfEnvTap | 76 / 0 / 0 (89 s) | @@D3@@ |
++| 4: Render1Render, Render2Render, RenderTests, PerfDevice | 29 / 0 / 0 (85 s) | @@D4@@ |
++| **all** | **325 / 0 / 0** | @@DALL@@ |
++
++Counts from each group's test-host summary (logs in the work folder, not committed). The Release groups ran from 12:46
++to 12:50 UTC while the last motion sequences were captured; @@DEBUGWHEN@@ Nothing was skipped or deselected: the four
++groups name all 28 classes.
++
++Existing tests changed, each for a stated reason:
++- `Polish2Tests.SurrenderedAndFallenSoldiersHoldNothingInTheirHands` asserted that every dropped item lies at ground
++  height (y = 0 on its flat test ground). A dropped shield now rests tilted on its rim (rank 3), so its centre stands
++  above the ground: the test keeps y = 0 for weapons and allows 0 to 0.25 m for shields (`ShieldTilt` gives at most
++  0.20 m). Its other assertions (who is disarmed, the views, where kit lies, no duplicates, the trace hash) are unchanged.
++- `CrowdTests.CrowdSkinningMatchesTheCpuReference` samples variant 7 from the bank's last column with the first of a
++  list of clips whose frame lies there; the bank gained two clips per identity (the new surrender poses) at its end, so
++  they join that list. Its intent (the shader's column wrap) and its assertions are unchanged.
++- `Polish3Tests.PrisonersKneelApartFromTheFallen` (first sitting) now measures the prisoners against the fallen as the
++  scene lays them at rest (settled, then relaxed clear of the living), as the scene does since 153b688; its bounds are
++  unchanged.
++- `Polish3Tests.FarCloudShadowsAreLiftedAndNearOnesAreNot` (first sitting) gained one assertion (the 4.5–7 km band,
++  below): mutant M6b showed that its far band, mostly beyond 8 km, could not see where the fade ends.
++
++Tests of this stage (`Gfx.Tests/Polish3Tests.cs`, 8; presentation only; each states its property; the figures are from
++this sitting's run):
++
++| Test | Property (rank) | Measured |
++|---|---|---|
++| `CloudShadowFadesWithDistanceFromTheCamera` | the CPU twin: a cloud shadow keeps its whole depth to 1.5 km, a fifth from 4 km, never more with distance; the seen shadow is the layer's mixed towards 1 by the fade; no layer is 1 (1) | 400 points along a line, more than 20 under thick cloud (asserted) |
++| `FarCloudShadowsAreLiftedAndNearOnesAreNot` | on screen (a field 12 km across from 600 m up): the brightness ratio follows the twin's seen shadow (r over 0.95); under thick cloud the near ground (under 1.5 km) keeps under 0.6 of its brightness, the far ground (over 4.5 km) over 0.85 and the ground 4.5–7 km away over 0.88 (1) | r 0.994; near 0.488, far 0.929, 4.5–7 km 0.929 (1,473 px) |
++| `WetGroundIsNeverBrighterThanDry` | a dark, rough soil at grazing angles under a bright overcast noon: no wet pixel brighter than its dry twin by more than one 8-bit step; the wet mean not brighter (8) | mean luma 55.6 dry, 52.0 wet; worst +0.44 |
++| `PrisonersKneelApartFromTheFallen` | over the bench battle's end: placement pure; only the surrendered move, none over 4 m; each faces the victors' centroid; prisoners within 0.75 m of a body's centre line (the fallen at rest) fall to under a quarter of the trace's and under a sixth of the prisoners; the trace hash unchanged (3) | 436 → 44 of 559 prisoners; 502 moved |
++| `FallenBodiesRelaxApartWithinTheirBound` | the relaxation, as the scene runs it: pure, the settle not written; no one moved who does not die; every body within 2.5 m of the trace; crossing pairs, pairs closer than 0.2 m and living men with a body inside their clearance each fall to under half of the settle's; the closest-points helper agrees with `SegmentDistance` on 2,000 hashed pairs; the trace hash unchanged (3) | 769 fallen, 728 living; 731 moved; crossing 294 → 100, under 0.2 m 1,084 → 495, under 0.45 m 2,370 → 1,606, living with a body inside 77 → 29; drift median 0.48 m, 90th percentile 1.29 m, max 2.24 m |
++| `FallenBeatTakesTheBestScoredView` | given a view score, the fallen beat's still stands at the best of its 48 views and looks at the densest fallen; a tie goes to the first view; without a score the beat keeps its fixed view; the other six beats do not change (3) | exact positions (1 mm) |
++| `PrisonerPosesAndShieldRestsVaryById` | four prisoner poses, each over 10 % of 4,000 ids, the polish2 hands-up share kept; shield tilts 10–40° spread over the range, centre 0–0.25 m up, the rest matrix a turn of exactly the tilt (3) | bowed 1,748, hands up 912, on the head 742, behind the neck 598 |
++| `FallenArmsLieDownOnceTheBodyIsDown` | for the eight crowd identities' falls: with the body down no hand over 0.10 m above the chest; frames with the body still up unchanged bit for bit; the source clips do raise a hand (3) | the fall on the back: 0.24–0.28 m → 0.05 m; 62 source frames over 0.20 m |
++
++**Bounded mutants** (each run in this clone against its named test with `run-mutant.sh` in the work folder: one exact
++source replacement, a Release build, the test under a 300 s bound against about 10 s for a clean run, the source
++restored from git and touched; a full Release rebuild before the test groups above). All ran in this sitting:
++
++| Mutant (file) | Test run | Verdict |
++|---|---|---|
++| M1: no distance fade of the cloud shadow on screen (`GlslLib.cs`) | `FarCloudShadowsAreLiftedAndNearOnesAreNot` | **killed**, 8 s: the ratio against the twin r = 0.620 |
++| M2: prisoners not moved (`TraceCrowd.cs`) | `PrisonersKneelApartFromTheFallen` | **killed**, 15 s: 201 prisoners still kneel on the fallen (201 in the trace) |
++| M3: no luminance cap on wet shading (`GlslLib.cs`) | `WetGroundIsNeverBrighterThanDry` | **killed**, 12 s: a wet pixel 6.01 (8-bit) brighter than its dry twin |
++| M4: the polish2-era ramp of the arm laying (0.12 → 0.30 m) (`CrowdPoseVariants.cs`) | `FallenArmsLieDownOnceTheBodyIsDown` | **killed**, 14 s: a1's fall on the back, frame 36, a hand 0.12 m over the chest with the body down |
++| M5: every hands-up prisoner in one pose (`TraceCrowd.cs`) | `PrisonerPosesAndShieldRestsVaryById` | **killed**, 8 s: a pose drawn for 0 of 4,000 ids |
++| M6: the fade's end at 8 km in the twin's function only (`CloudLayer.cs`) | `CloudShadowFadesWithDistanceFromTheCamera` | **killed**, 14 s: 0.736 kept at 4 km where the residual 0.2 is due |
++| M6b: the fade's end constant at 8 km (twin and shader together; `CloudLayer.cs`) | `CloudShadowFadesWithDistanceFromTheCamera`, then `FarCloudShadowsAreLiftedAndNearOnesAreNot` | **survived** both as they stood (20 s, 47 s): the twin test is written against the constants, and the on-screen far band (over 4.5 km) lies mostly beyond 8 km (0.860, over its 0.85). With the 4.5–7 km assertion added: **killed**, 15 s: that band keeps only 0.80 |
++| R1: no relaxation (`TraceCrowd.cs`, passes 0) | `FallenBodiesRelaxApartWithinTheirBound` | **killed**, 45 s: the relaxation moved 0 bodies (crossing 294 → 294) |
++| R2: the living not fixed (`TraceCrowd.cs`) | `FallenBodiesRelaxApartWithinTheirBound` | **killed**, 11 s: living men with a body inside their clearance 77 → 306 |
++| M9: the fallen beat ignores the score (`SceneD.cs`) | `FallenBeatTakesTheBestScoredView` | **killed**, 33 s: the still stands at the fixed view, not at the best-scored one. (Its first run did not compile and was not counted: see §6.) |
++
++Every kill is by a test that states a property (none by a golden image); every mutant build succeeded (checked in its
++log); none came near the 300 s bound and none hung. One mutant (M6b) survived the tests as they stood and is killed by
++the assertion added for it; the property it adds (the fade has ended by about 4 km, as the critic asked) is one the
++system should have.
++
++## 4. Costs (llvmpipe, not Victus evidence)
++
++@@COSTS@@
++
++## 5. What still looks placeholder
++
++Seen in this stage's after frames at full size; none of the frames is production art.
++
++- **Crowd soldiers up close** (B front, B standard, C melee low, D surrender and prisoners): tunic hems still torn into
++  dark and pale shards where the simplified layers (tunic, under-layer, trousers) pass through one another, faceted
++  helmets, flat faces; the hero characters are not drawn in their place (rank 2a and 2b open).
++- **Hero faces and hands** (A commander, D officer): smooth, pore-less, waxy skin; beards read as a fur texture laid on
++  the jaw; brows are stippled shells; hands are uniform pink. The shaded side is now warm, not grey (rank 4 partly).
++- **The river** (E river, B rear high, B wide noon): a straight-segmented waterline with a foam line, a pale mirror
++  channel from above, reeds in one row of equal height, smooth egg-shaped boulders (rank 6 open but for darker, mossier
++  boulders).
++- **The village and the fort** (E settlement, E fortification, E vista): no villagers, paths, pens or woodpiles; regular
++  block walls with only light grime and moss; the hearth smoke columns bend flat in the wind and read thin and drawn.
++- **The far field at low sun** (C and E golden and dusk vistas): dark olive or mauve land under a warm haze, still not
++  green; a pale terrace band is still visible in C rout.
++- **The aftermath crowd** (D prisoners, D fallen): many identical crowd faces; the dead in only two falls (forward and
++  back); dropped shields in great numbers form a carpet of discs in the densest part; a kneeling prisoner still passes
++  through a standing man in the surrender beat.
++- **Backlit grass at golden hour** (B standard): pale mint tufts on the sunlit left of the frame.
++- **Bronze** (A soldier face): warm and metallic now, but smooth, with one broad highlight and little environment
++  reflection.
++
++## 6. Limitations and notes
++
++- **llvmpipe only.** Every frame, timing and test ran on the software rasteriser; none of it says anything about the
++  Victus or any GPU.
++- **The disk was full and the container restarted.** The root file system had about 200 MB free for the whole stage;
++  the clone, the work folder and the canonical captures lived on a RAM disk (`/dev/shm/ram/...`: the clone behind
++  `/home/user/g2w/polish3`, the captures behind the scratchpad's `captures/polish-3/` link, which the orchestrator
++  prepared; `captures/polish3/` points to the same place). A restart between the two sittings emptied that disk: the
++  first canonical set, its sheets and every log were lost. The committed review JPEGs and the bundle are the durable
++  record; the full-size captures survive only as long as the container runs.
++- **What was re-measured.** The first sitting's draft reported test counts, test timings and mutant kills measured on
++  b781165 and bbc0a05. Those records were lost, so nothing of them is carried over: every test and mutant result in §3
++  was measured again in the second sitting on the code named there.
++- **Captures from three builds.** A and B were captured on 4f8b953, C, D (but its last beat), E, the weather looks, the
++  avatar and the motion sequences on 153b688 (the relaxation), and D's fallen beat on 20954de (its framing). The only
++  runtime code that changed after 4f8b953 is `TraceCrowd` (used by scenes C and D only) and the last beat of scene D, so
++  each frame is what the final code renders (§2).
++- **The golden-hour hue target is not met.** The critic asked for a far band of hue 80–160 at golden hour; it measures
++  36–37° (as before) because the far land in those shots is seen towards a low sun through a warm glow. The band reads as dark olive
++  land in a warm haze rather than a beige plain, but it is not green. A greener far land at low sun would need the aerial
++  perspective's forward scattering cut further than looks right for the sky above it.
++- **The relaxation cannot clear the densest fighting.** Within 2.5 m of the trace and with the living fixed, 100 pairs
++  of bodies still cross and 495 lie closer than 0.2 m (from 294 and 1,084): the densest heaps of the bench battle have
++  more dead than ground. A falling body drifts to its relaxed place over its first 1.2 s down (median 0.48 m, at most
++  2.24 m from the settle): in scene C's playback that is a visible slide for the few bodies moved far; no motion test
++  covers it.
++- **The surrender beat's overlap is not explained.** The placement data say no prisoner kneels within 0.5 m of a man
++  standing at the end (5 in the trace) and one within 0.7 m, yet D's surrender beat shows a kneeling prisoner passing
++  through a standing man; I did not find which two figures they are.
++- **Not worked:** the crowd LOD re-bake with locked borders (the bake writes the shared asset folder that other clones
++  read; a re-bake into a new folder needs a loader change) and hero characters for the nearest crowd soldiers (rank 2a,
++  2b); a test that no spear crosses another figure (2c); side and curled death poses (3b); skin pores, cavity, beard
++  root occlusion, brow and lash cards, hands (4); a sparse heap layer at low sun (5); the river's shoreline, water
++  colour by depth, reeds in clumps, noise-displaced boulders and triplanar banks (6); broken merlons, rubble,
++  villagers, paths, pens and dark doors (7); the output dither (it would move pixel-exact test references by one step;
++  the far terraces came from the ring geometry, which is changed).
++- **Hearth smoke is in every bench scene with the village** (B, C, D, E), not only E: the village plan is shared.
++- **Scene D's victors stand without their spears** (a crowd view with the shield and without the weapon): with the
++  spears held level at the hip they passed through the men beside them; nothing lies at their feet in their place.
++- **A mutant-script slip, caught.** The first version of my mutant script restored a mutated file with `git checkout`;
++  run against `SceneD.cs` while its new code was not yet committed, it reverted that code (and the mutant had not
++  compiled, so its "pass" meant nothing). I re-applied the code from this session's record, rebuilt, re-ran the two
++  affected tests, committed (20954de) and changed the script to refuse a file with uncommitted changes and to report a
++  failed build as BUILD-FAILED, not as a result. Every mutant in §3 ran with the corrected script or, for the seven
++  that ran before it, against committed files with a build that succeeded (checked in their logs).
++
++## 7. Reproduce
++
++```
++cd prototypes/m7-gfx2
++dotnet build M7Gfx2.slnx -c Release -m:1 -nodeReuse:false
++scripts/capture-scenes.sh OUT_DIR                                      # 1920x1080, 8 samples; + avatar triptych, motion
++scripts/review-sheets-polish3.py BEFORE_DIR OUT_DIR SHEETS_DIR REVIEW_DIR
++scripts/measure-polish3.py BEFORE_DIR OUT_DIR                          # the figures of §1 marked "capture"
++dotnet test Gfx.Tests/Gfx.Tests.csproj -c Release --no-build --filter "FullyQualifiedName~Gfx.Tests.Polish3Tests"
++dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --suite smoke --out DIR   # llvmpipe costs, slots A-E
++```
 diff --git a/prototypes/m7-gfx2/reports/scenes.md b/prototypes/m7-gfx2/reports/scenes.md
 new file mode 100644
 index 0000000..158b494
@@ -19048,10 +19385,10 @@ index 0000000..72b6d49
 +        print(f"{name}: missing {e.filename}")
 diff --git a/prototypes/m7-gfx2/scripts/measure-polish3.py b/prototypes/m7-gfx2/scripts/measure-polish3.py
 new file mode 100755
-index 0000000..087bbd4
+index 0000000..8fe6f1d
 --- /dev/null
 +++ b/prototypes/m7-gfx2/scripts/measure-polish3.py
-@@ -0,0 +1,76 @@
+@@ -0,0 +1,86 @@
 +#!/usr/bin/env python3
 +"""The measured figures of reports/polish3.md: the critic's far-land acceptance (iteration 3) and region statistics of the
 +canonical captures, before (polish2) and after (polish3).
@@ -19118,6 +19455,16 @@ index 0000000..087bbd4
 +        m, hue, sat = colour(rgb(p, fb, False))
 +        row.append(f"far {f:.1f} near {n:.1f} ratio {f / n:.2f} rgb {m[0]:.0f},{m[1]:.0f},{m[2]:.0f} hue {hue:.0f} sat {sat:.2f}")
 +    print(" | ".join(row))
++print()
++# rank 4: the shaded skin of the closest face: the darkest 30 % (luma) of the officer's face box, mean RGB and blue/red
++print("shaded skin (D officer face, darkest 30 % of x 860-1060, y 200-420): before | after")
++row = []
++for root in (BEFORE, AFTER):
++    a = rgb(f"{root}/d-shown/bench-d-shown-03-officer-face.png", (860, 200, 1060, 420), False)
++    lum = a @ np.array([0.2126, 0.7152, 0.0722])
++    m = a[lum < np.percentile(lum, 30)].mean(axis=0)
++    row.append(f"rgb {m[0]:.0f},{m[1]:.0f},{m[2]:.0f} blue/red {m[2] / m[0]:.2f}")
++print(" | ".join(row))
 +print()
 +print("regions: name | before: rgb, hue, sat, near-white % | after: the same")
 +for name, shot, box in REGIONS:

@@ -1,803 +1,754 @@
 diff --git a/Sim.Core/State/InfoQuery.cs b/Sim.Core/State/InfoQuery.cs
-index dafb3d8..9475936 100644
+index 43589fc..62d3502 100644
 --- a/Sim.Core/State/InfoQuery.cs
 +++ b/Sim.Core/State/InfoQuery.cs
-@@ -445,9 +445,9 @@ public static class InfoQuery
-         if (levelled && c.Done[i])
-             b.StatusLine = "Researched " + Inv(ResearchQuery.Level(c.W, c.P, n.Key)) + "x; next level: " + b.StatusLine;
- 
--        // ENABLED BY: its prerequisites (each with its completion), the expression verbatim.
--        IReadOnlyList<int> must = n.Prerequisite?.MustHoldAtoms() ?? [];
--        foreach (int p in n.PrerequisiteNodes) b.EnabledBy.Add(NodeLink(c, p, Contains(must, p) ? "required" : "one of"));
-+        // ENABLED BY: its prerequisites (each with its completion), the expression verbatim. D-089 DH4: the lines keep the
-+        // expression's grouping (RequirementLines) — no "required" or "one of" on a part of a grouped alternative.
-+        RequirementLines(c, n.Prerequisite, n.PrerequisiteNodes, b.EnabledBy, outstandingOnly: false, (a, role) => NodeLink(c, a, role));
-         if (n.PrerequisiteNodes.Count == 0) b.EnabledBy.Add(new InfoLink("No prerequisite: a root of its tree", null, true));
-         b.RequirementSource = n.Prerequisite?.Source;
- 
-@@ -455,8 +455,7 @@ public static class InfoQuery
-         if (!done && !available)
-         {
-             if (!ResearchQuery.PrerequisitesMet(r, i, c.Done))
--                foreach (int p in n.PrerequisiteNodes)
--                    if (!c.Done[p]) b.WhyLocked.Add(NodeLink(c, p, Contains(must, p) ? "required" : "one of"));
-+                RequirementLines(c, n.Prerequisite, n.PrerequisiteNodes, b.WhyLocked, outstandingOnly: true, (a, role) => NodeLink(c, a, role));
-             if (n.Branch >= 0 && !c.Stage)
-                 b.WhyLocked.Add(new InfoLink("Its subtree is closed until the research stage is reached (" + r.Stage.Source.Replace('_', ' ') + ")", null, false));
-             if (n.IsRecursive && n.Branch >= 0 && !ResearchQuery.SubtreeExhausted(r, n.Branch, c.Done))
-@@ -1878,14 +1877,15 @@ public static class InfoQuery
-         if (gate == TaxGate.Inert || c.R is not { } r || c.Cfg.Governance is not { } gov) { b.Inert("governance and research content"); return; }
-         Predicate req = TaxAtoms(c)!;
-         int open = -1, first = -1;
--        IReadOnlyList<int> must = req.MustHoldAtoms();
-+        var taxAtoms = new List<int>();
-         foreach (int a in req.AtomIds)
-         {
-             if (a < 0 || a >= r.Nodes.Count) continue;
--            b.EnabledBy.Add(NodeLink(c, a, Contains(must, a) ? "required" : "one of"));
-+            taxAtoms.Add(a);
-             if (first < 0) first = a;
-             if (open < 0 && !c.Done[a]) open = a;
-         }
-+        RequirementLines(c, req, taxAtoms, b.EnabledBy, outstandingOnly: false, (a, role) => NodeLink(c, a, role));   // D-089 DH4
-         int current = c.Cfg.Ages is { } ages ? AgeQuery.CurrentAge(c.W, ages, c.P) : 0;
-         if (gov.TaxationMinAge is { } minAge)
-             b.EnabledBy.Add(new InfoLink(AgeName(c, minAge), InfoSubject.OfAge(minAge), Governance.MeetsTaxationAge(c.W, c.Cfg, c.P),
-@@ -2179,14 +2179,25 @@ public static class InfoQuery
+@@ -390,6 +390,72 @@ public static class InfoQuery
+         return Math.Max(1L, (long)Math.Ceiling(shortfall / pointsPerTurn));
      }
  
-     /// <summary>An entity's requirement as links: its node atoms (source order), then its institution atoms, each
--    /// expanded one level further (to a bounded depth; an institution named twice is expanded once).</summary>
-+    /// expanded one level further (to a bounded depth; an institution named twice is expanded once). D-089 DH4: a requirement
-+    /// with a grouped alternative is listed as its outline instead (EntityOutline), the expansions after it.</summary>
-     private static void EntityAtoms(Ctx c, int e, List<InfoLink> into, int depth, bool[] seen, string? via)
-     {
-         ResearchContent r = c.R!;
-         ResearchEntity ent = r.Entities[e];
--        IReadOnlyList<int> must = ent.Requirement?.MustHoldAtoms() ?? [];
-         string prefix = via is null ? "" : "for " + via + "; ";
--        foreach (int a in ent.NodeAtoms) into.Add(NodeLink(c, a, prefix + (Contains(must, a) ? "required" : "one of")));
-+        if (EntityOutline(c, ent, into, prefix))
-+        {
-+            foreach (int inst in ent.InstitutionAtoms)
-+            {
-+                if (seen[inst] || depth >= 4) continue;
-+                seen[inst] = true;
-+                EntityAtoms(c, inst, into, depth + 1, seen, EntityName(r.Entities[inst]));
-+            }
-+            return;
-+        }
-+        PrereqKind[] kinds = PrereqExpr.Kinds(ent.Requirement, ent.NodeAtoms);
-+        for (int k = 0; k < kinds.Length; k++) into.Add(NodeLink(c, ent.NodeAtoms[k], prefix + RoleLabel(kinds[k])));
-         foreach (int inst in ent.InstitutionAtoms)
-         {
-             into.Add(EntityLink(c, inst, prefix + "an institution"));
-@@ -2202,9 +2213,20 @@ public static class InfoQuery
-     {
-         ResearchContent r = c.R!;
-         ResearchEntity ent = r.Entities[e];
--        IReadOnlyList<int> must = ent.Requirement?.MustHoldAtoms() ?? [];
--        foreach (int a in ent.NodeAtoms)
--            if (!c.Done[a]) into.Add(NodeLink(c, a, (depth > 0 ? "for " + EntityName(ent) + "; " : "") + (Contains(must, a) ? "required" : "one of")));
-+        string prefix = depth > 0 ? "for " + EntityName(ent) + "; " : "";
-+        if (EntityOutline(c, ent, into, prefix))   // D-089 DH4: a grouped requirement whole, its ticks saying what is met
-+        {
-+            foreach (int inst in ent.InstitutionAtoms)
-+            {
-+                if (c.Eligible(inst) || seen[inst] || depth >= 4) continue;
-+                seen[inst] = true;
-+                EntityWhyLocked(c, inst, into, depth + 1, seen);
-+            }
-+            return;
-+        }
-+        PrereqKind[] kinds = PrereqExpr.Kinds(ent.Requirement, ent.NodeAtoms);
-+        for (int k = 0; k < kinds.Length; k++)
-+            if (!c.Done[ent.NodeAtoms[k]]) into.Add(NodeLink(c, ent.NodeAtoms[k], prefix + RoleLabel(kinds[k])));
-         foreach (int inst in ent.InstitutionAtoms)
-         {
-             if (c.Eligible(inst) || seen[inst] || depth >= 4) continue;
-@@ -2214,6 +2236,81 @@ public static class InfoQuery
-         }
-     }
- 
-+    // ================================================================== D-089 DH4: requirement lines that keep their grouping
-+
-+    /// <summary>D-089 DH4: the word a card line gives a prerequisite's role in its requirement (PrereqExpr.Kinds, the one rule the
-+    /// research screens use too): "required", "one of", or "in a group" for a part of a grouped alternative (or a redundant
-+    /// one), which is neither required nor an alternative by itself.</summary>
-+    public static string RoleLabel(PrereqKind kind) => kind switch
-+    {
-+        PrereqKind.Required => "required",
-+        PrereqKind.OneOf => "one of",
-+        _ => "in a group",
-+    };
-+
-+    /// <summary>D-089 DH4: a nested group's head line on a card — its prefix, its operator and how many of the lines after it
-+    /// belong to it: "either all of these 2:", "or one of these 3:". The count makes the list read as the expression without
-+    /// indentation: a head's items are the next lines, a nested head with its own items counting as one.</summary>
-+    public static string HeadLabel(PrereqRow head) =>
-+        head.Prefix + (head.Op == PrereqOp.All ? "all of these " : "one of these ") + Inv(head.Arity) + ":";
-+
 +    /// <summary>
-+    /// D-089 DH4 (answers lane RT's N1) — A REQUIREMENT AS CARD LINES THAT KEEP ITS GROUPING (<see cref="PrereqOutline.Rows"/>, the
-+    /// outline the research screen's REQUIRES rows use). With no grouped prerequisite: one line per prerequisite, labelled
-+    /// "required" or "one of" exactly as before (every required AND at least one one-of is then the expression). With one:
-+    /// the expression's outline — each nested group a head line (<see cref="HeadLabel"/>; no link; ticked when the group
-+    /// holds; noted with the group in names) and each prerequisite a line labelled by its role ("in a group" for a part of
-+    /// one). <paramref name="outstandingOnly"/> (WHY LOCKED) drops the met prerequisites of a flat list; an outline is kept
-+    /// whole, since a part of a group reads only beside its partners, and its ticks say what is met.
++    /// D-089 DH6 (lane RT's proposal N6) — THE ROUTE-AWARE ESTIMATE of a node not yet open: the End Turns until
++    /// <paramref name="destination"/> completes if its lane takes it as its destination from the next End Turn on, at the
++    /// current rate, as the engine funds a destination (ResearchSystem with destination routing, overflow off): while the
++    /// destination is not open the lane funds the CURRENT node of its route — the eligible route node of its own lane with the
++    /// smallest remaining cost, ties to the lower key (<see cref="ResearchRoutePlanner.PickCurrent"/>) — one node at a time, and
++    /// once the destination is open, the destination. Each node is paid by THE SAME per-node rule as an open node
++    /// (<see cref="ResearchTurns"/>, the one estimate): its remaining cost against the lane's rate and, for a civic in the
++    /// two-lane model, the bank, spent first and carried over — what a civic leaves of the bank in the End Turn it completes
++    /// stays banked; a technology's surplus is lost (no RP overflow, D-047 Part B). The route is planned once
++    /// (<see cref="ResearchRoutePlanner.Plan"/>): paying a route node lowers the cost of exactly that minimum-cost set, so the
++    /// engine's per-step plan keeps it. Null — no figure — when the destination is complete, when a node of its route
++    /// belongs to the OTHER lane (that lane must fund it, and whether it will is the player's), when the route stalls with no
++    /// node its lane can fund, when the rate is zero and the bank short, or beyond <paramref name="maxTurns"/>. Like the
++    /// single-node estimate it does not count Ideas or foreign exposure credited meanwhile, an assist from the other lane, or
++    /// a change of the rate. A read-only query: it copies the masks it is given and changes nothing.
 +    /// </summary>
-+    private static void RequirementLines(Ctx c, Predicate? p, IReadOnlyList<int> atoms, List<InfoLink> into, bool outstandingOnly,
-+        Func<int, string, InfoLink> atomLine, string headNote = "")
++    public static long? RouteResearchTurns(ResearchContent content, bool[] completed, double[] remaining, int destination,
++        double pointsPerTurn, double banked, int maxTurns = 100_000) =>
++        RouteResearchTurns(content, completed, remaining, destination, pointsPerTurn, banked, out _, maxTurns);
++
++    /// <summary><see cref="RouteResearchTurns(ResearchContent, bool[], double[], int, double, double, int)"/>, saying in
++    /// <paramref name="needsOtherLane"/> whether it gave no figure because a node of the route belongs to the other lane.</summary>
++    public static long? RouteResearchTurns(ResearchContent content, bool[] completed, double[] remaining, int destination,
++        double pointsPerTurn, double banked, out bool needsOtherLane, int maxTurns = 100_000)
 +    {
-+        List<PrereqRow> rows = PrereqOutline.Rows(p, atoms);
-+        bool outline = PrereqOutline.IsOutline(rows);
-+        foreach (PrereqRow row in rows)
++        ArgumentNullException.ThrowIfNull(content);
++        needsOtherLane = false;
++        if (destination < 0 || destination >= content.Nodes.Count || completed[destination]) return null;
++        bool twoLanes = content.Tuning.TwoLanes;
++        int lane = ResearchRoutePlanner.LaneOf(content, destination, twoLanes);
++        bool civic = twoLanes && lane == 1;
++        var done = (bool[])completed.Clone();
++        var rem = (double[])remaining.Clone();
++        int[] route = [];
++        if (!ResearchQuery.IsAvailable(content, destination, done, ResearchQuery.StageReached(content, done)))
 +        {
-+            if (row.IsHead)
++            route = ResearchRoutePlanner.Plan(content, done, rem, destination).Route;
++            foreach (int r in route)
++                if (ResearchRoutePlanner.LaneOf(content, r, twoLanes) != lane) { needsOtherLane = true; return null; }   // the other lane must fund it
++        }
++        double bank = civic ? Math.Max(0.0, banked) : 0.0;
++        long turns = 0;
++        var available = new bool[content.Nodes.Count];
++        for (int step = 0; step <= route.Length; step++)
++        {
++            bool stage = ResearchQuery.StageReached(content, done);
++            int next;
++            if (ResearchQuery.IsAvailable(content, destination, done, stage)) next = destination;
++            else
 +            {
-+                into.Add(new InfoLink(HeadLabel(row), null, row.Group!.Holds(a => AtomMet(c, a)),
-+                    headNote + row.Group.Text(a => PrereqExpr.NameInExpression(AtomName(c, a)))));
-+                continue;
++                foreach (int r in route) available[r] = !done[r] && ResearchQuery.IsAvailable(content, r, done, stage);
++                next = ResearchRoutePlanner.PickCurrent(content, route, available, rem, lane, twoLanes, -1);
++                if (next < 0) return null;   // stalled: nothing on the route its lane can fund
 +            }
-+            if (outstandingOnly && !outline && AtomMet(c, row.Atom)) continue;
-+            into.Add(atomLine(row.Atom, RoleLabel(row.Kind)));
++            if (ResearchTurns(rem[next], 0.0, pointsPerTurn, bank) is not long k) return null;
++            turns += k;
++            if (turns > maxTurns) return null;
++            if (civic) bank = Math.Max(0.0, bank + k * pointsPerTurn - rem[next]);   // what the civic leaves stays banked
++            done[next] = true;
++            rem[next] = 0.0;
++            if (next == destination) return turns;
 +        }
++        return null;   // the route was exhausted without opening the destination
 +    }
 +
-+    /// <summary>D-089 DH4: an entity requirement with a grouped alternative, as its outline over every atom (nodes, institutions
-+    /// and declared unresolved references, expression order). Returns false — adding nothing — when no atom is grouped: the
-+    /// caller then keeps the flat list (node atoms labelled, then institutions).</summary>
-+    private static bool EntityOutline(Ctx c, ResearchEntity ent, List<InfoLink> into, string prefix)
-+    {
-+        if (ent.Requirement is not { } req) return false;
-+        List<PrereqRow> rows = PrereqOutline.Rows(req, req.AtomIds);
-+        if (!PrereqOutline.IsOutline(rows)) return false;
-+        int nodes = c.R!.Nodes.Count;
-+        RequirementLines(c, req, req.AtomIds, into, outstandingOnly: false, (a, role) =>
-+            a < nodes ? NodeLink(c, a, prefix + role)
-+            : a < nodes + c.R.Entities.Count ? EntityLink(c, a - nodes, prefix + "an institution; " + role)
-+            : new InfoLink("A reference not in this build's knowledge (it reads as not known)", null, false, prefix + role), prefix);
-+        return true;
-+    }
-+
-+    /// <summary>Whether a requirement atom holds: a node atom is completed, an institution atom eligible; any other is not.</summary>
-+    private static bool AtomMet(Ctx c, int a)
-+    {
-+        int nodes = c.R!.Nodes.Count;
-+        return a >= 0 && (a < nodes ? c.Done[a] : a < nodes + c.R.Entities.Count && c.Eligible(a - nodes));
-+    }
-+
-+    /// <summary>A requirement atom's name: the node's, the institution's, or "an unknown reference".</summary>
-+    private static string AtomName(Ctx c, int a)
-+    {
-+        int nodes = c.R!.Nodes.Count;
-+        return a >= 0 && a < nodes ? c.R.Nodes[a].Name : a >= nodes && a < nodes + c.R.Entities.Count ? EntityName(c.R.Entities[a - nodes]) : "an unknown reference";
-+    }
-+
-     /// <summary>THE TREE TARGET of an entity (one deterministic rule): a KNOWN entity points at the first completed node
-     /// of its requirement (its provenance); a locked one at the first node on its requirement that is open to research
-     /// now, else at the first not-completed node, else the first. Institution atoms are expanded after the node atoms.
-@@ -2662,11 +2759,9 @@ public static class InfoQuery
-                 ResearchNode n = r.Nodes[TreeNode];
-                 node = n.Key;
-                 nodeName = n.Name;
--                if (Subject.Kind != InfoKind.ResearchNode)
--                {
--                    IReadOnlyList<int> must = n.Prerequisite?.MustHoldAtoms() ?? [];
--                    foreach (int p in n.PrerequisiteNodes) prereqs.Add(NodeLink(c, p, "a prerequisite of " + n.Name + " - " + (Contains(must, p) ? "required" : "one of")));
--                }
-+                if (Subject.Kind != InfoKind.ResearchNode)   // D-089 DH4: the lines keep the expression's grouping
-+                    RequirementLines(c, n.Prerequisite, n.PrerequisiteNodes, prereqs, outstandingOnly: false,
-+                        (a, role) => NodeLink(c, a, "a prerequisite of " + n.Name + " - " + role), "a prerequisite of " + n.Name + " - ");
-             }
-             return new InfoCard(Subject, Title, Kind, What, Status, StatusLine, Summary,
-                 [.. EnabledBy], RequirementSource, node, nodeName, [.. prereqs], [.. Requirements], [.. WhyLocked],
-diff --git a/Sim.Core/State/PrerequisiteExpression.cs b/Sim.Core/State/PrerequisiteExpression.cs
+     /// <summary>D-084 verification round 1 (RT-R1-06 b): the words of a research turns estimate — "1 turn", "9 turns" — as the
+     /// card's state line, the detail pane and this card's "Open to research now" line write it.</summary>
+     public static string TurnsPhrase(long turns) => Inv(turns) + (turns == 1L ? " turn" : " turns");
+diff --git a/Sim.Ui.Tests/ResearchScreenPolishTests.cs b/Sim.Ui.Tests/ResearchScreenPolishTests.cs
 new file mode 100644
-index 0000000..71800c4
+index 0000000..341687f
 --- /dev/null
-+++ b/Sim.Core/State/PrerequisiteExpression.cs
-@@ -0,0 +1,244 @@
-+using Sim.Core.Systems.ClassMobility;
++++ b/Sim.Ui.Tests/ResearchScreenPolishTests.cs
+@@ -0,0 +1,227 @@
++using System.Globalization;
++using Sim.Core.State;
 +using Sim.Core.Systems.Research;
++using Sim.Ui.Progression;
++using Sim.Ui.Render;
++using Sim.Ui.Theme;
++using Sim.Ui.ViewModel;
++using Xunit;
++using Xunit.Abstractions;
 +
-+namespace Sim.Core.State;
-+
-+/// <summary>The operator of a <see cref="PrereqExpr"/> node: a single prerequisite (an atom), ALL of its parts, or ONE OF them.</summary>
-+public enum PrereqOp { Atom = 0, All = 1, Any = 2 }
-+
-+/// <summary>
-+/// D-084 (research-tree audit §4); D-089 DH4 — THE ROLE ONE PREREQUISITE PLAYS IN ITS EXPRESSION, decided from the expression
-+/// itself so that no label is ever false. <see cref="Required"/>: it holds on every satisfying route
-+/// (<see cref="Predicate.MustHoldAtoms"/>). <see cref="OneOf"/>: it is not required, the required ones alone do not satisfy the
-+/// expression, and the required ones with it do — it completes the choice on its own. <see cref="Grouped"/>: otherwise — it
-+/// counts only together with others (a part of a grouped alternative, as plough_ard in seed_drill OR (plough_ard AND
-+/// horse_collar)), or it is redundant. Without a Grouped prerequisite the plain reading — every "required" AND at least one
-+/// "one of" (if any) — is exactly the expression (DERIVED for monotone expressions: research-tree-fixes-2026-11.md §3.1).
-+/// </summary>
-+public enum PrereqKind { Required = 1, OneOf = 2, Grouped = 3 }
++namespace Sim.Ui.Tests;
 +
 +/// <summary>
-+/// D-084 (research-tree audit §4); D-089 DH4 (lane RT2: moved here from the research screens so that the screens and the
-+/// inspector, <see cref="InfoQuery"/>, keep ONE model) — A PREREQUISITE EXPRESSION AS THE PLAYER IS SHOWN IT: the content's parsed
-+/// <see cref="Predicate"/> folded (<see cref="Predicate.Fold{T}"/>) into an n-ary tree whose atoms are the predicate's atom ids
-+/// (content node indices for a node's prerequisite; node or institution ids for an entity's requirement). A chain of one
-+/// operator becomes one group ("a AND b AND c" is all-of[a, b, c]); a change of operator is a nested group, so
-+/// "seed_drill OR (plough_ard AND horse_collar)" stays one-of[seed_drill, all-of[plough_ard, horse_collar]] and is never read
-+/// as three alternatives. The tree models atoms, AND, OR and parentheses — every shipped prerequisite and requirement is made of
-+/// those alone — and then holds exactly the expression's truth table (pinned for every node and entity by Sim.Tests and
-+/// Sim.Ui.Tests). An expression with anything else has no tree here (<see cref="Of(Predicate?)"/> returns null). Pure; no
-+/// hashing, no dictionaries; a read-only display query (never consulted by a system).
++/// D-089 DH6 (lane RT2): lane RT's polish proposals N2 (the hover path's dependent edges read on every Age's field), N3 (a
++/// spine's lanes as far apart as its widest cased edge, so a pin's five edges never merge) and N4 (what holds a node besides
++/// its prerequisites, under sub-headings of its own). N6 (the route figure) is pinned with the other estimates in
++/// ResearchTreeAuditTests.ANodeNotYetOpen_GetsItsRouteFigure_….
 +/// </summary>
-+public sealed class PrereqExpr
++public class ResearchScreenPolishTests(SteppedWorldFixture fx, ITestOutputHelper output) : IClassFixture<SteppedWorldFixture>
 +{
-+    public PrereqOp Op { get; }
-+    /// <summary>The prerequisite's atom id (<see cref="PrereqOp.Atom"/>), else -1.</summary>
-+    public int Atom { get; }
-+    /// <summary>The parts of a group, in source order (at least two); empty for an atom.</summary>
-+    public IReadOnlyList<PrereqExpr> Parts { get; }
++    private static readonly PolityId Me = UiPlayer.Empire;
++    private const double W = 1600, H = 1000;
 +
-+    private PrereqExpr(PrereqOp op, int atom, PrereqExpr[] parts) { Op = op; Atom = atom; Parts = parts; }
++    // ------------------------------------------------------------------ N2: dependent edges
 +
-+    public static PrereqExpr Leaf(int atom) => new(PrereqOp.Atom, atom, []);
-+
-+    /// <summary>A group of <paramref name="op"/> over <paramref name="parts"/>: a part of the same operator is spliced in (the
-+    /// operator is associative), a repeated atom is kept once (it is idempotent) and a group of one part is that part.</summary>
-+    public static PrereqExpr Group(PrereqOp op, IReadOnlyList<PrereqExpr> parts)
++    [Fact]
++    public void N2_TheDependentInk_ReadsOnTheCasing_AndTheCasingOnTheField_InEveryAge()
 +    {
-+        if (op == PrereqOp.Atom) throw new ArgumentException("a group is ALL or ANY", nameof(op));
-+        var flat = new List<PrereqExpr>();
-+        foreach (PrereqExpr p in parts)
++        // The hover path's dependent edges were drawn plain in the dependent ink, 1.82 to 4.50:1 on the tree's field (under 3:1
++        // in the early Ages; D-084 verification round 1, RT-R1-04). They are now cased as the incoming edges are: the edge reads
++        // by its dark casing on the field, and the dependent ink by its contrast with the casing — both at 3:1 or more (WCAG 2.1
++        // SC 1.4.11), MEASURED per Age below.
++        var low = new List<string>();
++        foreach (EraTheme t in EraThemes.All)
 +        {
-+            if (p.Op == op) { foreach (PrereqExpr q in p.Parts) AddPart(flat, q); }
-+            else AddPart(flat, p);
++            double plain = ThemeColor.Contrast(t.Semantic.Dependent, t.Material.Field);
++            double casing = ThemeColor.Contrast(t.Ink.Text, t.Material.Field);
++            double ink = ThemeColor.Contrast(ProgressionScreen.DependentInkOnCasing(t), t.Ink.Text);
++            output.WriteLine($"{t.Era}: dependent ink on the field {plain:0.00}:1 (plain, before), casing on the field {casing:0.00}:1, dependent ink on the casing {ink:0.00}:1"
++                + (ProgressionScreen.DependentInkOnCasing(t) == t.Semantic.Dependent ? "" : " (re-inked)"));
++            if (casing < 3.0) low.Add($"{t.Era}: casing on the field {casing:0.00}:1");
++            if (ink < 3.0) low.Add($"{t.Era}: dependent ink on the casing {ink:0.00}:1");
 +        }
-+        if (flat.Count == 0) throw new ArgumentException("a group needs a part", nameof(parts));
-+        return flat.Count == 1 ? flat[0] : new PrereqExpr(op, -1, [.. flat]);
++        Assert.Empty(low);
 +    }
 +
-+    private static void AddPart(List<PrereqExpr> parts, PrereqExpr p)
++    [Theory]
++    [InlineData(ResearchTree.Technology)]
++    [InlineData(ResearchTree.Civics)]
++    public void N2_AHoveredCardsDependentEdges_AreCased(ResearchTree tree)
 +    {
-+        if (p.Op == PrereqOp.Atom)
-+            foreach (PrereqExpr q in parts) if (q.Op == PrereqOp.Atom && q.Atom == p.Atom) return;
-+        parts.Add(p);
++        ResearchContent c = fx.Content;
++        var s = new ProgressionScreen(c, Me) { Config = fx.Session.Config };
++        s.Refresh(fx.Session.World);
++        s.Tab = tree == ResearchTree.Civics ? TreeTab.Civics : TreeTab.Technology;
++        s.Paint(W, H, ApproxTextMeasure.Instance);
++        s.FitAll();
++        s.Paint(W, H, ApproxTextMeasure.Instance);
++        s.Selected = -1;
++        // A visible card with a dependent.
++        int node = -1;
++        foreach (int v in s.VisibleVertices())
++            if (!s.Graph.Vertices[v].External && s.Graph.Node(v).Dependents.Count > 0) { node = s.Graph.Vertices[v].ContentIndex; break; }
++        Assert.True(node >= 0);
++        PlacedVertex p = s.Layout.Placed[s.Graph.VertexOf(node)];
++        s.PointerMove(s.Camera.ToScreenX(p.CenterX, s.Canvas.X), s.Camera.ToScreenY(p.CenterY, s.Canvas.Y));
++        Assert.Equal(node, s.Hovered);
++        DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
++        var at = new Dictionary<LineCmd, int>(ReferenceEqualityComparer.Instance);
++        for (int i = 0; i < d.Commands.Count; i++) if (d.Commands[i] is LineCmd l) at[l] = i;
++        LineCmd[] casings = [.. d.Commands.OfType<LineCmd>().Where(l => l.Color == s.Theme.Ink.Text)];
++        LineCmd[] inks = [.. d.Commands.OfType<LineCmd>().Where(l => l.Color == ProgressionScreen.DependentInkOnCasing(s.Theme))];
++        Assert.NotEmpty(inks);
++        static bool Same(LineCmd a, LineCmd b) => Math.Abs(a.X0 - b.X0) < 1e-6 && Math.Abs(a.Y0 - b.Y0) < 1e-6 && Math.Abs(a.X1 - b.X1) < 1e-6 && Math.Abs(a.Y1 - b.Y1) < 1e-6;
++        foreach (LineCmd ink in inks)
++            Assert.Contains(casings, k => Same(k, ink) && k.Width > ink.Width && at[k] < at[ink]);
++        output.WriteLine($"{tree}: {c.Nodes[node].Id} hovered; {inks.Length} dependent strokes, each over its casing");
 +    }
 +
-+    /// <summary>The expression of <paramref name="node"/>; null for a root (see <see cref="Of(Predicate?)"/>).</summary>
-+    public static PrereqExpr? Of(ResearchNode node) => Of(node.Prerequisite);
++    // ------------------------------------------------------------------ N3: spine lanes
 +
-+    /// <summary>The tree of <paramref name="p"/>; null for no expression, and null for an expression this tree does not model —
-+    /// one holding a comparison or a NOT, which <see cref="Predicate.Fold{T}"/> folds to one placeholder whose truth is not known
-+    /// here. The research loader refuses a NOT and a comparison that reads a variable or a quantity in a prerequisite, but it
-+    /// admits a comparison of literals such as "1 &gt; 0" (always true or always false), so such content can load (D-084
-+    /// verification round 1, RT-R1-02; no shipped prerequisite has one). The surfaces then show what makes no false claim: each
-+    /// prerequisite's kind (<see cref="Kinds(Predicate?, IReadOnlyList{int})"/>, decided from the Predicate itself), the flat
-+    /// list and the content's own expression text — never a guessed tree, and never an exception.</summary>
-+    public static PrereqExpr? Of(Predicate? p)
++    [Fact]
++    public void N3_TheSpineLaneStep_IsTiedToTheWidestCasedEdge_OfEveryAge()
 +    {
-+        if (p is null) return null;
-+        PrereqExpr e = p.Fold<PrereqExpr>(Leaf, (l, r) => Group(PrereqOp.All, [l, r]), (l, r) => Group(PrereqOp.Any, [l, r]), Unrepresentable);
-+        return e.HasUnrepresentable() ? null : e;
++        // The widest edge a spine carries is a pinned card's incoming edge: PinnedEdgeFactor × the edge stroke (the screen's
++        // max(2.2, the Age's icon stroke)) plus the dark casing each side. The layout's constants must be that, so a lane step
++        // of SpineEdgeWidth + SpineLaneGap keeps two neighbouring pinned edges apart in every Age.
++        double widest = 0;
++        foreach (EraTheme t in EraThemes.All)
++            widest = Math.Max(widest, ProgressionScreen.PinnedEdgeFactor * Math.Max(2.2, t.Icons.StrokePx) + 2 * ProgressionScreen.PinnedCasingRef);
++        Assert.Equal(TreeLayoutOptions.SpineEdgeWidth, widest, 9);
++        Assert.Equal(TreeLayoutOptions.SpineEdgeWidth + TreeLayoutOptions.SpineLaneGap, TreeLayoutOptions.SpineLaneStepRef, 9);
++        Assert.True(TreeLayoutOptions.SpineLaneGap >= 1.0);
++        var o = new TreeLayoutOptions();
++        // Five lanes, centred, and the widest stroke of the outer two inside the spine.
++        double first = o.Margin + o.Spine / 2.0 - 2 * o.SpineLaneStep, last = o.Margin + o.Spine / 2.0 + 2 * o.SpineLaneStep;
++        Assert.True(first - TreeLayoutOptions.SpineEdgeWidth / 2.0 >= o.Margin);
++        Assert.True(last + TreeLayoutOptions.SpineEdgeWidth / 2.0 <= o.Margin + o.Spine);
 +    }
 +
-+    /// <summary>The placeholder Fold returns for a comparison or a negation.</summary>
-+    private static readonly PrereqExpr Unrepresentable = new(PrereqOp.Atom, -1, []);
-+
-+    private bool HasUnrepresentable()
++    [Theory]
++    [InlineData(ResearchTree.Technology)]
++    [InlineData(ResearchTree.Civics)]
++    public void N3_APinsFiveCasedEdges_InOneSpine_AreFiveStrokes_AtZoomOne(ResearchTree tree)
 +    {
-+        if (ReferenceEquals(this, Unrepresentable)) return true;
-+        foreach (PrereqExpr p in Parts) if (p.HasUnrepresentable()) return true;
-+        return false;
-+    }
-+
-+    /// <summary>Whether the expression holds when <paramref name="done"/> says which prerequisites are complete.</summary>
-+    public bool Holds(Func<int, bool> done)
-+    {
-+        switch (Op)
++        // Pin the card with the most incoming edges routed down one spine (Technology: five or more; the Civics tree has no card
++        // with five on one side, MEASURED), at zoom 1: their casings, the widest strokes there are, never overlap — each pair of
++        // neighbouring vertical spine runs is at least one casing width plus the gap apart (MEASURED below). With the old 3 px
++        // lanes, 7.8 px strokes overlapped by 4.8 px.
++        ResearchContent c = fx.Content;
++        ResearchGraph g = ResearchGraph.Build(c, tree);
++        TreeLayout L = ResearchTreeLayout.Compute(g, TreeLayoutOptions.Scaled(1.0, 1196.0));
++        int pin = -1, most = 0;
++        for (int v = 0; v < g.OwnCount; v++)
 +        {
-+            case PrereqOp.Atom: return done(Atom);
-+            case PrereqOp.All:
-+                foreach (PrereqExpr p in Parts) if (!p.Holds(done)) return false;
-+                return true;
-+            default:
-+                foreach (PrereqExpr p in Parts) if (p.Holds(done)) return true;
-+                return false;
++            int left = 0, right = 0, lane = 0;
++            foreach (GraphEdge e in g.Edges)
++            {
++                if (e.From != v && e.To != v) continue;
++                (double X, double Y)[] r = ResearchTreeLayout.Route(L, e, lane++);
++                if (e.To != v || r.Length != 6) continue;
++                if (r[2].X < L.Width / 2) left++; else right++;
++            }
++            if (Math.Max(left, right) > most) { most = Math.Max(left, right); pin = v; }
 +        }
++        output.WriteLine($"{tree}: at most {most} incoming spine edges on one side of a card");
++        Assert.True(most >= (tree == ResearchTree.Technology ? 5 : 2), $"{tree}: at most {most} incoming spine edges on one side");
++        var s = new ProgressionScreen(c, Me) { Config = fx.Session.Config };
++        s.Refresh(fx.Session.World);
++        s.Tab = tree == ResearchTree.Civics ? TreeTab.Civics : TreeTab.Technology;
++        s.Paint(W, H, ApproxTextMeasure.Instance);
++        int node = g.Vertices[pin].ContentIndex;
++        s.Selected = node;
++        s.Focus(node, jump: true);
++        s.Camera.Set(1.0, s.Camera.TargetPanX, s.Camera.TargetPanY);
++        DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
++        // The vertical casing runs of the pinned edges (the widest casing strokes painted): group by x.
++        double casingW = ProgressionScreen.PinnedEdgeFactor * Math.Max(2.2, s.Theme.Icons.StrokePx) + 2 * ProgressionScreen.PinnedCasingRef;
++        var xs = new List<double>();
++        foreach (LineCmd l in d.Commands.OfType<LineCmd>())
++            if (l.Color == s.Theme.Ink.Text && Math.Abs(l.X0 - l.X1) < 1e-6 && Math.Abs(l.Width - casingW) < 1e-6 && Math.Abs(l.Y1 - l.Y0) > 40)
++                if (!xs.Any(x => Math.Abs(x - l.X0) < 1e-6)) xs.Add(l.X0);
++        xs.Sort();
++        output.WriteLine($"{tree}: {c.Nodes[node].Id} pinned; vertical cased runs at x = {string.Join(", ", xs.Select(x => x.ToString("0.0", CultureInfo.InvariantCulture)))}; casing width {casingW:0.0}");
++        // Among them, the spine runs of one side: five or more, each neighbour at least a casing width plus the gap apart.
++        List<double> spine = SpineRuns(xs, s);
++        Assert.True(spine.Count >= Math.Min(most, 5), "fewer spine runs than lanes: " + string.Join(", ", spine));
++        for (int k = 1; k < spine.Count; k++)
++            Assert.True(spine[k] - spine[k - 1] >= casingW + TreeLayoutOptions.SpineLaneGap - 1e-6,
++                $"runs at {spine[k - 1]:0.0} and {spine[k]:0.0} overlap or touch (casing {casingW:0.0})");
 +    }
 +
-+    /// <summary>Whether the expression has an alternative anywhere (an ANY group).</summary>
-+    public bool HasAlternatives
++    /// <summary>The runs in the tighter of the two spine channels' x ranges (screen), whichever holds more.</summary>
++    private static List<double> SpineRuns(List<double> xs, ProgressionScreen s)
 +    {
-+        get
-+        {
-+            if (Op == PrereqOp.Any) return true;
-+            foreach (PrereqExpr p in Parts) if (p.HasAlternatives) return true;
-+            return false;
-+        }
++        TreeLayoutOptions o = s.Layout.Options;
++        double z = s.Camera.Zoom;
++        double l0 = s.Camera.ToScreenX(o.Margin, s.Canvas.X), l1 = s.Camera.ToScreenX(o.Margin + o.Spine, s.Canvas.X);
++        double r0 = s.Camera.ToScreenX(s.Layout.Width - o.Margin - o.Spine, s.Canvas.X), r1 = s.Camera.ToScreenX(s.Layout.Width - o.Margin, s.Canvas.X);
++        var left = xs.Where(x => x >= l0 - 1e-6 && x <= l1 + 1e-6).ToList();
++        var right = xs.Where(x => x >= r0 - 1e-6 && x <= r1 + 1e-6).ToList();
++        _ = z;
++        return left.Count >= right.Count ? left : right;
 +    }
 +
-+    /// <summary>The expression in words with every nested group in parentheses: "Seed drill OR (Ard plough AND Padded horse
-+    /// collar)". The detail pane and the inspector pass <see cref="NameInExpression"/>, so a name with parentheses of its own is
-+    /// quoted.</summary>
-+    public string Text(Func<int, string> name)
++    [Fact]
++    public void N3_TheCardWidths_BeforeAndAfter_AreMeasured_AndKeepTheReadableFloor()
 +    {
-+        if (Op == PrereqOp.Atom) return name(Atom);
-+        var parts = new List<string>(Parts.Count);
-+        foreach (PrereqExpr p in Parts) parts.Add(p.Op == PrereqOp.Atom ? p.Text(name) : "(" + p.Text(name) + ")");
-+        return string.Join(Op == PrereqOp.All ? " AND " : " OR ", parts);
++        // A layout change (D-089 DH6 asks for it measured): the spines take 2 × (46 − 22) = 48 px more of the width, so where the
++        // tier rows held the same number of slots the cards narrow by 48 / slots px, and where a slot no longer fits the rows
++        // wrap instead (UR-4: never below MinCardWidth). MEASURED here for the old options (spine 22, lanes 3 apart) against the
++        // new, at the tree widths of the window sizes the screen is played at.
++        ResearchContent c = fx.Content;
++        var old = new TreeLayoutOptions() with { Spine = 22.0, SpineLaneStep = 3.0 };
++        foreach (double width in new[] { 900.0, 1196.0, 1366.0, 1600.0, 1920.0, 2560.0 })
++            foreach (ResearchTree tree in new[] { ResearchTree.Technology, ResearchTree.Civics })
++            {
++                ResearchGraph g = ResearchGraph.Build(c, tree);
++                TreeLayout before = ResearchTreeLayout.Compute(g, old with { ViewportWidth = width });
++                TreeLayout after = ResearchTreeLayout.Compute(g, new TreeLayoutOptions() with { ViewportWidth = width });
++                double wb = before.Placed[0].W, wa = after.Placed[0].W;
++                output.WriteLine($"{tree} at {width:0}: card {wb:0.0} -> {wa:0.0} px, height {before.Height:0} -> {after.Height:0}, tiers {before.Columns} -> {after.Columns}");
++                Assert.True(wa >= new TreeLayoutOptions().MinCardWidth - 1e-9, $"{tree} at {width}: card {wa:0.0} under the floor");
++                Assert.True(after.Width <= width + 1e-9);
++                Assert.Equal(before.Columns, after.Columns);   // the spine changes widths, never the tiers
++            }
 +    }
 +
-+    /// <summary>D-084 verification round 1 (RT-R1-06 a): a name as an expression line writes it — in double quotes when it holds a
-+    /// parenthesis of its own (11 shipped names do, such as "Cuneiform (full writing)"), so that every unquoted parenthesis of the
-+    /// line is the expression's grouping: Lunar calendar AND ("Cuneiform (full writing)" OR Egyptian hieroglyphic OR ...).</summary>
-+    public static string NameInExpression(string name) => name.IndexOf('(') >= 0 || name.IndexOf(')') >= 0 ? "\"" + name + "\"" : name;
++    // ------------------------------------------------------------------ N4: what else holds a node, under its own heading
 +
-+    /// <summary>The kind of each prerequisite of <paramref name="node"/>, aligned with <see cref="ResearchNode.PrerequisiteNodes"/>.</summary>
-+    public static PrereqKind[] Kinds(ResearchNode node) => Kinds(node.Prerequisite, node.PrerequisiteNodes);
-+
-+    /// <summary>The kind (<see cref="PrereqKind"/>) of each atom in <paramref name="atoms"/> within <paramref name="p"/>; all
-+    /// <see cref="PrereqKind.Required"/>'s default for no expression. Decided from the Predicate itself, so it holds for an
-+    /// expression the tree does not model too.</summary>
-+    public static PrereqKind[] Kinds(Predicate? p, IReadOnlyList<int> atoms)
++    [Fact]
++    public void N4_Longbows_Requires_PutsTheResearchStageAndTheAgeSweep_UnderSubHeadingsOfTheirOwn()
 +    {
-+        var kinds = new PrereqKind[atoms.Count];
-+        if (p is null) { Array.Fill(kinds, PrereqKind.Required); return kinds; }
-+        IReadOnlyList<int> must = p.MustHoldAtoms();
-+        bool mustAlone = p.Evaluate(null, a => Contains(must, a), null);
-+        for (int k = 0; k < atoms.Count; k++)
-+        {
-+            int a = atoms[k];
-+            if (Contains(must, a)) kinds[k] = PrereqKind.Required;
-+            else if (!mustAlone && p.Evaluate(null, x => x == a || Contains(must, x), null)) kinds[k] = PrereqKind.OneOf;
-+            else kinds[k] = PrereqKind.Grouped;
-+        }
-+        return kinds;
++        // Audit §6 (Longbow, diagnosed by lane RT): under REQUIRES the pane listed Simple bow, then — with no heading — the stage
++        // gate and the Age IV sweep's 60 names, which read as Longbow's prerequisites. Now each comes under its own sub-heading,
++        // after the prerequisite rows: RESEARCH STAGE, then AGE IV SWEEP.
++        ResearchContent c = fx.Content;
++        int longbow = c.IndexOfId("longbow");
++        var s = new ProgressionScreen(c, Me) { Config = fx.Session.Config };
++        s.Refresh(WithDone(c.IndexOfId("bow_simple")));
++        s.Paint(W, H, ApproxTextMeasure.Instance);
++        s.Selected = longbow;
++        DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
++        RectD pane = s.DetailRect;
++        List<string> lines = [.. d.Commands.OfType<TextCmd>().Where(t => t.X >= pane.X && t.X <= pane.Right).Select(t => t.Text)];
++        int requires = lines.IndexOf("REQUIRES");
++        int bow = lines.FindIndex(requires, l => l.StartsWith("Simple bow", StringComparison.Ordinal));
++        int stage = lines.IndexOf(ProgressionScreen.StageSubHeading);
++        int stageLine = lines.FindIndex(l => l.StartsWith("Subtree closed", StringComparison.Ordinal));
++        int sweep = lines.IndexOf(ProgressionScreen.SweepSubHeading(4));
++        int sweepLine = lines.FindIndex(l => l.StartsWith("Age 4 sweep", StringComparison.Ordinal));
++        int idea = lines.IndexOf("IDEA");
++        output.WriteLine(string.Join(" | ", lines.GetRange(requires, Math.Min(8, lines.Count - requires))));
++        Assert.Equal("AGE IV SWEEP", ProgressionScreen.SweepSubHeading(4));
++        Assert.True(requires >= 0 && bow > requires && stage > bow && stageLine > stage && sweep > stageLine && sweepLine > sweep && idea > sweepLine,
++            $"order: REQUIRES {requires}, Simple bow {bow}, {ProgressionScreen.StageSubHeading} {stage}, stage line {stageLine}, AGE IV SWEEP {sweep}, sweep line {sweepLine}, IDEA {idea}");
 +    }
 +
-+    internal static bool Contains(IReadOnlyList<int> list, int v)
++    /// <summary>The stepped world with node <paramref name="node"/> complete for the player.</summary>
++    private WorldState WithDone(int node)
 +    {
-+        for (int i = 0; i < list.Count; i++) if (list[i] == v) return true;
-+        return false;
++        WorldState w = ((WorldState)fx.Session.World).Clone();
++        ResearchNodeId key = fx.Content.Nodes[node].Key;
++        if (!ResearchQuery.IsCompleted(w, Me, key)) w.ResearchCompleted.Add(new ResearchCompletedRow(Me, key));
++        return w;
 +    }
 +}
-+
-+/// <summary>One row of a requirement's outline (<see cref="PrereqOutline.Rows"/>): a prerequisite (<see cref="Atom"/> ≥ 0) with its
-+/// <see cref="Kind"/>, or the HEAD of a nested group (<see cref="Atom"/> = -1) whose <see cref="Group"/> is the group itself:
-+/// <see cref="Prefix"/> ("either ", "or " or ""), its operator and its <see cref="Arity"/> (how many items follow it at
-+/// <see cref="Depth"/> + 1). <see cref="Depth"/> is the nesting level (0 = an item of the root).</summary>
-+public sealed record PrereqRow(int Depth, int Atom, PrereqKind Kind, string Prefix, PrereqExpr? Group)
-+{
-+    public bool IsHead => Atom < 0;
-+    /// <summary>A head's item count (its group's parts); 0 for a prerequisite.</summary>
-+    public int Arity => Group is { } g ? g.Parts.Count : 0;
-+    /// <summary>A head's operator: all of / one of.</summary>
-+    public PrereqOp Op => Group?.Op ?? PrereqOp.Atom;
-+}
-+
-+/// <summary>
-+/// D-084; D-089 DH4 — A REQUIREMENT AS A LIST THAT KEEPS ITS GROUPING, shared by the research screen's REQUIRES rows and the
-+/// inspector's ENABLED BY, WHY LOCKED and "a prerequisite of" lines. A requirement whose every prerequisite is
-+/// <see cref="PrereqKind.Required"/> or <see cref="PrereqKind.OneOf"/> (no <see cref="PrereqKind.Grouped"/> one) keeps the flat list
-+/// it always had: one row per prerequisite, in the order given, with its kind — "every required AND at least one one-of" is then
-+/// exactly the expression. A requirement with a grouped prerequisite gets the expression's own outline, in pre-order: the root's
-+/// prerequisites with their kinds, and every nested group as a head row (its prefix, operator and item count) followed by its
-+/// items one level deeper — so the grouping is never lost and no row claims a kind it does not have. The root itself has no
-+/// head: its operator is the kind of its prerequisites ("required" under ALL, "one of" under ANY) or, when it has none, its
-+/// heads' prefixes ("either"/"or" under ANY, none under ALL).
-+/// </summary>
-+public static class PrereqOutline
-+{
-+    /// <summary>The rows of <paramref name="p"/> over <paramref name="atoms"/> (the requirement's distinct atoms, the order a flat
-+    /// list uses). Empty for no requirement.</summary>
-+    public static List<PrereqRow> Rows(Predicate? p, IReadOnlyList<int> atoms)
-+    {
-+        var rows = new List<PrereqRow>();
-+        if (p is null || atoms.Count == 0) return rows;
-+        return Rows(PrereqExpr.Of(p), atoms, PrereqExpr.Kinds(p, atoms));
-+    }
-+
-+    /// <summary>The rows of the tree <paramref name="expr"/> (null when the expression is not modelled) over
-+    /// <paramref name="atoms"/>, whose kinds (<see cref="PrereqExpr.Kinds(Predicate?, IReadOnlyList{int})"/>) are
-+    /// <paramref name="kinds"/>, aligned. The research screen's view holds both already.</summary>
-+    public static List<PrereqRow> Rows(PrereqExpr? expr, IReadOnlyList<int> atoms, IReadOnlyList<PrereqKind> kinds)
-+    {
-+        var rows = new List<PrereqRow>();
-+        if (atoms.Count == 0) return rows;
-+        bool grouped = false;
-+        foreach (PrereqKind k in kinds) grouped |= k == PrereqKind.Grouped;
-+        if (!grouped || expr is null)
-+        {
-+            for (int k = 0; k < atoms.Count; k++) rows.Add(new PrereqRow(0, atoms[k], kinds[k], "", null));
-+            return rows;
-+        }
-+        if (expr.Op == PrereqOp.Atom) Part(expr, 0, "", atoms, kinds, rows);
-+        else
-+            for (int k = 0; k < expr.Parts.Count; k++) Part(expr.Parts[k], 0, HeadPrefix(expr.Op == PrereqOp.Any, k, root: true), atoms, kinds, rows);
-+        return rows;
-+    }
-+
-+    /// <summary>Whether <see cref="Rows"/> is an outline (it holds a head row) rather than the flat list.</summary>
-+    public static bool IsOutline(List<PrereqRow> rows)
-+    {
-+        foreach (PrereqRow r in rows) if (r.IsHead) return true;
-+        return false;
-+    }
-+
-+    private static void Part(PrereqExpr part, int depth, string prefix, IReadOnlyList<int> atoms, IReadOnlyList<PrereqKind> kinds, List<PrereqRow> rows)
-+    {
-+        if (part.Op == PrereqOp.Atom)
-+        {
-+            for (int k = 0; k < atoms.Count; k++)
-+                if (atoms[k] == part.Atom) { rows.Add(new PrereqRow(depth, part.Atom, kinds[k], "", null)); return; }
-+            rows.Add(new PrereqRow(depth, part.Atom, PrereqKind.Grouped, "", null));   // an atom outside the list (none shipped)
-+            return;
-+        }
-+        rows.Add(new PrereqRow(depth, -1, PrereqKind.Grouped, prefix, part));
-+        for (int k = 0; k < part.Parts.Count; k++) Part(part.Parts[k], depth + 1, HeadPrefix(part.Op == PrereqOp.Any, k, root: false), atoms, kinds, rows);
-+    }
-+
-+    /// <summary>The word before the head of a nested group that is part <paramref name="index"/> of its parent: in an
-+    /// alternative (ONE OF) parent, "or " before every alternative after the first; the first takes "either " at the root,
-+    /// whose operator no head of its own states, and nothing under a "one of" head, which states it (D-084 verification
-+    /// round 1, RT-R1-06 c: an outline never begins "or all of"). Under an ALL parent, nothing.</summary>
-+    public static string HeadPrefix(bool parentAny, int index, bool root) => !parentAny ? "" : index > 0 ? "or " : root ? "either " : "";
-+}
+diff --git a/Sim.Ui.Tests/ResearchScreenRenderTests.cs b/Sim.Ui.Tests/ResearchScreenRenderTests.cs
+index 4b1a55f..567e2c8 100644
+--- a/Sim.Ui.Tests/ResearchScreenRenderTests.cs
++++ b/Sim.Ui.Tests/ResearchScreenRenderTests.cs
+@@ -97,9 +97,13 @@ public class ResearchScreenRenderTests(CanonicalTurnOneFixture fx) : IClassFixtu
+         // THE CONTROL: the A1 Technology tree really does pass 65,535 vertices in ONE draw list (here at FIT and
+         // zoomed out) — the frames the pre-fix renderer could not survive — and ImGui split them into rebased
+         // commands, every one of which the check above walked index by index.
+-        Assert.True(a1Tech.MaxListVertices > ushort.MaxValue, $"max {a1Tech.MaxListVertices}");
+-        Assert.True(a1Tech.OverflowFrames > 0);
+-        Assert.True(a1Tech.RebasedCommands > 0);
++        // D-089 DH6 MOVED PIN (lane RT2, N3; MEASURED): the spines are wider (46 px, lanes 9 px apart, was 22 and 3), so the
++        // 1280 × 800 sweep's largest list is 65,266 vertices, under the limit; the control sweeps the same tree in the
++        // 1920 × 1009 window too, where it still passes it (the wide-window test below pins its first frame).
++        Sweep wide = Run(gui, 1, TreeTab.Technology, 1920, 1009);
++        Assert.True(Math.Max(a1Tech.MaxListVertices, wide.MaxListVertices) > ushort.MaxValue, $"max {a1Tech.MaxListVertices} / {wide.MaxListVertices}");
++        Assert.True(a1Tech.OverflowFrames + wide.OverflowFrames > 0);
++        Assert.True(a1Tech.RebasedCommands + wide.RebasedCommands > 0);
+     }
+ 
+     /// <summary>The window the Director most likely played in (a maximised 1920-wide window): the A1 Technology
 diff --git a/Sim.Ui.Tests/ResearchTreeAuditTests.cs b/Sim.Ui.Tests/ResearchTreeAuditTests.cs
-index 1adb994..54776b4 100644
+index 49fdcfd..1bb3f5e 100644
 --- a/Sim.Ui.Tests/ResearchTreeAuditTests.cs
 +++ b/Sim.Ui.Tests/ResearchTreeAuditTests.cs
-@@ -208,7 +208,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
-         Assert.Equal(source, p.Source);
-         PrereqExpr e = PrereqExpr.Of(node)!;
-         Assert.Equal(source, e.Text(k => c.Nodes[k].Id));   // the grouping kept, written as the content writes it
--        Assert.Equal(kinds, string.Join(" ", PrereqExpr.Kinds(node)));
-+        Assert.Equal(kinds, string.Join(" ", ResearchGraph.KindsOf(node)));
-         ResearchGraph g = ResearchGraph.Build(c, node.Tree);
-         int v = g.VertexOf(i);
-         Assert.Equal(kinds, string.Join(" ", g.Edges.Where(x => x.To == v).Select(x => x.Kind)));
-@@ -259,7 +259,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
-         Assert.Contains("all of:", all, StringComparison.Ordinal);
-         TextCmd[] labels = [.. texts.Where(t => t.Text is RequiresRows.OneOf or RequiresRows.Required)];
-         double rowX = RowX(texts);
--        EdgeKind[] kinds = PrereqExpr.Kinds(c.Nodes[node]);
-+        EdgeKind[] kinds = ResearchGraph.KindsOf(c.Nodes[node]);
-         for (int k = 0; k < kinds.Length; k++)
-         {
-             string name = c.Nodes[c.Nodes[node].PrerequisiteNodes[k]].Name;
-@@ -315,7 +315,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
-         ResearchContent c = ResearchContentLoader.Load(text.Replace(shipped,
-             "\"prereq\": \"(seed_drill AND plough_ard) OR (seed_drill AND horse_collar) OR (plough_ard AND horse_collar)\""), fx.Session.Config.Goods);
-         int node = c.IndexOfId("seed_drill_tull"), sd = c.IndexOfId("seed_drill"), pa = c.IndexOfId("plough_ard"), hc = c.IndexOfId("horse_collar");
--        Assert.Equal([EdgeKind.Grouped, EdgeKind.Grouped, EdgeKind.Grouped], PrereqExpr.Kinds(c.Nodes[node]));
-+        Assert.Equal([EdgeKind.Grouped, EdgeKind.Grouped, EdgeKind.Grouped], ResearchGraph.KindsOf(c.Nodes[node]));
-         ResearchGraph g = ResearchGraph.Build(c, ResearchTree.Technology);
-         int v = g.VertexOf(node);
-         Assert.All(g.Edges.Where(e => e.To == v), e => Assert.Equal(EdgeKind.Grouped, e.Kind));
-@@ -369,7 +369,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
-             "\"prereq\": \"seed_drill OR (seed_drill AND plough_ard AND horse_collar)\""), fx.Session.Config.Goods);
-         int node = c.IndexOfId("seed_drill_tull");
-         Assert.Equal([c.IndexOfId("seed_drill"), c.IndexOfId("plough_ard"), c.IndexOfId("horse_collar")], c.Nodes[node].PrerequisiteNodes);
--        Assert.Equal([EdgeKind.And, EdgeKind.Grouped, EdgeKind.Grouped], PrereqExpr.Kinds(c.Nodes[node]));
-+        Assert.Equal([EdgeKind.And, EdgeKind.Grouped, EdgeKind.Grouped], ResearchGraph.KindsOf(c.Nodes[node]));
-         ResearchNodeView view = ResearchSnapshot.Build(fx.Session.World, c, Me).Nodes[node];
-         List<RequiresRow> rows = RequiresRows.Of(view);
-         Assert.DoesNotContain(rows, r => r.Label == RequiresRows.OneOf);
-@@ -380,7 +380,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
-             Assert.Equal(want, Holds(c.Nodes[node].Prerequisite!, set));
-             Assert.Equal(want, read(set));
+@@ -647,13 +647,15 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+             {
+                 bool cased = casings.Any(k => Same(k, ink) && k.Width > ink.Width && at[k] < at[ink]);
+                 if (e.To == fv) Assert.True(cased, $"{c.Nodes[node].Id} <- {c.Nodes[s.Graph.Vertices[e.From].ContentIndex].Id}: an uncased incoming stroke");
+-                else Assert.DoesNotContain(casings, k => Same(k, ink));
++                // D-089 DH6 MOVED PIN (lane RT2, N2; MEASURED): the dependents are cased too (they were left plain, 1.82 to 4.50:1
++                // on the field). CONTROL: ResearchScreenPolishTests pins the dependent ink on the casing per Age.
++                else Assert.True(cased, $"{c.Nodes[node].Id} -> {c.Nodes[s.Graph.Vertices[e.To].ContentIndex].Id}: an uncased dependent stroke");
+             }
+             if (e.To != fv) dependents++;
+             else if (s.Graph.Vertices[e.From].ContentIndex == first) completed++;
+             else outstanding++;
          }
--        Assert.Equal("", KindError(c.Nodes[node], c.IndexOfId("plough_ard"), PrereqExpr.Kinds(c.Nodes[node])[1]));
-+        Assert.Equal("", KindError(c.Nodes[node], c.IndexOfId("plough_ard"), ResearchGraph.KindsOf(c.Nodes[node])[1]));
+-        output.WriteLine($"{tree}: {c.Nodes[node].Id} hovered; {completed} completed and {outstanding} outstanding incoming edges cased, {dependents} dependents plain");
++        output.WriteLine($"{tree}: {c.Nodes[node].Id} hovered; {completed} completed and {outstanding} outstanding incoming edges and {dependents} dependents cased");
+         Assert.Equal(1, completed);
+         Assert.True(outstanding >= 1);
+     }
+@@ -1056,49 +1058,46 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
      }
  
-     [Theory]
-@@ -468,7 +468,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
-         ResearchNode n = c.Nodes[node];
-         Assert.Equal(prereq, n.Prerequisite!.Source);
-         Assert.Null(PrereqExpr.Of(n));
--        EdgeKind[] k = PrereqExpr.Kinds(n);
-+        EdgeKind[] k = ResearchGraph.KindsOf(n);
-         Assert.Equal(kinds, string.Join(" ", k));
-         for (int a = 0; a < k.Length; a++) Assert.Equal("", KindError(n, n.PrerequisiteNodes[a], k[a]));
-         ResearchGraph g = ResearchGraph.Build(c, ResearchTree.Technology);
-diff --git a/Sim.Ui/Progression/PrerequisiteExpression.cs b/Sim.Ui/Progression/PrerequisiteExpression.cs
-index 493b775..03a5eca 100644
---- a/Sim.Ui/Progression/PrerequisiteExpression.cs
-+++ b/Sim.Ui/Progression/PrerequisiteExpression.cs
-@@ -1,160 +1,15 @@
--using Sim.Core.Systems.ClassMobility;
--using Sim.Core.Systems.Research;
-+using Sim.Core.State;
- 
- namespace Sim.Ui.Progression;
- 
--/// <summary>The operator of a <see cref="PrereqExpr"/> node: a single prerequisite (an atom), ALL of its parts, or ONE OF them.</summary>
--public enum PrereqOp { Atom = 0, All = 1, Any = 2 }
--
--/// <summary>
--/// D-084 (research-tree audit §4) — A NODE'S PREREQUISITE EXPRESSION AS THE RESEARCH SCREENS KEEP IT: the content's parsed
--/// <see cref="Predicate"/> folded (<see cref="Predicate.Fold{T}"/>) into an n-ary tree whose atoms are content indices. A chain
--/// of one operator becomes one group ("a AND b AND c" is all-of[a, b, c]); a change of operator is a nested group, so
--/// "seed_drill OR (plough_ard AND horse_collar)" stays one-of[seed_drill, all-of[plough_ard, horse_collar]] and is never read as
--/// three alternatives. The tree models atoms, AND, OR and parentheses — every shipped prerequisite is made of those alone — and
--/// then holds exactly the expression's truth table (pinned for every node by Sim.Ui.Tests). An expression with anything else has
--/// no tree here (<see cref="Of"/> returns null). Pure; no hashing, no dictionaries.
--/// </summary>
--public sealed class PrereqExpr
--{
--    public PrereqOp Op { get; }
--    /// <summary>The prerequisite's content index (<see cref="PrereqOp.Atom"/>), else -1.</summary>
--    public int Atom { get; }
--    /// <summary>The parts of a group, in source order (at least two); empty for an atom.</summary>
--    public IReadOnlyList<PrereqExpr> Parts { get; }
--
--    private PrereqExpr(PrereqOp op, int atom, PrereqExpr[] parts) { Op = op; Atom = atom; Parts = parts; }
--
--    public static PrereqExpr Leaf(int contentIndex) => new(PrereqOp.Atom, contentIndex, []);
--
--    /// <summary>A group of <paramref name="op"/> over <paramref name="parts"/>: a part of the same operator is spliced in (the
--    /// operator is associative), a repeated atom is kept once (it is idempotent) and a group of one part is that part.</summary>
--    public static PrereqExpr Group(PrereqOp op, IReadOnlyList<PrereqExpr> parts)
--    {
--        if (op == PrereqOp.Atom) throw new ArgumentException("a group is ALL or ANY", nameof(op));
--        var flat = new List<PrereqExpr>();
--        foreach (PrereqExpr p in parts)
--        {
--            if (p.Op == op) { foreach (PrereqExpr q in p.Parts) AddPart(flat, q); }
--            else AddPart(flat, p);
--        }
--        if (flat.Count == 0) throw new ArgumentException("a group needs a part", nameof(parts));
--        return flat.Count == 1 ? flat[0] : new PrereqExpr(op, -1, [.. flat]);
--    }
--
--    private static void AddPart(List<PrereqExpr> parts, PrereqExpr p)
--    {
--        if (p.Op == PrereqOp.Atom)
--            foreach (PrereqExpr q in parts) if (q.Op == PrereqOp.Atom && q.Atom == p.Atom) return;
--        parts.Add(p);
--    }
--
--    /// <summary>The expression of <paramref name="node"/>; null for a root, and null for an expression this tree does not model —
--    /// one holding a comparison or a NOT, which <see cref="Predicate.Fold{T}"/> folds to one placeholder whose truth is not known
--    /// here. The research loader refuses a NOT and a comparison that reads a variable or a quantity in a prerequisite, but it
--    /// admits a comparison of literals such as "1 &gt; 0" (always true or always false), so such content can load (D-084
--    /// verification round 1, RT-R1-02; no shipped prerequisite has one). The screens then show what makes no false claim: each
--    /// prerequisite's kind (<see cref="Kinds"/>, decided from the Predicate itself), the flat REQUIRES list and the content's own
--    /// expression text — never a guessed tree, and never an exception.</summary>
--    public static PrereqExpr? Of(ResearchNode node)
--    {
--        if (node.Prerequisite is not { } p) return null;
--        PrereqExpr e = p.Fold<PrereqExpr>(Leaf, (l, r) => Group(PrereqOp.All, [l, r]), (l, r) => Group(PrereqOp.Any, [l, r]), Unrepresentable);
--        return e.HasUnrepresentable() ? null : e;
--    }
--
--    /// <summary>The placeholder Fold returns for a comparison or a negation.</summary>
--    private static readonly PrereqExpr Unrepresentable = new(PrereqOp.Atom, -1, []);
--
--    private bool HasUnrepresentable()
--    {
--        if (ReferenceEquals(this, Unrepresentable)) return true;
--        foreach (PrereqExpr p in Parts) if (p.HasUnrepresentable()) return true;
--        return false;
--    }
--
--    /// <summary>Whether the expression holds when <paramref name="done"/> says which prerequisites are complete.</summary>
--    public bool Holds(Func<int, bool> done)
--    {
--        switch (Op)
--        {
--            case PrereqOp.Atom: return done(Atom);
--            case PrereqOp.All:
--                foreach (PrereqExpr p in Parts) if (!p.Holds(done)) return false;
--                return true;
--            default:
--                foreach (PrereqExpr p in Parts) if (p.Holds(done)) return true;
--                return false;
--        }
--    }
--
--    /// <summary>Whether the expression has an alternative anywhere (an ANY group).</summary>
--    public bool HasAlternatives
--    {
--        get
--        {
--            if (Op == PrereqOp.Any) return true;
--            foreach (PrereqExpr p in Parts) if (p.HasAlternatives) return true;
--            return false;
--        }
--    }
--
--    /// <summary>The expression in words with every nested group in parentheses: "Seed drill OR (Ard plough AND Padded horse
--    /// collar)". The detail pane passes <see cref="NameInExpression"/>, so a name with parentheses of its own is quoted.</summary>
--    public string Text(Func<int, string> name)
--    {
--        if (Op == PrereqOp.Atom) return name(Atom);
--        var parts = new List<string>(Parts.Count);
--        foreach (PrereqExpr p in Parts) parts.Add(p.Op == PrereqOp.Atom ? p.Text(name) : "(" + p.Text(name) + ")");
--        return string.Join(Op == PrereqOp.All ? " AND " : " OR ", parts);
--    }
--
--    /// <summary>D-084 verification round 1 (RT-R1-06 a): a node's name as the pane's expression line writes it — in double quotes
--    /// when it holds a parenthesis of its own (11 shipped names do, such as "Cuneiform (full writing)"), so that every unquoted
--    /// parenthesis of the line is the expression's grouping: Lunar calendar AND ("Cuneiform (full writing)" OR Egyptian
--    /// hieroglyphic OR ...).</summary>
--    public static string NameInExpression(string name) => name.IndexOf('(') >= 0 || name.IndexOf(')') >= 0 ? "\"" + name + "\"" : name;
--
--    /// <summary>
--    /// The per-prerequisite kind the screens show — the edge's stroke and the pane's label — aligned with
--    /// <see cref="ResearchNode.PrerequisiteNodes"/>, decided from the canonical expression itself so that no kind is ever false:
--    /// <see cref="EdgeKind.And"/> ("requires") when the prerequisite holds on every satisfying route
--    /// (<see cref="Predicate.MustHoldAtoms"/>); <see cref="EdgeKind.Or"/> ("one of") when it is not required, the required ones
--    /// alone do not satisfy the expression, and the required ones with it do — it completes the choice on its own;
--    /// <see cref="EdgeKind.Grouped"/> otherwise — it counts only together with others (a part of a grouped alternative), as
--    /// plough_ard and horse_collar do in seed_drill OR (plough_ard AND horse_collar). Without a Grouped prerequisite the plain
--    /// reading — every "requires" AND at least one "one of" (if any) — is exactly the expression.
--    /// </summary>
--    public static EdgeKind[] Kinds(ResearchNode node)
--    {
--        IReadOnlyList<int> atoms = node.PrerequisiteNodes;
--        var kinds = new EdgeKind[atoms.Count];
--        if (node.Prerequisite is not { } p) return kinds;
--        IReadOnlyList<int> must = p.MustHoldAtoms();
--        bool mustAlone = p.Evaluate(null, a => Contains(must, a), null);
--        for (int k = 0; k < atoms.Count; k++)
--        {
--            int a = atoms[k];
--            if (Contains(must, a)) kinds[k] = EdgeKind.And;
--            else if (!mustAlone && p.Evaluate(null, x => x == a || Contains(must, x), null)) kinds[k] = EdgeKind.Or;
--            else kinds[k] = EdgeKind.Grouped;
--        }
--        return kinds;
--    }
--
--    private static bool Contains(IReadOnlyList<int> list, int v)
--    {
--        for (int i = 0; i < list.Count; i++) if (list[i] == v) return true;
--        return false;
--    }
--}
--
- /// <summary>One row of the detail pane's REQUIRES list (D-084): a prerequisite (<see cref="Atom"/> ≥ 0) with its
- /// <see cref="Kind"/> label and completion, or the head of a nested group ("one of:", "all of:") the rows under it belong to.
- /// <see cref="Depth"/> is the indentation.</summary>
- public sealed record RequiresRow(int Depth, int Atom, string Text, string Label, bool Met);
- 
--/// <summary>D-084 — the detail pane's REQUIRES rows. A node whose every prerequisite is "requires" or "one of" (no
-+/// <summary>D-084 — the detail pane's REQUIRES rows. D-089 DH4 (lane RT2): the expression model (<see cref="PrereqExpr"/>) and
-+/// the outline (<see cref="PrereqOutline"/>) moved to Sim.Core so that the inspector (InfoQuery) uses the same ones; this class
-+/// only words the rows for the pane. A node whose every prerequisite is "requires" or "one of" (no
- /// <see cref="EdgeKind.Grouped"/> one) keeps the flat list it always had: one row per prerequisite, labelled. A node with a
- /// grouped alternative gets the expression's own outline: its top-level prerequisites labelled, every nested group under a
- /// head row naming its operator and its prerequisites indented under it — so the grouping is never lost and no row claims a
-@@ -169,40 +24,23 @@ public static class RequiresRows
+     [Fact]
+-    public void ACivicNotYetOpen_LockedPartialOrAWaitingDestination_ShowsNoEstimate_ForItsLaneFundsItsRouteFirst()
++    public void ANodeNotYetOpen_GetsItsRouteFigure_TheEndTurnsTheEngineTakes_GiftExchangeAndWarBand()
      {
-         var rows = new List<RequiresRow>();
-         if (n.Prerequisites.Count == 0) return rows;
--        bool grouped = false;
--        foreach (PrereqView p in n.Prerequisites) grouped |= p.Kind == EdgeKind.Grouped;
--        if (!grouped || n.Requirement is not { } expr)
--        {
--            foreach (PrereqView p in n.Prerequisites) rows.Add(new RequiresRow(0, p.ContentIndex, p.Name, LabelOf(p.Kind), p.Completed));
--            return rows;
--        }
--        if (expr.Op == PrereqOp.Atom) Part(n, expr, 0, "", rows);
--        else   // the REQUIRES heading heads the root
--            for (int k = 0; k < expr.Parts.Count; k++) Part(n, expr.Parts[k], 0, HeadPrefix(expr.Op == PrereqOp.Any, k, root: true), rows);
--        return rows;
--    }
--
--    /// <summary>One part at <paramref name="depth"/>: a prerequisite's row, or a nested group's head (after
--    /// <paramref name="prefix"/>) and its parts one level in.</summary>
--    private static void Part(ResearchNodeView n, PrereqExpr part, int depth, string prefix, List<RequiresRow> rows)
--    {
--        if (part.Op == PrereqOp.Atom)
-+        var atoms = new int[n.Prerequisites.Count];
-+        var kinds = new PrereqKind[atoms.Length];
-+        for (int k = 0; k < atoms.Length; k++) { atoms[k] = n.Prerequisites[k].ContentIndex; kinds[k] = ResearchGraph.KindOf(n.Prerequisites[k].Kind); }
-+        foreach (PrereqRow r in PrereqOutline.Rows(n.Requirement, atoms, kinds))
+-        // D-084 verification round 1 (RT-R1-01): the pane gave every incomplete civic the bank-aware estimate. A civic that is
+-        // not open cannot be funded at the next End Turn: ordered, it becomes the lane's destination and the lane funds its
+-        // route first, one civic per End Turn with overflow off, spending the bank on those (ResearchSystem 1b, 3b). The
+-        // stepped world banks 715.213 CP, which covered the own cost of 15 locked civics, so their panes read "~1 turns"
+-        // though no locked civic completes at the first End Turn — Gift exchange takes 2. Now no civic that is not open gets a
+-        // figure (its pane says so), whether it is locked, partial or the destination waiting on its route; a technology that
+-        // is not open keeps the figure it always had, its own turns at the RP rate (no bank).
++        // D-089 DH6 (lane RT's N6; READING RT2-R1 (a)) — MOVED PIN, replacing D-084 verification round 1's RT-R1-01 test ("a civic
++        // not yet open shows no estimate"; "a technology not yet open keeps its own turns at the RP rate"). A node not yet open —
++        // locked, partial, or a destination waiting on its route — now gets the ROUTE figure: the End Turns until it completes if
++        // its lane takes it as its destination now, its route funded first one node at a time, each node paid by the same rule as
++        // an open one, and a civic's bank spent and carried along (InfoQuery.RouteResearchTurns). MEASURED on the stepped world:
++        // Gift exchange 2 End Turns, as the engine (D-084 RT-R1-01 measured the same 2 by stepping); War band below. A route that
++        // needs the other tree's research gets no figure, and the pane says why.
+         ResearchContent c = fx.Content;
+         ResearchSnapshot s0 = ResearchSnapshot.Build(fx.Session.World, c, Me, NextDt(fx.Session.World));
+         Assert.True(s0.TwoLanes && s0.Routing && !c.Tuning.ResearchOverflow);
+         Assert.True(s0.CivicsBalance > 0);
+-        int civicsNotOpen = 0, coveredByTheBank = 0, techNotOpen = 0;
++        int notOpen = 0, figures = 0, otherLane = 0;
+         for (int i = 0; i < c.Nodes.Count; i++)
          {
-+            if (r.IsHead)
-+            {
-+                string head = r.Prefix + (r.Op == PrereqOp.All ? "all of:" : "one of:");
-+                rows.Add(new RequiresRow(r.Depth, -1, head, "", r.Group!.Holds(i => Done(n, i))));
-+                continue;
-+            }
-             foreach (PrereqView p in n.Prerequisites)
--                if (p.ContentIndex == part.Atom) { rows.Add(new RequiresRow(depth, p.ContentIndex, p.Name, LabelOf(p.Kind), p.Completed)); return; }
--            return;
-+                if (p.ContentIndex == r.Atom) { rows.Add(new RequiresRow(r.Depth, p.ContentIndex, p.Name, LabelOf(p.Kind), p.Completed)); break; }
+             ResearchNodeView v = s0.Nodes[i];
+-            if (v.State == NodeState.Completed || v.Available) { Assert.False(s0.NoEstimateUntilOpen(v)); continue; }
+-            if (v.Tree == ResearchTree.Civics)
+-            {
+-                civicsNotOpen++;
+-                if (v.EffectiveCost - v.Progress <= s0.CivicsBalance) coveredByTheBank++;
+-                Assert.True(s0.NoEstimateUntilOpen(v));
+-                Assert.Null(s0.TurnsOf(v));
+-            }
+-            else
+-            {
+-                techNotOpen++;
+-                Assert.False(s0.NoEstimateUntilOpen(v));
+-                Assert.Equal((long)Math.Ceiling(Math.Max(0.0, v.EffectiveCost - v.Progress) / s0.PointsPerTurn), s0.TurnsOf(v));
+-            }
++            if (v.State == NodeState.Completed || v.Available) { Assert.False(s0.IsRouteFigure(v)); continue; }
++            notOpen++;
++            Assert.True(s0.IsRouteFigure(v));
++            if (s0.TurnsOf(v) is long) figures++;
++            else if (s0.RouteNeedsOtherLane(v)) otherLane++;
          }
--        string head = prefix + (part.Op == PrereqOp.All ? "all of:" : "one of:");
--        rows.Add(new RequiresRow(depth, -1, head, "", part.Holds(i => Done(n, i))));
--        for (int k = 0; k < part.Parts.Count; k++) Part(n, part.Parts[k], depth + 1, HeadPrefix(part.Op == PrereqOp.Any, k, root: false), rows);
-+        return rows;
-     }
+-        output.WriteLine($"stepped world: {civicsNotOpen} civics not open ({coveredByTheBank} whose own cost the bank covers), {techNotOpen} technologies not open");
+-        Assert.True(coveredByTheBank > 0);
++        output.WriteLine($"stepped world: {notOpen} nodes not open, {figures} with a route figure, {otherLane} whose route needs the other tree");
++        Assert.True(figures > 0 && otherLane > 0);
  
--    /// <summary>The word before the head of a nested group that is part <paramref name="index"/> of its parent: in an
--    /// alternative (ONE OF) parent, "or " before every alternative after the first; the first takes "either " at the root,
--    /// whose operator no head of its own states, and nothing under a "one of:" head, which states it (D-084 verification
--    /// round 1, RT-R1-06 c: an outline no longer begins "or all of:"). Under an ALL parent, nothing.</summary>
--    private static string HeadPrefix(bool parentAny, int index, bool root) => !parentAny ? "" : index > 0 ? "or " : root ? "either " : "";
--
-     private static bool Done(ResearchNodeView n, int contentIndex)
-     {
-         foreach (PrereqView p in n.Prerequisites) if (p.ContentIndex == contentIndex) return p.Completed;
-diff --git a/Sim.Ui/Progression/ResearchGraph.cs b/Sim.Ui/Progression/ResearchGraph.cs
-index 955acc0..383d4d1 100644
---- a/Sim.Ui/Progression/ResearchGraph.cs
-+++ b/Sim.Ui/Progression/ResearchGraph.cs
-@@ -1,8 +1,10 @@
-+using Sim.Core.State;
- using Sim.Core.Systems.Research;
- 
- namespace Sim.Ui.Progression;
- 
--/// <summary>How a prerequisite edge participates in its target's expression (decided by <see cref="PrereqExpr.Kinds"/>).
-+/// <summary>How a prerequisite edge participates in its target's expression (decided by <see cref="PrereqExpr.Kinds(ResearchNode)"/>,
-+/// Sim.Core, the role the inspector reads too: <see cref="ResearchGraph.KindsOf"/>).
- /// <see cref="And"/> ("requires", solid): the prerequisite holds on EVERY path that satisfies the expression
- /// (Predicate.MustHoldAtoms). <see cref="Or"/> ("one of", dashed): with the required ones it completes the expression on its
- /// own — one alternative among several. <see cref="Grouped"/> (dotted; D-084, audit §4): it counts only together with other
-@@ -23,7 +25,7 @@ public readonly record struct GraphVertex(int ContentIndex, bool External);
- /// ONE research tree as a drawable graph, generated from the loaded <see cref="ResearchContent"/>
- /// (never from UI-owned JSON). Vertices are the tree's nodes in content order (key-ascending),
- /// followed by external anchors in content order. Edges are exactly the union of every node's
--/// <see cref="ResearchNode.PrerequisiteNodes"/>, each classified from the expression itself (<see cref="PrereqExpr.Kinds"/>),
-+/// <see cref="ResearchNode.PrerequisiteNodes"/>, each classified from the expression itself (<see cref="KindsOf"/>),
- /// and every node of the tree keeps its whole prerequisite expression (<see cref="Requirement"/>, D-084): the edges are the
- /// atoms, the expression is how they combine.
- /// Pure and deterministic: no dictionaries are iterated, no hashing.
-@@ -76,10 +78,34 @@ public sealed class ResearchGraph
-         {
-             ResearchNode node = content.Nodes[vertices[v].ContentIndex];
-             requirement[v] = PrereqExpr.Of(node);
--            EdgeKind[] kinds = PrereqExpr.Kinds(node);
-+            EdgeKind[] kinds = KindsOf(node);
-             for (int k = 0; k < kinds.Length; k++)
-                 edges.Add(new GraphEdge(vertexOf[node.PrerequisiteNodes[k]], v, kinds[k]));
+-        // Gift exchange, locked (it needs Council of elders): the engine takes 2 End Turns, so the old "~1" was unreachable.
+-        int gift = c.IndexOfId("gift_exchange"), council = c.IndexOfId("kin_council");
++        int gift = c.IndexOfId("gift_exchange"), council = c.IndexOfId("kin_council"), band = c.IndexOfId("war_band");
+         WorldState locked = ((WorldState)fx.Session.World).Clone();
+         Assert.Equal(NodeState.Locked, s0.Nodes[gift].State);
+         Assert.Equal([council], c.Nodes[gift].PrerequisiteNodes);
+-        Assert.True(s0.Nodes[gift].EffectiveCost - s0.Nodes[gift].Progress < s0.CivicsBalance);
++        Assert.Equal(2L, s0.TurnsOf(s0.Nodes[gift]));
+         Assert.Equal(2, EngineTurns(locked, gift));
+-        // Partial: progress kept but not open. The waiting destination: ordered, its route not yet done.
++        // War band (kin_council AND (bow_simple OR atlatl)): lane RT measured 46 End Turns at 51ab032, when the stepped world held
++        // neither technology and the Civics lane waited on the Technology lane. Since the D-089 DH7 content change the stepped
++        // world (ProgressionPreview's stepping) holds one, so its route is the council alone: the figure and the engine agree.
++        long bandTurns = s0.TurnsOf(s0.Nodes[band])!.Value;
++        output.WriteLine($"War band: route figure {bandTurns}, engine {EngineTurns(locked, band)}; bow_simple done {s0.Nodes[c.IndexOfId("bow_simple")].State == NodeState.Completed}, atlatl done {s0.Nodes[c.IndexOfId("atlatl")].State == NodeState.Completed}");
++        Assert.Equal(bandTurns, (long)EngineTurns(locked, band));
++        // Partial (progress kept, not open) and the waiting destination (ordered, its route not done): the figure is still the
++        // engine's, and the pane gives it "along its route".
+         WorldState partial = WithBank(ResearchQuery.CivicsPointsAccount(fx.Session.World, Me).BalanceMilli, gift, 25.0);
+         WorldState destination = ((WorldState)fx.Session.World).Clone();
+         Keep(destination.ResearchTargets, r => !(r.Polity.Value == Me.Value && c.IndexOf(r.Node) is int i and >= 0 && c.Nodes[i].Tree == ResearchTree.Civics));
+@@ -1109,17 +1108,39 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+             ResearchSnapshot s = ResearchSnapshot.Build(w, c, Me, NextDt(w));
+             Assert.Equal(state, s.Nodes[gift].State);
+             Assert.False(s.Nodes[gift].Available);
+-            Assert.Null(s.TurnsOf(s.Nodes[gift]));
++            Assert.Equal((long)EngineTurns(w, gift), s.TurnsOf(s.Nodes[gift]));
+             string block = PaneCostBlock(w, gift);
+             output.WriteLine($"{label}: {block}");
+-            Assert.DoesNotMatch(TurnsOnCard, block);
+-            Assert.Contains(ProgressionScreen.NoEstimateYet, block, StringComparison.Ordinal);
++            Assert.Contains("~" + InfoQuery.TurnsPhrase(s.TurnsOf(s.Nodes[gift])!.Value) + ProgressionScreen.AlongItsRoute + " at the current rate", block, StringComparison.Ordinal);
++            Assert.DoesNotContain(ProgressionScreen.NoEstimateYet, block, StringComparison.Ordinal);
+             Assert.Contains("Civics Points banked", block, StringComparison.Ordinal);   // D-070 R4: the bank is still shown
          }
-         return new ResearchGraph(content, tree, [.. vertices], [.. edges], own, vertexOf, requirement);
-     }
+-        // An open civic keeps its figure (the engine's End Turns; ACivicsEstimate_… pins the value): Council of elders itself.
++        // An open civic keeps its single-node figure (no "along its route"): Council of elders itself.
+         Assert.True(s0.Nodes[council].Available);
+         Assert.Matches(TurnsOnCard, PaneCostBlock(locked, council));
+-        Assert.DoesNotContain(ProgressionScreen.NoEstimateYet, PaneCostBlock(locked, council), StringComparison.Ordinal);
++        Assert.DoesNotContain(ProgressionScreen.AlongItsRoute, PaneCostBlock(locked, council), StringComparison.Ordinal);
 +
-+    /// <summary>D-089 DH4 (lane RT2): each prerequisite's edge kind, aligned with <see cref="ResearchNode.PrerequisiteNodes"/> —
-+    /// the role <see cref="PrereqExpr.Kinds(ResearchNode)"/> (Sim.Core, the one rule the inspector uses too) gives it.</summary>
-+    public static EdgeKind[] KindsOf(ResearchNode node)
++        // Technologies too (READING RT2-R1 (a) serves both trees): the first ten technologies not yet open whose figure is at most
++        // 40 End Turns, each against the engine.
++        int techs = 0;
++        var diag = new List<string>();
++        for (int i = 0; i < c.Nodes.Count && techs < 10; i++)
++        {
++            ResearchNodeView v = s0.Nodes[i];
++            if (v.Tree != ResearchTree.Technology || !s0.IsRouteFigure(v) || s0.TurnsOf(v) is not long k || k > 40) continue;
++            int engine = EngineTurns(locked, i);
++            diag.Add($"{c.Nodes[i].Id}: figure {k}, engine {engine}, eurekas {v.Eurekas.Count}, holds {v.Eurekas.Count(e => e.HoldsNow == true)}");
++            techs++;
++        }
++        output.WriteLine(string.Join("\n", diag));
++        Assert.Equal(10, techs);
++
++        // A node whose route needs the other tree: no figure, and the pane says why.
++        int needsOther = -1;
++        for (int i = 0; i < c.Nodes.Count && needsOther < 0; i++) if (s0.RouteNeedsOtherLane(s0.Nodes[i])) needsOther = i;
++        Assert.True(needsOther >= 0);
++        Assert.Null(s0.TurnsOf(s0.Nodes[needsOther]));
++        Assert.Contains(ProgressionScreen.NoEstimateOtherTree(c.Nodes[needsOther].Tree), PaneCostBlock(locked, needsOther), StringComparison.Ordinal);
+     }
+ 
+     [Fact]
+diff --git a/Sim.Ui/Progression/ProgressionScreen.cs b/Sim.Ui/Progression/ProgressionScreen.cs
+index 12157f6..31f76d9 100644
+--- a/Sim.Ui/Progression/ProgressionScreen.cs
++++ b/Sim.Ui/Progression/ProgressionScreen.cs
+@@ -1249,7 +1249,7 @@ public sealed partial class ProgressionScreen
+                     // (CasedEdge, at the hover width). Uncased, the completed ink was under 3:1 on the tree's field in every Age,
+                     // fainter than the prerequisite ink it replaced; on the dark casing it reads at 3:1 or more, and the casing
+                     // itself reads on the field. Completed and outstanding edges are cased alike, so neither outweighs the other;
+-                    // dependents keep their plain stroke.
++                    // since D-089 DH6 (N2) the dependents are cased too (below).
+                     var line = new (double X, double Y)[pts.Length];
+                     for (int k = 0; k < pts.Length; k++) line[k] = (SX(pts[k].X), SY(pts[k].Y));
+                     CasedEdge(d, line, lw, dash, col);
+@@ -1257,9 +1257,16 @@ public sealed partial class ProgressionScreen
+                     d.Polygon([(ex - ah, ey - ah * 1.3), (ex + ah, ey - ah * 1.3), (ex, ey)], col);
+                     continue;
+                 }
+-                for (int k = 0; k + 1 < pts.Length; k++)
+-                    d.Line(SX(pts[k].X), SY(pts[k].Y), SX(pts[k + 1].X), SY(pts[k + 1].Y), col, lw, dash);
+-                d.Polygon([(ex - ah, ey - ah * 1.3), (ex + ah, ey - ah * 1.3), (ex, ey)], col);
++                // D-089 DH6 (lane RT's N2): a dependent's edge is cased too, as the incoming ones are. Plain, the dependent ink
++                // read at 1.82 to 4.50:1 on the tree's field, under 3:1 in the early Ages; over the dark casing the edge reads by
++                // its casing on every Age's field and the dependent ink by its contrast with the casing (both pinned per Age in
++                // ResearchTreeAuditTests).
++                var dep = new (double X, double Y)[pts.Length];
++                for (int k = 0; k < pts.Length; k++) dep[k] = (SX(pts[k].X), SY(pts[k].Y));
++                Rgba depInk = DependentInkOnCasing(t);
++                CasedEdge(d, dep, lw, dash, depInk);
++                d.Polygon([(ex - ah - 1.5, ey - ah * 1.3 - 2), (ex + ah + 1.5, ey - ah * 1.3 - 2), (ex, ey + 1.5)], t.Ink.Text);
++                d.Polygon([(ex - ah, ey - ah * 1.3), (ex + ah, ey - ah * 1.3), (ex, ey)], depInk);
+             }
+         }
+         if (focusV >= 0) Edges(focusV, pinned: pinV >= 0);
+@@ -1284,6 +1291,12 @@ public sealed partial class ProgressionScreen
+         d.PopClip();
+     }
+ 
++    /// <summary>D-089 DH6 (N4): the sub-headings under REQUIRES for what holds a node besides its prerequisites.</summary>
++    public const string StageSubHeading = "RESEARCH STAGE", SubtreeSubHeading = "WHOLE SUBTREE", FinalAgeSubHeading = "FINAL AGE";
++
++    /// <summary>D-089 DH6 (N4): the Age sweep's sub-heading, "AGE IV SWEEP" for the cohort of Age 4.</summary>
++    public static string SweepSubHeading(int cohortAge) => "AGE " + Sim.Ui.Ages.AgePanelModel.Numeral(cohortAge) + " SWEEP";
++
+     /// <summary>D-084: how far a nested group's rows sit in from their head in the REQUIRES outline (screen px at UI scale 1).</summary>
+     public const double RequiresIndentRef = 18.0;
+     private double RequiresIndent => Sp(RequiresIndentRef);
+@@ -1304,6 +1317,22 @@ public sealed partial class ProgressionScreen
+     private double PinnedPrerequisiteOutlinePx => Sp(PinnedPrerequisiteOutlineRef);
+     private double PinnedEdgePx => PinnedEdgeFactor * Math.Max(2.2, Theme.Icons.StrokePx);
+ 
++    /// <summary>D-089 DH6 (N2): the ink a dependent edge is drawn in over its dark casing — the Age's dependent ink where it reads
++    /// at 3:1 or more on the casing, else that ink mixed toward white (or, on a light casing, toward black) in the smallest of
++    /// twenty steps that does. MEASURED: only the Iron Age's dependent ink (2.95:1 on its casing) is re-inked.</summary>
++    public static Rgba DependentInkOnCasing(EraTheme t)
 +    {
-+        PrereqKind[] roles = PrereqExpr.Kinds(node);
-+        var kinds = new EdgeKind[roles.Length];
-+        for (int k = 0; k < roles.Length; k++) kinds[k] = EdgeKindOf(roles[k]);
-+        return kinds;
++        Rgba ink = t.Semantic.Dependent;
++        if (ThemeColor.Contrast(ink, t.Ink.Text) >= 3.0) return ink;
++        foreach (Rgba toward in new[] { new Rgba(255, 255, 255), new Rgba(0, 0, 0) })
++            for (int k = 1; k <= 20; k++)
++            {
++                Rgba mixed = ThemeColor.Mix(t.Semantic.Dependent, toward, k / 20.0);
++                if (ThemeColor.Contrast(mixed, t.Ink.Text) >= 3.0) return mixed;
++            }
++        return ink;
 +    }
 +
-+    public static EdgeKind EdgeKindOf(PrereqKind role) => role switch
-+    {
-+        PrereqKind.Required => EdgeKind.And,
-+        PrereqKind.OneOf => EdgeKind.Or,
-+        _ => EdgeKind.Grouped,
-+    };
+     /// <summary>A cased orange stroke: the body ink <see cref="PinnedCasingRef"/> wider each side, then the signal orange.</summary>
+     private void PinnedStroke(DrawList d, (double X, double Y)[] pts, double width, bool closed)
+     {
+@@ -1543,6 +1572,14 @@ public sealed partial class ProgressionScreen
+     /// <summary>D-084 verification round 1 (RT-R1-01): what the pane writes in place of "~N turns" for a civic not yet open.</summary>
+     public const string NoEstimateYet = "no estimate until it opens";
+ 
++    /// <summary>D-089 DH6 (N6): the words after a node-not-yet-open's figure — it counts the route.</summary>
++    public const string AlongItsRoute = " along its route";
 +
-+    public static PrereqKind KindOf(EdgeKind kind) => kind switch
-+    {
-+        EdgeKind.And => PrereqKind.Required,
-+        EdgeKind.Or => PrereqKind.OneOf,
-+        _ => PrereqKind.Grouped,
-+    };
- }
++    /// <summary>D-089 DH6 (N6): why a node not yet open has no figure when its route needs the other tree's research, which its
++    /// lane cannot fund ("no estimate: its route needs Technology research").</summary>
++    public static string NoEstimateOtherTree(ResearchTree tree) =>
++        "no estimate: its route needs " + (tree == ResearchTree.Civics ? "Technology" : "Civics") + " research";
++
+     /// <summary>The card's state line (UR-4): the one sentence a card owes the player — why it is locked ("Needs
+     /// Controlled fire"), how long it would take ("Available · ~9 turns"), how far it is ("Researching · 13% · ~7
+     /// turns"), or that it is known. Read from the snapshot (ResearchQuery), never invented.</summary>
+@@ -2116,9 +2153,12 @@ public sealed partial class ProgressionScreen
+             EraMarks.Progress(d, t, new RectD(x, y + Sp(4), w, t.Controls.Progress == ProgressStyle.Notches ? Sp(11) : Sp(8)), n.Fraction,
+                 n.State == NodeState.CurrentTarget ? sm.Active : sm.Progress, 192);
+             y += Sp(20);
+-            // D-084 verification round 1 (RT-R1-01): a civic not yet open gets no figure — its lane funds its route first and spends
+-            // the bank there (ResearchSnapshot.NoEstimateUntilOpen) — and the pane says so.
+-            string turns = s.TurnsOf(n) is long k ? "  ·  ~" + InfoQuery.TurnsPhrase(k) + " at the current rate"
++            // D-089 DH6 (N6; READING RT2-R1 (a), replacing D-084 RT-R1-01's "no figure for a civic not yet open"): a node not yet
++            // open — technology or civic — gets the ROUTE figure, the End Turns until it completes with its route funded first at
++            // the current rate (ResearchSnapshot.TurnsOf, InfoQuery.RouteResearchTurns), and says so ("along its route"); none
++            // when its route needs the other tree's research, which its lane cannot fund, or cannot be funded at all.
++            string turns = s.TurnsOf(n) is long k ? "  ·  ~" + InfoQuery.TurnsPhrase(k) + (s.IsRouteFigure(n) ? AlongItsRoute : "") + " at the current rate"
++                : s.RouteNeedsOtherLane(n) ? "  ·  " + NoEstimateOtherTree(n.Tree)
+                 : s.NoEstimateUntilOpen(n) ? "  ·  " + NoEstimateYet : "";
+             foreach (string line in FlowText.Wrap(m, Num(n.Progress) + " / " + Num(n.EffectiveCost) + " " + unit + turns, TypeRole.Data, _scale, w, FontRole.Numeric))
+             { d.Write(t, x, y, line, data, t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric); y += FlowText.Slot(TypeRole.Data, _scale); }
+@@ -2234,18 +2274,32 @@ public sealed partial class ProgressionScreen
+             InfoNode(new RectD(ix + Sp(22), y, Math.Min(iw - Sp(22) - kw, nameW), lines.Count * FlowText.Slot(TypeRole.Body, _scale)), row.Atom);
+             foreach (string line in lines) { d.Write(t, ix + Sp(22), y, line, body, row.Met ? t.Ink.Text : t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
+         }
++        // D-089 DH6 (N4): what else holds the node, each under a sub-heading of its own, so that no name below them reads as a
++        // prerequisite (audit §6: Longbow's REQUIRES list ran on into the research stage and the Age IV sweep's 60 names).
+         if (n.Lock.HasFlag(LockReason.ResearchStage))
++        {
++            y = SubHeading(d, m, x, w, y + Sp(4), StageSubHeading);
+             foreach (string line in FlowText.Wrap(m, "Subtree closed: the research stage is not reached (" + s.StageExpression.Replace("_", " ") + ").", TypeRole.Body, _scale, w))
+             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
++        }
+         if (n.Lock.HasFlag(LockReason.SubtreeNotExhausted))
++        {
++            y = SubHeading(d, m, x, w, y + Sp(4), SubtreeSubHeading);
+             foreach (string line in FlowText.Wrap(m, "Recursive: waits for every finite node of its subtree.", TypeRole.Body, _scale, w))
+             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
+-        if (SweepLine(node) is { } sweepLine)   // ADR-048: the Age sweep, apart from the prerequisites
++        }
++        if (SweepLine(node) is { } sweepLine && s.Sweeps[node] is { } sweepState)   // ADR-048: the Age sweep, apart from the prerequisites
++        {
++            y = SubHeading(d, m, x, w, y + Sp(4), SweepSubHeading(sweepState.CohortAge));
+             foreach (string line in FlowText.Wrap(m, sweepLine, TypeRole.Body, _scale, w))
+             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
++        }
+         if (n.Lock.HasFlag(LockReason.FinalAgeCivicsNotExhausted))
++        {
++            y = SubHeading(d, m, x, w, y + Sp(4), FinalAgeSubHeading);
+             foreach (string line in FlowText.Wrap(m, "Recursive: waits for every finite civic of the final Age.", TypeRole.Body, _scale, w))
+             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
++        }
+         y += Sp(8);
+ 
+         // IDEA: the player-facing name of the acceleration mechanism the code calls Eureka (D-069 R4).
 diff --git a/Sim.Ui/Progression/ResearchNodeViews.cs b/Sim.Ui/Progression/ResearchNodeViews.cs
-index 1ea9b7f..874f07a 100644
+index 874f07a..bedb324 100644
 --- a/Sim.Ui/Progression/ResearchNodeViews.cs
 +++ b/Sim.Ui/Progression/ResearchNodeViews.cs
-@@ -193,9 +193,9 @@ public sealed class ResearchSnapshot
-             var terms = new List<(string, double)>();
-             foreach (ResearchQuery.CostTerm term in cost.Terms) terms.Add((term.UniversityId, term.Factor));
+@@ -111,22 +111,49 @@ public sealed class ResearchSnapshot
+     /// Points bank for Civics in the two-lane model (<see cref="CivicsBalance"/>), else 0 (Technology has no RP bank).</summary>
+     public double BankOn(ResearchTree tree) => TwoLanes && tree == ResearchTree.Civics ? CivicsBalance : 0.0;
  
--            // D-084 (audit §4): each prerequisite's kind is decided from the whole expression (PrereqExpr.Kinds) — a part of a
--            // grouped alternative is Grouped, never "one of" — and the expression itself travels with the view.
--            EdgeKind[] kinds = PrereqExpr.Kinds(node);
-+            // D-084 (audit §4): each prerequisite's kind is decided from the whole expression (PrereqExpr.Kinds, Sim.Core) — a
-+            // part of a grouped alternative is Grouped, never "one of" — and the expression itself travels with the view.
-+            EdgeKind[] kinds = ResearchGraph.KindsOf(node);
-             var prereqs = new PrereqView[node.PrerequisiteNodes.Count];
-             for (int k = 0; k < prereqs.Length; k++)
-             {
+-    /// <summary>D-084 (audit §5): the "~N turns" of <paramref name="v"/> — <see cref="InfoQuery.ResearchTurns"/> over the view's
+-    /// cost and progress and its lane's rate and bank, the one estimate the card, the pane and the inspector share. Null when
+-    /// none can be given: a zero rate and a bank short of the cost, or a civic not yet open (<see cref="NoEstimateUntilOpen"/>).
+-    /// For an open node it is the End Turns the engine takes once the node is ordered; for a technology not yet open (no bank)
+-    /// it is, as before D-084, the node's own turns at the current rate once it opens — its route is not counted.</summary>
+-    public long? TurnsOf(ResearchNodeView v) =>
+-        NoEstimateUntilOpen(v) ? null : InfoQuery.ResearchTurns(v.EffectiveCost, v.Progress, PointsPerTurnOn(v.Tree), BankOn(v.Tree));
+-
+-    /// <summary>D-084 verification round 1 (RT-R1-01): whether <paramref name="v"/> is a civic of the two-lane model that is not
+-    /// open — locked, partial, or a destination still waiting on its route. Its lane cannot fund it at the next End Turn:
+-    /// ordered, it becomes the lane's destination, and the lane funds the nodes of its route first, one civic per End Turn
+-    /// (overflow off) and the bank spent on those (ResearchSystem steps 1b and 3b). How long it takes therefore depends on its
+-    /// route, so no single-node figure — least of all one that spends the bank on it — is what the engine does, and none is
+-    /// shown. Technology has no bank and keeps its figure.</summary>
+-    public bool NoEstimateUntilOpen(ResearchNodeView v) =>
+-        TwoLanes && v.Tree == ResearchTree.Civics && !v.Available && v.State != NodeState.Completed;
++    /// <summary>D-084 (audit §5): the "~N turns" of <paramref name="v"/>, the one estimate the card, the pane and the inspector
++    /// share. For an OPEN node (or a completed one) it is <see cref="InfoQuery.ResearchTurns"/> over the view's cost and progress
++    /// and its lane's rate and bank: the End Turns the engine takes once the node is ordered. D-089 DH6 (lane RT's N6; READING
++    /// RT2-R1 (a)): for a node NOT YET OPEN — a technology or a civic, locked, partial, or a destination waiting on its route —
++    /// it is <see cref="InfoQuery.RouteResearchTurns(ResearchContent, bool[], double[], int, double, double, int)"/>: the End
++    /// Turns until it completes if its lane takes it as its destination now, its route funded first, one node at a time, each
++    /// node paid by the same rule and a civic's bank carried along (<see cref="IsRouteFigure"/>). This replaces lane RT's
++    /// "no figure for a civic not yet open" (D-084 verification round 1, RT-R1-01) and a technology's own-cost figure, which
++    /// left its route out. Null when none can be given: a zero rate and a bank short of the cost, or a route that needs the
++    /// other lane or cannot be funded (<see cref="NoEstimateUntilOpen"/>).</summary>
++    public long? TurnsOf(ResearchNodeView v)
++    {
++        if (!IsRouteFigure(v)) return InfoQuery.ResearchTurns(v.EffectiveCost, v.Progress, PointsPerTurnOn(v.Tree), BankOn(v.Tree));
++        return Route(v.ContentIndex).Turns;
++    }
++
++    /// <summary>D-089 DH6: whether <paramref name="v"/>'s figure is a route figure — the node is neither open nor complete.</summary>
++    public bool IsRouteFigure(ResearchNodeView v) => !v.Available && v.State != NodeState.Completed && Content is not null;
++
++    /// <summary>D-084 verification round 1 (RT-R1-01), narrowed by D-089 DH6: whether <paramref name="v"/> is a node not yet open
++    /// that gets NO figure — its route needs the other lane, stalls, or exceeds what a figure can say (<see cref="TurnsOf"/>).</summary>
++    public bool NoEstimateUntilOpen(ResearchNodeView v) => IsRouteFigure(v) && Route(v.ContentIndex).Turns is null;
++
++    /// <summary>D-089 DH6: whether <paramref name="v"/> has no figure because a node of its route belongs to the other lane.</summary>
++    public bool RouteNeedsOtherLane(ResearchNodeView v) => IsRouteFigure(v) && Route(v.ContentIndex).OtherLane;
++
++    /// <summary>The route estimate of node <paramref name="i"/>, computed once per snapshot (the pane asks every frame).</summary>
++    private (long? Turns, bool OtherLane) Route(int i)
++    {
++        _route ??= new (long?, bool)?[Nodes.Count];
++        if (_route[i] is { } known) return known;
++        ResearchNodeView v = Nodes[i];
++        long? turns = InfoQuery.RouteResearchTurns(Content!, Completed, Remaining, i, PointsPerTurnOn(v.Tree), BankOn(v.Tree), out bool other);
++        _route[i] = (turns, other);
++        return (turns, other);
++    }
++
++    private (long?, bool)?[]? _route;
++
++    /// <summary>D-089 DH6: the content, completion and remaining costs the route estimate steps (set by <see cref="Build"/>).</summary>
++    public ResearchContent? Content { get; init; }
++    public bool[] Completed { get; init; } = [];
++    public double[] Remaining { get; init; } = [];
+ 
+     /// <summary>The snapshot of <paramref name="world"/>. <paramref name="nextDtYears"/> is the length of the step the next End
+     /// Turn plays (<see cref="ActionQueryContext.ForNextStep"/> over the session's era table) — the dt the CP a turn is
+@@ -258,6 +285,9 @@ public sealed class ResearchSnapshot
+             TechnologyRoute = content.Tuning.DestinationRouting ? ResearchQuery.Route(world, content, polity, ResearchTree.Technology) : ResearchRoute.None(ResearchTree.Technology),
+             CivicsRoute = content.Tuning.DestinationRouting ? ResearchQuery.Route(world, content, polity, ResearchTree.Civics) : ResearchRoute.None(ResearchTree.Civics),
+             Sweeps = sweeps,
++            Content = content,
++            Completed = completed,
++            Remaining = ResearchQuery.RemainingCosts(world, content, polity),
+         };
+     }
+ }
+diff --git a/Sim.Ui/Progression/ResearchTreeLayout.cs b/Sim.Ui/Progression/ResearchTreeLayout.cs
+index c77a295..4e726a6 100644
+--- a/Sim.Ui/Progression/ResearchTreeLayout.cs
++++ b/Sim.Ui/Progression/ResearchTreeLayout.cs
+@@ -10,12 +10,29 @@ namespace Sim.Ui.Progression;
+ /// at every width — a tier whose lanes do not fit side by side WRAPS its lanes into further rows
+ /// (<see cref="LaneWrapGap"/> apart) instead of shrinking the cards. <see cref="Scaled"/> grows every length with the
+ /// UI scale.</summary>
++/// <remarks>D-089 DH6 (lane RT's N3): <see cref="SpineLaneStep"/>, the distance between the five lanes of a spine, is tied to
++/// the widest edge a spine carries — a pinned card's cased incoming edge (<see cref="SpineEdgeWidth"/>) — plus a visible gap,
++/// so that five such edges in one spine stay five strokes; <see cref="Spine"/> is wide enough for the five (it was 22 with
++/// lanes 3 px apart, narrower than one cased pinned edge, so a pin's bundle read as one band).</remarks>
+ public sealed record TreeLayoutOptions(
+     double ViewportWidth = 1196.0, double MinCardWidth = 200.0, double MaxCardWidth = 232.0,
+     double CardHeight = 116.0, double AnchorHeight = 36.0, double RowGap = 16.0, double SlotGap = 10.0,
+     double Gutter = 18.0, double TierGap = 74.0, double CollapsedWidth = 34.0, double Margin = 4.0,
+-    double Spine = 22.0, int Sweeps = 4, double LaneWrapGap = 42.0)
++    double Spine = TreeLayoutOptions.SpineRef, int Sweeps = 4, double LaneWrapGap = 42.0,
++    double SpineLaneStep = TreeLayoutOptions.SpineLaneStepRef)
+ {
++    /// <summary>D-089 DH6 (N3): the widest stroke a spine carries, at zoom 1 and UI scale 1 — a pinned card's incoming edge:
++    /// ProgressionScreen.PinnedEdgeFactor (2) × the widest edge stroke of any Age (max(2.2, the Age's icon stroke) = 2.4, Age I)
++    /// plus its dark casing (ProgressionScreen.PinnedCasingRef, 1.5 each side): 2 × 2.4 + 3 = 7.8. Sim.Ui.Tests pins this
++    /// against the screen's constants and every Age's stroke.</summary>
++    public const double SpineEdgeWidth = 7.8;
++    /// <summary>D-089 DH6 (N3): the clear gap between two neighbouring spine lanes' widest strokes.</summary>
++    public const double SpineLaneGap = 1.2;
++    /// <summary>D-089 DH6 (N3): the distance between a spine's lanes, <see cref="SpineEdgeWidth"/> + <see cref="SpineLaneGap"/>.</summary>
++    public const double SpineLaneStepRef = SpineEdgeWidth + SpineLaneGap;
++    /// <summary>D-089 DH6 (N3): a spine's width — four lane steps, one widest stroke and a 1.1 margin each side: 46.</summary>
++    public const double SpineRef = 4 * SpineLaneStepRef + SpineEdgeWidth + 2 * 1.1;
++
+     /// <summary>The reference options with every length × <paramref name="scale"/> (the UI scale) and the given
+     /// viewport width (already in screen px).</summary>
+     public static TreeLayoutOptions Scaled(double scale, double viewportWidth)
+@@ -27,7 +44,7 @@ public sealed record TreeLayoutOptions(
+             ViewportWidth = viewportWidth, MinCardWidth = o.MinCardWidth * s, MaxCardWidth = o.MaxCardWidth * s,
+             CardHeight = o.CardHeight * s, AnchorHeight = o.AnchorHeight * s, RowGap = o.RowGap * s, SlotGap = o.SlotGap * s,
+             Gutter = o.Gutter * s, TierGap = o.TierGap * s, CollapsedWidth = o.CollapsedWidth * s, Margin = o.Margin * s,
+-            Spine = o.Spine * s, LaneWrapGap = o.LaneWrapGap * s,
++            Spine = o.Spine * s, LaneWrapGap = o.LaneWrapGap * s, SpineLaneStep = o.SpineLaneStep * s,
+         };
+     }
+ }
+@@ -363,7 +380,8 @@ public static class ResearchTreeLayout
+     /// prerequisite's own column (when it is in the last row of the tier just above a dependent in
+     /// the first row: a short elbow) or one of the two SPINES — reserved channels at the left and
+     /// right edges — whichever is nearer the pair. <paramref name="lane"/> offsets an edge inside
+-    /// a spine (0..4) so a bundle of highlighted edges stays readable. Empty if either end is hidden.
++    /// a spine (0..4, <see cref="TreeLayoutOptions.SpineLaneStep"/> apart, centred on the spine; D-089 DH6, N3) so a bundle
++    /// of highlighted edges stays readable. Empty if either end is hidden.
+     /// </summary>
+     public static (double X, double Y)[] Route(TreeLayout layout, GraphEdge e, int lane = 0)
+     {
+@@ -375,9 +393,9 @@ public static class ResearchTreeLayout
+         if (lastRow && b.Row == 0 && b.Column == a.Column + 1)
+             return [(a.CenterX, a.Bottom), (a.CenterX, y2), (b.CenterX, y2), (b.CenterX, b.Y)];
+         double y1 = a.Y + o.CardHeight + o.RowGap / 2.0;   // the row gap under a's row
+-        double off = (lane % 5) * 3.0;
++        double off = (lane % 5 - 2) * o.SpineLaneStep;   // five lanes centred on the spine
+         bool left = a.CenterX + b.CenterX <= layout.Width;
+-        double sx = left ? o.Margin + o.Spine / 2.0 - 6 + off : layout.Width - o.Margin - o.Spine / 2.0 + 6 - off;
++        double sx = left ? o.Margin + o.Spine / 2.0 + off : layout.Width - o.Margin - o.Spine / 2.0 - off;
+         return [(a.CenterX, a.Bottom), (a.CenterX, y1), (sx, y1), (sx, y2), (b.CenterX, y2), (b.CenterX, b.Y)];
+     }
+ 

@@ -1,3 +1,234 @@
+diff --git a/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/CaptureChoiceTests.cs b/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/CaptureChoiceTests.cs
+new file mode 100644
+index 0000000..1544bc1
+--- /dev/null
++++ b/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/CaptureChoiceTests.cs
+@@ -0,0 +1,225 @@
++using Proto.M7.Events;
++using Proto.M7.Fixed;
++using Proto.M7.War;
++using Proto.M7.War.Outcomes;
++using Proto.M7.War.Siege;
++using Proto.M7.Tests.Siege;
++using Xunit;
++using static Proto.M7.Tests.Outcomes.OutcomeRig;
++using static Proto.M7.Tests.TestSupport;
++
++namespace Proto.M7.Tests.LaneOC;
++
++/// <summary>
++/// [OC, completion after fix round 1, 2026-11-13] Item 7, THE PLAYER'S CAPTURE CHOICE: D-089 DH2 ("When the player's own immediate
++/// assault takes a city, the player is asked 'Occupy, sack or raze?' at the moment of capture"; it answers lane U's U-Q11) and DH2-R1
++/// (an AI taker still disposes by its doctrine at the moment of capture, unchanged). Lane S's immediate assault (an order issued at a
++/// siege pulse start acts at once, WA1) takes the city inside the order; lane W's world now raises a DECISION INSTANT at that instant
++/// after the order's consequences (EventRules R4's exception: an OrderConsequence event, one consequence window, the choice accepted
++/// there in class ConsequenceOrder), so the choice is offered and does not lapse (lane U's U-F4, U2-5). Lane W's refusals are
++/// unchanged. The rig is lane W's (OutcomeRig.BuildBound: lane S's walled city, polity 0's only city, besieged by polity 1).
++/// </summary>
++public sealed class CaptureChoiceTests
++{
++    private static readonly long Start = SiegeRig.At(1500, 100);
++    private const long SackD = (long)Disposition.Sack, RazeD = (long)Disposition.Raze, OccupyD = (long)Disposition.Occupy;
++
++    private sealed class Storms : IAssaultResolver
++    {
++        public AssaultResult Resolve(in AssaultInputs input, SiegeCoefficients k) => new(true, Q32.One, Q32.One, Q32.Zero, Q32.Zero);
++    }
++
++    private static (int, long, long) Assault => (SiegeKinds.OrderAssault, Pack(1, 0), 1_000L);
++    private static (int, long, long) Dispose(long d) => (OutcomeKinds.OrderDispose, Pack(1, 0), d);
++
++    /// <summary>The player's assault at Start; the stops the runner makes at Start are returned in order (every window at Start).</summary>
++    private static BoundBuilt Assaulted(int[]? ai = null, SubTurnOrderLog? replay = null, long[]? extraProbes = null)
++        => BuildBound(Start, foodDays: 120, stops: replay is null, probes: new[] { Start }.Concat(extraProbes ?? Array.Empty<long>()).ToArray(),
++                      resolver: new Storms(), replay: replay, ai: ai);
++
++    /// <summary>
++    /// TURN-EXACT PIN, the PLAYER'S PATH (D-089 DH2). Polity 1, a human player, orders the immediate assault at the siege pulse start
++    /// Start; it takes the city inside the order. The runner then stops AGAIN AT Start — a consequence window (AfterOrders) whose one hit
++    /// is DispositionDue for the city (class OrderConsequence, source the city) — and the player's "Sack" issued there is logged as a
++    /// consequence order, accepted (reason 0) and applied AT Start: the settlement outcome row is a Sack at Start, the loot reaches the
++    /// taker's treasury at Start, and nothing waits for a later instant (no window at Start + 1 ms, none at the next turn start for
++    /// it). Choosing Occupy there records Occupy; the choices differ in the ledger exactly by the sack's loot.
++    /// </summary>
++    [Theory]
++    [InlineData(SackD)]
++    [InlineData(OccupyD)]
++    public void DH2_ThePlayersOwnImmediateAssault_IsAskedAtTheMomentOfCapture_AndTheChoiceAppliesThere(long choice)
++    {
++        var b = Assaulted();
++        var r1 = b.R.RunUntil(Start + Day);
++        Assert.Equal((RunStatus.Interrupted, Start), (r1.Status, r1.AtMs));
++        Assert.False(b.R.Windows[^1].AfterOrders);                                    // the world window at Start (the probe)
++        b.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);
++        long treasury0 = b.W.Ledger.Balance(b.W.TreasuryOf(1));
++        var r2 = b.R.RunUntil(Start + Day);
++        Assert.Equal((RunStatus.Interrupted, Start), (r2.Status, r2.AtMs));             // asked AT the moment of capture
++        var c = Assert.Single(b.Siege.Captures);
++        Assert.Equal((Start, 1), (c.AtMs, c.To));
++        var w = b.R.Windows[^1];
++        Assert.True(w.AfterOrders);
++        Assert.Equal(Start, w.InstantMs);
++        var hit = Assert.Single(w.Hits);
++        Assert.Equal(((byte)EventClass.OrderConsequence, OutcomeKinds.DispositionDue, 0L), (hit.Class, hit.Kind, hit.SourceId));
++        var o = b.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), choice);
++        Assert.True(o.AfterConsequence);
++        Assert.Equal(Start, o.InstantMs);
++        Assert.Equal(RunStatus.ReachedLimit, b.R.RunUntil(Start + Day).Status);         // no further stop
++        var res = b.W.OrderResults.Single(x => x.Kind == OutcomeKinds.OrderDispose);
++        Assert.Equal((Start, 0), (res.AtMs, res.Reason));
++        var row = Assert.Single(b.W.SettlementOutcomes);
++        Assert.Equal(((byte)choice, Start, 1), (row.Disposition, row.AtMs, row.To));
++        long loot = b.W.Ledger.Balance(b.W.TreasuryOf(1)) - treasury0;
++        Assert.Equal(choice == SackD, loot > 0);
++        Assert.Equal(choice == SackD ? 500_000 - b.W.Ledger.Balance(b.W.MoneyAccount(0)) : 0, loot);   // the city's money, taken at T
++        Assert.DoesNotContain(b.R.Windows, x => x.InstantMs > Start && x.InstantMs <= Start + Day);   // nothing deferred
++    }
++
++    /// <summary>The choice is OFFERED at the moment of capture; a player who resumes without choosing keeps Occupy (lane W's default), and
++    /// a Sack issued at a later stop (Start + 1 day) is refused WindowClosed — the choice exists only at the capture instant, as lane W
++    /// rules for every capture. At the consequence window the only order accepted is the offered disposition: a second assault, a
++    /// prisoner order or a disposition of another settlement are refused NotOffered and change nothing (no action multiplication); a
++    /// Raze is refused LastCity (the city is the taker's only one: lane W's refusal, unchanged).</summary>
++    [Fact]
++    public void DH2_TheChoiceIsOfferedOnce_OnlyTheOfferedChoiceIsAccepted_LaneWsRefusalsStand()
++    {
++        var b = Assaulted(extraProbes: new[] { Start + Day });
++        b.R.RunUntil(Start + 2 * Day);
++        b.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);
++        b.R.RunUntil(Start + 2 * Day);                                                 // the consequence window at Start
++        Assert.True(b.R.Windows[^1].AfterOrders);
++        var before = b.W.Ledger.Snapshot();
++        b.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);                    // not the offered choice
++        b.R.IssueOrder(OutcomeKinds.OrderPrisoners, Pack(1, 0), Value((long)PrisonerAction.Release, 1));
++        b.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), RazeD);                   // the taker's only city
++        var r = b.R.RunUntil(Start + 2 * Day);
++        Assert.Equal((RunStatus.Interrupted, Start + Day), (r.Status, r.AtMs));          // the probe's later stop
++        var results = b.W.OrderResults.Where(x => x.AtMs == Start).ToArray();
++        Assert.Equal(new[] { OutcomeRefusal.NotOffered, OutcomeRefusal.NotOffered, OutcomeRefusal.LastCity },
++                     results.Select(x => x.Reason).ToArray());
++        Assert.Single(b.Siege.Captures);
++        Assert.Equal(before, b.W.Ledger.Snapshot());                                    // refusals change nothing
++        Assert.Equal((byte)Disposition.Occupy, b.W.SettlementOutcomes.Single().Disposition);
++        b.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), SackD);                   // a day later: the moment has passed
++        b.R.RunUntil(Start + 2 * Day);
++        Assert.Equal(OutcomeRefusal.WindowClosed, b.W.OrderResults[^1].Reason);
++        Assert.Equal((byte)Disposition.Occupy, b.W.SettlementOutcomes.Single().Disposition);
++    }
++
++    /// <summary>TURN-EXACT PIN, the AI'S PATH (DH2-R1, unchanged): polity 1 is an AI with a Sack doctrine; its immediate assault at Start
++    /// takes the city and its doctrine disposes of it AT Start (a Sack row at Start, the loot at Start) — no decision instant is raised
++    /// (no consequence window anywhere).</summary>
++    [Fact]
++    public void DH2R1_AnAITaker_DisposesByItsDoctrine_AtTheMomentOfCapture_NoDecisionInstant()
++    {
++        var b = Assaulted(ai: new[] { -1, (int)Disposition.Sack, -1 });
++        b.R.RunUntil(Start + Day);
++        b.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);
++        Assert.Equal(RunStatus.ReachedLimit, b.R.RunUntil(Start + Day).Status);
++        Assert.DoesNotContain(b.R.Windows, w => w.AfterOrders);
++        var row = Assert.Single(b.W.SettlementOutcomes);
++        Assert.Equal(((byte)Disposition.Sack, Start), (row.Disposition, row.AtMs));
++    }
++
++    /// <summary>The disposition issued in the SAME window as the assault (after it in log order — lane U's measured path) applies at Start
++    /// and the decision instant, no longer needed, is cancelled: no consequence window opens. And the CONTROL: a capture made by a WORLD
++    /// EVENT (the city starves into capitulation) offers the choice at its SettlementTaken window, as before, with no consequence
++    /// window.</summary>
++    [Fact]
++    public void ASameWindowChoice_Applies_AndNoDecisionInstantOpens_AWorldEventCaptureIsUnchanged()
++    {
++        var b = Assaulted();
++        b.R.RunUntil(Start + Day);
++        b.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);
++        b.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), SackD);
++        Assert.Equal(RunStatus.ReachedLimit, b.R.RunUntil(Start + Day).Status);
++        Assert.DoesNotContain(b.R.Windows, w => w.AfterOrders);
++        Assert.Equal(((byte)Disposition.Sack, Start), (b.W.SettlementOutcomes.Single().Disposition, b.W.SettlementOutcomes.Single().AtMs));
++        Assert.Equal(1, b.S.CancelledCount);
++
++        var starve = BuildBound(Start, foodDays: 5, stops: true);
++        long taken = -1;
++        while (true)
++        {
++            var r = starve.R.RunUntil(Start + 200 * Day);
++            if (r.Status == RunStatus.ReachedLimit) break;
++            if (starve.Siege.Captures.Count > 0 && starve.Siege.Captures[0].AtMs == r.AtMs && taken < 0)
++            {
++                taken = r.AtMs;
++                Assert.False(starve.R.Windows[^1].AfterOrders);
++                Assert.Contains(starve.R.Windows[^1].Hits, h => h.Kind == OutcomeKinds.SettlementTaken);
++                starve.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), SackD);
++            }
++        }
++        Assert.True(taken > 0);
++        Assert.DoesNotContain(starve.R.Windows, w => w.AfterOrders);
++        Assert.Equal(((byte)Disposition.Sack, taken), (starve.W.SettlementOutcomes.Single().Disposition, starve.W.SettlementOutcomes.Single().AtMs));
++    }
++
++    /// <summary>LIVE VERSUS REPLAY: the live run (stops; the assault; the consequence stop; the Sack) and the replay of its order log
++    /// (stops off; the consequence order delivered in its own phase) give the same world (state hash), the same windows (the
++    /// consequence window included) and the same order results; the log records the consequence order as such.</summary>
++    [Fact]
++    public void LiveVersusReplay_TheDecisionInstantAndItsChoice()
++    {
++        var live = Assaulted();
++        live.R.RunUntil(Start + Day);
++        live.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);
++        live.R.RunUntil(Start + Day);
++        live.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), SackD);
++        live.R.RunUntil(Start + Day);
++        Assert.Equal(new[] { false, true }, live.R.Orders.Orders.Select(o => o.AfterConsequence).ToArray());
++        var replay = Assaulted(replay: live.R.Orders);
++        replay.R.RunUntil(Start + Day);
++        Assert.Equal(live.W.StateHashHex(), replay.W.StateHashHex());
++        Assert.Equal(live.R.WindowsHashHex(), replay.R.WindowsHashHex());
++        Assert.Equal(live.W.OrderResults.ToArray(), replay.W.OrderResults.ToArray());
++        Assert.Equal(live.R.Orders.HashHex(), replay.R.Orders.HashHex());
++        Assert.Contains(replay.R.Windows, w => w.AfterOrders && w.InstantMs == Start);
++        // the log's consequence flag has teeth: the same order logged as a window order is refused at the gate, and the city stays occupied
++        var wrong = new SubTurnOrderLog();
++        foreach (var o in live.R.Orders.Orders) wrong.Append(o.InstantMs, o.Kind, o.A, o.B);
++        var mis = Assaulted(replay: wrong);
++        mis.R.RunUntil(Start + Day);
++        Assert.Equal((byte)Disposition.Occupy, mis.W.SettlementOutcomes.Single().Disposition);
++        Assert.NotEqual(live.W.StateHashHex(), mis.W.StateHashHex());
++    }
++
++    /// <summary>The event core's guards (EventRules R4's exception): a consequence can be raised only from a WINDOW ORDER at its own
++    /// instant — not from a world event, and not from an order issued at a consequence window (no chain).</summary>
++    [Fact]
++    public void ADecisionInstantIsRaisedOnlyByAWindowOrder_NeverByAWorldEventOrAConsequenceOrder()
++    {
++        var s = new EventScheduler(0);
++        var world = new Probe(s);
++        s.Schedule(10, EventClass.System, 0, 0, 1);
++        s.ExecuteNext(world, out _);                                                    // a world event: refused
++        Assert.IsType<InvalidOperationException>(world.Error);
++        s.ScheduleOrder(10, 0, 2, 0, 0);
++        world.Error = null;
++        s.ExecuteNext(world, out _);                                                    // a window order: allowed
++        Assert.Null(world.Error);
++        s.ExecuteNext(world, out var consequence);
++        Assert.Equal((byte)EventClass.OrderConsequence, consequence.Key.Class);
++        s.ScheduleOrder(10, 1, 2, 0, 0, afterConsequence: true);
++        s.ExecuteNext(world, out _);                                                    // an order at the consequence window: refused
++        Assert.IsType<InvalidOperationException>(world.Error);
++    }
++
++    private sealed class Probe : IEventWorld
++    {
++        public Probe(EventScheduler s) { }
++        public Exception? Error;
++        public bool IsLive(EntityRef e) => true;
++        public void Execute(in ScheduledEvent ev, EventScheduler s)
++        {
++            if (ev.Key.Class == (byte)EventClass.OrderConsequence) return;
++            try { s.ScheduleConsequence(ev.Key.TimeMs, 0, 0, 3); }
++            catch (Exception e) { Error = e; }
++        }
++    }
++}
 diff --git a/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/ZzProbeOC.cs b/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/ZzProbeOC.cs
 new file mode 100644
 index 0000000..4301668
@@ -144,416 +375,414 @@ index 0000000..4301668
 +        }
 +    }
 +}
-diff --git a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxCodec.cs b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxCodec.cs
-index 0521416..cbcbce9 100644
---- a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxCodec.cs
-+++ b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxCodec.cs
-@@ -8,7 +8,10 @@ namespace Proto.M7.Sandbox;
- /// round trip, hash equality). Table = [version u8][count i32] rows.</summary>
- public static class SandboxCodec
- {
--    public const byte Version = 1;
-+    /// <summary>[OC, 2026-11-13] 1 → 2: the edit table may hold the new kind <see cref="SandboxEditKind.SetInitiator"/> (7) and the
-+    /// refusal <see cref="SandboxRefusal.RolesFromEncounter"/> (12); the layout is unchanged. READING OC-F11 (a), as for the morale codec
-+    /// (version 4): a changed meaning of a row is a change of the row, so the version moves and a version-1 table is refused.</summary>
-+    public const byte Version = 2;
-     public const int HeaderBytes = 1 + 4;
-     public const int EditRowBytes = 4 + 1 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 1;        // 50
-     public const int CasualtyRowBytes = 8 + 4 + 7 * 8;                            // 68
-@@ -103,10 +106,13 @@ public static class SandboxCodec
- public static class SandboxEncounters
- {
-     /// <summary>Reads each named campaign formation's persons from lane W's outcome world (its ledger balance; nothing written) and
--    /// copies the campaign's battle terrain for the encounter.</summary>
-+    /// copies the campaign's battle terrain for the encounter. [OC, 2026-11-13] <paramref name="initiatorSide"/>: the side whose army
-+    /// initiated combat in the campaign engagement that opened the battle (-1 = none named); the encounter's roles come from it
-+    /// (D-087 DF8, D-088 DG8), never from the war's declaration.</summary>
-     public static CampaignEncounterSnapshot FromOutcomeWorld(WarOutcomeWorld campaign, TerrainGrid campaignTerrain,
--        (int CampaignFormation, int Side, int FamilyKey, int IdentityKey, Vec2L Anchor)[] picks)
-+        (int CampaignFormation, int Side, int FamilyKey, int IdentityKey, Vec2L Anchor)[] picks, int initiatorSide = -1)
-     {
-+        if (initiatorSide < -1 || initiatorSide > 1) throw new ArgumentOutOfRangeException(nameof(initiatorSide));
-         var forces = new (int, int, int, int, long, Vec2L)[picks.Length];
-         for (int i = 0; i < picks.Length; i++)
-         {
-@@ -118,6 +124,6 @@ public static class SandboxEncounters
-         for (int y = 0; y < campaignTerrain.Height; y++)
-             for (int x = 0; x < campaignTerrain.Width; x++)
-                 copy.Set(x, y, campaignTerrain.ClassAt(x, y), campaignTerrain.HeightAt(x, y));
--        return new CampaignEncounterSnapshot(copy, forces);
-+        return new CampaignEncounterSnapshot(copy, forces) { InitiatorSide = initiatorSide };
-     }
+diff --git a/prototypes/m7-sprint1/Proto.M7/Events/EventKey.cs b/prototypes/m7-sprint1/Proto.M7/Events/EventKey.cs
+index 90d287f..d48f72d 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Events/EventKey.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Events/EventKey.cs
+@@ -14,6 +14,13 @@ namespace Proto.M7.Events;
+ ///  - PlayerOrder (250): ALWAYS LAST at an instant. An order issued while the runner is stopped at T is
+ ///    delivered at T after everything the world did at T, which is exactly what the player saw when deciding;
+ ///    and because nothing but orders lives in this class, an order can never reorder world events (replay proof).
++///  - [OC, 2026-11-13, D-089 DH2] OrderConsequence (251) and ConsequenceOrder (252): a DECISION INSTANT AFTER AN ORDER'S
++///    CONSEQUENCES. When a window order at T has a consequence that offers its issuer a choice that exists only at T (the player's
++///    own immediate assault takes a city: "Occupy, sack or raze?" at the moment of capture), the world raises an OrderConsequence
++///    event at T (EventScheduler.ScheduleConsequence, allowed only while an order of class 250 executes, at its instant); it runs
++///    after every order at T, opens ONE decision window at T after them (Runner), and the orders issued there are stamped T in class
++///    252, after the consequence events. Nothing but the runner schedules 252, and a 252 order cannot raise a consequence (251 is
++///    behind it: the causality rule refuses it, and ScheduleConsequence refuses outside class 250), so windows never chain.
+ /// The numeric gaps leave room for new classes without renumbering.
+ /// </summary>
+ public enum EventClass : byte
+@@ -27,6 +34,10 @@ public enum EventClass : byte
+     CampaignProcess = 60,
+     Significant = 70,
+     PlayerOrder = 250,
++    /// <summary>[OC, 2026-11-13] A decision instant raised by an order's consequence at the order's instant (D-089 DH2).</summary>
++    OrderConsequence = 251,
++    /// <summary>[OC, 2026-11-13] An order issued at such a decision instant (stamped T, after the consequence events at T).</summary>
++    ConsequenceOrder = 252,
  }
-diff --git a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxSession.cs b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxSession.cs
-index 1192899..9644068 100644
---- a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxSession.cs
-+++ b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxSession.cs
-@@ -80,6 +80,7 @@ public sealed class SandboxSession
-     private BattleSetup? _deployed;
-     private TacticalBattle? _tactical;
-     private IReadOnlyList<OrderLogEntry> _battleOrders = Array.Empty<OrderLogEntry>();
-+    private int _initiator = -1;          // [OC] D-087 DF8, D-088 DG8: the side whose army initiates combat (-1: none)
  
-     public SandboxSession(SandboxMode mode, TerrainGrid terrain, ulong seed, TacticalRules? rules = null)
-         : this(mode, terrain, seed, rules, null)
-@@ -112,6 +113,7 @@ public sealed class SandboxSession
-     {
-         var s = new SandboxSession(SandboxMode.CampaignEncounter, snapshot.Terrain, seed, rules, snapshot);
-         foreach (var f in snapshot.Forces) s.AddEncounterForce(f.Side, f.FamilyKey, f.IdentityKey, f.Persons, f.Anchor);
-+        if (snapshot.InitiatorSide >= 0) s.SetEncounterInitiator(snapshot.InitiatorSide);   // [OC] the campaign engagement's roles
-         return s;
-     }
+ /// <summary>
+diff --git a/prototypes/m7-sprint1/Proto.M7/Events/EventRules.cs b/prototypes/m7-sprint1/Proto.M7/Events/EventRules.cs
+index dfc19a2..60accb1 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Events/EventRules.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Events/EventRules.cs
+@@ -21,6 +21,16 @@ namespace Proto.M7.Events;
+ ///    never open windows (no chained windows, no action multiplication). The split is a function of world state only:
+ ///    windows are recorded with stops on or off and in replay; a stop consumes zero simulated time. Orders issued at a
+ ///    window are stamped T and execute at T in class PlayerOrder, after every world event at T. Replay never stops.
++///    [OC, 2026-11-13, D-089 DH2 — "When the player's own immediate assault takes a city, the player is asked 'Occupy, sack or
++///    raze?' at the moment of capture"] ONE EXCEPTION, narrow: an order's CONSEQUENCE that offers its issuer a choice existing
++///    only at T raises an OrderConsequence event at T (EventScheduler.ScheduleConsequence, only while a class-250 order executes,
++///    at its instant). It runs after every order at T and opens one decision window at T (a "consequence window", class-251 hits;
++///    DecisionWindow.AfterOrders); it closes before the first key with time &gt; T or class &gt;= ConsequenceOrder. Orders issued
++///    there are stamped T in class ConsequenceOrder (252) and are delivered only at that window (the order gate checks the phase).
++///    No chain: a 252 order cannot raise a consequence. No action multiplication: the world accepts at a consequence window only the
++///    choice the consequence offers (lane W: the disposition of the city its issuer's own order took at T) and refuses any other
++///    order. A world that raises no consequence behaves, hashes and replays exactly as before. PROPOSAL (lane OC) amending this
++///    prototype's delegated mechanism (ADR-061 §3.6–§3.7, [DELEG]); ADR-061's text is not changed here.
+ /// R5 RNG. Event-scheduled randomness is counter-based (Rng.CounterRng.Draw(seed, stream, a, b, c, index)) keyed by
+ ///    stable event identity (source id, instant, kind, index), NEVER by Seq, window index or a sequential cursor that an
+ ///    order or a stop could advance. So a draw does not depend on whether a window was shown, whether the runner stopped,
+diff --git a/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs b/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs
+index d0be6d2..d4ac4d7 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs
+@@ -57,6 +57,27 @@ public sealed class EventScheduler
+     internal long ScheduleOrder(long timeMs, long logIndex, int kind, long a, long b)
+         => ScheduleCore(timeMs, EventClass.PlayerOrder, 0, logIndex, kind, EntityRef.None, EntityRef.None, a, b, logIndex);
  
-@@ -136,6 +138,9 @@ public sealed class SandboxSession
-     /// out the setup the battle runs on, whose grid was the session's grid.</summary>
-     public BattleSetup? DeployedSetup => _deployed is null ? null : Detached(_deployed);
-     public ResolverKind? ResolverUsed { get; private set; }
-+    /// <summary>[OC, 2026-11-13] The side whose army initiates combat in this battle (-1: none, a meeting engagement); the deployed
-+    /// setup's <see cref="BattleSetup.Defender"/> is the other side (D-087 DF8, D-088 DG8).</summary>
-+    public int Initiator => _initiator;
-     /// <summary>A COPY of the session's deployment phase, rebuilt edit for edit (the same base setup, detached; every logged proposal
-     /// re-proposed in order, refused ones included; closed where the session closed it), so it shows the session's proposal, log and
-     /// verdicts, and a proposal tried on it gets lane TR's real verdict without reaching the session. [D, verification round 2,
-@@ -259,6 +264,40 @@ public sealed class SandboxSession
-         return s with { Grid = Copy(s.Grid), Formations = forms, Sides = sides };
-     }
- 
-+    // ------------------------------------------------------------------ [OC] roles: the sandbox battle's engagement
++    /// <summary>[OC, 2026-11-13] An order of the given phase: a window order (class PlayerOrder) or an order issued at a consequence
++    /// window (class ConsequenceOrder).</summary>
++    internal long ScheduleOrder(long timeMs, long logIndex, int kind, long a, long b, bool afterConsequence)
++        => ScheduleCore(timeMs, afterConsequence ? EventClass.ConsequenceOrder : EventClass.PlayerOrder, 0, logIndex, kind, EntityRef.None,
++                        EntityRef.None, a, b, logIndex);
 +
 +    /// <summary>
-+    /// [OC, completion after fix round 1, 2026-11-13] D-087 DF8 and D-088 DG8 in the War Sandbox: the battle's ROLES come from its
-+    /// ENGAGEMENT, the side whose army initiates combat (<paramref name="side"/>; -1 = none, a meeting engagement in which neither side
-+    /// attacks the other). That side is the attacker, the other side the defender, and every army on a side shares its side's role
-+    /// (one role per side). A logged edit (refused ones too) that Replay re-applies; allowed until the deployment phase opens (the
-+    /// scenario is closed from there, as for forces and terrain). Refused: BattleStarted after the battle, DeploymentOpen once the phase
-+    /// is open, BadSide for a side other than -1, 0 or 1, and RolesFromEncounter in a Campaign Encounter, whose roles are the campaign
-+    /// engagement's (<see cref="CampaignEncounterSnapshot.InitiatorSide"/>). The roles never change the battle (a tie is a tie whatever
-+    /// the roles, D-087 DF8, DF11): they are carried on the deployed setup (<see cref="BattleSetup.Defender"/>) for the record.
++    /// [OC, 2026-11-13, D-089 DH2] Raise a DECISION INSTANT after an order's consequences (EventRules R4's one exception): an
++    /// OrderConsequence event at the executing order's instant. Allowed only while an order of class PlayerOrder executes and only at
++    /// its instant — so a world event, a consequence or an order issued at a consequence window can never raise one (no chain).
 +    /// </summary>
-+    public SandboxRefusal SetInitiator(int side)
++    internal long ScheduleConsequence(long timeMs, int priority, long sourceId, int kind, long a = 0, long b = 0, long c = 0)
 +    {
-+        SandboxRefusal r = SandboxRefusal.None;
-+        if (Started) r = SandboxRefusal.BattleStarted;
-+        else if (_mode == SandboxMode.CampaignEncounter) r = SandboxRefusal.RolesFromEncounter;
-+        else if (_deploy is not null) r = SandboxRefusal.DeploymentOpen;
-+        else if (side < -1 || side > 1) r = SandboxRefusal.BadSide;
-+        if (r == SandboxRefusal.None) _initiator = side;
-+        return Record(SandboxEditKind.SetInitiator, side, 0, 0, -1, 0, 0, 0, r);
++        if (_lastKey.Class != (byte)EventClass.PlayerOrder || timeMs != _lastKey.TimeMs)
++            throw new InvalidOperationException("a decision instant is raised only by a window order's consequence, at the order's instant (D-089 DH2)");
++        return ScheduleCore(timeMs, EventClass.OrderConsequence, priority, sourceId, kind, EntityRef.None, EntityRef.None, a, b, c);
 +    }
 +
-+    /// <summary>[OC] A Campaign Encounter's roles: the campaign engagement's initiating side, logged like the encounter's forces.</summary>
-+    private void SetEncounterInitiator(int side)
-+    {
-+        if (side < 0 || side > 1) throw new ArgumentOutOfRangeException(nameof(side));
-+        _initiator = side;
-+        Record(SandboxEditKind.SetInitiator, side, 0, 0, -1, 0, 0, 0, SandboxRefusal.None);
-+    }
++    /// <summary>[OC, 2026-11-13] Whether a class is an order class (window orders and consequence-window orders).</summary>
++    internal static bool IsOrderClass(byte cls) => cls == (byte)EventClass.PlayerOrder || cls == (byte)EventClass.ConsequenceOrder;
 +
-+    /// <summary>[OC] The defending side of the sandbox battle: the side the initiator attacks (-1 when no side initiates).</summary>
-+    private int DefenderSide => _initiator < 0 ? -1 : 1 - _initiator;
-+
-     // ------------------------------------------------------------------ deployment (lane TR's DeploymentPhase only)
+     private long ScheduleCore(long timeMs, EventClass cls, int priority, long sourceId, int kind,
+                               EntityRef target, EntityRef source, long a, long b, long c)
+     {
+@@ -98,7 +119,7 @@ public sealed class EventScheduler
+             outcome = TraceOutcome.Cancelled;
+             CancelledCount++;
+         }
+-        else if (ev.Key.Class == (byte)EventClass.PlayerOrder && OrderGate is not null && !OrderGate(ev))
++        else if (IsOrderClass(ev.Key.Class) && OrderGate is not null && !OrderGate(ev))   // [OC] both order classes pass the gate
+         {
+             outcome = TraceOutcome.Refused;
+             RefusedCount++;
+diff --git a/prototypes/m7-sprint1/Proto.M7/Events/Runner.cs b/prototypes/m7-sprint1/Proto.M7/Events/Runner.cs
+index 72b4096..951544d 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Events/Runner.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Events/Runner.cs
+@@ -35,6 +35,10 @@ public sealed class DecisionWindow
+     public int Index { get; }
+     public long InstantMs { get; }
+     public IReadOnlyList<SignificantHit> Hits => _hits;
++    /// <summary>[OC, 2026-11-13, D-089 DH2] A consequence window: opened at T AFTER the orders of T by an order's consequence (its hits
++    /// are class OrderConsequence). Orders issued at it are delivered in class ConsequenceOrder. Not hashed separately (the hits'
++    /// class carries it).</summary>
++    public bool AfterOrders { get; init; }
+ }
  
-     // [D, verification round 1, D-R1-10] the deployment phase and the battle get a COPY of the grid (the session's grid is handed out
-@@ -336,7 +375,7 @@ public sealed class SandboxSession
-             if (!v.Accepted) { r = SandboxRefusal.DeploymentRefused; code = (long)v.Refusal; }
-             else
+ /// <summary>
+@@ -70,6 +74,7 @@ public sealed class Runner
+     private readonly List<DecisionWindow> _windows = new();
+     private readonly List<SignificantHit> _hits = new();
+     private long _collectAt = -1;
++    private bool _collectAfterOrders;   // [OC] the window being collected is a consequence window (D-089 DH2)
+ 
+     public Runner(EventScheduler scheduler, IEventWorld world, SignificantKinds significant, bool stopOnSignificant = true)
+     {
+@@ -94,15 +99,18 @@ public sealed class Runner
+         IsStopped = false;
+         while (_scheduler.TryPeekKey(out var key) && key.TimeMs <= limitMs)
+         {
+-            if (_collectAt >= 0 && (key.TimeMs != _collectAt || key.Class >= (byte)EventClass.PlayerOrder))
++            // [OC] a world window closes before the orders of its instant; a consequence window before the orders issued at it
++            byte closeAt = _collectAfterOrders ? (byte)EventClass.ConsequenceOrder : (byte)EventClass.PlayerOrder;
++            if (_collectAt >= 0 && (key.TimeMs != _collectAt || key.Class >= closeAt))
              {
--                _deployed = setup! with { Sides = DefaultObjectives(setup) };
-+                _deployed = setup! with { Sides = DefaultObjectives(setup), Defender = DefenderSide };   // [OC] the roles of the engagement
-                 _deployClosedAt = _deploy.Log.Count;
+                 long at = CloseWindow();
+                 if (StopOnSignificant) return Stop(at);
+             }
+             var outcome = _scheduler.ExecuteNext(_world, out var ev);
+-            if (outcome == TraceOutcome.Executed && ev.Key.Class < (byte)EventClass.PlayerOrder && _significant.Contains(ev.Kind))
++            bool windowClass = ev.Key.Class < (byte)EventClass.PlayerOrder || ev.Key.Class == (byte)EventClass.OrderConsequence;   // [OC]
++            if (outcome == TraceOutcome.Executed && windowClass && _significant.Contains(ev.Kind))
+             {
+-                if (_collectAt < 0) _collectAt = ev.Key.TimeMs;
++                if (_collectAt < 0) { _collectAt = ev.Key.TimeMs; _collectAfterOrders = ev.Key.Class == (byte)EventClass.OrderConsequence; }
+                 _hits.Add(new SignificantHit(ev.Key.Class, ev.Key.Priority, ev.Key.SourceId, ev.Kind, ev.Target.Id));
              }
          }
-@@ -461,6 +500,10 @@ public sealed class SandboxSession
-                 case SandboxEditKind.OpenDeployment: s.OpenDeployment(); break;
-                 case SandboxEditKind.Deploy: s.Deploy(e.Side, e.FormationId, new Vec2L(e.B, e.C)); break;
-                 case SandboxEditKind.CloseDeployment: s.CloseDeployment(); break;
-+                case SandboxEditKind.SetInitiator:                                       // [OC]
-+                    if (s._encounter is not null && e.Refusal == (byte)SandboxRefusal.None && e.Index == original._encounter!.Forces.Length) s.SetEncounterInitiator(e.Side);
-+                    else s.SetInitiator(e.Side);
-+                    break;
-                 case SandboxEditKind.StartBattle:
-                     var c0 = (SandboxCommand)e.A; var c1 = (SandboxCommand)e.B;
-                     s.StartBattle(c0, c1,
-diff --git a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxTypes.cs b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxTypes.cs
-index c51a2fc..7a23eef 100644
---- a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxTypes.cs
-+++ b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxTypes.cs
-@@ -42,6 +42,9 @@ public enum SandboxRefusal : byte
-     /// a force of any size is one formation, so a force above the mint reached the mint transfer, which threw after the formation's
-     /// id and ledger account were taken and before the edit was logged.</summary>
-     MintShort = 11,
-+    /// <summary>[OC, 2026-11-13] D-087 DF8, D-088 DG8: a Campaign Encounter takes its roles from the campaign engagement that opened
-+    /// it (<see cref="CampaignEncounterSnapshot.InitiatorSide"/>); they cannot be edited in the sandbox.</summary>
-+    RolesFromEncounter = 12,
- }
- 
- /// <summary>[D] Kinds of sandbox session edits (the session log; stable codes).</summary>
-@@ -53,6 +56,9 @@ public enum SandboxEditKind : byte
-     Deploy = 4,
-     CloseDeployment = 5,
-     StartBattle = 6,
-+    /// <summary>[OC, 2026-11-13] D-087 DF8, D-088 DG8: the sandbox battle's ENGAGEMENT — the side whose army initiates combat (Side;
-+    /// -1 = none, a meeting engagement). That side is the attacker, the other the defender, every army on a side sharing its role.</summary>
-+    SetInitiator = 7,
- }
- 
- /// <summary>[D] Who commands a side in a sandbox battle. Both AI = an AI-vs-AI battle (DIR5 §2.13: AutoResolver, no rendering).</summary>
-@@ -121,4 +127,10 @@ public readonly record struct SandboxCasualtyRow(long FormationId, int Side, lon
- 
- /// <summary>[D] What a Campaign Encounter copies from the campaign at load: the campaign's battle terrain (a copy) and, per campaign
- /// formation, its side, designed family and persons. A VALUE: the sandbox holds no reference to the campaign world.</summary>
--public sealed record CampaignEncounterSnapshot(TerrainGrid Terrain, (int CampaignFormation, int Side, int FamilyKey, int IdentityKey, long Persons, Vec2L Anchor)[] Forces);
-+public sealed record CampaignEncounterSnapshot(TerrainGrid Terrain, (int CampaignFormation, int Side, int FamilyKey, int IdentityKey, long Persons, Vec2L Anchor)[] Forces)
-+{
-+    /// <summary>[OC, 2026-11-13] D-087 DF8, D-088 DG8: the side whose army initiated combat in the campaign ENGAGEMENT that opened the
-+    /// battle (-1 = none named). The encounter's roles come from it — that side the attacker, the other the defender — never from the
-+    /// war's declaration; the sandbox cannot edit them (SandboxRefusal.RolesFromEncounter).</summary>
-+    public int InitiatorSide { get; init; } = -1;
-+}
-diff --git a/prototypes/m7-sprint1/Proto.M7/Tactical/BattleRoles.cs b/prototypes/m7-sprint1/Proto.M7/Tactical/BattleRoles.cs
-new file mode 100644
-index 0000000..0bf8314
---- /dev/null
-+++ b/prototypes/m7-sprint1/Proto.M7/Tactical/BattleRoles.cs
-@@ -0,0 +1,155 @@
-+namespace Proto.M7.Tactical;
-+
-+/// <summary>[OC, 2026-11-13] The role a side holds in a battle (D-087 DF8, D-088 DG8). Stable codes.</summary>
-+public enum BattleRole : byte
-+{
-+    /// <summary>No role: a battle no engagement opened (a meeting engagement built by hand; BattleSetup.Defender = -1).</summary>
-+    None = 0,
-+    /// <summary>The side that initiated combat (D-087 DF8: "the army that initiates combat is the attacker").</summary>
-+    Attacker = 1,
-+    /// <summary>The side that was attacked (D-087 DF8: "the side that was attacked, is the defender").</summary>
-+    Defender = 2,
-+}
-+
-+/// <summary>[OC, 2026-11-13] Why a battle's roles are refused (<see cref="BattleRoles.Check"/>). Stable codes; None = accepted.
-+/// Appended only, never renumbered.</summary>
-+public enum RolesRefusal : byte
-+{
-+    None = 0,
-+    /// <summary>BattleSetup.Defender is not -1, 0 or 1.</summary>
-+    BadDefender = 1,
-+    /// <summary>BattleSetup.Ambusher is not -1, 0 or 1.</summary>
-+    BadAmbusher = 2,
-+    /// <summary>The ambushing side is not the attacker: READING OC-R1 (a) (applied) — the ambushing side initiates combat, so it is
-+    /// the attacker, and the other side is the defender (one role per side, D-088 DG8).</summary>
-+    AmbusherIsNotTheAttacker = 3,
-+    /// <summary>One empire is on both sides (as a side's own empire or as an ally): a side holds one empire's armies, or an empire's
-+    /// and its allies' (D-088 DG8), so an empire belongs to one side.</summary>
-+    EmpireOnBothSides = 4,
-+    /// <summary>A formation's empire is neither its side's own empire nor one of its side's allies.</summary>
-+    NotOnItsSide = 5,
-+    /// <summary>A side lists allies but no empire of its own (a side is an empire's, with its allies).</summary>
-+    AlliesWithoutEmpire = 6,
-+    /// <summary>The empire whose army initiated combat is on no side of the battle (it cannot give a side the attacker's role).</summary>
-+    InitiatorNotInBattle = 7,
-+    /// <summary>The engagement's two empires are on the same side.</summary>
-+    EngagementWithinOneSide = 8,
-+}
-+
-+/// <summary>
-+/// [OC, completion after fix round 1, 2026-11-13] D-087 DF8 and D-088 DG8 — ONE ROLE PER SIDE. "A side is the attacker or the
-+/// defender, and an army is part of a side. A side holds one empire's armies, or an empire's and its allies' armies. Every army on a
-+/// side shares the side's role" (DG8; it replaces D-087 DF8-R2 (a), each army its own role). "The army that initiates combat is the
-+/// attacker. Declaring war, or exerting a zone of control or a siege without combat, does not make an army the attacker" (DF8).
-+///
-+/// REPRESENTATION. A battle carries its roles once, per side: <see cref="BattleSetup.Defender"/> (the attacked side; the attacker is
-+/// the other side; -1 = no roles). A formation has no role of its own: its role is its side's (<see cref="RoleOf"/>), whatever its
-+/// army or its empire (<see cref="FormationSpec.Empire"/>). Each side may state its own empire and its allies
-+/// (<see cref="SideSpec.Empire"/>, <see cref="SideSpec.Allies"/>); <see cref="Check"/> refuses a setup whose rosters or roles break
-+/// DG8 (an empire on both sides, a formation of an empire foreign to its side, an ambusher that is not the attacker).
-+/// THE ROLES COME FROM THE ENGAGEMENT THAT OPENED THE BATTLE, never from a war declaration: <see cref="FromEngagement"/> gives the
-+/// attacker's role to the side holding the empire whose army initiated combat (the war-pulse hand-off
-+/// War.EngagementBattle.Build, the War Sandbox's initiator, the map ambush of item 6), so which empire declared the war, or whose
-+/// army first stood in the other's zone of control or laid a siege, never enters.
-+/// The roles never change a battle (D-087 DF8, DF11: equal sides are a tie whatever the roles; the resolvers read Defender and
-+/// Ambusher only in EqualSides.Decide, which no longer picks a winner by them), so a role is a fact of the record, checked at the
-+/// battle's creation (the hand-offs call <see cref="Check"/>); the resolvers do not re-check it.
-+/// </summary>
-+public static class BattleRoles
-+{
-+    /// <summary>The role of side <paramref name="side"/> (0 or 1) in a battle: Defender for BattleSetup.Defender, Attacker for the other
-+    /// side, None when the battle has no roles (Defender -1).</summary>
-+    public static BattleRole RoleOfSide(BattleSetup setup, int side)
-+    {
-+        if (side != 0 && side != 1) throw new ArgumentOutOfRangeException(nameof(side));
-+        if (setup.Defender < 0) return BattleRole.None;
-+        return side == setup.Defender ? BattleRole.Defender : BattleRole.Attacker;
-+    }
-+
-+    /// <summary>The role of one formation: its side's role (one role per side, D-088 DG8) — never its own army's or empire's.</summary>
-+    public static BattleRole RoleOf(BattleSetup setup, long formationId)
-+    {
-+        foreach (var f in setup.Formations) if (f.Id == formationId) return RoleOfSide(setup, f.Side);
-+        throw new ArgumentException($"no formation {formationId}", nameof(formationId));
-+    }
-+
-+    /// <summary>The attacking side (the side that initiated combat), or -1 when the battle has no roles.</summary>
-+    public static int AttackerSide(BattleSetup setup) => setup.Defender < 0 ? -1 : 1 - setup.Defender;
-+
-+    /// <summary>The side whose roster holds <paramref name="empire"/> (its own empire or an ally), or -1 when no side states it.</summary>
-+    public static int SideOfEmpire(BattleSetup setup, int empire)
-+    {
-+        if (empire < 0) return -1;
-+        for (int s = 0; s < setup.Sides.Length; s++)
-+        {
-+            var side = setup.Sides[s];
-+            if (side.Empire == empire) return s;
-+            foreach (int a in side.Allies) if (a == empire) return s;
-+        }
-+        return -1;
-+    }
-+
-+    /// <summary>
-+    /// Checks a battle's roles and rosters against D-088 DG8 and READING OC-R1 (a). In order (the first failure is returned):
-+    /// Defender and Ambusher in {-1, 0, 1}; an ambusher is the attacker (Defender = 1 - Ambusher); a side that lists allies states its
-+    /// own empire; no empire on both sides (own or allied); every formation that states its empire belongs to its side's roster when
-+    /// the side states one. A side without a roster (Empire -1, no allies) accepts any formation: hand-built battles and the shipped
-+    /// scenarios name no empires.
-+    /// </summary>
-+    public static RolesRefusal Check(BattleSetup setup)
-+    {
-+        if (setup.Defender < -1 || setup.Defender > 1) return RolesRefusal.BadDefender;
-+        if (setup.Ambusher < -1 || setup.Ambusher > 1) return RolesRefusal.BadAmbusher;
-+        if (setup.Ambusher >= 0 && setup.Defender != 1 - setup.Ambusher) return RolesRefusal.AmbusherIsNotTheAttacker;
-+        if (setup.Sides.Length != 2) throw new ArgumentException("exactly two sides", nameof(setup));
-+        for (int s = 0; s < 2; s++)
-+            if (setup.Sides[s].Empire < 0 && setup.Sides[s].Allies.Length > 0) return RolesRefusal.AlliesWithoutEmpire;
-+        // an empire belongs to one side: compare the two rosters as sorted integer sets (no hashing)
-+        var r0 = Roster(setup.Sides[0]);
-+        var r1 = Roster(setup.Sides[1]);
-+        foreach (int e in r0) if (Array.BinarySearch(r1, e) >= 0) return RolesRefusal.EmpireOnBothSides;
-+        var forms = (FormationSpec[])setup.Formations.Clone();
-+        Array.Sort(forms, static (a, b) => a.Id.CompareTo(b.Id));
-+        foreach (var f in forms)
-+        {
-+            if (f.Empire < 0 || f.Side < 0 || f.Side > 1) continue;
-+            var roster = f.Side == 0 ? r0 : r1;
-+            if (roster.Length > 0 && Array.BinarySearch(roster, f.Empire) < 0) return RolesRefusal.NotOnItsSide;
-+        }
-+        return RolesRefusal.None;
-+    }
-+
-+    /// <summary>A side's roster (its own empire and its allies) as a sorted array of distinct ids.</summary>
-+    private static int[] Roster(SideSpec side)
-+    {
-+        var list = new List<int>(side.Allies.Length + 1);
-+        if (side.Empire >= 0) list.Add(side.Empire);
-+        foreach (int a in side.Allies) if (a >= 0) list.Add(a);
-+        var arr = list.ToArray();
-+        Array.Sort(arr);
-+        int n = 0;
-+        for (int i = 0; i < arr.Length; i++) if (n == 0 || arr[n - 1] != arr[i]) arr[n++] = arr[i];
-+        Array.Resize(ref arr, n);
-+        return arr;
-+    }
-+
-+    /// <summary>
-+    /// The roles of a battle opened by an ENGAGEMENT (D-087 DF8): the side whose roster holds <paramref name="initiatorEmpire"/> — the
-+    /// empire whose army initiated combat — is the attacker, the other side the defender; every army on a side shares its role
-+    /// (D-088 DG8). The engagement's other empire (<paramref name="targetEmpire"/>, -1 when not known) must stand on the other side.
-+    /// Nothing else is read: in particular no war declaration, zone of control or siege. Returns the setup with Defender set (and the
-+    /// roles checked), or the refusal.
-+    /// </summary>
-+    public static RolesRefusal FromEngagement(BattleSetup field, int initiatorEmpire, int targetEmpire, out BattleSetup? battle)
-+    {
-+        battle = null;
-+        int attacker = SideOfEmpire(field, initiatorEmpire);
-+        if (attacker < 0) return RolesRefusal.InitiatorNotInBattle;
-+        if (targetEmpire >= 0 && SideOfEmpire(field, targetEmpire) == attacker) return RolesRefusal.EngagementWithinOneSide;
-+        var b = field with { Defender = 1 - attacker };
-+        var r = Check(b);
-+        if (r != RolesRefusal.None) return r;
-+        battle = b;
-+        return RolesRefusal.None;
-+    }
-+}
-diff --git a/prototypes/m7-sprint1/Proto.M7/Tactical/BattleSetup.cs b/prototypes/m7-sprint1/Proto.M7/Tactical/BattleSetup.cs
-index 96461dc..cfaeaf3 100644
---- a/prototypes/m7-sprint1/Proto.M7/Tactical/BattleSetup.cs
-+++ b/prototypes/m7-sprint1/Proto.M7/Tactical/BattleSetup.cs
-@@ -183,6 +183,11 @@ public sealed record FormationSpec(long Id, int Side, UnitProfile Profile, int C
-     /// (docs/m7-plan/battle-entity-proposal.md §3, PROPOSAL, not built), and the collapse takes the persons from the campaign's ledger.
-     /// Vessel and aircraft formations keep their crews in the battle's personnel ledger (lane N), so it must be null for them.</summary>
-     public long? Persons { get; init; }
-+
-+    /// <summary>[OC, 2026-11-13] D-088 DG8: the empire (polity id) whose army this formation belongs to; -1 = not stated. A formation
-+    /// has no role of its own: its role is its side's (<see cref="BattleRoles.RoleOf"/>). <see cref="BattleRoles.Check"/> refuses a
-+    /// formation whose empire is foreign to its side's roster. Never read by the resolvers (no battle or hash changes).</summary>
-+    public int Empire { get; init; } = -1;
- }
- 
- /// <summary>Per-side configuration.</summary>
-@@ -190,6 +195,13 @@ public sealed record SideSpec(ExitEdge Exit)
- {
-     /// <summary>Objective points of this side (fixed for the battle; the inactivity rule's "objective" reference).</summary>
-     public Vec2L[] Objectives { get; init; } = Array.Empty<Vec2L>();
-+    /// <summary>[OC, 2026-11-13] D-088 DG8 ("A side holds one empire's armies, or an empire's and its allies' armies"): the side's own
-+    /// empire (polity id), -1 = not stated (hand-built battles, the shipped scenarios). Read by <see cref="BattleRoles"/> only (the
-+    /// battle's creators check it); the resolvers never read it, so it changes no battle and no hash.</summary>
-+    public int Empire { get; init; } = -1;
-+    /// <summary>[OC, 2026-11-13] D-088 DG8: the side's allied empires (polity ids; empty = none). Every army on the side, its own
-+    /// empire's or an ally's, shares the side's role (<see cref="BattleRoles.RoleOf"/>).</summary>
-+    public int[] Allies { get; init; } = Array.Empty<int>();
- }
- 
- /// <summary>Everything that defines a battle. Formations may be listed in any order (the engine sorts by id).</summary>
-@@ -218,11 +230,22 @@ public sealed record BattleSetup(
-     /// battle names as attacked — the target side of the opening war-pulse Attack, the garrison of a siege assault, the side
-     /// whose position the other advances on in a hand-built scenario; docs/m7-plan/concealment-actions-proposal.md §5). -1: none
-     /// designated (a meeting engagement), so equal sides report no winner. Read only by <see cref="EqualSides"/> at the battle
--    /// end: it never changes the battle itself.</summary>
-+    /// end: it never changes the battle itself.
-+    /// [OC, 2026-11-13] D-087 DF8 ("the side that was attacked, is the defender"; "the army that initiates combat is the attacker")
-+    /// and D-088 DG8 (ONE ROLE PER SIDE): this is the battle's only role field — the defending SIDE; the other side is the attacker
-+    /// (<see cref="BattleRoles.AttackerSide"/>), and every army on a side shares its role whatever its empire
-+    /// (<see cref="BattleRoles.RoleOf"/>). A battle opened by an engagement takes it from that engagement
-+    /// (<see cref="BattleRoles.FromEngagement"/>), never from a war declaration. D-082 DA6 is superseded (D-087 DF8): equal sides are a
-+    /// tie whatever the defender.</summary>
-     public int Defender { get; init; } = -1;
-     /// <summary>[AP] D-082 DA7: the side that opened this battle as an AMBUSH launched from concealment (the AMBUSH definition of
-     /// the proposal §5.2: its engaging agent was hidden or camouflaged and undetected by the defender's polity at the instant the
-     /// engagement was made; set by the battle's creator — the war-pulse hand-off <c>EngagementBattle</c>, the sandbox, a
--    /// scenario author). -1: not an ambush. On equal sides the ambusher wins (DA7-R (a)). Never changes the battle itself.</summary>
-+    /// scenario author). -1: not an ambush. On equal sides the ambusher wins (DA7-R (a)). Never changes the battle itself.
-+    /// [OC, 2026-11-13] D-087 DF8, DF11: ~~On equal sides the ambusher wins~~ an equal ambush is a tie (DA7-R's ambusher win fell). D-087
-+    /// DF9 / D-088 DG10: an ambush is opened on the MAP by an enemy's passage through a hidden unit's region (War.MapAmbush); the
-+    /// battle that trigger builds (War.MapAmbushBattle) sets this to the ambusher's side, which is the ATTACKER (READING OC-R1 (a):
-+    /// the ambushing side initiates combat; BattleRoles.Check refuses an ambusher that is not the attacker). Lane AP's attack from
-+    /// concealment no longer sets it (War.EngagementBattle; concealment-actions-proposal.md §12).</summary>
-     public int Ambusher { get; init; } = -1;
- }
-diff --git a/prototypes/m7-sprint1/Proto.M7/War/Concealment.cs b/prototypes/m7-sprint1/Proto.M7/War/Concealment.cs
-index bce94f1..c774c7f 100644
---- a/prototypes/m7-sprint1/Proto.M7/War/Concealment.cs
-+++ b/prototypes/m7-sprint1/Proto.M7/War/Concealment.cs
-@@ -188,6 +188,25 @@ public static class FieldWorks
- /// </summary>
- public static class EngagementBattle
- {
-+    /// <summary>
-+    /// [OC, completion after fix round 1, 2026-11-13] D-087 DF8, D-088 DG8: the battle's ROLES FROM THE ENGAGEMENT that opened it. The
-+    /// field states each side's roster (<see cref="SideSpec.Empire"/> and <see cref="SideSpec.Allies"/>: one empire's armies, or an
-+    /// empire's and its allies'); the attacker is the side whose roster holds the engagement's attacking polity (the empire whose army
-+    /// initiated combat, <see cref="EngagementRecord.AttackerPolity"/>), the defender the side holding its target's polity, and every
-+    /// army on a side shares its side's role (<see cref="BattleRoles.FromEngagement"/>). No war declaration, zone of control or siege is
-+    /// read: which polity declared the war, or whose agent first moved into the other's reach, never enters. Refused (null, with the
-+    /// <see cref="RolesRefusal"/>) when the engagement's polities are not on opposite sides of the field.
-+    /// </summary>
-+    public static BattleSetup? Build(BattleSetup field, EngagementRecord e, ConcealmentRules rules, out FieldWorks.Placement placed, out RolesRefusal refusal)
-+    {
-+        placed = default;
-+        refusal = BattleRoles.FromEngagement(field, e.AttackerPolity, e.TargetPolity, out var roled);
-+        if (refusal != RolesRefusal.None) return null;
-+        var b = Build(roled!, e, BattleRoles.AttackerSide(roled!), rules, out placed);
-+        refusal = BattleRoles.Check(b);
-+        return refusal == RolesRefusal.None ? b : null;
-+    }
-+
-     public static BattleSetup Build(BattleSetup field, EngagementRecord e, int attackerSide, ConcealmentRules rules, out FieldWorks.Placement placed)
+@@ -118,9 +126,10 @@ public sealed class Runner
+     private long CloseWindow()
      {
-         if (attackerSide != 0 && attackerSide != 1) throw new ArgumentOutOfRangeException(nameof(attackerSide));
+         long at = _collectAt;
+-        _windows.Add(new DecisionWindow(_windows.Count, at, _hits.ToArray()));
++        _windows.Add(new DecisionWindow(_windows.Count, at, _hits.ToArray()) { AfterOrders = _collectAfterOrders });   // [OC]
+         _hits.Clear();
+         _collectAt = -1;
++        _collectAfterOrders = false;
+         return at;
+     }
+ 
+@@ -132,16 +141,21 @@ public sealed class Runner
+         return new RunResult(RunStatus.Interrupted, at);
+     }
+ 
+-    /// <summary>An order is deliverable only at the instant of the latest closed decision window (ADR-061 §3.7).</summary>
++    /// <summary>An order is deliverable only at the instant of the latest closed decision window (ADR-061 §3.7). [OC, 2026-11-13] And
++    /// only in that window's phase: a window order (class PlayerOrder) at a world window, an order of class ConsequenceOrder at a
++    /// consequence window (D-089 DH2).</summary>
+     private bool IsDeliverable(ScheduledEvent order)
+-        => _collectAt < 0 && _windows.Count > 0 && _windows[^1].InstantMs == order.Key.TimeMs;
++        => _collectAt < 0 && _windows.Count > 0 && _windows[^1].InstantMs == order.Key.TimeMs
++           && _windows[^1].AfterOrders == (order.Key.Class == (byte)EventClass.ConsequenceOrder);
+ 
+-    /// <summary>Issue a player order while stopped at an interrupt instant T; it is delivered AT T.</summary>
++    /// <summary>Issue a player order while stopped at an interrupt instant T; it is delivered AT T. [OC, 2026-11-13] At a consequence
++    /// window it is delivered in class ConsequenceOrder (after the consequence events at T) and logged as such.</summary>
+     public SubTurnOrder IssueOrder(int kind, long a, long b)
+     {
+         if (!IsStopped) throw new InvalidOperationException("orders can be issued only while the runner is stopped at an interrupt");
+-        var o = Orders.Append(StoppedAtMs, kind, a, b);
+-        _scheduler.ScheduleOrder(o.InstantMs, o.Seq, o.Kind, o.A, o.B);
++        bool after = _windows.Count > 0 && _windows[^1].AfterOrders;
++        var o = Orders.Append(StoppedAtMs, kind, a, b, after);
++        _scheduler.ScheduleOrder(o.InstantMs, o.Seq, o.Kind, o.A, o.B, after);
+         return o;
+     }
+ 
+@@ -169,9 +183,9 @@ public sealed class Runner
+         var r = new Runner(freshScheduler, freshWorld, significant, stopOnSignificant: false);
+         foreach (var o in log.Orders)
+         {
+-            var copy = r.Orders.Append(o.InstantMs, o.Kind, o.A, o.B);
++            var copy = r.Orders.Append(o.InstantMs, o.Kind, o.A, o.B, o.AfterConsequence);
+             if (copy.Seq != o.Seq) throw new InvalidOperationException("log index drift");
+-            freshScheduler.ScheduleOrder(o.InstantMs, o.Seq, o.Kind, o.A, o.B);
++            freshScheduler.ScheduleOrder(o.InstantMs, o.Seq, o.Kind, o.A, o.B, o.AfterConsequence);   // [OC] in its own phase
+         }
+         return r;
+     }
+diff --git a/prototypes/m7-sprint1/Proto.M7/Events/SubTurnOrderLog.cs b/prototypes/m7-sprint1/Proto.M7/Events/SubTurnOrderLog.cs
+index d3872c6..ee51717 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Events/SubTurnOrderLog.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Events/SubTurnOrderLog.cs
+@@ -8,7 +8,12 @@ namespace Proto.M7.Events;
+ /// NOT the kernel OrderRecord (changing OrderRecord needs authorization — recon-kernel §7 item 4).
+ /// Seq = index in the log; it is also the order event's SourceId, so orders at one instant execute in issue order.
+ /// </summary>
+-public readonly record struct SubTurnOrder(long InstantMs, int Seq, int Kind, long A, long B);
++public readonly record struct SubTurnOrder(long InstantMs, int Seq, int Kind, long A, long B)
++{
++    /// <summary>[OC, 2026-11-13, D-089 DH2] Issued at a consequence window (EventRules R4's exception): delivered in class
++    /// ConsequenceOrder at its instant. False for every window order (all orders before lane OC).</summary>
++    public bool AfterConsequence { get; init; }
++}
+ 
+ public sealed class SubTurnOrderLog
+ {
+@@ -18,11 +23,11 @@ public sealed class SubTurnOrderLog
+     public int Count => _orders.Count;
+ 
+     /// <summary>Append; instants must be non-decreasing (orders are issued as the timeline advances).</summary>
+-    public SubTurnOrder Append(long instantMs, int kind, long a, long b)
++    public SubTurnOrder Append(long instantMs, int kind, long a, long b, bool afterConsequence = false)
+     {
+         if (_orders.Count > 0 && instantMs < _orders[^1].InstantMs)
+             throw new InvalidOperationException("order instants must be non-decreasing");
+-        var o = new SubTurnOrder(instantMs, _orders.Count, kind, a, b);
++        var o = new SubTurnOrder(instantMs, _orders.Count, kind, a, b) { AfterConsequence = afterConsequence };   // [OC]
+         _orders.Add(o);
+         return o;
+     }
+@@ -39,6 +44,7 @@ public sealed class SubTurnOrderLog
+             BinaryPrimitives.WriteInt64LittleEndian(buf[16..], o.A);
+             BinaryPrimitives.WriteInt64LittleEndian(buf[24..], o.B);
+             h.AppendData(buf);
++            if (o.AfterConsequence) h.AppendData(new byte[] { 1 });   // [OC] only a consequence-window order adds a byte: every earlier log hashes as before
+         }
+         return Convert.ToHexString(h.GetHashAndReset());
+     }
+diff --git a/prototypes/m7-sprint1/Proto.M7/War/Outcomes/OutcomeTypes.cs b/prototypes/m7-sprint1/Proto.M7/War/Outcomes/OutcomeTypes.cs
+index 4b4bdc3..d03890a 100644
+--- a/prototypes/m7-sprint1/Proto.M7/War/Outcomes/OutcomeTypes.cs
++++ b/prototypes/m7-sprint1/Proto.M7/War/Outcomes/OutcomeTypes.cs
+@@ -24,6 +24,11 @@ public static class OutcomeKinds
+     public const int BattleResolved = 86;
+     /// <summary>TEST DEVICE: opens a decision window at an instant of the test's choosing.</summary>
+     public const int Probe = 87;
++    /// <summary>[OC, 2026-11-13] D-089 DH2: significant, class OrderConsequence — the DECISION INSTANT of a settlement that the player's
++    /// own order (lane S's immediate assault) took at T: "Occupy, sack or raze?" asked at the moment of capture, after the order's
++    /// consequences (EventRules R4's exception). SourceId = A = the settlement, B = its taker. Never raised for an AI taker (it disposes by
++    /// its doctrine at the capture instant) nor for a capture made by a world event (its SettlementTaken window already offers it).</summary>
++    public const int DispositionDue = 88;
+ 
+     /// <summary>Settlement disposition: A = Pack(issuer, settlement), B = (long)<see cref="Disposition"/>.</summary>
+     public const int OrderDispose = 200;
+@@ -41,7 +46,7 @@ public static class OutcomeKinds
+ 
+     public const long ValueStride = 1L << 32;
+ 
+-    public static bool IsOwn(int kind) => (kind >= TurnStart && kind <= Probe) || (kind >= OrderDispose && kind <= OrderLeader);
++    public static bool IsOwn(int kind) => (kind >= TurnStart && kind <= DispositionDue) || (kind >= OrderDispose && kind <= OrderLeader);   // [OC] … 88
+ 
+     /// <summary>War code of a capture outside any war.</summary>
+     public const int NoWar = 65_535;
+@@ -80,6 +85,9 @@ public static class OutcomeRefusal
+     /// <summary>Fix r1 (W-R1-6, PROPOSAL rule L13): a polity may not sack or raze a settlement whose population is its own (a re-capture
+     /// is a liberation: Occupy is its only choice).</summary>
+     public const int OwnPopulation = 14;
++    /// <summary>[OC, 2026-11-13] D-089 DH2 (EventRules R4's exception): an order issued at a CONSEQUENCE window that is not the choice
++    /// that window offers — only the taker's disposition of the settlement its own order took at that instant is accepted there.</summary>
++    public const int NotOffered = 15;
+ }
+ 
+ /// <summary>Fate of a polity's leader. Stable codes (hashed and serialized).</summary>
+diff --git a/prototypes/m7-sprint1/Proto.M7/War/Outcomes/WarOutcomeWorld.cs b/prototypes/m7-sprint1/Proto.M7/War/Outcomes/WarOutcomeWorld.cs
+index 2d3a1fc..6e1e5e2 100644
+--- a/prototypes/m7-sprint1/Proto.M7/War/Outcomes/WarOutcomeWorld.cs
++++ b/prototypes/m7-sprint1/Proto.M7/War/Outcomes/WarOutcomeWorld.cs
+@@ -95,6 +95,9 @@ public sealed class WarOutcomeWorld : IEventWorld
+         public bool Disposed;
+         public long Sackers;
+         public int OutcomeRow = -1;
++        // [OC] D-089 DH2: taken by an ORDER at this instant (lane S's immediate assault), and the decision instant raised for it
++        public long OrderTakenAt = -1, DecisionDueAt = -1, DecisionSeq = -1;
++        public bool DecisionHeld;
+     }
+ 
+     private sealed class Cust
+@@ -160,6 +163,7 @@ public sealed class WarOutcomeWorld : IEventWorld
+     private readonly List<long> _fieldBattleEnd = new();
+     private long _settleAt = -1;
+     private int _siegeSeen, _siegeEndSeen;
++    private long _decisionsRaised;   // [OC] D-089 DH2: decision instants raised so far (the state hash grows only when one was)
+ 
+     /// <param name="captiveExecution">DIRECTOR-LEVEL (C32 flag): may a captor execute a captive leader outside the leader rule.
+     /// Every caller passes one; there is no default.</param>
+@@ -450,8 +454,9 @@ public sealed class WarOutcomeWorld : IEventWorld
+     /// <summary>The significant kinds of this world (with lane S's when bound) for the runner.</summary>
+     public static SignificantKinds Significant(bool withSiege) => withSiege
+         ? new SignificantKinds(OutcomeKinds.SettlementTaken, OutcomeKinds.LeaderFateChanged, OutcomeKinds.BattleResolved, OutcomeKinds.Probe,
+-                               SiegeKinds.Probe, SiegeKinds.SiegeEnded, SiegeKinds.AssaultResolved)
+-        : new SignificantKinds(OutcomeKinds.SettlementTaken, OutcomeKinds.LeaderFateChanged, OutcomeKinds.BattleResolved, OutcomeKinds.Probe);
++                               SiegeKinds.Probe, SiegeKinds.SiegeEnded, SiegeKinds.AssaultResolved, OutcomeKinds.DispositionDue)   // [OC] DH2
++        : new SignificantKinds(OutcomeKinds.SettlementTaken, OutcomeKinds.LeaderFateChanged, OutcomeKinds.BattleResolved, OutcomeKinds.Probe,
++                               OutcomeKinds.DispositionDue);                                                                            // [OC] DH2
+ 
+     public bool IsLive(EntityRef entity) => _siege?.IsLive(entity) ?? true;
+ 
+@@ -460,6 +465,8 @@ public sealed class WarOutcomeWorld : IEventWorld
+     public void Execute(in ScheduledEvent ev, EventScheduler s)
+     {
+         long now = ev.Key.TimeMs;
++        // [OC] D-089 DH2: an order issued at a consequence window is answered here, whatever its kind (never delegated to lane S)
++        if (ev.Key.Class == (byte)EventClass.ConsequenceOrder) { ExecuteConsequenceOrder(in ev, now, s); return; }
+         if (!OutcomeKinds.IsOwn(ev.Kind))
+         {
+             if (_siege is null) throw new InvalidOperationException($"unknown kind {ev.Kind}");
+@@ -479,6 +486,9 @@ public sealed class WarOutcomeWorld : IEventWorld
+             case OutcomeKinds.BattleResolved:
+             case OutcomeKinds.Probe:
+                 break;
++            case OutcomeKinds.DispositionDue:                                    // [OC] the decision instant opens (the runner's window)
++                _x[(int)ev.A].DecisionHeld = true;
++                break;
+             default: throw new InvalidOperationException($"unknown kind {ev.Kind}");
+         }
+     }
+@@ -590,6 +600,9 @@ public sealed class WarOutcomeWorld : IEventWorld
+         AddCasualty(b, 1, from, CasualtyCause.Captured, prisoners);
+         AddCasualty(b, 1, from, CasualtyCause.MarchedOut, marched);
+         x.TakenAtMs = now; x.TakenBy = to; x.TakenFrom = from; x.TakenBattle = b; x.TakenWar = war; x.Disposed = false; x.Sackers = sackers;
++        // [OC] D-089 DH2: a capture made by a window order at this instant (lane S's immediate assault): its taker's choice is raised as
++        // a decision instant after the order (RaiseDecisions); a capture made by a world event keeps its SettlementTaken window
++        x.OrderTakenAt = s.CurrentKey.Class == (byte)EventClass.PlayerOrder && s.CurrentKey.TimeMs == now ? now : -1;
+         x.Grievance = to == PopulationOf(x) ? 0 : x.Spec.BaseGrievancePermilleYear;
+         x.OutcomeRow = _outcomes.Count;
+         _outcomes.Add(new SettlementOutcomeRow(x.Spec.Id, b, now, from, to, (byte)Disposition.Occupy, 0, 0, 0, 0, 0, 0, x.Grievance));
+@@ -662,7 +675,54 @@ public sealed class WarOutcomeWorld : IEventWorld
+                 _settleAt = now;
+             }
+         }
+-        else Settle(now, null);   // a change made by an order (or another late-class event): settled when it completes
++        else
++        {
++            Settle(now, null);   // a change made by an order (or another late-class event): settled when it completes
++            RaiseDecisions(now, s);   // [OC] D-089 DH2
++        }
++    }
++
++    /// <summary>
++    /// [OC, completion after fix round 1, 2026-11-13] D-089 DH2 ("When the player's own immediate assault takes a city, the player is
++    /// asked 'Occupy, sack or raze?' at the moment of capture") and DH2-R1 (an AI taker still disposes by its doctrine). For each
++    /// settlement that a WINDOW ORDER took at this instant (lane S's immediate assault, WA1) whose taker is a human polity (no AI
++    /// doctrine) and that is still undisposed, a decision instant is raised at T after the order's consequences
++    /// (EventScheduler.ScheduleConsequence: class OrderConsequence, kind DispositionDue), so the choice is OFFERED AT THE MOMENT OF
++    /// CAPTURE and does not lapse (lane U's U-F4, U2-5). The runner opens one consequence window at T; the taker's disposition issued
++    /// there is accepted (TakenAtMs == T) through the same eligibility checks (no sack or raze of one's own population, never one's
++    /// last city: unchanged). Once per settlement and instant; never raised by a world event (its SettlementTaken window offers the
++    /// choice already) and never from a consequence-window order (ScheduleConsequence refuses: no chain).
++    /// </summary>
++    private void RaiseDecisions(long now, EventScheduler s)
++    {
++        if (s.CurrentKey.Class != (byte)EventClass.PlayerOrder || s.CurrentKey.TimeMs != now) return;
++        foreach (var x in _x)
++        {
++            if (x.OrderTakenAt != now || x.TakenAtMs != now || x.Disposed || x.Razed || x.DecisionDueAt == now) continue;
++            if (_ai[x.TakenBy] >= 0) continue;                                   // DH2-R1: an AI taker disposed by its doctrine (Settle)
++            x.DecisionDueAt = now;
++            x.DecisionHeld = false;
++            x.DecisionSeq = s.ScheduleConsequence(now, 0, x.Spec.Id, OutcomeKinds.DispositionDue, x.Spec.Id, x.TakenBy);
++            _decisionsRaised++;
++        }
++    }
++
++    /// <summary>[OC] An order issued at a consequence window (class ConsequenceOrder): only the choice that window offers is accepted — the
++    /// taker's disposition of a settlement whose decision instant is now (EventRules R4: no action multiplication). Anything else is a
++    /// recorded refusal (NotOffered) and changes nothing; it never reaches lane S.</summary>
++    private void ExecuteConsequenceOrder(in ScheduledEvent ev, long now, EventScheduler s)
++    {
++        int log = (int)ev.Key.SourceId;
++        long issuerL = ev.A < 0 ? -1 : ev.A / WarKinds.PolityStride;
++        int issuer = issuerL >= 0 && issuerL < _p.Length ? (int)issuerL : -1;
++        int target = ev.A < 0 ? -1 : (int)(ev.A % WarKinds.PolityStride);
++        if (ev.Kind != OutcomeKinds.OrderDispose || issuer < 0 || target < 0 || target >= _x.Length
++            || _x[target].DecisionDueAt != now || _x[target].TakenBy != issuer)
++        {
++            Result(log, issuer, ev.Kind, now, OutcomeRefusal.NotOffered);
++            return;
++        }
++        Result(log, issuer, ev.Kind, now, OrderDispose(issuer, target, ev.B, now, s));
+     }
+ 
+     private void Settle(long now, EventScheduler? s)
+@@ -940,8 +1000,15 @@ public sealed class WarOutcomeWorld : IEventWorld
+     {
+         if (settlement < 0 || settlement >= _x.Length) return OutcomeRefusal.BadTarget;
+         if (value < 0 || value > (long)Disposition.Raze) return OutcomeRefusal.BadValue;
+-        int r = Dispose(_x[settlement], (Disposition)value, now, issuer);
+-        if (r == 0) RequestSettle(now, s);   // a raze changes the razer's city count (never to zero: refused above)
++        var x = _x[settlement];
++        int r = Dispose(x, (Disposition)value, now, issuer);
++        if (r == 0)
++        {
++            // [OC] D-089 DH2: disposed by an order of the same window, after the assault and before its decision instant ran (lane U
++            // MEASURED this path: the choice issued with the assault applies): the decision instant is not needed — cancel it
++            if (x.DecisionDueAt == now && !x.DecisionHeld && x.DecisionSeq >= 0) s.Cancel(x.DecisionSeq);
++            RequestSettle(now, s);   // a raze changes the razer's city count (never to zero: refused above)
++        }
+         return r;
+     }
+ 
+@@ -1158,6 +1225,11 @@ public sealed class WarOutcomeWorld : IEventWorld
+             }
+         }
+         L(_settleAt); L(_siegeSeen); L(_siegeEndSeen);
++        if (_decisionsRaised > 0)   // [OC] D-089 DH2: only a world that raised a decision instant appends (every earlier hash unchanged)
++        {
++            L(_decisionsRaised);
++            foreach (var x in _x) { L(x.OrderTakenAt); L(x.DecisionDueAt); L(x.DecisionHeld ? 1 : 0); }
++        }
+         return Convert.ToHexString(h.GetHashAndReset());
+     }
+ }
