@@ -401,3 +401,8 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 ## PAUSED at 2026-11-13 00:55 UTC (the Director's pause; due 01:40 UTC, taken early after two container restarts)
 - Container restarts at about 00:20 and 00:50 UTC, both during the G2 integrator's headless capture checks of polish round 2 (seg6). The first was resumed (wrgcp9yis); after the second, the stop was taken at once rather than re-running the capture render a third time.
 - State: G2 trunk 9b0fb76 (polish round 2 on it, pulled, built, tested); capture check and integration commit pending; then critic round 3, the verifier, the AFTER package. Final snapshot 5a2e12a; README PAUSED banner pushed. Lanes OC, BN, AR, RT2, RX not started (briefs in args/).
+
+## One hour at full power (2026-11-13 06:11-07:14 UTC), then PAUSED at 07:16 UTC
+- G2 final: polish round 2 integrated (f677707); critic round 3 judged "needs-work" with 9 issues; polish round 3 had just started when stopped.
+- Lane OC (wf_42ee07c9-d2f, base 3f4f8e1): implementation PARTIAL (items 1, 2, 4 done; 3 except the tie rejoin; 5-8 not built), the agent citing the time budget although the shared context tells lanes that pacing messages are not their time budget (it read the one-hour banner in the orchestrator's README). Verification round 1: 11 findings (3 major, 5 minor, 3 nit). Fix round 1 interrupted. Lane head feb1916 (6 commits); bundle and snapshot hold it.
+- Resource monitor: available memory never below 9,184 MB; free disk touched 0 MB once (07:14:05Z), 258 MB after the stop. The disk allowance, not memory, is the binding limit.
