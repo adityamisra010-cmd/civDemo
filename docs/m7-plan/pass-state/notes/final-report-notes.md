@@ -406,3 +406,6 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 - G2 final: polish round 2 integrated (f677707); critic round 3 judged "needs-work" with 9 issues; polish round 3 had just started when stopped.
 - Lane OC (wf_42ee07c9-d2f, base 3f4f8e1): implementation PARTIAL (items 1, 2, 4 done; 3 except the tie rejoin; 5-8 not built), the agent citing the time budget although the shared context tells lanes that pacing messages are not their time budget (it read the one-hour banner in the orchestrator's README). Verification round 1: 11 findings (3 major, 5 minor, 3 nit). Fix round 1 interrupted. Lane head feb1916 (6 commits); bundle and snapshot hold it.
 - Resource monitor: available memory never below 9,184 MB; free disk touched 0 MB once (07:14:05Z), 258 MB after the stop. The disk allowance, not memory, is the binding limit.
+
+## Pauses and full-power hours of 2026-11-13
+- 00:55-06:11 UTC paused (after two container restarts during G2's capture checks); 06:11-07:14 UTC full power (G2 + OC); 07:16-08:33 UTC paused (the container restarted while paused); 08:33 UTC "resume all at full power for 1 hour more": G2 polish round 3 and OC fix round 1 resumed from cache, new clones and build outputs on the RAM disk because the disk had about 270 MB free; stop scheduled 09:34 UTC.

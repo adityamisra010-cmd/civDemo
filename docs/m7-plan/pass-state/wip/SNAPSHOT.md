@@ -1,19 +1,22 @@
-# Pass-state snapshot: 2026-11-13T07:16:58Z
+# Pass-state snapshot: 2026-11-13T09:05:51Z
 
 Written by `docs/m7-plan/pass-state/tools/snapshot.sh` every 30 minutes while work is in flight, and committed with
 `[skip ci]`. It holds every piece of work that is not yet on this branch as a commit, so that a stopped session or a lost
 container costs at most the work since this time. The finished work is in the branch itself (README §1).
 
-Branch head when written: `7986a45`. In flight: g2 trunk f677707 lane OC feb1916.
+Branch head when written: `8344c2b`. In flight: g2 trunk f677707 g2 polish3 40ff8fd +19 lane OC 816b4b2.
 
 | File | What | Head | Made with | Restore |
 |---|---|---|---|---|
 | g2-trunk.patch | G2 trunk /home/user/g2w/trunk (branch g2/trunk) | f677707 | git diff --binary 21a181e f677707 -- prototypes/m7-gfx2 | `git apply --binary` on this branch's tree (its prototypes/m7-gfx2 equals 21a181e's) |
-| OC-wip.bundle | lane clone /home/user/m7w/OC | feb1916 | git bundle create … 3f4f8e1..HEAD | `git fetch <bundle> HEAD:lane/OC` in a clone of this branch |
+| g2-polish3.patch | G2 stage clone /home/user/g2w/polish3 (branch g2/polish3), commits not yet in the trunk | 40ff8fd | git diff --binary 21a181e 40ff8fd -- prototypes/m7-gfx2 | instead of g2-trunk.patch |
+| g2-polish3-uncommitted.patch | G2 stage clone /home/user/g2w/polish3: uncommitted edits (19 paths) | 40ff8fd | temporary index | after g2-polish3.patch |
+| OC-wip.bundle | lane clone /home/user/m7w/OC | 816b4b2 | git bundle create … 3f4f8e1..HEAD | `git fetch <bundle> HEAD:lane/OC` in a clone of this branch |
 | journals/*.jsonl | every workflow run's journal | — | copy | read, to see which agents finished and what they returned |
 
 ## Restore test (in a fresh clone of the branch, at this snapshot)
 
+- g2-polish3.patch on this branch's tree: PASS + g2-polish3-uncommitted.patch PASS
 - g2-trunk.patch on this branch's tree: PASS
 - OC-wip.bundle: bundle verify PASS
 
