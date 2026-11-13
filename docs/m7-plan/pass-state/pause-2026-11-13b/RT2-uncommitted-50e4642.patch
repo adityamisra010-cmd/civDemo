@@ -1,0 +1,764 @@
+diff --git a/Sim.Core/State/InfoQuery.cs b/Sim.Core/State/InfoQuery.cs
+index 43589fc..62d3502 100644
+--- a/Sim.Core/State/InfoQuery.cs
++++ b/Sim.Core/State/InfoQuery.cs
+@@ -390,6 +390,72 @@ public static class InfoQuery
+         return Math.Max(1L, (long)Math.Ceiling(shortfall / pointsPerTurn));
+     }
+ 
++    /// <summary>
++    /// D-089 DH6 (lane RT's proposal N6) — THE ROUTE-AWARE ESTIMATE of a node not yet open: the End Turns until
++    /// <paramref name="destination"/> completes if its lane takes it as its destination from the next End Turn on, at the
++    /// current rate, as the engine funds a destination (ResearchSystem with destination routing, overflow off): while the
++    /// destination is not open the lane funds the CURRENT node of its route — the eligible route node of its own lane with the
++    /// smallest remaining cost, ties to the lower key (<see cref="ResearchRoutePlanner.PickCurrent"/>) — one node at a time, and
++    /// once the destination is open, the destination. Each node is paid by THE SAME per-node rule as an open node
++    /// (<see cref="ResearchTurns"/>, the one estimate): its remaining cost against the lane's rate and, for a civic in the
++    /// two-lane model, the bank, spent first and carried over — what a civic leaves of the bank in the End Turn it completes
++    /// stays banked; a technology's surplus is lost (no RP overflow, D-047 Part B). The route is planned once
++    /// (<see cref="ResearchRoutePlanner.Plan"/>): paying a route node lowers the cost of exactly that minimum-cost set, so the
++    /// engine's per-step plan keeps it. Null — no figure — when the destination is complete, when a node of its route
++    /// belongs to the OTHER lane (that lane must fund it, and whether it will is the player's), when the route stalls with no
++    /// node its lane can fund, when the rate is zero and the bank short, or beyond <paramref name="maxTurns"/>. Like the
++    /// single-node estimate it does not count Ideas or foreign exposure credited meanwhile, an assist from the other lane, or
++    /// a change of the rate. A read-only query: it copies the masks it is given and changes nothing.
++    /// </summary>
++    public static long? RouteResearchTurns(ResearchContent content, bool[] completed, double[] remaining, int destination,
++        double pointsPerTurn, double banked, int maxTurns = 100_000) =>
++        RouteResearchTurns(content, completed, remaining, destination, pointsPerTurn, banked, out _, maxTurns);
++
++    /// <summary><see cref="RouteResearchTurns(ResearchContent, bool[], double[], int, double, double, int)"/>, saying in
++    /// <paramref name="needsOtherLane"/> whether it gave no figure because a node of the route belongs to the other lane.</summary>
++    public static long? RouteResearchTurns(ResearchContent content, bool[] completed, double[] remaining, int destination,
++        double pointsPerTurn, double banked, out bool needsOtherLane, int maxTurns = 100_000)
++    {
++        ArgumentNullException.ThrowIfNull(content);
++        needsOtherLane = false;
++        if (destination < 0 || destination >= content.Nodes.Count || completed[destination]) return null;
++        bool twoLanes = content.Tuning.TwoLanes;
++        int lane = ResearchRoutePlanner.LaneOf(content, destination, twoLanes);
++        bool civic = twoLanes && lane == 1;
++        var done = (bool[])completed.Clone();
++        var rem = (double[])remaining.Clone();
++        int[] route = [];
++        if (!ResearchQuery.IsAvailable(content, destination, done, ResearchQuery.StageReached(content, done)))
++        {
++            route = ResearchRoutePlanner.Plan(content, done, rem, destination).Route;
++            foreach (int r in route)
++                if (ResearchRoutePlanner.LaneOf(content, r, twoLanes) != lane) { needsOtherLane = true; return null; }   // the other lane must fund it
++        }
++        double bank = civic ? Math.Max(0.0, banked) : 0.0;
++        long turns = 0;
++        var available = new bool[content.Nodes.Count];
++        for (int step = 0; step <= route.Length; step++)
++        {
++            bool stage = ResearchQuery.StageReached(content, done);
++            int next;
++            if (ResearchQuery.IsAvailable(content, destination, done, stage)) next = destination;
++            else
++            {
++                foreach (int r in route) available[r] = !done[r] && ResearchQuery.IsAvailable(content, r, done, stage);
++                next = ResearchRoutePlanner.PickCurrent(content, route, available, rem, lane, twoLanes, -1);
++                if (next < 0) return null;   // stalled: nothing on the route its lane can fund
++            }
++            if (ResearchTurns(rem[next], 0.0, pointsPerTurn, bank) is not long k) return null;
++            turns += k;
++            if (turns > maxTurns) return null;
++            if (civic) bank = Math.Max(0.0, bank + k * pointsPerTurn - rem[next]);   // what the civic leaves stays banked
++            done[next] = true;
++            rem[next] = 0.0;
++            if (next == destination) return turns;
++        }
++        return null;   // the route was exhausted without opening the destination
++    }
++
+     /// <summary>D-084 verification round 1 (RT-R1-06 b): the words of a research turns estimate — "1 turn", "9 turns" — as the
+     /// card's state line, the detail pane and this card's "Open to research now" line write it.</summary>
+     public static string TurnsPhrase(long turns) => Inv(turns) + (turns == 1L ? " turn" : " turns");
+diff --git a/Sim.Ui.Tests/ResearchScreenPolishTests.cs b/Sim.Ui.Tests/ResearchScreenPolishTests.cs
+new file mode 100644
+index 0000000..bf66558
+--- /dev/null
++++ b/Sim.Ui.Tests/ResearchScreenPolishTests.cs
+@@ -0,0 +1,228 @@
++using System.Globalization;
++using Sim.Core.State;
++using Sim.Core.Systems.Research;
++using Sim.Ui.Progression;
++using Sim.Ui.Render;
++using Sim.Ui.Theme;
++using Sim.Ui.ViewModel;
++using Xunit;
++using Xunit.Abstractions;
++
++namespace Sim.Ui.Tests;
++
++/// <summary>
++/// D-089 DH6 (lane RT2): lane RT's polish proposals N2 (the hover path's dependent edges read on every Age's field), N3 (a
++/// spine's lanes as far apart as its widest cased edge, so a pin's five edges never merge) and N4 (what holds a node besides
++/// its prerequisites, under sub-headings of its own). N6 (the route figure) is pinned with the other estimates in
++/// ResearchTreeAuditTests.ANodeNotYetOpen_GetsItsRouteFigure_….
++/// </summary>
++public class ResearchScreenPolishTests(SteppedWorldFixture fx, ITestOutputHelper output) : IClassFixture<SteppedWorldFixture>
++{
++    private static readonly PolityId Me = UiPlayer.Empire;
++    private const double W = 1600, H = 1000;
++
++    // ------------------------------------------------------------------ N2: dependent edges
++
++    [Fact]
++    public void N2_TheDependentInk_ReadsOnTheCasing_AndTheCasingOnTheField_InEveryAge()
++    {
++        // The hover path's dependent edges were drawn plain in the dependent ink, 1.82 to 4.50:1 on the tree's field (under 3:1
++        // in the early Ages; D-084 verification round 1, RT-R1-04). They are now cased as the incoming edges are: the edge reads
++        // by its dark casing on the field, and the dependent ink by its contrast with the casing — both at 3:1 or more (WCAG 2.1
++        // SC 1.4.11), MEASURED per Age below.
++        var low = new List<string>();
++        foreach (EraTheme t in EraThemes.All)
++        {
++            double plain = ThemeColor.Contrast(t.Semantic.Dependent, t.Material.Field);
++            double casing = ThemeColor.Contrast(t.Ink.Text, t.Material.Field);
++            double ink = ThemeColor.Contrast(ProgressionScreen.DependentInkOnCasing(t), t.Ink.Text);
++            output.WriteLine($"{t.Era}: dependent ink on the field {plain:0.00}:1 (plain, before), casing on the field {casing:0.00}:1, dependent ink on the casing {ink:0.00}:1"
++                + (ProgressionScreen.DependentInkOnCasing(t) == t.Semantic.Dependent ? "" : " (re-inked)"));
++            if (casing < 3.0) low.Add($"{t.Era}: casing on the field {casing:0.00}:1");
++            if (ink < 3.0) low.Add($"{t.Era}: dependent ink on the casing {ink:0.00}:1");
++        }
++        Assert.Empty(low);
++    }
++
++    [Theory]
++    [InlineData(ResearchTree.Technology)]
++    [InlineData(ResearchTree.Civics)]
++    public void N2_AHoveredCardsDependentEdges_AreCased(ResearchTree tree)
++    {
++        ResearchContent c = fx.Content;
++        var s = new ProgressionScreen(c, Me) { Config = fx.Session.Config };
++        s.Refresh(fx.Session.World);
++        s.Tab = tree == ResearchTree.Civics ? TreeTab.Civics : TreeTab.Technology;
++        s.Paint(W, H, ApproxTextMeasure.Instance);
++        s.FitAll();
++        s.Paint(W, H, ApproxTextMeasure.Instance);
++        s.Selected = -1;
++        // A visible card with a dependent.
++        int node = -1;
++        foreach (int v in s.VisibleVertices())
++            if (!s.Graph.Vertices[v].External && s.Graph.Node(v).Dependents.Count > 0) { node = s.Graph.Vertices[v].ContentIndex; break; }
++        Assert.True(node >= 0);
++        PlacedVertex p = s.Layout.Placed[s.Graph.VertexOf(node)];
++        s.PointerMove(s.Camera.ToScreenX(p.CenterX, s.Canvas.X), s.Camera.ToScreenY(p.CenterY, s.Canvas.Y));
++        Assert.Equal(node, s.Hovered);
++        DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
++        var at = new Dictionary<LineCmd, int>(ReferenceEqualityComparer.Instance);
++        for (int i = 0; i < d.Commands.Count; i++) if (d.Commands[i] is LineCmd l) at[l] = i;
++        LineCmd[] casings = [.. d.Commands.OfType<LineCmd>().Where(l => l.Color == s.Theme.Ink.Text)];
++        LineCmd[] inks = [.. d.Commands.OfType<LineCmd>().Where(l => l.Color == ProgressionScreen.DependentInkOnCasing(s.Theme))];
++        Assert.NotEmpty(inks);
++        static bool Same(LineCmd a, LineCmd b) => Math.Abs(a.X0 - b.X0) < 1e-6 && Math.Abs(a.Y0 - b.Y0) < 1e-6 && Math.Abs(a.X1 - b.X1) < 1e-6 && Math.Abs(a.Y1 - b.Y1) < 1e-6;
++        foreach (LineCmd ink in inks)
++            Assert.Contains(casings, k => Same(k, ink) && k.Width > ink.Width && at[k] < at[ink]);
++        output.WriteLine($"{tree}: {c.Nodes[node].Id} hovered; {inks.Length} dependent strokes, each over its casing");
++    }
++
++    // ------------------------------------------------------------------ N3: spine lanes
++
++    [Fact]
++    public void N3_TheSpineLaneStep_IsTiedToTheWidestCasedEdge_OfEveryAge()
++    {
++        // The widest edge a spine carries is a pinned card's incoming edge: PinnedEdgeFactor × the edge stroke (the screen's
++        // max(2.2, the Age's icon stroke)) plus the dark casing each side. The layout's constants must be that, so a lane step
++        // of SpineEdgeWidth + SpineLaneGap keeps two neighbouring pinned edges apart in every Age.
++        double widest = 0;
++        foreach (EraTheme t in EraThemes.All)
++            widest = Math.Max(widest, ProgressionScreen.PinnedEdgeFactor * Math.Max(2.2, t.Icons.StrokePx) + 2 * ProgressionScreen.PinnedCasingRef);
++        Assert.Equal(TreeLayoutOptions.SpineEdgeWidth, widest, 9);
++        Assert.Equal(TreeLayoutOptions.SpineEdgeWidth + TreeLayoutOptions.SpineLaneGap, TreeLayoutOptions.SpineLaneStepRef, 9);
++        Assert.True(TreeLayoutOptions.SpineLaneGap >= 1.0);
++        var o = new TreeLayoutOptions();
++        // Five lanes, centred, and the widest stroke of the outer two inside the spine.
++        double first = o.Margin + o.Spine / 2.0 - 2 * o.SpineLaneStep, last = o.Margin + o.Spine / 2.0 + 2 * o.SpineLaneStep;
++        Assert.True(first - TreeLayoutOptions.SpineEdgeWidth / 2.0 >= o.Margin);
++        Assert.True(last + TreeLayoutOptions.SpineEdgeWidth / 2.0 <= o.Margin + o.Spine);
++    }
++
++    [Theory]
++    [InlineData(ResearchTree.Technology)]
++    [InlineData(ResearchTree.Civics)]
++    public void N3_APinsFiveCasedEdges_InOneSpine_AreFiveStrokes_AtZoomOne(ResearchTree tree)
++    {
++        // Pin the card with the most incoming edges routed down one spine (Technology: five or more; the Civics tree has no card
++        // with five on one side, MEASURED), at zoom 1: their casings, the widest strokes there are, never overlap — each pair of
++        // neighbouring vertical spine runs is at least one casing width plus the gap apart (MEASURED below). With the old 3 px
++        // lanes, 7.8 px strokes overlapped by 4.8 px.
++        ResearchContent c = fx.Content;
++        ResearchGraph g = ResearchGraph.Build(c, tree);
++        TreeLayout L = ResearchTreeLayout.Compute(g, TreeLayoutOptions.Scaled(1.0, 1196.0));
++        int pin = -1, most = 0;
++        for (int v = 0; v < g.OwnCount; v++)
++        {
++            int left = 0, right = 0, lane = 0;
++            foreach (GraphEdge e in g.Edges)
++            {
++                if (e.From != v && e.To != v) continue;
++                (double X, double Y)[] r = ResearchTreeLayout.Route(L, e, lane++);
++                if (e.To != v || r.Length != 6) continue;
++                if (r[2].X < L.Width / 2) left++; else right++;
++            }
++            if (Math.Max(left, right) > most) { most = Math.Max(left, right); pin = v; }
++        }
++        output.WriteLine($"{tree}: at most {most} incoming spine edges on one side of a card");
++        Assert.True(most >= (tree == ResearchTree.Technology ? 5 : 2), $"{tree}: at most {most} incoming spine edges on one side");
++        var s = new ProgressionScreen(c, Me) { Config = fx.Session.Config };
++        s.Refresh(fx.Session.World);
++        s.Tab = tree == ResearchTree.Civics ? TreeTab.Civics : TreeTab.Technology;
++        s.Paint(W, H, ApproxTextMeasure.Instance);
++        int node = g.Vertices[pin].ContentIndex;
++        s.Selected = node;
++        s.Focus(node, jump: true);
++        s.Camera.Set(1.0, s.Camera.TargetPanX, s.Camera.TargetPanY);
++        DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
++        // The vertical casing runs of the pinned edges (the widest casing strokes painted): group by x.
++        double casingW = ProgressionScreen.PinnedEdgeFactor * Math.Max(2.2, s.Theme.Icons.StrokePx) + 2 * ProgressionScreen.PinnedCasingRef;
++        var xs = new List<double>();
++        foreach (LineCmd l in d.Commands.OfType<LineCmd>())
++            if (l.Color == s.Theme.Ink.Text && Math.Abs(l.X0 - l.X1) < 1e-6 && Math.Abs(l.Width - casingW) < 1e-6 && Math.Abs(l.Y1 - l.Y0) > 40)
++                if (!xs.Any(x => Math.Abs(x - l.X0) < 1e-6)) xs.Add(l.X0);
++        xs.Sort();
++        output.WriteLine($"{tree}: {c.Nodes[node].Id} pinned; vertical cased runs at x = {string.Join(", ", xs.Select(x => x.ToString("0.0", CultureInfo.InvariantCulture)))}; casing width {casingW:0.0}");
++        // Among them, the spine runs of one side: five or more, each neighbour at least a casing width plus the gap apart.
++        List<double> spine = SpineRuns(xs, s);
++        // Every run on screen is counted; a run whose vertical part lies outside the viewport is not painted.
++        Assert.True(spine.Count >= (tree == ResearchTree.Technology ? 5 : 2), "too few spine runs: " + string.Join(", ", spine));
++        for (int k = 1; k < spine.Count; k++)
++            Assert.True(spine[k] - spine[k - 1] >= casingW + TreeLayoutOptions.SpineLaneGap - 1e-6,
++                $"runs at {spine[k - 1]:0.0} and {spine[k]:0.0} overlap or touch (casing {casingW:0.0})");
++    }
++
++    /// <summary>The runs in the tighter of the two spine channels' x ranges (screen), whichever holds more.</summary>
++    private static List<double> SpineRuns(List<double> xs, ProgressionScreen s)
++    {
++        TreeLayoutOptions o = s.Layout.Options;
++        double z = s.Camera.Zoom;
++        double l0 = s.Camera.ToScreenX(o.Margin, s.Canvas.X), l1 = s.Camera.ToScreenX(o.Margin + o.Spine, s.Canvas.X);
++        double r0 = s.Camera.ToScreenX(s.Layout.Width - o.Margin - o.Spine, s.Canvas.X), r1 = s.Camera.ToScreenX(s.Layout.Width - o.Margin, s.Canvas.X);
++        var left = xs.Where(x => x >= l0 - 1e-6 && x <= l1 + 1e-6).ToList();
++        var right = xs.Where(x => x >= r0 - 1e-6 && x <= r1 + 1e-6).ToList();
++        _ = z;
++        return left.Count >= right.Count ? left : right;
++    }
++
++    [Fact]
++    public void N3_TheCardWidths_BeforeAndAfter_AreMeasured_AndKeepTheReadableFloor()
++    {
++        // A layout change (D-089 DH6 asks for it measured): the spines take 2 × (46 − 22) = 48 px more of the width, so where the
++        // tier rows held the same number of slots the cards narrow by 48 / slots px, and where a slot no longer fits the rows
++        // wrap instead (UR-4: never below MinCardWidth). MEASURED here for the old options (spine 22, lanes 3 apart) against the
++        // new, at the tree widths of the window sizes the screen is played at.
++        ResearchContent c = fx.Content;
++        var old = new TreeLayoutOptions() with { Spine = 22.0, SpineLaneStep = 3.0 };
++        foreach (double width in new[] { 900.0, 1196.0, 1366.0, 1600.0, 1920.0, 2560.0 })
++            foreach (ResearchTree tree in new[] { ResearchTree.Technology, ResearchTree.Civics })
++            {
++                ResearchGraph g = ResearchGraph.Build(c, tree);
++                TreeLayout before = ResearchTreeLayout.Compute(g, old with { ViewportWidth = width });
++                TreeLayout after = ResearchTreeLayout.Compute(g, new TreeLayoutOptions() with { ViewportWidth = width });
++                double wb = before.Placed[0].W, wa = after.Placed[0].W;
++                output.WriteLine($"{tree} at {width:0}: card {wb:0.0} -> {wa:0.0} px, height {before.Height:0} -> {after.Height:0}, tiers {before.Columns} -> {after.Columns}");
++                Assert.True(wa >= new TreeLayoutOptions().MinCardWidth - 1e-9, $"{tree} at {width}: card {wa:0.0} under the floor");
++                Assert.True(after.Width <= width + 1e-9);
++                Assert.Equal(before.Columns, after.Columns);   // the spine changes widths, never the tiers
++            }
++    }
++
++    // ------------------------------------------------------------------ N4: what else holds a node, under its own heading
++
++    [Fact]
++    public void N4_Longbows_Requires_PutsTheResearchStageAndTheAgeSweep_UnderSubHeadingsOfTheirOwn()
++    {
++        // Audit §6 (Longbow, diagnosed by lane RT): under REQUIRES the pane listed Simple bow, then — with no heading — the stage
++        // gate and the Age IV sweep's 60 names, which read as Longbow's prerequisites. Now each comes under its own sub-heading,
++        // after the prerequisite rows: RESEARCH STAGE, then AGE IV SWEEP.
++        ResearchContent c = fx.Content;
++        int longbow = c.IndexOfId("longbow");
++        var s = new ProgressionScreen(c, Me) { Config = fx.Session.Config };
++        s.Refresh(WithDone(c.IndexOfId("bow_simple")));
++        s.Paint(W, H, ApproxTextMeasure.Instance);
++        s.Selected = longbow;
++        DrawList d = s.Paint(W, H, ApproxTextMeasure.Instance);
++        RectD pane = s.DetailRect;
++        List<string> lines = [.. d.Commands.OfType<TextCmd>().Where(t => t.X >= pane.X && t.X <= pane.Right).Select(t => t.Text)];
++        int requires = lines.IndexOf("REQUIRES");
++        int bow = lines.FindIndex(requires, l => l.StartsWith("Simple bow", StringComparison.Ordinal));
++        int stage = lines.IndexOf(ProgressionScreen.StageSubHeading);
++        int stageLine = lines.FindIndex(l => l.StartsWith("Subtree closed", StringComparison.Ordinal));
++        int sweep = lines.IndexOf(ProgressionScreen.SweepSubHeading(4));
++        int sweepLine = lines.FindIndex(l => l.StartsWith("Age 4 sweep", StringComparison.Ordinal));
++        int idea = lines.IndexOf("IDEA");
++        output.WriteLine(string.Join(" | ", lines.GetRange(requires, Math.Min(8, lines.Count - requires))));
++        Assert.Equal("AGE IV SWEEP", ProgressionScreen.SweepSubHeading(4));
++        Assert.True(requires >= 0 && bow > requires && stage > bow && stageLine > stage && sweep > stageLine && sweepLine > sweep && idea > sweepLine,
++            $"order: REQUIRES {requires}, Simple bow {bow}, {ProgressionScreen.StageSubHeading} {stage}, stage line {stageLine}, AGE IV SWEEP {sweep}, sweep line {sweepLine}, IDEA {idea}");
++    }
++
++    /// <summary>The stepped world with node <paramref name="node"/> complete for the player.</summary>
++    private WorldState WithDone(int node)
++    {
++        WorldState w = ((WorldState)fx.Session.World).Clone();
++        ResearchNodeId key = fx.Content.Nodes[node].Key;
++        if (!ResearchQuery.IsCompleted(w, Me, key)) w.ResearchCompleted.Add(new ResearchCompletedRow(Me, key));
++        return w;
++    }
++}
+diff --git a/Sim.Ui.Tests/ResearchScreenRenderTests.cs b/Sim.Ui.Tests/ResearchScreenRenderTests.cs
+index 4b1a55f..567e2c8 100644
+--- a/Sim.Ui.Tests/ResearchScreenRenderTests.cs
++++ b/Sim.Ui.Tests/ResearchScreenRenderTests.cs
+@@ -97,9 +97,13 @@ public class ResearchScreenRenderTests(CanonicalTurnOneFixture fx) : IClassFixtu
+         // THE CONTROL: the A1 Technology tree really does pass 65,535 vertices in ONE draw list (here at FIT and
+         // zoomed out) — the frames the pre-fix renderer could not survive — and ImGui split them into rebased
+         // commands, every one of which the check above walked index by index.
+-        Assert.True(a1Tech.MaxListVertices > ushort.MaxValue, $"max {a1Tech.MaxListVertices}");
+-        Assert.True(a1Tech.OverflowFrames > 0);
+-        Assert.True(a1Tech.RebasedCommands > 0);
++        // D-089 DH6 MOVED PIN (lane RT2, N3; MEASURED): the spines are wider (46 px, lanes 9 px apart, was 22 and 3), so the
++        // 1280 × 800 sweep's largest list is 65,266 vertices, under the limit; the control sweeps the same tree in the
++        // 1920 × 1009 window too, where it still passes it (the wide-window test below pins its first frame).
++        Sweep wide = Run(gui, 1, TreeTab.Technology, 1920, 1009);
++        Assert.True(Math.Max(a1Tech.MaxListVertices, wide.MaxListVertices) > ushort.MaxValue, $"max {a1Tech.MaxListVertices} / {wide.MaxListVertices}");
++        Assert.True(a1Tech.OverflowFrames + wide.OverflowFrames > 0);
++        Assert.True(a1Tech.RebasedCommands + wide.RebasedCommands > 0);
+     }
+ 
+     /// <summary>The window the Director most likely played in (a maximised 1920-wide window): the A1 Technology
+diff --git a/Sim.Ui.Tests/ResearchTreeAuditTests.cs b/Sim.Ui.Tests/ResearchTreeAuditTests.cs
+index 49fdcfd..02ec8ce 100644
+--- a/Sim.Ui.Tests/ResearchTreeAuditTests.cs
++++ b/Sim.Ui.Tests/ResearchTreeAuditTests.cs
+@@ -647,13 +647,15 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+             {
+                 bool cased = casings.Any(k => Same(k, ink) && k.Width > ink.Width && at[k] < at[ink]);
+                 if (e.To == fv) Assert.True(cased, $"{c.Nodes[node].Id} <- {c.Nodes[s.Graph.Vertices[e.From].ContentIndex].Id}: an uncased incoming stroke");
+-                else Assert.DoesNotContain(casings, k => Same(k, ink));
++                // D-089 DH6 MOVED PIN (lane RT2, N2; MEASURED): the dependents are cased too (they were left plain, 1.82 to 4.50:1
++                // on the field). CONTROL: ResearchScreenPolishTests pins the dependent ink on the casing per Age.
++                else Assert.True(cased, $"{c.Nodes[node].Id} -> {c.Nodes[s.Graph.Vertices[e.To].ContentIndex].Id}: an uncased dependent stroke");
+             }
+             if (e.To != fv) dependents++;
+             else if (s.Graph.Vertices[e.From].ContentIndex == first) completed++;
+             else outstanding++;
+         }
+-        output.WriteLine($"{tree}: {c.Nodes[node].Id} hovered; {completed} completed and {outstanding} outstanding incoming edges cased, {dependents} dependents plain");
++        output.WriteLine($"{tree}: {c.Nodes[node].Id} hovered; {completed} completed and {outstanding} outstanding incoming edges and {dependents} dependents cased");
+         Assert.Equal(1, completed);
+         Assert.True(outstanding >= 1);
+     }
+@@ -1056,49 +1058,46 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+     }
+ 
+     [Fact]
+-    public void ACivicNotYetOpen_LockedPartialOrAWaitingDestination_ShowsNoEstimate_ForItsLaneFundsItsRouteFirst()
++    public void ANodeNotYetOpen_GetsItsRouteFigure_TheEndTurnsTheEngineTakes_GiftExchangeAndWarBand()
+     {
+-        // D-084 verification round 1 (RT-R1-01): the pane gave every incomplete civic the bank-aware estimate. A civic that is
+-        // not open cannot be funded at the next End Turn: ordered, it becomes the lane's destination and the lane funds its
+-        // route first, one civic per End Turn with overflow off, spending the bank on those (ResearchSystem 1b, 3b). The
+-        // stepped world banks 715.213 CP, which covered the own cost of 15 locked civics, so their panes read "~1 turns"
+-        // though no locked civic completes at the first End Turn — Gift exchange takes 2. Now no civic that is not open gets a
+-        // figure (its pane says so), whether it is locked, partial or the destination waiting on its route; a technology that
+-        // is not open keeps the figure it always had, its own turns at the RP rate (no bank).
++        // D-089 DH6 (lane RT's N6; READING RT2-R1 (a)) — MOVED PIN, replacing D-084 verification round 1's RT-R1-01 test ("a civic
++        // not yet open shows no estimate"; "a technology not yet open keeps its own turns at the RP rate"). A node not yet open —
++        // locked, partial, or a destination waiting on its route — now gets the ROUTE figure: the End Turns until it completes if
++        // its lane takes it as its destination now, its route funded first one node at a time, each node paid by the same rule as
++        // an open one, and a civic's bank spent and carried along (InfoQuery.RouteResearchTurns). MEASURED on the stepped world:
++        // Gift exchange 2 End Turns, as the engine (D-084 RT-R1-01 measured the same 2 by stepping); War band below. A route that
++        // needs the other tree's research gets no figure, and the pane says why.
+         ResearchContent c = fx.Content;
+         ResearchSnapshot s0 = ResearchSnapshot.Build(fx.Session.World, c, Me, NextDt(fx.Session.World));
+         Assert.True(s0.TwoLanes && s0.Routing && !c.Tuning.ResearchOverflow);
+         Assert.True(s0.CivicsBalance > 0);
+-        int civicsNotOpen = 0, coveredByTheBank = 0, techNotOpen = 0;
++        int notOpen = 0, figures = 0, otherLane = 0;
+         for (int i = 0; i < c.Nodes.Count; i++)
+         {
+             ResearchNodeView v = s0.Nodes[i];
+-            if (v.State == NodeState.Completed || v.Available) { Assert.False(s0.NoEstimateUntilOpen(v)); continue; }
+-            if (v.Tree == ResearchTree.Civics)
+-            {
+-                civicsNotOpen++;
+-                if (v.EffectiveCost - v.Progress <= s0.CivicsBalance) coveredByTheBank++;
+-                Assert.True(s0.NoEstimateUntilOpen(v));
+-                Assert.Null(s0.TurnsOf(v));
+-            }
+-            else
+-            {
+-                techNotOpen++;
+-                Assert.False(s0.NoEstimateUntilOpen(v));
+-                Assert.Equal((long)Math.Ceiling(Math.Max(0.0, v.EffectiveCost - v.Progress) / s0.PointsPerTurn), s0.TurnsOf(v));
+-            }
++            if (v.State == NodeState.Completed || v.Available) { Assert.False(s0.IsRouteFigure(v)); continue; }
++            notOpen++;
++            Assert.True(s0.IsRouteFigure(v));
++            if (s0.TurnsOf(v) is long) figures++;
++            else if (s0.RouteNeedsOtherLane(v)) otherLane++;
+         }
+-        output.WriteLine($"stepped world: {civicsNotOpen} civics not open ({coveredByTheBank} whose own cost the bank covers), {techNotOpen} technologies not open");
+-        Assert.True(coveredByTheBank > 0);
++        output.WriteLine($"stepped world: {notOpen} nodes not open, {figures} with a route figure, {otherLane} whose route needs the other tree");
++        Assert.True(figures > 0 && otherLane > 0);
+ 
+-        // Gift exchange, locked (it needs Council of elders): the engine takes 2 End Turns, so the old "~1" was unreachable.
+-        int gift = c.IndexOfId("gift_exchange"), council = c.IndexOfId("kin_council");
++        int gift = c.IndexOfId("gift_exchange"), council = c.IndexOfId("kin_council"), band = c.IndexOfId("war_band");
+         WorldState locked = ((WorldState)fx.Session.World).Clone();
+         Assert.Equal(NodeState.Locked, s0.Nodes[gift].State);
+         Assert.Equal([council], c.Nodes[gift].PrerequisiteNodes);
+-        Assert.True(s0.Nodes[gift].EffectiveCost - s0.Nodes[gift].Progress < s0.CivicsBalance);
++        Assert.Equal(2L, s0.TurnsOf(s0.Nodes[gift]));
+         Assert.Equal(2, EngineTurns(locked, gift));
+-        // Partial: progress kept but not open. The waiting destination: ordered, its route not yet done.
++        // War band (kin_council AND (bow_simple OR atlatl)): lane RT measured 46 End Turns at 51ab032, when the stepped world held
++        // neither technology and the Civics lane waited on the Technology lane. Since the D-089 DH7 content change the stepped
++        // world (ProgressionPreview's stepping) holds one, so its route is the council alone: the figure and the engine agree.
++        long bandTurns = s0.TurnsOf(s0.Nodes[band])!.Value;
++        output.WriteLine($"War band: route figure {bandTurns}, engine {EngineTurns(locked, band)}; bow_simple done {s0.Nodes[c.IndexOfId("bow_simple")].State == NodeState.Completed}, atlatl done {s0.Nodes[c.IndexOfId("atlatl")].State == NodeState.Completed}");
++        Assert.Equal(bandTurns, (long)EngineTurns(locked, band));
++        // Partial (progress kept, not open) and the waiting destination (ordered, its route not done): the figure is still the
++        // engine's, and the pane gives it "along its route".
+         WorldState partial = WithBank(ResearchQuery.CivicsPointsAccount(fx.Session.World, Me).BalanceMilli, gift, 25.0);
+         WorldState destination = ((WorldState)fx.Session.World).Clone();
+         Keep(destination.ResearchTargets, r => !(r.Polity.Value == Me.Value && c.IndexOf(r.Node) is int i and >= 0 && c.Nodes[i].Tree == ResearchTree.Civics));
+@@ -1109,17 +1108,48 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+             ResearchSnapshot s = ResearchSnapshot.Build(w, c, Me, NextDt(w));
+             Assert.Equal(state, s.Nodes[gift].State);
+             Assert.False(s.Nodes[gift].Available);
+-            Assert.Null(s.TurnsOf(s.Nodes[gift]));
++            Assert.Equal((long)EngineTurns(w, gift), s.TurnsOf(s.Nodes[gift]));
+             string block = PaneCostBlock(w, gift);
+             output.WriteLine($"{label}: {block}");
+-            Assert.DoesNotMatch(TurnsOnCard, block);
+-            Assert.Contains(ProgressionScreen.NoEstimateYet, block, StringComparison.Ordinal);
++            Assert.Contains("~" + InfoQuery.TurnsPhrase(s.TurnsOf(s.Nodes[gift])!.Value) + ProgressionScreen.AlongItsRoute + " at the current rate", block, StringComparison.Ordinal);
++            Assert.DoesNotContain(ProgressionScreen.NoEstimateYet, block, StringComparison.Ordinal);
+             Assert.Contains("Civics Points banked", block, StringComparison.Ordinal);   // D-070 R4: the bank is still shown
+         }
+-        // An open civic keeps its figure (the engine's End Turns; ACivicsEstimate_… pins the value): Council of elders itself.
++        // An open civic keeps its single-node figure (no "along its route"): Council of elders itself.
+         Assert.True(s0.Nodes[council].Available);
+         Assert.Matches(TurnsOnCard, PaneCostBlock(locked, council));
+-        Assert.DoesNotContain(ProgressionScreen.NoEstimateYet, PaneCostBlock(locked, council), StringComparison.Ordinal);
++        Assert.DoesNotContain(ProgressionScreen.AlongItsRoute, PaneCostBlock(locked, council), StringComparison.Ordinal);
++
++        // Technologies too (READING RT2-R1 (a) serves both trees): the first ten technologies not yet open whose figure is at most
++        // 40 End Turns, each against the engine. Like the single-node estimate the figure does not count Ideas credited meanwhile:
++        // where a node of the route (or the node) holds an Idea that has not fired, the engine fires it when the node opens and is
++        // faster, so the figure is an upper bound there and exact elsewhere. MEASURED: nine of the ten exact; Line and pelagic
++        // fishing (its Idea holds) 33 against the engine's 30.
++        int techs = 0, exact = 0;
++        var diag = new List<string>();
++        for (int i = 0; i < c.Nodes.Count && techs < 10; i++)
++        {
++            ResearchNodeView v = s0.Nodes[i];
++            if (v.Tree != ResearchTree.Technology || !s0.IsRouteFigure(v) || s0.TurnsOf(v) is not long k || k > 40) continue;
++            int engine = EngineTurns(locked, i);
++            bool pendingIdea = false;
++            foreach (int r in ResearchRoutePlanner.Plan(c, s0.Completed, s0.Remaining, i).Route.Append(i))
++                foreach (EurekaView e in s0.Nodes[r].Eurekas) pendingIdea |= e.HoldsNow == true && !e.Fired;
++            diag.Add($"{c.Nodes[i].Id}: figure {k}, engine {engine}, an Idea pending on the route {pendingIdea}");
++            if (pendingIdea) Assert.True(k >= engine, c.Nodes[i].Id + ": a figure below the engine's");
++            else { Assert.Equal(k, (long)engine); exact++; }
++            techs++;
++        }
++        output.WriteLine(string.Join("\n", diag));
++        Assert.Equal(10, techs);
++        Assert.True(exact >= 9);
++
++        // A node whose route needs the other tree: no figure, and the pane says why.
++        int needsOther = -1;
++        for (int i = 0; i < c.Nodes.Count && needsOther < 0; i++) if (s0.RouteNeedsOtherLane(s0.Nodes[i])) needsOther = i;
++        Assert.True(needsOther >= 0);
++        Assert.Null(s0.TurnsOf(s0.Nodes[needsOther]));
++        Assert.Contains(ProgressionScreen.NoEstimateOtherTree(c.Nodes[needsOther].Tree), PaneCostBlock(locked, needsOther), StringComparison.Ordinal);
+     }
+ 
+     [Fact]
+diff --git a/Sim.Ui/Progression/ProgressionScreen.cs b/Sim.Ui/Progression/ProgressionScreen.cs
+index 12157f6..31f76d9 100644
+--- a/Sim.Ui/Progression/ProgressionScreen.cs
++++ b/Sim.Ui/Progression/ProgressionScreen.cs
+@@ -1249,7 +1249,7 @@ public sealed partial class ProgressionScreen
+                     // (CasedEdge, at the hover width). Uncased, the completed ink was under 3:1 on the tree's field in every Age,
+                     // fainter than the prerequisite ink it replaced; on the dark casing it reads at 3:1 or more, and the casing
+                     // itself reads on the field. Completed and outstanding edges are cased alike, so neither outweighs the other;
+-                    // dependents keep their plain stroke.
++                    // since D-089 DH6 (N2) the dependents are cased too (below).
+                     var line = new (double X, double Y)[pts.Length];
+                     for (int k = 0; k < pts.Length; k++) line[k] = (SX(pts[k].X), SY(pts[k].Y));
+                     CasedEdge(d, line, lw, dash, col);
+@@ -1257,9 +1257,16 @@ public sealed partial class ProgressionScreen
+                     d.Polygon([(ex - ah, ey - ah * 1.3), (ex + ah, ey - ah * 1.3), (ex, ey)], col);
+                     continue;
+                 }
+-                for (int k = 0; k + 1 < pts.Length; k++)
+-                    d.Line(SX(pts[k].X), SY(pts[k].Y), SX(pts[k + 1].X), SY(pts[k + 1].Y), col, lw, dash);
+-                d.Polygon([(ex - ah, ey - ah * 1.3), (ex + ah, ey - ah * 1.3), (ex, ey)], col);
++                // D-089 DH6 (lane RT's N2): a dependent's edge is cased too, as the incoming ones are. Plain, the dependent ink
++                // read at 1.82 to 4.50:1 on the tree's field, under 3:1 in the early Ages; over the dark casing the edge reads by
++                // its casing on every Age's field and the dependent ink by its contrast with the casing (both pinned per Age in
++                // ResearchTreeAuditTests).
++                var dep = new (double X, double Y)[pts.Length];
++                for (int k = 0; k < pts.Length; k++) dep[k] = (SX(pts[k].X), SY(pts[k].Y));
++                Rgba depInk = DependentInkOnCasing(t);
++                CasedEdge(d, dep, lw, dash, depInk);
++                d.Polygon([(ex - ah - 1.5, ey - ah * 1.3 - 2), (ex + ah + 1.5, ey - ah * 1.3 - 2), (ex, ey + 1.5)], t.Ink.Text);
++                d.Polygon([(ex - ah, ey - ah * 1.3), (ex + ah, ey - ah * 1.3), (ex, ey)], depInk);
+             }
+         }
+         if (focusV >= 0) Edges(focusV, pinned: pinV >= 0);
+@@ -1284,6 +1291,12 @@ public sealed partial class ProgressionScreen
+         d.PopClip();
+     }
+ 
++    /// <summary>D-089 DH6 (N4): the sub-headings under REQUIRES for what holds a node besides its prerequisites.</summary>
++    public const string StageSubHeading = "RESEARCH STAGE", SubtreeSubHeading = "WHOLE SUBTREE", FinalAgeSubHeading = "FINAL AGE";
++
++    /// <summary>D-089 DH6 (N4): the Age sweep's sub-heading, "AGE IV SWEEP" for the cohort of Age 4.</summary>
++    public static string SweepSubHeading(int cohortAge) => "AGE " + Sim.Ui.Ages.AgePanelModel.Numeral(cohortAge) + " SWEEP";
++
+     /// <summary>D-084: how far a nested group's rows sit in from their head in the REQUIRES outline (screen px at UI scale 1).</summary>
+     public const double RequiresIndentRef = 18.0;
+     private double RequiresIndent => Sp(RequiresIndentRef);
+@@ -1304,6 +1317,22 @@ public sealed partial class ProgressionScreen
+     private double PinnedPrerequisiteOutlinePx => Sp(PinnedPrerequisiteOutlineRef);
+     private double PinnedEdgePx => PinnedEdgeFactor * Math.Max(2.2, Theme.Icons.StrokePx);
+ 
++    /// <summary>D-089 DH6 (N2): the ink a dependent edge is drawn in over its dark casing — the Age's dependent ink where it reads
++    /// at 3:1 or more on the casing, else that ink mixed toward white (or, on a light casing, toward black) in the smallest of
++    /// twenty steps that does. MEASURED: only the Iron Age's dependent ink (2.95:1 on its casing) is re-inked.</summary>
++    public static Rgba DependentInkOnCasing(EraTheme t)
++    {
++        Rgba ink = t.Semantic.Dependent;
++        if (ThemeColor.Contrast(ink, t.Ink.Text) >= 3.0) return ink;
++        foreach (Rgba toward in new[] { new Rgba(255, 255, 255), new Rgba(0, 0, 0) })
++            for (int k = 1; k <= 20; k++)
++            {
++                Rgba mixed = ThemeColor.Mix(t.Semantic.Dependent, toward, k / 20.0);
++                if (ThemeColor.Contrast(mixed, t.Ink.Text) >= 3.0) return mixed;
++            }
++        return ink;
++    }
++
+     /// <summary>A cased orange stroke: the body ink <see cref="PinnedCasingRef"/> wider each side, then the signal orange.</summary>
+     private void PinnedStroke(DrawList d, (double X, double Y)[] pts, double width, bool closed)
+     {
+@@ -1543,6 +1572,14 @@ public sealed partial class ProgressionScreen
+     /// <summary>D-084 verification round 1 (RT-R1-01): what the pane writes in place of "~N turns" for a civic not yet open.</summary>
+     public const string NoEstimateYet = "no estimate until it opens";
+ 
++    /// <summary>D-089 DH6 (N6): the words after a node-not-yet-open's figure — it counts the route.</summary>
++    public const string AlongItsRoute = " along its route";
++
++    /// <summary>D-089 DH6 (N6): why a node not yet open has no figure when its route needs the other tree's research, which its
++    /// lane cannot fund ("no estimate: its route needs Technology research").</summary>
++    public static string NoEstimateOtherTree(ResearchTree tree) =>
++        "no estimate: its route needs " + (tree == ResearchTree.Civics ? "Technology" : "Civics") + " research";
++
+     /// <summary>The card's state line (UR-4): the one sentence a card owes the player — why it is locked ("Needs
+     /// Controlled fire"), how long it would take ("Available · ~9 turns"), how far it is ("Researching · 13% · ~7
+     /// turns"), or that it is known. Read from the snapshot (ResearchQuery), never invented.</summary>
+@@ -2116,9 +2153,12 @@ public sealed partial class ProgressionScreen
+             EraMarks.Progress(d, t, new RectD(x, y + Sp(4), w, t.Controls.Progress == ProgressStyle.Notches ? Sp(11) : Sp(8)), n.Fraction,
+                 n.State == NodeState.CurrentTarget ? sm.Active : sm.Progress, 192);
+             y += Sp(20);
+-            // D-084 verification round 1 (RT-R1-01): a civic not yet open gets no figure — its lane funds its route first and spends
+-            // the bank there (ResearchSnapshot.NoEstimateUntilOpen) — and the pane says so.
+-            string turns = s.TurnsOf(n) is long k ? "  ·  ~" + InfoQuery.TurnsPhrase(k) + " at the current rate"
++            // D-089 DH6 (N6; READING RT2-R1 (a), replacing D-084 RT-R1-01's "no figure for a civic not yet open"): a node not yet
++            // open — technology or civic — gets the ROUTE figure, the End Turns until it completes with its route funded first at
++            // the current rate (ResearchSnapshot.TurnsOf, InfoQuery.RouteResearchTurns), and says so ("along its route"); none
++            // when its route needs the other tree's research, which its lane cannot fund, or cannot be funded at all.
++            string turns = s.TurnsOf(n) is long k ? "  ·  ~" + InfoQuery.TurnsPhrase(k) + (s.IsRouteFigure(n) ? AlongItsRoute : "") + " at the current rate"
++                : s.RouteNeedsOtherLane(n) ? "  ·  " + NoEstimateOtherTree(n.Tree)
+                 : s.NoEstimateUntilOpen(n) ? "  ·  " + NoEstimateYet : "";
+             foreach (string line in FlowText.Wrap(m, Num(n.Progress) + " / " + Num(n.EffectiveCost) + " " + unit + turns, TypeRole.Data, _scale, w, FontRole.Numeric))
+             { d.Write(t, x, y, line, data, t.Ink.TextSoft, TextAlign.Left, FontRole.Numeric); y += FlowText.Slot(TypeRole.Data, _scale); }
+@@ -2234,18 +2274,32 @@ public sealed partial class ProgressionScreen
+             InfoNode(new RectD(ix + Sp(22), y, Math.Min(iw - Sp(22) - kw, nameW), lines.Count * FlowText.Slot(TypeRole.Body, _scale)), row.Atom);
+             foreach (string line in lines) { d.Write(t, ix + Sp(22), y, line, body, row.Met ? t.Ink.Text : t.Ink.TextSoft); y += FlowText.Slot(TypeRole.Body, _scale); }
+         }
++        // D-089 DH6 (N4): what else holds the node, each under a sub-heading of its own, so that no name below them reads as a
++        // prerequisite (audit §6: Longbow's REQUIRES list ran on into the research stage and the Age IV sweep's 60 names).
+         if (n.Lock.HasFlag(LockReason.ResearchStage))
++        {
++            y = SubHeading(d, m, x, w, y + Sp(4), StageSubHeading);
+             foreach (string line in FlowText.Wrap(m, "Subtree closed: the research stage is not reached (" + s.StageExpression.Replace("_", " ") + ").", TypeRole.Body, _scale, w))
+             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
++        }
+         if (n.Lock.HasFlag(LockReason.SubtreeNotExhausted))
++        {
++            y = SubHeading(d, m, x, w, y + Sp(4), SubtreeSubHeading);
+             foreach (string line in FlowText.Wrap(m, "Recursive: waits for every finite node of its subtree.", TypeRole.Body, _scale, w))
+             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
+-        if (SweepLine(node) is { } sweepLine)   // ADR-048: the Age sweep, apart from the prerequisites
++        }
++        if (SweepLine(node) is { } sweepLine && s.Sweeps[node] is { } sweepState)   // ADR-048: the Age sweep, apart from the prerequisites
++        {
++            y = SubHeading(d, m, x, w, y + Sp(4), SweepSubHeading(sweepState.CohortAge));
+             foreach (string line in FlowText.Wrap(m, sweepLine, TypeRole.Body, _scale, w))
+             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
++        }
+         if (n.Lock.HasFlag(LockReason.FinalAgeCivicsNotExhausted))
++        {
++            y = SubHeading(d, m, x, w, y + Sp(4), FinalAgeSubHeading);
+             foreach (string line in FlowText.Wrap(m, "Recursive: waits for every finite civic of the final Age.", TypeRole.Body, _scale, w))
+             { d.Write(t, x, y, line, body, Ink.Progress); y += FlowText.Slot(TypeRole.Body, _scale); }
++        }
+         y += Sp(8);
+ 
+         // IDEA: the player-facing name of the acceleration mechanism the code calls Eureka (D-069 R4).
+diff --git a/Sim.Ui/Progression/ResearchNodeViews.cs b/Sim.Ui/Progression/ResearchNodeViews.cs
+index 874f07a..bedb324 100644
+--- a/Sim.Ui/Progression/ResearchNodeViews.cs
++++ b/Sim.Ui/Progression/ResearchNodeViews.cs
+@@ -111,22 +111,49 @@ public sealed class ResearchSnapshot
+     /// Points bank for Civics in the two-lane model (<see cref="CivicsBalance"/>), else 0 (Technology has no RP bank).</summary>
+     public double BankOn(ResearchTree tree) => TwoLanes && tree == ResearchTree.Civics ? CivicsBalance : 0.0;
+ 
+-    /// <summary>D-084 (audit §5): the "~N turns" of <paramref name="v"/> — <see cref="InfoQuery.ResearchTurns"/> over the view's
+-    /// cost and progress and its lane's rate and bank, the one estimate the card, the pane and the inspector share. Null when
+-    /// none can be given: a zero rate and a bank short of the cost, or a civic not yet open (<see cref="NoEstimateUntilOpen"/>).
+-    /// For an open node it is the End Turns the engine takes once the node is ordered; for a technology not yet open (no bank)
+-    /// it is, as before D-084, the node's own turns at the current rate once it opens — its route is not counted.</summary>
+-    public long? TurnsOf(ResearchNodeView v) =>
+-        NoEstimateUntilOpen(v) ? null : InfoQuery.ResearchTurns(v.EffectiveCost, v.Progress, PointsPerTurnOn(v.Tree), BankOn(v.Tree));
+-
+-    /// <summary>D-084 verification round 1 (RT-R1-01): whether <paramref name="v"/> is a civic of the two-lane model that is not
+-    /// open — locked, partial, or a destination still waiting on its route. Its lane cannot fund it at the next End Turn:
+-    /// ordered, it becomes the lane's destination, and the lane funds the nodes of its route first, one civic per End Turn
+-    /// (overflow off) and the bank spent on those (ResearchSystem steps 1b and 3b). How long it takes therefore depends on its
+-    /// route, so no single-node figure — least of all one that spends the bank on it — is what the engine does, and none is
+-    /// shown. Technology has no bank and keeps its figure.</summary>
+-    public bool NoEstimateUntilOpen(ResearchNodeView v) =>
+-        TwoLanes && v.Tree == ResearchTree.Civics && !v.Available && v.State != NodeState.Completed;
++    /// <summary>D-084 (audit §5): the "~N turns" of <paramref name="v"/>, the one estimate the card, the pane and the inspector
++    /// share. For an OPEN node (or a completed one) it is <see cref="InfoQuery.ResearchTurns"/> over the view's cost and progress
++    /// and its lane's rate and bank: the End Turns the engine takes once the node is ordered. D-089 DH6 (lane RT's N6; READING
++    /// RT2-R1 (a)): for a node NOT YET OPEN — a technology or a civic, locked, partial, or a destination waiting on its route —
++    /// it is <see cref="InfoQuery.RouteResearchTurns(ResearchContent, bool[], double[], int, double, double, int)"/>: the End
++    /// Turns until it completes if its lane takes it as its destination now, its route funded first, one node at a time, each
++    /// node paid by the same rule and a civic's bank carried along (<see cref="IsRouteFigure"/>). This replaces lane RT's
++    /// "no figure for a civic not yet open" (D-084 verification round 1, RT-R1-01) and a technology's own-cost figure, which
++    /// left its route out. Null when none can be given: a zero rate and a bank short of the cost, or a route that needs the
++    /// other lane or cannot be funded (<see cref="NoEstimateUntilOpen"/>).</summary>
++    public long? TurnsOf(ResearchNodeView v)
++    {
++        if (!IsRouteFigure(v)) return InfoQuery.ResearchTurns(v.EffectiveCost, v.Progress, PointsPerTurnOn(v.Tree), BankOn(v.Tree));
++        return Route(v.ContentIndex).Turns;
++    }
++
++    /// <summary>D-089 DH6: whether <paramref name="v"/>'s figure is a route figure — the node is neither open nor complete.</summary>
++    public bool IsRouteFigure(ResearchNodeView v) => !v.Available && v.State != NodeState.Completed && Content is not null;
++
++    /// <summary>D-084 verification round 1 (RT-R1-01), narrowed by D-089 DH6: whether <paramref name="v"/> is a node not yet open
++    /// that gets NO figure — its route needs the other lane, stalls, or exceeds what a figure can say (<see cref="TurnsOf"/>).</summary>
++    public bool NoEstimateUntilOpen(ResearchNodeView v) => IsRouteFigure(v) && Route(v.ContentIndex).Turns is null;
++
++    /// <summary>D-089 DH6: whether <paramref name="v"/> has no figure because a node of its route belongs to the other lane.</summary>
++    public bool RouteNeedsOtherLane(ResearchNodeView v) => IsRouteFigure(v) && Route(v.ContentIndex).OtherLane;
++
++    /// <summary>The route estimate of node <paramref name="i"/>, computed once per snapshot (the pane asks every frame).</summary>
++    private (long? Turns, bool OtherLane) Route(int i)
++    {
++        _route ??= new (long?, bool)?[Nodes.Count];
++        if (_route[i] is { } known) return known;
++        ResearchNodeView v = Nodes[i];
++        long? turns = InfoQuery.RouteResearchTurns(Content!, Completed, Remaining, i, PointsPerTurnOn(v.Tree), BankOn(v.Tree), out bool other);
++        _route[i] = (turns, other);
++        return (turns, other);
++    }
++
++    private (long?, bool)?[]? _route;
++
++    /// <summary>D-089 DH6: the content, completion and remaining costs the route estimate steps (set by <see cref="Build"/>).</summary>
++    public ResearchContent? Content { get; init; }
++    public bool[] Completed { get; init; } = [];
++    public double[] Remaining { get; init; } = [];
+ 
+     /// <summary>The snapshot of <paramref name="world"/>. <paramref name="nextDtYears"/> is the length of the step the next End
+     /// Turn plays (<see cref="ActionQueryContext.ForNextStep"/> over the session's era table) — the dt the CP a turn is
+@@ -258,6 +285,9 @@ public sealed class ResearchSnapshot
+             TechnologyRoute = content.Tuning.DestinationRouting ? ResearchQuery.Route(world, content, polity, ResearchTree.Technology) : ResearchRoute.None(ResearchTree.Technology),
+             CivicsRoute = content.Tuning.DestinationRouting ? ResearchQuery.Route(world, content, polity, ResearchTree.Civics) : ResearchRoute.None(ResearchTree.Civics),
+             Sweeps = sweeps,
++            Content = content,
++            Completed = completed,
++            Remaining = ResearchQuery.RemainingCosts(world, content, polity),
+         };
+     }
+ }
+diff --git a/Sim.Ui/Progression/ResearchTreeLayout.cs b/Sim.Ui/Progression/ResearchTreeLayout.cs
+index c77a295..4e726a6 100644
+--- a/Sim.Ui/Progression/ResearchTreeLayout.cs
++++ b/Sim.Ui/Progression/ResearchTreeLayout.cs
+@@ -10,12 +10,29 @@ namespace Sim.Ui.Progression;
+ /// at every width — a tier whose lanes do not fit side by side WRAPS its lanes into further rows
+ /// (<see cref="LaneWrapGap"/> apart) instead of shrinking the cards. <see cref="Scaled"/> grows every length with the
+ /// UI scale.</summary>
++/// <remarks>D-089 DH6 (lane RT's N3): <see cref="SpineLaneStep"/>, the distance between the five lanes of a spine, is tied to
++/// the widest edge a spine carries — a pinned card's cased incoming edge (<see cref="SpineEdgeWidth"/>) — plus a visible gap,
++/// so that five such edges in one spine stay five strokes; <see cref="Spine"/> is wide enough for the five (it was 22 with
++/// lanes 3 px apart, narrower than one cased pinned edge, so a pin's bundle read as one band).</remarks>
+ public sealed record TreeLayoutOptions(
+     double ViewportWidth = 1196.0, double MinCardWidth = 200.0, double MaxCardWidth = 232.0,
+     double CardHeight = 116.0, double AnchorHeight = 36.0, double RowGap = 16.0, double SlotGap = 10.0,
+     double Gutter = 18.0, double TierGap = 74.0, double CollapsedWidth = 34.0, double Margin = 4.0,
+-    double Spine = 22.0, int Sweeps = 4, double LaneWrapGap = 42.0)
++    double Spine = TreeLayoutOptions.SpineRef, int Sweeps = 4, double LaneWrapGap = 42.0,
++    double SpineLaneStep = TreeLayoutOptions.SpineLaneStepRef)
+ {
++    /// <summary>D-089 DH6 (N3): the widest stroke a spine carries, at zoom 1 and UI scale 1 — a pinned card's incoming edge:
++    /// ProgressionScreen.PinnedEdgeFactor (2) × the widest edge stroke of any Age (max(2.2, the Age's icon stroke) = 2.4, Age I)
++    /// plus its dark casing (ProgressionScreen.PinnedCasingRef, 1.5 each side): 2 × 2.4 + 3 = 7.8. Sim.Ui.Tests pins this
++    /// against the screen's constants and every Age's stroke.</summary>
++    public const double SpineEdgeWidth = 7.8;
++    /// <summary>D-089 DH6 (N3): the clear gap between two neighbouring spine lanes' widest strokes.</summary>
++    public const double SpineLaneGap = 1.2;
++    /// <summary>D-089 DH6 (N3): the distance between a spine's lanes, <see cref="SpineEdgeWidth"/> + <see cref="SpineLaneGap"/>.</summary>
++    public const double SpineLaneStepRef = SpineEdgeWidth + SpineLaneGap;
++    /// <summary>D-089 DH6 (N3): a spine's width — four lane steps, one widest stroke and a 1.1 margin each side: 46.</summary>
++    public const double SpineRef = 4 * SpineLaneStepRef + SpineEdgeWidth + 2 * 1.1;
++
+     /// <summary>The reference options with every length × <paramref name="scale"/> (the UI scale) and the given
+     /// viewport width (already in screen px).</summary>
+     public static TreeLayoutOptions Scaled(double scale, double viewportWidth)
+@@ -27,7 +44,7 @@ public sealed record TreeLayoutOptions(
+             ViewportWidth = viewportWidth, MinCardWidth = o.MinCardWidth * s, MaxCardWidth = o.MaxCardWidth * s,
+             CardHeight = o.CardHeight * s, AnchorHeight = o.AnchorHeight * s, RowGap = o.RowGap * s, SlotGap = o.SlotGap * s,
+             Gutter = o.Gutter * s, TierGap = o.TierGap * s, CollapsedWidth = o.CollapsedWidth * s, Margin = o.Margin * s,
+-            Spine = o.Spine * s, LaneWrapGap = o.LaneWrapGap * s,
++            Spine = o.Spine * s, LaneWrapGap = o.LaneWrapGap * s, SpineLaneStep = o.SpineLaneStep * s,
+         };
+     }
+ }
+@@ -363,7 +380,8 @@ public static class ResearchTreeLayout
+     /// prerequisite's own column (when it is in the last row of the tier just above a dependent in
+     /// the first row: a short elbow) or one of the two SPINES — reserved channels at the left and
+     /// right edges — whichever is nearer the pair. <paramref name="lane"/> offsets an edge inside
+-    /// a spine (0..4) so a bundle of highlighted edges stays readable. Empty if either end is hidden.
++    /// a spine (0..4, <see cref="TreeLayoutOptions.SpineLaneStep"/> apart, centred on the spine; D-089 DH6, N3) so a bundle
++    /// of highlighted edges stays readable. Empty if either end is hidden.
+     /// </summary>
+     public static (double X, double Y)[] Route(TreeLayout layout, GraphEdge e, int lane = 0)
+     {
+@@ -375,9 +393,9 @@ public static class ResearchTreeLayout
+         if (lastRow && b.Row == 0 && b.Column == a.Column + 1)
+             return [(a.CenterX, a.Bottom), (a.CenterX, y2), (b.CenterX, y2), (b.CenterX, b.Y)];
+         double y1 = a.Y + o.CardHeight + o.RowGap / 2.0;   // the row gap under a's row
+-        double off = (lane % 5) * 3.0;
++        double off = (lane % 5 - 2) * o.SpineLaneStep;   // five lanes centred on the spine
+         bool left = a.CenterX + b.CenterX <= layout.Width;
+-        double sx = left ? o.Margin + o.Spine / 2.0 - 6 + off : layout.Width - o.Margin - o.Spine / 2.0 + 6 - off;
++        double sx = left ? o.Margin + o.Spine / 2.0 + off : layout.Width - o.Margin - o.Spine / 2.0 - off;
+         return [(a.CenterX, a.Bottom), (a.CenterX, y1), (sx, y1), (sx, y2), (b.CenterX, y2), (b.CenterX, b.Y)];
+     }
+ 

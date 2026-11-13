@@ -1,0 +1,657 @@
+diff --git a/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/CaptureChoiceTests.cs b/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/CaptureChoiceTests.cs
+new file mode 100644
+index 0000000..17d7666
+--- /dev/null
++++ b/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/CaptureChoiceTests.cs
+@@ -0,0 +1,240 @@
++using Proto.M7.Events;
++using Proto.M7.Fixed;
++using Proto.M7.War;
++using Proto.M7.War.Outcomes;
++using Proto.M7.War.Siege;
++using Proto.M7.Tests.Siege;
++using Xunit;
++using static Proto.M7.Tests.Outcomes.OutcomeRig;
++using static Proto.M7.Tests.TestSupport;
++
++namespace Proto.M7.Tests.LaneOC;
++
++/// <summary>
++/// [OC, completion after fix round 1, 2026-11-13] Item 7, THE PLAYER'S CAPTURE CHOICE: D-089 DH2 ("When the player's own immediate
++/// assault takes a city, the player is asked 'Occupy, sack or raze?' at the moment of capture"; it answers lane U's U-Q11) and DH2-R1
++/// (an AI taker still disposes by its doctrine at the moment of capture, unchanged). Lane S's immediate assault (an order issued at a
++/// siege pulse start acts at once, WA1) takes the city inside the order; lane W's world now raises a DECISION INSTANT at that instant
++/// after the order's consequences (EventRules R4's exception: an OrderConsequence event, one consequence window, the choice accepted
++/// there in class ConsequenceOrder), so the choice is offered and does not lapse (lane U's U-F4, U2-5). Lane W's refusals are
++/// unchanged. The rig is lane W's (OutcomeRig.BuildBound: lane S's walled city, polity 0's only city, besieged by polity 1).
++/// </summary>
++public sealed class CaptureChoiceTests
++{
++    private static readonly long Start = SiegeRig.At(1500, 100);
++    private const long SackD = (long)Disposition.Sack, RazeD = (long)Disposition.Raze, OccupyD = (long)Disposition.Occupy;
++
++    private sealed class Storms : IAssaultResolver
++    {
++        public AssaultResult Resolve(in AssaultInputs input, SiegeCoefficients k) => new(true, Q32.One, Q32.One, Q32.Zero, Q32.Zero);
++    }
++
++    private static (int, long, long) Assault => (SiegeKinds.OrderAssault, Pack(1, 0), 1_000L);
++    private static (int, long, long) Dispose(long d) => (OutcomeKinds.OrderDispose, Pack(1, 0), d);
++
++    /// <summary>The player's assault at Start; the stops the runner makes at Start are returned in order (every window at Start).</summary>
++    private static BoundBuilt Assaulted(int[]? ai = null, SubTurnOrderLog? replay = null, long[]? extraProbes = null)
++        => BuildBound(Start, foodDays: 120, stops: replay is null, probes: new[] { Start }.Concat(extraProbes ?? Array.Empty<long>()).ToArray(),
++                      resolver: new Storms(), replay: replay, ai: ai);
++
++    /// <summary>
++    /// TURN-EXACT PIN, the PLAYER'S PATH (D-089 DH2). Polity 1, a human player, orders the immediate assault at the siege pulse start
++    /// Start; it takes the city inside the order. The runner then stops AGAIN AT Start — a consequence window (AfterOrders) whose one hit
++    /// is DispositionDue for the city (class OrderConsequence, source the city) — and the player's "Sack" issued there is logged as a
++    /// consequence order, accepted (reason 0) and applied AT Start: the settlement outcome row is a Sack at Start, the loot reaches the
++    /// taker's treasury at Start, and nothing waits for a later instant (no window at Start + 1 ms, none at the next turn start for
++    /// it). Choosing Occupy there records Occupy; the choices differ in the ledger exactly by the sack's loot.
++    /// </summary>
++    [Theory]
++    [InlineData(SackD)]
++    [InlineData(OccupyD)]
++    public void DH2_ThePlayersOwnImmediateAssault_IsAskedAtTheMomentOfCapture_AndTheChoiceAppliesThere(long choice)
++    {
++        var b = Assaulted();
++        var r1 = b.R.RunUntil(Start + Day);
++        Assert.Equal((RunStatus.Interrupted, Start), (r1.Status, r1.AtMs));
++        Assert.False(b.R.Windows[^1].AfterOrders);                                    // the world window at Start (the probe)
++        b.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);
++        long treasury0 = b.W.Ledger.Balance(b.W.TreasuryOf(1));
++        var r2 = b.R.RunUntil(Start + Day);
++        Assert.Equal((RunStatus.Interrupted, Start), (r2.Status, r2.AtMs));             // asked AT the moment of capture
++        var c = Assert.Single(b.Siege.Captures);
++        Assert.Equal((Start, 1), (c.AtMs, c.To));
++        var w = b.R.Windows[^1];
++        Assert.True(w.AfterOrders);
++        Assert.Equal(Start, w.InstantMs);
++        var hit = Assert.Single(w.Hits);
++        Assert.Equal(((byte)EventClass.OrderConsequence, OutcomeKinds.DispositionDue, 0L), (hit.Class, hit.Kind, hit.SourceId));
++        var o = b.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), choice);
++        Assert.True(o.AfterConsequence);
++        Assert.Equal(Start, o.InstantMs);
++        Assert.Equal(RunStatus.ReachedLimit, b.R.RunUntil(Start + Day).Status);         // no further stop
++        var res = b.W.OrderResults.Single(x => x.Kind == OutcomeKinds.OrderDispose);
++        Assert.Equal((Start, 0), (res.AtMs, res.Reason));
++        var row = Assert.Single(b.W.SettlementOutcomes);
++        Assert.Equal(((byte)choice, Start, 1), (row.Disposition, row.AtMs, row.To));
++        long loot = b.W.Ledger.Balance(b.W.TreasuryOf(1)) - treasury0;
++        Assert.Equal(choice == SackD, loot > 0);
++        Assert.Equal(choice == SackD ? 500_000 - b.W.Ledger.Balance(b.W.MoneyAccount(0)) : 0, loot);   // the city's money, taken at T
++        Assert.DoesNotContain(b.R.Windows, x => x.InstantMs > Start && x.InstantMs <= Start + Day);   // nothing deferred
++    }
++
++    /// <summary>The choice is OFFERED at the moment of capture; a player who resumes without choosing keeps Occupy (lane W's default), and
++    /// a Sack issued at a later stop (Start + 1 day) is refused WindowClosed — the choice exists only at the capture instant, as lane W
++    /// rules for every capture. At the consequence window the only order accepted is the offered disposition: a second assault, a
++    /// prisoner order or a disposition of another settlement are refused NotOffered and change nothing (no action multiplication); a
++    /// Raze is refused LastCity (the city is the taker's only one: lane W's refusal, unchanged).</summary>
++    [Fact]
++    public void DH2_TheChoiceIsOfferedOnce_OnlyTheOfferedChoiceIsAccepted_LaneWsRefusalsStand()
++    {
++        var b = Assaulted(extraProbes: new[] { Start + Day });
++        b.R.RunUntil(Start + 2 * Day);
++        b.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);
++        b.R.RunUntil(Start + 2 * Day);                                                 // the consequence window at Start
++        Assert.True(b.R.Windows[^1].AfterOrders);
++        var before = b.W.Ledger.Snapshot();
++        b.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);                    // not the offered choice
++        b.R.IssueOrder(OutcomeKinds.OrderPrisoners, Pack(1, 0), Value((long)PrisonerAction.Release, 1));
++        b.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), RazeD);                   // the taker's only city
++        var r = b.R.RunUntil(Start + 2 * Day);
++        Assert.Equal((RunStatus.Interrupted, Start + Day), (r.Status, r.AtMs));          // the probe's later stop
++        var results = b.W.OrderResults.Where(x => x.AtMs == Start).ToArray();
++        Assert.Equal(new[] { OutcomeRefusal.NotOffered, OutcomeRefusal.NotOffered, OutcomeRefusal.LastCity },
++                     results.Select(x => x.Reason).ToArray());
++        Assert.Single(b.Siege.Captures);
++        Assert.Equal(before, b.W.Ledger.Snapshot());                                    // refusals change nothing
++        Assert.Equal((byte)Disposition.Occupy, b.W.SettlementOutcomes.Single().Disposition);
++        b.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), SackD);                   // a day later: the moment has passed
++        b.R.RunUntil(Start + 2 * Day);
++        Assert.Equal(OutcomeRefusal.WindowClosed, b.W.OrderResults[^1].Reason);
++        Assert.Equal((byte)Disposition.Occupy, b.W.SettlementOutcomes.Single().Disposition);
++    }
++
++    /// <summary>TURN-EXACT PIN, the AI'S PATH (DH2-R1, unchanged): polity 1 is an AI with a Sack doctrine; its immediate assault at Start
++    /// takes the city and its doctrine disposes of it AT Start (a Sack row at Start, the loot at Start) — no decision instant is raised
++    /// (no consequence window anywhere).</summary>
++    [Fact]
++    public void DH2R1_AnAITaker_DisposesByItsDoctrine_AtTheMomentOfCapture_NoDecisionInstant()
++    {
++        var b = Assaulted(ai: new[] { -1, (int)Disposition.Sack, -1 });
++        b.R.RunUntil(Start + Day);
++        b.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);
++        Assert.Equal(RunStatus.ReachedLimit, b.R.RunUntil(Start + Day).Status);
++        Assert.DoesNotContain(b.R.Windows, w => w.AfterOrders);
++        var row = Assert.Single(b.W.SettlementOutcomes);
++        Assert.Equal(((byte)Disposition.Sack, Start), (row.Disposition, row.AtMs));
++    }
++
++    /// <summary>The disposition issued in the SAME window as the assault (after it in log order — lane U's measured path) applies at Start
++    /// and the decision instant, no longer needed, is cancelled: no consequence window opens. And the CONTROL: a capture made by a WORLD
++    /// EVENT (the city starves into capitulation) offers the choice at its SettlementTaken window, as before, with no consequence
++    /// window.</summary>
++    [Fact]
++    public void ASameWindowChoice_Applies_AndNoDecisionInstantOpens_AWorldEventCaptureIsUnchanged()
++    {
++        var b = Assaulted();
++        b.R.RunUntil(Start + Day);
++        b.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);
++        b.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), SackD);
++        Assert.Equal(RunStatus.ReachedLimit, b.R.RunUntil(Start + Day).Status);
++        Assert.DoesNotContain(b.R.Windows, w => w.AfterOrders);
++        Assert.Equal(((byte)Disposition.Sack, Start), (b.W.SettlementOutcomes.Single().Disposition, b.W.SettlementOutcomes.Single().AtMs));
++        Assert.Equal(1, b.S.CancelledCount);
++
++        var starve = BuildBound(Start, foodDays: 5, stops: true);
++        long taken = -1;
++        while (true)
++        {
++            var r = starve.R.RunUntil(Start + 200 * Day);
++            if (r.Status == RunStatus.ReachedLimit) break;
++            if (starve.Siege.Captures.Count > 0 && starve.Siege.Captures[0].AtMs == r.AtMs && taken < 0)
++            {
++                taken = r.AtMs;
++                Assert.False(starve.R.Windows[^1].AfterOrders);
++                Assert.Contains(starve.R.Windows[^1].Hits, h => h.Kind == OutcomeKinds.SettlementTaken);
++                starve.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), SackD);
++            }
++        }
++        Assert.True(taken > 0);
++        Assert.DoesNotContain(starve.R.Windows, w => w.AfterOrders);
++        Assert.Equal(((byte)Disposition.Sack, taken), (starve.W.SettlementOutcomes.Single().Disposition, starve.W.SettlementOutcomes.Single().AtMs));
++    }
++
++    /// <summary>LIVE VERSUS REPLAY: the live run (stops; the assault; the consequence stop; the Sack) and the replay of its order log
++    /// (stops off; the consequence order delivered in its own phase) give the same world (state hash), the same windows (the
++    /// consequence window included) and the same order results; the log records the consequence order as such.</summary>
++    [Fact]
++    public void LiveVersusReplay_TheDecisionInstantAndItsChoice()
++    {
++        var live = Assaulted();
++        live.R.RunUntil(Start + Day);
++        live.R.IssueOrder(Assault.Item1, Assault.Item2, Assault.Item3);
++        live.R.RunUntil(Start + Day);
++        live.R.IssueOrder(OutcomeKinds.OrderDispose, Pack(1, 0), SackD);
++        live.R.RunUntil(Start + Day);
++        Assert.Equal(new[] { false, true }, live.R.Orders.Orders.Select(o => o.AfterConsequence).ToArray());
++        var replay = Assaulted(replay: live.R.Orders);
++        replay.R.RunUntil(Start + Day);
++        Assert.Equal(live.W.StateHashHex(), replay.W.StateHashHex());
++        Assert.Equal(live.R.WindowsHashHex(), replay.R.WindowsHashHex());
++        Assert.Equal(live.W.OrderResults.ToArray(), replay.W.OrderResults.ToArray());
++        Assert.Equal(live.R.Orders.HashHex(), replay.R.Orders.HashHex());
++        Assert.Contains(replay.R.Windows, w => w.AfterOrders && w.InstantMs == Start);
++        // the log's phase flag is replayed: the same two orders logged as window orders replay as a same-window choice (no consequence
++        // window opens; the windows and the world differ from the live run's)
++        var flat = new SubTurnOrderLog();
++        foreach (var o in live.R.Orders.Orders) flat.Append(o.InstantMs, o.Kind, o.A, o.B);
++        var mis = Assaulted(replay: flat);
++        mis.R.RunUntil(Start + Day);
++        Assert.DoesNotContain(mis.R.Windows, w => w.AfterOrders);
++        Assert.NotEqual(live.R.WindowsHashHex(), mis.R.WindowsHashHex());
++        Assert.NotEqual(live.W.StateHashHex(), mis.W.StateHashHex());
++        // and an order logged in the wrong phase is refused at the gate: the assault logged as a consequence-window order takes nothing
++        var wrong = new SubTurnOrderLog();
++        wrong.Append(Start, Assault.Item1, Assault.Item2, Assault.Item3, afterConsequence: true);
++        var none = Assaulted(replay: wrong);
++        none.R.RunUntil(Start + Day);
++        Assert.Empty(none.Siege.Captures);
++        Assert.Equal(1, none.S.RefusedCount);
++    }
++
++    /// <summary>The event core's guards (EventRules R4's exception): a consequence can be raised only from a WINDOW ORDER at its own
++    /// instant — not from a world event, and not from an order issued at a consequence window (no chain). Driven through the runner:
++    /// a world event at 10 (refused to raise), a window order at its window (raises: one consequence window at 10), an order at that
++    /// consequence window (refused to raise; nothing further opens).</summary>
++    [Fact]
++    public void ADecisionInstantIsRaisedOnlyByAWindowOrder_NeverByAWorldEventOrAConsequenceOrder()
++    {
++        var s = new EventScheduler(0);
++        var world = new Probe();
++        s.Schedule(10, EventClass.Significant, 0, 0, 1);
++        var r = new Runner(s, world, new SignificantKinds(1, 3), true);
++        Assert.Equal(new RunResult(RunStatus.Interrupted, 10), r.RunUntil(100));
++        Assert.Single(world.Errors);                                                   // the world event could not raise one
++        r.IssueOrder(2, 0, 0);
++        Assert.Equal(new RunResult(RunStatus.Interrupted, 10), r.RunUntil(100));        // the window order raised one: asked at 10
++        Assert.True(r.Windows[^1].AfterOrders);
++        Assert.Equal((byte)EventClass.OrderConsequence, Assert.Single(r.Windows[^1].Hits).Class);
++        Assert.Equal(1, world.Consequences);
++        Assert.Single(world.Errors);
++        Assert.True(r.IssueOrder(2, 0, 0).AfterConsequence);
++        Assert.Equal(RunStatus.ReachedLimit, r.RunUntil(100).Status);                   // the consequence-window order could not
++        Assert.Equal(2, world.Errors.Count);
++        Assert.All(world.Errors, e => Assert.IsType<InvalidOperationException>(e));
++        Assert.Equal(1, world.Consequences);
++        Assert.Equal(2, r.Windows.Count);
++    }
++
++    private sealed class Probe : IEventWorld
++    {
++        public readonly List<Exception> Errors = new();
++        public int Consequences;
++        public bool IsLive(EntityRef e) => true;
++        public void Execute(in ScheduledEvent ev, EventScheduler s)
++        {
++            if (ev.Key.Class == (byte)EventClass.OrderConsequence) { Consequences++; return; }
++            try { s.ScheduleConsequence(ev.Key.TimeMs, 0, 0, 3); }
++            catch (InvalidOperationException e) { Errors.Add(e); }
++        }
++    }
++}
+diff --git a/prototypes/m7-sprint1/Proto.M7/Events/EventKey.cs b/prototypes/m7-sprint1/Proto.M7/Events/EventKey.cs
+index 90d287f..d48f72d 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Events/EventKey.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Events/EventKey.cs
+@@ -14,6 +14,13 @@ namespace Proto.M7.Events;
+ ///  - PlayerOrder (250): ALWAYS LAST at an instant. An order issued while the runner is stopped at T is
+ ///    delivered at T after everything the world did at T, which is exactly what the player saw when deciding;
+ ///    and because nothing but orders lives in this class, an order can never reorder world events (replay proof).
++///  - [OC, 2026-11-13, D-089 DH2] OrderConsequence (251) and ConsequenceOrder (252): a DECISION INSTANT AFTER AN ORDER'S
++///    CONSEQUENCES. When a window order at T has a consequence that offers its issuer a choice that exists only at T (the player's
++///    own immediate assault takes a city: "Occupy, sack or raze?" at the moment of capture), the world raises an OrderConsequence
++///    event at T (EventScheduler.ScheduleConsequence, allowed only while an order of class 250 executes, at its instant); it runs
++///    after every order at T, opens ONE decision window at T after them (Runner), and the orders issued there are stamped T in class
++///    252, after the consequence events. Nothing but the runner schedules 252, and a 252 order cannot raise a consequence (251 is
++///    behind it: the causality rule refuses it, and ScheduleConsequence refuses outside class 250), so windows never chain.
+ /// The numeric gaps leave room for new classes without renumbering.
+ /// </summary>
+ public enum EventClass : byte
+@@ -27,6 +34,10 @@ public enum EventClass : byte
+     CampaignProcess = 60,
+     Significant = 70,
+     PlayerOrder = 250,
++    /// <summary>[OC, 2026-11-13] A decision instant raised by an order's consequence at the order's instant (D-089 DH2).</summary>
++    OrderConsequence = 251,
++    /// <summary>[OC, 2026-11-13] An order issued at such a decision instant (stamped T, after the consequence events at T).</summary>
++    ConsequenceOrder = 252,
+ }
+ 
+ /// <summary>
+diff --git a/prototypes/m7-sprint1/Proto.M7/Events/EventRules.cs b/prototypes/m7-sprint1/Proto.M7/Events/EventRules.cs
+index dfc19a2..60accb1 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Events/EventRules.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Events/EventRules.cs
+@@ -21,6 +21,16 @@ namespace Proto.M7.Events;
+ ///    never open windows (no chained windows, no action multiplication). The split is a function of world state only:
+ ///    windows are recorded with stops on or off and in replay; a stop consumes zero simulated time. Orders issued at a
+ ///    window are stamped T and execute at T in class PlayerOrder, after every world event at T. Replay never stops.
++///    [OC, 2026-11-13, D-089 DH2 — "When the player's own immediate assault takes a city, the player is asked 'Occupy, sack or
++///    raze?' at the moment of capture"] ONE EXCEPTION, narrow: an order's CONSEQUENCE that offers its issuer a choice existing
++///    only at T raises an OrderConsequence event at T (EventScheduler.ScheduleConsequence, only while a class-250 order executes,
++///    at its instant). It runs after every order at T and opens one decision window at T (a "consequence window", class-251 hits;
++///    DecisionWindow.AfterOrders); it closes before the first key with time &gt; T or class &gt;= ConsequenceOrder. Orders issued
++///    there are stamped T in class ConsequenceOrder (252) and are delivered only at that window (the order gate checks the phase).
++///    No chain: a 252 order cannot raise a consequence. No action multiplication: the world accepts at a consequence window only the
++///    choice the consequence offers (lane W: the disposition of the city its issuer's own order took at T) and refuses any other
++///    order. A world that raises no consequence behaves, hashes and replays exactly as before. PROPOSAL (lane OC) amending this
++///    prototype's delegated mechanism (ADR-061 §3.6–§3.7, [DELEG]); ADR-061's text is not changed here.
+ /// R5 RNG. Event-scheduled randomness is counter-based (Rng.CounterRng.Draw(seed, stream, a, b, c, index)) keyed by
+ ///    stable event identity (source id, instant, kind, index), NEVER by Seq, window index or a sequential cursor that an
+ ///    order or a stop could advance. So a draw does not depend on whether a window was shown, whether the runner stopped,
+diff --git a/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs b/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs
+index d0be6d2..c7688c2 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Events/EventScheduler.cs
+@@ -57,6 +57,27 @@ public sealed class EventScheduler
+     internal long ScheduleOrder(long timeMs, long logIndex, int kind, long a, long b)
+         => ScheduleCore(timeMs, EventClass.PlayerOrder, 0, logIndex, kind, EntityRef.None, EntityRef.None, a, b, logIndex);
+ 
++    /// <summary>[OC, 2026-11-13] An order of the given phase: a window order (class PlayerOrder) or an order issued at a consequence
++    /// window (class ConsequenceOrder).</summary>
++    internal long ScheduleOrder(long timeMs, long logIndex, int kind, long a, long b, bool afterConsequence)
++        => ScheduleCore(timeMs, afterConsequence ? EventClass.ConsequenceOrder : EventClass.PlayerOrder, 0, logIndex, kind, EntityRef.None,
++                        EntityRef.None, a, b, logIndex);
++
++    /// <summary>
++    /// [OC, 2026-11-13, D-089 DH2] Raise a DECISION INSTANT after an order's consequences (EventRules R4's one exception): an
++    /// OrderConsequence event at the executing order's instant. Allowed only while an order of class PlayerOrder executes and only at
++    /// its instant — so a world event, a consequence or an order issued at a consequence window can never raise one (no chain).
++    /// </summary>
++    public long ScheduleConsequence(long timeMs, int priority, long sourceId, int kind, long a = 0, long b = 0, long c = 0)
++    {
++        if (_lastKey.Class != (byte)EventClass.PlayerOrder || timeMs != _lastKey.TimeMs)
++            throw new InvalidOperationException("a decision instant is raised only by a window order's consequence, at the order's instant (D-089 DH2)");
++        return ScheduleCore(timeMs, EventClass.OrderConsequence, priority, sourceId, kind, EntityRef.None, EntityRef.None, a, b, c);
++    }
++
++    /// <summary>[OC, 2026-11-13] Whether a class is an order class (window orders and consequence-window orders).</summary>
++    internal static bool IsOrderClass(byte cls) => cls == (byte)EventClass.PlayerOrder || cls == (byte)EventClass.ConsequenceOrder;
++
+     private long ScheduleCore(long timeMs, EventClass cls, int priority, long sourceId, int kind,
+                               EntityRef target, EntityRef source, long a, long b, long c)
+     {
+@@ -98,7 +119,7 @@ public sealed class EventScheduler
+             outcome = TraceOutcome.Cancelled;
+             CancelledCount++;
+         }
+-        else if (ev.Key.Class == (byte)EventClass.PlayerOrder && OrderGate is not null && !OrderGate(ev))
++        else if (IsOrderClass(ev.Key.Class) && OrderGate is not null && !OrderGate(ev))   // [OC] both order classes pass the gate
+         {
+             outcome = TraceOutcome.Refused;
+             RefusedCount++;
+diff --git a/prototypes/m7-sprint1/Proto.M7/Events/Runner.cs b/prototypes/m7-sprint1/Proto.M7/Events/Runner.cs
+index 72b4096..951544d 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Events/Runner.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Events/Runner.cs
+@@ -35,6 +35,10 @@ public sealed class DecisionWindow
+     public int Index { get; }
+     public long InstantMs { get; }
+     public IReadOnlyList<SignificantHit> Hits => _hits;
++    /// <summary>[OC, 2026-11-13, D-089 DH2] A consequence window: opened at T AFTER the orders of T by an order's consequence (its hits
++    /// are class OrderConsequence). Orders issued at it are delivered in class ConsequenceOrder. Not hashed separately (the hits'
++    /// class carries it).</summary>
++    public bool AfterOrders { get; init; }
+ }
+ 
+ /// <summary>
+@@ -70,6 +74,7 @@ public sealed class Runner
+     private readonly List<DecisionWindow> _windows = new();
+     private readonly List<SignificantHit> _hits = new();
+     private long _collectAt = -1;
++    private bool _collectAfterOrders;   // [OC] the window being collected is a consequence window (D-089 DH2)
+ 
+     public Runner(EventScheduler scheduler, IEventWorld world, SignificantKinds significant, bool stopOnSignificant = true)
+     {
+@@ -94,15 +99,18 @@ public sealed class Runner
+         IsStopped = false;
+         while (_scheduler.TryPeekKey(out var key) && key.TimeMs <= limitMs)
+         {
+-            if (_collectAt >= 0 && (key.TimeMs != _collectAt || key.Class >= (byte)EventClass.PlayerOrder))
++            // [OC] a world window closes before the orders of its instant; a consequence window before the orders issued at it
++            byte closeAt = _collectAfterOrders ? (byte)EventClass.ConsequenceOrder : (byte)EventClass.PlayerOrder;
++            if (_collectAt >= 0 && (key.TimeMs != _collectAt || key.Class >= closeAt))
+             {
+                 long at = CloseWindow();
+                 if (StopOnSignificant) return Stop(at);
+             }
+             var outcome = _scheduler.ExecuteNext(_world, out var ev);
+-            if (outcome == TraceOutcome.Executed && ev.Key.Class < (byte)EventClass.PlayerOrder && _significant.Contains(ev.Kind))
++            bool windowClass = ev.Key.Class < (byte)EventClass.PlayerOrder || ev.Key.Class == (byte)EventClass.OrderConsequence;   // [OC]
++            if (outcome == TraceOutcome.Executed && windowClass && _significant.Contains(ev.Kind))
+             {
+-                if (_collectAt < 0) _collectAt = ev.Key.TimeMs;
++                if (_collectAt < 0) { _collectAt = ev.Key.TimeMs; _collectAfterOrders = ev.Key.Class == (byte)EventClass.OrderConsequence; }
+                 _hits.Add(new SignificantHit(ev.Key.Class, ev.Key.Priority, ev.Key.SourceId, ev.Kind, ev.Target.Id));
+             }
+         }
+@@ -118,9 +126,10 @@ public sealed class Runner
+     private long CloseWindow()
+     {
+         long at = _collectAt;
+-        _windows.Add(new DecisionWindow(_windows.Count, at, _hits.ToArray()));
++        _windows.Add(new DecisionWindow(_windows.Count, at, _hits.ToArray()) { AfterOrders = _collectAfterOrders });   // [OC]
+         _hits.Clear();
+         _collectAt = -1;
++        _collectAfterOrders = false;
+         return at;
+     }
+ 
+@@ -132,16 +141,21 @@ public sealed class Runner
+         return new RunResult(RunStatus.Interrupted, at);
+     }
+ 
+-    /// <summary>An order is deliverable only at the instant of the latest closed decision window (ADR-061 §3.7).</summary>
++    /// <summary>An order is deliverable only at the instant of the latest closed decision window (ADR-061 §3.7). [OC, 2026-11-13] And
++    /// only in that window's phase: a window order (class PlayerOrder) at a world window, an order of class ConsequenceOrder at a
++    /// consequence window (D-089 DH2).</summary>
+     private bool IsDeliverable(ScheduledEvent order)
+-        => _collectAt < 0 && _windows.Count > 0 && _windows[^1].InstantMs == order.Key.TimeMs;
++        => _collectAt < 0 && _windows.Count > 0 && _windows[^1].InstantMs == order.Key.TimeMs
++           && _windows[^1].AfterOrders == (order.Key.Class == (byte)EventClass.ConsequenceOrder);
+ 
+-    /// <summary>Issue a player order while stopped at an interrupt instant T; it is delivered AT T.</summary>
++    /// <summary>Issue a player order while stopped at an interrupt instant T; it is delivered AT T. [OC, 2026-11-13] At a consequence
++    /// window it is delivered in class ConsequenceOrder (after the consequence events at T) and logged as such.</summary>
+     public SubTurnOrder IssueOrder(int kind, long a, long b)
+     {
+         if (!IsStopped) throw new InvalidOperationException("orders can be issued only while the runner is stopped at an interrupt");
+-        var o = Orders.Append(StoppedAtMs, kind, a, b);
+-        _scheduler.ScheduleOrder(o.InstantMs, o.Seq, o.Kind, o.A, o.B);
++        bool after = _windows.Count > 0 && _windows[^1].AfterOrders;
++        var o = Orders.Append(StoppedAtMs, kind, a, b, after);
++        _scheduler.ScheduleOrder(o.InstantMs, o.Seq, o.Kind, o.A, o.B, after);
+         return o;
+     }
+ 
+@@ -169,9 +183,9 @@ public sealed class Runner
+         var r = new Runner(freshScheduler, freshWorld, significant, stopOnSignificant: false);
+         foreach (var o in log.Orders)
+         {
+-            var copy = r.Orders.Append(o.InstantMs, o.Kind, o.A, o.B);
++            var copy = r.Orders.Append(o.InstantMs, o.Kind, o.A, o.B, o.AfterConsequence);
+             if (copy.Seq != o.Seq) throw new InvalidOperationException("log index drift");
+-            freshScheduler.ScheduleOrder(o.InstantMs, o.Seq, o.Kind, o.A, o.B);
++            freshScheduler.ScheduleOrder(o.InstantMs, o.Seq, o.Kind, o.A, o.B, o.AfterConsequence);   // [OC] in its own phase
+         }
+         return r;
+     }
+diff --git a/prototypes/m7-sprint1/Proto.M7/Events/SubTurnOrderLog.cs b/prototypes/m7-sprint1/Proto.M7/Events/SubTurnOrderLog.cs
+index d3872c6..ee51717 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Events/SubTurnOrderLog.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Events/SubTurnOrderLog.cs
+@@ -8,7 +8,12 @@ namespace Proto.M7.Events;
+ /// NOT the kernel OrderRecord (changing OrderRecord needs authorization — recon-kernel §7 item 4).
+ /// Seq = index in the log; it is also the order event's SourceId, so orders at one instant execute in issue order.
+ /// </summary>
+-public readonly record struct SubTurnOrder(long InstantMs, int Seq, int Kind, long A, long B);
++public readonly record struct SubTurnOrder(long InstantMs, int Seq, int Kind, long A, long B)
++{
++    /// <summary>[OC, 2026-11-13, D-089 DH2] Issued at a consequence window (EventRules R4's exception): delivered in class
++    /// ConsequenceOrder at its instant. False for every window order (all orders before lane OC).</summary>
++    public bool AfterConsequence { get; init; }
++}
+ 
+ public sealed class SubTurnOrderLog
+ {
+@@ -18,11 +23,11 @@ public sealed class SubTurnOrderLog
+     public int Count => _orders.Count;
+ 
+     /// <summary>Append; instants must be non-decreasing (orders are issued as the timeline advances).</summary>
+-    public SubTurnOrder Append(long instantMs, int kind, long a, long b)
++    public SubTurnOrder Append(long instantMs, int kind, long a, long b, bool afterConsequence = false)
+     {
+         if (_orders.Count > 0 && instantMs < _orders[^1].InstantMs)
+             throw new InvalidOperationException("order instants must be non-decreasing");
+-        var o = new SubTurnOrder(instantMs, _orders.Count, kind, a, b);
++        var o = new SubTurnOrder(instantMs, _orders.Count, kind, a, b) { AfterConsequence = afterConsequence };   // [OC]
+         _orders.Add(o);
+         return o;
+     }
+@@ -39,6 +44,7 @@ public sealed class SubTurnOrderLog
+             BinaryPrimitives.WriteInt64LittleEndian(buf[16..], o.A);
+             BinaryPrimitives.WriteInt64LittleEndian(buf[24..], o.B);
+             h.AppendData(buf);
++            if (o.AfterConsequence) h.AppendData(new byte[] { 1 });   // [OC] only a consequence-window order adds a byte: every earlier log hashes as before
+         }
+         return Convert.ToHexString(h.GetHashAndReset());
+     }
+diff --git a/prototypes/m7-sprint1/Proto.M7/War/Outcomes/OutcomeTypes.cs b/prototypes/m7-sprint1/Proto.M7/War/Outcomes/OutcomeTypes.cs
+index 4b4bdc3..d03890a 100644
+--- a/prototypes/m7-sprint1/Proto.M7/War/Outcomes/OutcomeTypes.cs
++++ b/prototypes/m7-sprint1/Proto.M7/War/Outcomes/OutcomeTypes.cs
+@@ -24,6 +24,11 @@ public static class OutcomeKinds
+     public const int BattleResolved = 86;
+     /// <summary>TEST DEVICE: opens a decision window at an instant of the test's choosing.</summary>
+     public const int Probe = 87;
++    /// <summary>[OC, 2026-11-13] D-089 DH2: significant, class OrderConsequence — the DECISION INSTANT of a settlement that the player's
++    /// own order (lane S's immediate assault) took at T: "Occupy, sack or raze?" asked at the moment of capture, after the order's
++    /// consequences (EventRules R4's exception). SourceId = A = the settlement, B = its taker. Never raised for an AI taker (it disposes by
++    /// its doctrine at the capture instant) nor for a capture made by a world event (its SettlementTaken window already offers it).</summary>
++    public const int DispositionDue = 88;
+ 
+     /// <summary>Settlement disposition: A = Pack(issuer, settlement), B = (long)<see cref="Disposition"/>.</summary>
+     public const int OrderDispose = 200;
+@@ -41,7 +46,7 @@ public static class OutcomeKinds
+ 
+     public const long ValueStride = 1L << 32;
+ 
+-    public static bool IsOwn(int kind) => (kind >= TurnStart && kind <= Probe) || (kind >= OrderDispose && kind <= OrderLeader);
++    public static bool IsOwn(int kind) => (kind >= TurnStart && kind <= DispositionDue) || (kind >= OrderDispose && kind <= OrderLeader);   // [OC] … 88
+ 
+     /// <summary>War code of a capture outside any war.</summary>
+     public const int NoWar = 65_535;
+@@ -80,6 +85,9 @@ public static class OutcomeRefusal
+     /// <summary>Fix r1 (W-R1-6, PROPOSAL rule L13): a polity may not sack or raze a settlement whose population is its own (a re-capture
+     /// is a liberation: Occupy is its only choice).</summary>
+     public const int OwnPopulation = 14;
++    /// <summary>[OC, 2026-11-13] D-089 DH2 (EventRules R4's exception): an order issued at a CONSEQUENCE window that is not the choice
++    /// that window offers — only the taker's disposition of the settlement its own order took at that instant is accepted there.</summary>
++    public const int NotOffered = 15;
+ }
+ 
+ /// <summary>Fate of a polity's leader. Stable codes (hashed and serialized).</summary>
+diff --git a/prototypes/m7-sprint1/Proto.M7/War/Outcomes/WarOutcomeWorld.cs b/prototypes/m7-sprint1/Proto.M7/War/Outcomes/WarOutcomeWorld.cs
+index 2d3a1fc..6e1e5e2 100644
+--- a/prototypes/m7-sprint1/Proto.M7/War/Outcomes/WarOutcomeWorld.cs
++++ b/prototypes/m7-sprint1/Proto.M7/War/Outcomes/WarOutcomeWorld.cs
+@@ -95,6 +95,9 @@ public sealed class WarOutcomeWorld : IEventWorld
+         public bool Disposed;
+         public long Sackers;
+         public int OutcomeRow = -1;
++        // [OC] D-089 DH2: taken by an ORDER at this instant (lane S's immediate assault), and the decision instant raised for it
++        public long OrderTakenAt = -1, DecisionDueAt = -1, DecisionSeq = -1;
++        public bool DecisionHeld;
+     }
+ 
+     private sealed class Cust
+@@ -160,6 +163,7 @@ public sealed class WarOutcomeWorld : IEventWorld
+     private readonly List<long> _fieldBattleEnd = new();
+     private long _settleAt = -1;
+     private int _siegeSeen, _siegeEndSeen;
++    private long _decisionsRaised;   // [OC] D-089 DH2: decision instants raised so far (the state hash grows only when one was)
+ 
+     /// <param name="captiveExecution">DIRECTOR-LEVEL (C32 flag): may a captor execute a captive leader outside the leader rule.
+     /// Every caller passes one; there is no default.</param>
+@@ -450,8 +454,9 @@ public sealed class WarOutcomeWorld : IEventWorld
+     /// <summary>The significant kinds of this world (with lane S's when bound) for the runner.</summary>
+     public static SignificantKinds Significant(bool withSiege) => withSiege
+         ? new SignificantKinds(OutcomeKinds.SettlementTaken, OutcomeKinds.LeaderFateChanged, OutcomeKinds.BattleResolved, OutcomeKinds.Probe,
+-                               SiegeKinds.Probe, SiegeKinds.SiegeEnded, SiegeKinds.AssaultResolved)
+-        : new SignificantKinds(OutcomeKinds.SettlementTaken, OutcomeKinds.LeaderFateChanged, OutcomeKinds.BattleResolved, OutcomeKinds.Probe);
++                               SiegeKinds.Probe, SiegeKinds.SiegeEnded, SiegeKinds.AssaultResolved, OutcomeKinds.DispositionDue)   // [OC] DH2
++        : new SignificantKinds(OutcomeKinds.SettlementTaken, OutcomeKinds.LeaderFateChanged, OutcomeKinds.BattleResolved, OutcomeKinds.Probe,
++                               OutcomeKinds.DispositionDue);                                                                            // [OC] DH2
+ 
+     public bool IsLive(EntityRef entity) => _siege?.IsLive(entity) ?? true;
+ 
+@@ -460,6 +465,8 @@ public sealed class WarOutcomeWorld : IEventWorld
+     public void Execute(in ScheduledEvent ev, EventScheduler s)
+     {
+         long now = ev.Key.TimeMs;
++        // [OC] D-089 DH2: an order issued at a consequence window is answered here, whatever its kind (never delegated to lane S)
++        if (ev.Key.Class == (byte)EventClass.ConsequenceOrder) { ExecuteConsequenceOrder(in ev, now, s); return; }
+         if (!OutcomeKinds.IsOwn(ev.Kind))
+         {
+             if (_siege is null) throw new InvalidOperationException($"unknown kind {ev.Kind}");
+@@ -479,6 +486,9 @@ public sealed class WarOutcomeWorld : IEventWorld
+             case OutcomeKinds.BattleResolved:
+             case OutcomeKinds.Probe:
+                 break;
++            case OutcomeKinds.DispositionDue:                                    // [OC] the decision instant opens (the runner's window)
++                _x[(int)ev.A].DecisionHeld = true;
++                break;
+             default: throw new InvalidOperationException($"unknown kind {ev.Kind}");
+         }
+     }
+@@ -590,6 +600,9 @@ public sealed class WarOutcomeWorld : IEventWorld
+         AddCasualty(b, 1, from, CasualtyCause.Captured, prisoners);
+         AddCasualty(b, 1, from, CasualtyCause.MarchedOut, marched);
+         x.TakenAtMs = now; x.TakenBy = to; x.TakenFrom = from; x.TakenBattle = b; x.TakenWar = war; x.Disposed = false; x.Sackers = sackers;
++        // [OC] D-089 DH2: a capture made by a window order at this instant (lane S's immediate assault): its taker's choice is raised as
++        // a decision instant after the order (RaiseDecisions); a capture made by a world event keeps its SettlementTaken window
++        x.OrderTakenAt = s.CurrentKey.Class == (byte)EventClass.PlayerOrder && s.CurrentKey.TimeMs == now ? now : -1;
+         x.Grievance = to == PopulationOf(x) ? 0 : x.Spec.BaseGrievancePermilleYear;
+         x.OutcomeRow = _outcomes.Count;
+         _outcomes.Add(new SettlementOutcomeRow(x.Spec.Id, b, now, from, to, (byte)Disposition.Occupy, 0, 0, 0, 0, 0, 0, x.Grievance));
+@@ -662,7 +675,54 @@ public sealed class WarOutcomeWorld : IEventWorld
+                 _settleAt = now;
+             }
+         }
+-        else Settle(now, null);   // a change made by an order (or another late-class event): settled when it completes
++        else
++        {
++            Settle(now, null);   // a change made by an order (or another late-class event): settled when it completes
++            RaiseDecisions(now, s);   // [OC] D-089 DH2
++        }
++    }
++
++    /// <summary>
++    /// [OC, completion after fix round 1, 2026-11-13] D-089 DH2 ("When the player's own immediate assault takes a city, the player is
++    /// asked 'Occupy, sack or raze?' at the moment of capture") and DH2-R1 (an AI taker still disposes by its doctrine). For each
++    /// settlement that a WINDOW ORDER took at this instant (lane S's immediate assault, WA1) whose taker is a human polity (no AI
++    /// doctrine) and that is still undisposed, a decision instant is raised at T after the order's consequences
++    /// (EventScheduler.ScheduleConsequence: class OrderConsequence, kind DispositionDue), so the choice is OFFERED AT THE MOMENT OF
++    /// CAPTURE and does not lapse (lane U's U-F4, U2-5). The runner opens one consequence window at T; the taker's disposition issued
++    /// there is accepted (TakenAtMs == T) through the same eligibility checks (no sack or raze of one's own population, never one's
++    /// last city: unchanged). Once per settlement and instant; never raised by a world event (its SettlementTaken window offers the
++    /// choice already) and never from a consequence-window order (ScheduleConsequence refuses: no chain).
++    /// </summary>
++    private void RaiseDecisions(long now, EventScheduler s)
++    {
++        if (s.CurrentKey.Class != (byte)EventClass.PlayerOrder || s.CurrentKey.TimeMs != now) return;
++        foreach (var x in _x)
++        {
++            if (x.OrderTakenAt != now || x.TakenAtMs != now || x.Disposed || x.Razed || x.DecisionDueAt == now) continue;
++            if (_ai[x.TakenBy] >= 0) continue;                                   // DH2-R1: an AI taker disposed by its doctrine (Settle)
++            x.DecisionDueAt = now;
++            x.DecisionHeld = false;
++            x.DecisionSeq = s.ScheduleConsequence(now, 0, x.Spec.Id, OutcomeKinds.DispositionDue, x.Spec.Id, x.TakenBy);
++            _decisionsRaised++;
++        }
++    }
++
++    /// <summary>[OC] An order issued at a consequence window (class ConsequenceOrder): only the choice that window offers is accepted — the
++    /// taker's disposition of a settlement whose decision instant is now (EventRules R4: no action multiplication). Anything else is a
++    /// recorded refusal (NotOffered) and changes nothing; it never reaches lane S.</summary>
++    private void ExecuteConsequenceOrder(in ScheduledEvent ev, long now, EventScheduler s)
++    {
++        int log = (int)ev.Key.SourceId;
++        long issuerL = ev.A < 0 ? -1 : ev.A / WarKinds.PolityStride;
++        int issuer = issuerL >= 0 && issuerL < _p.Length ? (int)issuerL : -1;
++        int target = ev.A < 0 ? -1 : (int)(ev.A % WarKinds.PolityStride);
++        if (ev.Kind != OutcomeKinds.OrderDispose || issuer < 0 || target < 0 || target >= _x.Length
++            || _x[target].DecisionDueAt != now || _x[target].TakenBy != issuer)
++        {
++            Result(log, issuer, ev.Kind, now, OutcomeRefusal.NotOffered);
++            return;
++        }
++        Result(log, issuer, ev.Kind, now, OrderDispose(issuer, target, ev.B, now, s));
+     }
+ 
+     private void Settle(long now, EventScheduler? s)
+@@ -940,8 +1000,15 @@ public sealed class WarOutcomeWorld : IEventWorld
+     {
+         if (settlement < 0 || settlement >= _x.Length) return OutcomeRefusal.BadTarget;
+         if (value < 0 || value > (long)Disposition.Raze) return OutcomeRefusal.BadValue;
+-        int r = Dispose(_x[settlement], (Disposition)value, now, issuer);
+-        if (r == 0) RequestSettle(now, s);   // a raze changes the razer's city count (never to zero: refused above)
++        var x = _x[settlement];
++        int r = Dispose(x, (Disposition)value, now, issuer);
++        if (r == 0)
++        {
++            // [OC] D-089 DH2: disposed by an order of the same window, after the assault and before its decision instant ran (lane U
++            // MEASURED this path: the choice issued with the assault applies): the decision instant is not needed — cancel it
++            if (x.DecisionDueAt == now && !x.DecisionHeld && x.DecisionSeq >= 0) s.Cancel(x.DecisionSeq);
++            RequestSettle(now, s);   // a raze changes the razer's city count (never to zero: refused above)
++        }
+         return r;
+     }
+ 
+@@ -1158,6 +1225,11 @@ public sealed class WarOutcomeWorld : IEventWorld
+             }
+         }
+         L(_settleAt); L(_siegeSeen); L(_siegeEndSeen);
++        if (_decisionsRaised > 0)   // [OC] D-089 DH2: only a world that raised a decision instant appends (every earlier hash unchanged)
++        {
++            L(_decisionsRaised);
++            foreach (var x in _x) { L(x.OrderTakenAt); L(x.DecisionDueAt); L(x.DecisionHeld ? 1 : 0); }
++        }
+         return Convert.ToHexString(h.GetHashAndReset());
+     }
+ }
