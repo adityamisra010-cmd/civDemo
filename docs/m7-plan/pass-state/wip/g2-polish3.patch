@@ -1,8 +1,8 @@
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs
-index 62a5a3e..c351c5e 100644
+index 62a5a3e..4a23d71 100644
 --- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs
 +++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdAnimationBank.cs
-@@ -25,6 +25,19 @@ public sealed class CrowdAnimationBank : IDisposable
+@@ -25,6 +25,20 @@ public sealed class CrowdAnimationBank : IDisposable
          "idle", "idle_proud", "walk", "walk_b", "jog", "run", "thrust", "swing_over", "swing_side", "block", "cower", "kneel",
          "death_fwd", "death_back", "stumble", "wounded_walk",
      };
@@ -15,14 +15,15 @@ index 62a5a3e..c351c5e 100644
 +    public static readonly string[] VariantNames = CrowdPoseVariants.Names;
 +    /// <summary>Every clip of the bank, in bank order: <see cref="ClipNames"/>, <see cref="VariantNames"/>, then (polish2) the
 +    /// surrender pose derived from "kneel" (<see cref="CrowdPoseVariants.DeriveSurrender"/>).</summary>
-+    public static readonly string[] AllClipNames = ClipNames.Concat(VariantNames).Append(CrowdPoseVariants.Surrender).Append(BindClip).ToArray();
++    public static readonly string[] AllClipNames = ClipNames.Concat(VariantNames).Append(CrowdPoseVariants.Surrender).Append(BindClip)
++        .Append(CrowdPoseVariants.SurrenderHead).Append(CrowdPoseVariants.SurrenderNeck).ToArray();
 +    /// <summary>Polish2: a one-frame clip of the bind pose (every skin matrix the identity): kit laid on the ground is drawn
 +    /// with the crowd's own effect through it, in bind space under its instance transform.</summary>
 +    public const string BindClip = "@bind";
  
      public int Bones { get; }
      public int Rows { get; }
-@@ -47,13 +60,29 @@ public sealed class CrowdAnimationBank : IDisposable
+@@ -47,13 +61,38 @@ public sealed class CrowdAnimationBank : IDisposable
          _base = new int[identities.Count][];
          _clips = new ClipDef[identities.Count][];
          int rows = 0;
@@ -38,7 +39,11 @@ index 62a5a3e..c351c5e 100644
 -                var clip = identities[i].clips.Clip(ClipNames[c]) ?? throw new InvalidDataException($"identity {i}: clip {ClipNames[c]} missing");
 +                ClipDef clip;
 +                if (c < ClipNames.Length)
++                {
 +                    clip = identities[i].clips.Clip(ClipNames[c]) ?? throw new InvalidDataException($"identity {i}: clip {ClipNames[c]} missing");
++                    // polish3 (critic rank 3): no fallen man lies with a hand raised (CrowdPoseVariants.LayArmsDown)
++                    if (ClipNames[c] is "death_fwd" or "death_back") clip = CrowdPoseVariants.LayArmsDown(identities[i].skeleton, clip);
++                }
 +                else if (AllClipNames[c] == BindClip)
 +                {
 +                    int nb = identities[i].skeleton.Count;
@@ -47,6 +52,11 @@ index 62a5a3e..c351c5e 100644
 +                }
 +                else if (AllClipNames[c] == CrowdPoseVariants.Surrender)
 +                    clip = CrowdPoseVariants.DeriveSurrender(identities[i].skeleton, _clips[i][Array.IndexOf(ClipNames, "kneel")]);
++                // polish3 (critic rank 3): two more surrender poses, after the bind pose (the earlier bank order is kept)
++                else if (AllClipNames[c] == CrowdPoseVariants.SurrenderHead)
++                    clip = CrowdPoseVariants.DeriveSurrenderHead(identities[i].skeleton, _clips[i][Array.IndexOf(ClipNames, "kneel")]);
++                else if (AllClipNames[c] == CrowdPoseVariants.SurrenderNeck)
++                    clip = CrowdPoseVariants.DeriveSurrenderNeck(identities[i].skeleton, _clips[i][Array.IndexOf(ClipNames, "kneel")]);
 +                else
 +                {
 +                    var (baseName, variant) = CrowdPoseVariants.Parse(AllClipNames[c]);
@@ -55,7 +65,7 @@ index 62a5a3e..c351c5e 100644
                  _clips[i][c] = clip; _base[i][c] = rows; rows += clip.Frames;
              }
          }
-@@ -67,7 +96,7 @@ public sealed class CrowdAnimationBank : IDisposable
+@@ -67,7 +106,7 @@ public sealed class CrowdAnimationBank : IDisposable
          {
              var sk = identities[i].skeleton;
              int pelvis = sk.TryIndex("pelvis", out int p) ? p : -1;
@@ -64,7 +74,7 @@ index 62a5a3e..c351c5e 100644
              {
                  var clip = _clips[i][c];
                  for (int f = 0; f < clip.Frames; f++)
-@@ -111,7 +140,7 @@ public sealed class CrowdAnimationBank : IDisposable
+@@ -111,7 +150,7 @@ public sealed class CrowdAnimationBank : IDisposable
  
      public ClipDef Clip(int identity, int clip) => _clips[identity][clip];
      public int FirstRow(int identity, int clip) => _base[identity][clip];
@@ -74,10 +84,10 @@ index 62a5a3e..c351c5e 100644
      /// <summary>
      /// Rows and fraction for clip-local time <paramref name="t"/> (s): looping clips wrap, one-shot clips clamp to their
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdEffects.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdEffects.cs
-index 927ce1c..4be4389 100644
+index 927ce1c..b769735 100644
 --- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdEffects.cs
 +++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdEffects.cs
-@@ -132,20 +132,40 @@ vec3 dyeShift(vec3 c, float h, float v) {
+@@ -132,20 +132,46 @@ vec3 dyeShift(vec3 c, float h, float v) {
      vec3 albedo; float rough; float metal = 0.0;
      if (code > 254.5) {
          albedo = srgbToLinear(texture2D(SkinTex, v_uv).rgb) * (1.0 + 0.12 * v_look.z);
@@ -87,6 +97,9 @@ index 927ce1c..4be4389 100644
 +        float mxS = max(albedo.r, max(albedo.g, albedo.b)), mnS = min(albedo.r, min(albedo.g, albedo.b));
 +        float satS = (mxS - mnS) / max(mxS, 1e-3);
 +        albedo = mix(albedo, vec3(0.085, 0.06, 0.05), smoothstep(0.20, 0.38, lumS) * (1.0 - smoothstep(0.10, 0.22, satS)));
++        // polish3 (critic rank 2): beard and stubble painted in the atlas keep a dark-brown floor (linear of sRGB
++        // 0.17, 0.115, 0.075), not near-black
++        albedo = max(albedo, vec3(0.0245, 0.0123, 0.0067) * step(1.38, v_h));
          rough = 0.5;
 -    } else if (code > 253.5) { albedo = srgbToLinear(texture2D(Emblem, v_uv).rgb) * mix(0.92, 1.04, v_lod.w); rough = 0.62; }
 +    } else if (code > 253.5) {
@@ -111,6 +124,9 @@ index 927ce1c..4be4389 100644
 +            // polish2 (critic rank 9): hair and beards (above the shoulders, near-neutral) are warm greys; under the sky's
 +            // blue fill a neutral or violet-grey beard read as blue-grey
 +            if (v_h > 1.38 && sat < 0.22) srgb *= vec3(1.07, 1.0, 0.86);
++            // polish3 (critic rank 2): dark hair and beards above the shoulders keep a dark-brown floor (the heroes' hair
++            // albedo floor): near-black beards read as black masks over the lower face at mid distance
++            if (v_h > 1.38 && mx < 0.2 && sat < 0.45) srgb = max(srgb, vec3(0.17, 0.115, 0.075) * (0.85 + 0.3 * v_look.z));
 +            // polish2 (critic rank 9): the eyeballs merged into the LOD carry the sclera's near-white as their vertex
 +            // colour: at crowd distances that is a glowing dot, so near-white at eye height takes a shadowed socket tone
 +            if (v_h > 1.45 && mx > 0.72 && sat < 0.16) srgb = vec3(0.30, 0.235, 0.20);
@@ -288,10 +304,10 @@ index 0000000..9c97d26
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs
 new file mode 100644
-index 0000000..81dd034
+index 0000000..a9b4436
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdPoseVariants.cs
-@@ -0,0 +1,210 @@
+@@ -0,0 +1,287 @@
 +using Gfx.Chars.Animation;
 +using Gfx.Chars.Format;
 +using Microsoft.Xna.Framework;
@@ -392,6 +408,60 @@ index 0000000..81dd034
 +
 +    static Quaternion About(Vector3 axis, float degrees) => Quaternion.CreateFromAxisAngle(Vector3.Normalize(axis), MathHelper.ToRadians(degrees));
 +
++    static float Smooth(float e0, float e1, float x) { float t = Math.Clamp((x - e0) / (e1 - e0), 0f, 1f); return t * t * (3f - 2f * t); }
++
++    /// <summary>
++    /// Polish3 (critic rank 3; PRESENTATION ONLY): a fallen man's arms lie on the ground. Once the body is down (the pelvis
++    /// under 0.45 m, fully under 0.25 m), a hand held above the chest (the motion-capture fall on the back ends with a hand
++    /// raised 0.24-0.28 m over it, fingers spread) is laid down, fully from 0.12 m over the chest: the upper arm
++    /// turned out from the shoulder and a little towards the feet, the forearm on along the body, both almost level. The
++    /// fall itself (the body still up) is unchanged, and so are the clip's length, pelvis track and contacts. A pure
++    /// function of the skeleton and the clip.
++    /// </summary>
++    public static ClipDef LayArmsDown(Skeleton s, ClipDef clip)
++    {
++        int n = s.Count;
++        var pose = new Pose(n); var g = new Quaternion[n]; var hd = new Vector3[n];
++        int pelvis = s.TryIndex("pelvis", out int pv) ? pv : -1;
++        if (pelvis < 0) return clip;
++        int spine = s["spine_02"], neck = s["neck_01"];
++        var arms = new[] { (s["upperarm_l"], s["lowerarm_l"], s["hand_l"]), (s["upperarm_r"], s["lowerarm_r"], s["hand_r"]) };
++        var rot = new Quaternion[clip.Frames * n];
++        for (int f = 0; f < clip.Frames; f++)
++        {
++            Load(s, clip, f, pose);
++            Fk.Solve(s, pose, g, hd, pelvis);
++            float down = Smooth(0.45f, 0.25f, hd[pelvis].Y);
++            if (down > 0f)
++            {
++                var axis = new Vector3(hd[pelvis].X - hd[neck].X, 0f, hd[pelvis].Z - hd[neck].Z);   // towards the feet
++                axis = axis.LengthSquared() > 1e-6f ? Vector3.Normalize(axis) : Vector3.UnitZ;
++                float chest = MathF.Max(hd[spine].Y, hd[neck].Y);
++                foreach (var (upper, lower, hand) in arms)
++                {
++                    float k = down * Smooth(0.02f, 0.12f, hd[hand].Y - chest);
++                    if (k <= 0f) continue;
++                    var outw = new Vector3(hd[upper].X - hd[spine].X, 0f, hd[upper].Z - hd[spine].Z);
++                    outw -= axis * Vector3.Dot(outw, axis);
++                    outw = outw.LengthSquared() > 1e-6f ? Vector3.Normalize(outw) : Vector3.Normalize(Vector3.Cross(axis, Vector3.UnitY));
++                    var upT = Vector3.Normalize(outw * 0.80f + axis * 0.45f - Vector3.UnitY * 0.10f);
++                    var foT = Vector3.Normalize(outw * 0.35f + axis * 0.90f - Vector3.UnitY * 0.08f);
++                    Turn(s, pose, g, upper, Q.Scale(Q.Between(hd[lower] - hd[upper], upT), k));
++                    Fk.Solve(s, pose, g, hd, pelvis);
++                    Turn(s, pose, g, lower, Q.Scale(Q.Between(hd[hand] - hd[lower], foT), k));
++                    Fk.Solve(s, pose, g, hd, pelvis);
++                }
++            }
++            Array.Copy(pose.Local, 0, rot, f * n, n);
++        }
++        return new ClipDef
++        {
++            Name = clip.Name, Loop = clip.Loop, Fps = clip.Fps, Frames = clip.Frames, Bones = n, Speed = clip.Speed,
++            Rotations = rot, Pelvis = (Vector3[])clip.Pelvis.Clone(), Contacts = (byte[])clip.Contacts.Clone(),
++            Source = clip.Source + " (polish3: arms laid down once the body is down)",
++        };
++    }
++
 +    /// <summary>The variant of <paramref name="clip"/> (same length, frame rate, loop flag and pelvis track).</summary>
 +    public static ClipDef Derive(Skeleton s, ClipDef clip, string name, PoseVariant v)
 +    {
@@ -461,6 +531,29 @@ index 0000000..81dd034
 +    /// itself, the pelvis track and the clip's length are kept. A pure function of the skeleton and the clip.
 +    /// </summary>
 +    public static ClipDef DeriveSurrender(Skeleton s, ClipDef kneel)
++        => DeriveKneelArms(s, kneel, Surrender, SurrenderUpperArmL, SurrenderForearmL, -30f, " (polish2 surrender pose)");
++
++    /// <summary>Polish3 (critic rank 3): the bank names of two more surrender poses: hands clasped on the head, and hands
++    /// behind the neck with the head bowed lower (<see cref="DeriveKneelArms"/>).</summary>
++    public const string SurrenderHead = "kneel@handsonhead", SurrenderNeck = "kneel@handsbehindneck";
++    /// <summary>Polish3: arm directions of the two poses (character space, left side): hands on the head (elbows out at
++    /// about head height, forearms in over the crown) and hands behind the neck (elbows out and a little back, forearms
++    /// in behind the nape).</summary>
++    public static readonly Vector3 HeadUpperArmL = Vector3.Normalize(new Vector3(0.78f, 0.60f, 0.10f)),
++        HeadForearmL = Vector3.Normalize(new Vector3(-0.90f, 0.40f, 0.08f)),
++        NeckUpperArmL = Vector3.Normalize(new Vector3(0.85f, 0.40f, -0.25f)),
++        NeckForearmL = Vector3.Normalize(new Vector3(-0.90f, 0.22f, -0.36f));
++    public static ClipDef DeriveSurrenderHead(Skeleton s, ClipDef kneel)
++        => DeriveKneelArms(s, kneel, SurrenderHead, HeadUpperArmL, HeadForearmL, -22f, " (polish3 surrender pose: hands on the head)");
++    public static ClipDef DeriveSurrenderNeck(Skeleton s, ClipDef kneel)
++        => DeriveKneelArms(s, kneel, SurrenderNeck, NeckUpperArmL, NeckForearmL, -42f, " (polish3 surrender pose: hands behind the neck)");
++
++    /// <summary>
++    /// The kneel with both arms laid onto fixed directions (left side given; the right mirrored in x) and the gaze bowed to
++    /// a mean pitch (degrees; negative below level), half at the neck and half at the head: the generalisation of the
++    /// polish2 surrender pose (whose numbers are unchanged). A pure function of the skeleton and the clip.
++    /// </summary>
++    public static ClipDef DeriveKneelArms(Skeleton s, ClipDef kneel, string name, Vector3 upperArmL, Vector3 forearmL, float pitchDeg, string sourceNote)
 +    {
 +        int n = s.Count;
 +        var pose = new Pose(n); var g = new Quaternion[n]; var hd = new Vector3[n];
@@ -475,8 +568,8 @@ index 0000000..81dd034
 +            Fk.Solve(s, pose, g, hd, pelvis);
 +            foreach (var (upper, lower, hand, side) in arms)
 +            {
-+                var upT = new Vector3(SurrenderUpperArmL.X * side, SurrenderUpperArmL.Y, SurrenderUpperArmL.Z);
-+                var foT = new Vector3(SurrenderForearmL.X * side, SurrenderForearmL.Y, SurrenderForearmL.Z);
++                var upT = new Vector3(upperArmL.X * side, upperArmL.Y, upperArmL.Z);
++                var foT = new Vector3(forearmL.X * side, forearmL.Y, forearmL.Z);
 +                Turn(s, pose, g, upper, Q.Between(hd[lower] - hd[upper], upT));
 +                Fk.Solve(s, pose, g, hd, pelvis);
 +                Turn(s, pose, g, lower, Q.Between(hd[hand] - hd[lower], foT));
@@ -487,7 +580,7 @@ index 0000000..81dd034
 +            float pitch = MathHelper.ToDegrees(MathF.Asin(Math.Clamp(fw.Y, -1f, 1f)));
 +            var fh = new Vector3(fw.X, 0, fw.Z);
 +            fh = fh.LengthSquared() > 1e-8f ? Vector3.Normalize(fh) : Vector3.UnitZ;
-+            var bow = Q.Scale(About(Vector3.Cross(fh, Vector3.UnitY), -30f - pitch), 0.5f);
++            var bow = Q.Scale(About(Vector3.Cross(fh, Vector3.UnitY), pitchDeg - pitch), 0.5f);
 +            Turn(s, pose, g, neck, bow);
 +            Fk.Solve(s, pose, g, hd, pelvis);
 +            Turn(s, pose, g, head, bow);
@@ -496,17 +589,17 @@ index 0000000..81dd034
 +        }
 +        return new ClipDef
 +        {
-+            Name = Surrender, Loop = kneel.Loop, Fps = kneel.Fps, Frames = kneel.Frames, Bones = n, Speed = kneel.Speed,
++            Name = name, Loop = kneel.Loop, Fps = kneel.Fps, Frames = kneel.Frames, Bones = n, Speed = kneel.Speed,
 +            Rotations = rot, Pelvis = (Vector3[])kneel.Pelvis.Clone(), Contacts = (byte[])kneel.Contacts.Clone(),
-+            Source = kneel.Source + " (polish2 surrender pose)",
++            Source = kneel.Source + sourceNote,
 +        };
 +    }
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs
-index c7e033f..05365a2 100644
+index c7e033f..5ba6055 100644
 --- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs
 +++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdRenderer.cs
-@@ -23,6 +23,35 @@ public sealed class CrowdVariant
+@@ -23,6 +23,38 @@ public sealed class CrowdVariant
      public required float Height { get; init; }
      internal readonly CrowdBatch[] Main = new CrowdBatch[3], Shadow = new CrowdBatch[3];
      public string Key => Identity + "__" + Outfit;
@@ -523,6 +616,9 @@ index c7e033f..05365a2 100644
 +    /// <summary>Polish2 (critic rank 7): per level, the soldier and his weapon without his shield (<see cref="CrowdAgent.NoShield"/>).</summary>
 +    public readonly (IndexBuffer? ib, int tris)[] NoShield = new (IndexBuffer?, int)[3];
 +    internal readonly CrowdBatch[] MainNoShield = new CrowdBatch[3], ShadowNoShield = new CrowdBatch[3];
++    /// <summary>Polish3 (critic rank 2): per level, the soldier and his shield without his weapon (<see cref="CrowdAgent.NoWeapon"/>).</summary>
++    public readonly (IndexBuffer? ib, int tris)[] NoWeapon = new (IndexBuffer?, int)[3];
++    internal readonly CrowdBatch[] MainNoWeapon = new CrowdBatch[3], ShadowNoWeapon = new CrowdBatch[3];
 +    internal readonly CrowdBatch[][] Props = { new CrowdBatch[3], new CrowdBatch[3] };
 +}
 +
@@ -542,7 +638,7 @@ index c7e033f..05365a2 100644
  }
  
  internal sealed class CrowdBatch(GraphicsDevice gd) : IDisposable
-@@ -134,7 +163,22 @@ public sealed class CrowdRenderer : IDisposable
+@@ -134,7 +166,24 @@ public sealed class CrowdRenderer : IDisposable
              {
                  Identity = id, Outfit = outfit, BankIdentity = bi, Lods = new[] { l1, l2, l3 }, Skin = skin, Emblem = emblem, Height = height,
              };
@@ -552,6 +648,7 @@ index c7e033f..05365a2 100644
 +                v.Main[k] = new CrowdBatch(gd); v.Shadow[k] = new CrowdBatch(gd);
 +                v.MainUnarmed[k] = new CrowdBatch(gd); v.ShadowUnarmed[k] = new CrowdBatch(gd);
 +                v.MainNoShield[k] = new CrowdBatch(gd); v.ShadowNoShield[k] = new CrowdBatch(gd);
++                v.MainNoWeapon[k] = new CrowdBatch(gd); v.ShadowNoWeapon[k] = new CrowdBatch(gd);
 +                v.Props[0][k] = new CrowdBatch(gd); v.Props[1][k] = new CrowdBatch(gd);
 +                // polish2: the kit in the hands, found per level (each LOD was simplified on its own)
 +                var def = v.Lods[k].Def;
@@ -561,12 +658,13 @@ index c7e033f..05365a2 100644
 +                var wi = CrowdKit.Indices(def, tri, CarriedItem.Weapon); var si = CrowdKit.Indices(def, tri, CarriedItem.Shield);
 +                v.Weapon[k] = Upload(gd, wi); v.Shield[k] = Upload(gd, si);
 +                v.NoShield[k] = Upload(gd, [.. v.UnarmedIndices[k], .. wi]);
++                v.NoWeapon[k] = Upload(gd, [.. v.UnarmedIndices[k], .. si]);
 +                if (k == 0) { v.WeaponLie = CrowdKit.LieFlat(def, wi); v.ShieldLie = CrowdKit.LieFlat(def, si); v.ShieldLieFlipped = CrowdKit.LieFlat(def, si, true); }
 +            }
              _variants.Add(v);
          }
          HasLod3 = lod3;
-@@ -144,6 +188,42 @@ public sealed class CrowdRenderer : IDisposable
+@@ -144,6 +193,42 @@ public sealed class CrowdRenderer : IDisposable
      /// <summary>Bank index of a clip name (see <see cref="CrowdAnimationBank.ClipNames"/>).</summary>
      public static int Clip(string name) => CrowdAnimationBank.ClipIndex(name) is int i and >= 0 ? i : throw new KeyNotFoundException(name);
  
@@ -609,21 +707,21 @@ index c7e033f..05365a2 100644
      /// <summary>Takes this frame's agents: world transforms, bank rows and looks are computed once here.</summary>
      public void SetAgents(ReadOnlySpan<CrowdAgent> agents)
      {
-@@ -232,7 +312,7 @@ public sealed class CrowdRenderer : IDisposable
+@@ -232,7 +317,7 @@ public sealed class CrowdRenderer : IDisposable
          long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
          Stats.ResetMain();
          if (!rc.Features.Crowd) return;
 -        foreach (var v in _variants) for (int k = 0; k < 3; k++) v.Main[k].Count = 0;
-+        foreach (var v in _variants) for (int k = 0; k < 3; k++) { v.Main[k].Count = 0; v.MainUnarmed[k].Count = 0; v.MainNoShield[k].Count = 0; v.Props[0][k].Count = 0; v.Props[1][k].Count = 0; }
++        foreach (var v in _variants) for (int k = 0; k < 3; k++) { v.Main[k].Count = 0; v.MainUnarmed[k].Count = 0; v.MainNoShield[k].Count = 0; v.MainNoWeapon[k].Count = 0; v.Props[0][k].Count = 0; v.Props[1][k].Count = 0; }
          var cam = rc.Camera.Position;
          float m22 = rc.Projection.M22, vh = rc.ViewportSize.Y;
          bool reflection = rc.IsReflectionPass;
-@@ -254,12 +334,21 @@ public sealed class CrowdRenderer : IDisposable
+@@ -254,12 +339,21 @@ public sealed class CrowdRenderer : IDisposable
              {
                  var inst = lv[k].level == 2 ? Coarse(drawn) : drawn;
                  inst.Lod.X = lv[k].fade; inst.Lod.Y = lv[k].sign;
 -                v.Main[lv[k].level].Add(inst);
-+                (a.Unarmed ? v.MainUnarmed : a.NoShield ? v.MainNoShield : v.Main)[lv[k].level].Add(inst);
++                (a.Unarmed ? v.MainUnarmed : a.NoShield ? v.MainNoShield : a.NoWeapon ? v.MainNoWeapon : v.Main)[lv[k].level].Add(inst);
                  Stats.PerLevel[lv[k].level]++;
              }
              if (n == 2) Stats.InFade++;
@@ -641,13 +739,15 @@ index c7e033f..05365a2 100644
          Stats.CullMs = System.Diagnostics.Stopwatch.GetElapsedTime(t0).TotalMilliseconds;
          var fx = rc.Effects.Get(CrowdEffectNames.Lit);
          fx.Parameters["CrowdParams"].SetValue(new Vector4(rc.SampleIndex, rc.SampleCount, 0, 0));
-@@ -271,6 +360,14 @@ public sealed class CrowdRenderer : IDisposable
+@@ -271,6 +365,16 @@ public sealed class CrowdRenderer : IDisposable
              {
                  var (d, t) = DrawBatch(rc, fx, v.Lods[k], v.Main[k]);
                  Stats.Draws += d; Stats.Triangles += t;
 +                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Unarmed[k], v.MainUnarmed[k]);
 +                Stats.Draws += d; Stats.Triangles += t;
 +                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.NoShield[k], v.MainNoShield[k]);
++                Stats.Draws += d; Stats.Triangles += t;
++                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.NoWeapon[k], v.MainNoWeapon[k]);
 +                Stats.Draws += d; Stats.Triangles += t;
 +                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Weapon[k], v.Props[0][k]);
 +                Stats.Draws += d; Stats.Triangles += t;
@@ -656,22 +756,22 @@ index c7e033f..05365a2 100644
              }
          }
      }
-@@ -279,7 +376,7 @@ public sealed class CrowdRenderer : IDisposable
+@@ -279,7 +383,7 @@ public sealed class CrowdRenderer : IDisposable
      {
          if (_count == 0) return;
          long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
 -        foreach (var v in _variants) for (int k = 0; k < 3; k++) v.Shadow[k].Count = 0;
-+        foreach (var v in _variants) for (int k = 0; k < 3; k++) { v.Shadow[k].Count = 0; v.ShadowUnarmed[k].Count = 0; v.ShadowNoShield[k].Count = 0; v.Props[0][k].Count = 0; v.Props[1][k].Count = 0; }
++        foreach (var v in _variants) for (int k = 0; k < 3; k++) { v.Shadow[k].Count = 0; v.ShadowUnarmed[k].Count = 0; v.ShadowNoShield[k].Count = 0; v.ShadowNoWeapon[k].Count = 0; v.Props[0][k].Count = 0; v.Props[1][k].Count = 0; }
          if (rc.ShadowCascade <= 0) { Stats.ShadowInstances = 0; Stats.ShadowDraws = 0; Stats.ShadowTriangles = 0; Stats.ShadowCulledCascade = 0; Stats.ShadowSelectMs = 0; }
          if (!rc.Features.Crowd) return;
          var frustum = rc.ShadowFrustum ?? rc.Frustum;
-@@ -299,7 +396,19 @@ public sealed class CrowdRenderer : IDisposable
+@@ -299,7 +403,19 @@ public sealed class CrowdRenderer : IDisposable
              var drawn = Drawn(i);
              var inst = level == 2 ? Coarse(drawn) : drawn;
              inst.Lod.X = 0; inst.Lod.Y = 0;
 -            _variants[a.Variant].Shadow[level].Add(inst);
 +            var sv = _variants[a.Variant];
-+            (a.Unarmed ? sv.ShadowUnarmed : a.NoShield ? sv.ShadowNoShield : sv.Shadow)[level].Add(inst);
++            (a.Unarmed ? sv.ShadowUnarmed : a.NoShield ? sv.ShadowNoShield : a.NoWeapon ? sv.ShadowNoWeapon : sv.Shadow)[level].Add(inst);
 +        }
 +        for (int i = 0; i < _propCount; i++)
 +        {
@@ -686,7 +786,7 @@ index c7e033f..05365a2 100644
          }
          Stats.ShadowSelectMs += System.Diagnostics.Stopwatch.GetElapsedTime(t0).TotalMilliseconds;
          var fx = rc.Effects.Get(CrowdEffectNames.Depth);
-@@ -308,6 +417,14 @@ public sealed class CrowdRenderer : IDisposable
+@@ -308,6 +424,16 @@ public sealed class CrowdRenderer : IDisposable
              {
                  var (d, t) = DrawBatch(rc, fx, v.Lods[k], v.Shadow[k]);
                  Stats.ShadowDraws += d; Stats.ShadowTriangles += t; Stats.ShadowInstances += v.Shadow[k].Count;
@@ -694,6 +794,8 @@ index c7e033f..05365a2 100644
 +                Stats.ShadowDraws += d; Stats.ShadowTriangles += t; Stats.ShadowInstances += v.ShadowUnarmed[k].Count;
 +                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.NoShield[k], v.ShadowNoShield[k]);
 +                Stats.ShadowDraws += d; Stats.ShadowTriangles += t; Stats.ShadowInstances += v.ShadowNoShield[k].Count;
++                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.NoWeapon[k], v.ShadowNoWeapon[k]);
++                Stats.ShadowDraws += d; Stats.ShadowTriangles += t; Stats.ShadowInstances += v.ShadowNoWeapon[k].Count;
 +                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Weapon[k], v.Props[0][k]);
 +                Stats.ShadowDraws += d; Stats.ShadowTriangles += t;
 +                (d, t) = DrawBatch(rc, fx, v.Lods[k].Vertices, v.Shield[k], v.Props[1][k]);
@@ -701,7 +803,7 @@ index c7e033f..05365a2 100644
              }
      }
  
-@@ -349,25 +466,35 @@ public sealed class CrowdRenderer : IDisposable
+@@ -349,25 +475,36 @@ public sealed class CrowdRenderer : IDisposable
      }
  
      (int draws, long tris) DrawBatch(RenderContext rc, Effect fx, GpuPart mesh, CrowdBatch b)
@@ -737,6 +839,7 @@ index c7e033f..05365a2 100644
 +            {
 +                v.Main[k].Dispose(); v.Shadow[k].Dispose(); v.MainUnarmed[k].Dispose(); v.ShadowUnarmed[k].Dispose();
 +                v.MainNoShield[k].Dispose(); v.ShadowNoShield[k].Dispose(); v.NoShield[k].ib?.Dispose();
++                v.MainNoWeapon[k].Dispose(); v.ShadowNoWeapon[k].Dispose(); v.NoWeapon[k].ib?.Dispose();
 +                v.Props[0][k].Dispose(); v.Props[1][k].Dispose();
 +                v.Unarmed[k].ib?.Dispose(); v.Weapon[k].ib?.Dispose(); v.Shield[k].ib?.Dispose();
 +            }
@@ -744,10 +847,10 @@ index c7e033f..05365a2 100644
          foreach (var a in _ownAssets) a.Dispose();
          Bank.Dispose();
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs
-index 60946b5..e3f250b 100644
+index 60946b5..ac7c9b5 100644
 --- a/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs
 +++ b/prototypes/m7-gfx2/Gfx.Chars/Crowd/CrowdTypes.cs
-@@ -101,4 +101,9 @@ public struct CrowdAgent
+@@ -101,4 +101,13 @@ public struct CrowdAgent
      public float Blend;
      public CrowdLook Look;
      public bool Hidden;
@@ -756,9 +859,13 @@ index 60946b5..e3f250b 100644
 +    /// <summary>Polish2 (critic rank 7): drawn without his shield but with his weapon (a routing soldier who has thrown
 +    /// his shield away in flight); ignored when <see cref="Unarmed"/> is set.</summary>
 +    public bool NoShield;
++    /// <summary>Polish3 (critic rank 2): drawn with his shield but without his weapon (a victor standing at rest after the
++    /// battle, his spear grounded or stacked: held level at the hip it passed through the men beside him); ignored when
++    /// <see cref="Unarmed"/> or <see cref="NoShield"/> is set.</summary>
++    public bool NoWeapon;
  }
 diff --git a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
-index cf7b14d..f354ce6 100644
+index cf7b14d..a12720b 100644
 --- a/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
 +++ b/prototypes/m7-gfx2/Gfx.Chars/Rendering/CharEffects.cs
 @@ -82,6 +82,44 @@ void skinVertex(out vec3 sp, out vec3 sn, out vec3 st) {
@@ -844,7 +951,7 @@ index cf7b14d..f354ce6 100644
      // specular, two lobes
      float nol = max(dot(N, L), 0.0); float nov = max(dot(N, V), 1e-4);
      vec3 H = normalize(V + L); float noh = max(dot(N, H), 0.0); float voh = max(dot(V, H), 0.0);
-@@ -190,6 +236,10 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+@@ -190,14 +236,24 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
      vec3 irr; vec3 pre; vec3 R = reflect(-V, N);
      if (LightModel.y > 0.5) { irr = shIrradiance(Nr) * IblParams.y; pre = iblSpecular(R, r1) * IblParams.z; }
      else { irr = mix(AmbientGround.rgb, AmbientSky.rgb, Nr.y * 0.5 + 0.5) * PI; pre = mix(AmbientGround.rgb, AmbientSky.rgb, R.y * 0.5 + 0.5); }
@@ -855,7 +962,12 @@ index cf7b14d..f354ce6 100644
      vec2 dfg = envBrdf(nov, r1);
      float so = clamp(pow(nov + ao, exp2(-16.0 * a1 - 1.0)) - 1.0 + ao, 0.0, 1.0);
      float skyVis = mix(0.8, 1.0, shadow);
-@@ -197,7 +247,8 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
++    // polish3 (critic rank 4): skin in shade is warm brown, not cold grey: light that entered the lit skin nearby
++    // scatters out in the shade (and faces, clothes and ground bounce warm light into it), so the sky light on shaded
++    // skin is warmed and a little lifted in red, the more the less of the sun reaches it
++    float shaded = 1.0 - min(shadow, clamp(dot(Nr, L) * 3.0 + 0.5, 0.0, 1.0));
++    irr *= mix(vec3(1.0), vec3(1.16, 0.98, 0.84), shaded);
+     vec3 amb = albedo * irr / PI * ao * skyVis + pre * (0.028 * dfg.x + dfg.y) * so * specMul * skyVis;
      gbAmbient(amb); // stage render2: the ambient share for screen-space AO
      // transmission through thin parts, lit from behind
      float back = pow(clamp(dot(V, -L), 0.0, 1.0), 4.0) * clamp(1.0 - ndl.r, 0.0, 1.0);
@@ -865,7 +977,22 @@ index cf7b14d..f354ce6 100644
      return direct + spec + amb + trans;
  }";
  
-@@ -236,6 +287,9 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+@@ -217,7 +273,13 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+     // roughness: lips smoother, a little oilier at nose and forehead (mask.g holds the oily zone)
+     float rough = SkinParams.y - 0.12 * mk.r - 0.06 * mk.g;
+     // trust the smooth wrapped terminator where the surface turns from the sun; the shadow map only where N.L > 0
+-    float shadow = mix(1.0, shadowPcf(v_lpos), smoothstep(0.0, 0.3, dot(Ng, SunDir.xyz)));
++    // polish3 (critic rank 4): a wider, softer penumbra on skin (the shadow edge cut faces with a hard, ragged line):
++    // the shadow map read at five points 1-3 cm apart in the light's view (cascade 0 of scenes A and D), averaged
++    float sm = shadowPcf(v_lpos);
++    vec2 so = vec2(0.0022, 0.0008);
++    sm = (sm * 2.0 + shadowPcf(v_lpos + vec4(so, 0.0, 0.0)) + shadowPcf(v_lpos - vec4(so, 0.0, 0.0))
++        + shadowPcf(v_lpos + vec4(-so.y, so.x, 0.0, 0.0)) + shadowPcf(v_lpos + vec4(so.y, -so.x, 0.0, 0.0))) / 6.0;
++    float shadow = mix(1.0, sm, smoothstep(0.0, 0.3, dot(Ng, SunDir.xyz)));
+     vec3 c = shadeSkin(albedo, N, Ng, rough, SkinParams.x, ao, shadow, v_wpos, mk.a, 1.0 - 0.7 * mouth);
+     gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);";
+ 
+@@ -236,6 +298,9 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
      vec2 off = vec2(dot(V, T), dot(V, B)) / max(dot(V, Ng), 0.25);
      vec2 uv = v_uv - off * EyeParams.y * corneaZone;
      vec3 base = srgbToLinear(texture2D(EyeTex, uv).rgb);
@@ -875,7 +1002,7 @@ index cf7b14d..f354ce6 100644
      float limbal = 1.0 - 0.45 * smoothstep(0.30, 0.50, r) * smoothstep(0.62, 0.50, r) * step(0.0, lp.z);
      base *= limbal;
      float socket = smoothstep(-0.35, 0.75, lp.z) * (1.0 - 0.45 * smoothstep(0.05, 0.75, lp.y)) * (1.0 - 0.2 * smoothstep(0.2, 0.9, -lp.y));
-@@ -261,7 +315,20 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+@@ -261,7 +326,20 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
      vec2 dfg = envBrdf(nov, EyeParams.z);
      // the brow and lids shade the upper part of the reflection
      float lid = 1.0 - 0.6 * clamp(Rr.y, 0.0, 1.0);
@@ -897,7 +1024,7 @@ index cf7b14d..f354ce6 100644
      gl_FragColor = vec4(max(applyFog(c, v_wpos) - applyFog(vec3(0.0), v_wpos), vec3(0.0)), 1.0);";
  
      /// <summary>
-@@ -300,6 +367,10 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+@@ -300,6 +378,10 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
      vec3 hairAmb = albedo * irr / PI * mix(0.35, 1.0, layer) * mix(0.75, 1.0, shadow);
      gbAmbient(hairAmb); // stage render2: the ambient share for screen-space AO
      c += hairAmb;
@@ -908,7 +1035,7 @@ index cf7b14d..f354ce6 100644
      gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);";
  
      /// <summary>
-@@ -356,6 +427,9 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
+@@ -356,6 +438,9 @@ vec3 shadeSkin(vec3 albedo, vec3 N, vec3 Ng, float rough, float sss, float ao, f
      vec3 furAmb = albedo * irr / PI * mix(0.35, 1.0, frac) * mix(0.75, 1.0, shadow);
      gbAmbient(furAmb); // stage render2: the ambient share for screen-space AO
      c += furAmb;
@@ -918,7 +1045,7 @@ index cf7b14d..f354ce6 100644
      gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);";
  
      /// <summary>
-@@ -400,6 +474,7 @@ vec3 envReflect(vec3 R, float rough) {
+@@ -400,6 +485,7 @@ vec3 envReflect(vec3 R, float rough) {
      return mix(sky, ground, below);
  }
  vec3 shadeSurface(vec3 albedo, float rough, float metal, float ao, vec3 N, vec3 Ng, vec3 wpos, float shadow, float sheen) {
@@ -1123,10 +1250,10 @@ index 0000000..013853e
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BenchBase.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BenchBase.cs
 new file mode 100644
-index 0000000..c841e1d
+index 0000000..f465fb3
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/BenchBase.cs
-@@ -0,0 +1,325 @@
+@@ -0,0 +1,335 @@
 +using System.Globalization;
 +using Gfx.Chars.Rendering;
 +using Gfx.Engine.Rendering;
@@ -1214,10 +1341,18 @@ index 0000000..c841e1d
 +    protected BenchCast EnsureCast() => Cast ??= new BenchCast(Device);
 +    bool _built;
 +
++    /// <summary>Polish3 (critic rank 7): hearth smoke over the village's roofs (null when the plan has no hearths).</summary>
++    SmokeLayer? _hearths;
++
 +    protected override void OnLoad()
 +    {
 +        base.OnLoad();
 +        Rain = new RainLayer(Device);
++        if (Env.Settlement is { Hearths.Count: > 0 } village)
++        {
++            _hearths = new SmokeLayer(Device);
++            foreach (var h in village.Hearths) _hearths.Add(SmokeSource.Hearth(h));
++        }
 +        Build();
 +        BuildShots();
 +        _built = true;
@@ -1328,6 +1463,7 @@ index 0000000..c841e1d
 +    {
 +        base.DrawTransparent(rc);
 +        DrawExtraTransparent(rc);
++        _hearths?.Draw(rc);
 +        Rain.Draw(rc);
 +    }
 +
@@ -1447,6 +1583,7 @@ index 0000000..c841e1d
 +    {
 +        Cast?.Dispose();
 +        Rain?.Dispose();
++        _hearths?.Dispose();
 +        base.Dispose();
 +    }
 +
@@ -2177,10 +2314,10 @@ index 0000000..e8bf40a
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
 new file mode 100644
-index 0000000..794b6f3
+index 0000000..9bfe3df
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
-@@ -0,0 +1,707 @@
+@@ -0,0 +1,713 @@
 +using System.Globalization;
 +using Gfx.Chars.Animation;
 +using Gfx.Engine.Cameras;
@@ -2354,7 +2491,8 @@ index 0000000..794b6f3
 +    {
 +        Battle ??= BenchBattle.Load();
 +        var m = Env.Terrain.Mesh;
-+        Troops = new TraceCrowd(Device, Battle, m.HeightAt) { ShowDead = Content == DeathContent.Shown };
++        // polish3 (critic rank 2): the victors stand at rest with their spears grounded (TraceCrowd.RestWithoutWeapon)
++        Troops = new TraceCrowd(Device, Battle, m.HeightAt) { ShowDead = Content == DeathContent.Shown, RestWithoutWeapon = true };
 +        _tEnd = Battle.Duration;
 +        Outcome = AftermathPlan.From(Battle, e => Troops.Place(e, _tEnd).pos, Content);
 +        _smoke = new SmokeLayer(Device);
@@ -2752,8 +2890,13 @@ index 0000000..794b6f3
 +        // 7 the fallen, or the cut-away (death content setting)
 +        if (plan.Content == DeathContent.Shown)
 +        {
-+            var fT = G(fallen, 0.3f);
-+            var fEye = Solve(G(fallen - d * 9f - s * 5f, 5.5f), fT, occ, G, 90f);
++            // polish3 (critic rank 3): lower and closer, a few bodies in the foreground and the prisoners kneeling beyond
++            // (the view runs from the far side of the fallen towards the prisoners); it was 5.5 m up, 10 m off, looking down
++            var toP = new Vector3(prisoners.X - fallen.X, 0f, prisoners.Z - fallen.Z);
++            toP = toP.LengthSquared() > 4f ? Vector3.Normalize(toP) : -d;
++            var acr = new Vector3(-toP.Z, 0f, toP.X);
++            var fT = G(fallen + toP * 5f, 0.6f);
++            var fEye = Solve(G(fallen - toP * 4.5f + acr * 2.2f, 1.9f), fT, occ, G, 60f);
 +            var fSide = Vector3.Normalize(Vector3.Cross(Vector3.Normalize(fT - fEye), Vector3.Up));
 +            beats.Add(Beat("fallen", fEye, fT, 0.75f, 0.1f, fSide * 4f, fSide * 4f, 5f, h, "the fallen where they fell"));
 +        }
@@ -3041,10 +3184,10 @@ index 0000000..3cc9dc3
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
 new file mode 100644
-index 0000000..5bba05e
+index 0000000..7dc696a
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
-@@ -0,0 +1,698 @@
+@@ -0,0 +1,890 @@
 +using System.Globalization;
 +using System.Text.Json;
 +using Gfx.Chars.Crowd;
@@ -3153,6 +3296,10 @@ index 0000000..5bba05e
 +    /// <summary>Polish2 (critic rank 3): each fallen body's settle offset (m, at most <see cref="MaxSettle"/>; zero when he
 +    /// does not die).</summary>
 +    readonly Vector2[] _deadOffset;
++    /// <summary>Polish3 (critic rank 3): each prisoner's move out of the fallen (m, at most <see cref="PrisonerMaxMove"/>;
++    /// zero for everyone else) and the facing he kneels in (towards the victors; NaN for everyone else).</summary>
++    readonly Vector2[] _prisonerOffset;
++    readonly float[] _prisonerYaw;
 +    readonly List<CrowdProp> _props = new();
 +    /// <summary>Polish2: the entity each of <see cref="_props"/> belongs to (read only through <see cref="LastPropOwners"/>).</summary>
 +    readonly List<int> _propOwners = new();
@@ -3163,6 +3310,8 @@ index 0000000..5bba05e
 +    readonly int[][] _events;         // per entity: indices of Fire events it made and Damage events it took (time order)
 +    readonly float[] _phase;
 +    readonly int _idle, _idle2, _walk, _jog, _run, _thrust, _swingOver, _swingSide, _block, _kneel, _cower, _death, _death2, _stumble, _surrender;
++    // polish3 (critic rank 3): the two more surrender poses
++    readonly int _surrenderHead, _surrenderNeck;
 +    // polish1: the idles' pose variants (heads up; head, trunk and arm offsets), picked per entity
 +    readonly int[] _idleV, _idle2V;
 +    /// <summary>Death content (presentation setting): when false, the dead are not drawn at all.</summary>
@@ -3255,6 +3404,7 @@ index 0000000..5bba05e
 +        }
 +        (_deadYaw, _deadBack) = LayOutFallen(tr, _deathMs, _yaw);
 +        _deadOffset = SettleFallen(tr, _deathMs, _deadYaw, _deadBack);
++        (_prisonerOffset, _prisonerYaw) = PlacePrisoners(tr, _deadYaw, _deadBack, _deadOffset);
 +        _routDrops.AddRange(RoutDrops(battle, _yaw));
 +        _shieldThrown = new int[tr.Entities.Count]; _weaponThrown = new int[tr.Entities.Count];
 +        Array.Fill(_shieldThrown, -1); Array.Fill(_weaponThrown, -1);
@@ -3265,6 +3415,8 @@ index 0000000..5bba05e
 +        _kneel = CrowdRenderer.Clip("kneel"); _cower = CrowdRenderer.Clip("cower"); _death = CrowdRenderer.Clip("death_fwd");
 +        _death2 = CrowdRenderer.Clip("death_back"); _stumble = CrowdRenderer.Clip("stumble");
 +        _surrender = CrowdRenderer.Clip(Gfx.Chars.Crowd.CrowdPoseVariants.Surrender);
++        _surrenderHead = CrowdRenderer.Clip(Gfx.Chars.Crowd.CrowdPoseVariants.SurrenderHead);
++        _surrenderNeck = CrowdRenderer.Clip(Gfx.Chars.Crowd.CrowdPoseVariants.SurrenderNeck);
 +        _idleV = Enumerable.Range(0, 4).Select(k => CrowdRenderer.Clip("idle@" + k)).ToArray();
 +        _idle2V = Enumerable.Range(0, 4).Select(k => CrowdRenderer.Clip("idle_proud@" + k)).ToArray();
 +    }
@@ -3410,6 +3562,141 @@ index 0000000..5bba05e
 +        return offset;
 +    }
 +
++    /// <summary>Polish3: the least distance (m) a kneeling prisoner keeps from a fallen body's centre line, from another
++    /// prisoner and from a soldier standing on the field; the farthest he is moved; the seconds he takes to get there.</summary>
++    public const float PrisonerClear = 0.75f, StandingClear = 0.7f, PrisonerMaxMove = 4f, PrisonerWalkSeconds = 3f;
++    /// <summary>Polish3: the least distance (m) from a standing man to a prisoner's thrown-down weapon (as a 2.2 m segment).</summary>
++    public const float WeaponClear = 0.4f;
++
++    /// <summary>
++    /// Polish3 (critic rank 3; PRESENTATION ONLY): the prisoners kneel apart from the fallen. The trace leaves the men who
++    /// surrendered where they stood, in the middle of the dead, so the aftermath read as one heap of kneeling men on
++    /// corpses. Each man the trace has surrendered at its end is moved, in entity order, by the first offset of a fixed
++    /// set (0 to <see cref="PrisonerMaxMove"/> m in 0.25 m rings, sixteen directions from straight towards the victors (the
++    /// side with more men still active at the end; their centroid) round to straight away) that keeps him
++    /// <see cref="PrisonerClear"/> m from every fallen body (as settled), from every prisoner already placed, and
++    /// <see cref="StandingClear"/> m from every man still standing; with none clear, by the one that leaves the most room
++    /// (the earlier on a tie). He kneels facing the victors. A pure function of the trace; the trace is not touched.
++    /// </summary>
++    public static (Vector2[] offset, float[] yaw) PlacePrisoners(Gfx.Units.BattleTrace tr, float[] deadYaw, bool[] deadBack, Vector2[] deadOffset)
++    {
++        int n = tr.Entities.Count, last = tr.StepCount - 1;
++        var offset = new Vector2[n]; var yaw = new float[n];
++        Array.Fill(yaw, float.NaN);
++        Vector2 At(int e) { var (x, y) = tr.PosMm(last, e); return new Vector2(x / 1000f, y / 1000f); }
++        var bodies = new List<(Vector2 a, Vector2 b)>(); var standing = new List<Vector2>(); var prisoners = new List<int>();
++        var activeSum = new Vector2[2]; var activeN = new int[2];
++        for (int e = 0; e < n; e++)
++        {
++            var st = BenchBattle.Map(tr.State(last, e));
++            if (st == TraceSoldierState.Dead && !float.IsNaN(deadYaw[e]))
++            {
++                var a = At(e) + deadOffset[e];
++                bodies.Add((a, a + new Vector2(MathF.Sin(deadYaw[e]), MathF.Cos(deadYaw[e])) * (deadBack[e] ? -1f : 1f) * FallenLength));
++            }
++            else if (st == TraceSoldierState.Surrendered) prisoners.Add(e);
++            else if (st is TraceSoldierState.Active or TraceSoldierState.Routing)
++            {
++                standing.Add(At(e));
++                if (st == TraceSoldierState.Active) { int sd = tr.Entities[e].Side & 1; activeSum[sd] += At(e); activeN[sd]++; }
++            }
++        }
++        if (prisoners.Count == 0) return (offset, yaw);
++        int victor = activeN[1] > activeN[0] ? 1 : 0;
++        Vector2 victors;
++        if (activeN[victor] > 0) victors = activeSum[victor] / activeN[victor];
++        else { victors = Vector2.Zero; foreach (int e in prisoners) victors += At(e); victors /= prisoners.Count; }
++        // a coarse grid of the bodies and the standing (cells of 4 m), so each test looks at its neighbourhood only
++        const float cell = 4f;
++        static (int, int) Key(Vector2 p) => ((int)MathF.Floor(p.X / cell), (int)MathF.Floor(p.Y / cell));
++        var bodyGrid = new Dictionary<(int, int), List<int>>(); var standGrid = new Dictionary<(int, int), List<int>>();
++        for (int i = 0; i < bodies.Count; i++)
++        {
++            var mid = (bodies[i].a + bodies[i].b) * 0.5f;
++            var k = Key(mid);
++            if (!bodyGrid.TryGetValue(k, out var l)) bodyGrid[k] = l = new List<int>();
++            l.Add(i);
++        }
++        for (int i = 0; i < standing.Count; i++)
++        {
++            var k = Key(standing[i]);
++            if (!standGrid.TryGetValue(k, out var l)) standGrid[k] = l = new List<int>();
++            l.Add(i);
++        }
++        var placed = new List<Vector2>();
++        var placedGrid = new Dictionary<(int, int), List<int>>();
++        float[] turns = { 0f, 22.5f, -22.5f, 45f, -45f, 67.5f, -67.5f, 90f, -90f, 112.5f, -112.5f, 135f, -135f, 157.5f, -157.5f, 180f };
++        foreach (int e in prisoners)
++        {
++            var p0 = At(e);
++            var u = victors - p0;
++            u = u.LengthSquared() > 1e-6f ? Vector2.Normalize(u) : new Vector2(0f, 1f);
++            // the weapon he throws down before him (KitPlacement, in his frame: x to his left, z ahead) lies across his
++            // front: a spear about 2.2 m long, here as a segment along his left-right axis through its centre
++            var (wLocal, _, _, _, _) = KitPlacement(tr.Entities[e].Id, true);
++            var left = new Vector2(u.Y, -u.X);
++            // the room at q: the least ratio of distance to the required clearance over everything near (>= 1: clear);
++            // the weapon keeps WeaponClear from every man standing (no spear lying under a bystander's feet, which a low
++            // camera shows as a spear through his hips)
++            float Room(Vector2 q)
++            {
++                float room = float.MaxValue;
++                var wc = q + left * wLocal.X + u * wLocal.Y;
++                var w0 = wc - left * 1.1f; var w1 = wc + left * 1.1f;
++                var (kx, ky) = Key(q);
++                for (int dx = -1; dx <= 1; dx++)
++                    for (int dy = -1; dy <= 1; dy++)
++                    {
++                        if (bodyGrid.TryGetValue((kx + dx, ky + dy), out var bl))
++                            foreach (int i in bl) room = MathF.Min(room, PointSegment(q, bodies[i].a, bodies[i].b) / PrisonerClear);
++                        if (standGrid.TryGetValue((kx + dx, ky + dy), out var sl))
++                            foreach (int i in sl)
++                            {
++                                room = MathF.Min(room, Vector2.Distance(q, standing[i]) / StandingClear);
++                                room = MathF.Min(room, PointSegment(standing[i], w0, w1) / WeaponClear);
++                            }
++                        if (placedGrid.TryGetValue((kx + dx, ky + dy), out var pl))
++                            foreach (int i in pl) room = MathF.Min(room, Vector2.Distance(q, placed[i]) / PrisonerClear);
++                    }
++                return room;
++            }
++            Vector2 best = Vector2.Zero; float bestRoom = Room(p0);
++            if (bestRoom < 1f)
++            {
++                bool found = false;
++                for (int ring = 1; ring <= (int)(PrisonerMaxMove / 0.25f) && !found; ring++)
++                    foreach (float turn in turns)
++                    {
++                        float a = MathHelper.ToRadians(turn), c = MathF.Cos(a), sn = MathF.Sin(a);
++                        var o = new Vector2(u.X * c - u.Y * sn, u.X * sn + u.Y * c) * (ring * 0.25f);
++                        float r = Room(p0 + o);
++                        if (r >= 1f) { best = o; bestRoom = r; found = true; break; }
++                        if (r > bestRoom + 1e-4f) { bestRoom = r; best = o; }
++                    }
++            }
++            offset[e] = best;
++            var q = p0 + best;
++            var toV = victors - q;
++            yaw[e] = toV.LengthSquared() > 1e-6f ? MathF.Atan2(toV.X, toV.Y) : 0f;
++            placed.Add(q);
++            var pk = Key(q);
++            if (!placedGrid.TryGetValue(pk, out var plist)) placedGrid[pk] = plist = new List<int>();
++            plist.Add(placed.Count - 1);
++        }
++        return (offset, yaw);
++    }
++
++    /// <summary>Distance from a point to the segment [a, b] in the plane.</summary>
++    public static float PointSegment(Vector2 p, Vector2 a, Vector2 b)
++    {
++        var d = b - a; float l2 = d.LengthSquared();
++        float t = l2 > 1e-12f ? Math.Clamp(Vector2.Dot(p - a, d) / l2, 0f, 1f) : 0f;
++        return Vector2.Distance(p, a + d * t);
++    }
++
++    /// <summary>Polish3: entity <paramref name="e"/>'s move as a prisoner (m; zero when he does not surrender).</summary>
++    public Vector2 PrisonerOffset(int e) => _prisonerOffset[e];
++
 +    /// <summary>
 +    /// Polish2 (critic rank 7; PRESENTATION ONLY): the kit men throw away when they run. Every soldier the trace has
 +    /// routing and never fighting again drops his shield on the way, 2 to 6 steps after he first routs (but on a step he
@@ -3467,11 +3754,26 @@ index 0000000..5bba05e
 +        return list;
 +    }
 +
++    /// <summary>Polish3 (critic rank 2): soldiers standing at rest (not fighting, not moving) are drawn without their
++    /// weapon, their spears grounded (the aftermath's victors: held level at the hip, the spears passed through the men
++    /// beside them in the close beats). Off by default; scene D turns it on.</summary>
++    public bool RestWithoutWeapon { get; set; }
++
 +    /// <summary>Polish2: draw the kit dropped in flight (on by default).</summary>
 +    public bool DropKitInFlight { get; set; } = true;
 +
-+    /// <summary>Polish2: whether a surrendered soldier holds his hands up (about 55 %) or kneels bowed; from the entity id.</summary>
++    /// <summary>Polish2: whether a surrendered soldier holds his hands up (about 55 %) or kneels bowed; from the entity id.
++    /// Polish3: those who hold them up do so in one of three ways (<see cref="SurrenderPose"/>).</summary>
 +    public static bool SurrendersWithHandsUp(long entityId) => (CrowdLook.Hash((uint)entityId ^ 0x3B9ACA07u) >> 8) * (1f / 16777216f) < 0.55f;
++
++    /// <summary>Polish3 (critic rank 3): a prisoner's pose, from the entity id: 0 bowed with the hands down (about 45 %, the
++    /// polish2 share), 1 hands raised (about 22 %), 2 hands on the head (about 18 %), 3 hands behind the neck (about 15 %).</summary>
++    public static int SurrenderPose(long entityId)
++    {
++        if (!SurrendersWithHandsUp(entityId)) return 0;
++        float u = (CrowdLook.Hash((uint)entityId ^ 0x1B873593u) >> 8) * (1f / 16777216f);
++        return u < 0.40f ? 1 : u < 0.73f ? 2 : 3;
++    }
 +
 +    /// <summary>Polish2: entity <paramref name="e"/>'s settle offset (m; zero when he does not fall).</summary>
 +    public Vector2 SettleOffset(int e) => _deadOffset[e];
@@ -3498,6 +3800,28 @@ index 0000000..5bba05e
 +                    new Vector2(0.55f + 0.25f * U(3), 0.45f + 0.4f * U(4)), (U(6) - 0.5f) * 1.4f, flipped);
 +        return (new Vector2(-0.55f - 0.35f * U(0), 0.2f + 0.8f * U(1)), (U(2) - 0.5f) * 1.2f,
 +                new Vector2(0.55f + 0.35f * U(3), 0.1f + 0.7f * U(4)), (U(6) - 0.5f) * 2.0f, flipped);
++    }
++
++    /// <summary>Polish3: the tilt of a dropped shield (degrees, 10 to 40) and how far its centre stands above the ground (m).</summary>
++    public static (float tiltDeg, float lift) ShieldTilt(long id)
++    {
++        uint h = CrowdLook.Hash((uint)id ^ 0x68E31DA4u);
++        float u = (h >> 8) * (1f / 16777216f), v = (CrowdLook.Hash(h ^ 0xB5297A4Du) >> 8) * (1f / 16777216f);
++        float tilt = 10f + 30f * u;
++        // its low rim pressed into the turf: the centre a little lower than a rigid disc resting on its rim would stand
++        float lift = 0.40f * MathF.Sin(MathHelper.ToRadians(tilt)) * (0.62f + 0.2f * v) - 0.01f;
++        return (tilt, lift);
++    }
++
++    /// <summary>
++    /// Polish3 (critic rank 3; PRESENTATION ONLY): a dropped shield does not lie flat as a disc: it rests tilted 10 to 40
++    /// degrees on its rim (on a body or the turf), the low rim pressed into the grass; turned about its own horizontal axis
++    /// in its lying frame, before the item's turn and place. A pure function of the id.
++    /// </summary>
++    public static Matrix ShieldRest(long id)
++    {
++        var (tilt, lift) = ShieldTilt(id);
++        return Matrix.CreateRotationX(MathHelper.ToRadians(tilt)) * Matrix.CreateTranslation(0f, lift, 0f);
 +    }
 +
 +    /// <summary>Closest distance between segments [a0, a1] and [b0, b1] in the plane.</summary>
@@ -3607,9 +3931,19 @@ index 0000000..5bba05e
 +                    // kneel bowed with their hands down (the kneel with the cower blended in), so a field of prisoners is
 +                    // not one gesture repeated
 +                    float since = MathF.Max(0f, now - _surrenderMs[e] / 1000f);
-+                    if (SurrendersWithHandsUp(tr.Entities[e].Id))
++                    // polish3 (critic rank 3): he moves out of the fallen over his first seconds as a prisoner (PlacePrisoners)
++                    // and kneels facing the victors
++                    if (!float.IsNaN(_prisonerYaw[e]))
 +                    {
-+                        a.ClipA = _surrender; a.TimeA = since + off;
++                        float w = Math.Clamp(since / PrisonerWalkSeconds, 0f, 1f); w = w * w * (3f - 2f * w);
++                        var po = _prisonerOffset[e] * w;
++                        if (po != Vector2.Zero) { a.Position.X += po.X; a.Position.Z += po.Y; a.Position.Y = _height(a.Position.X, a.Position.Z); }
++                        a.Yaw = LerpAngle(a.Yaw, _prisonerYaw[e], w);
++                    }
++                    int pose = SurrenderPose(tr.Entities[e].Id);
++                    if (pose > 0)
++                    {
++                        a.ClipA = pose == 1 ? _surrender : pose == 2 ? _surrenderHead : _surrenderNeck; a.TimeA = since + off;
 +                        a.ClipB = _kneel; a.TimeB = since;
 +                        a.Blend = 0.12f * off;
 +                    }
@@ -3681,7 +4015,7 @@ index 0000000..5bba05e
 +            bool engaged = hiIdx > 0 && now - tr.Events[evs[hiIdx - 1]].TimeMs / 1000f < 8f;
 +            uint pk = CrowdLook.Hash((uint)e ^ 0x3C6EF372u);
 +            if (engaged) { a.ClipA = _block; a.TimeA = 0.35f + off * 0.3f; a.ClipB = _idle2V[(pk >> 2) & 3u]; a.TimeB = now + off * 3f; a.Blend = 0.3f; }
-+            else { a.ClipA = _idleV[pk & 3u]; a.TimeA = now + off * 7.8f; a.ClipB = _idle2V[(pk >> 2) & 3u]; a.TimeB = now + off * 3.1f + 1.7f; a.Blend = (CrowdLook.Hash((uint)e ^ 0x6C8E9CF5u) >> 8) * (1f / 16777216f); }
++            else { a.ClipA = _idleV[pk & 3u]; a.TimeA = now + off * 7.8f; a.ClipB = _idle2V[(pk >> 2) & 3u]; a.TimeB = now + off * 3.1f + 1.7f; a.Blend = (CrowdLook.Hash((uint)e ^ 0x6C8E9CF5u) >> 8) * (1f / 16777216f); a.NoWeapon = RestWithoutWeapon; }
 +        }
 +        Crowd.SetAgents(_agents);
 +        // polish2 (critic rank 3): the kit of every disarmed soldier drawn, laid on the ground by KitPlacement
@@ -3704,7 +4038,7 @@ index 0000000..5bba05e
 +                return Matrix.CreateRotationY(yawE + turn) * Matrix.CreateTranslation(w);
 +            }
 +            if (v.HasWeapon && !Thrown(_weaponThrown[e])) { _props.Add(new CrowdProp { Variant = a.Variant, Item = CarriedItem.Weapon, World = At(wp, wt), Look = a.Look }); _propOwners.Add(e); }
-+            if (v.HasShield && !Thrown(_shieldThrown[e])) { _props.Add(new CrowdProp { Variant = a.Variant, Item = CarriedItem.Shield, World = At(sp, st), Look = a.Look, Flipped = flip }); _propOwners.Add(e); }
++            if (v.HasShield && !Thrown(_shieldThrown[e])) { _props.Add(new CrowdProp { Variant = a.Variant, Item = CarriedItem.Shield, World = ShieldRest(tr.Entities[e].Id) * At(sp, st), Look = a.Look, Flipped = flip }); _propOwners.Add(e); }
 +        }
 +        // polish2 (critic rank 7): the kit thrown away in flight, from the step it was dropped
 +        if (DropKitInFlight)
@@ -3715,7 +4049,8 @@ index 0000000..5bba05e
 +                if (d.item == CarriedItem.Weapon ? !v.HasWeapon : !v.HasShield) continue;
 +                var w = new Vector3(d.at.X, _height(d.at.X, d.at.Y), d.at.Y);
 +                bool flip = (CrowdLook.Hash((uint)d.e ^ 0x6A09E667u) & 3u) == 0u;
-+                _props.Add(new CrowdProp { Variant = _variant[d.e], Item = d.item, World = Matrix.CreateRotationY(d.turn) * Matrix.CreateTranslation(w), Look = _look[d.e], Flipped = flip });
++                var rest = d.item == CarriedItem.Shield ? ShieldRest(tr.Entities[d.e].Id ^ 0x5A5A5A5AL) : Matrix.Identity;
++                _props.Add(new CrowdProp { Variant = _variant[d.e], Item = d.item, World = rest * Matrix.CreateRotationY(d.turn) * Matrix.CreateTranslation(w), Look = _look[d.e], Flipped = flip });
 +                _propOwners.Add(d.e);
 +            }
 +        Crowd.SetProps(System.Runtime.InteropServices.CollectionsMarshal.AsSpan(_props));
@@ -4005,7 +4340,7 @@ index 0000000..4f6246c
 +    }
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Engine/Effects/GlslLib.cs b/prototypes/m7-gfx2/Gfx.Engine/Effects/GlslLib.cs
-index f6b9b50..8cb0c0a 100644
+index f6b9b50..a53ce18 100644
 --- a/prototypes/m7-gfx2/Gfx.Engine/Effects/GlslLib.cs
 +++ b/prototypes/m7-gfx2/Gfx.Engine/Effects/GlslLib.cs
 @@ -46,7 +46,8 @@ public static class GlslLib
@@ -4179,7 +4514,7 @@ index f6b9b50..8cb0c0a 100644
  }
  
  // ---------------------------------------------------------------- BRDF (GGX, height-correlated Smith, Schlick)
-@@ -190,9 +282,27 @@ vec3 iblSpecular(vec3 r, float rough) {
+@@ -190,9 +282,50 @@ vec3 iblSpecular(vec3 r, float rough) {
  }
  vec2 envBrdf(float nov, float rough) { return texture2D(BrdfLut, vec2(nov, rough)).rg; }
  
@@ -4193,7 +4528,9 @@ index f6b9b50..8cb0c0a 100644
 +    float w = Weather.x * mix(0.45, 1.0, u * u);
 +    float porosity = (1.0 - metal) * smoothstep(0.2, 0.75, rough);
 +    albedo *= mix(1.0, 0.42, w * porosity);
-+    rough = mix(rough, max(0.07 + 0.25 * (1.0 - u), 0.5 * rough), w * mix(0.55, 0.95, u));
++    // polish3 (critic rank 8): a porous surface keeps at least 0.6 of its roughness (was 0.5): wet soil between the tufts
++    // read as pale frost or cement
++    rough = mix(rough, max(0.07 + 0.25 * (1.0 - u), mix(0.5, 0.6, porosity) * rough), w * mix(0.55, 0.95, u));
 +}
 +
  // Full PBR (metal/rough): sun (GGX specular + Lambert) plus IBL (SH diffuse, prefiltered specular, split-sum LUT).
@@ -4203,35 +4540,55 @@ index f6b9b50..8cb0c0a 100644
 +// rough GGX ground lit and seen at grazing angles towards a low sun is otherwise ten times brighter in its sun-coloured
 +// specular than in its diffuse colour (the golden-hour meadow read as sand).
 +vec3 shadePbrFull(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3 geoN, vec3 wpos, float shadow);
++void shadePbrTerms(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3 geoN, vec3 wpos, float shadow, float specScale, out vec3 direct, out vec3 ambient);
++// Polish3 (critic rank 8): wetness only darkens and sharpens, it never lifts a surface's luminance: wet, the surface is
++// shaded twice (as it is and wet) and the wet result is scaled down to the dry one's luminance where it came out
++// brighter (a glossier film under a bright overcast sky turned the soil between the tufts pale). Standing water (the
++// terrain's puddles) is set by the caller before this, so it mirrors the sky in both. Dry: one evaluation, as before.
 +vec3 shadePbrFullSpec(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3 geoN, vec3 wpos, float shadow, float specScale) {
-+    wetSurface(albedo, rough, metal, geoN);
++    vec3 direct, ambient;
++    if (Weather.x > 0.0) {
++        vec3 dD, aD;
++        shadePbrTerms(albedo, rough, metal, ao, n, geoN, wpos, shadow, specScale, dD, aD);
++        vec3 albW = albedo; float roughW = rough;
++        wetSurface(albW, roughW, metal, geoN);
++        shadePbrTerms(albW, roughW, metal, ao, n, geoN, wpos, shadow, specScale, direct, ambient);
++        float lD = dot(dD + aD, vec3(0.2126, 0.7152, 0.0722)), lW = dot(direct + ambient, vec3(0.2126, 0.7152, 0.0722));
++        float k = lW > lD ? lD / max(lW, 1e-8) : 1.0;
++        direct *= k; ambient *= k;
++    } else {
++        shadePbrTerms(albedo, rough, metal, ao, n, geoN, wpos, shadow, specScale, direct, ambient);
++    }
++    gbAmbient(ambient); // stage render2: screen-space AO darkens this share only
++    return direct + ambient;
++}
++void shadePbrTerms(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3 geoN, vec3 wpos, float shadow, float specScale, out vec3 direct, out vec3 ambient) {
      rough = clamp(rough, 0.045, 1.0);
      vec3 V = normalize(CameraPos.xyz - wpos);
      float nov = max(dot(n, V), 1e-4);
-@@ -202,7 +312,7 @@ vec3 shadePbrFull(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3
+@@ -202,7 +335,7 @@ vec3 shadePbrFull(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3
      vec3 f0 = mix(vec3(0.04), albedo, metal);
      vec3 dc = albedo * (1.0 - metal);
      vec3 F = fSchlick(f0, voh);
 -    vec3 direct = (dc / PI * (vec3(1.0) - F) + F * (dGgx(noh, a) * vSmithGgx(nov, nol, a))) * SunColor.rgb * (nol * shadow);
-+    vec3 direct = (dc / PI * (vec3(1.0) - F) + F * (dGgx(noh, a) * vSmithGgx(nov, nol, a) * specScale)) * SunColor.rgb * (nol * shadow);
++    direct = (dc / PI * (vec3(1.0) - F) + F * (dGgx(noh, a) * vSmithGgx(nov, nol, a) * specScale)) * SunColor.rgb * (nol * shadow);
      vec3 irr; vec3 pre;
      vec3 R = reflect(-V, n);
      if (LightModel.y > 0.5) {
-@@ -220,10 +330,13 @@ vec3 shadePbrFull(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3
+@@ -220,9 +353,10 @@ vec3 shadePbrFull(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3
      float so = clamp(pow(nov + ao, exp2(-16.0 * a - 1.0)) - 1.0 + ao, 0.0, 1.0);
      // where the sun is blocked, part of the sky usually is too: dim the sky light a little in shadow
      float skyVis = mix(0.85, 1.0, shadow);
 -    vec3 ambient = dc * irr / PI * ao * skyVis + pre * specCol * (horizon * so * skyVis);
-+    vec3 ambient = dc * irr / PI * ao * skyVis + pre * specCol * (horizon * so * skyVis * specScale);
-     gbAmbient(ambient); // stage render2: screen-space AO darkens this share only
-     return direct + ambient;
- }
+-    gbAmbient(ambient); // stage render2: screen-space AO darkens this share only
+-    return direct + ambient;
++    ambient = dc * irr / PI * ao * skyVis + pre * specCol * (horizon * so * skyVis * specScale);
++}
 +vec3 shadePbrFull(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3 geoN, vec3 wpos, float shadow) {
 +    return shadePbrFullSpec(albedo, rough, metal, ao, n, geoN, wpos, shadow, 1.0);
-+}
+ }
  vec3 shadePbr(vec3 albedo, float rough, float metal, float ao, vec3 n, vec3 wpos, float shadow) {
      return shadePbrFull(albedo, rough, metal, ao, n, n, wpos, shadow);
- }
 diff --git a/prototypes/m7-gfx2/Gfx.Engine/Effects/PostEffects.cs b/prototypes/m7-gfx2/Gfx.Engine/Effects/PostEffects.cs
 index d7e27b3..8c5f01a 100644
 --- a/prototypes/m7-gfx2/Gfx.Engine/Effects/PostEffects.cs
@@ -4426,7 +4783,7 @@ index dca215a..efc4c5f 100644
      /// <summary>
      /// Debug views of the G-buffer-lite and the screen-space terms (display-ready). <c>DebugParams</c>: x = mode (1 depth,
 diff --git a/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs b/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs
-index 1cbb427..c251dd4 100644
+index 1cbb427..f4f3b80 100644
 --- a/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs
 +++ b/prototypes/m7-gfx2/Gfx.Engine/Lighting/SceneLighting.cs
 @@ -22,7 +22,11 @@ public sealed class SkyAtmosphere : IDisposable
@@ -4523,7 +4880,7 @@ index 1cbb427..c251dd4 100644
      /// <summary>The sky (and lit ground below the horizon) as an equirect image, without the sun disc.</summary>
      public EquirectImage ToEquirect(int w, int h)
      {
-@@ -122,7 +168,7 @@ public sealed class SkyAtmosphere : IDisposable
+@@ -122,13 +168,21 @@ public sealed class SkyAtmosphere : IDisposable
          var mieRgb = Rgb.Splat(mieS);
          var r = rs / ext * light; var m = mieRgb / ext * light;
          var psi = _model.MultipleScattering(CameraAltitude, Math.Clamp(TableSunDir.Y, -1, 1));
@@ -4532,7 +4889,22 @@ index 1cbb427..c251dd4 100644
          const double albedo = 0.9;
          var skyE = SkyIrradiance; float sunUp = MathF.Max(derived.DirectionToLight.Y, 0);
          var ground = (light * sunUp + skyE) * (0.15 / Math.PI);
-@@ -168,7 +214,7 @@ public sealed class EnvironmentLighting : IDisposable
+         var amb = (skyE * (1 / Math.PI) * 0.5 + ground * 0.5) * albedo;
++        // polish3 (critic rank 1): the valley haze's forward lobe is broader with the sun low (g 0.55 at 30 degrees and
++        // above, 0.35 on the horizon): towards a golden sun it glowed over the whole far land and turned it to sand
++        float lowSunG = 0.35f + 0.20f * Math.Clamp(sunUp / 0.5f, 0f, 1f);
++        // and lit less by a sun near the horizon (it reaches the haze layer through the longest air path and is mostly
++        // below the valley's rim): at dusk the valley haze glowed orange over the whole far land, three times as bright as
++        // the meadow in front; 0.45 of the light with the sun on the horizon, all of it from about 17 degrees
++        float t = Math.Clamp((sunUp - 0.02f) / 0.28f, 0f, 1f);
++        float fogSunScale = 0.45f + 0.55f * t * t * (3f - 2f * t);
+         return (new Vector4(r.ToVector3(), 0), new Vector4(m.ToVector3(), 0), new Vector4(ms.ToVector3(), 0),
+-                new Vector4((light * albedo).ToVector3(), 0.55f), new Vector4(amb.ToVector3(), 0));
++                new Vector4((light * albedo).ToVector3() * fogSunScale, lowSunG), new Vector4(amb.ToVector3(), 0));
+     }
+ 
+     /// <summary>
+@@ -168,7 +222,7 @@ public sealed class EnvironmentLighting : IDisposable
      public const int SpecWidth = 256;
      readonly GraphicsDevice _gd;
      Texture2D? _spec, _brdf, _background;
@@ -4541,7 +4913,7 @@ index 1cbb427..c251dd4 100644
      EquirectImage? _hdriSource; string? _hdriLoadedPath; double _hdriSunU = double.NaN;
      public Vector4[] Sh { get; } = new Vector4[9];
      public Texture2D Specular => _spec ?? throw new InvalidOperationException("Update first");
-@@ -189,14 +235,20 @@ public sealed class EnvironmentLighting : IDisposable
+@@ -189,14 +243,20 @@ public sealed class EnvironmentLighting : IDisposable
          return FloatTextures.Half4(_gd, 32, 32, _brdfData);
      }
  
@@ -4566,7 +4938,7 @@ index 1cbb427..c251dd4 100644
          _background?.Dispose(); _background = null;
          SourceDescription = "analytic sky";
          LastBuildMs = (float)sw.Elapsed.TotalMilliseconds;
-@@ -259,6 +311,29 @@ public sealed class EnvironmentLighting : IDisposable
+@@ -259,6 +319,29 @@ public sealed class EnvironmentLighting : IDisposable
  
      static float Fin(float v) => float.IsFinite(v) ? Math.Clamp(v, 0f, 65000f) : 0f;
  
@@ -5199,10 +5571,10 @@ index 0b78333..35b2dec 100644
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs b/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs
 new file mode 100644
-index 0000000..9b852b0
+index 0000000..15b0960
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Engine/Rendering/SmokeLayer.cs
-@@ -0,0 +1,279 @@
+@@ -0,0 +1,282 @@
 +using System.Runtime.InteropServices;
 +using Gfx.Engine.Effects;
 +using Gfx.Engine.Mgfx;
@@ -5236,6 +5608,9 @@ index 0000000..9b852b0
 +
 +    /// <summary>A plume of grey smoke from a fire: puffs that billow from about 2 m to 15 m wide as they rise about 25 m
 +    /// and drift downwind, fading as they spread (polish2: a narrower, darker column than polish1's 3-20 m puffs).</summary>
++    /// <summary>Polish3 (critic rank 7): hearth smoke seeping from a thatched roof: a thin, pale, slow column that
++    /// widens and drifts with the wind (a sixth of a plume's puffs, half its rise, a fraction of its spread).</summary>
++    public static SmokeSource Hearth(Vector3 at) => new(at, 2.2f, 34f, 0.9f, 0.7f, 7.5f, new Vector3(0.50f, 0.49f, 0.47f), 0.13f, 0.35f);
 +    public static SmokeSource Plume(Vector3 at, float scale = 1f) => new(at, 6.5f * scale, 24f, 2.6f * scale, 2.2f * scale, 15f * scale, new Vector3(0.30f, 0.285f, 0.27f), 0.26f, 2.0f);
 +    /// <summary>A low drifting dust haze over trampled ground (barely rises, wide, very faint).</summary>
 +    public static SmokeSource Dust(Vector3 at, float scale = 1f) => new(at, 5f * scale, 26f, 0.15f, 6f * scale, 14f * scale, new Vector3(0.62f, 0.55f, 0.44f), 0.035f, 12f * scale) { Layer = true };
@@ -6303,7 +6678,7 @@ index f663251..7b406c5 100644
      public float ReflectionScale => 0.5f;
      public override void Dispose() => Env?.Dispose();
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
-index 98fe96e..74ffda6 100644
+index 98fe96e..440a1ad 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/GroundCover.cs
 @@ -42,10 +42,19 @@ public struct CoverInstance : IVertexType
@@ -6403,7 +6778,15 @@ index 98fe96e..74ffda6 100644
          vec2 sz = i_size.xy * grow * tail;
          float c = cos(i_pos.w), s = sin(i_pos.w);
          vec3 lp = vec3(a_pos.x * sz.x, a_pos.y * sz.y, a_pos.z * sz.x);
-@@ -519,7 +553,11 @@ public static class CoverEffects
+@@ -513,13 +547,23 @@ public static class CoverEffects
+     // grass lies under the open sky: bend the shading normal towards up (it then matches the ground it grows on)
+     vec3 N = normalize(mix(Fd, v_nrm, 0.62));
+     vec3 albedo = decodeSrgb(a.rgb) * v_tint;
+-    float ao = mix(0.55, 1.0, smoothstep(0.0, 0.65, 1.0 - v_card.y));
++    // polish3 (critic rank 8): a darker base-to-tip gradient (the base was 0.55)
++    float ao = mix(0.38, 1.0, smoothstep(0.0, 0.75, 1.0 - v_card.y));
+     float sh = shadowPcf(v_lpos);
+     vec3 c = shadeFoliage(albedo, N, v_wpos, sh, ao, 0.2);
      vec3 L = SunDir.xyz;
      float back = max(dot(-Fd, L), 0.0);
      float fwd = pow(max(dot(-V, L), 0.0), 5.0);
@@ -6414,14 +6797,67 @@ index 98fe96e..74ffda6 100644
 +    // blue at all (neon lime). Its chroma is capped at about half of what the tint and the sun would give it.
 +    vec3 tl = trans * SunColor.rgb;
 +    tl = mix(vec3(dot(tl, vec3(0.2126, 0.7152, 0.0722))), tl, 0.55);
-+    c += tl * sh * (back * (1.0 + 2.0 * fwd)) / PI * ao;
++    // polish3 (critic rank 8): the light through a blade is at most 1.5 times what its albedo returns lit face-on by the
++    // same sun (backlit tufts read as white-mint plastic)
++    vec3 tadd = tl * sh * (back * (1.0 + 2.0 * fwd)) / PI * ao;
++    float lumT = dot(tadd, vec3(0.2126, 0.7152, 0.0722));
++    float capT = 1.5 * dot(albedo * SunColor.rgb, vec3(0.2126, 0.7152, 0.0722)) / PI * sh * ao;
++    c += tadd * (lumT > capT ? capT / max(lumT, 1e-8) : 1.0);
      gl_FragColor = vec4(applyFog(c, v_wpos), 1.0);");
  }
+diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/Rocks.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/Rocks.cs
+index 44796d2..869e351 100644
+--- a/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/Rocks.cs
++++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/Ground/Rocks.cs
+@@ -311,9 +311,12 @@ public static class RockEffects
+         albedo = vec3(0.075, 0.058, 0.042) * st; rough = 0.85; n = N;
+     }
+     albedo *= v_tint;
+-    // moss and lichen on upward faces (temperate), noise-broken
++    // polish3 (critic rank 6): weathered boulders are darker than the fresh-broken photographic rock (they read as pale
++    // eggs by the river), more so low down where they stay damp
++    if (RockParams.z < 0.5) albedo *= mix(0.62, 0.82, smoothstep(0.0, 0.8, v_h));
++    // moss and lichen on upward faces (temperate), noise-broken (polish3: from a shallower slope, so the tops are green)
+     if (RockParams.y > 0.5) {
+-        float up = smoothstep(0.55, 0.9, N.y);
++        float up = smoothstep(0.40, 0.85, N.y);
+         float mn = envHash(floor(v_wpos.xz * 3.0));
+         float moss = up * smoothstep(0.25, 0.75, mn * 0.5 + 0.5 * sin(v_wpos.x * 1.7 + v_wpos.z * 2.3));
+         albedo = mix(albedo, vec3(0.045, 0.065, 0.02), moss * 0.75);
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/Settlements.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/Settlements.cs
-index f959687..6698ec5 100644
+index f959687..099c0f6 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/Settlements.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/Settlements.cs
-@@ -230,4 +230,84 @@ public static class Settlements
+@@ -11,6 +11,9 @@ public sealed record SettlementPlan(string Kind, Vector2 Centre, float Radius, V
+ {
+     /// <summary>A point inside, on the main street, for interior shots.</summary>
+     public Vector2 Inside { get; init; }
++    /// <summary>Polish3 (critic rank 7): where hearth smoke seeps out of a roof (the apex of some roundhouses; world m);
++    /// empty when none (or when the plan was made without a kit).</summary>
++    public IReadOnlyList<Vector3> Hearths { get; init; } = Array.Empty<Vector3>();
+ }
+ 
+ /// <summary>
+@@ -135,7 +138,17 @@ public static class Settlements
+             }
+             houses.Add((p, 3.5f));
+         }
+-        return plan;
++        // polish3 (critic rank 7): hearth smoke from the great house and every third roundhouse (four or five columns):
++        // the smoke seeps through the thatch near the apex (a roundhouse has no chimney), about 2 m plus the radius up
++        var hearths = new List<Vector3>();
++        for (int i = 0; i < houses.Count; i++)
++        {
++            var (hp, hr) = houses[i];
++            bool isHall = Vector2.DistanceSquared(hp, hall) < 0.01f;
++            if (hr < 4f || (!isHall && i % 3 != 1)) continue;
++            hearths.Add(new Vector3(hp.X, m.HeightAt(hp.X, hp.Y) + 2.0f + hr * 1.02f, hp.Y));
++        }
++        return plan with { Hearths = hearths };
+     }
+ 
+     /// <summary>
+@@ -230,4 +243,84 @@ public static class Settlements
          }
          return plan;
      }
@@ -6529,7 +6965,7 @@ index 9f16fb9..addca3b 100644
          var aged = Vector3.Lerp(new Vector3(1.12f, 1.0f, 0.78f), new Vector3(0.78f, 0.76f, 0.70f), age);
          float eaves = floor + wallH - 0.1f;
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/StructureRenderer.cs b/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/StructureRenderer.cs
-index 87a54cf..23f527f 100644
+index 87a54cf..0f9813b 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/StructureRenderer.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Environment/Structures/StructureRenderer.cs
 @@ -43,6 +43,11 @@ public sealed class StructureRenderer : IDisposable
@@ -6580,9 +7016,22 @@ index 87a54cf..23f527f 100644
              .Varyings("vec3 v_wpos; vec3 v_nrm; vec4 v_tan; vec2 v_uv; vec4 v_col; vec4 v_lpos;")
              .VertexMain(@"
      vec3 wp = a_pos.xyz;
-@@ -135,6 +150,22 @@ float vn(vec2 p) {
+@@ -134,7 +149,37 @@ float vn(vec2 p) {
+     // thatch weathers grey-green on top; tiles keep a darker, glossier tone where water runs
      if (StParams.x > 0.5) albedo = mix(albedo, albedo * vec3(0.78, 0.82, 0.74), smoothstep(0.4, 0.9, macro) * 0.6);
      if (StParams.y > 0.5) rough = mix(rough, rough * 0.8, smoothstep(0.5, 0.9, macro));
++    // polish3 (critic rank 7): weathering of walls (not thatch or tiles): narrow rain streaks down the faces (darker,
++    // where water runs off the copings and crenellations), and moss and lichen on the faces that look up (wall walks,
++    // merlon tops, ledges), patchy; the walls read as one clean block texture
++    if (StParams.x < 0.5 && StParams.y < 0.5) {
++        float vert = 1.0 - abs(N.y);
++        float fine = vn(vec2(dot(v_wpos.xz, vec2(0.6, 0.8)) * 7.5, v_wpos.y * 0.35 + 3.7)) * 0.6 + vn(vec2(dot(v_wpos.xz, vec2(0.8, -0.6)) * 13.0, v_wpos.y * 0.6)) * 0.4;
++        albedo *= mix(1.0, mix(1.0, 0.74, smoothstep(0.52, 0.85, fine)), vert);
++        float up = smoothstep(0.55, 0.9, N.y);
++        float mossy = up * smoothstep(0.35, 0.75, vn(v_wpos.xz * 1.9 + 7.0) * 0.65 + macro * 0.35);
++        albedo = mix(albedo, vec3(0.055, 0.075, 0.030), mossy * 0.75);
++        rough = mix(rough, 0.92, mossy);
++    }
      float ao = nr.b * v_col.a;
 +    if (StGround.x > 0.0) {
 +        // polish1 (critic rank 10): ground contact. Splashed earth, damp and grime over the bottom metre of a wall, and the
@@ -6597,6 +7046,8 @@ index 87a54cf..23f527f 100644
 +        float ragged = vn(v_wpos.xz * 1.7 + vec2(v_wpos.y * 0.9, 0.0)) * 0.45;
 +        float skirt = (1.0 - smoothstep(0.0, 0.9 + ragged, above)) * (1.0 - 0.6 * abs(N.y)) * step(StParams.x, 0.5);
 +        albedo = mix(albedo, albedo * vec3(0.62, 0.55, 0.45), skirt * 0.8);
++        // polish3 (critic rank 7): grime fades up the wall over its first 4 m (soil splash, damp and soot gather low)
++        albedo *= mix(0.80, 1.0, smoothstep(0.3, 4.0 + ragged * 2.0, above)) * step(StParams.x, 0.5) + (1.0 - step(StParams.x, 0.5));
 +        rough = mix(rough, min(rough + 0.1, 1.0), skirt);
 +        ao *= mix(1.0, 0.5, (1.0 - smoothstep(0.0, 0.35, above)) * step(StParams.x, 0.5));
 +    }
@@ -6822,7 +7273,7 @@ index 3a760c7..7a935ba 100644
                  verts[r * P + k] = new VertexPNC(new Vector3(p.X, h, p.Y), n, Colour(p.X, p.Y, h, n));
              }
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
-index d85a423..fbe33ea 100644
+index d85a423..53e754e 100644
 --- a/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
 +++ b/prototypes/m7-gfx2/Gfx.Proc/Presentation/G2TerrainEffects.cs
 @@ -76,7 +76,17 @@ void sampleHex(sampler2D A, sampler2D N, vec2 uv, vec2 dx, vec2 dy, float maxRot
@@ -6854,7 +7305,7 @@ index d85a423..fbe33ea 100644
          for (int i = 0; i < 5; i++) b.Texture("Alb" + i, AlbSlot + i);
          for (int i = 0; i < 5; i++) b.Texture("Nrm" + i, NrmSlot + i);
          // stage env: wet banks (TerrainOpts.w = 1): WetMap holds the nearby water surface height per grid sample
-@@ -186,21 +199,96 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
+@@ -186,21 +199,98 @@ vec3 saturateCol(vec3 c, float s) { float l = dot(c, vec3(0.2126, 0.7152, 0.0722
      if (macroOn > 0.5) {
          alb *= mix(0.86, 1.14, m1.r * 0.65 + m2.r * 0.35);
          float grassy = bw.x;
@@ -6928,9 +7379,11 @@ index d85a423..fbe33ea 100644
 +    if (Weather.w > 0.0) {
 +        // stage scenes: rain puddles in the low parts of the ground's relief on level ground, patchy by the macro
 +        // texture; the water surface is dark, smooth and flat (it mirrors the sky through the IBL) with ripples
-+        float lowRelief = 1.0 - smoothstep(0.16, 0.42, h);
-+        float level = smoothstep(0.94, 0.99, N.y);
-+        float patchy = smoothstep(0.55, 0.75, m1.g * 0.55 + m2.b * 0.45);
++        // polish3 (critic rank 8): puddles only where the ground is near level and in its lowest relief (they spread
++        // as pale sheets over gentle slopes)
++        float lowRelief = 1.0 - smoothstep(0.12, 0.34, h);
++        float level = smoothstep(0.975, 0.995, N.y);
++        float patchy = smoothstep(0.60, 0.78, m1.g * 0.55 + m2.b * 0.45);
 +        float pud = clamp(lowRelief * level * patchy * Weather.w * 1.3, 0.0, 1.0);
 +        float t = Weather.z;
 +        vec2 q = p.xz * 2.3;
@@ -6956,7 +7409,7 @@ index d85a423..fbe33ea 100644
      gl_FragColor = vec4(applyFog(c, p), 1.0);");
      }
  
-@@ -263,7 +351,8 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
+@@ -263,7 +353,8 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
      /// <summary>
      /// The land and sea beyond the battle map: vertex colour (sRGB) and normal, macro brightness variation, rough PBR,
      /// cascaded shadows where they reach, aerial perspective, and a fade into the horizon haze at the outer edge.
@@ -6966,7 +7419,7 @@ index d85a423..fbe33ea 100644
      /// </summary>
      public static EffectBuilder FarField() => new EffectBuilder(TerrainEffectNames.FarField)
          .Attribute("vec4 a_pos", VertexElementUsage.Position, 0)
-@@ -278,12 +367,76 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
+@@ -278,12 +369,80 @@ vec2 wave(vec2 p, vec2 dir, float lambda, float slope, float t, float fp, inout
      v_wpos = wp; v_nrm = a_nrm; v_col = a_col;
      v_lpos = shadowLookup(wp, a_nrm);
      gl_Position = ViewProj_mul(vec4(wp, 1.0));")
@@ -7013,7 +7466,9 @@ index d85a423..fbe33ea 100644
 +        float fieldDetail = 1.0 - smoothstep(0.12, 0.3, max(dRow / rowH, dCol / width));
 +        // and towards a low sun (under 10-30 degrees) the patchwork gives way to the mean: in the golden and dusk vistas the
 +        // crops' brightness steps under the aerosol glow read as swell on a sea, not as fields
-+        fieldDetail *= smoothstep(0.17, 0.5, SunDir.y);
++        // (polish3: not all of it: with the glow towards a low sun now broader and dimmer, 45 % of the patchwork stays, so the
++        // far land keeps the structure of fields and does not read as one plain of sand)
++        fieldDetail *= mix(0.45, 1.0, smoothstep(0.17, 0.5, SunDir.y));
 +        // polish3: the crops' mean is greener with the sun low (pasture and hay under the golden light read as green land,
 +        // the khaki mean as sand)
 +        crop = mix(mix(vec3(0.116, 0.121, 0.057), vec3(0.078, 0.118, 0.042), lowSun), crop, fieldDetail);
@@ -7022,7 +7477,7 @@ index d85a423..fbe33ea 100644
 +        float d = length(v_wpos.xz);
 +        float fields = (1.0 - forest) * (1.0 - smoothstep(9000.0, 16000.0, d)) * (1.0 - smoothstep(0.05, 0.18, 1.0 - n.y));
 +        alb = mix(alb, crop, fields * 0.75);
-+        alb = mix(alb, vec3(0.030, 0.048, 0.022), hedge * fields * 0.85 * smoothstep(0.17, 0.5, SunDir.y));
++        alb = mix(alb, vec3(0.030, 0.048, 0.022), hedge * fields * 0.85 * mix(0.5, 1.0, smoothstep(0.17, 0.5, SunDir.y)));
 +        // canopy: dark crowns mottled at about 9 m, their relief bending the normal; fading by footprint
 +        float wc = 1.0 - smoothstep(0.25, 0.6, fpx / 9.0);
 +        vec3 cn = vnoise(v_wpos.xz / 9.0 + 3.1);
@@ -7042,7 +7497,9 @@ index d85a423..fbe33ea 100644
 +    // polish3: the air's in-scatter takes over with the distance from the camera, so the far land converges to the
 +    // horizon sky's colour (in life the far land at noon is lighter and bluer than the meadow in front, never darker)
 +    // and meets the sky softly; the map-centred edge fade still closes it at the outer rim
-+    float edge = max(smoothstep(FarParams.x, FarParams.y, length(v_wpos.xz)), 1.0 - exp(-max(dCam - 2000.0, 0.0) / 24000.0));
++    // (at about 9 km a third of the way with the sun high; with the sun low the horizon towards it is a glow, so less of
++    // it: the far land there stays land in a warm haze rather than turning to sand)
++    float edge = max(smoothstep(FarParams.x, FarParams.y, length(v_wpos.xz)), (1.0 - exp(-max(dCam - 1500.0, 0.0) / 16000.0)) * mix(1.0, 0.45, lowSun));
      gl_FragColor = vec4(LightModel.z > 0.5 ? aerialPerspective(c, v_wpos, edge) : mix(applyFog(c, v_wpos), FogColor.rgb, edge), 1.0);");
  }
 diff --git a/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainMaterials.cs b/prototypes/m7-gfx2/Gfx.Proc/Presentation/TerrainMaterials.cs
@@ -7149,10 +7606,10 @@ index ea0af31..1db626b 100644
          _gd.SetVertexBuffer(_farVb); _gd.Indices = _farIb;
          rc.Apply(fx);
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/CrowdTests.cs b/prototypes/m7-gfx2/Gfx.Tests/CrowdTests.cs
-index 40aff5b..26727e3 100644
+index 40aff5b..663b972 100644
 --- a/prototypes/m7-gfx2/Gfx.Tests/CrowdTests.cs
 +++ b/prototypes/m7-gfx2/Gfx.Tests/CrowdTests.cs
-@@ -189,11 +189,18 @@ public class CrowdTests
+@@ -189,11 +189,19 @@ public class CrowdTests
              var world = Matrix.CreateRotationY(0.6f);
              var vp = Cam.View * Cam.Projection(1f);
              Span<int> j = stackalloc int[4]; Span<float> w = stackalloc float[4];
@@ -7163,7 +7620,8 @@ index 40aff5b..26727e3 100644
 +            // frame lies in the last column (thrust, the surrender pose, the kneel, the cower)
              Assert.True(crowd.Bank.Columns >= 2, $"{crowd.Bank.Columns} bank column(s)");
 +            var look = CrowdLook.FromKey(7) with { Height = 1, Width = 1 };
-+            int last7 = new[] { "thrust", CrowdPoseVariants.Surrender, "kneel", "cower" }.Select(CrowdRenderer.Clip)
++            // (polish3: the bank gained the two more surrender poses at its end; they join the candidates)
++            int last7 = new[] { "thrust", CrowdPoseVariants.Surrender, "kneel", "cower", CrowdPoseVariants.SurrenderHead, CrowdPoseVariants.SurrenderNeck }.Select(CrowdRenderer.Clip)
 +                .First(c => (int)crowd.Instance(7, world, c, 0.9f, c, 0.9f, 0, look).AnimA.X / CrowdAnimationBank.RowsPerColumn == crowd.Bank.Columns - 1);
              foreach (int variant in new[] { 0, 7 })
              {
@@ -7650,10 +8108,10 @@ index 0000000..77b5447
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
 new file mode 100644
-index 0000000..00b6434
+index 0000000..77c6a65
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Tests/Polish2Tests.cs
-@@ -0,0 +1,830 @@
+@@ -0,0 +1,833 @@
 +using Gfx.Chars.Rendering;
 +using Gfx.Engine.Atmosphere;
 +using Gfx.Engine.Effects;
@@ -8279,7 +8737,10 @@ index 0000000..00b6434
 +            var at = pr.World.Translation;
 +            float near = unarmedAt.Min(q => Vector2.Distance(new Vector2(q.X, q.Z), new Vector2(at.X, at.Z)));
 +            Assert.True(near <= 1.6f, $"a dropped {pr.Item} lies {near:F2} m from the nearest disarmed soldier");
-+            Assert.Equal(0f, at.Y);
++            // polish3 (critic rank 3): a weapon lies on the ground; a shield rests tilted on its rim, its centre at most
++            // 0.25 m up (TraceCrowd.ShieldRest)
++            if (pr.Item == Gfx.Chars.Crowd.CarriedItem.Weapon) Assert.Equal(0f, at.Y);
++            else Assert.InRange(at.Y, 0f, 0.25f);
 +        }
 +        // the disarmed views the renderer drew from
 +        using var stage = new CharStage(gd);
@@ -8482,6 +8943,405 @@ index 0000000..00b6434
 +        Assert.Equal(0f, dust.WeightAt(19f)); Assert.Equal(0f, dust.WeightAt(35f)); Assert.Equal(1f, dust.WeightAt(27f));
 +        Assert.InRange(dust.WeightAt(21.5f), 0.49f, 0.51f);
 +        Assert.Equal(before, battle.Trace.Hash());
++    }
++}
+diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs
+new file mode 100644
+index 0000000..729ce4e
+--- /dev/null
++++ b/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs
+@@ -0,0 +1,393 @@
++using Gfx.Chars.Animation;
++using Gfx.Chars.Crowd;
++using Gfx.Chars.Format;
++using Gfx.Engine.Assets;
++using Gfx.Engine.Atmosphere;
++using Gfx.Engine.Cameras;
++using Gfx.Engine.Diagnostics;
++using Gfx.Engine.Effects;
++using Gfx.Engine.Rendering;
++using Gfx.Engine.Scene;
++using Microsoft.Xna.Framework;
++using Microsoft.Xna.Framework.Graphics;
++using Xunit;
++
++namespace Gfx.Tests;
++
++/// <summary>
++/// Stage polish3 (the visual critic's third pass): the far land (rank 1), the aftermath (rank 3), wet ground (rank 8).
++/// Presentation only: every property here is about what is drawn; the tests that read the battle trace check that its
++/// hash is unchanged.
++/// </summary>
++[Collection(EnvSerialCollection.Name)]
++public sealed class Polish3Tests
++{
++    readonly Xunit.Abstractions.ITestOutputHelper _out;
++    public Polish3Tests(Xunit.Abstractions.ITestOutputHelper output) { _out = output; }
++
++    // ------------------------------------------------------------------ rank 1: cloud shadows fade with distance
++
++    /// <summary>
++    /// Rank 1: the CPU twin of the distance fade. A cloud shadow keeps its whole depth up to 1.5 km from the camera,
++    /// a fifth of it from 4 km on, never more with more distance; with no layer the seen shadow is 1 exactly; and the
++    /// seen shadow is the layer's shadow mixed towards 1 by the fade at every sampled point.
++    /// </summary>
++    [Fact]
++    public void CloudShadowFadesWithDistanceFromTheCamera()
++    {
++        Assert.Equal(1f, CloudLayer.ShadowDistanceFade(0f));
++        Assert.Equal(1f, CloudLayer.ShadowDistanceFade(CloudLayer.ShadowFadeStart));
++        Assert.Equal(CloudLayer.ShadowFarResidual, CloudLayer.ShadowDistanceFade(CloudLayer.ShadowFadeEnd), 6);
++        Assert.Equal(CloudLayer.ShadowFarResidual, CloudLayer.ShadowDistanceFade(30_000f), 6);
++        float prev = 2f;
++        for (float d = 0f; d <= 6000f; d += 25f)
++        {
++            float f = CloudLayer.ShadowDistanceFade(d);
++            Assert.True(f <= prev + 1e-7f, $"the fade rises at {d} m");
++            prev = f;
++        }
++        var feat = new RenderFeatures { CloudCover = 0.45f, CloudOffset = new Vector2(2100f, -800f) };
++        var sun = SunModel.At(12.5f).DirectionToLight;
++        var layer = CloudLayer.For(feat, sun);
++        Assert.True(layer.On);
++        var cam = new Vector3(0f, 80f, 0f);
++        int deep = 0;
++        for (int i = 0; i < 400; i++)
++        {
++            var p = new Vector3(-6000f + 30f * i, 0f, 150f * MathF.Sin(i * 0.37f));
++            float s = CloudLayer.Shadow(layer, p, sun), seen = CloudLayer.ShadowSeen(layer, p, sun, cam);
++            float k = CloudLayer.ShadowDistanceFade(Vector3.Distance(p, cam));
++            Assert.True(MathF.Abs(1f + (s - 1f) * k - seen) < 1e-5f, $"seen {seen} against {1f + (s - 1f) * k}");
++            Assert.True(seen >= s - 1e-6f, "the seen shadow is never darker than the layer's");
++            if (s < 0.5f) deep++;
++        }
++        Assert.True(deep > 20, $"{deep} sampled points under thick cloud");
++        Assert.Equal(1f, CloudLayer.ShadowSeen(default, new Vector3(5000f, 0f, 0f), sun, cam));
++    }
++
++    static ForwardRenderer CloudRenderer(GraphicsDevice gd, float cover, Vector2 offset)
++    {
++        var r = new ForwardRenderer(gd, TestGfx.Host.Effects);
++        r.Settings.Shadows = false;
++        r.Settings.FogParams = new Vector4(0f, 0.02f, 0f, 0f);
++        r.Settings.Features.SetMany("autoexposure=0,bloom=0,grade=0,aa=none,farfield=0,ssao=0,contact=0,aerial=0");
++        r.Settings.Features.CloudCover = cover;
++        r.Settings.Features.CloudOffset = offset;
++        return r;
++    }
++
++    sealed class FieldScene : IRenderContent, IDisposable
++    {
++        readonly GpuMesh _plane;
++        readonly InstanceBuffer<InstanceTransform> _one;
++        public FieldScene(GraphicsDevice gd, float size, Vector4? tint = null)
++        {
++            _plane = GpuMesh.Create(gd, Primitives.Plane(size, 96, Color.White));
++            _one = new InstanceBuffer<InstanceTransform>(gd, 1);
++            _one.Set(new[] { InstanceTransform.From(Matrix.Identity, tint ?? new Vector4(0.30f, 0.32f, 0.24f, 1)) });
++        }
++        public void DrawShadowCasters(RenderContext rc) { }
++        public void DrawOpaque(RenderContext rc) => _plane.DrawInstanced(rc, rc.Effects.Get(EffectNames.InstancedLit), _one);
++        public void Dispose() { _plane.Dispose(); _one.Dispose(); }
++    }
++
++    static float Luma(Color c) => 0.2126f * c.R + 0.7152f * c.G + 0.0722f * c.B;
++
++    static Vector3? Ground(CameraPose cam, int x, int y, int w, int h)
++    {
++        var inv = Matrix.Invert(cam.View * cam.Projection(w / (float)h));
++        float nx = (x + 0.5f) / w * 2f - 1f, ny = 1f - (y + 0.5f) / h * 2f;
++        var a = Vector4.Transform(new Vector4(nx, ny, 0f, 1f), inv); var b = Vector4.Transform(new Vector4(nx, ny, 1f, 1f), inv);
++        var p0 = new Vector3(a.X, a.Y, a.Z) / a.W; var p1 = new Vector3(b.X, b.Y, b.Z) / b.W;
++        var d = p1 - p0;
++        if (MathF.Abs(d.Y) < 1e-6f) return null;
++        float t = -p0.Y / d.Y;
++        return t > 0 ? p0 + d * t : null;
++    }
++
++    static double Pearson(IReadOnlyList<double> a, IReadOnlyList<double> b)
++    {
++        double ma = a.Average(), mb = b.Average(), sab = 0, saa = 0, sbb = 0;
++        for (int i = 0; i < a.Count; i++) { sab += (a[i] - ma) * (b[i] - mb); saa += (a[i] - ma) * (a[i] - ma); sbb += (b[i] - mb) * (b[i] - mb); }
++        return sab / Math.Sqrt(saa * sbb + 1e-30);
++    }
++
++    /// <summary>
++    /// Rank 1: on screen, a cloud shadow far from the camera is lifted and a near one is not. A field 12 km across seen
++    /// from 600 m up at its edge, under a noon sun and a 0.45 cover (an offset with thick cloud both under 1.5 km and
++    /// beyond 4.5 km of the camera, found by the CPU twin), against the same frame without a layer: the brightness ratio
++    /// follows the twin's seen shadow (r over 0.95); where the layer is thick (twin shadow under 0.4) the near ground keeps
++    /// under 0.6 of its brightness and the far ground over 0.85.
++    /// </summary>
++    [GfxFact]
++    public void FarCloudShadowsAreLiftedAndNearOnesAreNot() => TestGfx.Host.Invoke(gd =>
++    {
++        const int w = 240, h = 160;
++        var sun = SunModel.At(12.5f);
++        var cam = new CameraPose(new Vector3(-5800f, 600f, 0.01f), new Vector3(-1200f, 0f, 0f), 0.75f, 1f, 20000f);
++        // the offset: the first of a fixed sequence with enough thick cloud near and far (the CPU twin decides)
++        Vector2 off = Vector2.Zero; bool found = false;
++        var probe = new RenderFeatures { CloudCover = 0.45f };
++        for (int k = 0; k < 64 && !found; k++)
++        {
++            probe.CloudOffset = new Vector2(1373f * k, 2861f * k);
++            var st = CloudLayer.For(probe, sun.DirectionToLight);
++            int near = 0, far = 0;
++            for (int y = 0; y < h; y += 2)
++                for (int x = 0; x < w; x += 2)
++                {
++                    var g = Ground(cam, x, y, w, h);
++                    if (g == null || MathF.Abs(g.Value.X) > 6000f || MathF.Abs(g.Value.Z) > 6000f) continue;
++                    if (CloudLayer.Shadow(st, g.Value, sun.DirectionToLight) >= 0.4f) continue;
++                    float d = Vector3.Distance(g.Value, cam.Position);
++                    if (d < 1500f) near++; else if (d > 4500f) far++;
++                }
++            if (near >= 60 && far >= 60) { off = probe.CloudOffset; found = true; }
++        }
++        Assert.True(found, "no offset of the sequence has thick cloud both near and far");
++        using var scene = new FieldScene(gd, 12000f);
++        using var rt = new RenderTarget2D(gd, w, h, false, SurfaceFormat.Color, DepthFormat.Depth24);
++        using var on = CloudRenderer(gd, 0.45f, off);
++        on.Render(scene, cam, sun, rt, 0f);
++        var px = Capture.ReadPixels(rt);
++        var state = on.LastClouds;
++        using var none = CloudRenderer(gd, 0f, off);
++        none.Render(scene, cam, sun, rt, 0f);
++        var bare = Capture.ReadPixels(rt);
++        var ratio = new List<double>(); var twin = new List<double>();
++        double nearSum = 0, farSum = 0; int nn = 0, nf = 0;
++        for (int y = 0; y < h; y++)
++            for (int x = 0; x < w; x++)
++            {
++                var g = Ground(cam, x, y, w, h);
++                if (g == null || MathF.Abs(g.Value.X) > 5950f || MathF.Abs(g.Value.Z) > 5950f) continue;
++                float lb = Luma(bare[y * w + x]);
++                if (lb < 8f) continue;
++                double q = Luma(px[y * w + x]) / lb;
++                float s = CloudLayer.Shadow(state, g.Value, sun.DirectionToLight);
++                ratio.Add(q); twin.Add(CloudLayer.ShadowSeen(state, g.Value, sun.DirectionToLight, cam.Position));
++                float d = Vector3.Distance(g.Value, cam.Position);
++                if (s < 0.4f && d < 1500f) { nearSum += q; nn++; }
++                if (s < 0.4f && d > 4500f) { farSum += q; nf++; }
++            }
++        double r = Pearson(ratio, twin);
++        _out.WriteLine($"offset {off}; r = {r:F4}; thick cloud near ({nn} px) {nearSum / Math.Max(1, nn):F3}, far ({nf} px) {farSum / Math.Max(1, nf):F3}");
++        Assert.True(nn > 100 && nf > 100, $"{nn} near and {nf} far pixels under thick cloud");
++        Assert.True(r > 0.95, $"brightness ratio against the twin's seen shadow: r = {r:F3}");
++        Assert.True(nearSum / nn < 0.6, $"near ground under thick cloud keeps {nearSum / nn:F2} of its brightness");
++        Assert.True(farSum / nf > 0.85, $"far ground under thick cloud keeps only {farSum / nf:F2} of its brightness");
++    });
++
++    // ------------------------------------------------------------------ rank 8: wetness never lifts luminance
++
++    /// <summary>
++    /// Rank 8: wet ground is never brighter than dry ground. A dark, rough soil seen at grazing angles under a bright
++    /// overcast noon (the case where the wet film's sheen turned the soil pale: its glossier reflection of the bright sky
++    /// outweighs the darkening of an already dark albedo): with wetness 1 no pixel is brighter than with wetness 0 by more
++    /// than one 8-bit step, and the wet field is not brighter on average.
++    /// </summary>
++    [GfxFact]
++    public void WetGroundIsNeverBrighterThanDry() => TestGfx.Host.Invoke(gd =>
++    {
++        const int w = 200, h = 120;
++        var sun = SunModel.At(12.5f);
++        var cam = new CameraPose(new Vector3(-2000f, 1.6f, 0.01f), new Vector3(0f, 0f, 0f), 0.9f, 0.5f, 8000f);
++        using var scene = new FieldScene(gd, 8000f, new Vector4(0.05f, 0.045f, 0.04f, 1f));
++        using var rt = new RenderTarget2D(gd, w, h, false, SurfaceFormat.Color, DepthFormat.Depth24);
++        Color[] Frame(float wet)
++        {
++            using var r = new ForwardRenderer(gd, TestGfx.Host.Effects);
++            r.Settings.Shadows = false;
++            r.Settings.FogParams = new Vector4(0f, 0.02f, 0f, 0f);
++            r.Settings.Features.SetMany("autoexposure=0,bloom=0,grade=0,aa=none,farfield=0,ssao=0,contact=0,aerial=0");
++            r.Settings.Features.Cloud = 0.6f;
++            r.Settings.Features.Wetness = wet;
++            r.Render(scene, cam, sun, rt, 0f);
++            return Capture.ReadPixels(rt);
++        }
++        var dry = Frame(0f); var wetPx = Frame(1f);
++        int ground = 0, brighter = 0; double sd = 0, sw = 0; float worst = 0;
++        for (int y = 0; y < h; y++)
++            for (int x = 0; x < w; x++)
++            {
++                if (Ground(cam, x, y, w, h) == null) continue;
++                ground++;
++                float ld = Luma(dry[y * w + x]), lw = Luma(wetPx[y * w + x]);
++                sd += ld; sw += lw; worst = MathF.Max(worst, lw - ld);
++                if (lw > ld + 1.01f) brighter++;
++            }
++        _out.WriteLine($"ground pixels {ground}; mean luma dry {sd / ground:F1}, wet {sw / ground:F1}; most a wet pixel outshines its dry twin: {worst:F2}");
++        Assert.True(ground > 5000, $"{ground} ground pixels");
++        Assert.Equal(0, brighter);
++        Assert.True(sw <= sd, $"wet mean {sw / ground:F1} against dry {sd / ground:F1}");
++    });
++
++    // ------------------------------------------------------------------ rank 3: the aftermath
++
++    /// <summary>
++    /// Rank 3: the prisoners kneel apart from the fallen. Over the bench battle's end: the placement is a pure function of
++    /// the trace (twice the same), moves no one but the surrendered and none of them more than 4 m, every prisoner faces
++    /// the victors' centroid, and the prisoners kneeling within 0.75 m of a fallen body's centre line fall from the
++    /// trace's layout to under a quarter of that (and to under a sixth of the prisoners; measured: 429 to 78 of 559); the
++    /// trace's hash is unchanged.
++    /// </summary>
++    [BenchTraceFact]
++    public void PrisonersKneelApartFromTheFallen()
++    {
++        var battle = Gfx.Demo.Scenes.Bench.BenchBattle.Load();
++        var tr = battle.Trace;
++        string before = tr.Hash();
++        int n = tr.Entities.Count, steps = tr.StepCount, last = steps - 1;
++        var death = new long[n]; Array.Fill(death, long.MinValue);
++        for (int s = 0; s < steps; s++)
++            for (int e = 0; e < n; e++)
++                if (death[e] == long.MinValue && Gfx.Demo.Scenes.Bench.BenchBattle.Map(tr.State(s, e)) == Gfx.Demo.Scenes.Bench.TraceSoldierState.Dead) death[e] = tr.StepTimeMs(s);
++        var yaw = Gfx.Demo.Scenes.Bench.TraceCrowd.FacingPerStep(tr);
++        var (dy, db) = Gfx.Demo.Scenes.Bench.TraceCrowd.LayOutFallen(tr, death, yaw);
++        var settle = Gfx.Demo.Scenes.Bench.TraceCrowd.SettleFallen(tr, death, dy, db);
++        var (o1, y1) = Gfx.Demo.Scenes.Bench.TraceCrowd.PlacePrisoners(tr, dy, db, settle);
++        var (o2, y2) = Gfx.Demo.Scenes.Bench.TraceCrowd.PlacePrisoners(tr, dy, db, settle);
++        Assert.Equal(o1, o2); Assert.Equal(y1, y2);
++        Vector2 At(int e) { var (x, y) = tr.PosMm(last, e); return new Vector2(x / 1000f, y / 1000f); }
++        var bodies = new List<(Vector2 a, Vector2 b)>();
++        var prisoners = new List<int>();
++        var activeSum = new Vector2[2]; var activeN = new int[2];
++        for (int e = 0; e < n; e++)
++        {
++            var st = Gfx.Demo.Scenes.Bench.BenchBattle.Map(tr.State(last, e));
++            if (st == Gfx.Demo.Scenes.Bench.TraceSoldierState.Dead && !float.IsNaN(dy[e]))
++            {
++                var a = At(e) + settle[e];
++                bodies.Add((a, a + new Vector2(MathF.Sin(dy[e]), MathF.Cos(dy[e])) * (db[e] ? -1f : 1f) * Gfx.Demo.Scenes.Bench.TraceCrowd.FallenLength));
++            }
++            if (st == Gfx.Demo.Scenes.Bench.TraceSoldierState.Surrendered) prisoners.Add(e);
++            else
++            {
++                Assert.Equal(Vector2.Zero, o1[e]);
++                Assert.True(float.IsNaN(y1[e]), $"entity {e} ({st}) given a prisoner's facing");
++            }
++            if (st == Gfx.Demo.Scenes.Bench.TraceSoldierState.Active) { int sd = tr.Entities[e].Side & 1; activeSum[sd] += At(e); activeN[sd]++; }
++        }
++        Assert.True(prisoners.Count > 100 && bodies.Count > 100, $"{prisoners.Count} prisoners, {bodies.Count} fallen");
++        int victor = activeN[1] > activeN[0] ? 1 : 0;
++        var victors = activeSum[victor] / activeN[victor];
++        int OnBodies(Func<int, Vector2> off)
++        {
++            int c = 0;
++            foreach (int e in prisoners)
++            {
++                var q = At(e) + off(e);
++                foreach (var (a, b) in bodies)
++                    if (Gfx.Demo.Scenes.Bench.TraceCrowd.PointSegment(q, a, b) < Gfx.Demo.Scenes.Bench.TraceCrowd.PrisonerClear) { c++; break; }
++            }
++            return c;
++        }
++        int before0 = OnBodies(e => Vector2.Zero), after = OnBodies(e => o1[e]);
++        int moved = 0;
++        foreach (int e in prisoners)
++        {
++            Assert.True(o1[e].Length() <= Gfx.Demo.Scenes.Bench.TraceCrowd.PrisonerMaxMove + 1e-4f, $"prisoner {e} moved {o1[e].Length():F2} m");
++            if (o1[e] != Vector2.Zero) moved++;
++            var q = At(e) + o1[e]; var to = victors - q;
++            float want = MathF.Atan2(to.X, to.Y);
++            Assert.True(MathF.Abs(MathHelper.WrapAngle(y1[e] - want)) < 1e-3f, $"prisoner {e} faces {y1[e]:F3}, the victors lie at {want:F3}");
++        }
++        _out.WriteLine($"prisoners {prisoners.Count}, moved {moved}; kneeling within {Gfx.Demo.Scenes.Bench.TraceCrowd.PrisonerClear} m of a fallen body: trace {before0}, placed {after}");
++        Assert.True(before0 > 20, $"the trace has only {before0} prisoners on the fallen: the test proves nothing");
++        // (where the fallen lie thickest there is no clear ground within 4 m: those prisoners take the roomiest place)
++        Assert.True(after * 4 < before0, $"{after} prisoners still kneel on the fallen ({before0} in the trace)");
++        Assert.True(after * 6 < prisoners.Count, $"{after} of {prisoners.Count} prisoners kneel on the fallen");
++        Assert.Equal(before, tr.Hash());
++    }
++
++    /// <summary>
++    /// Rank 3: a prisoner's pose is one of four, from his id (bowed about 45 %, hands raised, on the head and behind the
++    /// neck each at least 10 % over 4,000 ids, the polish2 hands-up share kept); and a dropped shield rests tilted
++    /// 10 to 40 degrees (spread over the range), its centre above the ground but at most 0.25 m, its rest matrix a turn
++    /// of exactly that tilt about the horizontal.
++    /// </summary>
++    [Fact]
++    public void PrisonerPosesAndShieldRestsVaryById()
++    {
++        var count = new int[4];
++        for (long id = 0; id < 4000; id++)
++        {
++            int p = Gfx.Demo.Scenes.Bench.TraceCrowd.SurrenderPose(id);
++            Assert.InRange(p, 0, 3);
++            Assert.Equal(p > 0, Gfx.Demo.Scenes.Bench.TraceCrowd.SurrendersWithHandsUp(id));
++            count[p]++;
++        }
++        _out.WriteLine($"poses over 4,000 ids: bowed {count[0]}, hands up {count[1]}, on the head {count[2]}, behind the neck {count[3]}");
++        foreach (int c in count) Assert.True(c >= 400, $"a pose drawn for {c} of 4,000 ids");
++        Assert.InRange(count[0], 1600, 2000);
++        float lo = 90f, hi = 0f;
++        for (long id = 0; id < 5000; id++)
++        {
++            var (tilt, lift) = Gfx.Demo.Scenes.Bench.TraceCrowd.ShieldTilt(id);
++            Assert.InRange(tilt, 10f, 40f);
++            Assert.InRange(lift, 0.0f, 0.25f);
++            lo = MathF.Min(lo, tilt); hi = MathF.Max(hi, tilt);
++            var m = Gfx.Demo.Scenes.Bench.TraceCrowd.ShieldRest(id);
++            var up = Vector3.TransformNormal(Vector3.Up, m);
++            Assert.Equal(MathF.Cos(MathHelper.ToRadians(tilt)), up.Y, 4);
++            Assert.Equal(lift, m.Translation.Y, 5);
++        }
++        Assert.True(lo < 12f && hi > 38f, $"tilts span {lo:F1} to {hi:F1} degrees");
++    }
++
++    static string Chars => AssetRoot.Baked("chars");
++
++    /// <summary>
++    /// Rank 3: no fallen man lies with a hand raised. For the eight crowd identities' motion-capture deaths (forward and
++    /// back; the back fall ends with a hand 0.24-0.28 m over the chest): in every frame where the body is down (pelvis
++    /// under 0.25 m) no hand of the laid-down clip is more than 0.10 m above the chest, and the frames where the body is
++    /// still up (pelvis over 0.45 m) are the source clip's, bit for bit; the clip's length, pelvis track and contacts are
++    /// kept; and the source clips do raise a hand (the test would otherwise prove nothing).
++    /// </summary>
++    [CharsBakeFact]
++    public void FallenArmsLieDownOnceTheBodyIsDown()
++    {
++        int raisedBefore = 0;
++        foreach (var id in new[] { "a1", "a2", "a3", "a4", "b1", "b2", "b3", "b4" })
++        {
++            var f = CharacterFile.Load(Path.Combine(Chars, id + ".g2ch"));
++            var clips = CharacterFile.Load(Path.Combine(Chars, id + "__clips.g2ch"));
++            var sk = new Skeleton(f.Bones);
++            int pelvis = sk["pelvis"], spine = sk["spine_02"], neck = sk["neck_01"], hl = sk["hand_l"], hr = sk["hand_r"];
++            foreach (var name in new[] { "death_fwd", "death_back" })
++            {
++                var src = clips.Clip(name)!;
++                var laid = CrowdPoseVariants.LayArmsDown(sk, src);
++                Assert.Equal(src.Frames, laid.Frames); Assert.Equal(src.Pelvis, laid.Pelvis); Assert.Equal(src.Contacts, laid.Contacts);
++                var pose = new Pose(sk.Count); var g = new Quaternion[sk.Count]; var hd = new Vector3[sk.Count];
++                float minPelvis = 9f, maxBefore = -9f, maxAfter = -9f;
++                for (int fr = 0; fr < src.Frames; fr++)
++                {
++                    float Raise(ClipDef c)
++                    {
++                        pose.Reset();
++                        for (int b = 0; b < Math.Min(c.Bones, sk.Count); b++) pose.Local[b] = c.Rotations[fr * c.Bones + b];
++                        pose.Pelvis = c.Pelvis[fr];
++                        Fk.Solve(sk, pose, g, hd, pelvis);
++                        return MathF.Max(hd[hl].Y, hd[hr].Y) - MathF.Max(hd[spine].Y, hd[neck].Y);
++                    }
++                    float rb = Raise(src);
++                    float py = hd[pelvis].Y;
++                    float ra = Raise(laid);
++                    minPelvis = MathF.Min(minPelvis, py);
++                    if (py < 0.25f)
++                    {
++                        maxBefore = MathF.Max(maxBefore, rb); maxAfter = MathF.Max(maxAfter, ra);
++                        if (rb > 0.20f) raisedBefore++;
++                        Assert.True(ra <= 0.10f, $"{id} {name} frame {fr}: a hand {ra:F2} m above the chest with the body down");
++                    }
++                    if (py > 0.45f)
++                        for (int b = 0; b < src.Bones; b++) Assert.Equal(src.Rotations[fr * src.Bones + b], laid.Rotations[fr * laid.Bones + b]);
++                }
++                _out.WriteLine($"{id} {name}: lowest pelvis {minPelvis:F2} m; with the body down the highest hand over the chest {maxBefore:F2} m, laid down {maxAfter:F2} m");
++            }
++        }
++        _out.WriteLine($"frames with the body down and a hand over 0.20 m above the chest in the source clips: {raisedBefore}");
++        Assert.True(raisedBefore > 0, "no source frame raises a hand with the body down");
 +    }
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/Render2Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Render2Tests.cs
@@ -9341,7 +10201,7 @@ index dee79a6..db8fe53 100644
      }
  
 diff --git a/prototypes/m7-gfx2/README.md b/prototypes/m7-gfx2/README.md
-index 12e7b8e..5273a41 100644
+index 12e7b8e..9c241ff 100644
 --- a/prototypes/m7-gfx2/README.md
 +++ b/prototypes/m7-gfx2/README.md
 @@ -48,7 +48,9 @@ external assets in `assets/` are pinned and fetched, but **no code uses them yet
@@ -9377,7 +10237,7 @@ index 12e7b8e..5273a41 100644
  ## Characters (stage chars)
  
  Soldiers, the force A commander and the player avatar (G1 PlayerFixture identity) built from the MakeHuman CC0 core
-@@ -241,3 +258,129 @@ Details, captures, llvmpipe costs, tests, mutants and what still looks placehold
+@@ -241,3 +258,158 @@ Details, captures, llvmpipe costs, tests, mutants and what still looks placehold
    to TAA; key 9 cycles none / FXAA / TAA.
  - **Reproduce:** `scripts/capture-render2.sh OUT_DIR`, `scripts/review-sheets-render2.py`, `scripts/bench-render2.sh
    OUT_DIR` (llvmpipe costs: crowd at 220 / 2,000 / 10,000, LOD sweep, culling, AO, contact shadows, TAA).
@@ -9507,11 +10367,40 @@ index 12e7b8e..5273a41 100644
 +saved frames too. The Gfx tests ran in polish2's four class groups, one test host each (`reports/polish2.md` §3): the
 +largest (group 3) peaked at 6.1 GiB RSS (Release; 6.2 GiB Debug) here, above the "near 5 GB" of the test-host note under
 +"Build, test, run, capture".
++
++## Visual critic iteration 3 (stage polish3)
++
++The nine ranked issues of the visual critic's third pass, worked most visible first: the far land (a dark band at noon
++under the cloud shadows, terraces, sand at low sun), the close crowd (black beards, spears held level through the men
++beside), the aftermath (prisoners kneeling on the fallen, one pose, flat shields, a dead hand raised), the closest skin,
++the low-sun skies, the river's boulders, the fortification's and the village's weathering and hearth smoke, wet ground
++and backlit grass, and the Corinthian helmet's bronze. Presentation only (DR42): nothing reads back into the simulation;
++the battle trace is read-only (the tests that read it check its hash). What changed, before/after per issue, llvmpipe
++costs, tests and what still looks placeholder: `reports/polish3.md`; provenance: `assets/PROVENANCE.md` §3.16 (no new
++external asset).
++
++No new switch. Changed defaults that reach every G2 frame: cloud shadows fade with the distance from the camera (all
++of a shadow to 1.5 km, a fifth from 4 km); the far field's rings are 7 % apart (were 17 %), its normals flatten and its
++haze grows with distance, its crops stay greener with the sun low; the valley haze's forward lobe is broader and lit
++less by a sun near the horizon; the streak cover with the sun low is 0.22 (`cloudstreaks`; was 0.42) and streaks are less
++drawn out, eroded and their chroma held at 0.35 saturation; wetness never lifts a surface's luminance and puddles need
++level, low relief; light through grass cards is capped at 1.5 times what the albedo returns lit; skin in shade is warmer
++and its shadow edge softer; crowd beards keep a dark-brown floor; dead crowd soldiers lie with their arms down;
++weathered walls (rain streaks, moss on top faces, grime low down); darker, mossier boulders; bronze helmets warmer and
++smoother. Benchmark scenes only: the cloud offset search also keeps the shots' middle distance lit; hearth smoke over
++the village; in scene D prisoners kneel apart from the fallen in four poses, dropped shields rest tilted, the victors
++stand at rest without their spears, and the fallen beat is framed low and close.
++
++```
++scripts/capture-scenes.sh OUT_DIR
++scripts/review-sheets-polish3.py BEFORE_DIR AFTER_DIR SHEETS_DIR REVIEW_DIR
++scripts/measure-polish3.py BEFORE_DIR AFTER_DIR      # the critic's far/near luma boxes and region statistics
++```
 diff --git a/prototypes/m7-gfx2/assets/PROVENANCE.md b/prototypes/m7-gfx2/assets/PROVENANCE.md
-index 607c164..9331b62 100644
+index 607c164..188e5ec 100644
 --- a/prototypes/m7-gfx2/assets/PROVENANCE.md
 +++ b/prototypes/m7-gfx2/assets/PROVENANCE.md
-@@ -360,6 +360,82 @@ masked software-rasterised hierarchical depth buffer for occlusion culling (comm
+@@ -360,6 +360,103 @@ masked software-rasterised hierarchical depth buffer for occlusion culling (comm
  themselves (bounding-sphere fit, texel snapping, tent PCF, blend band) are render1's (§3.8); render2 adds their debug
  view, caster culling and tests.
  
@@ -9590,6 +10479,27 @@ index 607c164..9331b62 100644
 +optical depth (common practice), soft particles against the scene depth (common practice), luminance-preserving gamut
 +compression of out-of-range chroma (common practice in colour pipelines), principal axes by Jacobi rotations (common
 +numerical practice), union-find connected components (common practice).
++
++### 3.16 Stage polish3 (visual critic iteration 3): runtime transformations only
++
++Added 2026-11-13 by stage polish3 on `g2/polish3` (cut from `g2/trunk` f677707). **No new external file is downloaded
++or pinned, no bake is re-run and no `manifest.tsv` row changes.** Every change is code that transforms existing rows at
++run time or generates geometry in code (presentation only; nothing here is read by the simulation, and the battle trace
++is read-only: tests hash it before and after).
++
++| Output or runtime use | Inputs | Transformations | Licence of the output | Status |
++|---|---|---|---|---|
++| Cloud-shadow distance fade, far-field rings, haze and low-sun colour (`GlslLib`, `CloudLayer`, `FarField.cs`, `G2TerrainEffects.FarField`, `SceneLighting.AerialTerms`) | none new (procedural; the far field's existing biome colours) | the shadow's depth faded with the camera distance; rings 7 % apart with wider normal footprints; normals flattened and the horizon's colour blended in with distance; a greener crop mean and a green floor with the sun low; the valley haze's phase and sun term reduced near the horizon | project code | own |
++| Sky streaks and heap edges (`GlslLib.CloudLib` domain, `PostEffects` sky pass) | none (procedural) | less stretch; gap and fray noise; two fine edge octaves; the unlit far side darker with the sun low; chroma held at 0.35 saturation | project code | own |
++| Prisoner placement, four surrender poses, fallen arms laid down, tilted shields, a no-weapon crowd view (`TraceCrowd`, `CrowdPoseVariants.DeriveKneelArms`/`LayArmsDown`, `CrowdAnimationBank`, `CrowdRenderer`) | the crowd LOD meshes (§3.12) and the CMU-derived `kneel`, `death_fwd` and `death_back` clips (§3.4, §3.9); the battle trace (§3.13), read only | two more poses derived from the kneel by turning the arms and bowing the head; the death clips' arms laid down once the body is down; per LOD mesh a view with the shield but not the weapon; offsets and tilts pure functions of the trace and entity ids | project code (the poses and laid-down clips are derivatives of CMU-derived clips: `LicenseRef-CMU-Mocap`, as the clips they are made from) | own / PROTOTYPE-ONLY (as the CMU base) |
++| Skin shade and penumbra (`CharEffects`), crowd beards (`CrowdEffects`), bronze helmets (`Helmets.Paint`) | the chars bake (§3.9), the generated helmets (§3.11) | a warm shade tone and a five-tap shadow average on skin; a dark-brown floor for beards and hair above the shoulders; a warmer, more saturated and smoother bronze with fewer bright scratches | project code | own |
++| Wetness cap, puddle mask, grass transmission cap (`GlslLib.shadePbrFullSpec`, `G2TerrainEffects`, `GroundCover`) | the render1 and env bakes (§3.8, §3.10) | the wet shading scaled to the dry one's luminance where brighter; puddles only on level, low relief; the light through a card capped at 1.5 times its lit albedo; a darker base-to-tip gradient | project code | own |
++| Wall weathering, boulders, hearth smoke (`StructureRenderer`, `Rocks.cs`, `Settlements.IronAgeVillage` hearths, `SmokeSource.Hearth`, `BenchBase`) | the env bakes (§3.10) | rain streaks, moss and grime on walls; darker, mossier boulders; thin smoke columns from some roundhouse roofs | project code | own |
++
++**Algorithms implemented from publications or common practice** (no code copied, no asset): distance-faded cloud
++shadows and horizon-colour blending for aerial perspective (common practice), the Henyey–Greenstein phase function
++(Henyey and Greenstein 1941), deterministic candidate search for spacing (common practice), luminance clamping (common
++practice).
 +
  ## 4. Licence identifiers used for non-standard terms
  
@@ -17848,6 +18758,88 @@ index 0000000..72b6d49
 +        print(f"{name}:\n  before {fmt(b)}\n  after  {fmt(a)}")
 +    except FileNotFoundError as e:
 +        print(f"{name}: missing {e.filename}")
+diff --git a/prototypes/m7-gfx2/scripts/measure-polish3.py b/prototypes/m7-gfx2/scripts/measure-polish3.py
+new file mode 100755
+index 0000000..087bbd4
+--- /dev/null
++++ b/prototypes/m7-gfx2/scripts/measure-polish3.py
+@@ -0,0 +1,76 @@
++#!/usr/bin/env python3
++"""The measured figures of reports/polish3.md: the critic's far-land acceptance (iteration 3) and region statistics of the
++canonical captures, before (polish2) and after (polish3).
++
++Usage: measure-polish3.py BEFORE_DIR AFTER_DIR
++  BEFORE_DIR, AFTER_DIR: outputs of scripts/capture-scenes.sh (1920x1080; same folder and file names).
++Far/near: the critic's boxes (critic3/tools/farland-luma.py: far land beyond the map against the near meadow), mean luma
++(PIL "L") of each and their ratio; the far band's mean colour, its HSV hue (degrees) and saturation. Regions: mean RGB, hue
++and saturation, and the share of near-white pixels (every channel 225 or more).
++Every frame measured here was rendered by llvmpipe (not Victus evidence); these are prototype frames, not production art.
++"""
++import colorsys
++import sys
++
++import numpy as np
++from PIL import Image
++
++BEFORE, AFTER = sys.argv[1:3]
++FAR = {  # shot: (far box, near box), pixels on 1920x1080
++    "c/bench-c-vista-noon": ((0, 110, 1900, 280), (0, 600, 800, 1000)),
++    "c/bench-c-clash-noon": ((0, 170, 1150, 280), (0, 820, 900, 1070)),
++    "e/bench-e-vista-noon": ((0, 270, 1900, 330), (0, 700, 800, 1050)),
++    "b/bench-b-wide-noon": ((700, 120, 1600, 200), (800, 650, 1900, 1070)),
++    "c/bench-c-vista-golden": ((0, 110, 1900, 280), (0, 600, 800, 1000)),
++    "c/bench-c-clash-golden": ((0, 170, 1150, 280), (0, 820, 900, 1070)),
++    "c/bench-c-vista-dusk": ((0, 110, 1900, 280), (0, 600, 800, 1000)),
++    "c/bench-c-clash-dusk": ((0, 170, 1150, 280), (0, 820, 900, 1070)),
++}
++REGIONS = [  # name, shot, box (fractions)
++    ("D cut-away dusk, sky", "d-cutaway/bench-d-cutaway-06-cutaway", (0.0, 0.0, 1.0, 0.35)),
++    ("D surrender, sky", "d-shown/bench-d-shown-02-surrender", (0.0, 0.0, 1.0, 0.25)),
++    ("C rain clash noon, ground", "c-rain/bench-c-clash-noon", (0.0, 0.75, 1.0, 1.0)),
++    ("B standard, foreground tufts", "b/bench-b-standard", (0.0, 0.80, 1.0, 1.0)),
++    ("A soldier face, helmet", "a/bench-a-soldier-face", (0.42, 0.0, 0.73, 0.35)),
++    ("E river, boulders and bank", "e/bench-e-river", (0.10, 0.35, 0.95, 0.80)),
++    ("E fortification, walls", "e/bench-e-fortification", (0.20, 0.45, 0.85, 0.80)),
++]
++
++
++def rgb(path, box, frac):
++    im = Image.open(path).convert("RGB")
++    w, h = im.size
++    if frac:
++        box = (int(box[0] * w), int(box[1] * h), int(box[2] * w), int(box[3] * h))
++    return np.asarray(im.crop(box), dtype=np.float64)
++
++
++def luma(path, box):
++    return float(np.asarray(Image.open(path).convert("L").crop(box), dtype=np.float64).mean())
++
++
++def colour(a):
++    m = a.reshape(-1, 3).mean(axis=0)
++    h, s, _ = colorsys.rgb_to_hsv(*(m / 255.0))
++    return m, h * 360.0, s
++
++
++print("far/near (critic boxes): shot | before: far, near, ratio, far rgb, hue, sat | after: the same")
++for shot, (fb, nb) in FAR.items():
++    row = [shot]
++    for root in (BEFORE, AFTER):
++        p = f"{root}/{shot}.png"
++        f, n = luma(p, fb), luma(p, nb)
++        m, hue, sat = colour(rgb(p, fb, False))
++        row.append(f"far {f:.1f} near {n:.1f} ratio {f / n:.2f} rgb {m[0]:.0f},{m[1]:.0f},{m[2]:.0f} hue {hue:.0f} sat {sat:.2f}")
++    print(" | ".join(row))
++print()
++print("regions: name | before: rgb, hue, sat, near-white % | after: the same")
++for name, shot, box in REGIONS:
++    row = [name]
++    for root in (BEFORE, AFTER):
++        a = rgb(f"{root}/{shot}.png", box, True)
++        m, hue, sat = colour(a)
++        white = float((a.min(axis=2) >= 225).mean() * 100)
++        row.append(f"rgb {m[0]:.0f},{m[1]:.0f},{m[2]:.0f} hue {hue:.0f} sat {sat:.2f} white {white:.2f} %")
++    print(" | ".join(row))
 diff --git a/prototypes/m7-gfx2/scripts/review-sheets-polish1.py b/prototypes/m7-gfx2/scripts/review-sheets-polish1.py
 new file mode 100644
 index 0000000..bf8bae3
@@ -18106,6 +19098,115 @@ index 0000000..46d4e6e
 +small([("a", "bench-a-two-shot", HELM, "A two-shot helmet"), ("d-shown", "bench-d-shown-06-fallen", None, "D fallen"),
 +       ("d-shown", "bench-d-shown-01-prisoners", None, "D prisoners"), ("c", "bench-c-melee-low", None, "C melee")],
 +      (256, 144), "polish2: helmet hair, aftermath, crowd", os.path.join(REVIEW, "polish2-02-hair-aftermath-crowd.jpg"), 48)
+diff --git a/prototypes/m7-gfx2/scripts/review-sheets-polish3.py b/prototypes/m7-gfx2/scripts/review-sheets-polish3.py
+new file mode 100755
+index 0000000..5f939a6
+--- /dev/null
++++ b/prototypes/m7-gfx2/scripts/review-sheets-polish3.py
+@@ -0,0 +1,103 @@
++#!/usr/bin/env python3
++"""Review sheets of the polish3 stage: BEFORE (polish2's canonical captures) against AFTER (the same shots captured on
++the polish3 build), one sheet per critic issue of iteration 3 (full size, for the scratchpad), and two small review
++JPEGs for reports/captures/polish3 (the committed G2 budget is already used up: they are kept tiny).
++
++Usage: review-sheets-polish3.py BEFORE_DIR AFTER_DIR SHEETS_DIR REVIEW_DIR
++  BEFORE_DIR, AFTER_DIR: outputs of scripts/capture-scenes.sh (same folder and file names).
++Every legend says: llvmpipe, not Victus evidence. Placeholder graphics: these are prototype frames, not production art.
++"""
++import os
++import sys
++from PIL import Image, ImageDraw
++
++BEFORE, AFTER, SHEETS, REVIEW = sys.argv[1:5]
++LLVM = "llvmpipe, not Victus evidence; prototype graphics"
++
++
++def path(root, folder, name):
++    return os.path.join(root, folder, name + ".png")
++
++
++def load(p, size, crop=None):
++    if p is None or not os.path.exists(p):
++        im = Image.new("RGB", size, (40, 40, 40))
++        ImageDraw.Draw(im).text((8, 24), "missing: " + (os.path.basename(p) if p else "-"), fill=(220, 220, 220))
++        return im
++    im = Image.open(p).convert("RGB")
++    if crop:
++        w, h = im.size
++        x0, y0, x1, y1 = crop
++        im = im.crop((int(x0 * w), int(y0 * h), int(x1 * w), int(y1 * h)))
++    return im.resize(size, Image.LANCZOS)
++
++
++def label(draw, xy, text, w):
++    x, y = xy
++    draw.rectangle([x, y, x + min(w, len(text) * 6 + 6), y + 13], fill=(0, 0, 0))
++    draw.text((x + 3, y + 1), text, fill=(235, 235, 235))
++
++
++def sheet(title, rows, out, cell=(800, 450), quality=86):
++    """rows: list of (folder, shot, crop or None, caption)."""
++    w, h = cell
++    head = 34
++    img = Image.new("RGB", (2 * w + 6, head + len(rows) * (h + 4)), (16, 16, 16))
++    d = ImageDraw.Draw(img)
++    d.text((6, 4), title, fill=(255, 255, 255))
++    d.text((6, 18), "BEFORE (left: polish2) vs AFTER (right: polish3); " + LLVM, fill=(200, 200, 200))
++    for i, (folder, shot, crop, cap) in enumerate(rows):
++        y = head + i * (h + 4)
++        img.paste(load(path(BEFORE, folder, shot), cell, crop), (0, y))
++        img.paste(load(path(AFTER, folder, shot), cell, crop), (w + 6, y))
++        label(d, (0, y), f"before: {shot}{' (crop)' if crop else ''}", w)
++        label(d, (w + 6, y), f"after: {cap}", w)
++    img.save(out, quality=quality, optimize=True)
++    print(out)
++
++
++
++TOP = (0.0, 0.0, 1.0, 0.45)
++os.makedirs(SHEETS, exist_ok=True); os.makedirs(REVIEW, exist_ok=True)
++S = lambda n: os.path.join(SHEETS, f"polish3-{n}.jpg")
++sheet("1. Far land: noon band no darker than the meadow, no terraces, less sand at low sun", [
++    ("c", "bench-c-vista-noon", None, "C vista noon"), ("c", "bench-c-clash-noon", None, "C clash noon"),
++    ("e", "bench-e-vista-noon", None, "E vista noon"), ("b", "bench-b-wide-noon", None, "B wide noon"),
++    ("c", "bench-c-vista-golden", None, "C vista golden"), ("c", "bench-c-clash-dusk", None, "C clash dusk"),
++    ("c", "bench-c-rout", TOP, "C rout (top)"), ("d-cutaway", "bench-d-cutaway-06-cutaway", None, "D cut-away")], S("01-far-land"))
++sheet("2. Crowd in close shots: beards, idle spears, kit", [
++    ("c", "bench-c-melee-low", None, "C melee low"), ("d-shown", "bench-d-shown-02-surrender", None, "D surrender"),
++    ("b", "bench-b-front", None, "B front"), ("b-rain", "bench-b-front", None, "B front (rain)")], S("02-crowd"))
++sheet("3. Aftermath: prisoners apart from the fallen, four poses, tilted shields, arms down", [
++    ("d-shown", "bench-d-shown-06-fallen", None, "D fallen (reframed)"), ("d-shown", "bench-d-shown-01-prisoners", None, "D prisoners"),
++    ("d-shown", "bench-d-shown-00-field", None, "D field")], S("03-aftermath"))
++sheet("4. Skin: warm shade, softer penumbra", [
++    ("d-shown", "bench-d-shown-03-officer-face", None, "D officer face"), ("a", "bench-a-commander-grim", None, "A commander grim"),
++    ("a", "bench-a-commander-battlecry", None, "A battle cry"), ("d-shown", "bench-d-shown-04-commander-face", None, "D commander face")], S("04-skin"))
++sheet("5. Skies: fewer, eroded streaks at low sun, held dusk chroma, crisper heaps", [
++    ("d-shown", "bench-d-shown-02-surrender", None, "D surrender"), ("d-shown", "bench-d-shown-05-standards", None, "D standards"),
++    ("d-cutaway", "bench-d-cutaway-06-cutaway", None, "D cut-away (dusk)"), ("c", "bench-c-advance", None, "C advance (noon)")], S("05-skies"))
++sheet("6. River: darker boulders, banks", [
++    ("e", "bench-e-river", None, "E river"), ("b", "bench-b-rear-high", None, "B rear high"), ("e-rain", "bench-e-river", None, "E river (rain)")], S("06-river"))
++sheet("7. Fortification and village: grime, rain streaks, moss, hearth smoke", [
++    ("e", "bench-e-fortification", None, "E fortification"), ("e", "bench-e-settlement", None, "E settlement"),
++    ("e", "bench-e-vista-high", None, "E vista high")], S("07-settlement"))
++sheet("8. Wet ground and backlit grass", [
++    ("c-rain", "bench-c-clash-noon", None, "C clash (rain)"), ("b-rain", "bench-b-wide-noon", None, "B wide (rain)"),
++    ("b", "bench-b-standard", None, "B standard")], S("08-wet-grass"))
++sheet("9. Corinthian bronze", [
++    ("a", "bench-a-soldier-face", None, "A soldier face"), ("a", "bench-a-two-shot", None, "A two-shot")], S("09-bronze"))
++
++# two small committed review JPEGs (256 x 144 cells, quality 48)
++def small(rows, out, cell=(256, 144)):
++    w, h = cell
++    img = Image.new("RGB", (2 * w + 2, len(rows) * (h + 2)), (16, 16, 16))
++    for i, (folder, shot, crop) in enumerate(rows):
++        img.paste(load(path(BEFORE, folder, shot), cell, crop), (0, i * (h + 2)))
++        img.paste(load(path(AFTER, folder, shot), cell, crop), (w + 2, i * (h + 2)))
++    img.save(out, quality=48, optimize=True)
++    print(out, os.path.getsize(out))
++small([("c", "bench-c-vista-noon", None), ("c", "bench-c-vista-golden", None), ("e", "bench-e-vista-noon", None), ("b", "bench-b-wide-noon", None)],
++      os.path.join(REVIEW, "polish3-01-far-land-before-after.jpg"))
++small([("d-shown", "bench-d-shown-06-fallen", None), ("d-shown", "bench-d-shown-01-prisoners", None), ("a", "bench-a-soldier-face", (0.2, 0.0, 0.8, 0.6)), ("d-shown", "bench-d-shown-02-surrender", None)],
++      os.path.join(REVIEW, "polish3-02-aftermath-bronze-sky.jpg"))
 diff --git a/prototypes/m7-gfx2/scripts/review-sheets-scenes.py b/prototypes/m7-gfx2/scripts/review-sheets-scenes.py
 new file mode 100644
 index 0000000..94a5abd
