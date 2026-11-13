@@ -14,7 +14,7 @@ RAM=${RAM:-/dev/shm/ram}
 G2W=${G2W:-/home/user/g2w}
 
 # 1. Empty folders behind the symlinks. Build outputs, captures and verify clones are remade by their stages.
-for d in g2w/polish3-work g2w/scratch-integ7 m7w/verify-OC-r2 m7w/verify-OC-r2b captures/polish-3; do
+for d in g2w/polish3-work g2w/scratch-integ7 m7w/verify-OC-r2 m7w/verify-OC-r2b captures/polish-3 m7w/RT2 m7w/verify-RT2-r1 m7w/verify-RT2-r1b m7w/verify-RT2-r2 m7w/verify-RT2-r2b; do
   mkdir -p "$RAM/$d"
 done
 for p in Proto.DetMath Proto.DetMath.Tests Proto.M7 Proto.M7.Bench Proto.M7.Econ Proto.M7.Econ.Tests Proto.M7.Tests; do

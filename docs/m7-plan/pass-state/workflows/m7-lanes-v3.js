@@ -129,6 +129,38 @@ ${finish(lane.key)}
 In the structured result, put the per-finding verdict table (compressed) in summary and keep every other field current.`
 }
 
+// [orchestrator 2026-11-13] A fix round that ends with brief items still NOT built is followed by a completion stage, so
+// that the next verification round checks the lane as its brief defines it (lane OC's fix round 1 deferred items 5-8).
+// Added after impl, verify r1 and fix r1 of run wf_42ee07c9-d2f: their prompts are unchanged, so they replay from cache.
+function notBuilt(res) {
+  return ((res && res.not_done) || []).some(s => /not built|not implemented|not done/i.test(String(s)))
+}
+
+function completePrompt(lane, res, round) {
+  return `You are M7 lane ${lane.key} (${lane.title}), COMPLETION STAGE after fix round ${round}. Full effort: this is work the Director prioritized; be thorough and precise, and verify your own claims by measurement.
+${COMMON}
+## Why this stage runs
+The lane brief is the definition of done. Fix round ${round} ended with brief items still NOT built (not_done below). They are built now, before the next verification round, so that round checks the lane as the brief defines it. The orchestrator's session schedule is never your time budget: if you are stopped, a later run continues from your clone and loses nothing, so never shorten, skip or defer work for time.
+## Your clone
+Work in ${W}/${lane.key} on branch lane/${lane.key} (current commit ${res.commit}). Inspect git log and status first: if an earlier run of this stage was stopped, continue from its commits and edits. Commit in small coherent steps as you go, so that a stop loses nothing.
+DISK (overrides any older figure above): the session disk has only about 200 MB free. Build outputs live on the RAM disk (/dev/shm/ram): a prototype lane's Proto.*/bin and obj are links the orchestrator made into /dev/shm/ram/oc-build, and a Sim lane's whole clone is a link into /dev/shm/ram/m7w. Never delete, move or replace those links. Put any other worktree (mutants, baselines) or large file under /dev/shm/ram/m7w/ only, never elsewhere on the disk.
+## The lane's account so far
+${JSON.stringify({ summary: res.summary, not_done: res.not_done, open_questions: res.open_questions, proposals_for_director: res.proposals_for_director, tests: res.tests, report: res.report }, null, 1)}
+## Lane brief (scope and definition of done)
+${lane.brief}
+## Do
+1. Build every brief item that not_done lists as not built, completely and as the brief and the Director's decisions specify. That means code, semantic tests per mechanism, bounded mutants each killed by a named semantic test, and the design and proposal sections the brief asks for. The tests include:
+   - a tie-dense test for any ordering or argmax over doubles;
+   - a turn-exact pin for every order-delivery semantic, beside any live-versus-replay check;
+   - a POPULATED-table round-trip test for any new serialized row type.
+2. Where the brief or a Director decision leaves a call open, apply the reading the brief records, label it READING or PROPOSAL, and list it for the Director. Never invent or reopen a decision. An item that is truly blocked (a conflict between frozen items, which needs a CR, or a missing Director ruling) stays not done with the exact blocker. Time is never a reason.
+3. Also run what not_done lists as NOT RUN, where it is in scope and feasible.
+4. Re-run the builds and full suites of every touched solution (Debug and Release), the determinism scan and the doc-link check.
+5. Add a 'Completion after fix round ${round}' section to the lane report covering: what was built; equations or design; evidence MEASURED vs INFERRED; tests; mutants; moved pins with measured attribution; what ran, what was NOT RUN and what was deferred. Mark superseded statements in place.
+${finish(lane.key)}
+In the structured result, keep every field current; not_done lists only what is still not done, each with its reason.`
+}
+
 async function runLane(lane) {
   let res = await agent(implPrompt(lane), { label: `impl:${lane.key}`, phase: 'Implement', schema: LANE_SCHEMA })
   if (!res) return { lane: lane.key, failed: 'implement agent returned nothing' }
@@ -143,6 +175,12 @@ async function runLane(lane) {
     const serious = findings.filter(f => f.severity === 'blocker' || f.severity === 'major')
     const fixed = await agent(fixPrompt(lane, res, { findings: actionable }, round), { label: `fix:${lane.key}:r${round}`, phase: 'Fix', schema: LANE_SCHEMA })
     if (fixed) res = fixed
+    if (round < 2 && fixed && notBuilt(fixed)) {
+      const done = await agent(completePrompt(lane, res, round), { label: `complete:${lane.key}:r${round}`, phase: 'Implement', schema: LANE_SCHEMA })
+      if (done) res = done
+      history.push({ round, completion: done ? `completion at ${done.commit}` : 'completion agent returned nothing' })
+      continue
+    }
     if (!serious.length) break
   }
   log(`lane ${lane.key} done at ${res.commit}`)
