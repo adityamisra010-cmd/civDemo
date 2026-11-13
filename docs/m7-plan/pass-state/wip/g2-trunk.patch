@@ -9168,7 +9168,7 @@ index dee79a6..db8fe53 100644
      }
  
 diff --git a/prototypes/m7-gfx2/README.md b/prototypes/m7-gfx2/README.md
-index 12e7b8e..511d0c1 100644
+index 12e7b8e..5273a41 100644
 --- a/prototypes/m7-gfx2/README.md
 +++ b/prototypes/m7-gfx2/README.md
 @@ -48,7 +48,9 @@ external assets in `assets/` are pinned and fetched, but **no code uses them yet
@@ -9204,7 +9204,7 @@ index 12e7b8e..511d0c1 100644
  ## Characters (stage chars)
  
  Soldiers, the force A commander and the player avatar (G1 PlayerFixture identity) built from the MakeHuman CC0 core
-@@ -241,3 +258,112 @@ Details, captures, llvmpipe costs, tests, mutants and what still looks placehold
+@@ -241,3 +258,129 @@ Details, captures, llvmpipe costs, tests, mutants and what still looks placehold
    to TAA; key 9 cycles none / FXAA / TAA.
  - **Reproduce:** `scripts/capture-render2.sh OUT_DIR`, `scripts/review-sheets-render2.py`, `scripts/bench-render2.sh
    OUT_DIR` (llvmpipe costs: crowd at 220 / 2,000 / 10,000, LOD sweep, culling, AO, contact shadows, TAA).
@@ -9317,6 +9317,23 @@ index 12e7b8e..511d0c1 100644
 +scripts/review-sheets-polish2.py BEFORE_DIR AFTER_DIR SHEETS_DIR REVIEW_DIR
 +scripts/measure-polish2.py BEFORE_DIR AFTER_DIR
 +```
++
++**Since the polish2 merge (`g2/trunk`, 2026-11-13):** the defaults listed above change the earlier stages' scenes too.
++Measured here (llvmpipe, not Victus evidence) with the check commands of the earlier integrations at 1280×720, the
++stills of `terrain-temperate` (day), `chars-forces` (6), `env-temperate` (the two settlement shots), `kit-forces` (8)
++and `crowd-formation` (6) differ in 23 of 23 from the trunk's renders before polish2. Side by side, nothing broke.
++Outside the crowd the changes are small (mean absolute difference 0.1 to 0.9 of 255 per still, 3.4 for the
++`env-temperate` settlement): temperate rock is darker and browner (the `terrain-temperate` ridge; the `env-temperate`
++scree, where turf now creeps over the gentler slope), and crushed channels of saturated grass, dyes and crests are
++lifted a little (gamut compression). The `crowd-formation` stills change most (2.4 to 5.4 of 255): duller helmets and
++muted shield dyes; the dusk still is 2.6 of 255 darker in mean luma, mostly its pale hill. The harness's G1 stand-in on
++slot C (`--bind g1`) draws the same calls and triangles as before and its review frame differs by 0.1 of 255 on average;
++the default slot D (`bench-d-shown`) draws 431.7 calls and 2.60 M triangles per frame on average instead of 338.5 and
++2.35 M (the aftermath content of polish2). On this tree, `scripts/capture-scenes.sh` groups a, c, d and avatar render 27
++of 27 stills byte-identical to polish2's canonical set, and scene D's 12-frame sequence (the script's command) its three
++saved frames too. The Gfx tests ran in polish2's four class groups, one test host each (`reports/polish2.md` §3): the
++largest (group 3) peaked at 6.1 GiB RSS (Release; 6.2 GiB Debug) here, above the "near 5 GB" of the test-host note under
++"Build, test, run, capture".
 diff --git a/prototypes/m7-gfx2/assets/PROVENANCE.md b/prototypes/m7-gfx2/assets/PROVENANCE.md
 index 607c164..9331b62 100644
 --- a/prototypes/m7-gfx2/assets/PROVENANCE.md
