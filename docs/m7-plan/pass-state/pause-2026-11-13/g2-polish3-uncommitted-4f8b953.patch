@@ -1,0 +1,137 @@
+diff --git a/prototypes/m7-gfx2/reports/polish3.md b/prototypes/m7-gfx2/reports/polish3.md
+new file mode 100644
+index 0000000..7de2c8e
+--- /dev/null
++++ b/prototypes/m7-gfx2/reports/polish3.md
+@@ -0,0 +1,131 @@
++# G2 stage polish3: the visual critic's third pass, worked most visible first
++
++Stage agent polish3, branch `g2/polish3` (cut from `g2/trunk` f677707, polish2 integrated), 2026-11-13. Scope: the
++nine ranked issues of the visual critic's iteration 3 on the benchmark scenes A–E, as many as could be done well, then
++the canonical capture set again and before/after sheets per issue. MonoGame 3D only, presentation only (DR42: nothing
++here reads back into the simulation; the battle trace of scenes C and D is read-only, and the tests that read it hash it
++before and after). All numbers below were measured in this container on **llvmpipe (Mesa software GL on 4 logical
++CPUs, 15 GB RAM, shared with a simulation lane that ran builds and mutants at the same time): llvmpipe, not Victus
++evidence**. No hardware GPU ran this code. The Director's quality references were used as references only; nothing
++player-facing names another game (D-069). These are prototype frames, not production art.
++
++@@VERDICT@@
++
++## 1. What changed, per issue
++
++Before = polish2's canonical captures (`captures/polish2/`); after = this stage's canonical captures
++(`captures/polish-3/`, §2), both 1920 × 1080 with 8 samples, the same shots. Figures marked *capture* come from
++`scripts/measure-polish3.py BEFORE AFTER` (the critic's own far/near boxes from `critic3/tools/farland-luma.py`, and
++region statistics); figures marked *test* come from the tests of §3. Each row's sheet is
++`captures/polish-3/sheets/polish3-NN-*.jpg` (before left, after right).
++
++@@TABLE@@
++
++## 2. Captures
++
++@@CAPTURES@@
++
++## 3. Tests
++
++Builds: `M7Gfx2.slnx` Release and Debug: **0 errors, 0 warnings** each (warnings are errors in this tree); the last
++Release build was a full non-incremental rebuild after the mutant runs (below). Gfx tests: **323 in 28 classes**, 317
++from the earlier stages and 6 new (`Polish3Tests`), run in polish2's four class groups (with `Polish3Tests` in group 3),
++one test host each:
++
++| Group (test classes) | Release: passed / failed / skipped (time) | Debug: passed / failed / skipped (time) |
++|---|---|---|
++| 1: PerfUnit, Render1Math, Render2Math, EnvLayout, Camera, EngineUnit, Frustum, EffectLoad, Units, Cinematic, PerfProcess | 147 / 0 / 0 (31 s) | 147 / 0 / 0 (54 s) |
++| 2: Chars, Avatar, Kit, Crowd | 73 / 0 / 0 (20 s) | 73 / 0 / 0 (75 s) |
++| 3: Scenes, Polish1, Polish2, Polish3, Terrain, EnvTree, EnvRender, Integration, PerfEnvTap | 74 / 0 / 0 (60 s) | 74 / 0 / 0 (231 s) |
++| 4: Render1Render, Render2Render, RenderTests, PerfDevice | 29 / 0 / 0 (50 s) | 29 / 0 / 0 (200 s) |
++| **all** | **323 / 0 / 0** | **323 / 0 / 0** |
++
++Counts from each group's test-host summary (logs in the work folder, not committed). The Release groups ran on b781165
++with nothing else of mine running; the Debug groups on the same code while the canonical captures ran (hence their
++times). Nothing was skipped or deselected: the four groups name all 28 classes. After that run one test changed (the wet
++test's scene, below); `Polish2Tests` and `Polish3Tests` were run again on the final Release build: 20 / 0 / 0.
++
++Two existing tests changed, each for a stated reason:
++- `Polish2Tests.SurrenderedAndFallenSoldiersHoldNothingInTheirHands` asserted that every dropped item lies at ground
++  height (y = 0 on its flat test ground). A dropped shield now rests tilted on its rim (rank 3), so its centre stands
++  above the ground: the test keeps y = 0 for weapons and allows 0 to 0.25 m for shields (`ShieldTilt` gives at most
++  0.20 m). Its other assertions (who is disarmed, the views, where kit lies, no duplicates, the trace hash) are unchanged.
++- `CrowdTests.CrowdSkinningMatchesTheCpuReference` samples variant 7 from the bank's last column with the first of a
++  list of clips whose frame lies there; the bank gained two clips per identity (the new surrender poses) at its end, so
++  they join that list. Its intent (the shader's column wrap) and its assertions are unchanged.
++
++New tests (`Gfx.Tests/Polish3Tests.cs`, 6; presentation only, each states its property):
++
++| Test | Property (rank) | Measured |
++|---|---|---|
++| `CloudShadowFadesWithDistanceFromTheCamera` | the CPU twin: a cloud shadow keeps its whole depth to 1.5 km, a fifth from 4 km, never more with distance; the seen shadow is the layer's mixed towards 1 by the fade; no layer is 1 (1) | 400 points along a line, more than 20 of them under thick cloud (asserted) |
++| `FarCloudShadowsAreLiftedAndNearOnesAreNot` | on screen (a field 12 km across from 600 m up): the brightness ratio follows the twin's seen shadow (r over 0.95); under thick cloud the near ground (under 1.5 km) keeps under 0.6 of its brightness, the far ground (over 4.5 km) over 0.85 (1) | r 0.994; near 0.488, far 0.929 |
++| `WetGroundIsNeverBrighterThanDry` | a dark, rough soil at grazing angles under a bright overcast noon: no wet pixel brighter than its dry twin by more than one 8-bit step; the wet mean not brighter (8) | mean luma 55.6 dry, 52.0 wet; worst +0.44 |
++| `PrisonersKneelApartFromTheFallen` | over the bench battle's end: placement pure; only the surrendered move, none over 4 m; each faces the victors' centroid; prisoners within 0.75 m of a fallen body's centre line fall to under a quarter of the trace's and under a sixth of the prisoners; the trace hash unchanged (3) | 429 → 78 of 559 prisoners; 502 moved |
++| `PrisonerPosesAndShieldRestsVaryById` | four prisoner poses, each over 10 % of 4,000 ids, the polish2 hands-up share kept; shield tilts 10–40° spread over the range, centre 0–0.25 m up, the rest matrix a turn of exactly the tilt (3) | bowed 1,748, hands up 912, on the head 742, behind the neck 598 |
++| `FallenArmsLieDownOnceTheBodyIsDown` | for the eight crowd identities' falls: with the body down no hand over 0.10 m above the chest; frames with the body still up unchanged bit for bit; the source clips do raise a hand (3) | the fall on the back: 0.24–0.28 m → 0.05 m; 62 source frames over 0.20 m |
++
++**Bounded mutants** (each run in this clone against its named test; bound 300 s against about 10 s for a clean run; the
++source restored from git and touched after each; a full non-incremental Release rebuild and a re-run of the polish2 and
++polish3 tests after the last):
++
++| Mutant (file) | Test run | Verdict |
++|---|---|---|
++| M1: no distance fade of the cloud shadow on screen (`GlslLib.cs`) | `FarCloudShadowsAreLiftedAndNearOnesAreNot` | **killed**, 22 s: ratio against the twin r = 0.620; the far ground under thick cloud keeps 0.516 |
++| M2: prisoners not moved (`TraceCrowd.cs`) | `PrisonersKneelApartFromTheFallen` | **killed**, 12 s: 429 prisoners on the fallen, as in the trace |
++| M3: no luminance cap on wet shading (`GlslLib.cs`) | `WetGroundIsNeverBrighterThanDry` | first version of the test (a lighter field seen from 6 m): **survived** (the albedo darkening outweighed the sheen); the test now looks at a dark soil from 1.6 m: **killed**, 10 s: a wet pixel 6.01 (8-bit) brighter than its dry twin |
++| M4: the polish2-era ramp of the arm laying (0.12 → 0.30 m), the first version of this stage (`CrowdPoseVariants.cs`) | `FallenArmsLieDownOnceTheBodyIsDown` | **killed**, 9 s: a1's fall on the back, frame 36, a hand 0.12 m over the chest |
++| M5: every hands-up prisoner in one pose (`TraceCrowd.cs`) | `PrisonerPosesAndShieldRestsVaryById` | **killed**, 9 s: two poses drawn for 0 of 4,000 ids |
++| M6: the fade's end at 8 km instead of 4 km in the CPU twin (`CloudLayer.cs`) | `CloudShadowFadesWithDistanceFromTheCamera` | **killed**, 7 s: the fade at 4 km is not the residual |
++
++Every kill is by a test that states a property (none by a golden image). None of the runs came near the 300 s bound and
++none hung. One mutant survived the first version of its test (M3) and is killed by the version committed.
++
++## 4. Costs (llvmpipe, not Victus evidence)
++
++@@COSTS@@
++
++## 5. What still looks placeholder
++
++@@PLACEHOLDER@@
++
++## 6. Limitations and notes
++
++- **llvmpipe only.** Every frame, timing and test ran on the software rasteriser; none of it says anything about the
++  Victus or any GPU.
++- **The disk was full.** The container's root file system had about 270 MB free for the whole stage; the clone, the
++  work folder and the canonical captures lived on a RAM disk (`/dev/shm/ram/...`: the clone behind
++  `/home/user/g2w/polish3`, the captures behind the scratchpad's `captures/polish-3/` link, which the orchestrator
++  prepared). They survive only as long as the container runs: the committed review JPEGs and the bundle are the
++  durable record.
++- **A capture run discarded.** The first canonical run started on c2bb0d6; two later code changes (the prisoner search
++  in finer rings and the stronger arm laying, both from the tests) would have left C and D on older code, so I stopped
++  it after A and part of B and started the whole set again on b781165. Every capture in §2 is from that run; since
++  b781165 only tests, scripts and documents changed (no runtime code).
++- **The golden-hour hue target is not met.** The critic asked for a far band of hue 80–160 at golden hour; it measures
++  36–37 (as before) because the far land in those shots is seen towards a low sun through a warm glow (§1, rank 1). The
++  glow and its brightness are lower (far/near luma 2.28 → 1.73 in the vista), and the band reads as dark olive land in a
++  warm haze rather than a beige plain, but it is not green. A greener far land at low sun would need the aerial
++  perspective's forward scattering cut further than looks right for the sky above it.
++- **Not worked:** the crowd LOD re-bake with locked borders (the bake writes the shared asset folder that other clones
++  read; a re-bake into a new folder needs a loader change I did not make); hero characters for the nearest crowd
++  soldiers; side and curled death poses and a relaxation of the bodies themselves (they still overlap: the polish2
++  settle is unchanged); skin pores, cavity, beard root occlusion, brow and lash cards, hands; a sparse heap layer at low
++  sun; the river's shoreline, water colour by depth, reeds in clumps and triplanar banks; broken merlons, rubble,
++  villagers, paths and pens; the output dither (it would move pixel-exact test references by one step; the far terraces
++  came from the ring geometry, which is fixed).
++- **Hearth smoke is in every bench scene with the village** (B, C, D, E), not only E: the village plan is shared.
++- **Scene D's victors stand without their spears** (a crowd view with the shield and without the weapon): with the
++  spears held level at the hip they passed through the men beside them; nothing lies at their feet in their place.
++
++## 7. Reproduce
++
++```
++cd prototypes/m7-gfx2
++dotnet build M7Gfx2.slnx -c Release -m:1 -nodeReuse:false
++scripts/capture-scenes.sh OUT_DIR                                      # 1920x1080, 8 samples; + avatar triptych, motion
++scripts/review-sheets-polish3.py BEFORE_DIR OUT_DIR SHEETS_DIR REVIEW_DIR
++scripts/measure-polish3.py BEFORE_DIR OUT_DIR                          # the figures of §1 marked "capture"
++dotnet test Gfx.Tests/Gfx.Tests.csproj -c Release --no-build --filter "FullyQualifiedName~Gfx.Tests.Polish3Tests"
++dotnet Gfx.Demo/bin/Release/net10.0/Gfx.Demo.dll --suite smoke --out DIR   # llvmpipe costs, slots A-E
++```

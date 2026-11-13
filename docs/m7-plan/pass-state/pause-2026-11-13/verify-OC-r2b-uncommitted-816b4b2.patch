@@ -1,0 +1,13 @@
+diff --git a/prototypes/m7-sprint1/Proto.M7/Tactical/AutoResolver.cs b/prototypes/m7-sprint1/Proto.M7/Tactical/AutoResolver.cs
+index 68f4909..24ae3a8 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Tactical/AutoResolver.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Tactical/AutoResolver.cs
+@@ -1218,7 +1218,7 @@ public sealed class AutoBattle
+         // setup's roles, through the function the TacticalResolver calls too (EqualSides). [OC] D-087 DF8/DF10/DF11: a tie on equal
+         // sides (moved here from below the counts by [OC r1], unchanged: it reads only the end).
+         var (winner, basis) = EqualSides.Decide(reason, side, _s.Defender, _s.Ambusher);
+-        bool tie = basis == WinBasis.Tie;                 // [OC r1] OC-R1-01: D-087 DF8-R1 (a), D-088 DG7 (TieRejoin)
++        bool tie = basis == WinBasis.Tie && reason != BattleEndReason.Standoff;                 // [OC r1] OC-R1-01: D-087 DF8-R1 (a), D-088 DG7 (TieRejoin)
+         var fr = new FormationResult[_f.Length];
+         bool any0 = false, any1 = false;
+         for (int i = 0; i < _f.Length; i++)

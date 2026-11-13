@@ -1,0 +1,4 @@
+# Patches carry diff context lines with a single space; bundles are binary. Data, not source.
+*.patch -whitespace
+*.bundle binary
+*.jsonl -whitespace
