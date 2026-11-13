@@ -1,19 +1,22 @@
-# Pass-state snapshot: 2026-11-13T00:56:26Z
+# Pass-state snapshot: 2026-11-13T06:42:28Z
 
 Written by `docs/m7-plan/pass-state/tools/snapshot.sh` every 30 minutes while work is in flight, and committed with
 `[skip ci]`. It holds every piece of work that is not yet on this branch as a commit, so that a stopped session or a lost
 container costs at most the work since this time. The finished work is in the branch itself (README §1).
 
-Branch head when written: `f11a1c5`. In flight: g2 trunk 9b0fb76.
+Branch head when written: `94a8014`. In flight: g2 trunk 9b0fb76 lane OC c4b4b67.
 
 | File | What | Head | Made with | Restore |
 |---|---|---|---|---|
 | g2-trunk.patch | G2 trunk /home/user/g2w/trunk (branch g2/trunk) | 9b0fb76 | git diff --binary 21a181e 9b0fb76 -- prototypes/m7-gfx2 | `git apply --binary` on this branch's tree (its prototypes/m7-gfx2 equals 21a181e's) |
+| OC-wip.bundle | lane clone /home/user/m7w/OC | c4b4b67 | git bundle create … 3f4f8e1..HEAD | `git fetch <bundle> HEAD:lane/OC` in a clone of this branch |
+| OC-uncommitted.patch | lane clone /home/user/m7w/OC: uncommitted edits | c4b4b67 | temporary index | on lane/OC |
 | journals/*.jsonl | every workflow run's journal | — | copy | read, to see which agents finished and what they returned |
 
 ## Restore test (in a fresh clone of the branch, at this snapshot)
 
 - g2-trunk.patch on this branch's tree: PASS
+- OC-wip.bundle: bundle verify PASS
 
 ## How to resume from this snapshot in a new session
 
