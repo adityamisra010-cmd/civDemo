@@ -1,0 +1,559 @@
+diff --git a/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/ZzProbeOC.cs b/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/ZzProbeOC.cs
+new file mode 100644
+index 0000000..4301668
+--- /dev/null
++++ b/prototypes/m7-sprint1/Proto.M7.Tests/LaneOC/ZzProbeOC.cs
+@@ -0,0 +1,140 @@
++// SCRATCH PROBE (lane OC completion stage) — never committed; removed by exact name before every commit.
++using System.Text;
++using Proto.M7.Fixed;
++using Proto.M7.Spatial;
++using Proto.M7.Tactical;
++using Xunit;
++using Xunit.Abstractions;
++
++namespace Proto.M7.Tests.LaneOC;
++
++public sealed class ZzProbeOC
++{
++    private readonly ITestOutputHelper _o;
++    public ZzProbeOC(ITestOutputHelper o) { _o = o; }
++
++    private static Vec2L A(long cx, long cy) => MultiDomainScenarios.A(cx, cy);
++
++    public static BattleSetup OldAmphibious(ulong seed)
++    {
++        var g = new TerrainGrid(64, 40, MultiDomainScenarios.AmphibCell, TerrainClass.Open);
++        for (int y = 0; y < 40; y++)
++            for (int x = 0; x < 64; x++)
++            {
++                if (x <= 27) g.Set(x, y, TerrainClass.Water);
++                else if (x <= 33 && y >= 3 && y <= 9) g.Set(x, y, TerrainClass.Hills, 20_000);
++                else if (x >= 32 && x <= 37 && y >= 12 && y <= 31) g.Set(x, y, TerrainClass.Forest);
++            }
++        var forms = new[]
++        {
++            MultiDomainScenarios.Fleet(10, 0, DomainProfiles.TurretWarship, 2, A(12, 14)),
++            MultiDomainScenarios.Fleet(11, 0, DomainProfiles.SteamTransport with { Capacity = 30 }, 2, A(6, 22)),
++            new FormationSpec(12, 0, MultiDomainScenarios.Rifles50m, 50, A(6, 22)) { EmbarkedOn = 11 },
++            MultiDomainScenarios.Flight(13, 0, DomainProfiles.StrikeAircraft, 1),
++            MultiDomainScenarios.Flight(14, 0, DomainProfiles.Fighter, 1),
++            new FormationSpec(20, 1, MultiDomainScenarios.Rifles50m, 50, A(34, 20)),
++            new FormationSpec(21, 1, DomainProfiles.GunCrew, 5, A(31, 6)) { Weapons = new[] { DomainProfiles.CoastalGun } },
++            new FormationSpec(22, 1, DomainProfiles.GunCrew, 5, A(40, 18)) { Weapons = new[] { DomainProfiles.AaGun } },
++            new FormationSpec(23, 1, DomainProfiles.Sniper with { RangeCells = 14, SightCells = 16 }, 2, A(33, 26)),
++            MultiDomainScenarios.Flight(24, 1, DomainProfiles.Fighter, 1),
++        };
++        return new BattleSetup(g, TerrainCostTable.PlaceholderTestTable(), ConcealmentTable.PlaceholderTestTable(),
++            MultiDomainScenarios.Sides(new[] { A(35, 20) }, new[] { A(34, 20) }), forms, seed)
++        { MultiDomain = new MultiDomainSetup { Rules = new DomainRules() }, Rules = new TacticalRules { SlotSpacingMm = 5_000 }, Defender = 1 };
++    }
++
++    public static ScriptedController OldPlan() => new ScriptedController()
++        .Add(0, new OrderRequest(10, OrderKind.Attack, 0, 21))
++        .Add(0, new OrderRequest(13, OrderKind.Attack, 0, 21))
++        .Add(0, new OrderRequest(14, OrderKind.Escort, 0, 13))
++        .Add(1, new OrderRequest(11, OrderKind.MoveTo, 0, -1, A(27, 20)))
++        .Add(2, new OrderRequest(10, OrderKind.Bombard, 0, -1, A(33, 18)))
++        .Add(3, new OrderRequest(12, OrderKind.Disembark, 0, -1, A(31, 20)))
++        .Add(6, new OrderRequest(12, OrderKind.Attack, 0, 20))
++        .Add(8, new OrderRequest(12, OrderKind.Attack, 0, 23));
++
++    public static BattleSetup OldAmbush(ulong seed, bool mirrored)
++    {
++        var grid = TacticalScenarios.OpenField();
++        long X(long col) => mirrored ? TacticalScenarios.MirrorColumn(col) : col;
++        Vec2L C(long col, long row) => TacticalScenarios.Cell(X(col), row);
++        for (long r = 0; r <= TacticalScenarios.FieldH - 1; r++) for (long c = 23; c <= 29; c++) grid.Set(X(c), r, TerrainClass.Jungle);
++        var HI = UnitProfiles.HeavyInfantry;
++        var forms = new[] { new FormationSpec(1, 0, HI, 50, C(14, 16)), new FormationSpec(2, 1, HI, 50, C(27, 16)) { Posture = Posture.Ambush } };
++        var sides = new[]
++        {
++            new SideSpec(mirrored ? ExitEdge.East : ExitEdge.West) { Objectives = new[] { C(40, 16) } },
++            new SideSpec(mirrored ? ExitEdge.West : ExitEdge.East) { Objectives = Array.Empty<Vec2L>() },
++        };
++        return new BattleSetup(grid, TerrainCostTable.PlaceholderTestTable(), ConcealmentTable.PlaceholderTestTable(), sides, forms, seed)
++        { Rules = new TacticalRules(), Defender = 1 };
++    }
++
++    private static string Sum(BattleResult r)
++    {
++        var sb = new StringBuilder();
++        sb.Append($"{r.Resolver} {r.Reason} side {r.Side} holds {r.HoldsField} win {r.Winner}/{r.WinBasis} pulses {r.Pulses} end {r.EndMs} fight {r.FirstFightMs?.ToString() ?? "null"} trace {r.TraceHash[..8]} state {r.StateHash[..8]}");
++        foreach (var f in r.Formations.OrderBy(f => f.FormationId))
++            sb.Append($"\n   F{f.FormationId} s{f.Side} {f.Domain} start {f.Start} surv {f.Survivors} kil {f.Killed} sur {f.Surrendered} act {f.ActiveAtEnd} esc {f.Escaped} rout {f.RoutedEscaped} rej {f.RejoinedAtTie} mor {f.MoraleEnd} dmgD {f.DamageDealt} dmgT {f.DamageTaken} att {f.AttacksMade} emb {f.EmbarkedAtEnd} ent {f.EnteredAtMs?.ToString() ?? "-"}");
++        return sb.ToString();
++    }
++
++    [Fact]
++    public void Probe_Amphibious()
++    {
++        foreach (ulong seed in new ulong[] { 42, 7, 3, 1 })
++        {
++            var o = Proto.M7.Tests.MultiDomain.DT.RunChecked(new TacticalBattle(OldAmphibious(seed), OldPlan(), MultiDomainScenarios.AmphibiousDefence()));
++            var n = Proto.M7.Tests.MultiDomain.DT.RunChecked(new TacticalBattle(MultiDomainScenarios.Amphibious(seed), MultiDomainScenarios.AmphibiousPlan(), MultiDomainScenarios.AmphibiousDefence()));
++            _o.WriteLine($"seed {seed} OLD {Sum(o)}\n   pers {o.Personnel!.Hash[..8]}");
++            _o.WriteLine($"seed {seed} NEW {Sum(n)}\n   pers {n.Personnel!.Hash[..8]}");
++        }
++    }
++
++    [Fact]
++    public void Probe_Ambush()
++    {
++        var co = AutoCoefficients.Sprint1;
++        for (ulong seed = 1; seed <= 4; seed++)
++            foreach (bool m in new[] { false, true })
++            {
++                var to = new TacticalBattle(OldAmbush(seed, m), new KnowledgeAi(), new KnowledgeAi()).Run();
++                var tn = new TacticalBattle(ParityScenarios.Build(ParityScenarioId.Ambush, seed, m), new KnowledgeAi(), new KnowledgeAi()).Run();
++                var ao = new AutoBattle(OldAmbush(seed, m), co).Run();
++                var an = new AutoBattle(ParityScenarios.Build(ParityScenarioId.Ambush, seed, m), co).Run();
++                _o.WriteLine($"seed {seed} mir {m}\n OLD T {Sum(to)}\n NEW T {Sum(tn)}\n OLD A {Sum(ao)}\n NEW A {Sum(an)}");
++            }
++    }
++
++    private static TerrainEffects WithTransmissionOne(TerrainEffects p)
++    {
++        int n = TerrainCostTable.ClassCount;
++        var fh = new long[n]; var op = new bool[n]; var tr = new Q32[n]; var ft = new Q32[n]; var oc = new Q32[n];
++        for (int i = 0; i < n; i++)
++        {
++            var c = (TerrainClass)i;
++            fh[i] = p.FeatureHeightMm(c); op[i] = p.Opaque(c); tr[i] = Q32.One; ft[i] = p.Footing(c); oc[i] = p.OrderCap(c);
++        }
++        return TerrainEffects.Create(fh, op, tr, ft, oc, p.ClimbNum, p.ClimbDen, p.MeleeSlope, p.MissileElevation, p.GradientCap, p.CohesionFloor);
++    }
++
++    [Fact]
++    public void Probe_AmphibAttribution()
++    {
++        foreach (bool old in new[] { true, false })
++        {
++            BattleResult Run(TerrainEffects fx, InactivityModel model)
++            {
++                var s0 = old ? OldAmphibious(42) : MultiDomainScenarios.Amphibious(42);
++                var s = s0 with { Effects = fx, Rules = s0.Rules with { Inactivity = model } };
++                return Proto.M7.Tests.MultiDomain.DT.RunChecked(new TacticalBattle(s, old ? OldPlan() : MultiDomainScenarios.AmphibiousPlan(), MultiDomainScenarios.AmphibiousDefence()));
++            }
++            var off = Run(TerrainEffects.SliceCEquivalent(), InactivityModel.LegacySideDisengage);
++            var tr1 = Run(WithTransmissionOne(TerrainEffects.Placeholder), InactivityModel.LegacySideDisengage);
++            var on = Run(TerrainEffects.Placeholder, InactivityModel.LegacySideDisengage);
++            var dir5 = Run(TerrainEffects.Placeholder, InactivityModel.HiddenStationary);
++            string L(string n, BattleResult r) => $"{n}: {r.Reason} pulses {r.Pulses} trace {r.TraceHash} result {r.ResultHash()} state {r.StateHash} pers {r.Personnel!.Hash} F23dmg {r.Formations.Single(f => f.FormationId == 23).DamageDealt} diseng {string.Join(",", r.Formations.Select(f => f.DisengagedEscaped))}";
++            _o.WriteLine($"{(old ? "OLD" : "NEW")}\n {L("off", off)}\n {L("tr1", tr1)}\n {L("on", on)}\n {L("dir5", dir5)}");
++        }
++    }
++}
+diff --git a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxCodec.cs b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxCodec.cs
+index 0521416..cbcbce9 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxCodec.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxCodec.cs
+@@ -8,7 +8,10 @@ namespace Proto.M7.Sandbox;
+ /// round trip, hash equality). Table = [version u8][count i32] rows.</summary>
+ public static class SandboxCodec
+ {
+-    public const byte Version = 1;
++    /// <summary>[OC, 2026-11-13] 1 → 2: the edit table may hold the new kind <see cref="SandboxEditKind.SetInitiator"/> (7) and the
++    /// refusal <see cref="SandboxRefusal.RolesFromEncounter"/> (12); the layout is unchanged. READING OC-F11 (a), as for the morale codec
++    /// (version 4): a changed meaning of a row is a change of the row, so the version moves and a version-1 table is refused.</summary>
++    public const byte Version = 2;
+     public const int HeaderBytes = 1 + 4;
+     public const int EditRowBytes = 4 + 1 + 4 + 4 + 4 + 8 + 8 + 8 + 8 + 1;        // 50
+     public const int CasualtyRowBytes = 8 + 4 + 7 * 8;                            // 68
+@@ -103,10 +106,13 @@ public static class SandboxCodec
+ public static class SandboxEncounters
+ {
+     /// <summary>Reads each named campaign formation's persons from lane W's outcome world (its ledger balance; nothing written) and
+-    /// copies the campaign's battle terrain for the encounter.</summary>
++    /// copies the campaign's battle terrain for the encounter. [OC, 2026-11-13] <paramref name="initiatorSide"/>: the side whose army
++    /// initiated combat in the campaign engagement that opened the battle (-1 = none named); the encounter's roles come from it
++    /// (D-087 DF8, D-088 DG8), never from the war's declaration.</summary>
+     public static CampaignEncounterSnapshot FromOutcomeWorld(WarOutcomeWorld campaign, TerrainGrid campaignTerrain,
+-        (int CampaignFormation, int Side, int FamilyKey, int IdentityKey, Vec2L Anchor)[] picks)
++        (int CampaignFormation, int Side, int FamilyKey, int IdentityKey, Vec2L Anchor)[] picks, int initiatorSide = -1)
+     {
++        if (initiatorSide < -1 || initiatorSide > 1) throw new ArgumentOutOfRangeException(nameof(initiatorSide));
+         var forces = new (int, int, int, int, long, Vec2L)[picks.Length];
+         for (int i = 0; i < picks.Length; i++)
+         {
+@@ -118,6 +124,6 @@ public static class SandboxEncounters
+         for (int y = 0; y < campaignTerrain.Height; y++)
+             for (int x = 0; x < campaignTerrain.Width; x++)
+                 copy.Set(x, y, campaignTerrain.ClassAt(x, y), campaignTerrain.HeightAt(x, y));
+-        return new CampaignEncounterSnapshot(copy, forces);
++        return new CampaignEncounterSnapshot(copy, forces) { InitiatorSide = initiatorSide };
+     }
+ }
+diff --git a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxSession.cs b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxSession.cs
+index 1192899..9644068 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxSession.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxSession.cs
+@@ -80,6 +80,7 @@ public sealed class SandboxSession
+     private BattleSetup? _deployed;
+     private TacticalBattle? _tactical;
+     private IReadOnlyList<OrderLogEntry> _battleOrders = Array.Empty<OrderLogEntry>();
++    private int _initiator = -1;          // [OC] D-087 DF8, D-088 DG8: the side whose army initiates combat (-1: none)
+ 
+     public SandboxSession(SandboxMode mode, TerrainGrid terrain, ulong seed, TacticalRules? rules = null)
+         : this(mode, terrain, seed, rules, null)
+@@ -112,6 +113,7 @@ public sealed class SandboxSession
+     {
+         var s = new SandboxSession(SandboxMode.CampaignEncounter, snapshot.Terrain, seed, rules, snapshot);
+         foreach (var f in snapshot.Forces) s.AddEncounterForce(f.Side, f.FamilyKey, f.IdentityKey, f.Persons, f.Anchor);
++        if (snapshot.InitiatorSide >= 0) s.SetEncounterInitiator(snapshot.InitiatorSide);   // [OC] the campaign engagement's roles
+         return s;
+     }
+ 
+@@ -136,6 +138,9 @@ public sealed class SandboxSession
+     /// out the setup the battle runs on, whose grid was the session's grid.</summary>
+     public BattleSetup? DeployedSetup => _deployed is null ? null : Detached(_deployed);
+     public ResolverKind? ResolverUsed { get; private set; }
++    /// <summary>[OC, 2026-11-13] The side whose army initiates combat in this battle (-1: none, a meeting engagement); the deployed
++    /// setup's <see cref="BattleSetup.Defender"/> is the other side (D-087 DF8, D-088 DG8).</summary>
++    public int Initiator => _initiator;
+     /// <summary>A COPY of the session's deployment phase, rebuilt edit for edit (the same base setup, detached; every logged proposal
+     /// re-proposed in order, refused ones included; closed where the session closed it), so it shows the session's proposal, log and
+     /// verdicts, and a proposal tried on it gets lane TR's real verdict without reaching the session. [D, verification round 2,
+@@ -259,6 +264,40 @@ public sealed class SandboxSession
+         return s with { Grid = Copy(s.Grid), Formations = forms, Sides = sides };
+     }
+ 
++    // ------------------------------------------------------------------ [OC] roles: the sandbox battle's engagement
++
++    /// <summary>
++    /// [OC, completion after fix round 1, 2026-11-13] D-087 DF8 and D-088 DG8 in the War Sandbox: the battle's ROLES come from its
++    /// ENGAGEMENT, the side whose army initiates combat (<paramref name="side"/>; -1 = none, a meeting engagement in which neither side
++    /// attacks the other). That side is the attacker, the other side the defender, and every army on a side shares its side's role
++    /// (one role per side). A logged edit (refused ones too) that Replay re-applies; allowed until the deployment phase opens (the
++    /// scenario is closed from there, as for forces and terrain). Refused: BattleStarted after the battle, DeploymentOpen once the phase
++    /// is open, BadSide for a side other than -1, 0 or 1, and RolesFromEncounter in a Campaign Encounter, whose roles are the campaign
++    /// engagement's (<see cref="CampaignEncounterSnapshot.InitiatorSide"/>). The roles never change the battle (a tie is a tie whatever
++    /// the roles, D-087 DF8, DF11): they are carried on the deployed setup (<see cref="BattleSetup.Defender"/>) for the record.
++    /// </summary>
++    public SandboxRefusal SetInitiator(int side)
++    {
++        SandboxRefusal r = SandboxRefusal.None;
++        if (Started) r = SandboxRefusal.BattleStarted;
++        else if (_mode == SandboxMode.CampaignEncounter) r = SandboxRefusal.RolesFromEncounter;
++        else if (_deploy is not null) r = SandboxRefusal.DeploymentOpen;
++        else if (side < -1 || side > 1) r = SandboxRefusal.BadSide;
++        if (r == SandboxRefusal.None) _initiator = side;
++        return Record(SandboxEditKind.SetInitiator, side, 0, 0, -1, 0, 0, 0, r);
++    }
++
++    /// <summary>[OC] A Campaign Encounter's roles: the campaign engagement's initiating side, logged like the encounter's forces.</summary>
++    private void SetEncounterInitiator(int side)
++    {
++        if (side < 0 || side > 1) throw new ArgumentOutOfRangeException(nameof(side));
++        _initiator = side;
++        Record(SandboxEditKind.SetInitiator, side, 0, 0, -1, 0, 0, 0, SandboxRefusal.None);
++    }
++
++    /// <summary>[OC] The defending side of the sandbox battle: the side the initiator attacks (-1 when no side initiates).</summary>
++    private int DefenderSide => _initiator < 0 ? -1 : 1 - _initiator;
++
+     // ------------------------------------------------------------------ deployment (lane TR's DeploymentPhase only)
+ 
+     // [D, verification round 1, D-R1-10] the deployment phase and the battle get a COPY of the grid (the session's grid is handed out
+@@ -336,7 +375,7 @@ public sealed class SandboxSession
+             if (!v.Accepted) { r = SandboxRefusal.DeploymentRefused; code = (long)v.Refusal; }
+             else
+             {
+-                _deployed = setup! with { Sides = DefaultObjectives(setup) };
++                _deployed = setup! with { Sides = DefaultObjectives(setup), Defender = DefenderSide };   // [OC] the roles of the engagement
+                 _deployClosedAt = _deploy.Log.Count;
+             }
+         }
+@@ -461,6 +500,10 @@ public sealed class SandboxSession
+                 case SandboxEditKind.OpenDeployment: s.OpenDeployment(); break;
+                 case SandboxEditKind.Deploy: s.Deploy(e.Side, e.FormationId, new Vec2L(e.B, e.C)); break;
+                 case SandboxEditKind.CloseDeployment: s.CloseDeployment(); break;
++                case SandboxEditKind.SetInitiator:                                       // [OC]
++                    if (s._encounter is not null && e.Refusal == (byte)SandboxRefusal.None && e.Index == original._encounter!.Forces.Length) s.SetEncounterInitiator(e.Side);
++                    else s.SetInitiator(e.Side);
++                    break;
+                 case SandboxEditKind.StartBattle:
+                     var c0 = (SandboxCommand)e.A; var c1 = (SandboxCommand)e.B;
+                     s.StartBattle(c0, c1,
+diff --git a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxTypes.cs b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxTypes.cs
+index c51a2fc..7a23eef 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxTypes.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Sandbox/SandboxTypes.cs
+@@ -42,6 +42,9 @@ public enum SandboxRefusal : byte
+     /// a force of any size is one formation, so a force above the mint reached the mint transfer, which threw after the formation's
+     /// id and ledger account were taken and before the edit was logged.</summary>
+     MintShort = 11,
++    /// <summary>[OC, 2026-11-13] D-087 DF8, D-088 DG8: a Campaign Encounter takes its roles from the campaign engagement that opened
++    /// it (<see cref="CampaignEncounterSnapshot.InitiatorSide"/>); they cannot be edited in the sandbox.</summary>
++    RolesFromEncounter = 12,
+ }
+ 
+ /// <summary>[D] Kinds of sandbox session edits (the session log; stable codes).</summary>
+@@ -53,6 +56,9 @@ public enum SandboxEditKind : byte
+     Deploy = 4,
+     CloseDeployment = 5,
+     StartBattle = 6,
++    /// <summary>[OC, 2026-11-13] D-087 DF8, D-088 DG8: the sandbox battle's ENGAGEMENT — the side whose army initiates combat (Side;
++    /// -1 = none, a meeting engagement). That side is the attacker, the other the defender, every army on a side sharing its role.</summary>
++    SetInitiator = 7,
+ }
+ 
+ /// <summary>[D] Who commands a side in a sandbox battle. Both AI = an AI-vs-AI battle (DIR5 §2.13: AutoResolver, no rendering).</summary>
+@@ -121,4 +127,10 @@ public readonly record struct SandboxCasualtyRow(long FormationId, int Side, lon
+ 
+ /// <summary>[D] What a Campaign Encounter copies from the campaign at load: the campaign's battle terrain (a copy) and, per campaign
+ /// formation, its side, designed family and persons. A VALUE: the sandbox holds no reference to the campaign world.</summary>
+-public sealed record CampaignEncounterSnapshot(TerrainGrid Terrain, (int CampaignFormation, int Side, int FamilyKey, int IdentityKey, long Persons, Vec2L Anchor)[] Forces);
++public sealed record CampaignEncounterSnapshot(TerrainGrid Terrain, (int CampaignFormation, int Side, int FamilyKey, int IdentityKey, long Persons, Vec2L Anchor)[] Forces)
++{
++    /// <summary>[OC, 2026-11-13] D-087 DF8, D-088 DG8: the side whose army initiated combat in the campaign ENGAGEMENT that opened the
++    /// battle (-1 = none named). The encounter's roles come from it — that side the attacker, the other the defender — never from the
++    /// war's declaration; the sandbox cannot edit them (SandboxRefusal.RolesFromEncounter).</summary>
++    public int InitiatorSide { get; init; } = -1;
++}
+diff --git a/prototypes/m7-sprint1/Proto.M7/Tactical/BattleRoles.cs b/prototypes/m7-sprint1/Proto.M7/Tactical/BattleRoles.cs
+new file mode 100644
+index 0000000..0bf8314
+--- /dev/null
++++ b/prototypes/m7-sprint1/Proto.M7/Tactical/BattleRoles.cs
+@@ -0,0 +1,155 @@
++namespace Proto.M7.Tactical;
++
++/// <summary>[OC, 2026-11-13] The role a side holds in a battle (D-087 DF8, D-088 DG8). Stable codes.</summary>
++public enum BattleRole : byte
++{
++    /// <summary>No role: a battle no engagement opened (a meeting engagement built by hand; BattleSetup.Defender = -1).</summary>
++    None = 0,
++    /// <summary>The side that initiated combat (D-087 DF8: "the army that initiates combat is the attacker").</summary>
++    Attacker = 1,
++    /// <summary>The side that was attacked (D-087 DF8: "the side that was attacked, is the defender").</summary>
++    Defender = 2,
++}
++
++/// <summary>[OC, 2026-11-13] Why a battle's roles are refused (<see cref="BattleRoles.Check"/>). Stable codes; None = accepted.
++/// Appended only, never renumbered.</summary>
++public enum RolesRefusal : byte
++{
++    None = 0,
++    /// <summary>BattleSetup.Defender is not -1, 0 or 1.</summary>
++    BadDefender = 1,
++    /// <summary>BattleSetup.Ambusher is not -1, 0 or 1.</summary>
++    BadAmbusher = 2,
++    /// <summary>The ambushing side is not the attacker: READING OC-R1 (a) (applied) — the ambushing side initiates combat, so it is
++    /// the attacker, and the other side is the defender (one role per side, D-088 DG8).</summary>
++    AmbusherIsNotTheAttacker = 3,
++    /// <summary>One empire is on both sides (as a side's own empire or as an ally): a side holds one empire's armies, or an empire's
++    /// and its allies' (D-088 DG8), so an empire belongs to one side.</summary>
++    EmpireOnBothSides = 4,
++    /// <summary>A formation's empire is neither its side's own empire nor one of its side's allies.</summary>
++    NotOnItsSide = 5,
++    /// <summary>A side lists allies but no empire of its own (a side is an empire's, with its allies).</summary>
++    AlliesWithoutEmpire = 6,
++    /// <summary>The empire whose army initiated combat is on no side of the battle (it cannot give a side the attacker's role).</summary>
++    InitiatorNotInBattle = 7,
++    /// <summary>The engagement's two empires are on the same side.</summary>
++    EngagementWithinOneSide = 8,
++}
++
++/// <summary>
++/// [OC, completion after fix round 1, 2026-11-13] D-087 DF8 and D-088 DG8 — ONE ROLE PER SIDE. "A side is the attacker or the
++/// defender, and an army is part of a side. A side holds one empire's armies, or an empire's and its allies' armies. Every army on a
++/// side shares the side's role" (DG8; it replaces D-087 DF8-R2 (a), each army its own role). "The army that initiates combat is the
++/// attacker. Declaring war, or exerting a zone of control or a siege without combat, does not make an army the attacker" (DF8).
++///
++/// REPRESENTATION. A battle carries its roles once, per side: <see cref="BattleSetup.Defender"/> (the attacked side; the attacker is
++/// the other side; -1 = no roles). A formation has no role of its own: its role is its side's (<see cref="RoleOf"/>), whatever its
++/// army or its empire (<see cref="FormationSpec.Empire"/>). Each side may state its own empire and its allies
++/// (<see cref="SideSpec.Empire"/>, <see cref="SideSpec.Allies"/>); <see cref="Check"/> refuses a setup whose rosters or roles break
++/// DG8 (an empire on both sides, a formation of an empire foreign to its side, an ambusher that is not the attacker).
++/// THE ROLES COME FROM THE ENGAGEMENT THAT OPENED THE BATTLE, never from a war declaration: <see cref="FromEngagement"/> gives the
++/// attacker's role to the side holding the empire whose army initiated combat (the war-pulse hand-off
++/// War.EngagementBattle.Build, the War Sandbox's initiator, the map ambush of item 6), so which empire declared the war, or whose
++/// army first stood in the other's zone of control or laid a siege, never enters.
++/// The roles never change a battle (D-087 DF8, DF11: equal sides are a tie whatever the roles; the resolvers read Defender and
++/// Ambusher only in EqualSides.Decide, which no longer picks a winner by them), so a role is a fact of the record, checked at the
++/// battle's creation (the hand-offs call <see cref="Check"/>); the resolvers do not re-check it.
++/// </summary>
++public static class BattleRoles
++{
++    /// <summary>The role of side <paramref name="side"/> (0 or 1) in a battle: Defender for BattleSetup.Defender, Attacker for the other
++    /// side, None when the battle has no roles (Defender -1).</summary>
++    public static BattleRole RoleOfSide(BattleSetup setup, int side)
++    {
++        if (side != 0 && side != 1) throw new ArgumentOutOfRangeException(nameof(side));
++        if (setup.Defender < 0) return BattleRole.None;
++        return side == setup.Defender ? BattleRole.Defender : BattleRole.Attacker;
++    }
++
++    /// <summary>The role of one formation: its side's role (one role per side, D-088 DG8) — never its own army's or empire's.</summary>
++    public static BattleRole RoleOf(BattleSetup setup, long formationId)
++    {
++        foreach (var f in setup.Formations) if (f.Id == formationId) return RoleOfSide(setup, f.Side);
++        throw new ArgumentException($"no formation {formationId}", nameof(formationId));
++    }
++
++    /// <summary>The attacking side (the side that initiated combat), or -1 when the battle has no roles.</summary>
++    public static int AttackerSide(BattleSetup setup) => setup.Defender < 0 ? -1 : 1 - setup.Defender;
++
++    /// <summary>The side whose roster holds <paramref name="empire"/> (its own empire or an ally), or -1 when no side states it.</summary>
++    public static int SideOfEmpire(BattleSetup setup, int empire)
++    {
++        if (empire < 0) return -1;
++        for (int s = 0; s < setup.Sides.Length; s++)
++        {
++            var side = setup.Sides[s];
++            if (side.Empire == empire) return s;
++            foreach (int a in side.Allies) if (a == empire) return s;
++        }
++        return -1;
++    }
++
++    /// <summary>
++    /// Checks a battle's roles and rosters against D-088 DG8 and READING OC-R1 (a). In order (the first failure is returned):
++    /// Defender and Ambusher in {-1, 0, 1}; an ambusher is the attacker (Defender = 1 - Ambusher); a side that lists allies states its
++    /// own empire; no empire on both sides (own or allied); every formation that states its empire belongs to its side's roster when
++    /// the side states one. A side without a roster (Empire -1, no allies) accepts any formation: hand-built battles and the shipped
++    /// scenarios name no empires.
++    /// </summary>
++    public static RolesRefusal Check(BattleSetup setup)
++    {
++        if (setup.Defender < -1 || setup.Defender > 1) return RolesRefusal.BadDefender;
++        if (setup.Ambusher < -1 || setup.Ambusher > 1) return RolesRefusal.BadAmbusher;
++        if (setup.Ambusher >= 0 && setup.Defender != 1 - setup.Ambusher) return RolesRefusal.AmbusherIsNotTheAttacker;
++        if (setup.Sides.Length != 2) throw new ArgumentException("exactly two sides", nameof(setup));
++        for (int s = 0; s < 2; s++)
++            if (setup.Sides[s].Empire < 0 && setup.Sides[s].Allies.Length > 0) return RolesRefusal.AlliesWithoutEmpire;
++        // an empire belongs to one side: compare the two rosters as sorted integer sets (no hashing)
++        var r0 = Roster(setup.Sides[0]);
++        var r1 = Roster(setup.Sides[1]);
++        foreach (int e in r0) if (Array.BinarySearch(r1, e) >= 0) return RolesRefusal.EmpireOnBothSides;
++        var forms = (FormationSpec[])setup.Formations.Clone();
++        Array.Sort(forms, static (a, b) => a.Id.CompareTo(b.Id));
++        foreach (var f in forms)
++        {
++            if (f.Empire < 0 || f.Side < 0 || f.Side > 1) continue;
++            var roster = f.Side == 0 ? r0 : r1;
++            if (roster.Length > 0 && Array.BinarySearch(roster, f.Empire) < 0) return RolesRefusal.NotOnItsSide;
++        }
++        return RolesRefusal.None;
++    }
++
++    /// <summary>A side's roster (its own empire and its allies) as a sorted array of distinct ids.</summary>
++    private static int[] Roster(SideSpec side)
++    {
++        var list = new List<int>(side.Allies.Length + 1);
++        if (side.Empire >= 0) list.Add(side.Empire);
++        foreach (int a in side.Allies) if (a >= 0) list.Add(a);
++        var arr = list.ToArray();
++        Array.Sort(arr);
++        int n = 0;
++        for (int i = 0; i < arr.Length; i++) if (n == 0 || arr[n - 1] != arr[i]) arr[n++] = arr[i];
++        Array.Resize(ref arr, n);
++        return arr;
++    }
++
++    /// <summary>
++    /// The roles of a battle opened by an ENGAGEMENT (D-087 DF8): the side whose roster holds <paramref name="initiatorEmpire"/> — the
++    /// empire whose army initiated combat — is the attacker, the other side the defender; every army on a side shares its role
++    /// (D-088 DG8). The engagement's other empire (<paramref name="targetEmpire"/>, -1 when not known) must stand on the other side.
++    /// Nothing else is read: in particular no war declaration, zone of control or siege. Returns the setup with Defender set (and the
++    /// roles checked), or the refusal.
++    /// </summary>
++    public static RolesRefusal FromEngagement(BattleSetup field, int initiatorEmpire, int targetEmpire, out BattleSetup? battle)
++    {
++        battle = null;
++        int attacker = SideOfEmpire(field, initiatorEmpire);
++        if (attacker < 0) return RolesRefusal.InitiatorNotInBattle;
++        if (targetEmpire >= 0 && SideOfEmpire(field, targetEmpire) == attacker) return RolesRefusal.EngagementWithinOneSide;
++        var b = field with { Defender = 1 - attacker };
++        var r = Check(b);
++        if (r != RolesRefusal.None) return r;
++        battle = b;
++        return RolesRefusal.None;
++    }
++}
+diff --git a/prototypes/m7-sprint1/Proto.M7/Tactical/BattleSetup.cs b/prototypes/m7-sprint1/Proto.M7/Tactical/BattleSetup.cs
+index 96461dc..cfaeaf3 100644
+--- a/prototypes/m7-sprint1/Proto.M7/Tactical/BattleSetup.cs
++++ b/prototypes/m7-sprint1/Proto.M7/Tactical/BattleSetup.cs
+@@ -183,6 +183,11 @@ public sealed record FormationSpec(long Id, int Side, UnitProfile Profile, int C
+     /// (docs/m7-plan/battle-entity-proposal.md §3, PROPOSAL, not built), and the collapse takes the persons from the campaign's ledger.
+     /// Vessel and aircraft formations keep their crews in the battle's personnel ledger (lane N), so it must be null for them.</summary>
+     public long? Persons { get; init; }
++
++    /// <summary>[OC, 2026-11-13] D-088 DG8: the empire (polity id) whose army this formation belongs to; -1 = not stated. A formation
++    /// has no role of its own: its role is its side's (<see cref="BattleRoles.RoleOf"/>). <see cref="BattleRoles.Check"/> refuses a
++    /// formation whose empire is foreign to its side's roster. Never read by the resolvers (no battle or hash changes).</summary>
++    public int Empire { get; init; } = -1;
+ }
+ 
+ /// <summary>Per-side configuration.</summary>
+@@ -190,6 +195,13 @@ public sealed record SideSpec(ExitEdge Exit)
+ {
+     /// <summary>Objective points of this side (fixed for the battle; the inactivity rule's "objective" reference).</summary>
+     public Vec2L[] Objectives { get; init; } = Array.Empty<Vec2L>();
++    /// <summary>[OC, 2026-11-13] D-088 DG8 ("A side holds one empire's armies, or an empire's and its allies' armies"): the side's own
++    /// empire (polity id), -1 = not stated (hand-built battles, the shipped scenarios). Read by <see cref="BattleRoles"/> only (the
++    /// battle's creators check it); the resolvers never read it, so it changes no battle and no hash.</summary>
++    public int Empire { get; init; } = -1;
++    /// <summary>[OC, 2026-11-13] D-088 DG8: the side's allied empires (polity ids; empty = none). Every army on the side, its own
++    /// empire's or an ally's, shares the side's role (<see cref="BattleRoles.RoleOf"/>).</summary>
++    public int[] Allies { get; init; } = Array.Empty<int>();
+ }
+ 
+ /// <summary>Everything that defines a battle. Formations may be listed in any order (the engine sorts by id).</summary>
+@@ -218,11 +230,22 @@ public sealed record BattleSetup(
+     /// battle names as attacked — the target side of the opening war-pulse Attack, the garrison of a siege assault, the side
+     /// whose position the other advances on in a hand-built scenario; docs/m7-plan/concealment-actions-proposal.md §5). -1: none
+     /// designated (a meeting engagement), so equal sides report no winner. Read only by <see cref="EqualSides"/> at the battle
+-    /// end: it never changes the battle itself.</summary>
++    /// end: it never changes the battle itself.
++    /// [OC, 2026-11-13] D-087 DF8 ("the side that was attacked, is the defender"; "the army that initiates combat is the attacker")
++    /// and D-088 DG8 (ONE ROLE PER SIDE): this is the battle's only role field — the defending SIDE; the other side is the attacker
++    /// (<see cref="BattleRoles.AttackerSide"/>), and every army on a side shares its role whatever its empire
++    /// (<see cref="BattleRoles.RoleOf"/>). A battle opened by an engagement takes it from that engagement
++    /// (<see cref="BattleRoles.FromEngagement"/>), never from a war declaration. D-082 DA6 is superseded (D-087 DF8): equal sides are a
++    /// tie whatever the defender.</summary>
+     public int Defender { get; init; } = -1;
+     /// <summary>[AP] D-082 DA7: the side that opened this battle as an AMBUSH launched from concealment (the AMBUSH definition of
+     /// the proposal §5.2: its engaging agent was hidden or camouflaged and undetected by the defender's polity at the instant the
+     /// engagement was made; set by the battle's creator — the war-pulse hand-off <c>EngagementBattle</c>, the sandbox, a
+-    /// scenario author). -1: not an ambush. On equal sides the ambusher wins (DA7-R (a)). Never changes the battle itself.</summary>
++    /// scenario author). -1: not an ambush. On equal sides the ambusher wins (DA7-R (a)). Never changes the battle itself.
++    /// [OC, 2026-11-13] D-087 DF8, DF11: ~~On equal sides the ambusher wins~~ an equal ambush is a tie (DA7-R's ambusher win fell). D-087
++    /// DF9 / D-088 DG10: an ambush is opened on the MAP by an enemy's passage through a hidden unit's region (War.MapAmbush); the
++    /// battle that trigger builds (War.MapAmbushBattle) sets this to the ambusher's side, which is the ATTACKER (READING OC-R1 (a):
++    /// the ambushing side initiates combat; BattleRoles.Check refuses an ambusher that is not the attacker). Lane AP's attack from
++    /// concealment no longer sets it (War.EngagementBattle; concealment-actions-proposal.md §12).</summary>
+     public int Ambusher { get; init; } = -1;
+ }
+diff --git a/prototypes/m7-sprint1/Proto.M7/War/Concealment.cs b/prototypes/m7-sprint1/Proto.M7/War/Concealment.cs
+index bce94f1..c774c7f 100644
+--- a/prototypes/m7-sprint1/Proto.M7/War/Concealment.cs
++++ b/prototypes/m7-sprint1/Proto.M7/War/Concealment.cs
+@@ -188,6 +188,25 @@ public static class FieldWorks
+ /// </summary>
+ public static class EngagementBattle
+ {
++    /// <summary>
++    /// [OC, completion after fix round 1, 2026-11-13] D-087 DF8, D-088 DG8: the battle's ROLES FROM THE ENGAGEMENT that opened it. The
++    /// field states each side's roster (<see cref="SideSpec.Empire"/> and <see cref="SideSpec.Allies"/>: one empire's armies, or an
++    /// empire's and its allies'); the attacker is the side whose roster holds the engagement's attacking polity (the empire whose army
++    /// initiated combat, <see cref="EngagementRecord.AttackerPolity"/>), the defender the side holding its target's polity, and every
++    /// army on a side shares its side's role (<see cref="BattleRoles.FromEngagement"/>). No war declaration, zone of control or siege is
++    /// read: which polity declared the war, or whose agent first moved into the other's reach, never enters. Refused (null, with the
++    /// <see cref="RolesRefusal"/>) when the engagement's polities are not on opposite sides of the field.
++    /// </summary>
++    public static BattleSetup? Build(BattleSetup field, EngagementRecord e, ConcealmentRules rules, out FieldWorks.Placement placed, out RolesRefusal refusal)
++    {
++        placed = default;
++        refusal = BattleRoles.FromEngagement(field, e.AttackerPolity, e.TargetPolity, out var roled);
++        if (refusal != RolesRefusal.None) return null;
++        var b = Build(roled!, e, BattleRoles.AttackerSide(roled!), rules, out placed);
++        refusal = BattleRoles.Check(b);
++        return refusal == RolesRefusal.None ? b : null;
++    }
++
+     public static BattleSetup Build(BattleSetup field, EngagementRecord e, int attackerSide, ConcealmentRules rules, out FieldWorks.Placement placed)
+     {
+         if (attackerSide != 0 && attackerSide != 1) throw new ArgumentOutOfRangeException(nameof(attackerSide));

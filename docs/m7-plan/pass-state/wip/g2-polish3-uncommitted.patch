@@ -1,3 +1,183 @@
+diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
+index 9bfe3df..0f5cd19 100644
+--- a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
++++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/SceneD.cs
+@@ -348,7 +348,7 @@ public abstract class BenchAftermathScene : BenchSceneBase, ICameraPathScene
+     protected override void BuildShots()
+     {
+         _beats.Clear();
+-        _beats.AddRange(PlanBeats(Outcome, _cPos, _oPos, _cYaw, _fallen, FieldCentre(), PrisonersCentre(), Occluders(), G, ShieldSide()));
++        _beats.AddRange(PlanBeats(Outcome, _cPos, _oPos, _cYaw, _fallen, FieldCentre(), PrisonersCentre(), Occluders(), G, ShieldSide(), FallenViewScore));
+         // the opening crane is high over the field: turned to the clearest view of the trees
+         if (_beats.Count > 0 && _beats[0].Name == "field")
+         {
+@@ -506,10 +506,13 @@ public abstract class BenchAftermathScene : BenchSceneBase, ICameraPathScene
+     /// close shot's way, the ground function (position, height above the ground) and the side of the commander's
+     /// shield arm. Each close shot's camera is turned to the view with the fewest soldiers across it (<see cref="Solve"/>,
+     /// <see cref="FirstClearest"/>). Beats 1-6 are the same in both content states; the 7th is "fallen"
+-    /// (<see cref="DeathContent.Shown"/>) or "cutaway".
++    /// (<see cref="DeathContent.Shown"/>) or "cutaway". Polish3: with <paramref name="fallenView"/> (a score of a view from
++    /// an eye to a target) the fallen beat takes the best of 48 views of the densest fallen (16 directions, 8, 11 and 14 m
++    /// off, 1.5 m up, looking at it); without it, the fixed view towards the prisoners.
+     /// </summary>
+     public static List<AftermathShot> PlanBeats(AftermathPlan plan, Vector3 commander, Vector3 officer, float commanderYaw,
+-        Vector3 fallen, Vector3 field, Vector3 prisoners, IReadOnlyList<Vector3> occ, Func<Vector3, float, Vector3> G, int shieldSide = 1)
++        Vector3 fallen, Vector3 field, Vector3 prisoners, IReadOnlyList<Vector3> occ, Func<Vector3, float, Vector3> G, int shieldSide = 1,
++        Func<Vector3, Vector3, float>? fallenView = null)
+     {
+         var beats = new List<AftermathShot>();
+         float h = BenchHours.Golden;
+@@ -577,6 +580,22 @@ public abstract class BenchAftermathScene : BenchSceneBase, ICameraPathScene
+             var acr = new Vector3(-toP.Z, 0f, toP.X);
+             var fT = G(fallen + toP * 5f, 0.6f);
+             var fEye = Solve(G(fallen - toP * 4.5f + acr * 2.2f, 1.9f), fT, occ, G, 60f);
++            // polish3 (critic rank 3): the prisoners kneel among the fallen, so the fixed view had them in its foreground,
++            // hands up; the view is chosen by what it shows: of 48 from the edge of the fallen towards their densest part,
++            // the best by fallenView (a few bodies near, no living near, prisoners beyond; the first on a tie)
++            if (fallenView != null)
++            {
++                float best = float.NegativeInfinity;
++                for (int r = 0; r < 3; r++)
++                    for (int k = 0; k < 16; k++)
++                    {
++                        float a = k * MathF.Tau / 16f, dist = 8f + 3f * r;
++                        var dir = new Vector3(MathF.Sin(a), 0f, MathF.Cos(a));
++                        var eye = G(fallen + dir * dist, 1.5f); var tgt = G(fallen, 0.3f);
++                        float sc = fallenView(eye, tgt);
++                        if (sc > best) { best = sc; fEye = eye; fT = tgt; }
++                    }
++            }
+             var fSide = Vector3.Normalize(Vector3.Cross(Vector3.Normalize(fT - fEye), Vector3.Up));
+             beats.Add(Beat("fallen", fEye, fT, 0.75f, 0.1f, fSide * 4f, fSide * 4f, 5f, h, "the fallen where they fell"));
+         }
+@@ -588,6 +607,38 @@ public abstract class BenchAftermathScene : BenchSceneBase, ICameraPathScene
+         return beats;
+     }
+ 
++    /// <summary>
++    /// Polish3 (critic rank 3): how well a view from <paramref name="eye"/> towards <paramref name="target"/> frames the
++    /// fallen beat: a few bodies near the camera and the prisoners beyond, not a carpet of the dead nor the living in front.
++    /// Every soldier as he lies or kneels at rest (the fallen settled and relaxed, the prisoners placed) inside the frame's
++    /// half-width (0.7 of the distance ahead) is counted near (1 to 6 m ahead) or beyond (6 to 20 m); the score is the near
++    /// bodies up to six, less 0.7 for each near body past six, 2 for each near prisoner and 3 for each near standing man,
++    /// plus 0.15 for each prisoner beyond (at most 40). Reads the trace only.
++    /// </summary>
++    float FallenViewScore(Vector3 eye, Vector3 target)
++    {
++        var tr = Battle.Trace; int last = tr.StepCount - 1;
++        var f = new Vector2(target.X - eye.X, target.Z - eye.Z);
++        if (f.LengthSquared() < 1e-6f) return float.NegativeInfinity;
++        f = Vector2.Normalize(f);
++        int bodiesNear = 0, prisonersNear = 0, standingNear = 0, prisonersBeyond = 0;
++        for (int e = 0; e < tr.Entities.Count; e++)
++        {
++            var st = BenchBattle.Map(tr.State(last, e));
++            if (st is not (TraceSoldierState.Dead or TraceSoldierState.Surrendered or TraceSoldierState.Active)) continue;
++            var (p, _) = Troops.Place(e, _tEnd);
++            var q = new Vector2(p.X, p.Z) + (st == TraceSoldierState.Dead ? Troops.SettleOffset(e) : st == TraceSoldierState.Surrendered ? Troops.PrisonerOffset(e) : Vector2.Zero);
++            var v = q - new Vector2(eye.X, eye.Z);
++            float along = Vector2.Dot(v, f), across = MathF.Abs(v.X * f.Y - v.Y * f.X);
++            if (along < 1f || along > 20f || across > along * 0.7f) continue;
++            bool near = along <= 6f;
++            if (st == TraceSoldierState.Dead) { if (near) bodiesNear++; }
++            else if (st == TraceSoldierState.Surrendered) { if (near) prisonersNear++; else prisonersBeyond++; }
++            else if (near) standingNear++;
++        }
++        return Math.Min(bodiesNear, 6) - 0.7f * Math.Max(0, bodiesNear - 6) - 2f * prisonersNear - 3f * standingNear + 0.15f * Math.Min(prisonersBeyond, 40);
++    }
++
+     /// <summary>The centre of the densest cluster of the fallen on the field: the dead soldier with the most dead within
+     /// 6 m (ties: the lower entity), and the centroid of those (the commander's place without any dead).</summary>
+     Vector3 FallenCentre()
+diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs
+index cfec869..bc1281d 100644
+--- a/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs
++++ b/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs
+@@ -389,6 +389,44 @@ public sealed class Polish3Tests
+         Assert.Equal(before, tr.Hash());
+     }
+ 
++    /// <summary>
++    /// Rank 3: the fallen beat is framed by what it shows. Given a view score, the beat takes the best of its 48 views
++    /// round the densest fallen (16 directions, 8, 11 and 14 m off, 1.5 m up, looking at it): with a score that rewards
++    /// one direction and distance, the beat's camera stands there; with a score that is the same everywhere, the first
++    /// view (straight +z, 8 m off) wins the tie; without a score the beat keeps its fixed view. The other six beats do not
++    /// change with the score.
++    /// </summary>
++    [Fact]
++    public void FallenBeatTakesTheBestScoredView()
++    {
++        static Vector3 Flat(Vector3 p, float up) => new(p.X, up, p.Z);
++        var plan = new Gfx.Demo.Scenes.Bench.AftermathPlan(0, 1, true, 0, 1, Gfx.Demo.Scenes.Bench.DeathContent.Shown, 10, 5, 0, 7, 3);
++        var occ = new List<Vector3> { new(1.5f, 0f, 3f), new(-4f, 0f, 1f) };
++        var fallen = new Vector3(12, 0, 9);
++        List<Gfx.Demo.Scenes.Bench.AftermathShot> Beats(Func<Vector3, Vector3, float>? score) =>
++            Gfx.Demo.Scenes.Bench.BenchAftermathScene.PlanBeats(plan, Vector3.Zero, new Vector3(3, 0, 0), 0f, fallen,
++                new Vector3(30, 0, 30), new Vector3(5, 0, 2), occ, Flat, 1, score);
++        var none = Beats(null);
++        // the eye of the wanted view: direction 5 of 16 (112.5 degrees from +z), the middle distance (11 m)
++        float a = 5 * MathF.Tau / 16f;
++        var want = fallen + new Vector3(MathF.Sin(a), 0f, MathF.Cos(a)) * 11f + new Vector3(0, 1.5f, 0);
++        var picked = Beats((eye, target) => -Vector3.Distance(eye, want));
++        var flat = Beats((eye, target) => 0f);
++        Assert.Equal(none.Take(6), picked.Take(6));
++        // the still is taken at StillAt of the beat's slow move: that is where the chosen view stands
++        static (Vector3 eye, Vector3 target) Still(Gfx.Demo.Scenes.Bench.AftermathShot b) =>
++            (Vector3.Lerp(b.From.Position, b.To.Position, Gfx.Demo.Scenes.Bench.BenchAftermathScene.StillAt),
++             Vector3.Lerp(b.From.Target, b.To.Target, Gfx.Demo.Scenes.Bench.BenchAftermathScene.StillAt));
++        var f = picked[6];
++        Assert.Equal("fallen", f.Name);
++        var (eye, target) = Still(f);
++        Assert.True(Vector3.Distance(eye, want) < 1e-3f, $"the still stands at {eye}, the best view is at {want}");
++        Assert.True(Vector3.Distance(target, new Vector3(fallen.X, 0.3f, fallen.Z)) < 1e-3f, $"the still looks at {target}");
++        var first = fallen + new Vector3(0f, 1.5f, 8f);
++        Assert.True(Vector3.Distance(Still(flat[6]).eye, first) < 1e-3f, $"a tie goes to the first view: {Still(flat[6]).eye}");
++        Assert.True(Vector3.Distance(Still(none[6]).eye, eye) > 1f, "without a score the beat keeps its fixed view");
++    }
++
+     /// <summary>
+     /// Rank 3: a prisoner's pose is one of four, from his id (bowed about 45 %, hands raised, on the head and behind the
+     /// neck each at least 10 % over 4,000 ids, the polish2 hands-up share kept); and a dropped shield rests tilted
+diff --git a/prototypes/m7-gfx2/README.md b/prototypes/m7-gfx2/README.md
+index 9c241ff..6407b9b 100644
+--- a/prototypes/m7-gfx2/README.md
++++ b/prototypes/m7-gfx2/README.md
+@@ -405,8 +405,10 @@ level, low relief; light through grass cards is capped at 1.5 times what the alb
+ and its shadow edge softer; crowd beards keep a dark-brown floor; dead crowd soldiers lie with their arms down;
+ weathered walls (rain streaks, moss on top faces, grime low down); darker, mossier boulders; bronze helmets warmer and
+ smoother. Benchmark scenes only: the cloud offset search also keeps the shots' middle distance lit; hearth smoke over
+-the village; in scene D prisoners kneel apart from the fallen in four poses, dropped shields rest tilted, the victors
+-stand at rest without their spears, and the fallen beat is framed low and close.
++the village; in scenes C and D the fallen are relaxed apart after the settle (clear of each other, of the kneeling
++prisoners and of the men standing at the end; at most 2.5 m from the trace), in scene D prisoners kneel apart from the
++fallen in four poses, dropped shields rest tilted, the victors stand at rest without their spears, and the fallen beat
++is framed low and close.
+ 
+ ```
+ scripts/capture-scenes.sh OUT_DIR
+diff --git a/prototypes/m7-gfx2/assets/PROVENANCE.md b/prototypes/m7-gfx2/assets/PROVENANCE.md
+index 188e5ec..fd956b8 100644
+--- a/prototypes/m7-gfx2/assets/PROVENANCE.md
++++ b/prototypes/m7-gfx2/assets/PROVENANCE.md
+@@ -447,7 +447,7 @@ is read-only: tests hash it before and after).
+ |---|---|---|---|---|
+ | Cloud-shadow distance fade, far-field rings, haze and low-sun colour (`GlslLib`, `CloudLayer`, `FarField.cs`, `G2TerrainEffects.FarField`, `SceneLighting.AerialTerms`) | none new (procedural; the far field's existing biome colours) | the shadow's depth faded with the camera distance; rings 7 % apart with wider normal footprints; normals flattened and the horizon's colour blended in with distance; a greener crop mean and a green floor with the sun low; the valley haze's phase and sun term reduced near the horizon | project code | own |
+ | Sky streaks and heap edges (`GlslLib.CloudLib` domain, `PostEffects` sky pass) | none (procedural) | less stretch; gap and fray noise; two fine edge octaves; the unlit far side darker with the sun low; chroma held at 0.35 saturation | project code | own |
+-| Prisoner placement, four surrender poses, fallen arms laid down, tilted shields, a no-weapon crowd view (`TraceCrowd`, `CrowdPoseVariants.DeriveKneelArms`/`LayArmsDown`, `CrowdAnimationBank`, `CrowdRenderer`) | the crowd LOD meshes (§3.12) and the CMU-derived `kneel`, `death_fwd` and `death_back` clips (§3.4, §3.9); the battle trace (§3.13), read only | two more poses derived from the kneel by turning the arms and bowing the head; the death clips' arms laid down once the body is down; per LOD mesh a view with the shield but not the weapon; offsets and tilts pure functions of the trace and entity ids | project code (the poses and laid-down clips are derivatives of CMU-derived clips: `LicenseRef-CMU-Mocap`, as the clips they are made from) | own / PROTOTYPE-ONLY (as the CMU base) |
++| Prisoner placement, the fallen relaxed apart (`TraceCrowd.RelaxFallen`), four surrender poses, fallen arms laid down, tilted shields, a no-weapon crowd view (`TraceCrowd`, `CrowdPoseVariants.DeriveKneelArms`/`LayArmsDown`, `CrowdAnimationBank`, `CrowdRenderer`) | the crowd LOD meshes (§3.12) and the CMU-derived `kneel`, `death_fwd` and `death_back` clips (§3.4, §3.9); the battle trace (§3.13), read only | two more poses derived from the kneel by turning the arms and bowing the head; the death clips' arms laid down once the body is down; the fallen bodies pushed apart by Jacobi passes and lifted off the living (at most 2.5 m from the trace); per LOD mesh a view with the shield but not the weapon; offsets and tilts pure functions of the trace and entity ids | project code (the poses and laid-down clips are derivatives of CMU-derived clips: `LicenseRef-CMU-Mocap`, as the clips they are made from) | own / PROTOTYPE-ONLY (as the CMU base) |
+ | Skin shade and penumbra (`CharEffects`), crowd beards (`CrowdEffects`), bronze helmets (`Helmets.Paint`) | the chars bake (§3.9), the generated helmets (§3.11) | a warm shade tone and a five-tap shadow average on skin; a dark-brown floor for beards and hair above the shoulders; a warmer, more saturated and smoother bronze with fewer bright scratches | project code | own |
+ | Wetness cap, puddle mask, grass transmission cap (`GlslLib.shadePbrFullSpec`, `G2TerrainEffects`, `GroundCover`) | the render1 and env bakes (§3.8, §3.10) | the wet shading scaled to the dry one's luminance where brighter; puddles only on level, low relief; the light through a card capped at 1.5 times its lit albedo; a darker base-to-tip gradient | project code | own |
+ | Wall weathering, boulders, hearth smoke (`StructureRenderer`, `Rocks.cs`, `Settlements.IronAgeVillage` hearths, `SmokeSource.Hearth`, `BenchBase`) | the env bakes (§3.10) | rain streaks, moss and grime on walls; darker, mossier boulders; thin smoke columns from some roundhouse roofs | project code | own |
+@@ -455,7 +455,8 @@ is read-only: tests hash it before and after).
+ **Algorithms implemented from publications or common practice** (no code copied, no asset): distance-faded cloud
+ shadows and horizon-colour blending for aerial perspective (common practice), the Henyey–Greenstein phase function
+ (Henyey and Greenstein 1941), deterministic candidate search for spacing (common practice), luminance clamping (common
+-practice).
++practice), Jacobi relaxation of distance constraints with fixed points projected out (common practice in position-based
++layout), closest points of two segments (Ericson, Real-Time Collision Detection, 2005, §5.1.9).
+ 
+ ## 4. Licence identifiers used for non-standard terms
+ 
 diff --git a/prototypes/m7-gfx2/reports/polish3.md b/prototypes/m7-gfx2/reports/polish3.md
 new file mode 100644
 index 0000000..7de2c8e

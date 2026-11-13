@@ -416,3 +416,30 @@ Incidents: TR cleanup deleted lane E logs (/dev/shm); N commit claim amended; E 
 - Lane OC: fix round 1 finished (816b4b2). 10 of the 11 round-1 findings fixed, among them the tie rejoin in both resolvers (TieRejoin, TUNE TieRejoinMoraleCost default 50; 10 new tests; mutants R1-R7 killed). NOT fixed: OC-R1-02, brief items 5-8 still not built (roles incl. two empires and allies on one side; the ambush on the map; the player's capture choice; the Ambush and Amphibious test battles rewritten inside the thirds), so those two test battles are NOT deployment-legal and lane AR must not use them as such. M7Proto Debug and Release 1,578 / 0 / 0. Verification round 2 started at 09:05 UTC and was interrupted.
 - Resources: lowest available memory 4,159 MB, lowest free disk 192 MB (never 0).
 - 09:34 UTC stop, then the Director at about 09:41 UTC: "okay pause everything. save all you can. we are stopping work for a day". Everything needed to resume, including the whole G2 history as one bundle, was pushed to the branch (docs/m7-plan/pass-state/).
+
+## Cost so far and estimate of the remaining work (measured 2026-11-13 12:25 UTC; tool: SP/m7gov/usage/agent_usage.py)
+- MEASURED so far: 85 workflow agents, 93.6 agent-hours, 19.34M output tokens, 6.40B cache-read tokens, 149M cache-write tokens. Orchestrator (main session): 1.88M output, 0.56B cache reads, 18.1M cache writes.
+- MEASURED comparables:
+  - prototype lane full cycle (impl, verify, fix twice): MOR 4.1 h / 1.06M out, AP 5.1 h / 1.28M, MOR2 3.8 h / 1.14M, D 4.5 h / 1.21M; average 4.4 h / 1.17M;
+  - Sim lanes: RT 8.8 h / 1.12M (one round), RR 16.1 h / 1.34M (Tier 3 and mutants dominate);
+  - G2: polish rounds 3.0-3.9 h / 0.57-0.64M; integration about 40 min / 0.09M; critic about 20 min / 0.1M;
+  - final-round verification: about 27 min / 0.1-0.13M per lane;
+  - per-agent averages over the prototype lanes: impl 71 min / 343k, verify 37 min / 156k, fix 45 min / 215k.
+- INFERRED remaining work (agent-hours, output tokens, cache reads):
+  - G2 final: 5-8 h, 1.0-1.4M, 0.35-0.55B;
+  - OC: 4-5 h, 0.9-1.2M, 0.25-0.35B;
+  - RT2: 9-13 h, 1.1-1.4M, 0.4-0.6B;
+  - BN: 4.5-6.5 h, 1.1-1.9M, 0.35-0.55B;
+  - AR: 6.5-9.5 h, 1.6-2.2M, 0.5-0.7B;
+  - RX: 9-13.5 h, 1.0-1.3M, 0.4-0.6B;
+  - final-round verification of 8 lanes, with fixes: 7.5-9.5 h, 1.6-2.0M, 0.5-0.6B;
+  - report: 1.5-3 h, 0.4-0.6M, 0.1-0.2B;
+  - close-out: 0.5-1 h, about 0.1M;
+  - orchestration: 0.6-1.2M, 0.2-0.4B.
+  - Total about 47-69 agent-hours, 9-13M output tokens and 3-4.6B cache reads: about half to two-thirds of what the pass has used so far.
+- Wall-clock at full power, with three streams in parallel:
+  - G2, then the final-round verification: 12.5-17.5 h;
+  - OC, then BN, then AR: 15-21 h;
+  - RT2, then RX: 18-26.5 h;
+  - then the report and close-out: 2-4 h.
+  - About 20-30 hours in all; one stream at a time, about 50-70 hours.

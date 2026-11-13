@@ -1,0 +1,803 @@
+diff --git a/Sim.Core/State/InfoQuery.cs b/Sim.Core/State/InfoQuery.cs
+index dafb3d8..9475936 100644
+--- a/Sim.Core/State/InfoQuery.cs
++++ b/Sim.Core/State/InfoQuery.cs
+@@ -445,9 +445,9 @@ public static class InfoQuery
+         if (levelled && c.Done[i])
+             b.StatusLine = "Researched " + Inv(ResearchQuery.Level(c.W, c.P, n.Key)) + "x; next level: " + b.StatusLine;
+ 
+-        // ENABLED BY: its prerequisites (each with its completion), the expression verbatim.
+-        IReadOnlyList<int> must = n.Prerequisite?.MustHoldAtoms() ?? [];
+-        foreach (int p in n.PrerequisiteNodes) b.EnabledBy.Add(NodeLink(c, p, Contains(must, p) ? "required" : "one of"));
++        // ENABLED BY: its prerequisites (each with its completion), the expression verbatim. D-089 DH4: the lines keep the
++        // expression's grouping (RequirementLines) — no "required" or "one of" on a part of a grouped alternative.
++        RequirementLines(c, n.Prerequisite, n.PrerequisiteNodes, b.EnabledBy, outstandingOnly: false, (a, role) => NodeLink(c, a, role));
+         if (n.PrerequisiteNodes.Count == 0) b.EnabledBy.Add(new InfoLink("No prerequisite: a root of its tree", null, true));
+         b.RequirementSource = n.Prerequisite?.Source;
+ 
+@@ -455,8 +455,7 @@ public static class InfoQuery
+         if (!done && !available)
+         {
+             if (!ResearchQuery.PrerequisitesMet(r, i, c.Done))
+-                foreach (int p in n.PrerequisiteNodes)
+-                    if (!c.Done[p]) b.WhyLocked.Add(NodeLink(c, p, Contains(must, p) ? "required" : "one of"));
++                RequirementLines(c, n.Prerequisite, n.PrerequisiteNodes, b.WhyLocked, outstandingOnly: true, (a, role) => NodeLink(c, a, role));
+             if (n.Branch >= 0 && !c.Stage)
+                 b.WhyLocked.Add(new InfoLink("Its subtree is closed until the research stage is reached (" + r.Stage.Source.Replace('_', ' ') + ")", null, false));
+             if (n.IsRecursive && n.Branch >= 0 && !ResearchQuery.SubtreeExhausted(r, n.Branch, c.Done))
+@@ -1878,14 +1877,15 @@ public static class InfoQuery
+         if (gate == TaxGate.Inert || c.R is not { } r || c.Cfg.Governance is not { } gov) { b.Inert("governance and research content"); return; }
+         Predicate req = TaxAtoms(c)!;
+         int open = -1, first = -1;
+-        IReadOnlyList<int> must = req.MustHoldAtoms();
++        var taxAtoms = new List<int>();
+         foreach (int a in req.AtomIds)
+         {
+             if (a < 0 || a >= r.Nodes.Count) continue;
+-            b.EnabledBy.Add(NodeLink(c, a, Contains(must, a) ? "required" : "one of"));
++            taxAtoms.Add(a);
+             if (first < 0) first = a;
+             if (open < 0 && !c.Done[a]) open = a;
+         }
++        RequirementLines(c, req, taxAtoms, b.EnabledBy, outstandingOnly: false, (a, role) => NodeLink(c, a, role));   // D-089 DH4
+         int current = c.Cfg.Ages is { } ages ? AgeQuery.CurrentAge(c.W, ages, c.P) : 0;
+         if (gov.TaxationMinAge is { } minAge)
+             b.EnabledBy.Add(new InfoLink(AgeName(c, minAge), InfoSubject.OfAge(minAge), Governance.MeetsTaxationAge(c.W, c.Cfg, c.P),
+@@ -2179,14 +2179,25 @@ public static class InfoQuery
+     }
+ 
+     /// <summary>An entity's requirement as links: its node atoms (source order), then its institution atoms, each
+-    /// expanded one level further (to a bounded depth; an institution named twice is expanded once).</summary>
++    /// expanded one level further (to a bounded depth; an institution named twice is expanded once). D-089 DH4: a requirement
++    /// with a grouped alternative is listed as its outline instead (EntityOutline), the expansions after it.</summary>
+     private static void EntityAtoms(Ctx c, int e, List<InfoLink> into, int depth, bool[] seen, string? via)
+     {
+         ResearchContent r = c.R!;
+         ResearchEntity ent = r.Entities[e];
+-        IReadOnlyList<int> must = ent.Requirement?.MustHoldAtoms() ?? [];
+         string prefix = via is null ? "" : "for " + via + "; ";
+-        foreach (int a in ent.NodeAtoms) into.Add(NodeLink(c, a, prefix + (Contains(must, a) ? "required" : "one of")));
++        if (EntityOutline(c, ent, into, prefix))
++        {
++            foreach (int inst in ent.InstitutionAtoms)
++            {
++                if (seen[inst] || depth >= 4) continue;
++                seen[inst] = true;
++                EntityAtoms(c, inst, into, depth + 1, seen, EntityName(r.Entities[inst]));
++            }
++            return;
++        }
++        PrereqKind[] kinds = PrereqExpr.Kinds(ent.Requirement, ent.NodeAtoms);
++        for (int k = 0; k < kinds.Length; k++) into.Add(NodeLink(c, ent.NodeAtoms[k], prefix + RoleLabel(kinds[k])));
+         foreach (int inst in ent.InstitutionAtoms)
+         {
+             into.Add(EntityLink(c, inst, prefix + "an institution"));
+@@ -2202,9 +2213,20 @@ public static class InfoQuery
+     {
+         ResearchContent r = c.R!;
+         ResearchEntity ent = r.Entities[e];
+-        IReadOnlyList<int> must = ent.Requirement?.MustHoldAtoms() ?? [];
+-        foreach (int a in ent.NodeAtoms)
+-            if (!c.Done[a]) into.Add(NodeLink(c, a, (depth > 0 ? "for " + EntityName(ent) + "; " : "") + (Contains(must, a) ? "required" : "one of")));
++        string prefix = depth > 0 ? "for " + EntityName(ent) + "; " : "";
++        if (EntityOutline(c, ent, into, prefix))   // D-089 DH4: a grouped requirement whole, its ticks saying what is met
++        {
++            foreach (int inst in ent.InstitutionAtoms)
++            {
++                if (c.Eligible(inst) || seen[inst] || depth >= 4) continue;
++                seen[inst] = true;
++                EntityWhyLocked(c, inst, into, depth + 1, seen);
++            }
++            return;
++        }
++        PrereqKind[] kinds = PrereqExpr.Kinds(ent.Requirement, ent.NodeAtoms);
++        for (int k = 0; k < kinds.Length; k++)
++            if (!c.Done[ent.NodeAtoms[k]]) into.Add(NodeLink(c, ent.NodeAtoms[k], prefix + RoleLabel(kinds[k])));
+         foreach (int inst in ent.InstitutionAtoms)
+         {
+             if (c.Eligible(inst) || seen[inst] || depth >= 4) continue;
+@@ -2214,6 +2236,81 @@ public static class InfoQuery
+         }
+     }
+ 
++    // ================================================================== D-089 DH4: requirement lines that keep their grouping
++
++    /// <summary>D-089 DH4: the word a card line gives a prerequisite's role in its requirement (PrereqExpr.Kinds, the one rule the
++    /// research screens use too): "required", "one of", or "in a group" for a part of a grouped alternative (or a redundant
++    /// one), which is neither required nor an alternative by itself.</summary>
++    public static string RoleLabel(PrereqKind kind) => kind switch
++    {
++        PrereqKind.Required => "required",
++        PrereqKind.OneOf => "one of",
++        _ => "in a group",
++    };
++
++    /// <summary>D-089 DH4: a nested group's head line on a card — its prefix, its operator and how many of the lines after it
++    /// belong to it: "either all of these 2:", "or one of these 3:". The count makes the list read as the expression without
++    /// indentation: a head's items are the next lines, a nested head with its own items counting as one.</summary>
++    public static string HeadLabel(PrereqRow head) =>
++        head.Prefix + (head.Op == PrereqOp.All ? "all of these " : "one of these ") + Inv(head.Arity) + ":";
++
++    /// <summary>
++    /// D-089 DH4 (answers lane RT's N1) — A REQUIREMENT AS CARD LINES THAT KEEP ITS GROUPING (<see cref="PrereqOutline.Rows"/>, the
++    /// outline the research screen's REQUIRES rows use). With no grouped prerequisite: one line per prerequisite, labelled
++    /// "required" or "one of" exactly as before (every required AND at least one one-of is then the expression). With one:
++    /// the expression's outline — each nested group a head line (<see cref="HeadLabel"/>; no link; ticked when the group
++    /// holds; noted with the group in names) and each prerequisite a line labelled by its role ("in a group" for a part of
++    /// one). <paramref name="outstandingOnly"/> (WHY LOCKED) drops the met prerequisites of a flat list; an outline is kept
++    /// whole, since a part of a group reads only beside its partners, and its ticks say what is met.
++    /// </summary>
++    private static void RequirementLines(Ctx c, Predicate? p, IReadOnlyList<int> atoms, List<InfoLink> into, bool outstandingOnly,
++        Func<int, string, InfoLink> atomLine, string headNote = "")
++    {
++        List<PrereqRow> rows = PrereqOutline.Rows(p, atoms);
++        bool outline = PrereqOutline.IsOutline(rows);
++        foreach (PrereqRow row in rows)
++        {
++            if (row.IsHead)
++            {
++                into.Add(new InfoLink(HeadLabel(row), null, row.Group!.Holds(a => AtomMet(c, a)),
++                    headNote + row.Group.Text(a => PrereqExpr.NameInExpression(AtomName(c, a)))));
++                continue;
++            }
++            if (outstandingOnly && !outline && AtomMet(c, row.Atom)) continue;
++            into.Add(atomLine(row.Atom, RoleLabel(row.Kind)));
++        }
++    }
++
++    /// <summary>D-089 DH4: an entity requirement with a grouped alternative, as its outline over every atom (nodes, institutions
++    /// and declared unresolved references, expression order). Returns false — adding nothing — when no atom is grouped: the
++    /// caller then keeps the flat list (node atoms labelled, then institutions).</summary>
++    private static bool EntityOutline(Ctx c, ResearchEntity ent, List<InfoLink> into, string prefix)
++    {
++        if (ent.Requirement is not { } req) return false;
++        List<PrereqRow> rows = PrereqOutline.Rows(req, req.AtomIds);
++        if (!PrereqOutline.IsOutline(rows)) return false;
++        int nodes = c.R!.Nodes.Count;
++        RequirementLines(c, req, req.AtomIds, into, outstandingOnly: false, (a, role) =>
++            a < nodes ? NodeLink(c, a, prefix + role)
++            : a < nodes + c.R.Entities.Count ? EntityLink(c, a - nodes, prefix + "an institution; " + role)
++            : new InfoLink("A reference not in this build's knowledge (it reads as not known)", null, false, prefix + role), prefix);
++        return true;
++    }
++
++    /// <summary>Whether a requirement atom holds: a node atom is completed, an institution atom eligible; any other is not.</summary>
++    private static bool AtomMet(Ctx c, int a)
++    {
++        int nodes = c.R!.Nodes.Count;
++        return a >= 0 && (a < nodes ? c.Done[a] : a < nodes + c.R.Entities.Count && c.Eligible(a - nodes));
++    }
++
++    /// <summary>A requirement atom's name: the node's, the institution's, or "an unknown reference".</summary>
++    private static string AtomName(Ctx c, int a)
++    {
++        int nodes = c.R!.Nodes.Count;
++        return a >= 0 && a < nodes ? c.R.Nodes[a].Name : a >= nodes && a < nodes + c.R.Entities.Count ? EntityName(c.R.Entities[a - nodes]) : "an unknown reference";
++    }
++
+     /// <summary>THE TREE TARGET of an entity (one deterministic rule): a KNOWN entity points at the first completed node
+     /// of its requirement (its provenance); a locked one at the first node on its requirement that is open to research
+     /// now, else at the first not-completed node, else the first. Institution atoms are expanded after the node atoms.
+@@ -2662,11 +2759,9 @@ public static class InfoQuery
+                 ResearchNode n = r.Nodes[TreeNode];
+                 node = n.Key;
+                 nodeName = n.Name;
+-                if (Subject.Kind != InfoKind.ResearchNode)
+-                {
+-                    IReadOnlyList<int> must = n.Prerequisite?.MustHoldAtoms() ?? [];
+-                    foreach (int p in n.PrerequisiteNodes) prereqs.Add(NodeLink(c, p, "a prerequisite of " + n.Name + " - " + (Contains(must, p) ? "required" : "one of")));
+-                }
++                if (Subject.Kind != InfoKind.ResearchNode)   // D-089 DH4: the lines keep the expression's grouping
++                    RequirementLines(c, n.Prerequisite, n.PrerequisiteNodes, prereqs, outstandingOnly: false,
++                        (a, role) => NodeLink(c, a, "a prerequisite of " + n.Name + " - " + role), "a prerequisite of " + n.Name + " - ");
+             }
+             return new InfoCard(Subject, Title, Kind, What, Status, StatusLine, Summary,
+                 [.. EnabledBy], RequirementSource, node, nodeName, [.. prereqs], [.. Requirements], [.. WhyLocked],
+diff --git a/Sim.Core/State/PrerequisiteExpression.cs b/Sim.Core/State/PrerequisiteExpression.cs
+new file mode 100644
+index 0000000..71800c4
+--- /dev/null
++++ b/Sim.Core/State/PrerequisiteExpression.cs
+@@ -0,0 +1,244 @@
++using Sim.Core.Systems.ClassMobility;
++using Sim.Core.Systems.Research;
++
++namespace Sim.Core.State;
++
++/// <summary>The operator of a <see cref="PrereqExpr"/> node: a single prerequisite (an atom), ALL of its parts, or ONE OF them.</summary>
++public enum PrereqOp { Atom = 0, All = 1, Any = 2 }
++
++/// <summary>
++/// D-084 (research-tree audit §4); D-089 DH4 — THE ROLE ONE PREREQUISITE PLAYS IN ITS EXPRESSION, decided from the expression
++/// itself so that no label is ever false. <see cref="Required"/>: it holds on every satisfying route
++/// (<see cref="Predicate.MustHoldAtoms"/>). <see cref="OneOf"/>: it is not required, the required ones alone do not satisfy the
++/// expression, and the required ones with it do — it completes the choice on its own. <see cref="Grouped"/>: otherwise — it
++/// counts only together with others (a part of a grouped alternative, as plough_ard in seed_drill OR (plough_ard AND
++/// horse_collar)), or it is redundant. Without a Grouped prerequisite the plain reading — every "required" AND at least one
++/// "one of" (if any) — is exactly the expression (DERIVED for monotone expressions: research-tree-fixes-2026-11.md §3.1).
++/// </summary>
++public enum PrereqKind { Required = 1, OneOf = 2, Grouped = 3 }
++
++/// <summary>
++/// D-084 (research-tree audit §4); D-089 DH4 (lane RT2: moved here from the research screens so that the screens and the
++/// inspector, <see cref="InfoQuery"/>, keep ONE model) — A PREREQUISITE EXPRESSION AS THE PLAYER IS SHOWN IT: the content's parsed
++/// <see cref="Predicate"/> folded (<see cref="Predicate.Fold{T}"/>) into an n-ary tree whose atoms are the predicate's atom ids
++/// (content node indices for a node's prerequisite; node or institution ids for an entity's requirement). A chain of one
++/// operator becomes one group ("a AND b AND c" is all-of[a, b, c]); a change of operator is a nested group, so
++/// "seed_drill OR (plough_ard AND horse_collar)" stays one-of[seed_drill, all-of[plough_ard, horse_collar]] and is never read
++/// as three alternatives. The tree models atoms, AND, OR and parentheses — every shipped prerequisite and requirement is made of
++/// those alone — and then holds exactly the expression's truth table (pinned for every node and entity by Sim.Tests and
++/// Sim.Ui.Tests). An expression with anything else has no tree here (<see cref="Of(Predicate?)"/> returns null). Pure; no
++/// hashing, no dictionaries; a read-only display query (never consulted by a system).
++/// </summary>
++public sealed class PrereqExpr
++{
++    public PrereqOp Op { get; }
++    /// <summary>The prerequisite's atom id (<see cref="PrereqOp.Atom"/>), else -1.</summary>
++    public int Atom { get; }
++    /// <summary>The parts of a group, in source order (at least two); empty for an atom.</summary>
++    public IReadOnlyList<PrereqExpr> Parts { get; }
++
++    private PrereqExpr(PrereqOp op, int atom, PrereqExpr[] parts) { Op = op; Atom = atom; Parts = parts; }
++
++    public static PrereqExpr Leaf(int atom) => new(PrereqOp.Atom, atom, []);
++
++    /// <summary>A group of <paramref name="op"/> over <paramref name="parts"/>: a part of the same operator is spliced in (the
++    /// operator is associative), a repeated atom is kept once (it is idempotent) and a group of one part is that part.</summary>
++    public static PrereqExpr Group(PrereqOp op, IReadOnlyList<PrereqExpr> parts)
++    {
++        if (op == PrereqOp.Atom) throw new ArgumentException("a group is ALL or ANY", nameof(op));
++        var flat = new List<PrereqExpr>();
++        foreach (PrereqExpr p in parts)
++        {
++            if (p.Op == op) { foreach (PrereqExpr q in p.Parts) AddPart(flat, q); }
++            else AddPart(flat, p);
++        }
++        if (flat.Count == 0) throw new ArgumentException("a group needs a part", nameof(parts));
++        return flat.Count == 1 ? flat[0] : new PrereqExpr(op, -1, [.. flat]);
++    }
++
++    private static void AddPart(List<PrereqExpr> parts, PrereqExpr p)
++    {
++        if (p.Op == PrereqOp.Atom)
++            foreach (PrereqExpr q in parts) if (q.Op == PrereqOp.Atom && q.Atom == p.Atom) return;
++        parts.Add(p);
++    }
++
++    /// <summary>The expression of <paramref name="node"/>; null for a root (see <see cref="Of(Predicate?)"/>).</summary>
++    public static PrereqExpr? Of(ResearchNode node) => Of(node.Prerequisite);
++
++    /// <summary>The tree of <paramref name="p"/>; null for no expression, and null for an expression this tree does not model —
++    /// one holding a comparison or a NOT, which <see cref="Predicate.Fold{T}"/> folds to one placeholder whose truth is not known
++    /// here. The research loader refuses a NOT and a comparison that reads a variable or a quantity in a prerequisite, but it
++    /// admits a comparison of literals such as "1 &gt; 0" (always true or always false), so such content can load (D-084
++    /// verification round 1, RT-R1-02; no shipped prerequisite has one). The surfaces then show what makes no false claim: each
++    /// prerequisite's kind (<see cref="Kinds(Predicate?, IReadOnlyList{int})"/>, decided from the Predicate itself), the flat
++    /// list and the content's own expression text — never a guessed tree, and never an exception.</summary>
++    public static PrereqExpr? Of(Predicate? p)
++    {
++        if (p is null) return null;
++        PrereqExpr e = p.Fold<PrereqExpr>(Leaf, (l, r) => Group(PrereqOp.All, [l, r]), (l, r) => Group(PrereqOp.Any, [l, r]), Unrepresentable);
++        return e.HasUnrepresentable() ? null : e;
++    }
++
++    /// <summary>The placeholder Fold returns for a comparison or a negation.</summary>
++    private static readonly PrereqExpr Unrepresentable = new(PrereqOp.Atom, -1, []);
++
++    private bool HasUnrepresentable()
++    {
++        if (ReferenceEquals(this, Unrepresentable)) return true;
++        foreach (PrereqExpr p in Parts) if (p.HasUnrepresentable()) return true;
++        return false;
++    }
++
++    /// <summary>Whether the expression holds when <paramref name="done"/> says which prerequisites are complete.</summary>
++    public bool Holds(Func<int, bool> done)
++    {
++        switch (Op)
++        {
++            case PrereqOp.Atom: return done(Atom);
++            case PrereqOp.All:
++                foreach (PrereqExpr p in Parts) if (!p.Holds(done)) return false;
++                return true;
++            default:
++                foreach (PrereqExpr p in Parts) if (p.Holds(done)) return true;
++                return false;
++        }
++    }
++
++    /// <summary>Whether the expression has an alternative anywhere (an ANY group).</summary>
++    public bool HasAlternatives
++    {
++        get
++        {
++            if (Op == PrereqOp.Any) return true;
++            foreach (PrereqExpr p in Parts) if (p.HasAlternatives) return true;
++            return false;
++        }
++    }
++
++    /// <summary>The expression in words with every nested group in parentheses: "Seed drill OR (Ard plough AND Padded horse
++    /// collar)". The detail pane and the inspector pass <see cref="NameInExpression"/>, so a name with parentheses of its own is
++    /// quoted.</summary>
++    public string Text(Func<int, string> name)
++    {
++        if (Op == PrereqOp.Atom) return name(Atom);
++        var parts = new List<string>(Parts.Count);
++        foreach (PrereqExpr p in Parts) parts.Add(p.Op == PrereqOp.Atom ? p.Text(name) : "(" + p.Text(name) + ")");
++        return string.Join(Op == PrereqOp.All ? " AND " : " OR ", parts);
++    }
++
++    /// <summary>D-084 verification round 1 (RT-R1-06 a): a name as an expression line writes it — in double quotes when it holds a
++    /// parenthesis of its own (11 shipped names do, such as "Cuneiform (full writing)"), so that every unquoted parenthesis of the
++    /// line is the expression's grouping: Lunar calendar AND ("Cuneiform (full writing)" OR Egyptian hieroglyphic OR ...).</summary>
++    public static string NameInExpression(string name) => name.IndexOf('(') >= 0 || name.IndexOf(')') >= 0 ? "\"" + name + "\"" : name;
++
++    /// <summary>The kind of each prerequisite of <paramref name="node"/>, aligned with <see cref="ResearchNode.PrerequisiteNodes"/>.</summary>
++    public static PrereqKind[] Kinds(ResearchNode node) => Kinds(node.Prerequisite, node.PrerequisiteNodes);
++
++    /// <summary>The kind (<see cref="PrereqKind"/>) of each atom in <paramref name="atoms"/> within <paramref name="p"/>; all
++    /// <see cref="PrereqKind.Required"/>'s default for no expression. Decided from the Predicate itself, so it holds for an
++    /// expression the tree does not model too.</summary>
++    public static PrereqKind[] Kinds(Predicate? p, IReadOnlyList<int> atoms)
++    {
++        var kinds = new PrereqKind[atoms.Count];
++        if (p is null) { Array.Fill(kinds, PrereqKind.Required); return kinds; }
++        IReadOnlyList<int> must = p.MustHoldAtoms();
++        bool mustAlone = p.Evaluate(null, a => Contains(must, a), null);
++        for (int k = 0; k < atoms.Count; k++)
++        {
++            int a = atoms[k];
++            if (Contains(must, a)) kinds[k] = PrereqKind.Required;
++            else if (!mustAlone && p.Evaluate(null, x => x == a || Contains(must, x), null)) kinds[k] = PrereqKind.OneOf;
++            else kinds[k] = PrereqKind.Grouped;
++        }
++        return kinds;
++    }
++
++    internal static bool Contains(IReadOnlyList<int> list, int v)
++    {
++        for (int i = 0; i < list.Count; i++) if (list[i] == v) return true;
++        return false;
++    }
++}
++
++/// <summary>One row of a requirement's outline (<see cref="PrereqOutline.Rows"/>): a prerequisite (<see cref="Atom"/> ≥ 0) with its
++/// <see cref="Kind"/>, or the HEAD of a nested group (<see cref="Atom"/> = -1) whose <see cref="Group"/> is the group itself:
++/// <see cref="Prefix"/> ("either ", "or " or ""), its operator and its <see cref="Arity"/> (how many items follow it at
++/// <see cref="Depth"/> + 1). <see cref="Depth"/> is the nesting level (0 = an item of the root).</summary>
++public sealed record PrereqRow(int Depth, int Atom, PrereqKind Kind, string Prefix, PrereqExpr? Group)
++{
++    public bool IsHead => Atom < 0;
++    /// <summary>A head's item count (its group's parts); 0 for a prerequisite.</summary>
++    public int Arity => Group is { } g ? g.Parts.Count : 0;
++    /// <summary>A head's operator: all of / one of.</summary>
++    public PrereqOp Op => Group?.Op ?? PrereqOp.Atom;
++}
++
++/// <summary>
++/// D-084; D-089 DH4 — A REQUIREMENT AS A LIST THAT KEEPS ITS GROUPING, shared by the research screen's REQUIRES rows and the
++/// inspector's ENABLED BY, WHY LOCKED and "a prerequisite of" lines. A requirement whose every prerequisite is
++/// <see cref="PrereqKind.Required"/> or <see cref="PrereqKind.OneOf"/> (no <see cref="PrereqKind.Grouped"/> one) keeps the flat list
++/// it always had: one row per prerequisite, in the order given, with its kind — "every required AND at least one one-of" is then
++/// exactly the expression. A requirement with a grouped prerequisite gets the expression's own outline, in pre-order: the root's
++/// prerequisites with their kinds, and every nested group as a head row (its prefix, operator and item count) followed by its
++/// items one level deeper — so the grouping is never lost and no row claims a kind it does not have. The root itself has no
++/// head: its operator is the kind of its prerequisites ("required" under ALL, "one of" under ANY) or, when it has none, its
++/// heads' prefixes ("either"/"or" under ANY, none under ALL).
++/// </summary>
++public static class PrereqOutline
++{
++    /// <summary>The rows of <paramref name="p"/> over <paramref name="atoms"/> (the requirement's distinct atoms, the order a flat
++    /// list uses). Empty for no requirement.</summary>
++    public static List<PrereqRow> Rows(Predicate? p, IReadOnlyList<int> atoms)
++    {
++        var rows = new List<PrereqRow>();
++        if (p is null || atoms.Count == 0) return rows;
++        return Rows(PrereqExpr.Of(p), atoms, PrereqExpr.Kinds(p, atoms));
++    }
++
++    /// <summary>The rows of the tree <paramref name="expr"/> (null when the expression is not modelled) over
++    /// <paramref name="atoms"/>, whose kinds (<see cref="PrereqExpr.Kinds(Predicate?, IReadOnlyList{int})"/>) are
++    /// <paramref name="kinds"/>, aligned. The research screen's view holds both already.</summary>
++    public static List<PrereqRow> Rows(PrereqExpr? expr, IReadOnlyList<int> atoms, IReadOnlyList<PrereqKind> kinds)
++    {
++        var rows = new List<PrereqRow>();
++        if (atoms.Count == 0) return rows;
++        bool grouped = false;
++        foreach (PrereqKind k in kinds) grouped |= k == PrereqKind.Grouped;
++        if (!grouped || expr is null)
++        {
++            for (int k = 0; k < atoms.Count; k++) rows.Add(new PrereqRow(0, atoms[k], kinds[k], "", null));
++            return rows;
++        }
++        if (expr.Op == PrereqOp.Atom) Part(expr, 0, "", atoms, kinds, rows);
++        else
++            for (int k = 0; k < expr.Parts.Count; k++) Part(expr.Parts[k], 0, HeadPrefix(expr.Op == PrereqOp.Any, k, root: true), atoms, kinds, rows);
++        return rows;
++    }
++
++    /// <summary>Whether <see cref="Rows"/> is an outline (it holds a head row) rather than the flat list.</summary>
++    public static bool IsOutline(List<PrereqRow> rows)
++    {
++        foreach (PrereqRow r in rows) if (r.IsHead) return true;
++        return false;
++    }
++
++    private static void Part(PrereqExpr part, int depth, string prefix, IReadOnlyList<int> atoms, IReadOnlyList<PrereqKind> kinds, List<PrereqRow> rows)
++    {
++        if (part.Op == PrereqOp.Atom)
++        {
++            for (int k = 0; k < atoms.Count; k++)
++                if (atoms[k] == part.Atom) { rows.Add(new PrereqRow(depth, part.Atom, kinds[k], "", null)); return; }
++            rows.Add(new PrereqRow(depth, part.Atom, PrereqKind.Grouped, "", null));   // an atom outside the list (none shipped)
++            return;
++        }
++        rows.Add(new PrereqRow(depth, -1, PrereqKind.Grouped, prefix, part));
++        for (int k = 0; k < part.Parts.Count; k++) Part(part.Parts[k], depth + 1, HeadPrefix(part.Op == PrereqOp.Any, k, root: false), atoms, kinds, rows);
++    }
++
++    /// <summary>The word before the head of a nested group that is part <paramref name="index"/> of its parent: in an
++    /// alternative (ONE OF) parent, "or " before every alternative after the first; the first takes "either " at the root,
++    /// whose operator no head of its own states, and nothing under a "one of" head, which states it (D-084 verification
++    /// round 1, RT-R1-06 c: an outline never begins "or all of"). Under an ALL parent, nothing.</summary>
++    public static string HeadPrefix(bool parentAny, int index, bool root) => !parentAny ? "" : index > 0 ? "or " : root ? "either " : "";
++}
+diff --git a/Sim.Ui.Tests/ResearchTreeAuditTests.cs b/Sim.Ui.Tests/ResearchTreeAuditTests.cs
+index 1adb994..54776b4 100644
+--- a/Sim.Ui.Tests/ResearchTreeAuditTests.cs
++++ b/Sim.Ui.Tests/ResearchTreeAuditTests.cs
+@@ -208,7 +208,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+         Assert.Equal(source, p.Source);
+         PrereqExpr e = PrereqExpr.Of(node)!;
+         Assert.Equal(source, e.Text(k => c.Nodes[k].Id));   // the grouping kept, written as the content writes it
+-        Assert.Equal(kinds, string.Join(" ", PrereqExpr.Kinds(node)));
++        Assert.Equal(kinds, string.Join(" ", ResearchGraph.KindsOf(node)));
+         ResearchGraph g = ResearchGraph.Build(c, node.Tree);
+         int v = g.VertexOf(i);
+         Assert.Equal(kinds, string.Join(" ", g.Edges.Where(x => x.To == v).Select(x => x.Kind)));
+@@ -259,7 +259,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+         Assert.Contains("all of:", all, StringComparison.Ordinal);
+         TextCmd[] labels = [.. texts.Where(t => t.Text is RequiresRows.OneOf or RequiresRows.Required)];
+         double rowX = RowX(texts);
+-        EdgeKind[] kinds = PrereqExpr.Kinds(c.Nodes[node]);
++        EdgeKind[] kinds = ResearchGraph.KindsOf(c.Nodes[node]);
+         for (int k = 0; k < kinds.Length; k++)
+         {
+             string name = c.Nodes[c.Nodes[node].PrerequisiteNodes[k]].Name;
+@@ -315,7 +315,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+         ResearchContent c = ResearchContentLoader.Load(text.Replace(shipped,
+             "\"prereq\": \"(seed_drill AND plough_ard) OR (seed_drill AND horse_collar) OR (plough_ard AND horse_collar)\""), fx.Session.Config.Goods);
+         int node = c.IndexOfId("seed_drill_tull"), sd = c.IndexOfId("seed_drill"), pa = c.IndexOfId("plough_ard"), hc = c.IndexOfId("horse_collar");
+-        Assert.Equal([EdgeKind.Grouped, EdgeKind.Grouped, EdgeKind.Grouped], PrereqExpr.Kinds(c.Nodes[node]));
++        Assert.Equal([EdgeKind.Grouped, EdgeKind.Grouped, EdgeKind.Grouped], ResearchGraph.KindsOf(c.Nodes[node]));
+         ResearchGraph g = ResearchGraph.Build(c, ResearchTree.Technology);
+         int v = g.VertexOf(node);
+         Assert.All(g.Edges.Where(e => e.To == v), e => Assert.Equal(EdgeKind.Grouped, e.Kind));
+@@ -369,7 +369,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+             "\"prereq\": \"seed_drill OR (seed_drill AND plough_ard AND horse_collar)\""), fx.Session.Config.Goods);
+         int node = c.IndexOfId("seed_drill_tull");
+         Assert.Equal([c.IndexOfId("seed_drill"), c.IndexOfId("plough_ard"), c.IndexOfId("horse_collar")], c.Nodes[node].PrerequisiteNodes);
+-        Assert.Equal([EdgeKind.And, EdgeKind.Grouped, EdgeKind.Grouped], PrereqExpr.Kinds(c.Nodes[node]));
++        Assert.Equal([EdgeKind.And, EdgeKind.Grouped, EdgeKind.Grouped], ResearchGraph.KindsOf(c.Nodes[node]));
+         ResearchNodeView view = ResearchSnapshot.Build(fx.Session.World, c, Me).Nodes[node];
+         List<RequiresRow> rows = RequiresRows.Of(view);
+         Assert.DoesNotContain(rows, r => r.Label == RequiresRows.OneOf);
+@@ -380,7 +380,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+             Assert.Equal(want, Holds(c.Nodes[node].Prerequisite!, set));
+             Assert.Equal(want, read(set));
+         }
+-        Assert.Equal("", KindError(c.Nodes[node], c.IndexOfId("plough_ard"), PrereqExpr.Kinds(c.Nodes[node])[1]));
++        Assert.Equal("", KindError(c.Nodes[node], c.IndexOfId("plough_ard"), ResearchGraph.KindsOf(c.Nodes[node])[1]));
+     }
+ 
+     [Theory]
+@@ -468,7 +468,7 @@ public class ResearchTreeAuditTests(SteppedWorldFixture fx, ITestOutputHelper ou
+         ResearchNode n = c.Nodes[node];
+         Assert.Equal(prereq, n.Prerequisite!.Source);
+         Assert.Null(PrereqExpr.Of(n));
+-        EdgeKind[] k = PrereqExpr.Kinds(n);
++        EdgeKind[] k = ResearchGraph.KindsOf(n);
+         Assert.Equal(kinds, string.Join(" ", k));
+         for (int a = 0; a < k.Length; a++) Assert.Equal("", KindError(n, n.PrerequisiteNodes[a], k[a]));
+         ResearchGraph g = ResearchGraph.Build(c, ResearchTree.Technology);
+diff --git a/Sim.Ui/Progression/PrerequisiteExpression.cs b/Sim.Ui/Progression/PrerequisiteExpression.cs
+index 493b775..03a5eca 100644
+--- a/Sim.Ui/Progression/PrerequisiteExpression.cs
++++ b/Sim.Ui/Progression/PrerequisiteExpression.cs
+@@ -1,160 +1,15 @@
+-using Sim.Core.Systems.ClassMobility;
+-using Sim.Core.Systems.Research;
++using Sim.Core.State;
+ 
+ namespace Sim.Ui.Progression;
+ 
+-/// <summary>The operator of a <see cref="PrereqExpr"/> node: a single prerequisite (an atom), ALL of its parts, or ONE OF them.</summary>
+-public enum PrereqOp { Atom = 0, All = 1, Any = 2 }
+-
+-/// <summary>
+-/// D-084 (research-tree audit §4) — A NODE'S PREREQUISITE EXPRESSION AS THE RESEARCH SCREENS KEEP IT: the content's parsed
+-/// <see cref="Predicate"/> folded (<see cref="Predicate.Fold{T}"/>) into an n-ary tree whose atoms are content indices. A chain
+-/// of one operator becomes one group ("a AND b AND c" is all-of[a, b, c]); a change of operator is a nested group, so
+-/// "seed_drill OR (plough_ard AND horse_collar)" stays one-of[seed_drill, all-of[plough_ard, horse_collar]] and is never read as
+-/// three alternatives. The tree models atoms, AND, OR and parentheses — every shipped prerequisite is made of those alone — and
+-/// then holds exactly the expression's truth table (pinned for every node by Sim.Ui.Tests). An expression with anything else has
+-/// no tree here (<see cref="Of"/> returns null). Pure; no hashing, no dictionaries.
+-/// </summary>
+-public sealed class PrereqExpr
+-{
+-    public PrereqOp Op { get; }
+-    /// <summary>The prerequisite's content index (<see cref="PrereqOp.Atom"/>), else -1.</summary>
+-    public int Atom { get; }
+-    /// <summary>The parts of a group, in source order (at least two); empty for an atom.</summary>
+-    public IReadOnlyList<PrereqExpr> Parts { get; }
+-
+-    private PrereqExpr(PrereqOp op, int atom, PrereqExpr[] parts) { Op = op; Atom = atom; Parts = parts; }
+-
+-    public static PrereqExpr Leaf(int contentIndex) => new(PrereqOp.Atom, contentIndex, []);
+-
+-    /// <summary>A group of <paramref name="op"/> over <paramref name="parts"/>: a part of the same operator is spliced in (the
+-    /// operator is associative), a repeated atom is kept once (it is idempotent) and a group of one part is that part.</summary>
+-    public static PrereqExpr Group(PrereqOp op, IReadOnlyList<PrereqExpr> parts)
+-    {
+-        if (op == PrereqOp.Atom) throw new ArgumentException("a group is ALL or ANY", nameof(op));
+-        var flat = new List<PrereqExpr>();
+-        foreach (PrereqExpr p in parts)
+-        {
+-            if (p.Op == op) { foreach (PrereqExpr q in p.Parts) AddPart(flat, q); }
+-            else AddPart(flat, p);
+-        }
+-        if (flat.Count == 0) throw new ArgumentException("a group needs a part", nameof(parts));
+-        return flat.Count == 1 ? flat[0] : new PrereqExpr(op, -1, [.. flat]);
+-    }
+-
+-    private static void AddPart(List<PrereqExpr> parts, PrereqExpr p)
+-    {
+-        if (p.Op == PrereqOp.Atom)
+-            foreach (PrereqExpr q in parts) if (q.Op == PrereqOp.Atom && q.Atom == p.Atom) return;
+-        parts.Add(p);
+-    }
+-
+-    /// <summary>The expression of <paramref name="node"/>; null for a root, and null for an expression this tree does not model —
+-    /// one holding a comparison or a NOT, which <see cref="Predicate.Fold{T}"/> folds to one placeholder whose truth is not known
+-    /// here. The research loader refuses a NOT and a comparison that reads a variable or a quantity in a prerequisite, but it
+-    /// admits a comparison of literals such as "1 &gt; 0" (always true or always false), so such content can load (D-084
+-    /// verification round 1, RT-R1-02; no shipped prerequisite has one). The screens then show what makes no false claim: each
+-    /// prerequisite's kind (<see cref="Kinds"/>, decided from the Predicate itself), the flat REQUIRES list and the content's own
+-    /// expression text — never a guessed tree, and never an exception.</summary>
+-    public static PrereqExpr? Of(ResearchNode node)
+-    {
+-        if (node.Prerequisite is not { } p) return null;
+-        PrereqExpr e = p.Fold<PrereqExpr>(Leaf, (l, r) => Group(PrereqOp.All, [l, r]), (l, r) => Group(PrereqOp.Any, [l, r]), Unrepresentable);
+-        return e.HasUnrepresentable() ? null : e;
+-    }
+-
+-    /// <summary>The placeholder Fold returns for a comparison or a negation.</summary>
+-    private static readonly PrereqExpr Unrepresentable = new(PrereqOp.Atom, -1, []);
+-
+-    private bool HasUnrepresentable()
+-    {
+-        if (ReferenceEquals(this, Unrepresentable)) return true;
+-        foreach (PrereqExpr p in Parts) if (p.HasUnrepresentable()) return true;
+-        return false;
+-    }
+-
+-    /// <summary>Whether the expression holds when <paramref name="done"/> says which prerequisites are complete.</summary>
+-    public bool Holds(Func<int, bool> done)
+-    {
+-        switch (Op)
+-        {
+-            case PrereqOp.Atom: return done(Atom);
+-            case PrereqOp.All:
+-                foreach (PrereqExpr p in Parts) if (!p.Holds(done)) return false;
+-                return true;
+-            default:
+-                foreach (PrereqExpr p in Parts) if (p.Holds(done)) return true;
+-                return false;
+-        }
+-    }
+-
+-    /// <summary>Whether the expression has an alternative anywhere (an ANY group).</summary>
+-    public bool HasAlternatives
+-    {
+-        get
+-        {
+-            if (Op == PrereqOp.Any) return true;
+-            foreach (PrereqExpr p in Parts) if (p.HasAlternatives) return true;
+-            return false;
+-        }
+-    }
+-
+-    /// <summary>The expression in words with every nested group in parentheses: "Seed drill OR (Ard plough AND Padded horse
+-    /// collar)". The detail pane passes <see cref="NameInExpression"/>, so a name with parentheses of its own is quoted.</summary>
+-    public string Text(Func<int, string> name)
+-    {
+-        if (Op == PrereqOp.Atom) return name(Atom);
+-        var parts = new List<string>(Parts.Count);
+-        foreach (PrereqExpr p in Parts) parts.Add(p.Op == PrereqOp.Atom ? p.Text(name) : "(" + p.Text(name) + ")");
+-        return string.Join(Op == PrereqOp.All ? " AND " : " OR ", parts);
+-    }
+-
+-    /// <summary>D-084 verification round 1 (RT-R1-06 a): a node's name as the pane's expression line writes it — in double quotes
+-    /// when it holds a parenthesis of its own (11 shipped names do, such as "Cuneiform (full writing)"), so that every unquoted
+-    /// parenthesis of the line is the expression's grouping: Lunar calendar AND ("Cuneiform (full writing)" OR Egyptian
+-    /// hieroglyphic OR ...).</summary>
+-    public static string NameInExpression(string name) => name.IndexOf('(') >= 0 || name.IndexOf(')') >= 0 ? "\"" + name + "\"" : name;
+-
+-    /// <summary>
+-    /// The per-prerequisite kind the screens show — the edge's stroke and the pane's label — aligned with
+-    /// <see cref="ResearchNode.PrerequisiteNodes"/>, decided from the canonical expression itself so that no kind is ever false:
+-    /// <see cref="EdgeKind.And"/> ("requires") when the prerequisite holds on every satisfying route
+-    /// (<see cref="Predicate.MustHoldAtoms"/>); <see cref="EdgeKind.Or"/> ("one of") when it is not required, the required ones
+-    /// alone do not satisfy the expression, and the required ones with it do — it completes the choice on its own;
+-    /// <see cref="EdgeKind.Grouped"/> otherwise — it counts only together with others (a part of a grouped alternative), as
+-    /// plough_ard and horse_collar do in seed_drill OR (plough_ard AND horse_collar). Without a Grouped prerequisite the plain
+-    /// reading — every "requires" AND at least one "one of" (if any) — is exactly the expression.
+-    /// </summary>
+-    public static EdgeKind[] Kinds(ResearchNode node)
+-    {
+-        IReadOnlyList<int> atoms = node.PrerequisiteNodes;
+-        var kinds = new EdgeKind[atoms.Count];
+-        if (node.Prerequisite is not { } p) return kinds;
+-        IReadOnlyList<int> must = p.MustHoldAtoms();
+-        bool mustAlone = p.Evaluate(null, a => Contains(must, a), null);
+-        for (int k = 0; k < atoms.Count; k++)
+-        {
+-            int a = atoms[k];
+-            if (Contains(must, a)) kinds[k] = EdgeKind.And;
+-            else if (!mustAlone && p.Evaluate(null, x => x == a || Contains(must, x), null)) kinds[k] = EdgeKind.Or;
+-            else kinds[k] = EdgeKind.Grouped;
+-        }
+-        return kinds;
+-    }
+-
+-    private static bool Contains(IReadOnlyList<int> list, int v)
+-    {
+-        for (int i = 0; i < list.Count; i++) if (list[i] == v) return true;
+-        return false;
+-    }
+-}
+-
+ /// <summary>One row of the detail pane's REQUIRES list (D-084): a prerequisite (<see cref="Atom"/> ≥ 0) with its
+ /// <see cref="Kind"/> label and completion, or the head of a nested group ("one of:", "all of:") the rows under it belong to.
+ /// <see cref="Depth"/> is the indentation.</summary>
+ public sealed record RequiresRow(int Depth, int Atom, string Text, string Label, bool Met);
+ 
+-/// <summary>D-084 — the detail pane's REQUIRES rows. A node whose every prerequisite is "requires" or "one of" (no
++/// <summary>D-084 — the detail pane's REQUIRES rows. D-089 DH4 (lane RT2): the expression model (<see cref="PrereqExpr"/>) and
++/// the outline (<see cref="PrereqOutline"/>) moved to Sim.Core so that the inspector (InfoQuery) uses the same ones; this class
++/// only words the rows for the pane. A node whose every prerequisite is "requires" or "one of" (no
+ /// <see cref="EdgeKind.Grouped"/> one) keeps the flat list it always had: one row per prerequisite, labelled. A node with a
+ /// grouped alternative gets the expression's own outline: its top-level prerequisites labelled, every nested group under a
+ /// head row naming its operator and its prerequisites indented under it — so the grouping is never lost and no row claims a
+@@ -169,40 +24,23 @@ public static class RequiresRows
+     {
+         var rows = new List<RequiresRow>();
+         if (n.Prerequisites.Count == 0) return rows;
+-        bool grouped = false;
+-        foreach (PrereqView p in n.Prerequisites) grouped |= p.Kind == EdgeKind.Grouped;
+-        if (!grouped || n.Requirement is not { } expr)
+-        {
+-            foreach (PrereqView p in n.Prerequisites) rows.Add(new RequiresRow(0, p.ContentIndex, p.Name, LabelOf(p.Kind), p.Completed));
+-            return rows;
+-        }
+-        if (expr.Op == PrereqOp.Atom) Part(n, expr, 0, "", rows);
+-        else   // the REQUIRES heading heads the root
+-            for (int k = 0; k < expr.Parts.Count; k++) Part(n, expr.Parts[k], 0, HeadPrefix(expr.Op == PrereqOp.Any, k, root: true), rows);
+-        return rows;
+-    }
+-
+-    /// <summary>One part at <paramref name="depth"/>: a prerequisite's row, or a nested group's head (after
+-    /// <paramref name="prefix"/>) and its parts one level in.</summary>
+-    private static void Part(ResearchNodeView n, PrereqExpr part, int depth, string prefix, List<RequiresRow> rows)
+-    {
+-        if (part.Op == PrereqOp.Atom)
++        var atoms = new int[n.Prerequisites.Count];
++        var kinds = new PrereqKind[atoms.Length];
++        for (int k = 0; k < atoms.Length; k++) { atoms[k] = n.Prerequisites[k].ContentIndex; kinds[k] = ResearchGraph.KindOf(n.Prerequisites[k].Kind); }
++        foreach (PrereqRow r in PrereqOutline.Rows(n.Requirement, atoms, kinds))
+         {
++            if (r.IsHead)
++            {
++                string head = r.Prefix + (r.Op == PrereqOp.All ? "all of:" : "one of:");
++                rows.Add(new RequiresRow(r.Depth, -1, head, "", r.Group!.Holds(i => Done(n, i))));
++                continue;
++            }
+             foreach (PrereqView p in n.Prerequisites)
+-                if (p.ContentIndex == part.Atom) { rows.Add(new RequiresRow(depth, p.ContentIndex, p.Name, LabelOf(p.Kind), p.Completed)); return; }
+-            return;
++                if (p.ContentIndex == r.Atom) { rows.Add(new RequiresRow(r.Depth, p.ContentIndex, p.Name, LabelOf(p.Kind), p.Completed)); break; }
+         }
+-        string head = prefix + (part.Op == PrereqOp.All ? "all of:" : "one of:");
+-        rows.Add(new RequiresRow(depth, -1, head, "", part.Holds(i => Done(n, i))));
+-        for (int k = 0; k < part.Parts.Count; k++) Part(n, part.Parts[k], depth + 1, HeadPrefix(part.Op == PrereqOp.Any, k, root: false), rows);
++        return rows;
+     }
+ 
+-    /// <summary>The word before the head of a nested group that is part <paramref name="index"/> of its parent: in an
+-    /// alternative (ONE OF) parent, "or " before every alternative after the first; the first takes "either " at the root,
+-    /// whose operator no head of its own states, and nothing under a "one of:" head, which states it (D-084 verification
+-    /// round 1, RT-R1-06 c: an outline no longer begins "or all of:"). Under an ALL parent, nothing.</summary>
+-    private static string HeadPrefix(bool parentAny, int index, bool root) => !parentAny ? "" : index > 0 ? "or " : root ? "either " : "";
+-
+     private static bool Done(ResearchNodeView n, int contentIndex)
+     {
+         foreach (PrereqView p in n.Prerequisites) if (p.ContentIndex == contentIndex) return p.Completed;
+diff --git a/Sim.Ui/Progression/ResearchGraph.cs b/Sim.Ui/Progression/ResearchGraph.cs
+index 955acc0..383d4d1 100644
+--- a/Sim.Ui/Progression/ResearchGraph.cs
++++ b/Sim.Ui/Progression/ResearchGraph.cs
+@@ -1,8 +1,10 @@
++using Sim.Core.State;
+ using Sim.Core.Systems.Research;
+ 
+ namespace Sim.Ui.Progression;
+ 
+-/// <summary>How a prerequisite edge participates in its target's expression (decided by <see cref="PrereqExpr.Kinds"/>).
++/// <summary>How a prerequisite edge participates in its target's expression (decided by <see cref="PrereqExpr.Kinds(ResearchNode)"/>,
++/// Sim.Core, the role the inspector reads too: <see cref="ResearchGraph.KindsOf"/>).
+ /// <see cref="And"/> ("requires", solid): the prerequisite holds on EVERY path that satisfies the expression
+ /// (Predicate.MustHoldAtoms). <see cref="Or"/> ("one of", dashed): with the required ones it completes the expression on its
+ /// own — one alternative among several. <see cref="Grouped"/> (dotted; D-084, audit §4): it counts only together with other
+@@ -23,7 +25,7 @@ public readonly record struct GraphVertex(int ContentIndex, bool External);
+ /// ONE research tree as a drawable graph, generated from the loaded <see cref="ResearchContent"/>
+ /// (never from UI-owned JSON). Vertices are the tree's nodes in content order (key-ascending),
+ /// followed by external anchors in content order. Edges are exactly the union of every node's
+-/// <see cref="ResearchNode.PrerequisiteNodes"/>, each classified from the expression itself (<see cref="PrereqExpr.Kinds"/>),
++/// <see cref="ResearchNode.PrerequisiteNodes"/>, each classified from the expression itself (<see cref="KindsOf"/>),
+ /// and every node of the tree keeps its whole prerequisite expression (<see cref="Requirement"/>, D-084): the edges are the
+ /// atoms, the expression is how they combine.
+ /// Pure and deterministic: no dictionaries are iterated, no hashing.
+@@ -76,10 +78,34 @@ public sealed class ResearchGraph
+         {
+             ResearchNode node = content.Nodes[vertices[v].ContentIndex];
+             requirement[v] = PrereqExpr.Of(node);
+-            EdgeKind[] kinds = PrereqExpr.Kinds(node);
++            EdgeKind[] kinds = KindsOf(node);
+             for (int k = 0; k < kinds.Length; k++)
+                 edges.Add(new GraphEdge(vertexOf[node.PrerequisiteNodes[k]], v, kinds[k]));
+         }
+         return new ResearchGraph(content, tree, [.. vertices], [.. edges], own, vertexOf, requirement);
+     }
++
++    /// <summary>D-089 DH4 (lane RT2): each prerequisite's edge kind, aligned with <see cref="ResearchNode.PrerequisiteNodes"/> —
++    /// the role <see cref="PrereqExpr.Kinds(ResearchNode)"/> (Sim.Core, the one rule the inspector uses too) gives it.</summary>
++    public static EdgeKind[] KindsOf(ResearchNode node)
++    {
++        PrereqKind[] roles = PrereqExpr.Kinds(node);
++        var kinds = new EdgeKind[roles.Length];
++        for (int k = 0; k < roles.Length; k++) kinds[k] = EdgeKindOf(roles[k]);
++        return kinds;
++    }
++
++    public static EdgeKind EdgeKindOf(PrereqKind role) => role switch
++    {
++        PrereqKind.Required => EdgeKind.And,
++        PrereqKind.OneOf => EdgeKind.Or,
++        _ => EdgeKind.Grouped,
++    };
++
++    public static PrereqKind KindOf(EdgeKind kind) => kind switch
++    {
++        EdgeKind.And => PrereqKind.Required,
++        EdgeKind.Or => PrereqKind.OneOf,
++        _ => PrereqKind.Grouped,
++    };
+ }
+diff --git a/Sim.Ui/Progression/ResearchNodeViews.cs b/Sim.Ui/Progression/ResearchNodeViews.cs
+index 1ea9b7f..874f07a 100644
+--- a/Sim.Ui/Progression/ResearchNodeViews.cs
++++ b/Sim.Ui/Progression/ResearchNodeViews.cs
+@@ -193,9 +193,9 @@ public sealed class ResearchSnapshot
+             var terms = new List<(string, double)>();
+             foreach (ResearchQuery.CostTerm term in cost.Terms) terms.Add((term.UniversityId, term.Factor));
+ 
+-            // D-084 (audit §4): each prerequisite's kind is decided from the whole expression (PrereqExpr.Kinds) — a part of a
+-            // grouped alternative is Grouped, never "one of" — and the expression itself travels with the view.
+-            EdgeKind[] kinds = PrereqExpr.Kinds(node);
++            // D-084 (audit §4): each prerequisite's kind is decided from the whole expression (PrereqExpr.Kinds, Sim.Core) — a
++            // part of a grouped alternative is Grouped, never "one of" — and the expression itself travels with the view.
++            EdgeKind[] kinds = ResearchGraph.KindsOf(node);
+             var prereqs = new PrereqView[node.PrerequisiteNodes.Count];
+             for (int k = 0; k < prereqs.Length; k++)
+             {

@@ -3184,10 +3184,10 @@ index 0000000..3cc9dc3
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
 new file mode 100644
-index 0000000..7dc696a
+index 0000000..aea5419
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Demo/Scenes/Bench/TraceCrowd.cs
-@@ -0,0 +1,890 @@
+@@ -0,0 +1,1089 @@
 +using System.Globalization;
 +using System.Text.Json;
 +using Gfx.Chars.Crowd;
@@ -3295,6 +3295,9 @@ index 0000000..7dc696a
 +    readonly bool[] _deadBack;
 +    /// <summary>Polish2 (critic rank 3): each fallen body's settle offset (m, at most <see cref="MaxSettle"/>; zero when he
 +    /// does not die).</summary>
++    readonly Vector2[] _deadSettle;
++    /// <summary>Polish3 (critic rank 3): each fallen body's offset at rest: the settle, then the relaxation apart
++    /// (<see cref="RelaxFallen"/>; m, at most <see cref="MaxRelax"/>; zero when he does not die).</summary>
 +    readonly Vector2[] _deadOffset;
 +    /// <summary>Polish3 (critic rank 3): each prisoner's move out of the fallen (m, at most <see cref="PrisonerMaxMove"/>;
 +    /// zero for everyone else) and the facing he kneels in (towards the victors; NaN for everyone else).</summary>
@@ -3403,8 +3406,11 @@ index 0000000..7dc696a
 +            if (last != long.MinValue) _deathMs[e] = last;
 +        }
 +        (_deadYaw, _deadBack) = LayOutFallen(tr, _deathMs, _yaw);
-+        _deadOffset = SettleFallen(tr, _deathMs, _deadYaw, _deadBack);
-+        (_prisonerOffset, _prisonerYaw) = PlacePrisoners(tr, _deadYaw, _deadBack, _deadOffset);
++        _deadSettle = SettleFallen(tr, _deathMs, _deadYaw, _deadBack);
++        (_prisonerOffset, _prisonerYaw) = PlacePrisoners(tr, _deadYaw, _deadBack, _deadSettle);
++        // polish3 (critic rank 3): the bodies the settle left lying on one another are relaxed apart, clear of the
++        // kneeling prisoners and of the men standing at the end
++        _deadOffset = RelaxFallen(tr, _deathMs, _deadYaw, _deadBack, _deadSettle, KeepClearOfTheLiving(tr, _prisonerOffset, _prisonerYaw));
 +        _routDrops.AddRange(RoutDrops(battle, _yaw));
 +        _shieldThrown = new int[tr.Entities.Count]; _weaponThrown = new int[tr.Entities.Count];
 +        Array.Fill(_shieldThrown, -1); Array.Fill(_weaponThrown, -1);
@@ -3560,6 +3566,194 @@ index 0000000..7dc696a
 +            placedA.Add(p + best); placedB.Add(p + best + dir * FallenLength);
 +        }
 +        return offset;
++    }
++
++    /// <summary>Polish3 (critic rank 3): the clearance the relaxation works to between two fallen bodies' centre lines (m);
++    /// the clearance it keeps a body's centre line from a man standing at the battle's end (m; a kneeling prisoner keeps
++    /// <see cref="PrisonerClear"/>); the farthest it lays a body from where the trace put him (m, the settle included); the
++    /// most a body moves in one pass (m); the number of passes; the seconds over which a falling body drifts from his
++    /// settled to his relaxed place.</summary>
++    public const float RelaxClearance = 0.5f, RelaxStandingClear = 0.5f, MaxRelax = 2.5f, RelaxStep = 0.25f, RelaxDriftSeconds = 1.2f;
++    /// <summary>Polish3: how far past a living man's clearance a body is lifted (m), so the bodies the pairs push back a
++    /// little in the next pass do not settle exactly on the clearance.</summary>
++    public const float RelaxLift = 0.05f;
++    public const int RelaxPasses = 64;
++
++    /// <summary>
++    /// Polish3 (critic rank 3): the points the relaxed fallen keep clear of, with their clearances: every prisoner where he
++    /// kneels once placed (<see cref="PlacePrisoners"/>; <see cref="PrisonerClear"/>) and every man still standing at the
++    /// battle's end where the trace has him (<see cref="RelaxStandingClear"/>), in entity order.
++    /// </summary>
++    public static List<(Vector2 at, float clear)> KeepClearOfTheLiving(Gfx.Units.BattleTrace tr, Vector2[] prisonerOffset, float[] prisonerYaw)
++    {
++        int n = tr.Entities.Count, last = tr.StepCount - 1;
++        var list = new List<(Vector2, float)>();
++        for (int e = 0; e < n; e++)
++        {
++            var (x, y) = tr.PosMm(last, e);
++            var p = new Vector2(x / 1000f, y / 1000f);
++            var st = BenchBattle.Map(tr.State(last, e));
++            if (st == TraceSoldierState.Surrendered && !float.IsNaN(prisonerYaw[e])) list.Add((p + prisonerOffset[e], PrisonerClear));
++            else if (st == TraceSoldierState.Active) list.Add((p, RelaxStandingClear));
++        }
++        return list;
++    }
++
++    /// <summary>
++    /// Polish3 (critic rank 3; PRESENTATION ONLY): the fallen relaxed apart. In the densest fighting the settle (at most
++    /// <see cref="MaxSettle"/>) finds no clear place and leaves bodies lying through one another (polish2's report: 2,370
++    /// pairs closer than the clearance, 294 of them crossing). Starting from the settled bodies, up to
++    /// <see cref="RelaxPasses"/> Jacobi passes: each pass finds every pair of bodies whose centre lines (segments
++    /// <see cref="FallenLength"/> long, facing and fall kept) lie closer than <see cref="RelaxClearance"/>, and every body
++    /// lying closer to one of <paramref name="keepClear"/> (the living: kneeling prisoners and standing men, fixed) than
++    /// that point's clearance (grids of midpoints and points, cells looked up by key, bodies taken in entity order). A
++    /// pair is pushed apart along the line between its closest points, each body by a quarter of the shortfall (half each,
++    /// under-relaxed by half; bodies that cross are parted across the first body's line, the second to the side his middle
++    /// lies on). A pass's pushes are summed per body in that fixed order, cut to <see cref="RelaxStep"/> and applied
++    /// together; then, the living being fixed, every body still lying within a living man's clearance is lifted off him in
++    /// full (to <see cref="RelaxLift"/> past it). Every offset stays within <paramref name="maxRelax"/> of the trace. The
++    /// passes stop early when nothing is close. A pure function of the trace, the settle and the points: the same layout
++    /// in every still, replay and benchmark frame; the trace is not touched. The bodies cannot all clear in the densest
++    /// fighting within the bound: the test reports what is left.
++    /// </summary>
++    public static Vector2[] RelaxFallen(Gfx.Units.BattleTrace tr, long[] deathMs, float[] yaw, bool[] back, Vector2[] settle,
++        IReadOnlyList<(Vector2 at, float clear)>? keepClear = null, float maxRelax = MaxRelax, int passes = RelaxPasses)
++    {
++        int n = tr.Entities.Count, last = tr.StepCount - 1;
++        var offset = (Vector2[])settle.Clone();
++        var bodies = Enumerable.Range(0, n).Where(e => deathMs[e] != long.MinValue && !float.IsNaN(yaw[e])).ToArray();
++        int m = bodies.Length;
++        var start = new Vector2[m]; var dir = new Vector2[m]; var push = new Vector2[m];
++        for (int i = 0; i < m; i++)
++        {
++            int e = bodies[i];
++            var (x, y) = tr.PosMm(last, e);
++            start[i] = new Vector2(x / 1000f, y / 1000f);
++            dir[i] = new Vector2(MathF.Sin(yaw[e]), MathF.Cos(yaw[e])) * (back[e] ? -1f : 1f);
++        }
++        // two bodies closer than the clearance have midpoints closer than a length and the clearance, and a point within
++        // its clearance (at most PrisonerClear) of a body lies closer than half a length and that to his midpoint: a cell
++        // that wide and its eight neighbours hold every candidate
++        const float cell = FallenLength + RelaxClearance;
++        static (int, int) Key(Vector2 c) => ((int)MathF.Floor(c.X / cell), (int)MathF.Floor(c.Y / cell));
++        var living = new Dictionary<(int, int), List<int>>();
++        int nk = keepClear?.Count ?? 0;
++        for (int k = 0; k < nk; k++)
++        {
++            var key = Key(keepClear![k].at);
++            if (!living.TryGetValue(key, out var l)) living[key] = l = new List<int>();
++            l.Add(k);
++        }
++        var grid = new Dictionary<(int, int), List<int>>();
++        Vector2 A(int i) => start[i] + offset[bodies[i]];
++        for (int pass = 0; pass < passes; pass++)
++        {
++            grid.Clear();
++            for (int i = 0; i < m; i++)
++            {
++                var k = Key(A(i) + dir[i] * (FallenLength * 0.5f));
++                if (!grid.TryGetValue(k, out var l)) grid[k] = l = new List<int>();
++                l.Add(i);
++            }
++            Array.Clear(push);
++            int close = 0;
++            for (int i = 0; i < m; i++)
++            {
++                var ai = A(i); var bi = ai + dir[i] * FallenLength;
++                var mi = ai + dir[i] * (FallenLength * 0.5f);
++                var side = new Vector2(-dir[i].Y, dir[i].X);
++                var (cx, cy) = Key(mi);
++                for (int gx = cx - 1; gx <= cx + 1; gx++)
++                    for (int gy = cy - 1; gy <= cy + 1; gy++)
++                    {
++                        if (grid.TryGetValue((gx, gy), out var l))
++                            foreach (int j in l)
++                            {
++                                if (j <= i) continue;
++                                var aj = A(j); var bj = aj + dir[j] * FallenLength;
++                                var (qi, qj) = ClosestPoints(ai, bi, aj, bj);
++                                var d = qj - qi; float dist = d.Length();
++                                if (dist >= RelaxClearance) continue;
++                                close++;
++                                Vector2 nrm;
++                                if (dist > 1e-4f) nrm = d / dist;
++                                else
++                                {
++                                    // crossing: part them across the first body's line, the second to the side his middle lies on
++                                    var mj = aj + dir[j] * (FallenLength * 0.5f);
++                                    nrm = Vector2.Dot(mj - mi, side) < 0f ? -side : side;
++                                }
++                                var corr = nrm * ((RelaxClearance - dist) * 0.25f);
++                                push[i] -= corr; push[j] += corr;
++                            }
++                    }
++            }
++            for (int i = 0; i < m; i++)
++            {
++                var p = push[i];
++                float pl = p.Length();
++                if (pl > RelaxStep) p *= RelaxStep / pl;
++                var o = offset[bodies[i]] + p;
++                float ol = o.Length();
++                if (ol > maxRelax) o *= maxRelax / ol;
++                offset[bodies[i]] = o;
++            }
++            // the living are fixed: a body lying within a living man's clearance is lifted off him in full (bodies in
++            // entity order, points in cell and list order), within the bound
++            if (nk > 0)
++                for (int i = 0; i < m; i++)
++                {
++                    var ai = A(i); var ab = dir[i] * FallenLength; var mi = ai + ab * 0.5f;
++                    var side = new Vector2(-dir[i].Y, dir[i].X);
++                    var (cx, cy) = Key(mi);
++                    for (int gx = cx - 1; gx <= cx + 1; gx++)
++                        for (int gy = cy - 1; gy <= cy + 1; gy++)
++                        {
++                            if (!living.TryGetValue((gx, gy), out var lk)) continue;
++                            foreach (int k in lk)
++                            {
++                                var (pt, clr) = keepClear![k];
++                                ai = A(i);
++                                float t = Math.Clamp(Vector2.Dot(pt - ai, ab) / ab.LengthSquared(), 0f, 1f);
++                                var d = ai + ab * t - pt; float dist = d.Length();
++                                if (dist >= clr) continue;
++                                close++;
++                                var nrm = dist > 1e-4f ? d / dist : (Vector2.Dot(ai + ab * 0.5f - pt, side) < 0f ? -side : side);
++                                var o = offset[bodies[i]] + nrm * (clr + RelaxLift - dist);
++                                float ol = o.Length();
++                                if (ol > maxRelax) o *= maxRelax / ol;
++                                offset[bodies[i]] = o;
++                            }
++                        }
++                }
++            if (close == 0) break;
++        }
++        return offset;
++    }
++
++    /// <summary>The closest points of segments [p1, q1] and [p2, q2] in the plane (the clamped parameters of the two lines'
++    /// closest approach; Ericson, Real-Time Collision Detection, 5.1.9).</summary>
++    public static (Vector2 c1, Vector2 c2) ClosestPoints(Vector2 p1, Vector2 q1, Vector2 p2, Vector2 q2)
++    {
++        var d1 = q1 - p1; var d2 = q2 - p2; var r = p1 - p2;
++        float a = Vector2.Dot(d1, d1), e = Vector2.Dot(d2, d2), f = Vector2.Dot(d2, r);
++        float s, t;
++        if (a <= 1e-12f && e <= 1e-12f) return (p1, p2);
++        if (a <= 1e-12f) { s = 0f; t = Math.Clamp(f / e, 0f, 1f); }
++        else
++        {
++            float c = Vector2.Dot(d1, r);
++            if (e <= 1e-12f) { t = 0f; s = Math.Clamp(-c / a, 0f, 1f); }
++            else
++            {
++                float b = Vector2.Dot(d1, d2), den = a * e - b * b;
++                s = den > 1e-12f ? Math.Clamp((b * f - c * e) / den, 0f, 1f) : 0f;
++                t = (b * s + f) / e;
++                if (t < 0f) { t = 0f; s = Math.Clamp(-c / a, 0f, 1f); }
++                else if (t > 1f) { t = 1f; s = Math.Clamp((b - c) / a, 0f, 1f); }
++            }
++        }
++        return (p1 + d1 * s, p2 + d2 * t);
 +    }
 +
 +    /// <summary>Polish3: the least distance (m) a kneeling prisoner keeps from a fallen body's centre line, from another
@@ -3738,7 +3932,8 @@ index 0000000..7dc696a
 +
 +    /// <summary>
 +    /// Polish2 (critic ranks 6 and 7): each fallen soldier's body on the ground as a segment in the plane (from where he
-+    /// lies, settled, along his fall, <see cref="FallenLength"/> long): what the ground cover keeps clear of.
++    /// lies, settled, along his fall, <see cref="FallenLength"/> long): what the ground cover keeps clear of. Polish3: where
++    /// he lies at rest (settled and relaxed apart).
 +    /// </summary>
 +    public List<(Vector2 a, Vector2 b)> FallenBodies()
 +    {
@@ -3775,7 +3970,8 @@ index 0000000..7dc696a
 +        return u < 0.40f ? 1 : u < 0.73f ? 2 : 3;
 +    }
 +
-+    /// <summary>Polish2: entity <paramref name="e"/>'s settle offset (m; zero when he does not fall).</summary>
++    /// <summary>Polish2: entity <paramref name="e"/>'s offset at rest (m; zero when he does not fall). Polish3: the settle
++    /// and then the relaxation apart (<see cref="RelaxFallen"/>).</summary>
 +    public Vector2 SettleOffset(int e) => _deadOffset[e];
 +
 +    /// <summary>Polish2: the dropped kit of the last <see cref="Update"/> (read only; tests and reports).</summary>
@@ -3916,8 +4112,11 @@ index 0000000..7dc696a
 +                    if (!ShowDead) { a.Hidden = true; continue; }
 +                    bool back = _deadBack[e];
 +                    if (!float.IsNaN(_deadYaw[e])) a.Yaw = _deadYaw[e];
-+                    // polish2: settled at most 1 m from where the trace put him, disarmed (his kit lies beside him)
-+                    var so = _deadOffset[e];
++                    // polish2: settled at most 1 m from where the trace put him, disarmed (his kit lies beside him);
++                    // polish3 (critic rank 3): from there he drifts, over his first RelaxDriftSeconds down, to where the
++                    // relaxation lays him (at most MaxRelax from the trace; at rest in every still after that)
++                    float dw = Math.Clamp((now - _deathMs[e] / 1000f) / RelaxDriftSeconds, 0f, 1f); dw = dw * dw * (3f - 2f * dw);
++                    var so = Vector2.Lerp(_deadSettle[e], _deadOffset[e], dw);
 +                    if (so != Vector2.Zero) { a.Position.X += so.X; a.Position.Z += so.Y; a.Position.Y = _height(a.Position.X, a.Position.Z); }
 +                    a.Unarmed = true;
 +                    a.ClipA = back ? _death2 : _death; a.TimeA = MathF.Max(0f, now - _deathMs[e] / 1000f);
@@ -8947,10 +9146,10 @@ index 0000000..77c6a65
 +}
 diff --git a/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs b/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs
 new file mode 100644
-index 0000000..729ce4e
+index 0000000..cfec869
 --- /dev/null
 +++ b/prototypes/m7-gfx2/Gfx.Tests/Polish3Tests.cs
-@@ -0,0 +1,393 @@
+@@ -0,0 +1,482 @@
 +using Gfx.Chars.Animation;
 +using Gfx.Chars.Crowd;
 +using Gfx.Chars.Format;
@@ -9181,7 +9380,7 @@ index 0000000..729ce4e
 +    /// Rank 3: the prisoners kneel apart from the fallen. Over the bench battle's end: the placement is a pure function of
 +    /// the trace (twice the same), moves no one but the surrendered and none of them more than 4 m, every prisoner faces
 +    /// the victors' centroid, and the prisoners kneeling within 0.75 m of a fallen body's centre line fall from the
-+    /// trace's layout to under a quarter of that (and to under a sixth of the prisoners; measured: 429 to 78 of 559); the
++    /// trace's layout to under a quarter of that (and to under a sixth of the prisoners; measured against the fallen at rest, settled and relaxed: 436 to 44 of 559); the
 +    /// trace's hash is unchanged.
 +    /// </summary>
 +    [BenchTraceFact]
@@ -9197,10 +9396,13 @@ index 0000000..729ce4e
 +                if (death[e] == long.MinValue && Gfx.Demo.Scenes.Bench.BenchBattle.Map(tr.State(s, e)) == Gfx.Demo.Scenes.Bench.TraceSoldierState.Dead) death[e] = tr.StepTimeMs(s);
 +        var yaw = Gfx.Demo.Scenes.Bench.TraceCrowd.FacingPerStep(tr);
 +        var (dy, db) = Gfx.Demo.Scenes.Bench.TraceCrowd.LayOutFallen(tr, death, yaw);
-+        var settle = Gfx.Demo.Scenes.Bench.TraceCrowd.SettleFallen(tr, death, dy, db);
-+        var (o1, y1) = Gfx.Demo.Scenes.Bench.TraceCrowd.PlacePrisoners(tr, dy, db, settle);
-+        var (o2, y2) = Gfx.Demo.Scenes.Bench.TraceCrowd.PlacePrisoners(tr, dy, db, settle);
++        var settled = Gfx.Demo.Scenes.Bench.TraceCrowd.SettleFallen(tr, death, dy, db);
++        var (o1, y1) = Gfx.Demo.Scenes.Bench.TraceCrowd.PlacePrisoners(tr, dy, db, settled);
++        var (o2, y2) = Gfx.Demo.Scenes.Bench.TraceCrowd.PlacePrisoners(tr, dy, db, settled);
 +        Assert.Equal(o1, o2); Assert.Equal(y1, y2);
++        // the fallen as the scene lays them at rest: the polish2 settle, then (after the prisoners are placed) the
++        // relaxation apart, clear of the kneeling prisoners and the standing men
++        var settle = Gfx.Demo.Scenes.Bench.TraceCrowd.RelaxFallen(tr, death, dy, db, settled, Gfx.Demo.Scenes.Bench.TraceCrowd.KeepClearOfTheLiving(tr, o1, y1));
 +        Vector2 At(int e) { var (x, y) = tr.PosMm(last, e); return new Vector2(x / 1000f, y / 1000f); }
 +        var bodies = new List<(Vector2 a, Vector2 b)>();
 +        var prisoners = new List<int>();
@@ -9250,6 +9452,92 @@ index 0000000..729ce4e
 +        // (where the fallen lie thickest there is no clear ground within 4 m: those prisoners take the roomiest place)
 +        Assert.True(after * 4 < before0, $"{after} prisoners still kneel on the fallen ({before0} in the trace)");
 +        Assert.True(after * 6 < prisoners.Count, $"{after} of {prisoners.Count} prisoners kneel on the fallen");
++        Assert.Equal(before, tr.Hash());
++    }
++
++    /// <summary>
++    /// Rank 3: the fallen relaxed apart, as the scene lays them at rest (the settle, the prisoners placed against it, then
++    /// the relaxation clear of the living). Over the bench battle's end: the relaxation is a pure function of its inputs
++    /// (two calls agree bit for bit; the settle it starts from is not written); it moves no one who does not die; no body
++    /// lies more than MaxRelax from where the trace put him; the bodies lying through one another fall (pairs whose centre
++    /// lines cross, and pairs closer than 0.2 m, each to under half of what the settle left); and the living men with a
++    /// body inside their clearance (5 cm of tolerance) fall to under half too (numbers in the output). The closest-points
++    /// helper agrees with SegmentDistance on 2,000 hashed segment pairs. The trace's hash is unchanged.
++    /// </summary>
++    [BenchTraceFact]
++    public void FallenBodiesRelaxApartWithinTheirBound()
++    {
++        var tr = Gfx.Demo.Scenes.Bench.BenchBattle.Load().Trace;
++        string before = tr.Hash();
++        int n = tr.Entities.Count, steps = tr.StepCount, last = steps - 1;
++        var death = new long[n]; Array.Fill(death, long.MinValue);
++        for (int s = 0; s < steps; s++)
++            for (int e = 0; e < n; e++)
++                if (death[e] == long.MinValue && Gfx.Demo.Scenes.Bench.BenchBattle.Map(tr.State(s, e)) == Gfx.Demo.Scenes.Bench.TraceSoldierState.Dead) death[e] = tr.StepTimeMs(s);
++        var yaw = Gfx.Demo.Scenes.Bench.TraceCrowd.FacingPerStep(tr);
++        var (dy, db) = Gfx.Demo.Scenes.Bench.TraceCrowd.LayOutFallen(tr, death, yaw);
++        var settle = Gfx.Demo.Scenes.Bench.TraceCrowd.SettleFallen(tr, death, dy, db);
++        var (po, py) = Gfx.Demo.Scenes.Bench.TraceCrowd.PlacePrisoners(tr, dy, db, settle);
++        var living = Gfx.Demo.Scenes.Bench.TraceCrowd.KeepClearOfTheLiving(tr, po, py);
++        var settleCopy = (Vector2[])settle.Clone();
++        var r1 = Gfx.Demo.Scenes.Bench.TraceCrowd.RelaxFallen(tr, death, dy, db, settle, living);
++        var r2 = Gfx.Demo.Scenes.Bench.TraceCrowd.RelaxFallen(tr, death, dy, db, settle, living);
++        Assert.Equal(r1, r2);
++        Assert.Equal(settleCopy, settle);
++        var dead = Enumerable.Range(0, n).Where(e => death[e] != long.MinValue && !float.IsNaN(dy[e])).ToArray();
++        int moved = 0;
++        var drift = new List<float>();
++        for (int e = 0; e < n; e++)
++        {
++            float len = r1[e].Length();
++            Assert.True(len <= Gfx.Demo.Scenes.Bench.TraceCrowd.MaxRelax + 1e-4f, $"entity {e} lies {len:F3} m from the trace");
++            if (death[e] == long.MinValue) Assert.Equal(Vector2.Zero, r1[e]);
++            else if (r1[e] != settle[e]) moved++;
++        }
++        foreach (int e in dead) drift.Add((r1[e] - settle[e]).Length());
++        drift.Sort();
++        (Vector2 a, Vector2 b)[] Bodies(Vector2[] off) => dead.Select(e =>
++        {
++            var (x, y) = tr.PosMm(last, e);
++            var p = new Vector2(x / 1000f, y / 1000f) + off[e];
++            return (p, p + new Vector2(MathF.Sin(dy[e]), MathF.Cos(dy[e])) * (db[e] ? -1f : 1f) * Gfx.Demo.Scenes.Bench.TraceCrowd.FallenLength);
++        }).ToArray();
++        int Close(Vector2[] off, float within)
++        {
++            var b = Bodies(off); int c = 0;
++            for (int i = 0; i < b.Length; i++)
++                for (int j = i + 1; j < b.Length; j++)
++                    if (Gfx.Demo.Scenes.Bench.TraceCrowd.SegmentDistance(b[i].a, b[i].b, b[j].a, b[j].b) < within) c++;
++            return c;
++        }
++        int OnLiving(Vector2[] off)
++        {
++            var b = Bodies(off); int c = 0;
++            foreach (var (pt, clr) in living)
++                foreach (var (a, bb) in b)
++                    if (Gfx.Demo.Scenes.Bench.TraceCrowd.PointSegment(pt, a, bb) < clr - 0.05f) { c++; break; }
++            return c;
++        }
++        int cross0 = Close(settle, 1e-5f), cross1 = Close(r1, 1e-5f), near0 = Close(settle, 0.2f), near1 = Close(r1, 0.2f);
++        int clear0 = Close(settle, Gfx.Demo.Scenes.Bench.TraceCrowd.FallenClearance), clear1 = Close(r1, Gfx.Demo.Scenes.Bench.TraceCrowd.FallenClearance);
++        int live0 = OnLiving(settle), live1 = OnLiving(r1);
++        _out.WriteLine($"fallen {dead.Length}, living {living.Count}; moved by the relaxation {moved}, drift median {drift[drift.Count / 2]:F2} m, 90th {drift[drift.Count * 9 / 10]:F2} m, max {drift[^1]:F2} m");
++        _out.WriteLine($"settled -> relaxed: crossing {cross0} -> {cross1}; closer than 0.2 m {near0} -> {near1}; closer than {Gfx.Demo.Scenes.Bench.TraceCrowd.FallenClearance} m {clear0} -> {clear1}; living with a body inside {live0} -> {live1}");
++        Assert.True(cross0 > 100 && near0 > 300 && live0 > 30, $"the settle leaves {cross0} crossing, {near0} near pairs, {live0} living on bodies: the test proves nothing");
++        Assert.True(moved > 100, $"the relaxation moved {moved} bodies");
++        Assert.True(cross1 * 2 < cross0, $"crossing pairs: settled {cross0}, relaxed {cross1}");
++        Assert.True(near1 * 2 < near0, $"pairs closer than 0.2 m: settled {near0}, relaxed {near1}");
++        Assert.True(live1 * 2 < live0, $"living with a body inside their clearance: settled {live0}, relaxed {live1}");
++        // the helper's closest points are as far apart as SegmentDistance says the segments are (hashed segments, 0-4 m)
++        float U(uint k) => (CrowdLook.Hash(k) >> 8) * (1f / 16777216f) * 4f;
++        for (uint k = 0; k < 2000; k++)
++        {
++            var a0 = new Vector2(U(8 * k), U(8 * k + 1)); var a1 = new Vector2(U(8 * k + 2), U(8 * k + 3));
++            var b0 = new Vector2(U(8 * k + 4), U(8 * k + 5)); var b1 = new Vector2(U(8 * k + 6), U(8 * k + 7));
++            var (c1, c2) = Gfx.Demo.Scenes.Bench.TraceCrowd.ClosestPoints(a0, a1, b0, b1);
++            float want = Gfx.Demo.Scenes.Bench.TraceCrowd.SegmentDistance(a0, a1, b0, b1);
++            Assert.True(MathF.Abs(Vector2.Distance(c1, c2) - want) < 1e-4f, $"pair {k}: closest points {Vector2.Distance(c1, c2):F5} apart, SegmentDistance {want:F5}");
++        }
 +        Assert.Equal(before, tr.Hash());
 +    }
 +
